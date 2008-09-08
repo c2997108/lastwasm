@@ -1,4 +1,4 @@
-all: dist
+all: version log
 	@cd src && $(MAKE)
 
 dist: version log
