@@ -1,0 +1,128 @@
+E-VALUES FOR PAIR-WISE LOCAL SEQUENCE ALIGNMENT
+
+The following tables indicate how many high-scoring alignments are
+expected, on average, between a pair of completely random sequences.
+This expected number of alignments is called the "E-value", and it
+depends on: the score threshold, the sequence lengths, the scoring
+scheme, and the letter abundances.
+
+E-value = K * M * N * exp(-lambda * score)                         (1)
+
+Here, M and N are the sequence lengths, and K and lambda are
+parameters that depend on the scoring scheme and letter abundances.
+
+Each table corresponds to one scoring scheme and set of abundances.  A
+scoring scheme comprises: a score matrix (BLOSUM62, HOXD70, or +1/-1),
+a gap opening penalty (GOP), and a gap extension penalty (GEP).  (A
+gap of size k has a penalty of GOP + k * GEP.)  Each table shows how
+the E-value varies with the score threshold and the product of
+sequence lengths.  As examples of the latter, the product of the human
+and mouse genome sizes is about 1e+19, and the product of the fruitfly
+and mosquito genome sizes is about 1e+17.
+
+You can easily extend the tables by applying Equation (1).  To get K
+and lambda for alternative scoring schemes or abundances, you can use
+ALP (ftp://ftp.ncbi.nih.gov/pub/spouge/BLAST_Gumbel/).
+
+
+DNA SCORING SCHEME: matrix=+1/-1 GOP=2 GEP=1
+
+Abundances=50%AT lambda=0.988719 K=0.166667
+	30	40	50	60	70	80
+1e+15	22	0.0011	5.7e-08	2.9e-12	1.5e-16	7.4e-21
+1e+17	2.2e+03	0.11	5.7e-06	2.9e-10	1.5e-14	7.4e-19
+1e+19	2.2e+05	11	0.00057	2.9e-08	1.5e-12	7.4e-17
+
+Abundances=60%AT lambda=0.915726 K=0.137997
+	30	40	50	60	70	80
+1e+15	1.6e+02	0.017	1.8e-06	1.9e-10	2e-14	2.1e-18
+1e+17	1.6e+04	1.7	0.00018	1.9e-08	2e-12	2.1e-16
+1e+19	1.6e+06	1.7e+02	0.018	1.9e-06	2e-10	2.1e-14
+
+Abundances=70%AT lambda=0.676914 K=0.0479095
+	30	40	50	60	70	80
+1e+15	7.3e+04	83	0.096	0.00011	1.3e-07	1.5e-10
+1e+17	7.3e+06	8.3e+03	9.6	0.011	1.3e-05	1.5e-08
+1e+19	7.3e+08	8.3e+05	9.6e+02	1.1	0.0013	1.5e-06
+
+
+DNA SCORING SCHEME: matrix=HOXD70 GOP=400 GEP=30
+
+Abundances=50%AT lambda=0.00935697 K=0.0894899
+	3500	4000	4500	5000	5500	6000
+1e+15	0.54	0.005	4.6e-05	4.3e-07	4e-09	3.7e-11
+1e+17	54	0.5	0.0046	4.3e-05	4e-07	3.7e-09
+1e+19	5.4e+03	50	0.46	0.0043	4e-05	3.7e-07
+
+Abundances=60%AT lambda=0.00908263 K=0.0805516
+	3500	4000	4500	5000	5500	6000
+1e+15	1.3	0.013	0.00014	1.5e-06	1.6e-08	1.7e-10
+1e+17	1.3e+02	1.3	0.014	0.00015	1.6e-06	1.7e-08
+1e+19	1.3e+04	1.3e+02	1.4	0.015	0.00016	1.7e-06
+
+Abundances=70%AT lambda=0.00714096 K=0.0312275
+	3500	4000	4500	5000	5500	6000
+1e+15	4.4e+02	12	0.35	0.0097	0.00027	7.7e-06
+1e+17	4.4e+04	1.2e+03	35	0.97	0.027	0.00077
+1e+19	4.4e+06	1.2e+05	3.5e+03	97	2.7	0.077
+
+
+PROTEIN SCORING SCHEME: matrix=BLOSUM62 GOP=11 GEP=2
+
+Abundances=Robinson-Robinson lambda=0.298743 K=0.0882523
+	80	90	100	110	120	130
+1e+13	37	1.9	0.094	0.0047	0.00024	1.2e-05
+1e+15	3.7e+03	1.9e+02	9.4	0.47	0.024	0.0012
+1e+17	3.7e+05	1.9e+04	9.4e+02	47	2.4	0.12
+
+
+DNA SCORING SCHEME: matrix=+1/-1 GOP=inf GEP=inf
+
+Abundances=50%AT lambda=1.09861 K=0.111111
+	20	25	30	40	50	60
+1e+15	3.2e+04	1.3e+02	0.54	9.1e-06	1.5e-10	2.6e-15
+1e+17	3.2e+06	1.3e+04	54	0.00091	1.5e-08	2.6e-13
+1e+19	3.2e+08	1.3e+06	5.4e+03	0.091	1.5e-06	2.6e-11
+
+Abundances=60%AT lambda=1.04597 K=0.109394
+	20	25	30	40	50	60
+1e+15	9e+04	4.8e+02	2.6	7.4e-05	2.1e-09	6.1e-14
+1e+17	9e+06	4.8e+04	2.6e+02	0.0074	2.1e-07	6.1e-12
+1e+19	9e+08	4.8e+06	2.6e+04	0.74	2.1e-05	6.1e-10
+
+Abundances=70%AT lambda=0.895384 K=0.10148
+	20	25	30	40	50	60
+1e+15	1.7e+06	1.9e+04	2.2e+02	0.028	3.7e-06	4.7e-10
+1e+17	1.7e+08	1.9e+06	2.2e+04	2.8	0.00037	4.7e-08
+1e+19	1.7e+10	1.9e+08	2.2e+06	2.8e+02	0.037	4.7e-06
+
+
+DNA SCORING SCHEME: matrix=HOXD70 GOP=inf GEP=inf
+
+Abundances=50%AT lambda=0.0103508 K=0.183909
+	2000	2500	3000	3500	4000	4500
+1e+15	1.9e+05	1.1e+03	6	0.034	0.00019	1.1e-06
+1e+17	1.9e+07	1.1e+05	6e+02	3.4	0.019	0.00011
+1e+19	1.9e+09	1.1e+07	6e+04	3.4e+02	1.9	0.011
+
+Abundances=60%AT lambda=0.0101777 K=0.181108
+	2000	2500	3000	3500	4000	4500
+1e+15	2.6e+05	1.6e+03	9.9	0.061	0.00038	2.3e-06
+1e+17	2.6e+07	1.6e+05	9.9e+02	6.1	0.038	0.00023
+1e+19	2.6e+09	1.6e+07	9.9e+04	6.1e+02	3.8	0.023
+
+Abundances=70%AT lambda=0.009105 K=0.16375
+	2000	2500	3000	3500	4000	4500
+1e+15	2e+06	2.1e+04	2.2e+02	2.4	0.025	0.00026
+1e+17	2e+08	2.1e+06	2.2e+04	2.4e+02	2.5	0.026
+1e+19	2e+10	2.1e+08	2.2e+06	2.4e+04	2.5e+02	2.6
+
+
+PROTEIN SCORING SCHEME: matrix=BLOSUM62 GOP=inf GEP=inf
+
+Abundances=Robinson-Robinson lambda=0.317606 K=0.0973483
+	50	60	70	80	90	100
+1e+13	1.2e+05	5.2e+03	2.2e+02	9	0.38	0.016
+1e+15	1.2e+07	5.2e+05	2.2e+04	9e+02	38	1.6
+1e+17	1.2e+09	5.2e+07	2.2e+06	9e+04	3.8e+03	1.6e+02
+

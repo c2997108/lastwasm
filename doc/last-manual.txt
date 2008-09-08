@@ -1,0 +1,253 @@
+LAST: Genome-Scale Sequence Comparison
+
+*** Introduction ***
+
+LAST is software for comparing and aligning sequences, typically DNA
+or protein sequences.  LAST is similar to BLAST, but it copes better
+with very large amounts of sequence data.
+
+
+*** Requirements ***
+
+To handle mammalian genomes, you will need at least 2 gigabytes of
+RAM, and a few tens of gigabytes of disk space.  To install the
+software, you need a C++ compiler.
+
+Optional: to run the scripts, you need a Unix-like environment with
+Python.  To make dotplots, you need the Python Imaging Library.
+
+
+*** Installation ***
+
+Just go into the src directory and type 'make'.  This should make two
+programs: lastdb and lastal.
+
+
+*** Example 1: Compare the cat and mouse genomes ***
+
+Let's assume you have the cat and mouse genomes as FASTA-format
+sequence files: cat/*.fa and mouse/*.fa.  We'll assume also that
+repetitive regions are in lowercase.  Firstly, make a LAST database of
+the cat genome:
+
+  lastdb -c -m 110 catdb cat/*.fa
+
+This will make some new files whose names begin with "catdb".  It may
+take an hour or so.  (For a smaller genome, e.g. fruitfly, it only
+takes a few minutes.)  Here, we used "-c" to soft-mask lowercase
+letters, and "-m 110" to skip every third position when matching: this
+makes it more sensitive for matching protein-coding DNA (and
+non-coding DNA to some extent).  Secondly, compare the mouse genome to
+the cat database:
+
+  lastal -o cat-mouse.maf -u 2 catdb mouse/*.fa
+
+This will write alignments in a file called "cat-mouse.maf".  It may
+take a day or so (for insect genomes, 30 minutes or so).  Here, we
+used "-u 2" to soft-mask lowercase letters.  Next, if we like, we can
+remove uninteresting paralog alignments:
+
+  last-reduce-alignments.sh cat-mouse.maf > reduced.maf
+
+Finally, we can make a dotplot:
+
+  maf2tab.py reduced.maf | grep -v random > no-random.tab
+  last-dotplot.py no-random.tab cat-mouse.png
+
+Here, we first converted the alignments to tabular format, and then
+removed alignments involving "random" chromosomes, to make the dotplot
+less cluttered.
+
+
+*** Example 2: Map short sequence tags to the human genome ***
+
+Let's assume you have the human genome and tag sequences in
+FASTA-format files: human/*.fa and tags.fa.  This time, we will not
+mask repeats, because we want to map repetitive tags too.  Firstly,
+make a LAST database of the human genome:
+
+  lastdb humandb human/*.fa
+
+This will make some new files whose names begin with "humandb".  It
+may take a few hours.  (It would be quicker if we masked repeats.)
+Secondly, compare the tags to the human database:
+
+  lastal -o human-tags.maf -e 30 humandb tags.fa
+
+This will write alignments in a file called "human-tags.maf".  It may
+take minutes or hours, depending on how many tags you have.  Here, we
+used "-e 30" to report alignments with score >= 30.  (The appropriate
+value depends on the length of the tags: the default scoring scheme
+assigns +1 to each nucleotide match and -1 to each mismatch.)
+Finally, it may be interesting to know the number of exact matches of
+each size for each tag:
+
+  lastal -o human-tags-counts -g 0 humandb tags.fa
+
+For more ideas on tag mapping, see the accompanying document
+tag-seeds.txt.
+
+
+*** Output Formats ***
+
+lastal can write alignments in two formats: tabular and MAF.  MAF
+format looks like this:
+
+a score=16
+s chr3L        19433515 24 + 24543557 TTTGGGAGTTGAAGTTTTCGCCCT
+s H04BA01F1907        2 22 +       25 TTTGGGAGTTGAAGGTT--GCCCT
+
+Lines starting with "s" contain: the sequence name, the start position
+of the alignment, the number of nucleotides in the alignment, the
+strand, the total size of the sequence, and the aligned nucleotides.
+If the alignment starts at the beginning of the sequence, the start
+position is zero.  If the strand is "-", the start position is as if
+we had used the reverse-complemented sequence.  The same alignment in
+tabular format looks like this:
+
+16 chr3L 19433515 24 + 24543557 H04BA01F1907 2 22 + 25 17,2:0,5
+
+The final column shows the sizes and offsets of gapless blocks in the
+alignment.  In this case, we have a block of size 17, then an offset
+of size 2 in the upper sequence and 0 in the lower sequence, then a
+block of size 5.
+
+
+*** Steps in lastal ***
+
+1) Find initial matches
+2) Extend gapless alignments from the initial matches
+3) Extend gapped alignments from the gapless alignments
+4) Non-redundantize the gapped alignments
+
+
+*** Options for lastdb ***
+
+-p: Interpret the sequences as proteins.  The default is to interpret
+ them as DNA.
+
+-c: Read the sequences case-sensitively.  Lowercase letters are then
+ forbidden in initial matches (except in skipped positions), but they
+ may participate in gapless and gapped alignments, depending on the -u
+ option of lastal.  The default is to convert all letters to uppercase
+ on reading.
+
+-a: Specify your own alphabet, e.g. "-a ABCDE".  In this example, only
+ A, B, C, D, E will be allowed in initial matches (except in skipped
+ positions).  Other letters will be allowed in alignments, but will
+ receive the mismatch score.
+
+-m: Specify skipped positions in initial matches, e.g. "-m 110101". In
+ this example, every third and fifth position out of six will be
+ skipped.  The first position cannot be skipped, i.e. it must be "1".
+
+-w: Allow initial matches to start only at every "w"th position in
+ each database sequence.  This reduces time and storage requirements,
+ at the expense of sensitivity.  To emulate BLAT, use "-w 11".
+
+-b: Specify the depth of "buckets" used to accelerate initial match
+ finding.  The deeper the faster, but the more memory is needed.  The
+ default is to use the maximum depth that consumes at most one byte
+ per possible match start position: this seems to work well.
+
+-s: Split large databases into "volumes" of at most the specified
+ number of bytes (excluding buckets).  If a single sequence exceeds
+ this amount, however, it is not split.  The default is tuned for 2 GB
+ of RAM: if you have more, increase this to make lastal go faster.
+
+-v: Be verbose: write messages about what lastdb is doing.
+
+
+*** Options for lastal ***
+
+** Main Options **
+
+-h: Show all options and their default settings.
+
+-o: Write output to the specified file, instead of the screen.
+
+-u: Specify treatment of lowercase letters in the query sequences.  0
+ means convert them to uppercase; 1 means mask when finding initial
+ matches but not thereafter; 2 means mask when finding initial matches
+ and performing gapless extensions but not when performing gapped
+ extensions; 3 means mask at all stages.  If lastdb was run with "-c",
+ then this treatment will also apply to the database sequences, except
+ that lowercase regions in the database are always masked when finding
+ initial matches.
+
+-e: Minimum score for gapped alignments.  For guidance on choosing
+ this parameter, see the accompanying E-value tables.
+
+-s: Specify which query strand should be used: 0 means reverse only, 1
+ means forward only, and 2 means both.
+
+-f: Choose the output format: 0 means tabular and 1 means MAF.
+
+
+** Score Parameters **
+
+-r: Match score.
+
+-q: Mismatch score.
+
+-p: Obtain match and mismatch scores from the specified file.  The -r
+ and -q options will then be ignored.  For an example of the format,
+ see the accompanying file HOXD70.
+
+-a: Gap existence cost.
+
+-b: Gap extension cost.  A gap of size k costs: a + b*k.
+
+-c: This option allows use of "generalized affine gap costs" (SF
+ Altschul 1998, Proteins 32(1):88-96).  Here, a "gap" may consist of
+ unaligned regions of both sequences.  If these unaligned regions have
+ sizes j and k, where j <= k, the cost is: a + b*(k-j) + c*j.  If c >=
+ a + 2b (the default), it reduces to standard affine gaps.
+
+-x: Maximum score dropoff for gapped alignments.  Gapped alignments
+ are forbidden from having any internal region with score < -x.  This
+ serves two purposes: accuracy (avoid spurious internal regions in
+ alignments) and speed (the smaller the faster).
+
+-y: Maximum score dropoff for gapless alignments.
+
+-d: Minimum score for gapless alignments.  For guidance on choosing
+ this parameter, see the accompanying E-value tables.
+
+
+** Miscellaneous Options **
+
+-m: Maximum multiplicity for initial matches.  Each initial match is
+ lengthened until it occurs at most this many times in the database
+ volume.
+
+-l: Minimum depth for initial matches.  "Depth" is the number of
+ matched, non-skipped nucleotides.
+
+-k: Look for initial matches starting only at every "k"th position in
+ the query.  This increases speed at the expense of sensitivity.
+
+-i: Search queries in batches of at most this many bytes.  If a single
+ sequence exceeds this amount, however, it is not split.
+
+-w: This option is a kludge to avoid catastrophic time and memory
+ usage when self-comparing a large sequence.  If a large identical
+ match is found, then gapped alignments will not be triggered from
+ repeats (typically tandem repeats) within the identical match whose
+ start positions are offset by this distance or less.  Use "-w 0" to
+ turn this off.
+
+-g: Output type: 0 means counts of initial matches (of all sizes); 1
+ means gapless alignments; 2 means gapped alignments before
+ non-redundantization; 3 means gapped alignments after
+ non-redundantization.  Match counts (-g 0) respect the minimum depth
+ option but not the maximum multiplicity option.  It's a bad idea to
+ try -g 0 when comparing a large sequence to itself.
+
+-v: Be verbose: write messages about what lastal is doing.
+
+
+*** Questions, Comments, Problems ***
+
+Please email: last@cbrc.jp.  If reporting a problem, please describe
+exactly how to trigger the problem.

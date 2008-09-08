@@ -1,0 +1,233 @@
+// Copyright 2008 Martin C. Frith
+
+#include "LastalArguments.hh"
+#include "stringify.hh"
+#include <stdexcept>
+
+namespace cbrc{
+
+void LastalArguments::badopt( char opt, const char* arg ){
+  throw std::runtime_error( std::string("bad option value: -") +
+			    opt + ' ' + arg );
+}
+
+LastalArguments::LastalArguments( int argc, char** argv ) :
+  // default values:
+  outFile("-"),
+  outputFormat(1),
+  outputType(3),
+  strand(-1),  // depends on the alphabet
+  maskLowercase(0),
+  minScoreGapped(-1),  // depends on the alphabet
+  minScoreGapless(-1),  // depends on minScoreGapped
+  matchScore(-1),  // depends on the alphabet
+  mismatchCost(-1),  // depends on the alphabet
+  gapExistCost(-1),  // depends on the alphabet
+  gapExtendCost(-1),  // depends on the alphabet
+  gapPairCost(1000000000),
+  matrixFile(""),
+  maxDropGapped(-1),  // depends on gap costs & maxDropGapless
+  maxDropGapless(-1),  // depends on the score matrix
+  minHitDepth(1),
+  oneHitMultiplicity(10),
+  queryStep(1),
+  batchSize(0),  // depends on the outputType
+  maxRepeatDistance(1000),  // sufficiently conservative?
+  verbosity(0)
+{
+  std::string usage = "\
+usage: lastal [options] lastdb-name fasta-sequence-file(s)\n\
+\n\
+Main options (default settings):\n\
+-h: show all options and their default settings\n\
+-o: output file\n\
+-u: mask lowercase letters: 0=off, 1=softer, 2=soft, 3=hard ("
+    + stringify(maskLowercase) + ")\n\
+-e: minimum score for gapped alignments (50 for DNA, 100 for protein)\n\
+-s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
+-f: output format: 0=tabular, 1=maf ("
+    + stringify(outputFormat) + ")\n\
+";
+
+  std::string help = "\
+usage: lastal [options] lastdb-name fasta-sequence-file(s)\n\
+\n\
+Main options (default settings):\n\
+-h: show all options and their default settings\n\
+-o: output file\n\
+-u: mask lowercase letters: 0=off, 1=softer, 2=soft, 3=hard ("
+    + stringify(maskLowercase) + ")\n\
+-e: minimum score for gapped alignments (50 for DNA, 100 for protein)\n\
+-s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
+-f: output format: 0=tabular, 1=maf ("
+    + stringify(outputFormat) + ")\n\
+\n\
+Score parameters (default settings):\n\
+-r: match score   (1 for DNA, blosum62 for protein)\n\
+-q: mismatch cost (1 for DNA, blosum62 for protein)\n\
+-p: file for residue pair scores\n\
+-a: gap existence cost (2 for DNA, 11 for protein)\n\
+-b: gap extension cost (1 for DNA,  2 for protein)\n\
+-c: unaligned residue pair cost ("
+    + stringify(gapPairCost) + ")\n\
+-x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
+-y: maximum score dropoff for gapless extensions (max-match-score * 10)\n\
+-d: minimum score for gapless alignments (e*3/5)\n\
+\n\
+Miscellaneous options (default settings):\n\
+-m: maximum multiplicity for initial matches ("
+    + stringify(oneHitMultiplicity) + ")\n\
+-l: minimum depth for initial matches ("
+    + stringify(minHitDepth) + ")\n\
+-k: step-size along the query sequence ("
+    + stringify(queryStep) + ")\n\
+-i: query batch size (16 MB when counting matches, 128 MB otherwise)\n\
+-w: supress repeats within this distance inside large exact matches ("
+    + stringify(maxRepeatDistance) + ")\n\
+-g: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped ("
+    + stringify(outputType) + ")\n\
+-v: be verbose: write messages about what lastal is doing\n\
+";
+
+  int c;
+  while( (c = getopt(argc, argv, "ho:u:e:s:f:d:r:q:a:b:c:p:x:y:m:l:k:i:w:g:v"))
+	 != -1 ){
+    switch(c){
+    case 'h':
+      throw std::runtime_error(help);
+    case 'o':
+      outFile = optarg;
+      break;
+    case 'u':
+      unstringify( maskLowercase, optarg );  // 4 not supported yet
+      if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );
+      break;
+    case 'e':
+      unstringify( minScoreGapped, optarg );
+      if( minScoreGapped < 0 ) badopt( c, optarg );
+      break;
+    case 's':
+      unstringify( strand, optarg );
+      if( strand < 0 || strand > 2 ) badopt( c, optarg );
+      break;
+    case 'f':
+      unstringify( outputFormat, optarg );
+      if( outputFormat < 0 || outputFormat > 1 ) badopt( c, optarg );
+      break;
+    case 'r':
+      unstringify( matchScore, optarg );
+      if( matchScore <= 0 ) badopt( c, optarg );
+      break;
+    case 'q':
+      unstringify( mismatchCost, optarg );
+      if( mismatchCost <= 0 ) badopt( c, optarg );
+      break;
+    case 'p':
+      matrixFile = optarg;
+      break;
+    case 'a':
+      unstringify( gapExistCost, optarg );
+      if( gapExistCost < 0 ) badopt( c, optarg );
+      break;
+    case 'b':
+      unstringify( gapExtendCost, optarg );
+      if( gapExtendCost <= 0 ) badopt( c, optarg );
+      break;
+    case 'c':
+      unstringify( gapPairCost, optarg );
+      if( gapPairCost <= 0 ) badopt( c, optarg );
+      break;
+    case 'x':
+      unstringify( maxDropGapped, optarg );
+      if( maxDropGapped < 0 ) badopt( c, optarg );
+      break;
+    case 'y':
+      unstringify( maxDropGapless, optarg );
+      if( maxDropGapless < 0 ) badopt( c, optarg );
+      break;
+    case 'd':
+      unstringify( minScoreGapless, optarg );
+      if( minScoreGapless < 0 ) badopt( c, optarg );
+      break;
+    case 'm':
+      unstringify( oneHitMultiplicity, optarg );
+      break;
+    case 'l':
+      unstringify( minHitDepth, optarg );
+      if( minHitDepth <= 0 ) badopt( c, optarg );
+      break;
+    case 'k':
+      unstringify( queryStep, optarg );
+      if( queryStep <= 0 ) badopt( c, optarg );
+      break;
+    case 'i':
+      unstringify( batchSize, optarg );
+      if( batchSize <= 0 ) badopt( c, optarg );  // 0 means "not specified"
+      break;
+    case 'w':
+      unstringify( maxRepeatDistance, optarg );
+      break;
+    case 'g':
+      unstringify( outputType, optarg );
+      if( outputType < 0 || outputType > 3 ) badopt( c, optarg );
+      break;
+    case 'v':
+      ++verbosity;
+      break;
+    case '?':
+      throw std::runtime_error("bad option");
+    }
+  }
+
+  if( optind == argc ) throw std::runtime_error(usage);
+  lastdbName = argv[optind++];
+  inputStart = optind;
+}
+
+void LastalArguments::setDefaults( bool isDna, bool isProtein,
+				   int maxMatchScore ){
+  if( strand < 0 ) strand = isDna ? 2 : 1;
+
+  if( minScoreGapped < 0 ) minScoreGapped = isProtein ? 100 : 50;
+  if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
+
+  // matchScore & mismatchCost are set when making the score matrix
+
+  if( gapExistCost < 0 )   gapExistCost = isProtein ? 11 : 2;
+  if( gapExtendCost < 0 )  gapExtendCost = isProtein ? 2 : 1;
+
+  if( maxDropGapless < 0 ) maxDropGapless = maxMatchScore * 10;
+
+  if( maxDropGapped < 0 ){
+    maxDropGapped = std::max( gapExistCost + gapExtendCost * 20,
+			      maxDropGapless );
+  }
+
+  if( batchSize == 0 ){
+    if( outputType == 0 )  batchSize = 0x1000000;  // 16 Mbytes
+    else                   batchSize = 0x8000000;  // 128 Mbytes
+  }
+}
+
+void LastalArguments::writeCommented( std::ostream& stream ) const{
+  stream << "# "
+	 << "a=" << gapExistCost << ' '
+	 << "b=" << gapExtendCost << ' '
+	 << "c=" << gapPairCost << ' '
+	 << "e=" << minScoreGapped << ' '
+	 << "d=" << minScoreGapless << ' '
+	 << "x=" << maxDropGapped << ' '
+	 << "y=" << maxDropGapless << '\n';
+
+  stream << "# "
+	 << "u=" << maskLowercase << ' '
+	 << "s=" << strand << ' '
+	 << "m=" << oneHitMultiplicity << ' '
+	 << "l=" << minHitDepth << ' '
+	 << "k=" << queryStep << ' '
+	 << "i=" << batchSize << ' '
+	 << "w=" << maxRepeatDistance << ' '
+	 << "g=" << outputType << '\n';
+}
+
+}  // end namespace cbrc

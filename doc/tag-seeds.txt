@@ -1,0 +1,62 @@
+Spaced Seeds for Tag Mapping
+----------------------------
+
+This document suggests a strategy for mapping short sequence tags to
+genomes.  Suppose we have tags of length 25, and we wish to find all
+perfect matches, allowing up to one mismatch.  One approach is to
+start by finding exact matches of length 12: this is because any
+25-mer with one mismatch must have an exactly matching region of
+length at least 12.  We can then check whether each 12-mer match can
+be extended to a 25-mer match with at most one mismatch.  This method
+may be very slow, because there will be many unproductive 12-mer
+matches.
+
+A better approach is to use a spaced seed: 11111111011111111.  Any
+25-mer with one mismatch is guaranteed to have an exact match using
+this seed.  Since the seed has 16 matched positions (16 "1"s), we will
+get far fewer unproductive matches.
+
+More generally, for tags of length L, use a seed with (L-1)/3 "1"s,
+followed by one "0", followed by (L-1)/3 "1"s.  The following table
+gives some examples.  How about allowing more than one mismatch?
+Sorry, we haven't figured that out yet.
+
+--------------------------------------
+Tag length     Seed
+--------------------------------------
+20             1111110111111
+25             11111111011111111
+30             1111111110111111111
+35             11111111111011111111111
+--------------------------------------
+
+There are a couple of caveats regarding the desire to find all matches
+with up to N mismatches.  Firstly, there are typically some repetitive
+tags that match huge numbers of genome locations.  Finding all of
+these matches is slow and produces vast reams of output, no matter how
+you do it.  Some experience of this convinces most people they don't
+really want all the matches.  Secondly, sequencing errors are often
+concentrated at the ends of tags, so it might be better to allow more
+mismatches at the ends.  Fortunately, the seed-and-extend approach is
+perfect for this.
+
+With LAST, you could use the following commands to map 25-mers
+allowing up to one mismatch:
+
+  lastdb -m 111111110 humandb human/*.fa
+
+The seed pattern gets cyclically repeated, so we only need to specify
+the part up to the "0".
+
+  lastal -o out.maf -l 16 -m 999999999 -g 1 -r 2 -d 47 -y 1 humandb tags.fa
+
+Here, we used "-l 16" to require 16 matched positions in initial
+matches, and "-m 999999999" to accept hugely repeated initial matches.
+We also used "-g 1" to request gapless alignments, "-r 2" to set the
+match score to 2 (leaving the mismatch cost at the default value of
+1), and "-d 47" to request alignments with score >= 47.  This will
+give us all 25-mer alignments with at most one mismatch.  "-y 1" halts
+extensions if the score drops by more than 1: this makes it faster
+without affecting the result.  After convincing yourself that you
+don't want all the repetitive matches, you can reduce "-m".  (To see
+what you would miss, use "-g 0" to count the initial matches.)
