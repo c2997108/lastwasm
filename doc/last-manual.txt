@@ -247,6 +247,13 @@ block of size 5.
 -v: Be verbose: write messages about what lastal is doing.
 
 
+*** Credits & Citation ***
+
+LAST was developed by Martin C. Frith and Paul B. Horton in the
+Computational Biology Research Center.  There is no journal
+publication yet, so please cite the website: http://last.cbrc.jp/.
+
+
 *** Questions, Comments, Problems ***
 
 Please email: last@cbrc.jp.  If reporting a problem, please describe
