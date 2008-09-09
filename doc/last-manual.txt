@@ -250,7 +250,8 @@ block of size 5.
 *** Credits & Citation ***
 
 LAST was developed by Martin C. Frith and Paul B. Horton in the
-Computational Biology Research Center.  There is no journal
+Computational Biology Research Center.  Many thanks to Hajime Harada
+for setting up the repository and website.  There is no journal
 publication yet, so please cite the website: http://last.cbrc.jp/.
 
 
