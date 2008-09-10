@@ -324,8 +324,7 @@ void scanAllVolumes( cbrc::MultiSequence& query,
 
 void writeHeader( std::ostream& out, const cbrc::LastalArguments& args,
 		  const cbrc::ScoreMatrix sm ){
-  out << "# LAST\n";
-  out << "# Version " <<
+  out << "# LAST version " <<
 #include "version.hh"
       << "\n";
   out << "#\n";
