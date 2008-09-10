@@ -228,6 +228,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
 	 << "i=" << batchSize << ' '
 	 << "w=" << maxRepeatDistance << ' '
 	 << "g=" << outputType << '\n';
+
+  stream << "# " << lastdbName << '\n';
 }
 
 }  // end namespace cbrc
