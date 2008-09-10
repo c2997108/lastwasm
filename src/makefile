@@ -8,7 +8,7 @@ DBSRC = Alphabet.cc MultiSequence.cc PeriodicSpacedSeed.cc	\
 SuffixArray.cc LastdbArguments.cc io.cc lastdb.cc
 
 DBINC = Alphabet.hh MultiSequence.hh PeriodicSpacedSeed.hh	\
-SuffixArray.hh LastdbArguments.hh io.hh stringify.hh
+SuffixArray.hh LastdbArguments.hh io.hh stringify.hh version.hh
 
 ALSRC = Alphabet.cc MultiSequence.cc PeriodicSpacedSeed.cc	\
 SuffixArray.cc LastalArguments.cc io.cc ScoreMatrix.cc		\

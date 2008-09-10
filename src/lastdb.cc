@@ -47,6 +47,9 @@ void writeOuterPrj( const std::string& fileName, const cbrc::Alphabet& alph,
 		    const cbrc::PeriodicSpacedSeed& mask, unsigned volumes ){
   std::ofstream f( fileName.c_str() );
   if( !f ) throw std::runtime_error("can't open file: " + fileName );
+  f << "version=" <<
+#include "version.hh"
+    << '\n';
   f << "alphabet=" << alph << '\n';
   f << "spacedseed=" << mask << '\n';
   f << "volumes=" << volumes << '\n';
