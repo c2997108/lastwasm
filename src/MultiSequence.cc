@@ -3,6 +3,7 @@
 #include "MultiSequence.hh"
 #include "io.hh"
 #include <sstream>
+#include <algorithm>  // upper_bound
 #include <cassert>
 
 namespace cbrc{

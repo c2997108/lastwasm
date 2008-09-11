@@ -6,6 +6,7 @@
 #ifndef ALIGNMENTPOT_HH
 #define ALIGNMENTPOT_HH
 #include "Alignment.hh"
+#include <algorithm>  // sort
 #include <vector>
 
 namespace cbrc{

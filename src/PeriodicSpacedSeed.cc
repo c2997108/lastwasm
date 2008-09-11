@@ -2,6 +2,7 @@
 
 #include "PeriodicSpacedSeed.hh"
 #include <stdexcept>
+#include <algorithm>  // max_element
 #include <istream>
 #include <ostream>
 

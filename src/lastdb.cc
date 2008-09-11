@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
+#include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastdb: " << x << '\n'
 

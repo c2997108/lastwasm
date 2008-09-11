@@ -18,6 +18,7 @@
 
 #ifndef SUFFIXARRAY_HH
 #define SUFFIXARRAY_HH
+#include <string>
 #include <vector>
 
 namespace cbrc{

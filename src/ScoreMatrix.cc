@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include <stdexcept>
 #include <cassert>
 //#include <iostream>  // for debugging

@@ -20,6 +20,8 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <ctime>
+#include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 #include <cassert>
 
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
@@ -304,7 +306,7 @@ void scanAllVolumes( cbrc::MultiSequence& query,
       scan( query, text, sa, args, alph, sm, matchCounts, '+', out );
     }
 
-    if( args.strand == 2 || args.strand == 0 && i == 0 ){
+    if( args.strand == 2 || (args.strand == 0 && i == 0) ){
       LOG( "reverse complementing..." );
       alph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
     }

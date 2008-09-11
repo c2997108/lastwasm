@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <iosfwd>
+#include <climits>  // INT_MAX
 
 namespace cbrc{
 

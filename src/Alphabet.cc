@@ -3,6 +3,7 @@
 #include "Alphabet.hh"
 #include <istream>
 #include <ostream>
+#include <algorithm>
 #include <stdexcept>
 
 namespace cbrc{

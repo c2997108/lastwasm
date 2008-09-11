@@ -7,6 +7,7 @@
 #include "GeneralizedAffineGapCosts.hh"
 #include "stringify.hh"
 #include <iomanip>
+#include <algorithm>
 #include <cassert>
 
 // make C++ tolerable:

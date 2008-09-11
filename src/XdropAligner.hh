@@ -5,6 +5,7 @@
 #ifndef XDROPALIGNER_HH
 #define XDROPALIGNER_HH
 #include <vector>
+#include <climits>  // INT_MAX
 
 namespace cbrc{
 
