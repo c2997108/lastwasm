@@ -1,0 +1,12 @@
+Q: Does it matter which way round you do the alignment: e.g. cat
+versus mouse, or mouse versus cat?
+
+A: The results may be different.  When comparing two similar-sized
+genomes, the difference should be minor.  When mapping tags to a
+genome, you probably want the genome to be the database, and the tags
+to be the query.  That way, for each tag, it will search for several
+most-similar locations in the genome.  The other way, for each
+location in the genome, it will search for several most-similar tags,
+which is probably not what you want.  As a final example, if you
+compare a genome to a library of repeat sequences, you probably want
+the genome to be the query and the repeat library to be the database.
