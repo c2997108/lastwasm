@@ -28,7 +28,7 @@ struct Alignment{
   // Make an Alignment by doing gapped X-drop alignment in both
   // directions starting from a seed SegmentPair.  The resulting
   // Alignment might not be "optimal" (see below).
-  void makeXdrop( XdropAligner& aligner, const SegmentPair& seed,
+  void makeXdrop( XdropAligner& aligner,
 		  const uchar* seq1, const uchar* seq2,
 		  const int scoreMatrix[MAT][MAT], int maxDrop,
 		  const GeneralizedAffineGapCosts& gap );
@@ -47,6 +47,7 @@ struct Alignment{
   // data:
   std::vector<SegmentPair> blocks;  // the gapless blocks of the alignment
   int score;
+  SegmentPair seed;  // the alignment remembers its seed
 
   indexT beg1() const{ return blocks.front().beg1(); }
   indexT beg2() const{ return blocks.front().beg2(); }

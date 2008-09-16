@@ -20,7 +20,7 @@ void Alignment::fromSegmentPair( const SegmentPair& sp ){
   score = sp.score;
 }
 
-void Alignment::makeXdrop( XdropAligner& aligner, const SegmentPair& seed,
+void Alignment::makeXdrop( XdropAligner& aligner,
 			   const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int maxDrop,
 			   const GeneralizedAffineGapCosts& gap ){

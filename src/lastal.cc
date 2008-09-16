@@ -208,20 +208,20 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
 
     if( sp.score == 0 ) continue;  // it has been marked as redundant
 
-    cbrc::SegmentPair seed;
+    cbrc::Alignment aln;
 
     // Redo gapless extension, using gapped score parameters.  Without
     // this, if we self-compare a huge sequence, we risk getting a
     // huge gapped extension.  (Do this before sorting them?)
-    seed.makeXdrop( sp.beg1(), sp.beg2(), &text[0], &query[0],
-		    mat, args.maxDropGapped );
+    aln.seed.makeXdrop( sp.beg1(), sp.beg2(), &text[0], &query[0],
+			mat, args.maxDropGapped );
 
     // Shrink the seed to its longest run of identical matches.  This
     // trims off possibly unreliable parts of the gapless alignment.
-    seed.maxIdenticalRun( &text[0], &query[0], alph.canonical, mat );
+    aln.seed.maxIdenticalRun( &text[0], &query[0], alph.canonical, mat );
 
-    cbrc::Alignment aln;  // do gapped extension from each end of the seed:
-    aln.makeXdrop( aligner, seed, &text[0], &query[0],
+    // do gapped extension from each end of the seed:
+    aln.makeXdrop( aligner, &text[0], &query[0],
 		   mat, args.maxDropGapped, gap );
     ++gappedExtensionCount;
 
@@ -234,7 +234,7 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
     }
 
     gaplessAlns.markAllOverlaps( aln.blocks );
-    gaplessAlns.markTandemRepeats( seed, args.maxRepeatDistance ); 
+    gaplessAlns.markTandemRepeats( aln.seed, args.maxRepeatDistance ); 
     gappedAlns.add(aln);  // add the gapped alignment to the pot
  }
 
