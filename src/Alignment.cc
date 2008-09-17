@@ -25,13 +25,17 @@ void Alignment::makeXdrop( XdropAligner& aligner,
 			   const int scoreMatrix[MAT][MAT], int maxDrop,
 			   const GeneralizedAffineGapCosts& gap ){
   assert( seed.size > 0 );  // relax this requirement?
+  score = seed.score;
 
-  int reverseScore =
-    aligner.fill( seq1, seq2, seed.beg1(), seed.beg2(),
-		  XdropAligner::REVERSE, scoreMatrix, maxDrop, gap );
-
+  score += aligner.fill( seq1, seq2, seed.beg1(), seed.beg2(),
+			 XdropAligner::REVERSE, scoreMatrix, maxDrop, gap );
   aligner.traceback( blocks, seq1, seq2, seed.beg1(), seed.beg2(),
 		     XdropAligner::REVERSE, scoreMatrix, gap );
+
+  for( unsigned i = 0; i < blocks.size(); ++i ){
+    blocks[i].start1 = seed.beg1() - blocks[i].end1();
+    blocks[i].start2 = seed.beg2() - blocks[i].end2();
+  }
 
   if( !blocks.empty() &&
       blocks.back().end1() == seed.beg1() &&
@@ -40,13 +44,17 @@ void Alignment::makeXdrop( XdropAligner& aligner,
   }
   else blocks.push_back(seed);
 
-  int forwardScore =
-    aligner.fill( seq1, seq2, seed.end1(), seed.end2(),
-		  XdropAligner::FORWARD, scoreMatrix, maxDrop, gap );
-
   std::vector<SegmentPair> forwardBlocks;
+
+  score += aligner.fill( seq1, seq2, seed.end1(), seed.end2(),
+			 XdropAligner::FORWARD, scoreMatrix, maxDrop, gap );
   aligner.traceback( forwardBlocks, seq1, seq2, seed.end1(), seed.end2(),
 		     XdropAligner::FORWARD, scoreMatrix, gap );
+
+  for( unsigned i = 0; i < forwardBlocks.size(); ++i ){
+    forwardBlocks[i].start1 += seed.end1();
+    forwardBlocks[i].start2 += seed.end2();
+  }
 
   SegmentPair& b = blocks.back();
   if( !forwardBlocks.empty() &&
@@ -56,10 +64,7 @@ void Alignment::makeXdrop( XdropAligner& aligner,
     forwardBlocks.pop_back();
   }
 
-  std::reverse( forwardBlocks.begin(), forwardBlocks.end() );
-  blocks.insert( blocks.end(), forwardBlocks.begin(), forwardBlocks.end() );
-
-  score = reverseScore + seed.score + forwardScore;
+  blocks.insert( blocks.end(), forwardBlocks.rbegin(), forwardBlocks.rend() );
 }
 
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,

@@ -320,12 +320,8 @@ void XdropAligner::traceback( std::vector< SegmentPair >& chunks,
 	i -= 1;
       }
 
-      if( m > 0 && oldPos1 != i || k == 0 ){
-	const size_t j = k - i;  // position in 2nd sequence
-	const size_t size = oldPos1 - i;
-	chunks.push_back( (dir == FORWARD)
-			  ? SegmentPair(start1+i, start2+j, size)
-			  : SegmentPair(start1-i-size, start2-j-size, size) );
+      if( (m > 0 && oldPos1 != i) || k == 0 ){
+	chunks.push_back( SegmentPair( i, k - i, oldPos1 - i ) );
       }
 
       if( m > 0 ){
