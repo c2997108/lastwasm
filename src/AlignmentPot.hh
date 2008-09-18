@@ -18,7 +18,7 @@ struct AlignmentPot{
   void add( const Alignment& aln ) { items.push_back(aln); }
 
   // the number of alignments in the pot
-  std::size_t size() { return items.size(); }
+  std::size_t size() const { return items.size(); }
 
   // erase any alignment that shares an endpoint with a higher-scoring
   // alignment

@@ -203,7 +203,7 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
 
   gaplessAlns.sort();  // sort the gapless alignments by score, highest first
 
-  for( size_t i = 0; i < gaplessAlns.size(); ++i ){
+  for( std::size_t i = 0; i < gaplessAlns.size(); ++i ){
     const cbrc::SegmentPair& sp = gaplessAlns.get(i);
 
     if( sp.score == 0 ) continue;  // it has been marked as redundant
@@ -262,13 +262,13 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
   cbrc::AlignmentPot gappedAlns;
   alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, sm, alph );
 
-  if( args.outputType == 3 ){  // we want non-redundant alignments
+  if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
     LOG( "nonredundant gapped alignments=" << gappedAlns.size() );
   }
 
   gappedAlns.sort();  // sort by score
-  for( size_t i = 0; i < gappedAlns.size(); ++i ){
+  for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
     gappedAlns.items[i].write( text, query, strand, alph,
 			       args.outputFormat, out );
   }

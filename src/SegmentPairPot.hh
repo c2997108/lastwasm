@@ -22,7 +22,7 @@ struct SegmentPairPot{
   void add( const SegmentPair& sp ) { items.push_back(sp); }
 
   // the number of SegmentPairs in the pot
-  std::size_t size() { return items.size(); }
+  std::size_t size() const { return items.size(); }
 
   // this must be called before using the following methods
   void sort();
