@@ -4,32 +4,7 @@
 #include "GeneralizedAffineGapCosts.hh"
 #include "SegmentPair.hh"
 #include <algorithm>  // max_element
-#include <cassert>
 //#include <iostream>  // for debugging
-
-namespace{
-
-int max3( int a, int b, int c ){
-  return a > b ? std::max(a, c) : std::max(b, c);
-}
-
-int max4( int a, int b, int c, int d ){
-  return a > b ? max3(a, c, d) : max3(b, c, d);
-}
-
-int maxIndex2( int a, int b ){
-  return b > a ? 1 : 0;
-}
-
-int maxIndex3( int a, int b, int c ){
-  return c > a ? maxIndex2( b, c ) + 1 : maxIndex2( a, b );
-}
-
-int maxIndex4( int a, int b, int c, int d ){
-  return d > a ? maxIndex3( b, c, d ) + 1 : maxIndex3( a, b, c );
-}
-
-}
 
 namespace cbrc{
 
@@ -76,50 +51,6 @@ size_t XdropAligner::fillBeg( size_t antiDiagonal ) const{
 // get end of filled cells on an antidiagonal
 size_t XdropAligner::fillEnd( size_t antiDiagonal ) const{
   return offsets[ antiDiagonal ] + x[ antiDiagonal ].size();
-}
-
-// get DP matrix value at the given position, taking offsets into account
-int XdropAligner::cell( const matrix_t& matrix,
-			size_t antiDiagonal, size_t seq1pos ) const{
-  assert( seq1pos >= fillBeg( antiDiagonal ) );
-  assert( seq1pos < fillEnd( antiDiagonal ) );
-  return matrix[ antiDiagonal ][ seq1pos - offsets[ antiDiagonal ] ];
-}
-
-// get DP matrix value "left of" the given position
-int XdropAligner::hori( const matrix_t& matrix,
-			size_t antiDiagonal, size_t seq1pos ) const{
-  assert( antiDiagonal > 0 );
-  if( seq1pos > fillBeg( antiDiagonal-1 ) ){
-    return cell( matrix, antiDiagonal-1, seq1pos-1 );
-  }
-  else{
-    return -INF;
-  }
-}
-
-// get DP matrix value "above" the given position
-int XdropAligner::vert( const matrix_t& matrix,
-			size_t antiDiagonal, size_t seq1pos ) const{
-  assert( antiDiagonal > 0 );
-  if( seq1pos < fillEnd( antiDiagonal-1 ) ){
-    return cell( matrix, antiDiagonal-1, seq1pos );
-  }
-  else{
-    return -INF;
-  }
-}
-
-// get DP matrix value "diagonal from" the given position
-int XdropAligner::diag( const matrix_t& matrix,
-			size_t antiDiagonal, size_t seq1pos ) const{
-  if( antiDiagonal > 1 &&
-      seq1pos > fillBeg( antiDiagonal-2 ) &&
-      seq1pos <= fillEnd( antiDiagonal-2 ) ){
-    return cell( matrix, antiDiagonal-2, seq1pos-1 );
-  }else{
-    return -INF;
-  }
 }
 
 // do the first cell (first antidiagonal) of the DP matrix
