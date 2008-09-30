@@ -1,7 +1,6 @@
 *** Limitations ***
 
-1) These scripts need a recent version of Python, e.g. they work with
-   Python 2.5.2 but not Python 2.3.5.
+1) last-dotplot.py needs Python version 2.5 (or higher?)
 
 2) The scripts that read MAF format work with the simple subset of MAF
    produced by lastal, but they don't necessarily work with more

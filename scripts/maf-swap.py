@@ -12,7 +12,10 @@ def revcomp(seq):
     return seq[::-1].translate(complement)
 
 def flipstrand(strand):
-    return '+' if strand == '-' else '-'
+    if strand == '-':
+        return '+'
+    else:
+        return '-'
 
 def flip(line):
     words = re.split(r'(\s+)', line)  # keep the spaces
