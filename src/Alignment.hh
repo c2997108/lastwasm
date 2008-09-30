@@ -25,7 +25,7 @@ struct Alignment{
   // make a single-block alignment:
   void fromSegmentPair( const SegmentPair& sp );
 
-  // Make an Alignment by doing gapped X-drop alignment in both
+  // Make an Alignment by doing gapped X-drop extension in both
   // directions starting from a seed SegmentPair.  The resulting
   // Alignment might not be "optimal" (see below).
   void makeXdrop( XdropAligner& aligner,

@@ -32,6 +32,7 @@ void Alignment::makeXdrop( XdropAligner& aligner,
   aligner.traceback( blocks, seq1, seq2, seed.beg1(), seed.beg2(),
 		     XdropAligner::REVERSE, scoreMatrix, gap );
 
+  // convert left-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < blocks.size(); ++i ){
     blocks[i].start1 = seed.beg1() - blocks[i].end1();
     blocks[i].start2 = seed.beg2() - blocks[i].end2();
@@ -51,6 +52,7 @@ void Alignment::makeXdrop( XdropAligner& aligner,
   aligner.traceback( forwardBlocks, seq1, seq2, seed.end1(), seed.end2(),
 		     XdropAligner::FORWARD, scoreMatrix, gap );
 
+  // convert right-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < forwardBlocks.size(); ++i ){
     forwardBlocks[i].start1 += seed.end1();
     forwardBlocks[i].start2 += seed.end2();
