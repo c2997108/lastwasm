@@ -18,11 +18,11 @@ struct LastdbArguments{
   // options:
   bool isProtein;
   bool isCaseSensitive;
-  std::string userAlphabet;
   std::string maskPattern;
   indexT indexStep;
-  indexT bucketDepth;
   std::size_t volumeSize;  // type?
+  std::string userAlphabet;
+  indexT bucketDepth;
   int verbosity;
 
   // positional arguments:

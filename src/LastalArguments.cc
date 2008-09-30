@@ -43,7 +43,6 @@ Main options (default settings):\n\
 -o: output file\n\
 -u: mask lowercase letters: 0=off, 1=softer, 2=soft, 3=hard ("
     + stringify(maskLowercase) + ")\n\
--e: minimum score for gapped alignments (50 for DNA, 100 for protein)\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -f: output format: 0=tabular, 1=maf ("
     + stringify(outputFormat) + ")\n\
@@ -57,7 +56,6 @@ Main options (default settings):\n\
 -o: output file\n\
 -u: mask lowercase letters: 0=off, 1=softer, 2=soft, 3=hard ("
     + stringify(maskLowercase) + ")\n\
--e: minimum score for gapped alignments (50 for DNA, 100 for protein)\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -f: output format: 0=tabular, 1=maf ("
     + stringify(outputFormat) + ")\n\
@@ -73,6 +71,7 @@ Score parameters (default settings):\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
 -y: maximum score dropoff for gapless extensions (max-match-score * 10)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
+-e: minimum score for gapped alignments (50 for DNA, 100 for protein)\n\
 \n\
 Miscellaneous options (default settings):\n\
 -m: maximum multiplicity for initial matches ("
@@ -84,13 +83,13 @@ Miscellaneous options (default settings):\n\
 -i: query batch size (16 MB when counting matches, 128 MB otherwise)\n\
 -w: supress repeats within this distance inside large exact matches ("
     + stringify(maxRepeatDistance) + ")\n\
--g: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped ("
-    + stringify(outputType) + ")\n\
 -v: be verbose: write messages about what lastal is doing\n\
+-j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped ("
+    + stringify(outputType) + ")\n\
 ";
 
   int c;
-  while( (c = getopt(argc, argv, "ho:u:e:s:f:d:r:q:a:b:c:p:x:y:m:l:k:i:w:g:v"))
+  while( (c = getopt(argc, argv, "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:m:l:k:i:w:vj:"))
 	 != -1 ){
     switch(c){
     case 'h':
@@ -101,10 +100,6 @@ Miscellaneous options (default settings):\n\
     case 'u':
       unstringify( maskLowercase, optarg );  // 4 not supported yet
       if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );
-      break;
-    case 'e':
-      unstringify( minScoreGapped, optarg );
-      if( minScoreGapped < 0 ) badopt( c, optarg );
       break;
     case 's':
       unstringify( strand, optarg );
@@ -149,6 +144,10 @@ Miscellaneous options (default settings):\n\
       unstringify( minScoreGapless, optarg );
       if( minScoreGapless < 0 ) badopt( c, optarg );
       break;
+    case 'e':
+      unstringify( minScoreGapped, optarg );
+      if( minScoreGapped < 0 ) badopt( c, optarg );
+      break;
     case 'm':
       unstringify( oneHitMultiplicity, optarg );
       break;
@@ -167,12 +166,12 @@ Miscellaneous options (default settings):\n\
     case 'w':
       unstringify( maxRepeatDistance, optarg );
       break;
-    case 'g':
-      unstringify( outputType, optarg );
-      if( outputType < 0 || outputType > 3 ) badopt( c, optarg );
-      break;
     case 'v':
       ++verbosity;
+      break;
+    case 'j':
+      unstringify( outputType, optarg );
+      if( outputType < 0 || outputType > 3 ) badopt( c, optarg );
       break;
     case '?':
       throw std::runtime_error("bad option");
@@ -227,7 +226,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
 	 << "k=" << queryStep << ' '
 	 << "i=" << batchSize << ' '
 	 << "w=" << maxRepeatDistance << ' '
-	 << "g=" << outputType << '\n';
+	 << "j=" << outputType << '\n';
 
   stream << "# " << lastdbName << '\n';
 }
