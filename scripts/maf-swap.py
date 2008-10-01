@@ -12,12 +12,10 @@ def revcomp(seq):
     return seq[::-1].translate(complement)
 
 def flipstrand(strand):
-    if strand == '-':
-        return '+'
-    else:
-        return '-'
+    if strand == '-': return '+'
+    else:             return '-'
 
-def flip(line):
+def flip_s_line(line):
     words = re.split(r'(\s+)', line)  # keep the spaces
     start = int(words[4])
     alnsize = int(words[6])
@@ -28,24 +26,32 @@ def flip(line):
     words[12] = revcomp(words[12])
     return ''.join(words)
 
+def flip_p_line(line):
+    words = re.split(r'(\s+)', line)  # keep the spaces
+    words[2:-2] = words[-3:1:-1]
+    return ''.join(words)
+
+def flip_line(line):
+    if   line.startswith('s'): return flip_s_line(line)
+    elif line.startswith('p'): return flip_p_line(line)
+    else:                      return line
+
 def write(lines):
-    if lines:
-        lines.reverse()
-        topstrand = lines[0].split()[4]
-        for line in lines:
-            if topstrand == '-':
-                print flip(line),
-            else:
-                print line,
+    if not lines: return
+    lines[1], lines[2] = lines[2], lines[1]
+    if lines[1].split()[4] == '-':
+        lines = map(flip_line, lines)
+    print ''.join(lines)  # this prints a blank line at the end
 
 lines = []
 
 for line in fileinput.input():
-    if line.startswith('s'):
-        lines.append(line)
-    else:
+    if line.startswith('#'):
+        print line,
+    elif line.isspace():
         write(lines)
         lines = []
-        print line,
+    else:
+        lines.append(line)
 
 write(lines)

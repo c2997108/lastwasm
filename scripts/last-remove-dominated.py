@@ -63,19 +63,32 @@ def aln_dominates(x, y):
     if gap1 + gap2 > 0: xscore -= gap_cost(gap1, gap2)
     return xscore > yscore
 
+def parse_maf_a_line(line):
+    '''Parse a MAF line starting with "a".'''
+    words = re.split(r'([\s=]+)', line)  # keep the delimiters
+    words[4] = int(words[4])             # alignment score
+    return words
+
+def parse_maf_s_line(line):
+    '''Parse a MAF line starting with "s".'''
+    words = re.split(r'(\s+)', line)   # keep the spaces
+    words[4] = int(words[4])           # aln start
+    words[6] = int(words[6])           # aln size
+    words.append(words[4] + words[6])  # aln end
+    return words
+
 def write_aln(aln):
     if aln.pop() == True: return  # the alignment is dominated
-    aln[0][4] = str(aln[0][4])
-    print ''.join(aln[0]),
-    for words in aln[1:]:
-        words[4] = str(words[4])
-        words[6] = str(words[6])
-        words.pop()  # remove the end that we appended
-        print ''.join(words),
-    print  # blank line after each alignment
+    aln[0] = ''.join(map(str, aln[0]))
+    aln[1] = ''.join(map(str, aln[1][:-1]))  # remove the end that we appended
+    aln[2] = ''.join(map(str, aln[2][:-1]))  # remove the end that we appended
+    print ''.join(aln)  # this prints a blank line at the end
 
 def process_aln(alns, newaln):
     if not newaln: return
+    newaln[0] = parse_maf_a_line(newaln[0])
+    newaln[1] = parse_maf_s_line(newaln[1])
+    newaln[2] = parse_maf_s_line(newaln[2])
     newaln.append(False)  # means: this alignment is not (yet) dominated
     newchr = newaln[1][2]
     newbeg = newaln[1][4]
@@ -119,20 +132,13 @@ for line in fileinput.input():
             scores = map(int, words[1:])
             for col, s in zip(columns, scores):
                 score_matrix[row + col] = s
-    elif line.startswith('a'):
-        finalize_score_matrix(score_matrix, mask_lowercase)
+        elif columns:
+            finalize_score_matrix(score_matrix, mask_lowercase)
+    elif line.isspace():
         process_aln(alns, aln)
-        words = re.split(r'([\s=]+)', line)  # keep the delimiters
-        words[4] = int(words[4])  # alignment score
-        aln = [ words ]
-    elif line.startswith('s'):
-        if not aln: raise Exception("bad MAF data")
-        words = re.split(r'(\s+)', line)  # keep the spaces
-        words[4] = int(words[4])  # aln start
-        words[6] = int(words[6])  # aln size
-        end = words[4] + words[6]
-        words.append(end)
-        aln.append(words)
+        aln = []
+    else:
+        aln.append(line)
 
 process_aln(alns, aln)  # don't forget the last alignment
 
