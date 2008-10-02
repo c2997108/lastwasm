@@ -1,7 +1,7 @@
 // Copyright 2008 Martin C. Frith
 
 #include "Alignment.hh"
-#include "XdropAligner.hh"
+#include "Centroid.hh"
 #include "MultiSequence.hh"
 #include "Alphabet.hh"
 #include "GeneralizedAffineGapCosts.hh"
@@ -18,19 +18,21 @@ namespace cbrc{
 void Alignment::fromSegmentPair( const SegmentPair& sp ){
   blocks.assign( 1, sp );
   score = sp.score;
+  centroidScore = -1;
 }
 
 void Alignment::makeXdrop( XdropAligner& aligner,
 			   const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int maxDrop,
-			   const GeneralizedAffineGapCosts& gap ){
+			   const GeneralizedAffineGapCosts& gap,
+			   double temperature, double gamma, int outputType ){
   assert( seed.size > 0 );  // relax this requirement?
   score = seed.score;
+  centroidScore = (outputType < 5 ? -1 : gamma * seed.size);
 
-  score += aligner.fill( seq1, seq2, seed.beg1(), seed.beg2(),
-			 XdropAligner::REVERSE, scoreMatrix, maxDrop, gap );
-  aligner.traceback( blocks, seq1, seq2, seed.beg1(), seed.beg2(),
-		     XdropAligner::REVERSE, scoreMatrix, gap );
+  extend( blocks, matchProbabilities, aligner, seq1, seq2,
+	  seed.beg1(), seed.beg2(), XdropAligner::REVERSE,
+	  scoreMatrix, maxDrop, gap, temperature, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < blocks.size(); ++i ){
@@ -45,12 +47,16 @@ void Alignment::makeXdrop( XdropAligner& aligner,
   }
   else blocks.push_back(seed);
 
-  std::vector<SegmentPair> forwardBlocks;
+  if( outputType > 3 ){  // set match probabilities in the seed to 1.0 (?)
+    matchProbabilities.insert( matchProbabilities.end(), seed.size, 1.0 );
+  }
 
-  score += aligner.fill( seq1, seq2, seed.end1(), seed.end2(),
-			 XdropAligner::FORWARD, scoreMatrix, maxDrop, gap );
-  aligner.traceback( forwardBlocks, seq1, seq2, seed.end1(), seed.end2(),
-		     XdropAligner::FORWARD, scoreMatrix, gap );
+  std::vector<SegmentPair> forwardBlocks;
+  std::vector<double> forwardProbs;
+
+  extend( forwardBlocks, forwardProbs, aligner, seq1, seq2,
+	  seed.end1(), seed.end2(), XdropAligner::FORWARD,
+	  scoreMatrix, maxDrop, gap, temperature, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < forwardBlocks.size(); ++i ){
@@ -67,6 +73,8 @@ void Alignment::makeXdrop( XdropAligner& aligner,
   }
 
   blocks.insert( blocks.end(), forwardBlocks.rbegin(), forwardBlocks.rend() );
+  matchProbabilities.insert( matchProbabilities.end(),
+			     forwardProbs.rbegin(), forwardProbs.rend() );
 }
 
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
@@ -110,6 +118,34 @@ void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
   else if( format == 1 ) writeMaf( seq1, seq2, strand, alph, os );
 }
 
+void Alignment::extend( std::vector< SegmentPair >& chunks,
+			std::vector< double >& probs, XdropAligner& aligner,
+			const uchar* seq1, const uchar* seq2,
+			indexT start1, indexT start2,
+			XdropAligner::direction dir,
+			const int sm[MAT][MAT], int maxDrop,
+			const GeneralizedAffineGapCosts& gap,
+			double temperature, double gamma, int outputType ){
+  score += aligner.fill( seq1, seq2, start1, start2, dir, sm, maxDrop, gap );
+
+  if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
+    aligner.traceback( chunks, seq1, seq2, start1, start2, dir, sm, gap );
+  }
+
+  if( outputType > 3 ){  // calculate match probabilities
+    Centroid centroid( aligner, temperature );
+    centroid.forward( seq1, seq2, start1, start2, dir, sm, gap );
+    centroid.backward( seq1, seq2, start1, start2, dir, sm, gap );
+
+    if( outputType > 4 ){  // do gamma-centroid alignment
+      centroidScore += centroid.dp( gamma );
+      centroid.traceback( chunks, gamma );
+    }
+
+    centroid.chunkProbabilities( probs, chunks );
+  }
+}
+
 void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, std::ostream& os ) const{
   indexT size2 = seq2.ends.back();
@@ -118,8 +154,10 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   indexT seqStart1 = seq1.seqBeg(w1);
   indexT seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
-  os << score << '\t'
-     << seq1.seqName(w1) << '\t'
+  if( centroidScore < 0 ) os << score << '\t';
+  else                    os << centroidScore << '\t';
+
+  os << seq1.seqName(w1) << '\t'
      << beg1() - seqStart1 << '\t'
      << range1() << '\t'
      << '+' << '\t'
@@ -162,8 +200,10 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   const std::size_t rw = std::max( r1.size(), r2.size() );
   const std::size_t sw = std::max( s1.size(), s2.size() );
 
-  os << "a score=" << score << '\n'
-     << "s "
+  if( centroidScore < 0 ) os << "a score=" << score << '\n';
+  else                    os << "a score=" << centroidScore << '\n';
+
+  os << "s "
      << std::setw( nw ) << std::left << n1 << std::right << ' '
      << std::setw( bw ) << b1 << ' '
      << std::setw( rw ) << r1 << ' ' << '+' << ' '
@@ -172,8 +212,17 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
      << std::setw( nw ) << std::left << n2 << std::right << ' '
      << std::setw( bw ) << b2 << ' '
      << std::setw( rw ) << r2 << ' ' << strand << ' '
-     << std::setw( sw ) << s2 << ' ' << botString( seq2.seq, alph ) << '\n'
-     << '\n';  // blank line afterwards
+     << std::setw( sw ) << s2 << ' ' << botString( seq2.seq, alph ) << '\n';
+
+  if( matchProbabilities.size() > 0 ){
+    os << 'p';
+    for( std::size_t i = 0; i < matchProbabilities.size(); ++i ){
+      os << ' ' << matchProbabilities[i];
+    }
+    os << '\n';
+  }
+
+  os << '\n';  // blank line afterwards
 }
 
 std::string Alignment::topString( const std::vector<uchar>& seq,

@@ -4,6 +4,7 @@
 
 #ifndef ALIGNMENT_HH
 #define ALIGNMENT_HH
+#include "XdropAligner.hh"
 #include "SegmentPair.hh"
 #include <string>
 #include <vector>
@@ -11,7 +12,6 @@
 
 namespace cbrc{
 
-class XdropAligner;
 class GeneralizedAffineGapCosts;
 class MultiSequence;
 class Alphabet;
@@ -28,10 +28,14 @@ struct Alignment{
   // Make an Alignment by doing gapped X-drop extension in both
   // directions starting from a seed SegmentPair.  The resulting
   // Alignment might not be "optimal" (see below).
+  // If outputType > 3: calculates match probabilities.
+  // If outputType > 4: does gamma-centroid alignment.
   void makeXdrop( XdropAligner& aligner,
 		  const uchar* seq1, const uchar* seq2,
 		  const int scoreMatrix[MAT][MAT], int maxDrop,
-		  const GeneralizedAffineGapCosts& gap );
+		  const GeneralizedAffineGapCosts& gap,
+		  double temperature = 0, double gamma = 0,
+		  int outputType = 0 );
 
   // Check that the Alignment has no prefix with score <= 0, no suffix
   // with score <= 0, and no sub-segment with score < -maxDrop.
@@ -48,6 +52,8 @@ struct Alignment{
   std::vector<SegmentPair> blocks;  // the gapless blocks of the alignment
   int score;
   SegmentPair seed;  // the alignment remembers its seed
+  std::vector<double> matchProbabilities;
+  double centroidScore;  // negative value = "not a gamma-centroid alignment"
 
   indexT beg1() const{ return blocks.front().beg1(); }
   indexT beg2() const{ return blocks.front().beg2(); }
@@ -55,6 +61,15 @@ struct Alignment{
   indexT end2() const{ return blocks.back().end2(); }
   indexT range1() const{ return end1() - beg1(); }
   indexT range2() const{ return end2() - beg2(); }
+
+  void extend( std::vector< SegmentPair >& chunks,
+	       std::vector< double >& probs, XdropAligner& aligner,
+	       const uchar* seq1, const uchar* seq2,
+	       indexT start1, indexT start2,
+	       XdropAligner::direction dir,
+	       const int sm[MAT][MAT], int maxDrop,
+	       const GeneralizedAffineGapCosts& gap,
+	       double temperature, double gamma, int outputType );
 
   void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 		 char strand, std::ostream& os ) const;

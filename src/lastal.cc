@@ -3,6 +3,7 @@
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
 #include "LastalArguments.hh"
+#include "LambdaCalculator.hh"
 #include "SuffixArray.hh"
 #include "XdropAligner.hh"
 #include "AlignmentPot.hh"
@@ -192,13 +193,11 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
 		  const std::vector<uchar>& text,
 		  const std::vector<uchar>& query,
 		  const cbrc::LastalArguments& args,
-		  const cbrc::ScoreMatrix& sm,
-		  const cbrc::Alphabet& alph ){
+		  const cbrc::Alphabet& alph,
+		  const int mat[64][64] ){
   cbrc::XdropAligner aligner;
   cbrc::GeneralizedAffineGapCosts gap( args.gapExistCost, args.gapExtendCost,
 				       args.gapPairCost );
-  const int (*mat)[64] =
-    args.maskLowercase < 3 ? sm.caseInsensitive : sm.caseSensitive;
   countT gappedExtensionCount = 0;
 
   gaplessAlns.sort();  // sort the gapless alignments by score, highest first
@@ -242,6 +241,34 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
   LOG( "gapped alignments=" << gappedAlns.size() );
 }
 
+// Print the gapped alignments, after optionally calculating match
+// probabilities and re-aligning using the gamma-centroid algorithm
+void alignFinish( const cbrc::AlignmentPot& gappedAlns,
+		  const cbrc::MultiSequence& query,
+		  const cbrc::MultiSequence& text,
+		  const cbrc::LastalArguments& args,
+		  const cbrc::Alphabet& alph,
+		  const int mat[64][64], char strand, std::ostream& out ){
+  cbrc::XdropAligner aligner;
+  cbrc::GeneralizedAffineGapCosts gap( args.gapExistCost, args.gapExtendCost,
+				       args.gapPairCost );
+
+  for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
+    const cbrc::Alignment& aln = gappedAlns.items[i];
+    if( args.outputType < 4 ){
+      aln.write( text, query, strand, alph, args.outputFormat, out );
+    }
+    else{  // calculate match probabilities:
+      cbrc::Alignment probAln;
+      probAln.seed = aln.seed;
+      probAln.makeXdrop( aligner, &text.seq[0], &query.seq[0],
+			 mat, args.maxDropGapped, gap,
+			 args.temperature, args.gamma, args.outputType );
+      probAln.write( text, query, strand, alph, args.outputFormat, out );
+    }
+  }
+}
+
 // Scan one batch of query sequences against one database volume
 void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
 	   const cbrc::SuffixArray& sa, const cbrc::LastalArguments& args,
@@ -259,8 +286,11 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
   alignGapless( gaplessAlns, query, text, sa, args, sm, alph, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
+  const int (*mat)[64] =
+    args.maskLowercase < 3 ? sm.caseInsensitive : sm.caseSensitive;
+
   cbrc::AlignmentPot gappedAlns;
-  alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, sm, alph );
+  alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, alph, mat );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
@@ -268,10 +298,7 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
   }
 
   gappedAlns.sort();  // sort by score
-  for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
-    gappedAlns.items[i].write( text, query, strand, alph,
-			       args.outputFormat, out );
-  }
+  alignFinish( gappedAlns, query, text, args, alph, mat, strand, out );
 }
 
 // Scan one batch of query sequences against all database volumes
@@ -387,12 +414,20 @@ try{
 		    sm.maxScore );
   if( args.maskLowercase < 1 ) alph.makeCaseInsensitive();
 
+  if( args.temperature == -1 && args.outputType > 3 ){
+    args.temperature =
+      1 / cbrc::LambdaCalculator::calculate( sm.caseSensitive, alph.size );
+    if( args.temperature < 0 )
+      throw std::runtime_error("can't calculate lambda for this score matrix");
+  }
+
   std::ofstream outFileStream;
   std::ostream& out = cbrc::openOut( args.outFile, outFileStream );
   writeHeader( out, args, sm );
   cbrc::MultiSequence query;
   query.initForAppending( mask.maxOffset );
   alph.tr( query.seq.begin(), query.seq.end() );
+  out.precision(3);  // print non-integers more compactly
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
     LOG( "reading " << *i << "..." );
@@ -411,6 +446,7 @@ try{
     scanAllVolumes( query, args, alph, mask, sm, volumes, out );
   }
 
+  out.precision(6);  // reset the precision to the default value
   out << "# CPU time: " << (clock() - startTime + 0.0) / CLOCKS_PER_SEC
       << " seconds\n";
 

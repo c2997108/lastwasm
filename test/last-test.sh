@@ -14,6 +14,6 @@ db=/tmp/last-test
 
 $lastdb -c -m110 $db $seq
 
-$lastal -u2 -p $mat -a400 -b30 -x3400 -e2500 $db $seq | diff $ref -
+$lastal -u2 -j5 -p $mat -a400 -b30 -x3400 -e2500 $db $seq | diff $ref -
 
 rm $db*

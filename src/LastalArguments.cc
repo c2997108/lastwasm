@@ -33,6 +33,8 @@ LastalArguments::LastalArguments( int argc, char** argv ) :
   queryStep(1),
   batchSize(0),  // depends on the outputType
   maxRepeatDistance(1000),  // sufficiently conservative?
+  temperature(-1),  // depends on the score matrix
+  gamma(1),
   verbosity(0)
 {
   std::string usage = "\
@@ -83,13 +85,18 @@ Miscellaneous options (default settings):\n\
 -i: query batch size (16 MB when counting matches, 128 MB otherwise)\n\
 -w: supress repeats within this distance inside large exact matches ("
     + stringify(maxRepeatDistance) + ")\n\
+-t: 'temperature' for calculating probabilities (1/lambda)\n\
+-g: 'gamma' parameter for gamma-centroid alignment ("
+    + stringify(gamma) + ")\n\
 -v: be verbose: write messages about what lastal is doing\n\
--j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped ("
+-j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
+                 4=probabilities, 5=centroid ("
     + stringify(outputType) + ")\n\
 ";
 
   int c;
-  while( (c = getopt(argc, argv, "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:m:l:k:i:w:vj:"))
+  while( (c = getopt(argc, argv,
+		     "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:m:l:k:i:w:t:g:vj:"))
 	 != -1 ){
     switch(c){
     case 'h':
@@ -166,12 +173,20 @@ Miscellaneous options (default settings):\n\
     case 'w':
       unstringify( maxRepeatDistance, optarg );
       break;
+    case 't':
+      unstringify( temperature, optarg );
+      if( temperature <= 0 ) badopt( c, optarg );
+      break;
+    case 'g':
+      unstringify( gamma, optarg );
+      if( gamma <= 0 ) badopt( c, optarg );
+      break;
     case 'v':
       ++verbosity;
       break;
     case 'j':
       unstringify( outputType, optarg );
-      if( outputType < 0 || outputType > 3 ) badopt( c, optarg );
+      if( outputType < 0 || outputType > 5 ) badopt( c, optarg );
       break;
     case '?':
       throw std::runtime_error("bad option");
@@ -226,6 +241,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
 	 << "k=" << queryStep << ' '
 	 << "i=" << batchSize << ' '
 	 << "w=" << maxRepeatDistance << ' '
+	 << "t=" << temperature << ' '
+	 << "g=" << gamma << ' '
 	 << "j=" << outputType << '\n';
 
   stream << "# " << lastdbName << '\n';

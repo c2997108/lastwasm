@@ -14,6 +14,8 @@ class GeneralizedAffineGapCosts;
 class SegmentPair;
 
 class XdropAligner{
+  friend class Centroid;
+
 public:
   typedef unsigned char uchar;
 

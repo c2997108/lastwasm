@@ -2,7 +2,9 @@
 
 1) last-dotplot.py needs Python version 2.5 (or higher?)
 
-2) The scripts that read MAF format work with the simple subset of MAF
+2) last-reduce-alignments.sh does not work with centroid alignments.
+
+3) The scripts that read MAF format work with the simple subset of MAF
    produced by lastal, but they don't necessarily work with more
    complex MAF data from elsewhere.
 
