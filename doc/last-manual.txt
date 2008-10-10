@@ -24,6 +24,7 @@ Python.  To make dotplots, you need the Python Imaging Library.
 Just go into the src directory and type 'make'.  This should make two
 programs: lastdb and lastal.  (If you checked it out using subversion,
 then type 'make' in the top-level directory, not the src directory.)
+Run the programs without arguments to get usage messages.
 
 
 *** Example 1: Compare the cat and mouse genomes ***
@@ -107,7 +108,8 @@ strand, the total size of the sequence, and the aligned nucleotides.
 If the alignment starts at the beginning of the sequence, the start
 position is zero.  If the strand is "-", the start position is as if
 we had used the reverse-complemented sequence.  The line starting with
-"p" contains the probability of each pair of aligned letters.  The
+"p" contains the probability of each pair of aligned letters.  (Tip:
+since MAF lines can be very long, try "less -S" to view them.)  The
 same alignment in tabular format looks like this:
 
 16 chr3L 19433515 24 + 24543557 H04BA01F1907 2 22 + 25 17,2:0,5

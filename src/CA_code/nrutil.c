@@ -1,6 +1,7 @@
 // Public domain code from Yi-Kuo Yu & Stephen Altschul, NCBI
 
-#include <malloc.h>
+//#include <malloc.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 void nrerror(error_text)
