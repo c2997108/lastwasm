@@ -139,27 +139,25 @@ void alignGapless( cbrc::SegmentPairPot& gaplessAlns,
 		   const cbrc::MultiSequence& text,
 		   const cbrc::SuffixArray& sa,
 		   const cbrc::LastalArguments& args,
-		   const cbrc::ScoreMatrix& sm,
 		   const cbrc::Alphabet& alph,
+		   const int (*matGapless)[64], const int (*matGapped)[64],
 		   char strand, std::ostream& out ){
-  const std::vector<uchar>& qseq = query.seq;
-  const std::vector<uchar>& tseq = text.seq;
-  const int (*mat)[64] =
-    args.maskLowercase < 2 ? sm.caseInsensitive : sm.caseSensitive;
+  const uchar* qseq = &query.seq[0];
+  const uchar* tseq = &text.seq[0];
   cbrc::DiagonalTable dt;  // record already-covered positions on each diagonal
   countT gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
-    sa.match( beg, end, &qseq[i], args.oneHitMultiplicity, args.minHitDepth );
+    sa.match( beg, end, qseq + i, args.oneHitMultiplicity, args.minHitDepth );
 
     for( /* noop */; beg < end; ++beg ){  // loop over suffix-array matches
       if( dt.isCovered( i, *beg ) ) continue;
 
       // tried: first get the score only, not the endpoints: slower!
       cbrc::SegmentPair sp;  // do the gapless extension:
-      sp.makeXdrop( *beg, i, &tseq[0], &qseq[0], mat, args.maxDropGapless );
+      sp.makeXdrop( *beg, i, tseq, qseq, matGapless, args.maxDropGapless );
       ++gaplessExtensionCount;
 
       // Tried checking the score after isOptimal & addEndpoint, but
@@ -167,19 +165,28 @@ void alignGapless( cbrc::SegmentPairPot& gaplessAlns,
       // slower overall.
       if( sp.score < args.minScoreGapless ) continue;
 
-      if( !sp.isOptimal( &tseq[0], &qseq[0], mat, args.maxDropGapless ) ){
+      if( !sp.isOptimal( tseq, qseq, matGapless, args.maxDropGapless ) ){
 	continue;  // ignore sucky gapless extensions
       }
-
-      dt.addEndpoint( sp.end2(), sp.end1() );
 
       if( args.outputType == 1 ){  // we just want gapless alignments
 	cbrc::Alignment aln;
 	aln.fromSegmentPair(sp);
 	aln.write( text, query, strand, alph, args.outputFormat, out );
       }
-      else gaplessAlns.add(sp);  // add the gapless alignment to the pot
+      else{
+	// Redo gapless extension, using gapped score parameters.  Without
+	// this, if we self-compare a huge sequence, we risk getting a
+	// huge gapped extension.
+	sp.makeXdrop( *beg, i, tseq, qseq, matGapped, args.maxDropGapped );
+	if( !sp.isOptimal( tseq, qseq, matGapped, args.maxDropGapped ) ){
+	  continue;
+	}
+	gaplessAlns.add(sp);  // add the gapless alignment to the pot
+      }
+
       ++gaplessAlignmentCount;
+      dt.addEndpoint( sp.end2(), sp.end1() );
     }
   }
 
@@ -208,12 +215,7 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
     if( sp.score == 0 ) continue;  // it has been marked as redundant
 
     cbrc::Alignment aln;
-
-    // Redo gapless extension, using gapped score parameters.  Without
-    // this, if we self-compare a huge sequence, we risk getting a
-    // huge gapped extension.  (Do this before sorting them?)
-    aln.seed.makeXdrop( sp.beg1(), sp.beg2(), &text[0], &query[0],
-			mat, args.maxDropGapped );
+    aln.seed = sp;
 
     // Shrink the seed to its longest run of identical matches.  This
     // trims off possibly unreliable parts of the gapless alignment.
@@ -282,15 +284,20 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
     return;
   }
 
-  cbrc::SegmentPairPot gaplessAlns;
-  alignGapless( gaplessAlns, query, text, sa, args, sm, alph, strand, out );
-  if( args.outputType == 1 ) return;  // we just want gapless alignments
+  const int (*matGapless)[64] =  // score matrix for gapless alignment
+    args.maskLowercase < 2 ? sm.caseInsensitive : sm.caseSensitive;
 
-  const int (*mat)[64] =
+  const int (*matGapped)[64] =   // score matrix for gapped alignment
     args.maskLowercase < 3 ? sm.caseInsensitive : sm.caseSensitive;
 
+  cbrc::SegmentPairPot gaplessAlns;
+  alignGapless( gaplessAlns, query, text, sa, args, alph,
+		matGapless, matGapped, strand, out );
+  if( args.outputType == 1 ) return;  // we just want gapless alignments
+
   cbrc::AlignmentPot gappedAlns;
-  alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, alph, mat );
+  alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, alph,
+	       matGapped );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
@@ -298,7 +305,7 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
   }
 
   gappedAlns.sort();  // sort by score
-  alignFinish( gappedAlns, query, text, args, alph, mat, strand, out );
+  alignFinish( gappedAlns, query, text, args, alph, matGapped, strand, out );
 }
 
 // Scan one batch of query sequences against all database volumes
