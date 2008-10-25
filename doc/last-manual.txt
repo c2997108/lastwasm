@@ -149,9 +149,6 @@ possible gapped extensions that include this pairing.  Gapped
 extensions are made from fixed "seeds", which are perfect matches:
 each pairing within a seed is assigned a probability of 1.
 
-WORK IN PROGRESS: The probability calculations are rather slow.  They
-are turned off by default, and we are working on speeding them up.
-
 
 *** Options for lastdb ***
 

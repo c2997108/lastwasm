@@ -15,6 +15,7 @@ namespace cbrc{
 class GeneralizedAffineGapCosts;
 class MultiSequence;
 class Alphabet;
+class Centroid;
 
 struct Alignment{
   typedef unsigned indexT;
@@ -30,12 +31,11 @@ struct Alignment{
   // Alignment might not be "optimal" (see below).
   // If outputType > 3: calculates match probabilities.
   // If outputType > 4: does gamma-centroid alignment.
-  void makeXdrop( XdropAligner& aligner,
+  void makeXdrop( XdropAligner& aligner, Centroid& centroid,
 		  const uchar* seq1, const uchar* seq2,
 		  const int scoreMatrix[MAT][MAT], int maxDrop,
 		  const GeneralizedAffineGapCosts& gap,
-		  double temperature = 0, double gamma = 0,
-		  int outputType = 0 );
+		  double gamma = 0, int outputType = 0 );
 
   // Check that the Alignment has no prefix with score <= 0, no suffix
   // with score <= 0, and no sub-segment with score < -maxDrop.
@@ -63,13 +63,14 @@ struct Alignment{
   indexT range2() const{ return end2() - beg2(); }
 
   void extend( std::vector< SegmentPair >& chunks,
-	       std::vector< double >& probs, XdropAligner& aligner,
+	       std::vector< double >& probs,
+	       XdropAligner& aligner, Centroid& centroid,
 	       const uchar* seq1, const uchar* seq2,
 	       indexT start1, indexT start2,
 	       XdropAligner::direction dir,
 	       const int sm[MAT][MAT], int maxDrop,
 	       const GeneralizedAffineGapCosts& gap,
-	       double temperature, double gamma, int outputType );
+	       double gamma, int outputType );
 
   void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 		 char strand, std::ostream& os ) const;

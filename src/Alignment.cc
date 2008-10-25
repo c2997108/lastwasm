@@ -21,18 +21,18 @@ void Alignment::fromSegmentPair( const SegmentPair& sp ){
   centroidScore = -1;
 }
 
-void Alignment::makeXdrop( XdropAligner& aligner,
+void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int maxDrop,
 			   const GeneralizedAffineGapCosts& gap,
-			   double temperature, double gamma, int outputType ){
+			   double gamma, int outputType ){
   assert( seed.size > 0 );  // relax this requirement?
   score = seed.score;
   centroidScore = (outputType < 5 ? -1 : gamma * seed.size);
 
-  extend( blocks, matchProbabilities, aligner, seq1, seq2,
+  extend( blocks, matchProbabilities, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), XdropAligner::REVERSE,
-	  scoreMatrix, maxDrop, gap, temperature, gamma, outputType );
+	  scoreMatrix, maxDrop, gap, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < blocks.size(); ++i ){
@@ -54,9 +54,9 @@ void Alignment::makeXdrop( XdropAligner& aligner,
   std::vector<SegmentPair> forwardBlocks;
   std::vector<double> forwardProbs;
 
-  extend( forwardBlocks, forwardProbs, aligner, seq1, seq2,
+  extend( forwardBlocks, forwardProbs, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), XdropAligner::FORWARD,
-	  scoreMatrix, maxDrop, gap, temperature, gamma, outputType );
+	  scoreMatrix, maxDrop, gap, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < forwardBlocks.size(); ++i ){
@@ -119,13 +119,14 @@ void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 }
 
 void Alignment::extend( std::vector< SegmentPair >& chunks,
-			std::vector< double >& probs, XdropAligner& aligner,
+			std::vector< double >& probs,
+			XdropAligner& aligner, Centroid& centroid,
 			const uchar* seq1, const uchar* seq2,
 			indexT start1, indexT start2,
 			XdropAligner::direction dir,
 			const int sm[MAT][MAT], int maxDrop,
 			const GeneralizedAffineGapCosts& gap,
-			double temperature, double gamma, int outputType ){
+			double gamma, int outputType ){
   score += aligner.fill( seq1, seq2, start1, start2, dir, sm, maxDrop, gap );
 
   if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
@@ -133,7 +134,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   }
 
   if( outputType > 3 ){  // calculate match probabilities
-    Centroid centroid( aligner, temperature );
+    centroid.reset();
     centroid.forward( seq1, seq2, start1, start2, dir, sm, gap );
     centroid.backward( seq1, seq2, start1, start2, dir, sm, gap );
 

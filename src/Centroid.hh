@@ -10,15 +10,33 @@
 
 namespace cbrc{
 
+  struct ExpectedCount{
+  public:
+    double emit[64][64];
+    double MM, MD, MP, MI, MQ;
+    double DD, DM, DI;
+    double PP, PM, PD, PI;
+    double II, IM;
+    double SM, SD, SP, SI, SQ;
+  public:
+    ExpectedCount ();
+    std::ostream& write (std::ostream& os, double Z) const;
+  private:
+    double convert (double val, double Z) const;
+  };
   /**
    * (1) Forward and backward algorithm on the DP region given by Xdrop algorithm
    * (2) \gamma-centroid decoding
    */
   class Centroid{
   public:
-    Centroid( const XdropAligner& xa_, double T_ = 1.0 ) 
-      : xa( xa_ ), T( T_ ), lastAntiDiagonal ( xa_.offsets.size () - 1 ), bestScore ( 0 ),
-    bestAntiDiagonal (0), bestPos1 (0){}
+    Centroid( const XdropAligner& xa_, const int sm[64][64], double T_ = 1.0 );
+    void reset( ) { 
+      lastAntiDiagonal = xa.offsets.size () - 1;
+      bestScore = 0;
+      bestAntiDiagonal = 0;
+      bestPos1 =0;
+    }
 
     typedef unsigned char uchar;
     double forward( const uchar* seq1, const uchar* seq2, 
@@ -37,11 +55,19 @@ namespace cbrc{
     void chunkProbabilities( std::vector< double >& probs,
 			     const std::vector< SegmentPair >& chunks );
 
+    // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
+    void computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
+				 size_t start1, size_t start2, XdropAligner::direction dir,
+				 const GeneralizedAffineGapCosts& gap,
+				 ExpectedCount& count ) const;
+
   private:
     const XdropAligner& xa;
     double T; // temperature
     size_t lastAntiDiagonal;
+    double match_score[ 64 ][ 64 ]; // pre-computed match score
     typedef std::vector< std::vector< double > > dmatrix_t;
+    typedef std::vector< double > dvec_t;
 
     dmatrix_t fM; // f^M(i,j), storing forward values of x
     dmatrix_t fD; // f^D(i,j), TODO: we can reduce memory
@@ -57,6 +83,9 @@ namespace cbrc{
     dmatrix_t pp; // posterior match probabilities
 
     dmatrix_t X; // DP tables for $gamma$-decoding
+
+    dvec_t scale; // scale[n] is a scaling factor for the n-th anti-diagonal
+
     double bestScore;
     size_t bestAntiDiagonal;
     size_t bestPos1;

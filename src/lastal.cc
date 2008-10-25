@@ -5,6 +5,7 @@
 #include "LastalArguments.hh"
 #include "LambdaCalculator.hh"
 #include "SuffixArray.hh"
+#include "Centroid.hh"
 #include "XdropAligner.hh"
 #include "AlignmentPot.hh"
 #include "Alignment.hh"
@@ -201,10 +202,9 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
 		  const std::vector<uchar>& query,
 		  const cbrc::LastalArguments& args,
 		  const cbrc::Alphabet& alph,
-		  const int mat[64][64] ){
-  cbrc::XdropAligner aligner;
-  cbrc::GeneralizedAffineGapCosts gap( args.gapExistCost, args.gapExtendCost,
-				       args.gapPairCost );
+		  const int mat[64][64],
+		  const cbrc::GeneralizedAffineGapCosts& gap,
+		  cbrc::XdropAligner& aligner, cbrc::Centroid& centroid ){
   countT gappedExtensionCount = 0;
 
   gaplessAlns.sort();  // sort the gapless alignments by score, highest first
@@ -222,7 +222,7 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
     aln.seed.maxIdenticalRun( &text[0], &query[0], alph.canonical, mat );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( aligner, &text[0], &query[0],
+    aln.makeXdrop( aligner, centroid, &text[0], &query[0],
 		   mat, args.maxDropGapped, gap );
     ++gappedExtensionCount;
 
@@ -250,11 +250,10 @@ void alignFinish( const cbrc::AlignmentPot& gappedAlns,
 		  const cbrc::MultiSequence& text,
 		  const cbrc::LastalArguments& args,
 		  const cbrc::Alphabet& alph,
-		  const int mat[64][64], char strand, std::ostream& out ){
-  cbrc::XdropAligner aligner;
-  cbrc::GeneralizedAffineGapCosts gap( args.gapExistCost, args.gapExtendCost,
-				       args.gapPairCost );
-
+		  const int mat[64][64],
+		  const cbrc::GeneralizedAffineGapCosts& gap,
+		  cbrc::XdropAligner& aligner, cbrc::Centroid& centroid,
+		  char strand, std::ostream& out ){
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
     const cbrc::Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
@@ -263,9 +262,9 @@ void alignFinish( const cbrc::AlignmentPot& gappedAlns,
     else{  // calculate match probabilities:
       cbrc::Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( aligner, &text.seq[0], &query.seq[0],
+      probAln.makeXdrop( aligner, centroid, &text.seq[0], &query.seq[0],
 			 mat, args.maxDropGapped, gap,
-			 args.temperature, args.gamma, args.outputType );
+			 args.gamma, args.outputType );
       probAln.write( text, query, strand, alph, args.outputFormat, out );
     }
   }
@@ -295,9 +294,14 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
 		matGapless, matGapped, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
+  cbrc::XdropAligner aligner;
+  cbrc::Centroid centroid( aligner, matGapped, args.temperature );  // slow?
+  cbrc::GeneralizedAffineGapCosts gap( args.gapExistCost, args.gapExtendCost,
+				       args.gapPairCost );
+
   cbrc::AlignmentPot gappedAlns;
   alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, alph,
-	       matGapped );
+	       matGapped, gap, aligner, centroid );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
@@ -305,7 +309,8 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
   }
 
   gappedAlns.sort();  // sort by score
-  alignFinish( gappedAlns, query, text, args, alph, matGapped, strand, out );
+  alignFinish( gappedAlns, query, text, args, alph, matGapped, gap,
+	       aligner, centroid, strand, out );
 }
 
 // Scan one batch of query sequences against all database volumes
