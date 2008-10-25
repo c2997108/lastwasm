@@ -169,10 +169,10 @@ namespace cbrc{
       if( stype == "logadd" ) d1 = 0.0;
       double d0 = 0.0;
       if( stype == "logadd" ) d0 = LOG_ZERO;
-      bM[ k ].resize( fM[ k ].size() ); std::fill( bM[k].begin (), bM[k].end (), d1 ); 
-      bD[ k ].resize( fM[ k ].size() ); std::fill( bD[k].begin (), bD[k].end (), d0 );
-      bI[ k ].resize( fM[ k ].size() ); std::fill( bI[k].begin (), bI[k].end (), d0 );
-      bP[ k ].resize( fM[ k ].size() ); std::fill( bP[k].begin (), bP[k].end (), d0 );
+      bM[ k ].assign( fM[ k ].size(), d1 );
+      bD[ k ].assign( fM[ k ].size(), d0 );
+      bI[ k ].assign( fM[ k ].size(), d0 );
+      bP[ k ].assign( fM[ k ].size(), d0 );
       pp[ k ].resize( fM[ k ].size() );
     }
     //bM[ 0 ][ 0 ] = 0;
@@ -216,7 +216,7 @@ namespace cbrc{
     const double eQ = EXP ( - Q / T );
 
     for( size_t k = 1; k <= lastAntiDiagonal; ++k ){  // loop over antidiagonals
-      double max_f = 1.0; // maximum forward value
+      double sum_f = 0.0; // sum of forward values
       const size_t k1 = k - 1;
       const size_t k2 = k - 2;  // might wrap around
       const size_t off1 = xa.offsets[ k1 ];
@@ -266,8 +266,7 @@ namespace cbrc{
 	    *fI0 = ( ( fM1 + fD1 ) * eF + ( fI1 + fP1 ) * eE ) * scale1;
 	  if ( k > 1 )
 	    *fP0 = ( ( fM2 ) * eQ + ( fP2 ) * eP ) * scale12;
-	  Z += *fM0;
-	  if ( *fM0 > max_f ) max_f = *fM0;
+	  sum_f += *fM0;
 	  assert ( *fM0 < DINF && *fD0 < DINF && *fI0 < DINF && *fP0 < DINF );
 	} else if( stype == "logadd" ) {
 	  *fM0 = LOG_ADD( fM2 + score / T, fD2 + score / T, fI2 + score / T, fP2 + score / T);
@@ -297,16 +296,17 @@ namespace cbrc{
 	const double* fP2 = &fP[ k2 ][ diagBeg ];
 
 	if( stype == "exp" ){	
+	  double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
 	  do{ // start: inner most loop
-	    double S = match_score[ *s1 ][ *s2 ];
-	    *fM0 = ( *fM2 + *fD2 + *fI2 + *fP2 ) * S * scale12;
-	    *fD0 = ( ( *fM1++ ) * seF + ( *fD1++ + *fP1++ ) * seE );// * scale1; 
-	    fI1++;
-	    *fI0 = ( ( *fM1 + *fD1 ) * seF + ( *fI1 + *fP1 ) * seE );// * scale1;
-	    *fP0 = ( ( *fM2 ) * seQ + ( *fP2 ) * seP );// * scale12;
+	    const double S = match_score[ *s1 ][ *s2 ] * scale12;
+	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
+	    *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
+	    *fD0 = ( xM1 ) * seF + ( xD1 + xP1 ) * seE;
+	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
+	    *fI0 = ( xM1 + xD1 ) * seF + ( xI1 + xP1 ) * seE;
+	    *fP0 = xM2 * seQ + xP2 * seP;
 	    fM2++; fD2++; fI2++; fP2++;
-	    if ( *fM0 > max_f ) max_f = *fM0; // 
-	    Z += *fM0;
+	    sum_f += *fM0;
 	    //assert ( *fM0 < DINF && *fD0 < DINF && *fI0 < DINF && *fP0 < DINF );
 	    fM0++; fD0++; fI0++; fP0++;
 	    s1 += seqIncrement;
@@ -353,8 +353,7 @@ namespace cbrc{
 	  *fD0 = ( fM1 * eF + ( fD1 + fP1 ) * eE ) * scale1;
 	  *fI0 = 0;
 	  if ( k > 1 ) *fP0 = ( fM2 * eQ + fP2 * eP ) * scale12;
-	  if ( *fM0 > max_f ) max_f = *fM0;
-	  Z += *fM0;
+	  sum_f += *fM0;
 	  //assert ( *fM0 < DINF && *fD0 < DINF && *fI0 < DINF && *fP0 < DINF );
 	}else if( stype == "logadd" ){
 	  *fM0 = LOG_ADD( fM2 + score / T, fD2 + score / T, fI2 + score / T, fP2 + score / T);
@@ -366,7 +365,8 @@ namespace cbrc{
 	fM0++; fD0++; fI0++; fP0++;
       }
       if ( stype=="exp" ) {
-	scale[k] = max_f; // 
+	Z += sum_f;
+	scale[k] = sum_f + 1.0;  // seems ugly
 	Z /= scale[k]; // scaling
       }
     } // k
@@ -411,6 +411,11 @@ namespace cbrc{
 
       const double scale12 = ( k > 1 && stype == "exp" ) ? 1.0 / ( scale[k1] * scale[k2] ) : 1.0; // scaling factor
       const double scale1  = ( stype == "exp" ) ? 1.0 / scale[k1] : 1.0;             // scaling factor
+
+      const double seF = eF * scale1;
+      const double seE = eE * scale1;
+      const double seQ = eQ * scale12;
+      const double seP = eP * scale12;
 
       const double* bM0 = &bM[ k ][ 0 ];
       const double* bD0 = &bD[ k ][ 0 ];
@@ -492,19 +497,19 @@ namespace cbrc{
 	  do{ // inner most loop
 	    const double S = match_score[ *s1 ][ *s2 ];
 	    const double tmp1 = *bM0 * S * scale12;
-	    const double tmp2 = *bP0 * scale12;
-	    *bM2 += tmp1 + tmp2 * eQ; // *bM2 += ( *bM0 * S + *bP0 * eQ ) * scale12;
+	    const double tmp2 = *bP0;
+	    *bM2 += tmp1 + tmp2 * seQ; // *bM2 += ( *bM0 * S + *bP0 * eQ ) * scale12;
 	    *bD2 += tmp1; // *bM0 * S * scale12;
 	    *bI2 += tmp1; // *bM0 * S * scale12;
-	    *bP2 += tmp1 + tmp2 * eP; // *bP2 += ( *bM0 * S + *bP0 * eP ) * scale12;
-	    const double tmp3 = *bD0 * scale1;
-	    *bM1++ += tmp3 * eF; // *bD0 * eF * scale1;
-	    *bD1++ += tmp3 * eE; // *bD0 * eE * scale1;
+	    *bP2 += tmp1 + tmp2 * seP; // *bP2 += ( *bM0 * S + *bP0 * eP ) * scale12;
+	    const double tmp3 = *bD0;
+	    *bM1++ += tmp3 * seF; // *bD0 * eF * scale1;
+	    *bD1++ += tmp3 * seE; // *bD0 * eE * scale1;
 	    bI1++;
-	    *bP1++ += tmp3 * eE; // *bD0 * eE * scale1;
-	    const double tmp4 = *bI0 * scale1;
-	    const double tmp5 = tmp4 * eF; 
-	    const double tmp6 = tmp4 * eE;
+	    *bP1++ += tmp3 * seE; // *bD0 * eE * scale1;
+	    const double tmp4 = *bI0;
+	    const double tmp5 = tmp4 * seF; 
+	    const double tmp6 = tmp4 * seE;
 	    *bM1 += tmp5; // *bI0 * eF * scale1;
 	    *bD1 += tmp5; // *bI0 * eF * scale1;
 	    *bI1 += tmp6; // *bI0 * eE * scale1;
