@@ -13,9 +13,6 @@
 // if a position is covered, we discard information about earlier
 // sequential positions.
 
-// This stuff uses a non-negligible fraction of the running time, and
-// I have a hunch it can be done more efficiently...
-
 #ifndef DIAGONALTABLE_HH
 #define DIAGONALTABLE_HH
 #include <vector>
