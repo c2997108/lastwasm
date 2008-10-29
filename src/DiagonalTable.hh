@@ -26,7 +26,8 @@ struct DiagonalTable{
   typedef unsigned indexT;
   typedef std::pair<indexT, indexT> pairT;
 
-  enum { BINS = 65536 };  // use a power-of-two for faster modulus (maybe)
+  enum { BINS = 256 };  // use a power-of-two for faster modulus (maybe)
+                        // 256 is much faster than 65536 in my tests
 
   // is this position on this diagonal already covered by an alignment?
   bool isCovered( indexT sequentialPos, indexT randomPos );
