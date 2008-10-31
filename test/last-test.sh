@@ -8,7 +8,7 @@ dir=`dirname $0`/..
 lastdb=$dir/src/lastdb
 lastal=$dir/src/lastal
 seq=$dir/test/galGal3-M-32.fa
-mat=$dir/doc/HOXD70
+mat=$dir/examples/HOXD70
 ref=$dir/test/last-test.maf
 db=/tmp/last-test
 
