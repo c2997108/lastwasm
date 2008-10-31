@@ -27,66 +27,69 @@ then type 'make' in the top-level directory, not the src directory.)
 Run the programs without arguments to get usage messages.
 
 
-*** Example 1: Compare the cat and mouse genomes ***
+*** Example 1: Compare the human and fugu mitochondrial genomes ***
 
-Let's assume you have the cat and mouse genomes as FASTA-format
-sequence files: cat/*.fa and mouse/*.fa.  We'll assume also that
-repetitive regions are in lowercase.  Firstly, make a LAST database of
-the cat genome:
+You can find these sequences in the examples directory: humanMito.fa
+and fuguMito.fa.  Firstly, make a LAST database of the human sequence:
+
+  lastdb -c -m 110 humanMito humanMito.fa
+
+This will make some new files whose names begin with "humanMito".
+Here, we used "-c" to soft-mask lowercase letters, and "-m 110" to
+skip every third position when matching: this makes it more sensitive
+for matching protein-coding DNA (and non-coding DNA to some extent).
+Secondly, compare the fugu sequence to the human database:
+
+  lastal -o myalns.maf -u 2 humanMito fuguMito.fa
+
+This will write alignments in a file called "myalns.maf".  Here, we
+used "-u 2" to soft-mask lowercase letters.  To view the alignments,
+you'll want to avoid text-wrapping, for example: 'less -S myalns.maf'.
+See below for explanations of the output format and the options for
+lastdb and lastal.
+
+
+*** Example 2: Compare the cat and mouse genomes ***
+
+Let's assume you have the cat and mouse genomes in FASTA-format files:
+cat/*.fa and mouse/*.fa.  We'll assume also that repetitive regions
+are in lowercase.  We can compare them using the same steps as above
+(though it will take longer):
 
   lastdb -c -m 110 catdb cat/*.fa
+  lastal -o myalns.maf -u 2 catdb mouse/*.fa
 
-This will make some new files whose names begin with "catdb".  It may
-take an hour or so.  (For a smaller genome, e.g. fruitfly, it only
-takes a few minutes.)  Here, we used "-c" to soft-mask lowercase
-letters, and "-m 110" to skip every third position when matching: this
-makes it more sensitive for matching protein-coding DNA (and
-non-coding DNA to some extent).  Secondly, compare the mouse genome to
-the cat database:
+Next, if we like, we can remove uninteresting paralog alignments:
 
-  lastal -o cat-mouse.maf -u 2 catdb mouse/*.fa
-
-This will write alignments in a file called "cat-mouse.maf".  It may
-take a day or so (for insect genomes, 30 minutes or so).  Here, we
-used "-u 2" to soft-mask lowercase letters.  Next, if we like, we can
-remove uninteresting paralog alignments:
-
-  last-reduce-alignments.sh cat-mouse.maf > reduced.maf
+  last-reduce-alignments.sh myalns.maf > reduced.maf
 
 Finally, we can make a dotplot:
 
-  maf2tab.py reduced.maf | grep -v random > no-random.tab
-  last-dotplot.py no-random.tab cat-mouse.png
+  maf2tab.py reduced.maf | grep -v random > plotme.tab
+  last-dotplot.py plotme.tab plotme.png
 
 Here, we first converted the alignments to tabular format, and then
 removed alignments involving "random" chromosomes, to make the dotplot
 less cluttered.
 
 
-*** Example 2: Map short sequence tags to the human genome ***
+*** Example 3: Map short sequence tags to the human genome ***
 
 Let's assume you have the human genome and tag sequences in
 FASTA-format files: human/*.fa and tags.fa.  This time, we will not
-mask repeats, because we want to map repetitive tags too.  Firstly,
-make a LAST database of the human genome:
+mask repeats, because we want to map repetitive tags too:
 
   lastdb humandb human/*.fa
+  lastal -o myalns.maf -e 30 humandb tags.fa
 
-This will make some new files whose names begin with "humandb".  It
-may take a few hours.  (It would be quicker if we masked repeats.)
-Secondly, compare the tags to the human database:
+Here, we used "-e 30" to report alignments with score >= 30.  (The
+appropriate score threshold depends on how long the tags are and how
+many errors you want to allow: the default scoring scheme assigns +1
+to each match and -1 to each mismatch.)  Finally, it may be
+interesting to know the number of exact matches of each size for each
+tag:
 
-  lastal -o human-tags.maf -e 30 humandb tags.fa
-
-This will write alignments in a file called "human-tags.maf".  It may
-take minutes or hours, depending on how many tags you have.  Here, we
-used "-e 30" to report alignments with score >= 30.  (The appropriate
-value depends on the length of the tags: the default scoring scheme
-assigns +1 to each nucleotide match and -1 to each mismatch.)
-Finally, it may be interesting to know the number of exact matches of
-each size for each tag:
-
-  lastal -o human-tags-counts -j 0 humandb tags.fa
+  lastal -o mycounts.txt -j 0 humandb tags.fa
 
 For more ideas on tag mapping, see the accompanying document
 tag-seeds.txt.
@@ -108,8 +111,7 @@ strand, the total size of the sequence, and the aligned nucleotides.
 If the alignment starts at the beginning of the sequence, the start
 position is zero.  If the strand is "-", the start position is as if
 we had used the reverse-complemented sequence.  The line starting with
-"p" contains the probability of each pair of aligned letters.  (Tip:
-since MAF lines can be very long, try "less -S" to view them.)  The
+"p" contains the probability of each pair of aligned letters.  The
 same alignment in tabular format looks like this:
 
 16 chr3L 19433515 24 + 24543557 H04BA01F1907 2 22 + 25 17,2:0,5
