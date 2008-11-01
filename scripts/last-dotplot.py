@@ -74,7 +74,7 @@ def get_seq_info(seq_size_dic):
     seq_names.sort(key=natural_sort_key)
     seq_sizes = [seq_size_dic[i] for i in seq_names]
     name_sizes = get_text_sizes(seq_names)
-    margin = max(i[1] for i in name_sizes)  # maximum text height
+    margin = max(zip(*name_sizes)[1])  # maximum text height
     return seq_names, seq_sizes, name_sizes, margin
 
 seq_names1, seq_sizes1, name_sizes1, margin1 = get_seq_info(seq_size_dic1)
@@ -87,7 +87,7 @@ def div_ceil(x, y):
 
 def tot_seq_pix(seq_sizes, bp_per_pix):
     '''Return the total pixels needed for sequences of the given sizes.'''
-    return sum(div_ceil(i, bp_per_pix) for i in seq_sizes)
+    return sum([div_ceil(i, bp_per_pix) for i in seq_sizes])
 
 def get_bp_per_pix(seq_sizes, pix_limit):
     '''Get the minimum bp-per-pixel that fits in the size limit.'''
@@ -141,8 +141,10 @@ for aln in alignments:
         state = i % 3
         if state == 0:
             for j in range(b):
-                real_pos1 = pos1 if strand1 == '+' else last1 - pos1
-                real_pos2 = pos2 if strand2 == '+' else last2 - pos2
+                if strand1 == '+': real_pos1 = pos1
+                else:              real_pos1 = last1 - pos1
+                if strand2 == '+': real_pos2 = pos2
+                else:              real_pos2 = last2 - pos2
                 pix1 = seq_start1 + real_pos1 // bp_per_pix
                 pix2 = seq_start2 + real_pos2 // bp_per_pix
                 hits[pix2 * width + pix1] = 0
@@ -166,8 +168,8 @@ def get_nonoverlapping_labels(labels):
     '''Get a subset of non-overlapping axis labels, greedily.'''
     nonoverlapping_labels = []
     for i in labels:
-        if all(i[1] >= j[2] + label_space or j[1] >= i[2] + label_space
-               for j in nonoverlapping_labels):
+        if True not in [i[1] < j[2] + label_space and j[1] < i[2] + label_space
+                        for j in nonoverlapping_labels]:
             nonoverlapping_labels.append(i)
     return nonoverlapping_labels
 
@@ -175,7 +177,7 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix):
     '''Make an image of axis labels.'''
     min_pos = seq_starts[0]
     max_pos = seq_starts[-1] + seq_pix[-1]
-    height = max(i[1] for i in name_sizes)
+    height = max(zip(*name_sizes)[1])
     labels = [make_label(i, j, k, l) for i, j, k, l in
               zip(seq_names, name_sizes, seq_starts, seq_pix)]
     labels = [i for i in labels if i[1] >= min_pos and i[2] <= max_pos]
