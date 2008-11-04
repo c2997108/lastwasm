@@ -13,7 +13,7 @@ int XdropAligner::drop( int score, int minScore ){
   return score < minScore ? -INF : score;
 }
 
-bool XdropAligner::isDelimiter( uchar c, const int sm[64][64] ){
+bool XdropAligner::isDelimiter( uchar c, const int sm[MAT][MAT] ){
   return sm[c][c] == -INF;  // assumes it's the same INF!
 }
 
@@ -32,7 +32,7 @@ XdropAligner::seqPtr( const uchar* seq, size_t start,
 // get score for matching 2 residues at the given position
 int XdropAligner::match( const uchar* seq1, const uchar* seq2,
 			 size_t start1, size_t start2, direction dir,
-			 const int sm[64][64],
+			 const int sm[MAT][MAT],
 			 size_t antiDiagonal, size_t seq1pos ){
   const size_t seq2pos = antiDiagonal - seq1pos;
   if( seq1pos > 0 && seq2pos > 0 ){
@@ -124,7 +124,7 @@ size_t XdropAligner::newFillEnd( size_t k1, size_t k2,
 // uses the DP rearrangement from M Cameron, HE Williams, A Cannane 2004
 int XdropAligner::fill( const uchar* seq1, const uchar* seq2,
 			size_t start1, size_t start2, direction dir,
-			const int sm[64][64], int maxDrop,
+			const int sm[MAT][MAT], int maxDrop,
 			const GeneralizedAffineGapCosts& gap ){
 
   const int seqIncrement = (dir == FORWARD) ? 1 : -1;
@@ -232,7 +232,7 @@ int XdropAligner::fill( const uchar* seq1, const uchar* seq2,
 void XdropAligner::traceback( std::vector< SegmentPair >& chunks,
 			      const uchar* seq1, const uchar* seq2,
 			      size_t start1, size_t start2, direction dir,
-			      const int sm[64][64],
+			      const int sm[MAT][MAT],
 			      const GeneralizedAffineGapCosts& gap ) const{
   size_t k = bestAntiDiagonal;
   size_t i = bestPos1;

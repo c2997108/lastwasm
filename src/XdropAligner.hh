@@ -19,13 +19,14 @@ class XdropAligner{
 public:
   typedef unsigned char uchar;
 
+  enum { MAT = 64 };
   enum direction{ FORWARD, REVERSE };
 
   // Extend an alignment, from the given start point, in the given direction
   // Return the score (bestScore)
   int fill( const uchar* seq1, const uchar* seq2,
 	    size_t start1, size_t start2, direction dir,
-	    const int sm[64][64], int maxDrop,
+	    const int sm[MAT][MAT], int maxDrop,
 	    const GeneralizedAffineGapCosts& gap );
 
   // Get the ungapped segments of the extension, putting them in "chunks"
@@ -33,7 +34,7 @@ public:
   void traceback( std::vector< SegmentPair >& chunks,
 		  const uchar* seq1, const uchar* seq2,
 		  size_t start1, size_t start2, direction dir,
-		  const int sm[64][64],
+		  const int sm[MAT][MAT],
 		  const GeneralizedAffineGapCosts& gap ) const;
 
 private:
@@ -52,12 +53,12 @@ private:
   std::vector< size_t > offsets;
 
   static int drop( int score, int minScore );
-  static bool isDelimiter( uchar c, const int sm[64][64] );
+  static bool isDelimiter( uchar c, const int sm[MAT][MAT] );
   static const uchar* seqPtr( const uchar* seq, size_t start,
 			      direction dir, size_t pos );
   static int match( const uchar* seq1, const uchar* seq2,
 		    size_t start1, size_t start2, direction dir,
-		    const int sm[64][64],
+		    const int sm[MAT][MAT],
 		    size_t antiDiagonal, size_t seq1pos );
 
   size_t fillBeg( size_t antiDiagonal ) const;

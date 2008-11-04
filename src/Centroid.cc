@@ -51,14 +51,14 @@ namespace cbrc{
     II = d0; IM = d0;
     SM = d0; SD = d0; SP = d0; SI = d0; SQ = d0;
 
-    for (int n=0; n<64; n++)
-      for (int m=0; m<64; m++) emit[n][m] = d0;
+    for (int n=0; n<MAT; n++)
+      for (int m=0; m<MAT; m++) emit[n][m] = d0;
   }
   
   std::ostream& ExpectedCount::write (std::ostream& os, double Z) const
   {
-    for (int n=0; n<64; ++n) {
-      for (int m=0; m<64; ++m) {
+    for (int n=0; n<MAT; ++n) {
+      for (int m=0; m<MAT; ++m) {
 	double prob = convert (emit[n][m], Z);
 	if (prob > 0) 
 	  os << "emit[" << n << "][" << m << "]=" << convert (emit[n][m], Z) << std::endl;
@@ -114,11 +114,11 @@ namespace cbrc{
     }
   }
 
-  Centroid::Centroid( const XdropAligner& xa_, const int sm[64][64], double T_ ) 
+  Centroid::Centroid( const XdropAligner& xa_, const int sm[MAT][MAT], double T_ ) 
     : xa( xa_ ), T( T_ ), lastAntiDiagonal ( xa_.offsets.size () - 1 ), bestScore ( 0 ),
       bestAntiDiagonal (0), bestPos1 (0) {
-    for ( int n=0; n<64; ++n )
-      for ( int m=0; m<64; ++m ) {
+    for ( int n=0; n<MAT; ++n )
+      for ( int m=0; m<MAT; ++m ) {
 	if ( stype == "exp" ) match_score[n][m] = EXP ( sm[ n ][ m ] / T );
 	else if ( stype == "logadd" ) match_score[n][m] = sm[n][m] / T;
       }
@@ -195,7 +195,7 @@ namespace cbrc{
 
   double Centroid::forward( const uchar* seq1, const uchar* seq2,
 			    size_t start1, size_t start2, XdropAligner::direction dir,
-			    const int sm[64][64], 
+			    const int sm[MAT][MAT], 
 			    const GeneralizedAffineGapCosts& gap ){
 
     const int seqIncrement = (dir == XdropAligner::FORWARD) ? 1 : -1;
@@ -245,7 +245,7 @@ namespace cbrc{
 	if ( off0 > 0 && k - off0 > 0 ) {
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, off0 );
 	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - off0 );
-	  assert ( *s1 < 64 && *s2 < 64 );
+	  assert ( *s1 < MAT && *s2 < MAT );
 	  score = sm[ *s1 ][ *s2 ];
 	  eS = EXP( score / T );
 	}
@@ -283,7 +283,7 @@ namespace cbrc{
 	const double* const fM0end = fM0 + (loopEnd - loopBeg);
 	const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, loopBeg );
 	const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - loopBeg );
-	assert ( *s1 < 64 && *s2 < 64 );
+	assert ( *s1 < MAT && *s2 < MAT );
 	const size_t horiBeg = loopBeg - 1 - off1;
 	const size_t diagBeg = loopBeg - 1 - xa.offsets[ k2 ];
 	const double* fM1 = &fM[ k1 ][ horiBeg ];
@@ -344,7 +344,7 @@ namespace cbrc{
 	if ( end0 > 1 && k - end0 + 1 > 0 ) {
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, end0 - 1 );
 	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - end0 + 1 );
-	  assert ( *s1 < 64 && *s2 < 64 );
+	  assert ( *s1 < MAT && *s2 < MAT );
 	  score = sm[ *s1 ][ *s2 ];
 	  eS = EXP ( score / T );
 	}
@@ -379,7 +379,7 @@ namespace cbrc{
   // posterior probabilities are stored in pp
   double Centroid::backward( const uchar* seq1, const uchar* seq2,
 			     size_t start1, size_t start2, XdropAligner::direction dir,
-			     const int sm[64][64], 
+			     const int sm[MAT][MAT], 
 			     const GeneralizedAffineGapCosts& gap ){
 
     const int seqIncrement = (dir == XdropAligner::FORWARD) ? 1 : -1;
@@ -445,7 +445,7 @@ namespace cbrc{
 	if( k2 < k && xa.offsets[ k2 ] + 1 <= off0 ) { // there exists diagonal values
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, off0 );
 	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - off0 );
-	  assert ( *s1 < 64 && *s2 < 64 );
+	  assert ( *s1 < MAT && *s2 < MAT );
 	  double S = match_score[ *s1 ][ *s2 ];
 
 	  const size_t dig = off0 - 1 - xa.offsets[ k2 ]; //
@@ -481,7 +481,7 @@ namespace cbrc{
 	const double* const fM0end = fM0 + (loopEnd - loopBeg);
 	const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, loopBeg );
 	const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - loopBeg );
-	assert ( *s1 < 64 && *s2 < 64 );
+	assert ( *s1 < MAT && *s2 < MAT );
 	const size_t horiBeg = loopBeg - 1 - off1;
 	const size_t diagBeg = loopBeg - 1 - xa.offsets[ k2 ];
 	double* bM1 = &bM[ k1 ][ horiBeg ];
@@ -586,7 +586,7 @@ namespace cbrc{
 	    if ( end0 > 1 && k - end0 + 1 > 0 ) { 
 	      const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, end0 - 1 );
 	      const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - end0 + 1);
-	      assert ( *s1 < 64 && *s2 < 64 );
+	      assert ( *s1 < MAT && *s2 < MAT );
 	      score = sm[ *s1 ][ *s2 ];
 	      eS = EXP ( score / T );
 	      tS = score / T;
@@ -785,7 +785,7 @@ namespace cbrc{
 	if ( off0 > 0 && k - off0 > 0 ) {
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, off0 );
 	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - off0 );
-	  assert ( *s1 < 64 && *s2 < 64 );
+	  assert ( *s1 < MAT && *s2 < MAT );
 	  S = match_score[ *s1 ][ *s2 ];
 	  if ( stype == "exp" )
 	    c.emit[ *s1 ][ *s2 ] += ( *fM0 * *bM0 );
@@ -844,7 +844,7 @@ namespace cbrc{
 	const double* const fM0end = fM0 + (loopEnd - loopBeg);
 	const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, loopBeg );
 	const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - loopBeg );
-	assert ( *s1 < 64 && *s2 < 64 );
+	assert ( *s1 < MAT && *s2 < MAT );
 	const size_t horiBeg = loopBeg - 1 - off1;
 	const size_t diagBeg = loopBeg - 1 - xa.offsets[ k2 ];
 	const double* fM1 = &fM[ k1 ][ horiBeg ];
@@ -942,7 +942,7 @@ namespace cbrc{
 	if ( end0 > 1 && k - end0 + 1 > 0 ) {
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, end0 - 1 );
 	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - end0 + 1 );
-	  assert ( *s1 < 64 && *s2 < 64 );
+	  assert ( *s1 < MAT && *s2 < MAT );
 	  S = match_score[ *s1 ][ *s2 ];
 	  if ( stype == "exp" )
 	    c.emit[ *s1 ][ *s2 ] += ( *fM0 * *bM0 ) ;

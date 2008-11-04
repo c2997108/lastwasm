@@ -141,7 +141,7 @@ void alignGapless( cbrc::SegmentPairPot& gaplessAlns,
 		   const cbrc::SuffixArray& sa,
 		   const cbrc::LastalArguments& args,
 		   const cbrc::Alphabet& alph,
-		   const int (*matGapless)[64], const int (*matGapped)[64],
+		   const int matGapless[64][64], const int matGapped[64][64],
 		   char strand, std::ostream& out ){
   const uchar* qseq = &query.seq[0];
   const uchar* tseq = &text.seq[0];

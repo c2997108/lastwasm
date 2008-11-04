@@ -12,7 +12,8 @@ namespace cbrc{
 
   struct ExpectedCount{
   public:
-    double emit[64][64];
+    enum { MAT = 64 };
+    double emit[MAT][MAT];
     double MM, MD, MP, MI, MQ;
     double DD, DM, DI;
     double PP, PM, PD, PI;
@@ -30,7 +31,8 @@ namespace cbrc{
    */
   class Centroid{
   public:
-    Centroid( const XdropAligner& xa_, const int sm[64][64], double T_ = 1.0 );
+    enum { MAT = 64 };
+    Centroid( const XdropAligner& xa_, const int sm[MAT][MAT], double T_ = 1.0 );
     void reset( ) { 
       lastAntiDiagonal = xa.offsets.size () - 1;
       bestScore = 0;
@@ -41,12 +43,12 @@ namespace cbrc{
     typedef unsigned char uchar;
     double forward( const uchar* seq1, const uchar* seq2, 
 		    size_t start1, size_t start2, XdropAligner::direction dir,
-		    const int sm[64][64], 
+		    const int sm[MAT][MAT], 
 		    const GeneralizedAffineGapCosts& gap );
     
     double backward( const uchar* seq1, const uchar* seq2, 
 		     size_t start1, size_t start2, XdropAligner::direction dir,
-		     const int sm[64][64], 
+		     const int sm[MAT][MAT], 
 		     const GeneralizedAffineGapCosts& gap );
     double dp( double gamma );
     void traceback( std::vector< SegmentPair >& chunks, double gamma ) const;
@@ -65,7 +67,7 @@ namespace cbrc{
     const XdropAligner& xa;
     double T; // temperature
     size_t lastAntiDiagonal;
-    double match_score[ 64 ][ 64 ]; // pre-computed match score
+    double match_score[ MAT ][ MAT ]; // pre-computed match score
     typedef std::vector< std::vector< double > > dmatrix_t;
     typedef std::vector< double > dvec_t;
 
