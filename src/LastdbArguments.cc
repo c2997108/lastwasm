@@ -2,6 +2,7 @@
 
 #include "LastdbArguments.hh"
 #include "stringify.hh"
+#include <unistd.h>  // getopt
 #include <stdexcept>
 
 namespace cbrc{
