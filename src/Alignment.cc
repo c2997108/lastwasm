@@ -101,7 +101,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
       runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
       if( runningScore > maxScore ) maxScore = runningScore;
       else if( runningScore <= 0 ||                  // non-optimal prefix
-	       s1 == e1 && i+1 == blocks.end() ||    // non-optimal suffix
+	       (s1 == e1 && i+1 == blocks.end()) ||  // non-optimal suffix
 	       runningScore < maxScore - maxDrop ){  // excessive score drop
 	return false;
       }

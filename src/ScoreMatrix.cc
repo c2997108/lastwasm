@@ -96,8 +96,8 @@ void ScoreMatrix::init( const uchar encode[] ){
 
   for( std::size_t i = 0; i < rows.size(); ++i ){
     for( std::size_t j = 0; j < cols.size(); ++j ){
-      uchar x = encode[ rows[i] ];
-      uchar y = encode[ cols[j] ];
+      uchar x = encode[ uchar(rows[i]) ];
+      uchar y = encode[ uchar(cols[j]) ];
       uchar a = encode[ std::tolower( rows[i] ) ];
       uchar b = encode[ std::tolower( cols[j] ) ];
       if( a >= MAT ) ERR( std::string("bad symbol: ") + rows[i] );
