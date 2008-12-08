@@ -99,11 +99,13 @@ void writeCounts( const std::vector< std::vector<countT> >& matchCounts,
 		  const cbrc::MultiSequence& query, indexT minDepth,
 		  std::ostream& out ){
   for( indexT i = 0; i < matchCounts.size(); ++i ){
-    out << query.names[i] << '\n';
+    out << query.seqName(i) << '\n';
 
     for( indexT j = minDepth-1; j < matchCounts[i].size(); ++j ){
       out << j+1 << '\t' << matchCounts[i][j] << '\n';
     }
+
+    out << '\n';  // blank line afterwards
   }
 }
 
