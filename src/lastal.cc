@@ -204,7 +204,7 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
 		  const std::vector<uchar>& query,
 		  const cbrc::LastalArguments& args,
 		  const cbrc::Alphabet& alph,
-		  const int mat[64][64],
+		  const int mat[64][64], int matMax,
 		  const cbrc::GeneralizedAffineGapCosts& gap,
 		  cbrc::XdropAligner& aligner, cbrc::Centroid& centroid ){
   countT gappedExtensionCount = 0;
@@ -225,7 +225,7 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
 
     // do gapped extension from each end of the seed:
     aln.makeXdrop( aligner, centroid, &text[0], &query[0],
-		   mat, args.maxDropGapped, gap );
+		   mat, matMax, gap, args.maxDropGapped );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
@@ -252,7 +252,7 @@ void alignFinish( const cbrc::AlignmentPot& gappedAlns,
 		  const cbrc::MultiSequence& text,
 		  const cbrc::LastalArguments& args,
 		  const cbrc::Alphabet& alph,
-		  const int mat[64][64],
+		  const int mat[64][64], int matMax,
 		  const cbrc::GeneralizedAffineGapCosts& gap,
 		  cbrc::XdropAligner& aligner, cbrc::Centroid& centroid,
 		  char strand, std::ostream& out ){
@@ -265,7 +265,7 @@ void alignFinish( const cbrc::AlignmentPot& gappedAlns,
       cbrc::Alignment probAln;
       probAln.seed = aln.seed;
       probAln.makeXdrop( aligner, centroid, &text.seq[0], &query.seq[0],
-			 mat, args.maxDropGapped, gap,
+			 mat, matMax, gap, args.maxDropGapped,
 			 args.gamma, args.outputType );
       probAln.write( text, query, strand, alph, args.outputFormat, out );
     }
@@ -303,7 +303,7 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
 
   cbrc::AlignmentPot gappedAlns;
   alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, alph,
-	       matGapped, gap, aligner, centroid );
+	       matGapped, sm.maxScore, gap, aligner, centroid );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
@@ -311,8 +311,8 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
   }
 
   gappedAlns.sort();  // sort by score
-  alignFinish( gappedAlns, query, text, args, alph, matGapped, gap,
-	       aligner, centroid, strand, out );
+  alignFinish( gappedAlns, query, text, args, alph,
+	       matGapped, sm.maxScore, gap, aligner, centroid, strand, out );
 }
 
 // Scan one batch of query sequences against all database volumes

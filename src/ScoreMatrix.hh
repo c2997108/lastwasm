@@ -4,6 +4,8 @@
 // e.g. blosum62.  The delimiter symbol (space) aligned to anything
 // gets a score of -INF.
 
+// Maybe split this struct into two: ScoreMatrixEasy and ScoreMatrixFast?
+
 #ifndef SCOREMATRIX_HH
 #define SCOREMATRIX_HH
 #include <string>

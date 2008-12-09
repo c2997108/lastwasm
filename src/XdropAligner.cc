@@ -124,7 +124,7 @@ size_t XdropAligner::newFillEnd( size_t k1, size_t k2,
 // uses the DP rearrangement from M Cameron, HE Williams, A Cannane 2004
 int XdropAligner::fill( const uchar* seq1, const uchar* seq2,
 			size_t start1, size_t start2, direction dir,
-			const int sm[MAT][MAT], int maxDrop,
+			const int sm[MAT][MAT], int smMax, int maxDrop,
 			const GeneralizedAffineGapCosts& gap ){
 
   const int seqIncrement = (dir == FORWARD) ? 1 : -1;
@@ -138,17 +138,26 @@ int XdropAligner::fill( const uchar* seq1, const uchar* seq2,
     const size_t end1 = off1 + x[ k1 ].size();
     /* */ size_t off0 = newFillBeg( k1, k2, off1, end1 );
     /* */ size_t end0 = newFillEnd( k1, k2, off1, end1 );
-    if( off0 < k && isDelimiter( *seqPtr( seq2, start2, dir, k-off0 ), sm ) ){
-      ++off0;
-    }
-    if( end0 > 1 && isDelimiter( *seqPtr( seq1, start1, dir, end0-1 ), sm ) ){
-      --end0;
-    }
-    if( off0 >= end0 )  break;
-    offsets.push_back( off0 );
-    initScores( k, end0 - off0 );
     const size_t loopBeg = off0 + ( off0 == off1 );
     const size_t loopEnd = end0 - ( end0 > end1 );
+    const size_t loopSize = loopEnd - loopBeg;
+
+    if( off0 < k && isDelimiter( *seqPtr( seq2, start2, dir, k-off0 ), sm ) ){
+      ++off0;  // don't go past the end of the sequence
+      // speedup: don't let the score drop by max-matches * max-match-score
+      maxDrop = std::min( maxDrop, int(loopSize) * smMax - 1 );
+    }
+
+    if( end0 > 1 && isDelimiter( *seqPtr( seq1, start1, dir, end0-1 ), sm ) ){
+      --end0;  // don't go past the end of the sequence
+      // speedup: don't let the score drop by max-matches * max-match-score
+      maxDrop = std::min( maxDrop, int(loopSize) * smMax - 1 );
+    }
+
+    if( off0 >= end0 )  break;
+
+    offsets.push_back( off0 );
+    initScores( k, end0 - off0 );
     const int minScore = bestScore - maxDrop;  // set scores < minScore to -INF
 
     int* x0 = &x[ k ][ 0 ];
@@ -164,9 +173,9 @@ int XdropAligner::fill( const uchar* seq1, const uchar* seq2,
       *z0++ = xScore - gap.extend;
     }
 
-    if( loopBeg < loopEnd ){
+    if( loopSize > 0 ){
       assert( k > 1 );
-      const int* const x0end = x0 + (loopEnd - loopBeg);
+      const int* const x0end = x0 + loopSize;
       const uchar* s1 = seqPtr( seq1, start1, dir, loopBeg );
       const uchar* s2 = seqPtr( seq2, start2, dir, k - loopBeg );
       const size_t horiBeg = loopBeg - 1 - off1;

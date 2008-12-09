@@ -23,8 +23,8 @@ void Alignment::fromSegmentPair( const SegmentPair& sp ){
 
 void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2,
-			   const int scoreMatrix[MAT][MAT], int maxDrop,
-			   const GeneralizedAffineGapCosts& gap,
+			   const int scoreMatrix[MAT][MAT], int smMax,
+			   const GeneralizedAffineGapCosts& gap, int maxDrop,
 			   double gamma, int outputType ){
   assert( seed.size > 0 );  // relax this requirement?
   score = seed.score;
@@ -32,7 +32,7 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 
   extend( blocks, matchProbabilities, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), XdropAligner::REVERSE,
-	  scoreMatrix, maxDrop, gap, gamma, outputType );
+	  scoreMatrix, smMax, maxDrop, gap, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < blocks.size(); ++i ){
@@ -56,7 +56,7 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 
   extend( forwardBlocks, forwardProbs, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), XdropAligner::FORWARD,
-	  scoreMatrix, maxDrop, gap, gamma, outputType );
+	  scoreMatrix, smMax, maxDrop, gap, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < forwardBlocks.size(); ++i ){
@@ -124,10 +124,11 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			const uchar* seq1, const uchar* seq2,
 			indexT start1, indexT start2,
 			XdropAligner::direction dir,
-			const int sm[MAT][MAT], int maxDrop,
+			const int sm[MAT][MAT], int smMax, int maxDrop,
 			const GeneralizedAffineGapCosts& gap,
 			double gamma, int outputType ){
-  score += aligner.fill( seq1, seq2, start1, start2, dir, sm, maxDrop, gap );
+  score += aligner.fill( seq1, seq2, start1, start2, dir,
+			 sm, smMax, maxDrop, gap );
 
   if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
     aligner.traceback( chunks, seq1, seq2, start1, start2, dir, sm, gap );

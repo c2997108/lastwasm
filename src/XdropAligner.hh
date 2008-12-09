@@ -26,7 +26,7 @@ public:
   // Return the score (bestScore)
   int fill( const uchar* seq1, const uchar* seq2,
 	    size_t start1, size_t start2, direction dir,
-	    const int sm[MAT][MAT], int maxDrop,
+	    const int sm[MAT][MAT], int smMax, int maxDrop,
 	    const GeneralizedAffineGapCosts& gap );
 
   // Get the ungapped segments of the extension, putting them in "chunks"
