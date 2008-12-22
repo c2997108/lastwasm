@@ -123,7 +123,7 @@ Miscellaneous options (default settings):\n\
       break;
     case 'q':
       unstringify( mismatchCost, optarg );
-      if( mismatchCost <= 0 ) badopt( c, optarg );
+      if( mismatchCost < 0 ) badopt( c, optarg );  // allow 0 for Fujibuchi-san
       break;
     case 'p':
       matrixFile = optarg;

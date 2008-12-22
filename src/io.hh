@@ -23,7 +23,14 @@ std::ostream& openOut( const std::string& fileName, std::ofstream& ofs );
 template <typename T>  // T should be a vector-iterator or a pointer
 void memoryFromStream( T beg, T end, std::istream& s ){
   assert( beg < end );
-  s.read( (char*)&(*beg), (end - beg) * sizeof(*beg) );
+  enum { CHUNK_SIZE = 1073741824 };  // need to do big reads in chunks: why?
+  char * b = (char*)&(*beg);
+  char * e = (char*)&(*end);
+  while( e - b > CHUNK_SIZE ){
+    s.read( b, CHUNK_SIZE );
+    b += CHUNK_SIZE;
+  }
+  s.read( b, e - b );
 }
 
 template<typename T>
@@ -34,7 +41,14 @@ void vectorFromStream( std::vector<T>& v, std::istream& s ){
 template<typename T>  // T should be a vector-iterator or a pointer
 void memoryToStream( T beg, T end, std::ostream& s ){
   assert( beg < end );
-  s.write( (const char*)&(*beg), (end - beg) * sizeof(*beg) );
+  enum { CHUNK_SIZE = 1073741824 };  // need to do big writes in chunks: why?
+  const char * b = (const char*)&(*beg);
+  const char * e = (const char*)&(*end);
+  while( e - b > CHUNK_SIZE ){
+    s.write( b, CHUNK_SIZE );
+    b += CHUNK_SIZE;
+  }
+  s.write( b, e - b );
 }
 
 template<typename T>

@@ -293,8 +293,16 @@ void SuffixArray::radixSort( indexT* beg, indexT* end,
     }
 
     // get bucket sizes (i.e. letter counts):
-    for( indexT* i = beg; i < end; ++i ){
-      ++bucketSize[ textBase[ *i ] ];
+    // The intermediate oracle array makes it faster (see "Engineering
+    // Radix Sort for Strings" by J Karkkainen & T Rantala)
+    for( indexT* i = beg; i < end; /* noop */ ){
+      uchar oracle[256];
+      uchar* oracleEnd =
+	oracle + std::min( sizeof(oracle), std::size_t(end - i) );
+      for( uchar* j = oracle; j < oracleEnd; ++j )
+	*j = textBase[ *i++ ];
+      for( uchar* j = oracle; j < oracleEnd; ++j )
+	++bucketSize[ *j ];
     }
 
     // get the next textBase, and increment depth, for sorting within buckets:
