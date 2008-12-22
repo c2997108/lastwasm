@@ -231,21 +231,16 @@ void SuffixArray::makeBuckets( indexT bucketDepth ){
 
     for( indexT d = 0; d < bucketDepth; ++d ){
       unsigned symbol = *textPtr;
+      bucketIndex += symbol;
+      bucketNest[d].resize( bucketIndex+1, i );
+      bucketIndex *= alphSize;
 
       if( symbol < alphSize ){
-	bucketIndex += symbol;
-	bucketNest[d].resize( bucketIndex+1, i );
-	bucketIndex *= alphSize;
 	bucketIndex += symbol;
 	textPtr += bucketMask[d];
       }
       else{
-	do{
-	  bucketIndex += alphSize;
-	  bucketNest[d].resize( bucketIndex+1, i );
-	  bucketIndex *= alphSize;
-	  bucketIndex -= 1;
-	}while( ++d < bucketDepth );
+	bucketIndex -= 1;
       }
     }
   }
