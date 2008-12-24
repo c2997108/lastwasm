@@ -59,7 +59,8 @@ are in lowercase.  We can compare them using the same steps as above
   lastdb -c -m 110 catdb cat/*.fa
   lastal -o myalns.maf -u 2 catdb mouse/*.fa
 
-Next, if we like, we can remove uninteresting paralog alignments:
+Next, if we like, we can use some tools in the scripts directory.  We
+can remove uninteresting paralog alignments:
 
   last-reduce-alignments.sh myalns.maf > reduced.maf
 
@@ -82,17 +83,11 @@ mask repeats, because we want to map repetitive tags too:
   lastdb humandb human/*.fa
   lastal -o myalns.maf -e 30 humandb tags.fa
 
-Here, we used "-e 30" to report alignments with score >= 30.  (The
+Here, we used "-e 30" to report alignments with score >= 30.  The
 appropriate score threshold depends on how long the tags are and how
 many errors you want to allow: the default scoring scheme assigns +1
-to each match and -1 to each mismatch.)  Finally, it may be
-interesting to know the number of exact matches of each size for each
-tag:
-
-  lastal -o mycounts.txt -j 0 humandb tags.fa
-
-For more ideas on tag mapping, see the accompanying document
-tag-seeds.txt.
+to each match and -1 to each mismatch.  For more ideas on tag mapping,
+see the accompanying document tag-seeds.txt.
 
 
 *** Output Formats ***
@@ -277,8 +272,8 @@ each pairing within a seed is assigned a probability of 1.
  of each gapped extension proportional to exp(score / t).
 
 -g: This option allows use of "gamma-centroid alignment" (M Hamada et
- al. in preparation).  Such alignments only include pairings with
- probability > 1/(1+g).  When g=1, this is the same as "centroid
+ al. in press, Bioinformatics).  Such alignments only include pairings
+ with probability > 1/(1+g).  When g=1, this is the same as "centroid
  alignment" (LE Carvalho & CE Lawrence 2008, PNAS 105(9):3209-14).
  When lastal does (gamma-)centroid alignment, it does not report the
  usual alignment score.  Instead, it reports: sum[prob * (1+g) - 1].
