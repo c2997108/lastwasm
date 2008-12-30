@@ -17,10 +17,12 @@
 
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastdb: " << x << '\n'
 
+namespace cbrc{
+
 typedef unsigned indexT;
 
 // Set up an alphabet (e.g. DNA or protein), based on the user options
-void makeAlphabet( cbrc::Alphabet& alph, const cbrc::LastdbArguments& args ){
+void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
   if( !args.userAlphabet.empty() )  alph.fromString( args.userAlphabet );
   else if( args.isProtein )         alph.fromString( alph.protein );
   else                              alph.fromString( alph.dna );
@@ -44,8 +46,8 @@ indexT defaultBucketDepth( unsigned alphSize, indexT indexNum ){
 }
 
 // Write the .prj file for the whole database
-void writeOuterPrj( const std::string& fileName, const cbrc::Alphabet& alph,
-		    const cbrc::PeriodicSpacedSeed& mask, unsigned volumes ){
+void writeOuterPrj( const std::string& fileName, const Alphabet& alph,
+		    const PeriodicSpacedSeed& mask, unsigned volumes ){
   std::ofstream f( fileName.c_str() );
   if( !f ) throw std::runtime_error("can't open file: " + fileName );
   f << "version=" <<
@@ -59,8 +61,7 @@ void writeOuterPrj( const std::string& fileName, const cbrc::Alphabet& alph,
 
 // Write a per-volume .prj file, with info about a database volume
 void writeInnerPrj( const std::string& fileName,
-		    const cbrc::MultiSequence& multi,
-		    const cbrc::SuffixArray& sa ){
+		    const MultiSequence& multi, const SuffixArray& sa ){
   std::ofstream f( fileName.c_str() );
   if( !f ) throw std::runtime_error("can't open file: " + fileName );
   f << "totallength=" << multi.ends.back() << '\n';
@@ -71,10 +72,10 @@ void writeInnerPrj( const std::string& fileName,
 }
 
 // Make one database volume, from one batch of sequences
-void makeVolume( cbrc::MultiSequence& multi, cbrc::SuffixArray& sa,
-		 const cbrc::LastdbArguments& args, const cbrc::Alphabet& alph,
+void makeVolume( MultiSequence& multi, SuffixArray& sa,
+		 const LastdbArguments& args, const Alphabet& alph,
 		 unsigned volumeNumber ){
-  std::string baseName = args.lastdbName + cbrc::stringify(volumeNumber);
+  std::string baseName = args.lastdbName + stringify(volumeNumber);
 
   LOG( "writing tis, des, ssp, sds..." );
   multi.toFiles( baseName );
@@ -101,8 +102,8 @@ void makeVolume( cbrc::MultiSequence& multi, cbrc::SuffixArray& sa,
 
 // Read the next sequence, adding it to the MultiSequence and the SuffixArray
 std::istream&
-appendFromFasta( cbrc::MultiSequence& multi, cbrc::SuffixArray& sa,
-		 const cbrc::LastdbArguments& args, const cbrc::Alphabet& alph,
+appendFromFasta( MultiSequence& multi, SuffixArray& sa,
+		 const LastdbArguments& args, const Alphabet& alph,
 		 std::istream& in ){
   std::size_t maxSeqBytes = args.volumeSize - sa.indexBytes();
   if( multi.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
@@ -127,23 +128,22 @@ appendFromFasta( cbrc::MultiSequence& multi, cbrc::SuffixArray& sa,
   return in;
 }
 
-int main( int argc, char** argv )
-try{
-  cbrc::LastdbArguments args( argc, argv );
-  cbrc::Alphabet alph;
-  cbrc::PeriodicSpacedSeed mask;
-  cbrc::MultiSequence multi;
+void lastdb( int argc, char** argv ){
+  LastdbArguments args( argc, argv );
+  Alphabet alph;
+  PeriodicSpacedSeed mask;
+  MultiSequence multi;
   makeAlphabet( alph, args );
   mask.fromString( args.maskPattern );
   multi.initForAppending( mask.maxOffset );
   alph.tr( multi.seq.begin(), multi.seq.end() );
-  cbrc::SuffixArray sa( multi.seq, mask.offsets, alph.size );
+  SuffixArray sa( multi.seq, mask.offsets, alph.size );
   unsigned volumeNumber = 0;
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
     LOG( "reading " << *i << "..." );
     std::ifstream inFileStream;
-    std::istream& in = cbrc::openIn( *i, inFileStream );
+    std::istream& in = openIn( *i, inFileStream );
 
     while( appendFromFasta( multi, sa, args, alph, in ) ){
       if( !multi.isFinished() ){
@@ -159,7 +159,13 @@ try{
   }
 
   writeOuterPrj( args.lastdbName + ".prj", alph, mask, volumeNumber );
+}
 
+}
+
+int main( int argc, char** argv )
+try{
+  cbrc::lastdb( argc, argv );
   return EXIT_SUCCESS;
 }
 catch( const std::exception& e ) {

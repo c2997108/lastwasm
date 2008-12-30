@@ -28,13 +28,15 @@
 
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
 
+namespace cbrc{
+
 typedef unsigned indexT;
 typedef unsigned char uchar;
 typedef unsigned long long countT;
 
 // Set up a scoring matrix, based on the user options
-void makeScoreMatrix( cbrc::ScoreMatrix& sm, cbrc::LastalArguments& args,
-		      const cbrc::Alphabet& alph ){
+void makeScoreMatrix( ScoreMatrix& sm, LastalArguments& args,
+		      const Alphabet& alph ){
   if( !args.matrixFile.empty() ){
     sm.fromFile( args.matrixFile );
   }
@@ -53,8 +55,8 @@ void makeScoreMatrix( cbrc::ScoreMatrix& sm, cbrc::LastalArguments& args,
 }
 
 // Read the .prj file for the whole database
-void readOuterPrj( const std::string& fileName, cbrc::Alphabet& alph,
-		   cbrc::PeriodicSpacedSeed& mask, unsigned& volumes ){
+void readOuterPrj( const std::string& fileName, Alphabet& alph,
+		   PeriodicSpacedSeed& mask, unsigned& volumes ){
   std::ifstream f( fileName.c_str() );
   if( !f ) throw std::runtime_error("can't open file: " + fileName );
 
@@ -96,7 +98,7 @@ void readInnerPrj( const std::string& fileName, indexT& seqCount,
 
 // Write match counts for each query sequence
 void writeCounts( const std::vector< std::vector<countT> >& matchCounts,
-		  const cbrc::MultiSequence& query, indexT minDepth,
+		  const MultiSequence& query, indexT minDepth,
 		  std::ostream& out ){
   for( indexT i = 0; i < matchCounts.size(); ++i ){
     out << query.seqName(i) << '\n';
@@ -111,9 +113,8 @@ void writeCounts( const std::vector< std::vector<countT> >& matchCounts,
 
 // Count all matches, of all sizes, of a query batch against a suffix array
 void countMatches( std::vector< std::vector<countT> >& matchCounts,
-		   const cbrc::MultiSequence& query,
-		   const cbrc::SuffixArray& sa,
-		   const cbrc::LastalArguments& args, char strand ){
+		   const MultiSequence& query, const SuffixArray& sa,
+		   const LastalArguments& args, char strand ){
   indexT seqNum = strand == '+' ? 0 : query.finishedSequences() - 1;
 
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
@@ -137,17 +138,15 @@ void countMatches( std::vector< std::vector<countT> >& matchCounts,
 }
 
 // Find query matches to the suffix array, and do gapless extensions
-void alignGapless( cbrc::SegmentPairPot& gaplessAlns,
-		   const cbrc::MultiSequence& query,
-		   const cbrc::MultiSequence& text,
-		   const cbrc::SuffixArray& sa,
-		   const cbrc::LastalArguments& args,
-		   const cbrc::Alphabet& alph,
+void alignGapless( SegmentPairPot& gaplessAlns,
+		   const MultiSequence& query, const MultiSequence& text,
+		   const SuffixArray& sa,
+		   const LastalArguments& args, const Alphabet& alph,
 		   const int matGapless[64][64], const int matGapped[64][64],
 		   char strand, std::ostream& out ){
   const uchar* qseq = &query.seq[0];
   const uchar* tseq = &text.seq[0];
-  cbrc::DiagonalTable dt;  // record already-covered positions on each diagonal
+  DiagonalTable dt;  // record already-covered positions on each diagonal
   countT gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
@@ -159,7 +158,7 @@ void alignGapless( cbrc::SegmentPairPot& gaplessAlns,
       if( dt.isCovered( i, *beg ) ) continue;
 
       // tried: first get the score only, not the endpoints: slower!
-      cbrc::SegmentPair sp;  // do the gapless extension:
+      SegmentPair sp;  // do the gapless extension:
       sp.makeXdrop( *beg, i, tseq, qseq, matGapless, args.maxDropGapless );
       ++gaplessExtensionCount;
 
@@ -173,7 +172,7 @@ void alignGapless( cbrc::SegmentPairPot& gaplessAlns,
       }
 
       if( args.outputType == 1 ){  // we just want gapless alignments
-	cbrc::Alignment aln;
+	Alignment aln;
 	aln.fromSegmentPair(sp);
 	aln.write( text, query, strand, alph, args.outputFormat, out );
       }
@@ -198,25 +197,23 @@ void alignGapless( cbrc::SegmentPairPot& gaplessAlns,
 }
 
 // Do gapped extensions of the gapless alignments
-void alignGapped( cbrc::AlignmentPot& gappedAlns,
-		  cbrc::SegmentPairPot& gaplessAlns,
+void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 		  const std::vector<uchar>& text,
 		  const std::vector<uchar>& query,
-		  const cbrc::LastalArguments& args,
-		  const cbrc::Alphabet& alph,
+		  const LastalArguments& args, const Alphabet& alph,
 		  const int mat[64][64], int matMax,
-		  const cbrc::GeneralizedAffineGapCosts& gap,
-		  cbrc::XdropAligner& aligner, cbrc::Centroid& centroid ){
+		  const GeneralizedAffineGapCosts& gap,
+		  XdropAligner& aligner, Centroid& centroid ){
   countT gappedExtensionCount = 0;
 
   gaplessAlns.sort();  // sort the gapless alignments by score, highest first
 
   for( std::size_t i = 0; i < gaplessAlns.size(); ++i ){
-    const cbrc::SegmentPair& sp = gaplessAlns.get(i);
+    const SegmentPair& sp = gaplessAlns.get(i);
 
     if( sp.score == 0 ) continue;  // it has been marked as redundant
 
-    cbrc::Alignment aln;
+    Alignment aln;
     aln.seed = sp;
 
     // Shrink the seed to its longest run of identical matches.  This
@@ -247,22 +244,20 @@ void alignGapped( cbrc::AlignmentPot& gappedAlns,
 
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
-void alignFinish( const cbrc::AlignmentPot& gappedAlns,
-		  const cbrc::MultiSequence& query,
-		  const cbrc::MultiSequence& text,
-		  const cbrc::LastalArguments& args,
-		  const cbrc::Alphabet& alph,
+void alignFinish( const AlignmentPot& gappedAlns,
+		  const MultiSequence& query, const MultiSequence& text,
+		  const LastalArguments& args, const Alphabet& alph,
 		  const int mat[64][64], int matMax,
-		  const cbrc::GeneralizedAffineGapCosts& gap,
-		  cbrc::XdropAligner& aligner, cbrc::Centroid& centroid,
+		  const GeneralizedAffineGapCosts& gap,
+		  XdropAligner& aligner, Centroid& centroid,
 		  char strand, std::ostream& out ){
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
-    const cbrc::Alignment& aln = gappedAlns.items[i];
+    const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
       aln.write( text, query, strand, alph, args.outputFormat, out );
     }
     else{  // calculate match probabilities:
-      cbrc::Alignment probAln;
+      Alignment probAln;
       probAln.seed = aln.seed;
       probAln.makeXdrop( aligner, centroid, &text.seq[0], &query.seq[0],
 			 mat, matMax, gap, args.maxDropGapped,
@@ -273,9 +268,9 @@ void alignFinish( const cbrc::AlignmentPot& gappedAlns,
 }
 
 // Scan one batch of query sequences against one database volume
-void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
-	   const cbrc::SuffixArray& sa, const cbrc::LastalArguments& args,
-	   const cbrc::Alphabet& alph, const cbrc::ScoreMatrix& sm,
+void scan( const MultiSequence& query, const MultiSequence& text,
+	   const SuffixArray& sa, const LastalArguments& args,
+	   const Alphabet& alph, const ScoreMatrix& sm,
 	   std::vector< std::vector<countT> >& matchCounts,
 	   char strand, std::ostream& out ){
   LOG( "scanning..." );
@@ -291,17 +286,17 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
   const int (*matGapped)[64] =   // score matrix for gapped alignment
     args.maskLowercase < 3 ? sm.caseInsensitive : sm.caseSensitive;
 
-  cbrc::SegmentPairPot gaplessAlns;
+  SegmentPairPot gaplessAlns;
   alignGapless( gaplessAlns, query, text, sa, args, alph,
 		matGapless, matGapped, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
-  cbrc::XdropAligner aligner;
-  cbrc::Centroid centroid( aligner, matGapped, args.temperature );  // slow?
-  cbrc::GeneralizedAffineGapCosts gap( args.gapExistCost, args.gapExtendCost,
-				       args.gapPairCost );
+  XdropAligner aligner;
+  Centroid centroid( aligner, matGapped, args.temperature );  // slow?
+  GeneralizedAffineGapCosts gap( args.gapExistCost, args.gapExtendCost,
+				 args.gapPairCost );
 
-  cbrc::AlignmentPot gappedAlns;
+  AlignmentPot gappedAlns;
   alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, alph,
 	       matGapped, sm.maxScore, gap, aligner, centroid );
 
@@ -316,26 +311,24 @@ void scan( const cbrc::MultiSequence& query, const cbrc::MultiSequence& text,
 }
 
 // Scan one batch of query sequences against all database volumes
-void scanAllVolumes( cbrc::MultiSequence& query,
-		     const cbrc::LastalArguments& args,
-		     const cbrc::Alphabet& alph,
-		     const cbrc::PeriodicSpacedSeed& mask,
-		     const cbrc::ScoreMatrix& sm,
+void scanAllVolumes( MultiSequence& query,
+		     const LastalArguments& args, const Alphabet& alph,
+		     const PeriodicSpacedSeed& mask, const ScoreMatrix& sm,
 		     unsigned volumes, std::ostream& out ){
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   if( args.outputType == 0 ) matchCounts.resize( query.finishedSequences() );
 
   for( unsigned i = 0; i < volumes; ++i ){
-    std::string baseName = args.lastdbName + cbrc::stringify(i);
+    std::string baseName = args.lastdbName + stringify(i);
     LOG( "reading " << baseName << "..." );
 
     indexT seqCount = -1u, delimiterNum = -1u, bucketDepth = -1u;
     readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
 
-    cbrc::MultiSequence text;
+    MultiSequence text;
     text.fromFiles( baseName, seqCount );
 
-    cbrc::SuffixArray sa( text.seq, mask.offsets, alph.size );
+    SuffixArray sa( text.seq, mask.offsets, alph.size );
     sa.fromFiles( baseName, text.ends.back() - delimiterNum, bucketDepth );
 
     if( args.strand == 2 && i > 0 ){
@@ -365,8 +358,8 @@ void scanAllVolumes( cbrc::MultiSequence& query,
   LOG( "done!" );
 }
 
-void writeHeader( std::ostream& out, const cbrc::LastalArguments& args,
-		  const cbrc::ScoreMatrix sm ){
+void writeHeader( std::ostream& out, const LastalArguments& args,
+		  const ScoreMatrix sm ){
   out << "# LAST version " <<
 #include "version.hh"
       << "\n";
@@ -398,8 +391,8 @@ void writeHeader( std::ostream& out, const cbrc::LastalArguments& args,
 
 // Read the next sequence, adding it to the MultiSequence
 std::istream&
-appendFromFasta( cbrc::MultiSequence& query,
-		 const cbrc::LastalArguments& args, const cbrc::Alphabet& alph,
+appendFromFasta( MultiSequence& query,
+		 const LastalArguments& args, const Alphabet& alph,
 		 std::istream& in ){
   std::size_t maxSeqBytes = args.batchSize;
   if( query.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
@@ -414,13 +407,12 @@ appendFromFasta( cbrc::MultiSequence& query,
   return in;
 }
 
-int main( int argc, char** argv )
-try{
+void lastal( int argc, char** argv ){
   std::clock_t startTime = std::clock();
-  cbrc::LastalArguments args( argc, argv );
-  cbrc::Alphabet alph;
-  cbrc::PeriodicSpacedSeed mask;
-  cbrc::ScoreMatrix sm;
+  LastalArguments args( argc, argv );
+  Alphabet alph;
+  PeriodicSpacedSeed mask;
+  ScoreMatrix sm;
   unsigned volumes = -1u;  // initialize it to an "error" value
   readOuterPrj( args.lastdbName + ".prj", alph, mask, volumes );
   makeScoreMatrix( sm, args, alph );  // before alph.makeCaseInsensitive!
@@ -430,15 +422,15 @@ try{
 
   if( args.temperature == -1 && args.outputType > 3 ){
     args.temperature =
-      1 / cbrc::LambdaCalculator::calculate( sm.caseSensitive, alph.size );
+      1 / LambdaCalculator::calculate( sm.caseSensitive, alph.size );
     if( args.temperature < 0 )
       throw std::runtime_error("can't calculate lambda for this score matrix");
   }
 
   std::ofstream outFileStream;
-  std::ostream& out = cbrc::openOut( args.outFile, outFileStream );
+  std::ostream& out = openOut( args.outFile, outFileStream );
   writeHeader( out, args, sm );
-  cbrc::MultiSequence query;
+  MultiSequence query;
   query.initForAppending( mask.maxOffset );
   alph.tr( query.seq.begin(), query.seq.end() );
   out.precision(3);  // print non-integers more compactly
@@ -446,7 +438,7 @@ try{
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
     LOG( "reading " << *i << "..." );
     std::ifstream inFileStream;
-    std::istream& in = cbrc::openIn( *i, inFileStream );
+    std::istream& in = openIn( *i, inFileStream );
 
     while( appendFromFasta( query, args, alph, in ) ){
       if( !query.isFinished() ){
@@ -463,7 +455,13 @@ try{
   out.precision(6);  // reset the precision to the default value
   out << "# CPU time: " << (clock() - startTime + 0.0) / CLOCKS_PER_SEC
       << " seconds\n";
+}
 
+}
+
+int main( int argc, char** argv )
+try{
+  cbrc::lastal( argc, argv );
   return EXIT_SUCCESS;
 }
 catch( const std::exception& e ) {
