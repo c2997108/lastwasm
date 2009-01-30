@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "Alphabet.hh"
 #include <istream>
@@ -11,7 +11,7 @@ namespace cbrc{
 const char* Alphabet::dna = "ACGT";
 
 // U=selenocysteine, O=pyrrolysine, *=stop?
-const char* Alphabet::protein = "ACDEFGHIKLMNPQRSTVW";
+const char* Alphabet::protein = "ACDEFGHIKLMNPQRSTVWY";
 
 // need to allow "*", because blosum62 includes it:
 const char* Alphabet::all = "ABCDEFGHIJKLMNOPQRSTUVWXYZ*";
