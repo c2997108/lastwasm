@@ -36,9 +36,9 @@ typedef unsigned long long countT;
 
 // Set up a scoring matrix, based on the user options
 void makeScoreMatrix( ScoreMatrix& sm, LastalArguments& args,
-		      const Alphabet& alph ){
-  if( !args.matrixFile.empty() ){
-    sm.fromFile( args.matrixFile );
+		      const std::string& matrixFile, const Alphabet& alph ){
+  if( !matrixFile.empty() ){
+    sm.fromString( matrixFile );
   }
   else if( args.matchScore < 0 && args.mismatchCost < 0 &&
 	   alph.letters == alph.protein ){
@@ -413,13 +413,20 @@ void lastal( int argc, char** argv ){
   LastalArguments args;
   args.fromArgs( argc, argv );
 
+  std::string matrixFile;
+  if( !args.matrixFile.empty() ){
+    matrixFile = slurp( args.matrixFile );
+    args.fromString( matrixFile );  // read options from the matrix file
+    args.fromArgs( argc, argv );  // command line overrides matrix file
+  }
+
   Alphabet alph;
   PeriodicSpacedSeed mask;
   unsigned volumes = -1u;  // initialize it to an "error" value
   readOuterPrj( args.lastdbName + ".prj", alph, mask, volumes );
 
   ScoreMatrix sm;
-  makeScoreMatrix( sm, args, alph );  // before alph.makeCaseInsensitive!
+  makeScoreMatrix( sm, args, matrixFile, alph );  // before makeCaseInsensitive
   args.setDefaults( alph.letters == alph.dna, alph.letters == alph.protein,
 		    sm.maxScore );
   if( args.maskLowercase < 1 ) alph.makeCaseInsensitive();

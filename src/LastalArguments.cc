@@ -3,7 +3,11 @@
 #include "LastalArguments.hh"
 #include "stringify.hh"
 #include <unistd.h>  // getopt
+#include <sstream>
+#include <vector>
 #include <stdexcept>
+#include <cstring>  // strtok
+//#include <iostream>  // for debugging
 
 static void badopt( char opt, const char* arg ){
   throw std::runtime_error( std::string("bad option value: -") +
@@ -37,7 +41,7 @@ LastalArguments::LastalArguments() :
   gamma(1),
   verbosity(0){}
 
-void LastalArguments::fromArgs( int argc, char** argv ){
+void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
   std::string usage = "\
 usage: lastal [options] lastdb-name fasta-sequence-file(s)\n\
 \n\
@@ -95,6 +99,7 @@ Miscellaneous options (default settings):\n\
     + stringify(outputType) + ")\n\
 ";
 
+  optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   while( (c = getopt(argc, argv,
 		     "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:m:l:k:i:w:t:g:vj:"))
@@ -194,9 +199,35 @@ Miscellaneous options (default settings):\n\
     }
   }
 
+  if( optionsOnly ) return;
   if( optind == argc ) throw std::runtime_error(usage);
   lastdbName = argv[optind++];
   inputStart = optind;
+}
+
+void LastalArguments::fromLine( const std::string& line, bool optionsOnly ){
+  std::vector<char> args( line.begin(), line.end() );
+  args.push_back(0);  // don't forget the NUL terminator!
+  std::vector<char*> argv;
+  char* i = std::strtok( &args[0], " \t" );
+  argv.push_back(i);
+  while( i != NULL ){
+    i = std::strtok( NULL, " \t" );
+    argv.push_back(i);
+  }
+  fromArgs( argv.size()-1, &argv[0], optionsOnly );
+}
+
+void LastalArguments::fromStream( std::istream& is, bool optionsOnly ){
+  std::string trigger = "#lastal";
+  for( std::string line; std::getline( is, line ); /* noop */ )
+    if( line.compare( 0, trigger.size(), trigger ) == 0 )
+      fromLine( line, optionsOnly );
+}
+
+void LastalArguments::fromString( const std::string& s, bool optionsOnly ){
+  std::istringstream iss(s);
+  fromStream( iss, optionsOnly );
 }
 
 void LastalArguments::setDefaults( bool isDna, bool isProtein,

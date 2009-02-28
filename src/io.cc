@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "io.hh"
 #include <iostream>
@@ -17,6 +17,13 @@ std::ostream& openOut( const std::string& fileName, std::ofstream& ofs ){
   ofs.open( fileName.c_str() );
   if( !ofs ) throw std::runtime_error("can't open file: " + fileName);
   return ofs;
+}
+
+std::string slurp( const std::string& fileName ){
+  std::ifstream inFileStream;
+  std::istream& in = openIn( fileName, inFileStream );
+  std::istreambuf_iterator<char> beg(in), end; 
+  return std::string( beg, end );
 }
 
 }  // end namespace cbrc

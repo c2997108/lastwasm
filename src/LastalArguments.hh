@@ -5,6 +5,7 @@
 #ifndef LASTALARGUMENTS_HH
 #define LASTALARGUMENTS_HH
 #include <string>
+#include <iosfwd>
 
 namespace cbrc{
 
@@ -15,7 +16,16 @@ struct LastalArguments{
   LastalArguments();
 
   // set parameters from a list of arguments:
-  void fromArgs( int argc, char** argv );
+  void fromArgs( int argc, char** argv, bool optionsOnly = false );
+
+  // set parameters from a command line (by splitting it into arguments):
+  void fromLine( const std::string& line, bool optionsOnly = true );
+
+  // set parameters from lines beginning with "#lastal":
+  void fromStream( std::istream& is, bool optionsOnly = true );
+
+  // set parameters from lines beginning with "#lastal":
+  void fromString( const std::string& s, bool optionsOnly = true );
 
   // set default option values that depend on input files:
   void setDefaults( bool isDna, bool isProtein, int maxMatchScore );

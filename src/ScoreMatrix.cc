@@ -1,7 +1,6 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "ScoreMatrix.hh"
-#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
@@ -55,13 +54,6 @@ void ScoreMatrix::matchMismatch( int match, int mismatch,
     cells[i].assign( size, -mismatch );
     cells[i][i] = match;
   }
-}
-
-void ScoreMatrix::fromFile( const std::string& fileName ){
-  std::ifstream file( fileName.c_str() );
-  if( !file ) ERR( "can't open file: " + fileName );
-  file >> *this;
-  if( !file ) ERR( "can't read file: " + fileName );
 }
 
 void ScoreMatrix::fromString( const std::string& matString ){

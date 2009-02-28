@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // Generally useful input/output functions, mostly for binary reading
 // and writing of vectors.
@@ -19,6 +19,9 @@ std::istream& openIn( const std::string& fileName, std::ifstream& ifs );
 
 // open an output file, but if the name is "-", just return cout
 std::ostream& openOut( const std::string& fileName, std::ofstream& ofs );
+
+// read a file into a string, but if the name is "-", read cin
+std::string slurp( const std::string& fileName );
 
 template <typename T>  // T should be a vector-iterator or a pointer
 void memoryFromStream( T beg, T end, std::istream& s ){

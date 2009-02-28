@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds a score matrix for aligning pairs of residues,
 // e.g. blosum62.  The delimiter symbol (space) aligned to anything
@@ -25,7 +25,6 @@ struct ScoreMatrix{
   static const char* blosum62;
 
   void matchMismatch( int match, int mismatch, const std::string& letters );
-  void fromFile( const std::string& fileName );
   void fromString( const std::string& s );
   void init( const uchar encode[] );  // unspecified letters get minScore
   void writeCommented( std::ostream& stream ) const;  // write preceded by "#"
