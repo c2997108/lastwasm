@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // Read fasta-format sequences; construct a suffix array of them; and
 // write the results to files.
@@ -129,7 +129,8 @@ appendFromFasta( MultiSequence& multi, SuffixArray& sa,
 }
 
 void lastdb( int argc, char** argv ){
-  LastdbArguments args( argc, argv );
+  LastdbArguments args;
+  args.fromArgs( argc, argv );
   Alphabet alph;
   PeriodicSpacedSeed mask;
   MultiSequence multi;

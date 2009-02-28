@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
@@ -409,12 +409,16 @@ appendFromFasta( MultiSequence& query,
 
 void lastal( int argc, char** argv ){
   std::clock_t startTime = std::clock();
-  LastalArguments args( argc, argv );
+
+  LastalArguments args;
+  args.fromArgs( argc, argv );
+
   Alphabet alph;
   PeriodicSpacedSeed mask;
-  ScoreMatrix sm;
   unsigned volumes = -1u;  // initialize it to an "error" value
   readOuterPrj( args.lastdbName + ".prj", alph, mask, volumes );
+
+  ScoreMatrix sm;
   makeScoreMatrix( sm, args, alph );  // before alph.makeCaseInsensitive!
   args.setDefaults( alph.letters == alph.dna, alph.letters == alph.protein,
 		    sm.maxScore );

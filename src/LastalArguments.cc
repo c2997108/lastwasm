@@ -1,19 +1,18 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "LastalArguments.hh"
 #include "stringify.hh"
 #include <unistd.h>  // getopt
 #include <stdexcept>
 
-namespace cbrc{
-
-void LastalArguments::badopt( char opt, const char* arg ){
+static void badopt( char opt, const char* arg ){
   throw std::runtime_error( std::string("bad option value: -") +
 			    opt + ' ' + arg );
 }
 
-LastalArguments::LastalArguments( int argc, char** argv ) :
-  // default values:
+namespace cbrc{
+
+LastalArguments::LastalArguments() :
   outFile("-"),
   outputFormat(1),
   outputType(3),
@@ -36,8 +35,9 @@ LastalArguments::LastalArguments( int argc, char** argv ) :
   maxRepeatDistance(1000),  // sufficiently conservative?
   temperature(-1),  // depends on the score matrix
   gamma(1),
-  verbosity(0)
-{
+  verbosity(0){}
+
+void LastalArguments::fromArgs( int argc, char** argv ){
   std::string usage = "\
 usage: lastal [options] lastdb-name fasta-sequence-file(s)\n\
 \n\

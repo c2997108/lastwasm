@@ -1,19 +1,18 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "LastdbArguments.hh"
 #include "stringify.hh"
 #include <unistd.h>  // getopt
 #include <stdexcept>
 
-namespace cbrc{
-
-void LastdbArguments::badopt( char opt, const char* arg ){
+static void badopt( char opt, const char* arg ){
   throw std::runtime_error( std::string("bad option value: -") +
                             opt + ' ' + arg );
 }
 
-LastdbArguments::LastdbArguments( int argc, char** argv ) :
-  // default values:
+namespace cbrc{
+
+LastdbArguments::LastdbArguments() :
   isProtein(false),
   isCaseSensitive(false),
   maskPattern("1"),
@@ -21,8 +20,9 @@ LastdbArguments::LastdbArguments( int argc, char** argv ) :
   volumeSize(0x50000000),  // 1.25 Gbytes
   userAlphabet(""),
   bucketDepth(-1u),  // means: use the default (adapts to the data)
-  verbosity(0)
-{
+  verbosity(0){}
+
+void LastdbArguments::fromArgs( int argc, char** argv ){
   std::string usage = "\
 usage: lastdb [options] output-name fasta-sequence-file(s)\n\
 \n\

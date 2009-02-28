@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds the command line arguments for lastal.
 
@@ -11,14 +11,17 @@ namespace cbrc{
 struct LastalArguments{
   typedef unsigned indexT;
 
-  LastalArguments( int argc, char** argv );
+  // set the parameters to their default values:
+  LastalArguments();
+
+  // set parameters from a list of arguments:
+  void fromArgs( int argc, char** argv );
 
   // set default option values that depend on input files:
   void setDefaults( bool isDna, bool isProtein, int maxMatchScore );
 
+  // write the parameter settings, starting each line with "#":
   void writeCommented( std::ostream& stream ) const;
-
-  static void badopt( char opt, const char* arg );
 
   // options:
   std::string outFile;

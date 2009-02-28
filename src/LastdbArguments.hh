@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds the command line arguments for lastdb.
 
@@ -11,9 +11,11 @@ namespace cbrc{
 struct LastdbArguments{
   typedef unsigned indexT;
 
-  LastdbArguments( int argc, char** argv );
+  // set the parameters to their default values:
+  LastdbArguments();
 
-  static void badopt( char opt, const char* arg );
+  // set parameters from a list of arguments:
+  void fromArgs( int argc, char** argv );
 
   // options:
   bool isProtein;
