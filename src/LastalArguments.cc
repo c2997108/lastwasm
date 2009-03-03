@@ -28,7 +28,7 @@ LastalArguments::LastalArguments() :
   mismatchCost(-1),  // depends on the alphabet
   gapExistCost(-1),  // depends on the alphabet
   gapExtendCost(-1),  // depends on the alphabet
-  gapPairCost(1000000000),
+  gapPairCost(100000),  // I want it to be infinity, but avoid overflow
   matrixFile(""),
   maxDropGapped(-1),  // depends on gap costs & maxDropGapless
   maxDropGapless(-1),  // depends on the score matrix
