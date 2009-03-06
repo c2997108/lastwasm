@@ -1,4 +1,4 @@
-// Copyright 2008 Michiaki Hamada
+// Copyright 2008, 2009 Michiaki Hamada
 
 #ifndef CENTROID_HH
 #define CENTROID_HH
@@ -22,8 +22,6 @@ namespace cbrc{
   public:
     ExpectedCount ();
     std::ostream& write (std::ostream& os, double Z) const;
-  private:
-    double convert (double val, double Z) const;
   };
   /**
    * (1) Forward and backward algorithm on the DP region given by Xdrop algorithm
@@ -43,12 +41,10 @@ namespace cbrc{
     typedef unsigned char uchar;
     double forward( const uchar* seq1, const uchar* seq2, 
 		    size_t start1, size_t start2, XdropAligner::direction dir,
-		    const int sm[MAT][MAT], 
 		    const GeneralizedAffineGapCosts& gap );
     
     double backward( const uchar* seq1, const uchar* seq2, 
 		     size_t start1, size_t start2, XdropAligner::direction dir,
-		     const int sm[MAT][MAT], 
 		     const GeneralizedAffineGapCosts& gap );
     double dp( double gamma );
     void traceback( std::vector< SegmentPair >& chunks, double gamma ) const;
@@ -71,16 +67,17 @@ namespace cbrc{
     typedef std::vector< std::vector< double > > dmatrix_t;
     typedef std::vector< double > dvec_t;
 
-    dmatrix_t fM; // f^M(i,j), storing forward values of x
-    dmatrix_t fD; // f^D(i,j), TODO: we can reduce memory
-    dmatrix_t fI; // f^I(i,j), TODO: we can reduce memory
-    dmatrix_t fP; // f^P(i,j), TODO: we can reduce memory
+    dmatrix_t fM; // f^M(i,j)
+    dmatrix_t fD; // f^D(i,j)
+    dmatrix_t fI; // f^I(i,j)
+    dmatrix_t fP; // f^P(i,j)
+
     double    Z; // partion function of forward values
 
-    dmatrix_t bM; // b^M(i,j), TODO: we can reduce memory
-    dmatrix_t bD; // b^D(i,j), TODO: we can reduce memory
-    dmatrix_t bI; // b^I(i,j), TODO: we can reduce memory
-    dmatrix_t bP; // b^P(i,j), TODO: we can reduce memory
+    dmatrix_t bM; // b^M(i,j)
+    dmatrix_t bD; // b^D(i,j)
+    dmatrix_t bI; // b^I(i,j)
+    dmatrix_t bP; // b^P(i,j)
 
     dmatrix_t pp; // posterior match probabilities
 
@@ -102,27 +99,6 @@ namespace cbrc{
 		 size_t antiDiagonal, size_t seq1pos ) const;
     double diag( const dmatrix_t& matrix,
 		 size_t antiDiagonal, size_t seq1pos ) const;
-  public:
-    // for debug
-    void print_viterbi_matrix ( std::ostream& os ) const;
-    void print_forward_matrix ( std::ostream& os ) const;
-    void print_backward_matrix ( std::ostream& os ) const;
-    void print_prob_matrix ( std::ostream& os ) const;
-
-    template< typename T >
-    static
-    void print_matrix ( std::ostream& os, 
-			const std::vector< std::vector< T > >& mat, 
-			const std::vector< size_t >& offsets ){
-      for( size_t k = 0; k < mat.size(); ++k ){
-	const size_t off = offsets[ k ];
-	os << "(" << k << ")" << " [" << off << "] ";
-	for( size_t p = 0; p < mat[ k ].size(); ++p ){
-	  os << mat[ k ][ p ] << " ";
-	}
-	os << "\n";
-      }
-    }
   };
 
 }  // end namespace cbrc

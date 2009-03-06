@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "Alignment.hh"
 #include "Centroid.hh"
@@ -136,8 +136,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
   if( outputType > 3 ){  // calculate match probabilities
     centroid.reset();
-    centroid.forward( seq1, seq2, start1, start2, dir, sm, gap );
-    centroid.backward( seq1, seq2, start1, start2, dir, sm, gap );
+    centroid.forward( seq1, seq2, start1, start2, dir, gap );
+    centroid.backward( seq1, seq2, start1, start2, dir, gap );
 
     if( outputType > 4 ){  // do gamma-centroid alignment
       centroidScore += centroid.dp( gamma );
