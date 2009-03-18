@@ -175,6 +175,8 @@ each pairing within a seed is assigned a probability of 1.
  number of bytes (excluding buckets).  If a single sequence exceeds
  this amount, however, it is not split.  The default is tuned for 2 GB
  of RAM: if you have more, increase this to make lastal go faster.
+ You can use suffixes K, M, and G to specify KibiBytes, MebiBytes, and
+ GibiBytes.
 
 -a: Specify your own alphabet, e.g. "-a ABCDE".  In this example, only
  A, B, C, D, E will be allowed in initial matches (except in skipped
@@ -259,7 +261,8 @@ each pairing within a seed is assigned a probability of 1.
  the query.  This increases speed at the expense of sensitivity.
 
 -i: Search queries in batches of at most this many bytes.  If a single
- sequence exceeds this amount, however, it is not split.
+ sequence exceeds this amount, however, it is not split.  You can use
+ suffixes K, M, and G to specify KibiBytes, MebiBytes, and GibiBytes.
 
 -w: This option is a kludge to avoid catastrophic time and memory
  usage when self-comparing a large sequence.  If a large identical

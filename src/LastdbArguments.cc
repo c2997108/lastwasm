@@ -56,7 +56,7 @@ Advanced Options (default settings):\n\
       if( indexStep < 1 ) badopt( c, optarg );
       break;
     case 's':
-      unstringify( volumeSize, optarg );
+      unstringifySize( volumeSize, optarg );
       break;
     case 'a':
       userAlphabet = optarg;

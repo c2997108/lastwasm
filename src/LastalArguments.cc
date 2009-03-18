@@ -87,7 +87,7 @@ Miscellaneous options (default settings):\n\
     + stringify(minHitDepth) + ")\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
--i: query batch size (16 MB when counting matches, 128 MB otherwise)\n\
+-i: query batch size (16 MiB when counting matches, 128 MiB otherwise)\n\
 -w: supress repeats within this distance inside large exact matches ("
     + stringify(maxRepeatDistance) + ")\n\
 -t: 'temperature' for calculating probabilities (1/lambda)\n\
@@ -173,7 +173,7 @@ Miscellaneous options (default settings):\n\
       if( queryStep <= 0 ) badopt( c, optarg );
       break;
     case 'i':
-      unstringify( batchSize, optarg );
+      unstringifySize( batchSize, optarg );
       if( batchSize <= 0 ) badopt( c, optarg );  // 0 means "not specified"
       break;
     case 'w':
