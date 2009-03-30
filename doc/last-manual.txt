@@ -1,4 +1,5 @@
 LAST: Genome-Scale Sequence Comparison
+======================================
 
 *** Introduction ***
 
@@ -17,6 +18,9 @@ software, you need a C++ compiler.
 
 Optional: to run the scripts, you need a Unix-like environment with
 Python.  To make dotplots, you need the Python Imaging Library.
+
+Luxury: to handle mammalian genomes with maximum efficiency, it's good
+to have about 16 gigabytes of RAM (and use it with "lastdb -s 16G").
 
 
 *** Installation ***
@@ -95,10 +99,10 @@ see the accompanying document tag-seeds.txt.
 lastal can write alignments in two formats: tabular and MAF.  MAF
 format looks like this:
 
-a score=16
-s chr3L        19433515 24 + 24543557 TTTGGGAGTTGAAGTTTTCGCCCT
-s H04BA01F1907        2 22 +       25 TTTGGGAGTTGAAGGTT--GCCCT
-p 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0.85 0.759 0.662 0.533 0.574 0.593 0.564 0.441
+a score=15
+s chr3L        19433515 23 + 24543557 TTTGGGAGTTGAAGTTTTCGCCC
+s H04BA01F1907        2 21 +       25 TTTGGGAGTTGAAGGTT--GCCC
+p 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0.85 0.759 0.662 - - 0.533 0.574 0.593 0.564
 
 Lines starting with "s" contain: the sequence name, the start position
 of the alignment, the number of nucleotides in the alignment, the
@@ -109,12 +113,12 @@ we had used the reverse-complemented sequence.  The line starting with
 "p" contains the probability of each pair of aligned letters.  The
 same alignment in tabular format looks like this:
 
-16 chr3L 19433515 24 + 24543557 H04BA01F1907 2 22 + 25 17,2:0,5
+15 chr3L 19433515 23 + 24543557 H04BA01F1907 2 21 + 25 17,2:0,4
 
 The final column shows the sizes and offsets of gapless blocks in the
 alignment.  In this case, we have a block of size 17, then an offset
 of size 2 in the upper sequence and 0 in the lower sequence, then a
-block of size 5.  Probabilities are not shown in this format.
+block of size 4.  Probabilities are not shown in this format.
 
 
 *** Steps in lastal ***
@@ -275,11 +279,12 @@ each pairing within a seed is assigned a probability of 1.
  of each gapped extension proportional to exp(score / t).
 
 -g: This option allows use of "gamma-centroid alignment" (M Hamada et
- al. in press, Bioinformatics).  Such alignments only include pairings
- with probability > 1/(1+g).  When g=1, this is the same as "centroid
- alignment" (LE Carvalho & CE Lawrence 2008, PNAS 105(9):3209-14).
- When lastal does (gamma-)centroid alignment, it does not report the
- usual alignment score.  Instead, it reports: sum[prob * (1+g) - 1].
+ al. 2009, Bioinformatics 25(4):465-73).  Such alignments only include
+ pairings with probability > 1/(1+g).  When g=1, this is the same as
+ "centroid alignment" (LE Carvalho & CE Lawrence 2008, PNAS
+ 105(9):3209-14).  When lastal does (gamma-)centroid alignment, it
+ does not report the usual alignment score.  Instead, it reports:
+ sum[prob * (1+g) - 1].
 
 -v: Be verbose: write messages about what lastal is doing.
 

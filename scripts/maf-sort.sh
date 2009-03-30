@@ -6,6 +6,12 @@
 # in unchanged order.  If option "-d" is specified, then alignments
 # that appear only once are omitted (like uniq -d).
 
+# Maybe the sorting should consider the strand of the top sequence?
+
+# Make "sort" use a standard ordering:
+LC_ALL=C
+export LC_ALL
+
 opt=
 if [ "$1" = "-d" ]
 then
@@ -13,16 +19,16 @@ then
     shift
 fi
 
-cat "$@" > /tmp/$$  # can we avoid using a temporary file?
+tmpfile=${TMPDIR-/tmp}/maf-sort.$$
 
-grep '^#' /tmp/$$
+cat "$@" | tee $tmpfile | grep '^#'
 
-grep -v '^#' /tmp/$$       |  # remove comment lines
+grep -v '^#' $tmpfile      |  # remove comment lines
 sed '/^a/y/ /!/'           |  # change spaces to '!'s in 'a' lines
 perl -pe 's/\n/#/ if /\S/' |  # join each alignment into one big line
-sort -k2,2 -k3,3n -k4,4n   |  # sort the lines
+sort -k2b,2 -k3,3n -k4,4n  |  # sort the lines
 uniq $opt                  |  # merge identical alignments (don't use sort -u)
 perl -pe 's/#/\n/g'        |  # undo the line-joining
 sed '/^a/y/!/ /'              # change '!'s back to spaces in 'a' lines
 
-rm /tmp/$$
+rm $tmpfile

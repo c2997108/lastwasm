@@ -218,8 +218,13 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 
   if( matchProbabilities.size() > 0 ){
     os << 'p';
-    for( std::size_t i = 0; i < matchProbabilities.size(); ++i ){
-      os << ' ' << matchProbabilities[i];
+    CI(double) p = matchProbabilities.begin();
+    for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
+      if( i > blocks.begin() ){
+	for( indexT j = (i-1)->end1(); j < i->beg1(); ++j ) os << " -";
+	for( indexT j = (i-1)->end2(); j < i->beg2(); ++j ) os << " -";
+      }
+      for( indexT j = 0; j < i->size; ++j ) os << ' ' << *p++;
     }
     os << '\n';
   }

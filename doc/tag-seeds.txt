@@ -25,17 +25,15 @@ get far fewer unproductive matches.
 With LAST, we can do this as follows::
 
   lastdb -m111110 mydb genome.fa
-  lastal -l17 -m999999999 -j1 -r2 -d47 -y1 mydb tags.fa
+  lastal -l17 -m4000000000 -j1 -q0 -d24 mydb tags.fa
 
 In the lastdb command, the seed pattern gets cyclically repeated, so
 we only need to specify the part up to the "0".  In the lastal
 command, we used -l17 to require 17 matched positions in initial
-matches, and -m999999999 to accept hugely repeated initial matches.
-We also used -j1 to request gapless alignments, -r2 to set the match
-score to 2, and -d47 to request alignments with score >= 47.  This
-will give us all 25-mer alignments with at most one mismatch.
-Finally, we used -y1 to halt extensions if the score drops by more
-than 1: this makes it faster without affecting the result.
+matches, and -m4000000000 to accept hugely repeated initial matches.
+We also used -j1 to request gapless alignments, -q0 to set the
+mismatch cost to 0, and -d24 to request alignments with score >= 24.
+This will give us all 25-mer alignments with at most one mismatch.
 
 The following table shows optimal spaced seed patterns for various tag
 sizes and numbers of mismatches.  Each entry shows the number of
@@ -117,7 +115,7 @@ Getting information on repetitive tags
 
 One problem with this approach is that it gives no information on tags
 that map repetitively to many locations.  We can get some information
-on repetitive tags, without resorting to -m999999999, by counting
+on repetitive tags, without resorting to -m4000000000, by counting
 initial matches::
 
   lastal -j0 mydb tags.fa
@@ -132,7 +130,7 @@ tag might map uniquely to one volume, but repetitively to another
 volume.  Unlikely, but possible.  If we don't get any information
 about the repetitive mappings, we might mistakenly infer that it maps
 uniquely to the genome.  You can check for this situation by using
-lastal -j0 (or resorting to -m999999999).  If you have enough memory
+lastal -j0 (or resorting to -m4000000000).  If you have enough memory
 (around 16 GB for a mammalian genome), you can put the whole genome
 into one volume using the -s option of lastdb.  (Even if the genome is
 in one volume, the two strands get searched separately.)
@@ -141,4 +139,4 @@ Other options
 -------------
 
 It's possible to use a hybrid of the two options above.  For example,
-use a spaced seed but don't use -m999999999.
+use a spaced seed but don't use -m4000000000.
