@@ -6,21 +6,21 @@
 # of Y.  This script assumes the alignments have been sorted by
 # maf-sort.sh.
 
-import fileinput, string, re
+import fileinput, string, re, itertools
 
 def finalize_score_matrix(score_matrix, mask_lowercase):
     '''Add lowercase and non-standard letters to the score matrix.'''
-    if 'aa' in score_matrix: return  # it's already finalized
+    if ('a', 'a') in score_matrix: return  # it's already finalized
     min_score = min(score_matrix.values())
     if not mask_lowercase:
         for k, score in score_matrix.items():
             i, j = k
-            score_matrix[i + j.lower()]         = score
-            score_matrix[i.lower() + j]         = score
-            score_matrix[i.lower() + j.lower()] = score
+            score_matrix[i, j.lower()]         = score
+            score_matrix[i.lower(), j]         = score
+            score_matrix[i.lower(), j.lower()] = score
     for i in string.printable:
         for j in string.printable:
-            k = i + j
+            k = i, j
             score_matrix.setdefault(k, min_score)
 
 score_matrix = {}
@@ -34,6 +34,34 @@ def gap_cost(x, y):
     generalized = gap_open + gap_extend * abs(x - y) + gap_pair * min(x, y)
     return min(affine, generalized)
 
+def aln_score(seq1, seq2):
+    '''Calculate the score of the alignment represented by seq1 and seq2.'''
+    score = 0
+    gap1 = gap2 = 0  # gap sizes
+    for pair in itertools.izip(seq1, seq2):  # faster than zip
+        a, b = pair
+        if   a == '-': gap1 += 1
+        elif b == '-': gap2 += 1
+        else:
+            if gap1 + gap2 > 0:
+                score -= gap_cost(gap1, gap2)
+                gap1 = gap2 = 0
+            score += score_matrix[pair]
+    if gap1 + gap2 > 0: score -= gap_cost(gap1, gap2)
+    return score
+
+def nthNonGap(s, n):
+    '''Get the start position of the n-th non-gap.'''
+    for i, x in enumerate(s):
+        if x != '-':
+            if n == 0: return i
+            n -= 1
+    raise ValueError('non-gap not found')
+
+def nthLastNonGap(s, n):
+    '''Get the end position of the n-th last non-gap.'''
+    return len(s) - nthNonGap(s[::-1], n)
+
 def aln_dominates(x, y):
     '''Does alignment x dominate alignment y?'''
     yscore = y[0][4]
@@ -41,26 +69,14 @@ def aln_dominates(x, y):
     yend = y[1][-1]
     xseq1 = x[1][12]
     xseq2 = x[2][12]
-    xpos = x[1][4]
+    xbeg = x[1][4]
+    xend = x[1][-1]
     if len(xseq1) != len(xseq2): raise Exception("bad MAF data")
-    xscore = 0
-    gap1 = gap2 = 0
-
-    for a, b in zip(xseq1, xseq2):
-        if xpos >= yend: break
-        if a == '-':
-            if xpos > ybeg: gap1 += 1
-        else:
-            if xpos >= ybeg:
-                if b == '-': gap2 += 1
-                else:
-                    if gap1 + gap2 > 0:
-                        xscore -= gap_cost(gap1, gap2)
-                        gap1 = gap2 = 0
-                    xscore += score_matrix[a + b]
-            xpos += 1
-
-    if gap1 + gap2 > 0: xscore -= gap_cost(gap1, gap2)
+    lettersFromBeg = max(ybeg-xbeg, 0)
+    lettersFromEnd = max(xend-yend, 0)
+    alnBeg = nthNonGap(xseq1, lettersFromBeg)
+    alnEnd = nthLastNonGap(xseq1, lettersFromEnd)
+    xscore = aln_score(xseq1[alnBeg:alnEnd], xseq2[alnBeg:alnEnd])
     return xscore > yscore
 
 def parse_maf_a_line(line):
@@ -131,7 +147,7 @@ for line in fileinput.input():
             row = words[0]  # row heading for the score matrix
             scores = map(int, words[1:])
             for col, s in zip(columns, scores):
-                score_matrix[row + col] = s
+                score_matrix[row, col] = s
         elif columns:
             finalize_score_matrix(score_matrix, mask_lowercase)
     elif line.isspace():
