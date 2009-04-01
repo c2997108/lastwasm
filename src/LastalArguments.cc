@@ -71,14 +71,14 @@ Score parameters (default settings):\n\
 -r: match score   (1 for DNA, blosum62 for protein)\n\
 -q: mismatch cost (1 for DNA, blosum62 for protein)\n\
 -p: file for residue pair scores\n\
--a: gap existence cost (2 for DNA, 11 for protein)\n\
+-a: gap existence cost (7 for DNA, 11 for protein)\n\
 -b: gap extension cost (1 for DNA,  2 for protein)\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
 -y: maximum score dropoff for gapless extensions (max-match-score * 10)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
--e: minimum score for gapped alignments (50 for DNA, 100 for protein)\n\
+-e: minimum score for gapped alignments (40 for DNA, 100 for protein)\n\
 \n\
 Miscellaneous options (default settings):\n\
 -m: maximum multiplicity for initial matches ("
@@ -234,12 +234,12 @@ void LastalArguments::setDefaults( bool isDna, bool isProtein,
 				   int maxMatchScore ){
   if( strand < 0 ) strand = isDna ? 2 : 1;
 
-  if( minScoreGapped < 0 ) minScoreGapped = isProtein ? 100 : 50;
+  if( minScoreGapped < 0 ) minScoreGapped = isProtein ? 100 : 40;
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
 
   // matchScore & mismatchCost are set when making the score matrix
 
-  if( gapExistCost < 0 )   gapExistCost = isProtein ? 11 : 2;
+  if( gapExistCost < 0 )   gapExistCost = isProtein ? 11 : 7;
   if( gapExtendCost < 0 )  gapExtendCost = isProtein ? 2 : 1;
 
   if( maxDropGapless < 0 ) maxDropGapless = maxMatchScore * 10;

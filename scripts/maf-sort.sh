@@ -8,6 +8,8 @@
 
 # Maybe the sorting should consider the strand of the top sequence?
 
+# XXX alignments with differences in whitespace are considered non-identical
+
 # Make "sort" use a standard ordering:
 LC_ALL=C
 export LC_ALL

@@ -94,13 +94,12 @@ straightforward way, although we lose the guarantee of finding all
 matches with up to N mismatches.  Suppose we have tags of length 36::
 
   lastdb mydb genome.fa
-  lastal -e30 mydb tags.fa
+  lastal -a2 -e30 mydb tags.fa
 
-Here, we used -e30 to get alignments with score >= 30.  In the default
-scoring scheme, matches score +1, mismatches score -1, and gaps score
--(2 + gap size).  Therefore, this method allows a few mismatches
-and/or a few small gaps.  You can tune this by changing the score
-threshold and the scoring scheme.
+Here, we used -a2 to set the gap existence cost to 2, and -e30 to get
+alignments with score >= 30.  This method allows a few mismatches
+and/or a few small gaps, because matches score +1, mismatches score
+-1, and gaps score -(gap size + 2).
 
 Since we did not specify a spaced seed, lastal starts by finding exact
 matches.  Specifically, it finds all exact matches, of whatever size,
@@ -123,17 +122,17 @@ initial matches::
 A small risk with database volumes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-LAST is designed to work with 2 GB of memory, so it splits large
-(e.g. mammalian) genomes into "volumes", and maps tags to each volume
-in turn as if they were separate genomes.  There is a chance that a
-tag might map uniquely to one volume, but repetitively to another
-volume.  Unlikely, but possible.  If we don't get any information
-about the repetitive mappings, we might mistakenly infer that it maps
-uniquely to the genome.  You can check for this situation by using
-lastal -j0 (or resorting to -m4000000000).  If you have enough memory
-(around 16 GB for a mammalian genome), you can put the whole genome
-into one volume using the -s option of lastdb.  (Even if the genome is
-in one volume, the two strands get searched separately.)
+LAST is designed to work with 2 gigabytes of memory, so it splits
+large (e.g. mammalian) genomes into "volumes", and maps tags to each
+volume in turn as if they were separate genomes.  There is a chance
+that a tag might map uniquely to one volume, but repetitively to
+another volume.  Unlikely, but possible.  If we don't get any
+information about the repetitive mappings, we might mistakenly infer
+that it maps uniquely to the genome.  You can check for this situation
+by using lastal -j0 (or resorting to -m4000000000).  If you have
+enough memory (around 16 GB for a mammalian genome), you can put the
+whole genome into one volume using the -s option of lastdb.  (Even if
+the genome is in one volume, the two strands get searched separately.)
 
 Other options
 -------------
