@@ -82,8 +82,8 @@ Let's assume you have the human genome and tag sequences in
 FASTA-format files: human/chr*.fa and tags.fa.  This time, we will not
 mask repeats, because we want to map repetitive tags too::
 
-  lastdb humandb human/chr*.fa
-  lastal -o myalns.maf -a2 -e30 humandb tags.fa
+  lastdb -v humandb human/chr*.fa
+  lastal -o myalns.maf -a2 -e30 -v humandb tags.fa
 
 Here, we used "-a2" to set the gap existence cost to 2, and "-e30" to
 get alignments with score >= 30.  The appropriate score parameters
@@ -196,7 +196,8 @@ Advanced Options
 -b  Specify the depth of "buckets" used to accelerate initial match
     finding.  The deeper the faster, but the more memory is needed.
     The default is to use the maximum depth that consumes at most one
-    byte per possible match start position: this seems to work well.
+    byte per possible match start position.  This option has no effect
+    on the results.
 
 -v  Be verbose: write messages about what lastdb is doing.
 
