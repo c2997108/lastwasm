@@ -9,36 +9,36 @@ void SegmentPair::makeXdrop( indexT seed1, indexT seed2,
 			     const uchar* seq1, const uchar* seq2,
 			     const int scoreMatrix[MAT][MAT], int maxDrop ){
   score = 0;
-  int runningScore = 0;
-  const uchar* s1 = seq1 + seed1;
-  const uchar* s2 = seq2 + seed2;
-  const uchar* bestEnd1 = s1;
+  int scoreDrop = 0;  // drop in score since the maximum score seen so far
+  const uchar* s1 = seq1 + seed1;  // starting position in the 1st sequence
+  const uchar* s2 = seq2 + seed2;  // starting position in the 2nd sequence
+  const uchar* bestEnd1 = s1;  // position of max score in the 1st sequence
 
   for( ;; ){  // extend forwards
-    runningScore -= scoreMatrix[ *s1++ ][ *s2++ ];
-    if( runningScore < 0 ){
-      score -= runningScore;  // overflow risk
-      runningScore = 0;
+    scoreDrop -= scoreMatrix[ *s1++ ][ *s2++ ];
+    if( scoreDrop < 0 ){
+      score -= scoreDrop;  // overflow risk
+      scoreDrop = 0;
       bestEnd1 = s1;
     }
-    else if( runningScore > maxDrop ) break;
+    else if( scoreDrop > maxDrop ) break;
   }
 
   if( score < 0 ) throw std::runtime_error("score overflow detected!");
 
-  runningScore = 0;
+  scoreDrop = 0;
   s1 = seq1 + seed1;
   s2 = seq2 + seed2;
   const uchar* bestBeg1 = s1;
 
   for( ;; ){  // extend backwards
-    runningScore -= scoreMatrix[ *--s1 ][ *--s2 ];
-    if( runningScore < 0 ){
-      score -= runningScore;  // overflow risk
-      runningScore = 0;
+    scoreDrop -= scoreMatrix[ *--s1 ][ *--s2 ];
+    if( scoreDrop < 0 ){
+      score -= scoreDrop;  // overflow risk
+      scoreDrop = 0;
       bestBeg1 = s1;
     }
-    else if( runningScore > maxDrop ) break;
+    else if( scoreDrop > maxDrop ) break;
   }
 
   if( score < 0 ) throw std::runtime_error("score overflow detected!");
