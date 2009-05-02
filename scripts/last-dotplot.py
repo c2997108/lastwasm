@@ -17,6 +17,7 @@ usage = """
   %prog [options] last-tabular-output dotplot.gif
   etc."""
 parser = optparse.OptionParser(usage)
+# Replace "width" & "height" with a single "length" option?
 parser.add_option("-x", "--width", type="int", dest="width", default=1000,
                   help="maximum width in pixels (default: %default)")
 parser.add_option("-y", "--height", type="int", dest="height", default=1000,
@@ -95,7 +96,7 @@ def get_bp_per_pix(seq_sizes, pix_limit):
     seq_pix_limit = pix_limit - pix_tween_seqs * (seq_num - 1)
     if seq_pix_limit < seq_num:
         sys.exit(my_name + ": can't fit the image: too many sequences?")
-    lower_bound = sum(seq_sizes) // seq_pix_limit
+    lower_bound = div_ceil(sum(seq_sizes), seq_pix_limit)
     for bp_per_pix in itertools.count(lower_bound):  # slow linear search
         if tot_seq_pix(seq_sizes, bp_per_pix) <= seq_pix_limit: break
     return bp_per_pix
@@ -184,7 +185,7 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix):
     labels.sort()
     labels = get_nonoverlapping_labels(labels)
     image_size = max_pos, height
-    im = Image.new('L', image_size, 255)
+    im = Image.new('L', image_size, border_shade)
     draw = ImageDraw.Draw(im)
     for i in labels:
         position = i[1], 0

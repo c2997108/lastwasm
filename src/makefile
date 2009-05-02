@@ -3,7 +3,7 @@ CC  = gcc
 
 # use -W instead of -Wextra, so that it works with old versions of g++
 CXXFLAGS = -Wall -W -Wshadow -Wcast-qual -Wwrite-strings	\
--Wno-long-long -ansi -pedantic -O3 -g
+-Wsign-promo -Wcast-align -Wno-long-long -ansi -pedantic -O3 -g
 
 CCFLAGS = -Wall -g
 

@@ -174,7 +174,7 @@ int XdropAligner::fill( const uchar* seq1, const uchar* seq2,
     }
 
     if( loopSize > 0 ){
-      assert( k > 1 );
+      //assert( k > 1 );  // without this, it's much faster (!?!?)
       const int* const x0end = x0 + loopSize;
       const uchar* s1 = seqPtr( seq1, start1, dir, loopBeg );
       const uchar* s2 = seqPtr( seq2, start2, dir, k - loopBeg );
