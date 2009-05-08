@@ -327,5 +327,5 @@ http://last.cbrc.jp/.
 Questions, Comments, Problems
 -----------------------------
 
-Please email: last@cbrc.jp.  If reporting a problem, please describe
-exactly how to trigger the problem.
+Please email: last (ATmark) cbrc (dot) jp.  If reporting a problem,
+please describe exactly how to trigger the problem.
