@@ -28,48 +28,64 @@
 
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
 
-namespace cbrc{
+using namespace cbrc;
+
+namespace {
+  LastalArguments args;
+  Alphabet alph;
+  PeriodicSpacedSeed spacedSeed;
+  ScoreMatrix scoreMatrix;
+  GeneralizedAffineGapCosts gapCosts;
+  XdropAligner xdropAligner;
+  const int (*matGapless)[64];  // score matrix for gapless alignment
+  const int (*matGapped)[64];  // score matrix for gapped alignment
+}
 
 typedef unsigned indexT;
 typedef unsigned char uchar;
 typedef unsigned long long countT;
 
 // Set up a scoring matrix, based on the user options
-void makeScoreMatrix( ScoreMatrix& sm, LastalArguments& args,
-		      const std::string& matrixFile, const Alphabet& alph ){
+void makeScoreMatrix( const std::string& matrixFile ){
   if( !matrixFile.empty() ){
-    sm.fromString( matrixFile );
+    scoreMatrix.fromString( matrixFile );
   }
   else if( args.matchScore < 0 && args.mismatchCost < 0 &&
 	   alph.letters == alph.protein ){
-    sm.fromString( sm.blosum62 );
+    scoreMatrix.fromString( scoreMatrix.blosum62 );
   }
   else{
     // if matchScore or mismatchCost weren't set, use default values:
     if( args.matchScore < 0 )    args.matchScore = 1;
     if( args.mismatchCost < 0 )  args.mismatchCost = 1;
-    sm.matchMismatch( args.matchScore, args.mismatchCost, alph.letters );
+    scoreMatrix.matchMismatch( args.matchScore, args.mismatchCost,
+			       alph.letters );
   }
 
-  sm.init( alph.encode );
+  scoreMatrix.init( alph.encode );
+
+  matGapless = args.maskLowercase < 2 ?
+    scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
+
+  matGapped = args.maskLowercase < 3 ?
+    scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
 }
 
 // Read the .prj file for the whole database
-void readOuterPrj( const std::string& fileName, Alphabet& alph,
-		   PeriodicSpacedSeed& mask, unsigned& volumes ){
+void readOuterPrj( const std::string& fileName, unsigned& volumes ){
   std::ifstream f( fileName.c_str() );
   if( !f ) throw std::runtime_error("can't open file: " + fileName );
 
   std::string word;
   while( std::getline( f >> std::ws, word, '=' ) ){  // eat leading whitespace
     /**/ if( word == "alphabet" ) f >> alph;
-    else if( word == "spacedseed" ) f >> mask;
+    else if( word == "spacedseed" ) f >> spacedSeed;
     else if( word == "volumes" ) f >> volumes;
     else f >> word;
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( alph.letters.empty() || mask.pattern.empty() || volumes == -1u ){
+  if( alph.letters.empty() || spacedSeed.pattern.empty() || volumes == -1u ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) throw std::runtime_error("can't read file: " + fileName);
@@ -114,7 +130,7 @@ void writeCounts( const std::vector< std::vector<countT> >& matchCounts,
 // Count all matches, of all sizes, of a query batch against a suffix array
 void countMatches( std::vector< std::vector<countT> >& matchCounts,
 		   const MultiSequence& query, const SuffixArray& sa,
-		   const LastalArguments& args, char strand ){
+		   char strand ){
   indexT seqNum = strand == '+' ? 0 : query.finishedSequences() - 1;
 
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
@@ -140,10 +156,7 @@ void countMatches( std::vector< std::vector<countT> >& matchCounts,
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( SegmentPairPot& gaplessAlns,
 		   const MultiSequence& query, const MultiSequence& text,
-		   const SuffixArray& sa,
-		   const LastalArguments& args, const Alphabet& alph,
-		   const int matGapless[64][64], const int matGapped[64][64],
-		   char strand, std::ostream& out ){
+		   const SuffixArray& sa, char strand, std::ostream& out ){
   const uchar* qseq = &query.seq[0];
   const uchar* tseq = &text.seq[0];
   DiagonalTable dt;  // record already-covered positions on each diagonal
@@ -200,10 +213,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 		  const std::vector<uchar>& text,
 		  const std::vector<uchar>& query,
-		  const LastalArguments& args, const Alphabet& alph,
-		  const int mat[64][64], int matMax,
-		  const GeneralizedAffineGapCosts& gap,
-		  XdropAligner& aligner, Centroid& centroid ){
+		  Centroid& centroid ){
   countT gappedExtensionCount = 0;
 
   gaplessAlns.sort();  // sort the gapless alignments by score, highest first
@@ -218,16 +228,17 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
     // Shrink the seed to its longest run of identical matches.  This
     // trims off possibly unreliable parts of the gapless alignment.
-    aln.seed.maxIdenticalRun( &text[0], &query[0], alph.canonical, mat );
+    aln.seed.maxIdenticalRun( &text[0], &query[0], alph.canonical, matGapped );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( aligner, centroid, &text[0], &query[0],
-		   mat, matMax, gap, args.maxDropGapped );
+    aln.makeXdrop( xdropAligner, centroid, &text[0], &query[0], matGapped,
+		   scoreMatrix.maxScore, gapCosts, args.maxDropGapped );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
 
-    if( !aln.isOptimal( &text[0], &query[0], mat, args.maxDropGapped, gap ) ){
+    if( !aln.isOptimal( &text[0], &query[0],
+			matGapped, args.maxDropGapped, gapCosts ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-reduntantization.
       continue;
@@ -246,11 +257,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( const AlignmentPot& gappedAlns,
 		  const MultiSequence& query, const MultiSequence& text,
-		  const LastalArguments& args, const Alphabet& alph,
-		  const int mat[64][64], int matMax,
-		  const GeneralizedAffineGapCosts& gap,
-		  XdropAligner& aligner, Centroid& centroid,
-		  char strand, std::ostream& out ){
+		  Centroid& centroid, char strand, std::ostream& out ){
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
@@ -259,9 +266,9 @@ void alignFinish( const AlignmentPot& gappedAlns,
     else{  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( aligner, centroid, &text.seq[0], &query.seq[0],
-			 mat, matMax, gap, args.maxDropGapped,
-			 args.gamma, args.outputType );
+      probAln.makeXdrop( xdropAligner, centroid, &text.seq[0], &query.seq[0],
+			 matGapped, scoreMatrix.maxScore, gapCosts,
+			 args.maxDropGapped, args.gamma, args.outputType );
       probAln.write( text, query, strand, alph, args.outputFormat, out );
     }
   }
@@ -269,36 +276,24 @@ void alignFinish( const AlignmentPot& gappedAlns,
 
 // Scan one batch of query sequences against one database volume
 void scan( const MultiSequence& query, const MultiSequence& text,
-	   const SuffixArray& sa, const LastalArguments& args,
-	   const Alphabet& alph, const ScoreMatrix& sm,
 	   std::vector< std::vector<countT> >& matchCounts,
-	   char strand, std::ostream& out ){
+	   const SuffixArray& sa, char strand, std::ostream& out ){
   LOG( "scanning..." );
 
   if( args.outputType == 0 ){  // we just want match counts
-    countMatches( matchCounts, query, sa, args, strand );
+    countMatches( matchCounts, query, sa, strand );
     return;
   }
 
-  const int (*matGapless)[64] =  // score matrix for gapless alignment
-    args.maskLowercase < 2 ? sm.caseInsensitive : sm.caseSensitive;
-
-  const int (*matGapped)[64] =   // score matrix for gapped alignment
-    args.maskLowercase < 3 ? sm.caseInsensitive : sm.caseSensitive;
-
   SegmentPairPot gaplessAlns;
-  alignGapless( gaplessAlns, query, text, sa, args, alph,
-		matGapless, matGapped, strand, out );
+  alignGapless( gaplessAlns, query, text, sa, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
-  XdropAligner aligner;
-  Centroid centroid( aligner, matGapped, args.temperature );  // slow?
-  GeneralizedAffineGapCosts gap( args.gapExistCost, args.gapExtendCost,
-				 args.gapPairCost );
+  // XXX better to construct centroid once only:
+  Centroid centroid( xdropAligner, matGapped, args.temperature );  // slow?
 
   AlignmentPot gappedAlns;
-  alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, args, alph,
-	       matGapped, sm.maxScore, gap, aligner, centroid );
+  alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, centroid );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
@@ -306,14 +301,11 @@ void scan( const MultiSequence& query, const MultiSequence& text,
   }
 
   gappedAlns.sort();  // sort by score
-  alignFinish( gappedAlns, query, text, args, alph,
-	       matGapped, sm.maxScore, gap, aligner, centroid, strand, out );
+  alignFinish( gappedAlns, query, text, centroid, strand, out );
 }
 
 // Scan one batch of query sequences against all database volumes
 void scanAllVolumes( MultiSequence& query,
-		     const LastalArguments& args, const Alphabet& alph,
-		     const PeriodicSpacedSeed& mask, const ScoreMatrix& sm,
 		     unsigned volumes, std::ostream& out ){
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   if( args.outputType == 0 ) matchCounts.resize( query.finishedSequences() );
@@ -328,7 +320,7 @@ void scanAllVolumes( MultiSequence& query,
     MultiSequence text;
     text.fromFiles( baseName, seqCount );
 
-    SuffixArray sa( text.seq, mask.offsets, alph.size );
+    SuffixArray sa( text.seq, spacedSeed.offsets, alph.size );
     sa.fromFiles( baseName, text.ends.back() - delimiterNum, bucketDepth );
 
     if( args.strand == 2 && i > 0 ){
@@ -337,7 +329,7 @@ void scanAllVolumes( MultiSequence& query,
     }
 
     if( args.strand != 0 ){
-      scan( query, text, sa, args, alph, sm, matchCounts, '+', out );
+      scan( query, text, matchCounts, sa, '+', out );
     }
 
     if( args.strand == 2 || (args.strand == 0 && i == 0) ){
@@ -346,7 +338,7 @@ void scanAllVolumes( MultiSequence& query,
     }
 
     if( args.strand != 1 ){
-      scan( query, text, sa, args, alph, sm, matchCounts, '-', out );
+      scan( query, text, matchCounts, sa, '-', out );
     }
   }
 
@@ -358,8 +350,7 @@ void scanAllVolumes( MultiSequence& query,
   LOG( "done!" );
 }
 
-void writeHeader( std::ostream& out, const LastalArguments& args,
-		  const ScoreMatrix sm ){
+void writeHeader( std::ostream& out ){
   out << "# LAST version " <<
 #include "version.hh"
       << "\n";
@@ -371,7 +362,7 @@ void writeHeader( std::ostream& out, const LastalArguments& args,
     out << "# depth\tcount\n";
   }
   else{  // we want alignments
-    sm.writeCommented( out );
+    scoreMatrix.writeCommented( out );
     out << "#\n";
     out << "# Coordinates are 0-based.  For - strand matches, coordinates\n";
     out << "# in the reverse complement of the 2nd sequence are used.\n";
@@ -390,10 +381,7 @@ void writeHeader( std::ostream& out, const LastalArguments& args,
 }
 
 // Read the next sequence, adding it to the MultiSequence
-std::istream&
-appendFromFasta( MultiSequence& query,
-		 const LastalArguments& args, const Alphabet& alph,
-		 std::istream& in ){
+std::istream& appendFromFasta( MultiSequence& query, std::istream& in ){
   std::size_t maxSeqBytes = args.batchSize;
   if( query.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
 
@@ -410,7 +398,6 @@ appendFromFasta( MultiSequence& query,
 void lastal( int argc, char** argv ){
   std::clock_t startTime = std::clock();
 
-  LastalArguments args;
   args.fromArgs( argc, argv );
 
   std::string matrixFile;
@@ -420,29 +407,28 @@ void lastal( int argc, char** argv ){
     args.fromArgs( argc, argv );  // command line overrides matrix file
   }
 
-  Alphabet alph;
-  PeriodicSpacedSeed mask;
   unsigned volumes = -1u;  // initialize it to an "error" value
-  readOuterPrj( args.lastdbName + ".prj", alph, mask, volumes );
+  readOuterPrj( args.lastdbName + ".prj", volumes );
 
-  ScoreMatrix sm;
-  makeScoreMatrix( sm, args, matrixFile, alph );  // before makeCaseInsensitive
+  makeScoreMatrix( matrixFile );  // before alph.makeCaseInsensitive
   args.setDefaults( alph.letters == alph.dna, alph.letters == alph.protein,
-		    sm.maxScore );
+		    scoreMatrix.maxScore );
   if( args.maskLowercase < 1 ) alph.makeCaseInsensitive();
+
+  gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
 
   if( args.temperature == -1 && args.outputType > 3 ){
     args.temperature =
-      1 / LambdaCalculator::calculate( sm.caseSensitive, alph.size );
+      1 / LambdaCalculator::calculate( scoreMatrix.caseSensitive, alph.size );
     if( args.temperature < 0 )
       throw std::runtime_error("can't calculate lambda for this score matrix");
   }
 
   std::ofstream outFileStream;
   std::ostream& out = openOut( args.outFile, outFileStream );
-  writeHeader( out, args, sm );
+  writeHeader( out );
   MultiSequence query;
-  query.initForAppending( mask.maxOffset );
+  query.initForAppending( spacedSeed.maxOffset );
   alph.tr( query.seq.begin(), query.seq.end() );
   out.precision(3);  // print non-integers more compactly
 
@@ -451,16 +437,16 @@ void lastal( int argc, char** argv ){
     std::ifstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
 
-    while( appendFromFasta( query, args, alph, in ) ){
+    while( appendFromFasta( query, in ) ){
       if( !query.isFinished() ){
-	scanAllVolumes( query, args, alph, mask, sm, volumes, out );
+	scanAllVolumes( query, volumes, out );
 	query.reinitForAppending();
       }
     }
   }
 
   if( query.finishedSequences() > 0 ){
-    scanAllVolumes( query, args, alph, mask, sm, volumes, out );
+    scanAllVolumes( query, volumes, out );
   }
 
   out.precision(6);  // reset the precision to the default value
@@ -468,11 +454,9 @@ void lastal( int argc, char** argv ){
       << " seconds\n";
 }
 
-}
-
 int main( int argc, char** argv )
 try{
-  cbrc::lastal( argc, argv );
+  lastal( argc, argv );
   return EXIT_SUCCESS;
 }
 catch( const std::exception& e ) {

@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds parameters for so-called generalized affine gap
 // costs (for pair-wise sequence alignment).  In this scheme, a "gap"
@@ -22,8 +22,8 @@ struct GeneralizedAffineGapCosts{
   int first;
   int firstPair;
 
-  GeneralizedAffineGapCosts( int a, int b, int c )
-    : exist(a), extend(b), extendPair(c), first(a+b), firstPair(a+c) {}
+  void assign( int a, int b, int c )
+  { exist = a; extend = b; extendPair = c; first = a + b; firstPair = a + c; }
 
   // Return the score of a gap with the given sizes in a pair of
   // sequences, considering that it might be either one "generalized"
