@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "SuffixArray.hh"
 #include "io.hh"
@@ -256,10 +256,11 @@ void SuffixArray::makeBuckets( indexT bucketDepth ){
 
 void SuffixArray::makeBucketMask( indexT bucketDepth ){
   bucketMaskTotal = 0;  // necessary!!!
+  bucketMask.resize(bucketDepth);
 
   for( indexT i = 0; i < bucketDepth; ++i ){
     indexT offset = mask[ i % maskSize ];
-    bucketMask.push_back(offset);
+    bucketMask[i] = offset;
     bucketMaskTotal += offset;
   }
 }

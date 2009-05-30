@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds multiple sequences and their names.  The
 // sequences are concatenated, with delimiters between them.
@@ -32,6 +32,9 @@ struct MultiSequence{
   // the concatenated sequences plus pads exceed maxBytes: thus it may
   // not finish reading the sequence.
   std::istream& appendFromFasta( std::istream& stream, std::size_t maxBytes );
+
+  // read a FASTA header: read the whole line but store just the first word
+  std::istream& readFastaName( std::istream& stream );
 
   // finish the last sequence: add final pad and end coordinate
   void finish();

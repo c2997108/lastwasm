@@ -37,8 +37,11 @@ namespace {
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
   XdropAligner xdropAligner;
-  const int (*matGapless)[64];  // score matrix for gapless alignment
-  const int (*matGapped)[64];  // score matrix for gapped alignment
+  MultiSequence query;  // sequence that hasn't been indexed by lastdb
+  MultiSequence text;  // sequence that has been indexed by lastdb
+  enum { MAT = 64 };
+  const int (*matGapless)[MAT];  // score matrix for gapless alignment
+  const int (*matGapped)[MAT];  // score matrix for gapped alignment
 }
 
 typedef unsigned indexT;
@@ -114,8 +117,7 @@ void readInnerPrj( const std::string& fileName, indexT& seqCount,
 
 // Write match counts for each query sequence
 void writeCounts( const std::vector< std::vector<countT> >& matchCounts,
-		  const MultiSequence& query, indexT minDepth,
-		  std::ostream& out ){
+		  indexT minDepth, std::ostream& out ){
   for( indexT i = 0; i < matchCounts.size(); ++i ){
     out << query.seqName(i) << '\n';
 
@@ -129,8 +131,7 @@ void writeCounts( const std::vector< std::vector<countT> >& matchCounts,
 
 // Count all matches, of all sizes, of a query batch against a suffix array
 void countMatches( std::vector< std::vector<countT> >& matchCounts,
-		   const MultiSequence& query, const SuffixArray& sa,
-		   char strand ){
+		   const SuffixArray& suffixArray, char strand ){
   indexT seqNum = strand == '+' ? 0 : query.finishedSequences() - 1;
 
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
@@ -149,14 +150,13 @@ void countMatches( std::vector< std::vector<countT> >& matchCounts,
       }
     }
 
-    sa.countMatches( matchCounts[seqNum], &query.seq[i] );
+    suffixArray.countMatches( matchCounts[seqNum], &query.seq[i] );
   }
 }
 
 // Find query matches to the suffix array, and do gapless extensions
-void alignGapless( SegmentPairPot& gaplessAlns,
-		   const MultiSequence& query, const MultiSequence& text,
-		   const SuffixArray& sa, char strand, std::ostream& out ){
+void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
+		   char strand, std::ostream& out ){
   const uchar* qseq = &query.seq[0];
   const uchar* tseq = &text.seq[0];
   DiagonalTable dt;  // record already-covered positions on each diagonal
@@ -165,7 +165,8 @@ void alignGapless( SegmentPairPot& gaplessAlns,
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
-    sa.match( beg, end, qseq + i, args.oneHitMultiplicity, args.minHitDepth );
+    suffixArray.match( beg, end, qseq + i,
+		       args.oneHitMultiplicity, args.minHitDepth );
 
     for( /* noop */; beg < end; ++beg ){  // loop over suffix-array matches
       if( dt.isCovered( i, *beg ) ) continue;
@@ -211,9 +212,9 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 
 // Do gapped extensions of the gapless alignments
 void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
-		  const std::vector<uchar>& text,
-		  const std::vector<uchar>& query,
 		  Centroid& centroid ){
+  const uchar* qseq = &query.seq[0];
+  const uchar* tseq = &text.seq[0];
   countT gappedExtensionCount = 0;
 
   gaplessAlns.sort();  // sort the gapless alignments by score, highest first
@@ -228,16 +229,16 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
     // Shrink the seed to its longest run of identical matches.  This
     // trims off possibly unreliable parts of the gapless alignment.
-    aln.seed.maxIdenticalRun( &text[0], &query[0], alph.canonical, matGapped );
+    aln.seed.maxIdenticalRun( tseq, qseq, alph.canonical, matGapped );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( xdropAligner, centroid, &text[0], &query[0], matGapped,
+    aln.makeXdrop( xdropAligner, centroid, tseq, qseq, matGapped,
 		   scoreMatrix.maxScore, gapCosts, args.maxDropGapped );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
 
-    if( !aln.isOptimal( &text[0], &query[0],
+    if( !aln.isOptimal( tseq, qseq,
 			matGapped, args.maxDropGapped, gapCosts ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-reduntantization.
@@ -256,7 +257,6 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( const AlignmentPot& gappedAlns,
-		  const MultiSequence& query, const MultiSequence& text,
 		  Centroid& centroid, char strand, std::ostream& out ){
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
@@ -275,25 +275,23 @@ void alignFinish( const AlignmentPot& gappedAlns,
 }
 
 // Scan one batch of query sequences against one database volume
-void scan( const MultiSequence& query, const MultiSequence& text,
-	   std::vector< std::vector<countT> >& matchCounts,
-	   const SuffixArray& sa, char strand, std::ostream& out ){
+void scan( std::vector< std::vector<countT> >& matchCounts,
+	   const SuffixArray& suffixArray, char strand, std::ostream& out ){
   LOG( "scanning..." );
 
   if( args.outputType == 0 ){  // we just want match counts
-    countMatches( matchCounts, query, sa, strand );
+    countMatches( matchCounts, suffixArray, strand );
     return;
   }
 
   SegmentPairPot gaplessAlns;
-  alignGapless( gaplessAlns, query, text, sa, strand, out );
+  alignGapless( gaplessAlns, suffixArray, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
-  // XXX better to construct centroid once only:
   Centroid centroid( xdropAligner, matGapped, args.temperature );  // slow?
 
   AlignmentPot gappedAlns;
-  alignGapped( gappedAlns, gaplessAlns, text.seq, query.seq, centroid );
+  alignGapped( gappedAlns, gaplessAlns, centroid );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
@@ -301,27 +299,28 @@ void scan( const MultiSequence& query, const MultiSequence& text,
   }
 
   gappedAlns.sort();  // sort by score
-  alignFinish( gappedAlns, query, text, centroid, strand, out );
+  alignFinish( gappedAlns, centroid, strand, out );
+}
+
+// Read one database volume
+void readVolume( SuffixArray& suffixArray, unsigned volumeNumber ){
+  std::string baseName = args.lastdbName + stringify(volumeNumber);
+  LOG( "reading " << baseName << "..." );
+  indexT seqCount = -1u, delimiterNum = -1u, bucketDepth = -1u;
+  readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
+  text.fromFiles( baseName, seqCount );
+  suffixArray.fromFiles( baseName,
+			 text.ends.back() - delimiterNum, bucketDepth );
 }
 
 // Scan one batch of query sequences against all database volumes
-void scanAllVolumes( MultiSequence& query,
+void scanAllVolumes( SuffixArray& suffixArray,
 		     unsigned volumes, std::ostream& out ){
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   if( args.outputType == 0 ) matchCounts.resize( query.finishedSequences() );
 
   for( unsigned i = 0; i < volumes; ++i ){
-    std::string baseName = args.lastdbName + stringify(i);
-    LOG( "reading " << baseName << "..." );
-
-    indexT seqCount = -1u, delimiterNum = -1u, bucketDepth = -1u;
-    readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
-
-    MultiSequence text;
-    text.fromFiles( baseName, seqCount );
-
-    SuffixArray sa( text.seq, spacedSeed.offsets, alph.size );
-    sa.fromFiles( baseName, text.ends.back() - delimiterNum, bucketDepth );
+    if( text.seq.empty() || volumes > 1 ) readVolume( suffixArray, i );
 
     if( args.strand == 2 && i > 0 ){
       LOG( "re-reverse complementing..." );
@@ -329,7 +328,7 @@ void scanAllVolumes( MultiSequence& query,
     }
 
     if( args.strand != 0 ){
-      scan( query, text, matchCounts, sa, '+', out );
+      scan( matchCounts, suffixArray, '+', out );
     }
 
     if( args.strand == 2 || (args.strand == 0 && i == 0) ){
@@ -338,13 +337,13 @@ void scanAllVolumes( MultiSequence& query,
     }
 
     if( args.strand != 1 ){
-      scan( query, text, matchCounts, sa, '-', out );
+      scan( matchCounts, suffixArray, '-', out );
     }
   }
 
   if( args.outputType == 0 ){
     LOG( "writing..." );
-    writeCounts( matchCounts, query, args.minHitDepth, out );
+    writeCounts( matchCounts, args.minHitDepth, out );
   }
 
   LOG( "done!" );
@@ -381,7 +380,7 @@ void writeHeader( std::ostream& out ){
 }
 
 // Read the next sequence, adding it to the MultiSequence
-std::istream& appendFromFasta( MultiSequence& query, std::istream& in ){
+std::istream& appendFromFasta( std::istream& in ){
   std::size_t maxSeqBytes = args.batchSize;
   if( query.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
 
@@ -417,6 +416,8 @@ void lastal( int argc, char** argv ){
 
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
 
+  SuffixArray suffixArray( text.seq, spacedSeed.offsets, alph.size );
+
   if( args.temperature == -1 && args.outputType > 3 ){
     args.temperature =
       1 / LambdaCalculator::calculate( scoreMatrix.caseSensitive, alph.size );
@@ -427,26 +428,26 @@ void lastal( int argc, char** argv ){
   std::ofstream outFileStream;
   std::ostream& out = openOut( args.outFile, outFileStream );
   writeHeader( out );
-  MultiSequence query;
+  out.precision(3);  // print non-integers more compactly
+
   query.initForAppending( spacedSeed.maxOffset );
   alph.tr( query.seq.begin(), query.seq.end() );
-  out.precision(3);  // print non-integers more compactly
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
     LOG( "reading " << *i << "..." );
     std::ifstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
 
-    while( appendFromFasta( query, in ) ){
+    while( appendFromFasta( in ) ){
       if( !query.isFinished() ){
-	scanAllVolumes( query, volumes, out );
+	scanAllVolumes( suffixArray, volumes, out );
 	query.reinitForAppending();
       }
     }
   }
 
   if( query.finishedSequences() > 0 ){
-    scanAllVolumes( query, volumes, out );
+    scanAllVolumes( suffixArray, volumes, out );
   }
 
   out.precision(6);  // reset the precision to the default value

@@ -106,6 +106,7 @@ appendFromFasta( MultiSequence& multi, SuffixArray& sa,
 		 const LastdbArguments& args, const Alphabet& alph,
 		 std::istream& in ){
   std::size_t maxSeqBytes = args.volumeSize - sa.indexBytes();
+  if( args.volumeSize < sa.indexBytes() ) maxSeqBytes = 0;
   if( multi.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
 
   indexT oldSeqSize = multi.seq.size();
@@ -117,6 +118,7 @@ appendFromFasta( MultiSequence& multi, SuffixArray& sa,
 
   if( in && multi.isFinished() ){
     std::size_t maxIndexBytes = args.volumeSize - multi.seq.size();
+    if( args.volumeSize < multi.seq.size() ) maxIndexBytes = 0;
     if( multi.finishedSequences() == 1 ) maxIndexBytes = std::size_t(-1);
 
     if( !sa.makeIndex( *(multi.ends.end() - 2), *(multi.ends.end() - 1),

@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "MultiSequence.hh"
 #include "io.hh"
@@ -53,33 +53,34 @@ void MultiSequence::toFiles( const std::string& baseName ) const{
 		      baseName + ".des" );
 }
 
+std::istream& MultiSequence::readFastaName( std::istream& stream ){
+  char c;
+  stream >> c;  // don't check that it's '>': works for FASTQ too
+  std::string line, word;
+  getline( stream, line );
+  std::istringstream iss(line);
+  iss >> word;
+  if( !stream ) return stream;
+  names.insert( names.end(), word.begin(), word.end() );
+  nameEnds.push_back( names.size() );
+  return stream;
+}
+
 // probably slower than it could be:
 std::istream&
 MultiSequence::appendFromFasta( std::istream& stream, std::size_t maxBytes ){
-  uchar c;
-
   if( isFinished() ){
-    while( stream >> c ){
-      if( c == '>' ) break;
-    }
+    readFastaName(stream);
     if( !stream ) return stream;
-
-    // get the first word of the FASTA title line:
-    std::string line, word;
-    std::getline( stream, line );
-    std::istringstream iss(line);
-    iss >> word;
-    names.insert( names.end(), word.begin(), word.end() );
-    nameEnds.push_back( names.size() );
   }
 
+  uchar c;
   while( isFinishable(maxBytes) && stream >> c ){  // skips whitespace
     if( c == '>' ){
       stream.unget();
       break;
-    }else{
-      seq.push_back(c);
     }
+    seq.push_back(c);
   }
 
   if( isFinishable(maxBytes) ) finish();
