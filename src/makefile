@@ -17,7 +17,7 @@ ALSRC = Alphabet.cc MultiSequence.cc PeriodicSpacedSeed.cc	\
 SuffixArray.cc LastalArguments.cc io.cc ScoreMatrix.cc		\
 DiagonalTable.cc SegmentPair.cc Alignment.cc XdropAligner.cc	\
 SegmentPairPot.cc AlignmentPot.cc GeneralizedAffineGapCosts.cc	\
-Centroid.cc LambdaCalculator.cc lastal.cc
+Centroid.cc LambdaCalculator.cc AlignmentWrite.cc lastal.cc
 
 ALINC = Alphabet.hh MultiSequence.hh PeriodicSpacedSeed.hh	\
 SuffixArray.hh LastalArguments.hh io.hh ScoreMatrix.hh		\

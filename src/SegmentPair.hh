@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds a pair of equal-length segments, in a pair of
 // sequences.  In other words, it holds a gapless alignment.
@@ -47,6 +47,10 @@ struct SegmentPair{
   indexT start2;
   indexT size;
   int score;
+
+  // Used by maxIdenticalRun().
+  void calculateScore( const uchar* seq1, const uchar* seq2,
+                       const int scoreMatrix[MAT][MAT] );
 };
 
 }  // end namespace cbrc

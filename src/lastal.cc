@@ -31,6 +31,10 @@
 using namespace cbrc;
 
 namespace {
+  typedef unsigned indexT;
+  typedef unsigned char uchar;
+  typedef unsigned long long countT;
+
   LastalArguments args;
   Alphabet alph;
   PeriodicSpacedSeed spacedSeed;
@@ -39,14 +43,11 @@ namespace {
   XdropAligner xdropAligner;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
+  std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   enum { MAT = 64 };
   const int (*matGapless)[MAT];  // score matrix for gapless alignment
   const int (*matGapped)[MAT];  // score matrix for gapped alignment
 }
-
-typedef unsigned indexT;
-typedef unsigned char uchar;
-typedef unsigned long long countT;
 
 // Set up a scoring matrix, based on the user options
 void makeScoreMatrix( const std::string& matrixFile ){
@@ -116,12 +117,13 @@ void readInnerPrj( const std::string& fileName, indexT& seqCount,
 }
 
 // Write match counts for each query sequence
-void writeCounts( const std::vector< std::vector<countT> >& matchCounts,
-		  indexT minDepth, std::ostream& out ){
+void writeCounts( std::ostream& out ){
+  LOG( "writing..." );
+
   for( indexT i = 0; i < matchCounts.size(); ++i ){
     out << query.seqName(i) << '\n';
 
-    for( indexT j = minDepth-1; j < matchCounts[i].size(); ++j ){
+    for( indexT j = args.minHitDepth - 1; j < matchCounts[i].size(); ++j ){
       out << j+1 << '\t' << matchCounts[i][j] << '\n';
     }
 
@@ -130,8 +132,7 @@ void writeCounts( const std::vector< std::vector<countT> >& matchCounts,
 }
 
 // Count all matches, of all sizes, of a query batch against a suffix array
-void countMatches( std::vector< std::vector<countT> >& matchCounts,
-		   const SuffixArray& suffixArray, char strand ){
+void countMatches( const SuffixArray& suffixArray, char strand ){
   indexT seqNum = strand == '+' ? 0 : query.finishedSequences() - 1;
 
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
@@ -275,12 +276,11 @@ void alignFinish( const AlignmentPot& gappedAlns,
 }
 
 // Scan one batch of query sequences against one database volume
-void scan( std::vector< std::vector<countT> >& matchCounts,
-	   const SuffixArray& suffixArray, char strand, std::ostream& out ){
+void scan( const SuffixArray& suffixArray, char strand, std::ostream& out ){
   LOG( "scanning..." );
 
   if( args.outputType == 0 ){  // we just want match counts
-    countMatches( matchCounts, suffixArray, strand );
+    countMatches( suffixArray, strand );
     return;
   }
 
@@ -313,38 +313,30 @@ void readVolume( SuffixArray& suffixArray, unsigned volumeNumber ){
 			 text.ends.back() - delimiterNum, bucketDepth );
 }
 
+void reverseComplementQuery(){
+  LOG( "reverse complementing..." );
+  alph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
+}
+
 // Scan one batch of query sequences against all database volumes
 void scanAllVolumes( SuffixArray& suffixArray,
 		     unsigned volumes, std::ostream& out ){
-  std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   if( args.outputType == 0 ) matchCounts.resize( query.finishedSequences() );
 
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.seq.empty() || volumes > 1 ) readVolume( suffixArray, i );
 
-    if( args.strand == 2 && i > 0 ){
-      LOG( "re-reverse complementing..." );
-      alph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
-    }
+    if( args.strand == 2 && i > 0 ) reverseComplementQuery();
 
-    if( args.strand != 0 ){
-      scan( matchCounts, suffixArray, '+', out );
-    }
+    if( args.strand != 0 ) scan( suffixArray, '+', out );
 
-    if( args.strand == 2 || (args.strand == 0 && i == 0) ){
-      LOG( "reverse complementing..." );
-      alph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
-    }
+    if( args.strand == 2 || (args.strand == 0 && i == 0) )
+      reverseComplementQuery();
 
-    if( args.strand != 1 ){
-      scan( matchCounts, suffixArray, '-', out );
-    }
+    if( args.strand != 1 ) scan( suffixArray, '-', out );
   }
 
-  if( args.outputType == 0 ){
-    LOG( "writing..." );
-    writeCounts( matchCounts, args.minHitDepth, out );
-  }
+  if( args.outputType == 0 ) writeCounts( out );
 
   LOG( "done!" );
 }
@@ -419,8 +411,8 @@ void lastal( int argc, char** argv ){
   SuffixArray suffixArray( text.seq, spacedSeed.offsets, alph.size );
 
   if( args.temperature == -1 && args.outputType > 3 ){
-    args.temperature =
-      1 / LambdaCalculator::calculate( scoreMatrix.caseSensitive, alph.size );
+    // it makes no difference whether we use matGapped or matGapless here:
+    args.temperature = 1 / LambdaCalculator::calculate( matGapped, alph.size );
     if( args.temperature < 0 )
       throw std::runtime_error("can't calculate lambda for this score matrix");
   }

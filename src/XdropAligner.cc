@@ -1,9 +1,9 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "XdropAligner.hh"
 #include "GeneralizedAffineGapCosts.hh"
 #include "SegmentPair.hh"
-#include <algorithm>  // max_element
+#include <algorithm>
 //#include <iostream>  // for debugging
 
 namespace cbrc{

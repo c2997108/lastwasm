@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // X-drop algorithm for gapped extension of alignments.
 
@@ -46,7 +46,6 @@ private:
   size_t bestAntiDiagonal;
   size_t bestPos1;
 
-  // maybe use std::vector< std::vector< int[3] > > instead of x, y, z???
   matrix_t x;
   matrix_t y;
   matrix_t z;

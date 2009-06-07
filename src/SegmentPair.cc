@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 #include "SegmentPair.hh"
 #include <stdexcept>
@@ -53,15 +53,15 @@ bool SegmentPair::isOptimal( const uchar* seq1, const uchar* seq2,
 			     int maxDrop ) const{
   int maxScore = 0;
   int runningScore = 0;
-  const uchar* s1 = seq1 + start1;
-  const uchar* s2 = seq2 + start2;
-  const uchar* s1end = s1 + size;
+  const uchar* s1 = seq1 + beg1();
+  const uchar* s2 = seq2 + beg2();
+  const uchar* e1 = seq1 + end1();
 
-  while( s1 < s1end ){
+  while( s1 < e1 ){
     runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
     if( runningScore > maxScore ) maxScore = runningScore;
     else if( runningScore <= 0 ||                  // non-optimal prefix
-	     s1 == s1end ||                        // non-optimal suffix
+	     s1 == e1 ||                           // non-optimal suffix
 	     runningScore < maxScore - maxDrop ){  // excessive score drop
       return false;
     }
@@ -72,27 +72,35 @@ bool SegmentPair::isOptimal( const uchar* seq1, const uchar* seq2,
 void SegmentPair::maxIdenticalRun( const uchar* seq1, const uchar* seq2,
 				   const uchar* canonical,
 				   const int scoreMatrix[MAT][MAT] ){
-  const uchar* s1 = seq1 + start1;
-  const uchar* s2 = seq2 + start2;
-  const uchar* s1end = s1 + size;
+  const uchar* s1 = seq1 + beg1();
+  const uchar* s2 = seq2 + beg2();
+  const uchar* e1 = seq1 + end1();
   const uchar* runBeg1 = s1;
-  int runningScore = 0;
   size = 0;
 
-  while( s1 < s1end ){
-    runningScore += scoreMatrix[ *s1 ][ *s2 ];
+  while( s1 < e1 ){
     if( canonical[ *s1++ ] == canonical[ *s2++ ] ){
       if( indexT(s1 - runBeg1) > size ){
 	start1 = runBeg1 - seq1;
 	start2 = (s2 - seq2) - (s1 - runBeg1);  // move this out of the loop?
 	size = s1 - runBeg1;
-	score = runningScore;
       }
     }
-    else{
-      runBeg1 = s1;
-      runningScore = 0;
-    }
+    else runBeg1 = s1;
+  }
+
+  calculateScore( seq1, seq2, scoreMatrix );
+}
+
+void SegmentPair::calculateScore( const uchar* seq1, const uchar* seq2,
+				  const int scoreMatrix[MAT][MAT] ){
+  const uchar* s1 = seq1 + beg1();
+  const uchar* s2 = seq2 + beg2();
+  const uchar* e1 = seq1 + end1();
+  score = 0;
+
+  while( s1 < e1 ){
+    score += scoreMatrix[ *s1++ ][ *s2++ ];
   }
 }
 
