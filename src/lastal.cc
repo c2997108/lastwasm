@@ -59,9 +59,6 @@ void makeScoreMatrix( const std::string& matrixFile ){
     scoreMatrix.fromString( scoreMatrix.blosum62 );
   }
   else{
-    // if matchScore or mismatchCost weren't set, use default values:
-    if( args.matchScore < 0 )    args.matchScore = 1;
-    if( args.mismatchCost < 0 )  args.mismatchCost = 1;
     scoreMatrix.matchMismatch( args.matchScore, args.mismatchCost,
 			       alph.letters );
   }
@@ -142,13 +139,18 @@ void countMatches( const SuffixArray& suffixArray, char strand ){
 	if( query.seqEnd(seqNum) > i ) break;
 	++seqNum;
       }
+      // speed-up (for spaced seeds it's not optimal):
+      if( args.minHitDepth > query.seqEnd(seqNum) - i ) continue;
     }
     else{
+      indexT j = query.ends.back() - i;
       for( ;; ){
 	if( seqNum == -1u ) return;
-	if( query.seqBeg(seqNum) < query.ends.back() - i ) break;
+	if( query.seqBeg(seqNum) < j ) break;
 	--seqNum;
       }
+      // speed-up (for spaced seeds it's not optimal):
+      if( args.minHitDepth > j - query.seqBeg(seqNum) ) continue;
     }
 
     suffixArray.countMatches( matchCounts[seqNum], &query.seq[i] );
@@ -168,6 +170,10 @@ void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
     const indexT* end;
     suffixArray.match( beg, end, qseq + i,
 		       args.oneHitMultiplicity, args.minHitDepth );
+
+    // Tried: if we hit a delimiter when using contiguous seeds, then
+    // increase "i" to the delimiter position.  This gave a speed-up
+    // of only 3%, with 34-nt tags.
 
     for( /* noop */; beg < end; ++beg ){  // loop over suffix-array matches
       if( dt.isCovered( i, *beg ) ) continue;
@@ -401,21 +407,24 @@ void lastal( int argc, char** argv ){
   unsigned volumes = -1u;  // initialize it to an "error" value
   readOuterPrj( args.lastdbName + ".prj", volumes );
 
+  args.setDefaultsFromAlphabet( alph.letters == alph.dna,
+				alph.letters == alph.protein );
   makeScoreMatrix( matrixFile );  // before alph.makeCaseInsensitive
-  args.setDefaults( alph.letters == alph.dna, alph.letters == alph.protein,
-		    scoreMatrix.maxScore );
   if( args.maskLowercase < 1 ) alph.makeCaseInsensitive();
+
+  double lambda = -1;
+  if( args.temperature < 0 && args.outputType > 3 ){
+    // it makes no difference whether we use matGapped or matGapless here:
+    lambda = LambdaCalculator::calculate( matGapped, alph.size );
+    if( lambda < 0 )
+      throw std::runtime_error("can't calculate lambda for this score matrix");
+  }
+
+  args.setDefaultsFromMatrix( scoreMatrix.maxScore, lambda );
 
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
 
   SuffixArray suffixArray( text.seq, spacedSeed.offsets, alph.size );
-
-  if( args.temperature == -1 && args.outputType > 3 ){
-    // it makes no difference whether we use matGapped or matGapless here:
-    args.temperature = 1 / LambdaCalculator::calculate( matGapped, alph.size );
-    if( args.temperature < 0 )
-      throw std::runtime_error("can't calculate lambda for this score matrix");
-  }
 
   std::ofstream outFileStream;
   std::ostream& out = openOut( args.outFile, outFileStream );

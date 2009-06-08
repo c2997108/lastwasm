@@ -230,18 +230,35 @@ void LastalArguments::fromString( const std::string& s, bool optionsOnly ){
   fromStream( iss, optionsOnly );
 }
 
-void LastalArguments::setDefaults( bool isDna, bool isProtein,
-				   int maxMatchScore ){
+void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
   if( strand < 0 ) strand = isDna ? 2 : 1;
 
-  if( minScoreGapped < 0 ) minScoreGapped = isProtein ? 100 : 40;
+  if( isProtein ){
+    // default match & mismatch scores: Blosum62 matrix
+    if( matchScore < 0 && mismatchCost >= 0 ) matchScore   = 1;  // idiot-proof
+    if( mismatchCost < 0 && matchScore >= 0 ) mismatchCost = 1;  // idiot-proof
+    if( gapExistCost   < 0 ) gapExistCost   =  11;
+    if( gapExtendCost  < 0 ) gapExtendCost  =   2;
+    if( minScoreGapped < 0 ) minScoreGapped = 100;
+  }
+  else{
+    if( matchScore     < 0 ) matchScore     =   1;
+    if( mismatchCost   < 0 ) mismatchCost   =   1;
+    if( gapExistCost   < 0 ) gapExistCost   =   7;
+    if( gapExtendCost  < 0 ) gapExtendCost  =   1;
+    if( minScoreGapped < 0 ) minScoreGapped =  40;
+  }
+
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
 
-  // matchScore & mismatchCost are set when making the score matrix
+  if( batchSize == 0 ){
+    if( outputType == 0 ) batchSize = 0x1000000;  // 16 Mbytes
+    else                  batchSize = 0x8000000;  // 128 Mbytes
+  }
+}
 
-  if( gapExistCost < 0 )   gapExistCost = isProtein ? 11 : 7;
-  if( gapExtendCost < 0 )  gapExtendCost = isProtein ? 2 : 1;
-
+void LastalArguments::setDefaultsFromMatrix( int maxMatchScore,
+					     double lambda ){
   if( maxDropGapless < 0 ) maxDropGapless = maxMatchScore * 10;
 
   if( maxDropGapped < 0 ){
@@ -249,10 +266,7 @@ void LastalArguments::setDefaults( bool isDna, bool isProtein,
 			      maxDropGapless );
   }
 
-  if( batchSize == 0 ){
-    if( outputType == 0 )  batchSize = 0x1000000;  // 16 Mbytes
-    else                   batchSize = 0x8000000;  // 128 Mbytes
-  }
+  if( temperature < 0 ) temperature = 1 / lambda;
 }
 
 void LastalArguments::writeCommented( std::ostream& stream ) const{
