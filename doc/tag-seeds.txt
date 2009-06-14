@@ -2,140 +2,225 @@ Mapping tags to a genome with LAST
 ==================================
 
 LAST has many adjustable parameters, providing many ways of mapping
-tags to a genome.  We cannot tell you which way is best, but we can
-describe a few options.
+tags to a genome.  We cannot tell you which way is best, but here are
+some ideas that might be helpful.
 
-Option 1: Find all matches with up to N mismatches
---------------------------------------------------
+1. A simple mapping procedure
+-----------------------------
 
-Suppose we have tags of length 25, and we wish to find all perfect
-matches to the genome, allowing up to one mismatch.  One method is to
-start by finding exact matches of length 12: this is because any
-25-mer with one mismatch must have an exactly matching region of
-length at least 12.  We can then check whether each 12-mer match can
-be extended to a 25-mer match with at most one mismatch.  This method
-may be very slow, because there will be many unproductive 12-mer
-matches.
+Suppose we wish to map tags of length 36 to the mouse genome.  The
+following commands do the job fairly quickly and accurately:
 
-A better method is to use a spaced seed: 11111011111011111011.  Any
-25-mer with one mismatch is guaranteed to have an exact match using
-this seed.  Since the seed has 17 matched positions (17 "1"s), we will
-get far fewer unproductive matches.
+  lastdb -s16G mousedb mouse/chr*.fa
+  lastal -a2 -e30 -f0 mousedb tags.fa
 
-With LAST, we can do this as follows::
+Here, we used -s16G to indicate that 16 gigabytes of memory are
+available.  This will make lastal run faster.  If you don't have 16
+gigabytes, omit this option.  We then used -a2 to set the gap
+existence cost to 2, and -e30 to get alignments with score >= 30.  We
+left the other score parameters at their default values: match score =
+1, mismatch cost = 1, gap extension cost = 1.  (The default gap
+existence cost is tuned for genome-versus-genome alignments, and it
+may be too high for short tags.)  These parameters allow a few
+mismatches and/or a few small gaps.  The -f0 option simply selects the
+compact tabular output format.
 
-  lastdb -m111110 mydb genome.fa
-  lastal -l17 -m4000000000 -j1 -q0 -d24 mydb tags.fa
+2. How does this procedure work: what are its limitations?
+----------------------------------------------------------
 
-In the lastdb command, the seed pattern gets cyclically repeated, so
-we only need to specify the part up to the "0".  In the lastal
-command, we used -l17 to require 17 matched positions in initial
-matches, and -m4000000000 to accept hugely repeated initial matches.
-We also used -j1 to request gapless alignments, -q0 to set the
-mismatch cost to 0, and -d24 to request alignments with score >= 24.
-This will give us all 25-mer alignments with at most one mismatch.
+If you want to understand how this mapping procedure works in more
+detail, read on.  LAST uses a two-step approach: first find initial
+matches, then extend alignments from these matches.  In this case, the
+"initial matches" are: all exact matches of any part of a tag to the
+genome, of any size, where the match occurs at most ten times in the
+genome.
 
-The following table shows optimal spaced seed patterns for various tag
-sizes and numbers of mismatches.  Each entry shows the number of
-matched positions (e.g. 17) and the pattern (e.g. 11111011000).
+One consequence of this is that repetitive tags will not be mapped: if
+a tag perfectly matches more than ten locations in the genome, it gets
+dropped at the first step.
 
-======== ==========  ================  ==================  ====================
-Tag size 1 mismatch  2 mismatches      3 mismatches        4 mismatches
-======== ==========  ================  ==================  ====================
-16       10 11110     7 1110100         4 11010000          3 1110
-17       11 11110     7 1110100         5 11010000          4 1110
-18       12 11110     8 1110100         5 11010000          4 1110
-19       12 11110     8 1110100         6 11010000          4 1110
-20       13 11110     8 1110100         6 11010000          4 1100010000
-21       14 11110     9 1110100         6 11010000          5 1100010000
-22       15 11110    10 1110100         7 1110100000        5 1100010000
-23       16 11110    11 1110100         7 11101001000       5 1100010000
-24       16 111110   11 1110100         8 11101001000       5 1100010000
-25       17 111110   12 1110100         8 11101001000       6 1100010000
-26       18 111110   12 1110100         9 11101001000       6 1100010000
-27       19 111110   12 1110100         9 11101001000       6 1110100000000
-28       20 111110   13 1110100         9 11101001000       7 1110100000000
-29       20 111110   14 1110100        10 11101001000       7 1110100000000
-30       21 111110   15 1110100        10 11101001000       8 1110100000000
-31       22 111110   15 1110100        11 1110110100000     8 1110100000000
-32       23 111110   16 1110100        11 111101011001000   8 111010010000000
-33       24 111110   16 1110100        12 111101011001000   8 111010010000000
-34       25 111110   17 1110111110100  12 111101011001000   9 111010010000000
-35       25 1111110  17 11111011000    13 111101011001000   9 111010010000000
-36       26 1111110  18 11111011000    13 111101011001000   9 11110010000001000
-37       27 1111110  19 11111011000    14 111101011001000  10 11110010000001000
-38       28 1111110  19 11111011000    15 111101011001000  10 11110010000001000
-39       29 1111110  20 11111011000    15 111101011001000  10 11110010000001000
-40       30 1111110  21 11111011000    15 111101011001000  11 11110010000001000
-41       30 1111110  21 11111011000    16 111101011001000  11 11110010000001000
-======== ==========  ================  ==================  ====================
+Another wrinkle is the effect of database volumes.  LAST is designed
+to work with 2 gigabytes of memory, so it splits large
+(e.g. mammalian) genomes into "volumes", and maps tags to each volume
+in turn as if they were separate genomes.  If a tag perfectly matches
+more than ten locations in one volume, but less than ten in another,
+then the former matches will not be reported but the latter will.  You
+can avoid this inconsistency by using -s16G to put the whole mouse
+genome into one volume.  Even if the genome is in one volume, however,
+the two strands get searched separately.
 
-This table was made using software kindly provided by Laurent Noé,
-described in [G Kucherov, L Noé, M Roytberg IEEE/ACM Trans Comput Biol
-Bioinform 2005 2(1):51-61].  For larger tags, the calculation time
-becomes prohibitive.
+The main point is that this procedure does not guarantee to find all
+alignments with score >= 30.  It is more likely to miss alignments
+that have uniformly-spaced mismatches/gaps, and less likely to miss
+alignments with mismatches/gaps concentrated at the ends.  We think it
+does a good job in practice.
 
-Weaknesses of this approach
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. Counting exact matches
+-------------------------
+
+We can gain information on repetitive tags as follows:
+
+  lastal -j0 -l36 mousedb tags.fa
+
+Here, -j0 tells lastal to just report counts of initial matches.  In
+this case, there is no limit on how often the matches occur: matches
+that occur more than ten times in the genome are counted too.  So
+nothing is missed, and there is no effect from database volumes.  The
+-l36 option requests matches of size >= 36 only: this makes it faster
+and makes the output smaller.  (Without -l36, it counts all matches of
+size >= 1: this is still quite fast.)
+
+4. Finding all matches with up to N mismatches
+----------------------------------------------
+
+One approach to tag mapping is to guarantee finding all matches with
+up to N mismatches.  The "guarantee" part sounds good, but there are
+some drawbacks to this approach:
 
 * It does not allow for insertions or deletions.
 
 * It does not allow for higher error rates near the ends of tags.
 
+* It is not suitable for partial matches, e.g. if a tag crosses a
+  splice junction.
+
 * Usually, some tags match repetitively to millions of genome
-  locations: this approach will find them all, which is slow and
-  produces huge output.
+  locations: finding all these matches is slow and produces huge
+  output.
 
-Option 2: Fast, simple, pragmatic
----------------------------------
+You can mitigate the last drawback by counting exact matches (as
+explained above) and then removing tags with many exact matches.
 
-We can avoid all these problems by using LAST in a more
-straightforward way, although we lose the guarantee of finding all
-matches with up to N mismatches.  Suppose we have tags of length 36::
+Suppose we wish to find all matches of our length-36 tags to the
+genome, allowing up to two mismatches.  A naive approach is to start
+by finding all exact matches of size 12, and extend alignments from
+these.  This works because any length-36 tag with two mismatches is
+guaranteed to have an exact match of size 12.  It will be very slow,
+however, because there will be many unproductive size-12 matches.
 
-  lastdb mydb genome.fa
-  lastal -a2 -e30 mydb tags.fa
+We can do better by finding matches using a spaced seed, and then
+extending alignments.  For example, our tags are guaranteed to have a
+match using this spaced seed pattern: 11111011000111110110001111.
+Since this seed has 18 matched positions (18 "1"s), we will get far
+fewer unproductive matches.  With LAST, we can do this as follows:
 
-Here, we used -a2 to set the gap existence cost to 2, and -e30 to get
-alignments with score >= 30.  This method allows a few mismatches
-and/or a few small gaps, because matches score +1, mismatches score
--1, and gaps score -(gap size + 2).
+  lastdb -m11111011000 mydb genome.fa
+  lastal -l18 -m4000000000 -j1 -q0 -d34 mydb tags.fa
 
-Since we did not specify a spaced seed, lastal starts by finding exact
-matches.  Specifically, it finds all exact matches, of whatever size,
-that occur no more than ten times in the genome.  These matches
-typically have a size of around 13, but can be much larger for
-repetitive sequences.  This approach works well when there are more
-errors near the ends of tags, because errors near the ends are less
-likely to disrupt long exact matches.
+In the lastdb command, the seed pattern gets cyclically repeated, so
+we only need to specify the repeating unit of the pattern.  In the
+lastal command, we used -l18 to require 18 matched positions in
+initial matches, and -m4000000000 to accept hugely repeated initial
+matches.  We also used -j1 to request gapless alignments, -q0 to set
+the mismatch cost to 0, and -d34 to request alignments with score >=
+34.  This will give us all 36-mer alignments with at most two
+mismatches.
 
-Getting information on repetitive tags
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The following table shows optimal spaced seed patterns for various tag
+sizes and numbers of mismatches.  Each entry shows the number of
+matched positions (e.g. 18) and the pattern (e.g. 11111011000).
 
-One problem with this approach is that it gives no information on tags
-that map repetitively to many locations.  We can get some information
-on repetitive tags, without resorting to -m4000000000, by counting
-initial matches::
+====  ===========  ================  ==================  ======================
+Tag   1 mismatch   2 mismatches      3 mismatches        4 mismatches
+size
+====  ===========  ================  ==================  ======================
+16    10 11110      7 1110100         4 11010000          3 1110
+17    11 11110      7 1110100         5 11010000          4 1110
+18    12 11110      8 1110100         5 11010000          4 1110
+19    12 11110      8 1110100         6 11010000          4 1110
+20    13 11110      8 1110100         6 11010000          4 1100010000
+21    14 11110      9 1110100         6 11010000          5 1100010000
+22    15 11110     10 1110100         7 1110100000        5 1100010000
+23    16 11110     11 1110100         7 11101001000       5 1100010000
+24    16 111110    11 1110100         8 11101001000       5 1100010000
+25    17 111110    12 1110100         8 11101001000       6 1100010000
+26    18 111110    12 1110100         9 11101001000       6 1100010000
+27    19 111110    12 1110100         9 11101001000       6 1110100000000
+28    20 111110    13 1110100         9 11101001000       7 1110100000000
+29    20 111110    14 1110100        10 11101001000       7 1110100000000
+30    21 111110    15 1110100        10 11101001000       8 1110100000000
+31    22 111110    15 1110100        11 1110110100000     8 1110100000000
+32    23 111110    16 1110100        11 111101011001000   8 111010010000000
+33    24 111110    16 1110100        12 111101011001000   8 111010010000000
+34    25 111110    17 1111101110010  12 111101011001000   9 111010010000000
+35    25 1111110   17 11111011000    13 111101011001000   9 111010010000000
+36    26 1111110   18 11111011000    13 111101011001000   9 11110010000001000
+37    27 1111110   19 11111011000    14 111101011001000  10 11110010000001000
+38    28 1111110   19 11111011000    15 111101011001000  10 11110010000001000
+39    29 1111110   20 11111011000    15 111101011001000  10 11110010000001000
+40    30 1111110   21 11111011000    15 111101011001000  11 11110010000001000
+41    30 1111110   21 11111011000    16 111101011001000  11 11110010000001000
+42    31 1111110   22 1111110101100  16 111101011001000  11 1101110100000010000
+43    32 1111110   23 1111110101100  16 111101011001000  12 1101110100000010000
+44    33 1111110   24 1111110101100  17 1110110100000    12 1101110100000010000
+45    34 1111110   24 1111110101100  17 111101011001000  13 1101110100000010000
+46    35 1111110   25 1111110101100  18 111101011001000  13 1101001110100000000
+47    36 1111110   26 1111101110010  19 111101011001000  13 1101001110100000000
+48    36 11111110  26 1111101110010  20 111101011001000  14 1101001110100000000
+49    37 11111110     ?              20 111101011001000  14 1101001110100000000
+50    38 11111110     ?              21 111101011001000  14 1101001110100000000
+====  ===========  ================  ==================  ======================
 
-  lastal -j0 mydb tags.fa
+This table was made using software kindly provided by the authors of
+these publications:
 
-A small risk with database volumes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* G Kucherov, L Noé, M Roytberg (2005) IEEE/ACM Trans Comput Biol
+  Bioinform 2:51-61.
+* S Burkhardt, J Kärkkäinen (2003) Fundamenta Informaticae 56:51-70.
 
-LAST is designed to work with 2 gigabytes of memory, so it splits
-large (e.g. mammalian) genomes into "volumes", and maps tags to each
-volume in turn as if they were separate genomes.  There is a chance
-that a tag might map uniquely to one volume, but repetitively to
-another volume.  Unlikely, but possible.  If we don't get any
-information about the repetitive mappings, we might mistakenly infer
-that it maps uniquely to the genome.  You can check for this situation
-by using lastal -j0 (or resorting to -m4000000000).  If you have
-enough memory (around 16 GB for a mammalian genome), you can put the
-whole genome into one volume using the -s option of lastdb.  (Even if
-the genome is in one volume, the two strands get searched separately.)
+For longer tags, it becomes harder to determine the optimal seed patterns.
 
-Other options
--------------
+5. Some useful Unix pipelines
+-----------------------------
 
-It's possible to use a hybrid of the two options above.  For example,
-use a spaced seed but don't use -m4000000000.
+5a. Merging identical tag sequences
+-----------------------------------
+
+Suppose we have tag sequences in a FASTA format file called "tags.fa":
+
+  >tagA
+  GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
+  >tagB
+  GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
+  >tagC
+  GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
+  >tagD
+  GGCACTCTTTCCCTACACGACGCTCTTCCGATCTGG
+
+If there are many identical sequences, we can speed up the mapping by
+merging them.  The following Unix pipeline merges identical sequences
+(assuming each sequence is all on one line):
+
+  grep -v '>' tags.fa | sort | uniq -c | awk '{print ">" NR ":" $1 "\n" $2}'
+
+The output of this command looks as follows:
+
+  >1:3
+  GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
+  >2:1
+  GGCACTCTTTCCCTACACGACGCTCTTCCGATCTGG
+
+The number after the colon is the count of the tag, and the number
+before the colon is just a serial number.
+
+5b. Discarding sub-optimal mappings
+-----------------------------------
+
+LAST will often align a tag to more than one genome location.  We may
+wish to keep only the highest-scoring alignment(s) for each tag.
+Suppose we have LAST alignments, in tabular format, in a file called
+"mymap".  The following pipeline obtains the highest-scoring
+alignment(s) for each tag:
+
+  grep -v '#' mymap | sort -k7,7 -k1,1nr | awk '$7!=n {n=$7; s=$1} $1==s'
+
+5c. Discarding tags that map equally well to multiple locations
+---------------------------------------------------------------
+
+After using the previous pipeline, there may still be some tags that
+map to more than one location (with equal scores).  We may wish to
+discard such multi-mapping tags.  The following pipeline accomplishes
+this, assuming that the output of the previous pipeline is in
+"mymap2":
+
+  awk '{print $0 "\t" $7 "\t" $1}' mymap2 | uniq -uf12 | cut -f1-12

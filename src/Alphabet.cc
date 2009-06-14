@@ -74,6 +74,10 @@ void Alphabet::init(){
 
   std::fill_n( encode, 256, 255 );  // fill encode with value 255
 
+  for( unsigned i = 0; i < 256; ++i ){
+    canonical[i] = i;
+  }
+
   uchar code = 0;
 
   // add the "real" alphabet letters:

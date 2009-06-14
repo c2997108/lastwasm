@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds segment-pairs, and allows us to find
 // (near-)overlaps between sets of segment-pairs efficiently.  To find
@@ -52,7 +52,10 @@ struct SegmentPairPot{
 
   // sort criterion for sorting by score (in descending order)
   static bool iterLess( const const_iterator& x, const const_iterator& y ){
-    return x->score > y->score;
+    // break ties in an arbitrary way, to make the results more reproducible:
+    return (x->score  != y->score ) ? (x->score  > y->score )
+      :    (x->start1 != y->start1) ? (x->start1 < y->start1)
+      :                               (x->start2 < y->start2);
   }
 };
 

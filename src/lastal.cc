@@ -130,6 +130,7 @@ void writeCounts( std::ostream& out ){
 
 // Count all matches, of all sizes, of a query batch against a suffix array
 void countMatches( const SuffixArray& suffixArray, char strand ){
+  LOG( "counting..." );
   indexT seqNum = strand == '+' ? 0 : query.finishedSequences() - 1;
 
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
@@ -283,12 +284,12 @@ void alignFinish( const AlignmentPot& gappedAlns,
 
 // Scan one batch of query sequences against one database volume
 void scan( const SuffixArray& suffixArray, char strand, std::ostream& out ){
-  LOG( "scanning..." );
-
   if( args.outputType == 0 ){  // we just want match counts
     countMatches( suffixArray, strand );
     return;
   }
+
+  LOG( "scanning..." );
 
   SegmentPairPot gaplessAlns;
   alignGapless( gaplessAlns, suffixArray, strand, out );
@@ -344,7 +345,7 @@ void scanAllVolumes( SuffixArray& suffixArray,
 
   if( args.outputType == 0 ) writeCounts( out );
 
-  LOG( "done!" );
+  LOG( "query batch done!" );
 }
 
 void writeHeader( std::ostream& out ){

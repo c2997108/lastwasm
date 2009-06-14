@@ -21,8 +21,7 @@ def flipstrand(strand):
     if strand == '-': return '+'
     else:             return '-'
 
-def flip_s_line(line):
-    words = re.split(r'(\s+)', line)  # keep the spaces
+def flip_s_line(words):
     start = int(words[4])
     alnsize = int(words[6])
     seqsize = int(words[10])
@@ -30,17 +29,19 @@ def flip_s_line(line):
     words[4] = str(newstart)
     words[8] = flipstrand(words[8])
     words[12] = revcomp(words[12])
-    return ''.join(words)
 
-def flip_p_line(line):
-    words = re.split(r'(\s+)', line)  # keep the spaces
+def flip_p_line(words):
     words[2:-2] = words[-3:1:-1]
-    return ''.join(words)
+
+def flip_q_line(words):
+    words[2] = words[2][::-1]
 
 def flip_line(line):
-    if   line.startswith('s'): return flip_s_line(line)
-    elif line.startswith('p'): return flip_p_line(line)
-    else:                      return line
+    words = re.split(r'(\s+)', line)  # keep the spaces
+    if   line.startswith('s'): flip_s_line(words)
+    elif line.startswith('p'): flip_p_line(words)
+    elif line.startswith('q'): flip_q_line(words)
+    return ''.join(words)
 
 def indexOfNthSequence(lines, n):
     for i, line in enumerate(lines):
