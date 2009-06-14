@@ -3,6 +3,7 @@
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
 #include "LastalArguments.hh"
+#include "QualityScoreCalculator.hh"
 #include "LambdaCalculator.hh"
 #include "SuffixArray.hh"
 #include "Centroid.hh"
@@ -47,6 +48,8 @@ namespace {
   enum { MAT = 64 };
   const int (*matGapless)[MAT];  // score matrix for gapless alignment
   const int (*matGapped)[MAT];  // score matrix for gapped alignment
+  QualityScoreCalculator qualityScoreCalculator;
+  int (*pssm)[MAT];  // Position Specific Score Matrix
 }
 
 // Set up a scoring matrix, based on the user options
@@ -181,7 +184,8 @@ void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
 
       // tried: first get the score only, not the endpoints: slower!
       SegmentPair sp;  // do the gapless extension:
-      sp.makeXdrop( *beg, i, tseq, qseq, matGapless, args.maxDropGapless );
+      sp.makeXdrop( *beg, i, tseq, qseq,
+		    matGapless, args.maxDropGapless, pssm );
       ++gaplessExtensionCount;
 
       // Tried checking the score after isOptimal & addEndpoint, but
@@ -189,7 +193,7 @@ void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
       // slower overall.
       if( sp.score < args.minScoreGapless ) continue;
 
-      if( !sp.isOptimal( tseq, qseq, matGapless, args.maxDropGapless ) ){
+      if( !sp.isOptimal( tseq, qseq, matGapless, args.maxDropGapless, pssm ) ){
 	continue;  // ignore sucky gapless extensions
       }
 
@@ -202,8 +206,9 @@ void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
 	// Redo gapless extension, using gapped score parameters.  Without
 	// this, if we self-compare a huge sequence, we risk getting a
 	// huge gapped extension.
-	sp.makeXdrop( *beg, i, tseq, qseq, matGapped, args.maxDropGapped );
-	if( !sp.isOptimal( tseq, qseq, matGapped, args.maxDropGapped ) ){
+	sp.makeXdrop( *beg, i, tseq, qseq,
+		      matGapped, args.maxDropGapped, pssm );
+	if( !sp.isOptimal( tseq, qseq, matGapped, args.maxDropGapped, pssm ) ){
 	  continue;
 	}
 	gaplessAlns.add(sp);  // add the gapless alignment to the pot
@@ -237,17 +242,17 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
     // Shrink the seed to its longest run of identical matches.  This
     // trims off possibly unreliable parts of the gapless alignment.
-    aln.seed.maxIdenticalRun( tseq, qseq, alph.canonical, matGapped );
+    aln.seed.maxIdenticalRun( tseq, qseq, alph.canonical, matGapped, pssm );
 
     // do gapped extension from each end of the seed:
     aln.makeXdrop( xdropAligner, centroid, tseq, qseq, matGapped,
-		   scoreMatrix.maxScore, gapCosts, args.maxDropGapped );
+		   scoreMatrix.maxScore, gapCosts, args.maxDropGapped, pssm );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
 
     if( !aln.isOptimal( tseq, qseq,
-			matGapped, args.maxDropGapped, gapCosts ) ){
+			matGapped, args.maxDropGapped, gapCosts, pssm ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-reduntantization.
       continue;
@@ -276,7 +281,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
       probAln.seed = aln.seed;
       probAln.makeXdrop( xdropAligner, centroid, &text.seq[0], &query.seq[0],
 			 matGapped, scoreMatrix.maxScore, gapCosts,
-			 args.maxDropGapped, args.gamma, args.outputType );
+			 args.maxDropGapped, pssm, args.gamma, args.outputType );
       probAln.write( text, query, strand, alph, args.outputFormat, out );
     }
   }
@@ -287,6 +292,13 @@ void scan( const SuffixArray& suffixArray, char strand, std::ostream& out ){
   if( args.outputType == 0 ){  // we just want match counts
     countMatches( suffixArray, strand );
     return;
+  }
+
+  if( args.inputFormat > 0 ){
+    LOG( "making PSSM..." );
+    qualityScoreCalculator.makePssm( pssm, &query.qualityScores[0],
+				     &query.seq[0], query.ends.back(),
+				     args.inputFormat < 3 );
   }
 
   LOG( "scanning..." );
@@ -323,12 +335,18 @@ void readVolume( SuffixArray& suffixArray, unsigned volumeNumber ){
 void reverseComplementQuery(){
   LOG( "reverse complementing..." );
   alph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
+  if( args.inputFormat > 0 ){
+    std::reverse( query.qualityScores.begin(),  // XXX ugly
+		  query.qualityScores.begin() + query.ends.back() *
+		  (query.qualityScores.size() / query.seq.size()) );
+  }
 }
 
 // Scan one batch of query sequences against all database volumes
 void scanAllVolumes( SuffixArray& suffixArray,
 		     unsigned volumes, std::ostream& out ){
   if( args.outputType == 0 ) matchCounts.resize( query.finishedSequences() );
+  else if( args.inputFormat > 0 ) pssm = new int[ query.ends.back() ][MAT];
 
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.seq.empty() || volumes > 1 ) readVolume( suffixArray, i );
@@ -344,6 +362,7 @@ void scanAllVolumes( SuffixArray& suffixArray,
   }
 
   if( args.outputType == 0 ) writeCounts( out );
+  else if( args.inputFormat > 0 ) delete[] pssm;
 
   LOG( "query batch done!" );
 }
@@ -385,7 +404,9 @@ std::istream& appendFromFasta( std::istream& in ){
 
   indexT oldSeqSize = query.seq.size();
 
-  query.appendFromFasta( in, maxSeqBytes );
+  /**/ if( args.inputFormat < 1 ) query.appendFromFasta( in, maxSeqBytes );
+  else if( args.inputFormat < 3 ) query.appendFromFastq( in, maxSeqBytes );
+  else query.appendFromPrb( in, maxSeqBytes, alph.size, alph.decode );
 
   // encode the newly-read sequence
   alph.tr( query.seq.begin() + oldSeqSize, query.seq.end() );
@@ -414,7 +435,7 @@ void lastal( int argc, char** argv ){
   if( args.maskLowercase < 1 ) alph.makeCaseInsensitive();
 
   double lambda = -1;
-  if( args.temperature < 0 && args.outputType > 3 ){
+  if( args.temperature < 0 && (args.outputType > 3 || args.inputFormat > 0) ){
     // it makes no difference whether we use matGapped or matGapless here:
     lambda = LambdaCalculator::calculate( matGapped, alph.size );
     if( lambda < 0 )
@@ -426,6 +447,17 @@ void lastal( int argc, char** argv ){
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
 
   SuffixArray suffixArray( text.seq, spacedSeed.offsets, alph.size );
+
+  if( args.inputFormat > 0 ){
+    assert( matGapless == matGapped );
+    int asciiOffset = (args.inputFormat < 2) ? 33 : 64;
+    bool isMatchMismatch = args.matrixFile.empty() && args.matchScore > 0;
+    qualityScoreCalculator.init( matGapped, alph.size, args.temperature,
+				 args.maskLowercase > 2, isMatchMismatch,
+				 args.matchScore, -args.mismatchCost,
+				 alph.canonical,
+				 args.inputFormat < 2, asciiOffset );
+  }
 
   std::ofstream outFileStream;
   std::ostream& out = openOut( args.outFile, outFileStream );

@@ -50,6 +50,7 @@ struct LastalArguments{
   std::string matrixFile;
   int maxDropGapped;
   int maxDropGapless;
+  int inputFormat;
   indexT minHitDepth;
   indexT oneHitMultiplicity;
   indexT queryStep;

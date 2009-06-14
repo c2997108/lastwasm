@@ -17,27 +17,17 @@ bool XdropAligner::isDelimiter( uchar c, const int sm[MAT][MAT] ){
   return sm[c][c] == -INF;  // assumes it's the same INF!
 }
 
-// get a pointer into a sequence, taking start and direction into account
-const XdropAligner::uchar*
-XdropAligner::seqPtr( const uchar* seq, size_t start,
-		      direction dir, size_t pos ){
-  assert( pos > 0 );
-  if( dir == FORWARD ){
-    return &seq[ start + pos - 1 ];
-  }else{
-    return &seq[ start - pos ];
-  }
-}
-
 // get score for matching 2 residues at the given position
 int XdropAligner::match( const uchar* seq1, const uchar* seq2,
 			 size_t start1, size_t start2, direction dir,
-			 const int sm[MAT][MAT],
+			 const int sm[MAT][MAT], const int pssm2[][MAT],
 			 size_t antiDiagonal, size_t seq1pos ){
   const size_t seq2pos = antiDiagonal - seq1pos;
   if( seq1pos > 0 && seq2pos > 0 ){
-    return sm[ *seqPtr( seq1, start1, dir, seq1pos ) ]
-             [ *seqPtr( seq2, start2, dir, seq2pos ) ];
+    if( pssm2 ) return ( *seqPtr( pssm2, start2, dir, seq2pos ) )
+		       [ *seqPtr( seq1, start1, dir, seq1pos ) ];
+    else return sm[ *seqPtr( seq1, start1, dir, seq1pos ) ]
+	          [ *seqPtr( seq2, start2, dir, seq2pos ) ];
   }else{
     return -INF;
   }
@@ -241,7 +231,7 @@ int XdropAligner::fill( const uchar* seq1, const uchar* seq2,
 void XdropAligner::traceback( std::vector< SegmentPair >& chunks,
 			      const uchar* seq1, const uchar* seq2,
 			      size_t start1, size_t start2, direction dir,
-			      const int sm[MAT][MAT],
+			      const int sm[MAT][MAT], const int pssm2[][MAT],
 			      const GeneralizedAffineGapCosts& gap ) const{
   size_t k = bestAntiDiagonal;
   size_t i = bestPos1;
@@ -252,7 +242,7 @@ void XdropAligner::traceback( std::vector< SegmentPair >& chunks,
     if( state == 0 ){
       const int m =
 	maxIndex3( diag( x, k, i ) +
-		   match( seq1, seq2, start1, start2, dir, sm, k, i ),
+		   match( seq1, seq2, start1, start2, dir, sm, pssm2, k, i ),
 		   hori( y, k, i ),
 		   vert( z, k, i ) );
       if( m == 0 ){

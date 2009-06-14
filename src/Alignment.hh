@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds a gapped, pair-wise alignment.
 
@@ -35,6 +35,7 @@ struct Alignment{
 		  const uchar* seq1, const uchar* seq2,
 		  const int scoreMatrix[MAT][MAT], int smMax,
 		  const GeneralizedAffineGapCosts& gap, int maxDrop,
+		  const int pssm2[][MAT] = 0,
 		  double gamma = 0, int outputType = 0 );
 
   // Check that the Alignment has no prefix with score <= 0, no suffix
@@ -42,7 +43,8 @@ struct Alignment{
   // Alignments that pass this test may be non-optimal in other ways.
   bool isOptimal( const uchar* seq1, const uchar* seq2,
                   const int scoreMatrix[MAT][MAT], int maxDrop,
-                  const GeneralizedAffineGapCosts& gap );
+                  const GeneralizedAffineGapCosts& gap,
+		  const int pssm2[][MAT] = 0 );
 
   void write( const MultiSequence& seq1, const MultiSequence& seq2,
 	      char strand, const Alphabet& alph, int format,
@@ -70,6 +72,7 @@ struct Alignment{
 	       XdropAligner::direction dir,
 	       const int sm[MAT][MAT], int smMax, int maxDrop,
 	       const GeneralizedAffineGapCosts& gap,
+	       const int pssm2[][MAT],
 	       double gamma, int outputType );
 
   void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
@@ -83,6 +86,13 @@ struct Alignment{
 
   std::string botString( const std::vector<uchar>& seq,
 			 const Alphabet& alph ) const;
+
+  std::string qualityString( const std::vector<uchar>& qualities,
+			     const std::vector<uchar>& seq ) const;
+
+  static std::string qualityBlock( const std::vector<uchar>& qualities,
+				   indexT beg, indexT end,
+				   unsigned qualsPerBase );
 };
 
 }  // end namespace cbrc

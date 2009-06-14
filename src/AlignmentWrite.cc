@@ -88,6 +88,13 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
      << std::setw( rw ) << r2 << ' ' << strand << ' '
      << std::setw( sw ) << s2 << ' ' << botString( seq2.seq, alph ) << '\n';
 
+  if( seq2.qualityScores.size() > 0 ){
+    os << "q "
+       << std::setw( nw ) << std::left << n2 << std::right << ' '
+       << std::setw( bw + rw + sw + 5 ) << ""
+       << qualityString( seq2.qualityScores, seq2.seq ) << '\n';
+  }
+
   if( matchProbabilities.size() > 0 ){
     os << 'p';
     CI(double) p = matchProbabilities.begin();
@@ -130,6 +137,35 @@ std::string Alignment::botString( const std::vector<uchar>& seq,
     }
     s.append( alph.rtString( seq.begin() + blocks[i].beg2(),
 			     seq.begin() + blocks[i].end2() ) );
+  }
+  return s;
+}
+
+std::string Alignment::qualityString( const std::vector<uchar>& qualities,
+				      const std::vector<uchar>& seq ) const{
+  std::string s;
+  unsigned qualsPerBase = qualities.size() / seq.size();
+  assert( qualsPerBase > 0 );
+
+  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
+    if( i > blocks.begin() ){
+      s.append( i->beg1() - (i-1)->end1(), '-' );
+      s.append( qualityBlock( qualities, (i-1)->end2(), i->beg2(),
+			      qualsPerBase ) );
+    }
+    s.append( qualityBlock( qualities, i->beg2(), i->end2(), qualsPerBase ) );
+  }
+
+  return s;
+}
+
+std::string Alignment::qualityBlock( const std::vector<uchar>& qualities,
+				     indexT beg, indexT end,
+				     unsigned qualsPerBase ){
+  std::string s;
+  for( indexT i = beg; i < end; ++i ){
+    const uchar* q = &qualities[ i * qualsPerBase ];
+    s += *std::max_element( q, q + qualsPerBase );
   }
   return s;
 }

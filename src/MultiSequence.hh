@@ -33,6 +33,13 @@ struct MultiSequence{
   // not finish reading the sequence.
   std::istream& appendFromFasta( std::istream& stream, std::size_t maxBytes );
 
+  // As above, but read quality scores too.
+  std::istream& appendFromFastq( std::istream& stream, std::size_t maxBytes );
+
+  // As above, but read quality scores too.
+  std::istream& appendFromPrb( std::istream& stream, std::size_t maxBytes,
+			       unsigned alphSize, const uchar decode[] );
+
   // read a FASTA header: read the whole line but store just the first word
   std::istream& readFastaName( std::istream& stream );
 
@@ -65,6 +72,14 @@ struct MultiSequence{
   std::vector<indexT> ends;  // coordinates of ends of delimiter pads
   std::vector<char> names;  // concatenated sequence names (to save memory)
   std::vector<indexT> nameEnds;  // endpoints of the names
+
+  // There might be no quality scores, one score per letter, or
+  // several (e.g. 4) scores per letter.  They may be ASCII-coded: to
+  // get the real scores, subtract e.g. 33 or 64.  The real scores
+  // might be related to error probabilities in one of these ways:
+  // Qphred = -10*log10(p)
+  // Qsolexa = -10*log10(p/(1-p))
+  std::vector<uchar> qualityScores;
 };
 
 }  // end namespace cbrc

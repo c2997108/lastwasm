@@ -27,15 +27,31 @@ public:
   int fill( const uchar* seq1, const uchar* seq2,
 	    size_t start1, size_t start2, direction dir,
 	    const int sm[MAT][MAT], int smMax, int maxDrop,
-	    const GeneralizedAffineGapCosts& gap );
+	    const GeneralizedAffineGapCosts& gap,
+	    const int pssm2[][MAT] );
 
   // Get the ungapped segments of the extension, putting them in "chunks"
   // The extension might be empty!
   void traceback( std::vector< SegmentPair >& chunks,
 		  const uchar* seq1, const uchar* seq2,
 		  size_t start1, size_t start2, direction dir,
-		  const int sm[MAT][MAT],
+		  const int sm[MAT][MAT], const int pssm2[][MAT],
 		  const GeneralizedAffineGapCosts& gap ) const;
+
+  // Since fill() is one of the most speed-critical routines, we have
+  // two (almost-identical) versions: one using an ordinary score
+  // matrix, the other using a Position-Specific-Score-Matrix.
+
+  int fill( const uchar* seq1, const uchar* seq2,
+	    size_t start1, size_t start2, direction dir,
+	    const int sm[MAT][MAT], int smMax, int maxDrop,
+	    const GeneralizedAffineGapCosts& gap );
+
+  int fillPssm( const uchar* seq1, const uchar* seq2,
+		size_t start1, size_t start2, direction dir,
+		const int sm[MAT][MAT], int smMax, int maxDrop,
+		const GeneralizedAffineGapCosts& gap,
+		const int pssm2[][MAT] );
 
 private:
   typedef std::vector< std::vector< int > > matrix_t;
@@ -53,11 +69,9 @@ private:
 
   static int drop( int score, int minScore );
   static bool isDelimiter( uchar c, const int sm[MAT][MAT] );
-  static const uchar* seqPtr( const uchar* seq, size_t start,
-			      direction dir, size_t pos );
   static int match( const uchar* seq1, const uchar* seq2,
 		    size_t start1, size_t start2, direction dir,
-		    const int sm[MAT][MAT],
+		    const int sm[MAT][MAT], const int pssm2[][MAT],
 		    size_t antiDiagonal, size_t seq1pos );
 
   size_t fillBeg( size_t antiDiagonal ) const;
@@ -67,6 +81,15 @@ private:
   void updateBest( int score, size_t antiDiagonal, const int* x0 );
   size_t newFillBeg( size_t k1, size_t k2, size_t off1, size_t end1 ) const;
   size_t newFillEnd( size_t k1, size_t k2, size_t off1, size_t end1 ) const;
+
+  // get a pointer into a sequence, taking start and direction into account
+  template < typename T >
+  static const T* seqPtr( const T* seq, size_t start,
+			  direction dir, size_t pos ){
+    assert( pos > 0 );
+    if( dir == FORWARD ) return &seq[ start + pos - 1 ];
+    else                 return &seq[ start - pos ];
+  }
 
   // mhamada: changed cell, hori, vert, diag to template methods
 

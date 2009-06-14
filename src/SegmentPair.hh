@@ -24,18 +24,21 @@ struct SegmentPair{
   // might not be "optimal" (see below).
   void makeXdrop( indexT seed1, indexT seed2,
 		  const uchar* seq1, const uchar* seq2,
-                  const int scoreMatrix[MAT][MAT], int maxDrop );
+                  const int scoreMatrix[MAT][MAT], int maxDrop,
+		  const int pssm2[][MAT] );
 
   // Check that the SegmentPair has no prefix with score <= 0, no
   // suffix with score <= 0, and no sub-segment with score < -maxDrop.
   bool isOptimal( const uchar* seq1, const uchar* seq2,
-		  const int scoreMatrix[MAT][MAT], int maxDrop ) const;
+		  const int scoreMatrix[MAT][MAT], int maxDrop,
+		  const int pssm2[][MAT] ) const;
 
   // Shrink the SegmentPair to the longest run of identical letters
   // within it.  Allow (upper/lower)case to differ, using "canonical".
   void maxIdenticalRun( const uchar* seq1, const uchar* seq2,
 			const uchar* canonical,
-			const int scoreMatrix[MAT][MAT] );
+			const int scoreMatrix[MAT][MAT],
+			const int pssm2[][MAT] );
 
   indexT beg1() const{ return start1; }         // start in sequence 1
   indexT beg2() const{ return start2; }         // start in sequence 2
@@ -48,9 +51,22 @@ struct SegmentPair{
   indexT size;
   int score;
 
+  // Since makeXdrop() is one of the most speed-critical routines, we
+  // have two (almost-identical) versions: one using an ordinary score
+  // matrix, the other using a Position-Specific-Score-Matrix.
+
+  void makeXdrop( indexT seed1, indexT seed2,
+		  const uchar* seq1, const uchar* seq2,
+                  const int scoreMatrix[MAT][MAT], int maxDrop );
+
+  void makeXdropPssm( indexT seed1, indexT seed2,
+		      const uchar* seq1,
+		      const int pssm2[][MAT], int maxDrop );
+
   // Used by maxIdenticalRun().
   void calculateScore( const uchar* seq1, const uchar* seq2,
-                       const int scoreMatrix[MAT][MAT] );
+		       const int scoreMatrix[MAT][MAT],
+		       const int pssm2[][MAT] );
 };
 
 }  // end namespace cbrc

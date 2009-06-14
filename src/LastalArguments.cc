@@ -32,6 +32,7 @@ LastalArguments::LastalArguments() :
   matrixFile(""),
   maxDropGapped(-1),  // depends on gap costs & maxDropGapless
   maxDropGapless(-1),  // depends on the score matrix
+  inputFormat(0),
   minHitDepth(1),
   oneHitMultiplicity(10),
   queryStep(1),
@@ -68,26 +69,27 @@ Main options (default settings):\n\
     + stringify(outputFormat) + ")\n\
 \n\
 Score parameters (default settings):\n\
--r: match score   (1 for DNA, blosum62 for protein)\n\
--q: mismatch cost (1 for DNA, blosum62 for protein)\n\
+-r: match score   (DNA: 1, protein: blosum62, F>0:  6)\n\
+-q: mismatch cost (DNA: 1, protein: blosum62, F>0: 18)\n\
 -p: file for residue pair scores\n\
--a: gap existence cost (7 for DNA, 11 for protein)\n\
--b: gap extension cost (1 for DNA,  2 for protein)\n\
+-a: gap existence cost (DNA: 7, protein: 11, F>0: 21)\n\
+-b: gap extension cost (DNA: 1, protein:  2, F>0:  9)\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
 -y: maximum score dropoff for gapless extensions (max-match-score * 10)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
--e: minimum score for gapped alignments (40 for DNA, 100 for protein)\n\
+-e: minimum score for gapped alignments (DNA: 40, protein: 100, F>0: 180)\n\
 \n\
 Miscellaneous options (default settings):\n\
+-F: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB (0)\n\
 -m: maximum multiplicity for initial matches ("
     + stringify(oneHitMultiplicity) + ")\n\
 -l: minimum depth for initial matches ("
     + stringify(minHitDepth) + ")\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
--i: query batch size (16 MiB when counting matches, 128 MiB otherwise)\n\
+-i: query batch size (16 MiB if j=0, else 1 MiB if F>0, else 128 MiB)\n\
 -w: supress repeats within this distance inside large exact matches ("
     + stringify(maxRepeatDistance) + ")\n\
 -t: 'temperature' for calculating probabilities (1/lambda)\n\
@@ -102,7 +104,7 @@ Miscellaneous options (default settings):\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   while( (c = getopt(argc, argv,
-		     "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:m:l:k:i:w:t:g:vj:"))
+		     "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:F:m:l:k:i:w:t:g:vj:"))
 	 != -1 ){
     switch(c){
     case 'h':
@@ -161,6 +163,10 @@ Miscellaneous options (default settings):\n\
       unstringify( minScoreGapped, optarg );
       if( minScoreGapped < 0 ) badopt( c, optarg );
       break;
+    case 'F':
+      unstringify( inputFormat, optarg );
+      if( inputFormat < 0 || inputFormat > 3 ) badopt( c, optarg );
+      break;
     case 'm':
       unstringify( oneHitMultiplicity, optarg );
       break;
@@ -198,6 +204,12 @@ Miscellaneous options (default settings):\n\
       throw std::runtime_error("bad option");
     }
   }
+
+  if( maskLowercase == 2 && inputFormat > 0 )
+    throw std::runtime_error("can't combine option -u 2 with option -F > 0");
+
+  if( outputType > 3 && inputFormat > 0 )
+    throw std::runtime_error("can't combine option -j > 3 with option -F > 0");
 
   if( optionsOnly ) return;
   if( optind == argc ) throw std::runtime_error(usage);
@@ -241,19 +253,33 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
     if( gapExtendCost  < 0 ) gapExtendCost  =   2;
     if( minScoreGapped < 0 ) minScoreGapped = 100;
   }
-  else{
+  else if( inputFormat == 0 ){
     if( matchScore     < 0 ) matchScore     =   1;
     if( mismatchCost   < 0 ) mismatchCost   =   1;
     if( gapExistCost   < 0 ) gapExistCost   =   7;
     if( gapExtendCost  < 0 ) gapExtendCost  =   1;
     if( minScoreGapped < 0 ) minScoreGapped =  40;
   }
+  else{  // sequence quality scores will be used:
+    if( matchScore     < 0 ) matchScore     =   6;
+    if( mismatchCost   < 0 ) mismatchCost   =  18;
+    if( gapExistCost   < 0 ) gapExistCost   =  21;
+    if( gapExtendCost  < 0 ) gapExtendCost  =   9;
+    if( minScoreGapped < 0 ) minScoreGapped = 180;
+    // With this scoring scheme for DNA, gapless lambda ~= ln(10)/10,
+    // so these scores should be comparable to PHRED scores.
+    // Furthermore, since mismatchCost/matchScore = 3, the target
+    // distribution of paired bases ~= 99% identity.  Because the
+    // quality scores are unlikely to be perfect, it may be best to
+    // use a lower target %identity than we otherwise would.
+  }
 
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
 
   if( batchSize == 0 ){
-    if( outputType == 0 ) batchSize = 0x1000000;  // 16 Mbytes
-    else                  batchSize = 0x8000000;  // 128 Mbytes
+    /**/ if( outputType == 0 ) batchSize = 0x1000000;  // 16 Mbytes
+    else if( inputFormat > 0 ) batchSize = 0x100000;   // 1 Mbyte
+    else                       batchSize = 0x8000000;  // 128 Mbytes
   }
 }
 

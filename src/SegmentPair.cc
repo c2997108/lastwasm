@@ -49,16 +49,19 @@ void SegmentPair::makeXdrop( indexT seed1, indexT seed2,
 }
 
 bool SegmentPair::isOptimal( const uchar* seq1, const uchar* seq2,
-			     const int scoreMatrix[MAT][MAT],
-			     int maxDrop ) const{
+			     const int scoreMatrix[MAT][MAT], int maxDrop,
+			     const int pssm2[][MAT] ) const{
   int maxScore = 0;
   int runningScore = 0;
   const uchar* s1 = seq1 + beg1();
   const uchar* s2 = seq2 + beg2();
   const uchar* e1 = seq1 + end1();
+  const int (*p2)[MAT] = pssm2 ? pssm2 + beg2() : 0;
 
   while( s1 < e1 ){
-    runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
+    if( pssm2 ) runningScore += ( *p2++ )[ *s1++ ];
+    else runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
+
     if( runningScore > maxScore ) maxScore = runningScore;
     else if( runningScore <= 0 ||                  // non-optimal prefix
 	     s1 == e1 ||                           // non-optimal suffix
@@ -71,7 +74,8 @@ bool SegmentPair::isOptimal( const uchar* seq1, const uchar* seq2,
 
 void SegmentPair::maxIdenticalRun( const uchar* seq1, const uchar* seq2,
 				   const uchar* canonical,
-				   const int scoreMatrix[MAT][MAT] ){
+				   const int scoreMatrix[MAT][MAT],
+				   const int pssm2[][MAT] ){
   const uchar* s1 = seq1 + beg1();
   const uchar* s2 = seq2 + beg2();
   const uchar* e1 = seq1 + end1();
@@ -89,18 +93,21 @@ void SegmentPair::maxIdenticalRun( const uchar* seq1, const uchar* seq2,
     else runBeg1 = s1;
   }
 
-  calculateScore( seq1, seq2, scoreMatrix );
+  calculateScore( seq1, seq2, scoreMatrix, pssm2 );
 }
 
 void SegmentPair::calculateScore( const uchar* seq1, const uchar* seq2,
-				  const int scoreMatrix[MAT][MAT] ){
+				  const int scoreMatrix[MAT][MAT],
+				  const int pssm2[][MAT] ){
   const uchar* s1 = seq1 + beg1();
   const uchar* s2 = seq2 + beg2();
   const uchar* e1 = seq1 + end1();
+  const int (*p2)[MAT] = pssm2 ? pssm2 + beg2() : 0;
   score = 0;
 
   while( s1 < e1 ){
-    score += scoreMatrix[ *s1++ ][ *s2++ ];
+    if( pssm2 ) score += ( *p2++ )[ *s1++ ];
+    else score += scoreMatrix[ *s1++ ][ *s2++ ];
   }
 }
 

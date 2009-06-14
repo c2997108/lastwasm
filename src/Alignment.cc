@@ -20,6 +20,7 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int smMax,
 			   const GeneralizedAffineGapCosts& gap, int maxDrop,
+			   const int pssm2[][MAT],
 			   double gamma, int outputType ){
   assert( seed.size > 0 );  // relax this requirement?
   score = seed.score;
@@ -27,7 +28,7 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 
   extend( blocks, matchProbabilities, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), XdropAligner::REVERSE,
-	  scoreMatrix, smMax, maxDrop, gap, gamma, outputType );
+	  scoreMatrix, smMax, maxDrop, gap, pssm2, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < blocks.size(); ++i ){
@@ -51,7 +52,7 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 
   extend( forwardBlocks, forwardProbs, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), XdropAligner::FORWARD,
-	  scoreMatrix, smMax, maxDrop, gap, gamma, outputType );
+	  scoreMatrix, smMax, maxDrop, gap, pssm2, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
   for( unsigned i = 0; i < forwardBlocks.size(); ++i ){
@@ -74,7 +75,8 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int maxDrop,
-			   const GeneralizedAffineGapCosts& gap ){
+			   const GeneralizedAffineGapCosts& gap,
+			   const int pssm2[][MAT] ){
   int maxScore = 0;
   int runningScore = 0;
 
@@ -91,9 +93,12 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
     const uchar* s1 = seq1 + i->beg1();
     const uchar* s2 = seq2 + i->beg2();
     const uchar* e1 = seq1 + i->end1();
+    const int (*p2)[MAT] = pssm2 ? pssm2 + i->beg2() : 0;
 
     while( s1 < e1 ){
-      runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
+      if( pssm2 ) runningScore += ( *p2++ )[ *s1++ ];
+      else runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
+
       if( runningScore > maxScore ) maxScore = runningScore;
       else if( runningScore <= 0 ||                  // non-optimal prefix
 	       (s1 == e1 && i+1 == blocks.end()) ||  // non-optimal suffix
@@ -114,15 +119,18 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			XdropAligner::direction dir,
 			const int sm[MAT][MAT], int smMax, int maxDrop,
 			const GeneralizedAffineGapCosts& gap,
+			const int pssm2[][MAT],
 			double gamma, int outputType ){
   score += aligner.fill( seq1, seq2, start1, start2, dir,
-			 sm, smMax, maxDrop, gap );
+			 sm, smMax, maxDrop, gap, pssm2 );
 
   if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
-    aligner.traceback( chunks, seq1, seq2, start1, start2, dir, sm, gap );
+    aligner.traceback( chunks, seq1, seq2, start1, start2, dir,
+		       sm, pssm2, gap );
   }
 
   if( outputType > 3 ){  // calculate match probabilities
+    assert( !pssm2 );
     centroid.reset();
     centroid.forward( seq1, seq2, start1, start2, dir, gap );
     centroid.backward( seq1, seq2, start1, start2, dir, gap );

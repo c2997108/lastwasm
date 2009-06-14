@@ -224,3 +224,90 @@ this, assuming that the output of the previous pipeline is in
 "mymap2":
 
   awk '{print $0 "\t" $7 "\t" $1}' mymap2 | uniq -uf12 | cut -f1-12
+
+6. Using sequence quality scores
+--------------------------------
+
+LAST has a newer option to use sequence quality scores.  The quality
+scores can be in FASTQ or PRB format.  For example:
+
+  lastal -F3 mousedb tags_prb.txt
+
+The quality scores have no effect on finding initial matches, but they
+do affect extending alignments from the initial matches.  If quality
+scores are used, the default alignment scoring scheme is +6 for a
+high-quality match and -18 for a high-quality mismatch.  Low-quality
+matches and mismatches get scores between these values, as shown in
+the following table.  If your tags are very short, make sure that the
+alignment score threshold does not exceed the tag length times 6,
+otherwise you will not get any matches!
+
+======  ========  ========      ======  ========  ========
+Solexa  Match     Mismatch      Phred   Match     Mismatch
+score   score     score         score   score     score
+======  ========  ========      ======  ========  ========
+]  29       6       -18	        >  29       6       -18
+\  28       6       -17	        =  28       6       -17
+[  27       6       -17	        <  27       6       -17
+Z  26       6       -17	        ;  26       6       -17
+Y  25       6       -17	        :  25       6       -17
+X  24       6       -17	        9  24       6       -17
+W  23       6       -17	        8  23       6       -17
+V  22       6       -16	        7  22       6       -16
+U  21       6       -16	        6  21       6       -16
+T  20       6       -15	        5  20       6       -15
+S  19       6       -15	        4  19       6       -15
+R  18       6       -14	        3  18       6       -14
+Q  17       6       -14	        2  17       6       -14
+P  16       6       -13	        1  16       6       -13
+O  15       6       -13	        0  15       6       -12
+N  14       6       -12	        /  14       6       -12
+M  13       6       -11	        .  13       6       -11
+L  12       6       -10         -  12       6       -10
+K  11       6       -10         ,  11       6        -9 
+J  10       6        -9         +  10       6        -8 
+I   9       5        -8         *   9       5        -7 
+H   8       5        -7         )   8       5        -7 
+G   7       5        -6         (   7       5        -6 
+F   6       5        -6         '   6       5        -5 
+E   5       5        -5         &   5       4        -4 
+D   4       5        -4         %   4       4        -3 
+C   3       4        -3         $   3       3        -2 
+B   2       4        -3         #   2       2        -1 
+A   1       3        -2         "   1      -1         0  
+@   0       3        -2         !   0     -18         1  
+?  -1       2        -1
+>  -2       2        -1
+=  -3       1        -1
+<  -4       1         0
+;  -5       0         0
+   -6      -1         0
+   -7      -2         0
+   -8      -3         1
+   -9      -3         1
+  -10      -4         1
+  -11      -5         1
+  -12      -6         1
+  -13      -7         1
+  -14      -8         1
+  -15      -9         1
+  -16     -10         1
+  -17     -10         1
+  -18     -11         1
+  -19     -12         1
+  -20     -13         1
+  -21     -13         1
+  -22     -14         1
+  -23     -15         1
+  -24     -15         1
+  -25     -16         1
+  -26     -16         1
+  -27     -16         1
+  -28     -17         1
+  -29     -17         1
+  -30     -17         1
+  -31     -17         1
+  -32     -17         1
+  -33     -17         1
+  -34     -18         1
+======  ========  ========      ======  ========  ========
