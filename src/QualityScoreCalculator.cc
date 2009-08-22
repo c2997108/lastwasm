@@ -6,6 +6,7 @@
 #include <numeric>  // inner_product
 #include <algorithm>  // fill_n
 #include <cmath>
+//#include <cassert>  // for debugging
 
 using namespace cbrc;
 
@@ -15,6 +16,8 @@ static int nearestInt( double x ){
 }
 
 static double phredScoreToProbCorrect( int score ){
+  // XXX real data sometimes has score=0, and perhaps this really
+  // means that the error probability is 3/4, not 1.
   if( score < 0 ) return 0;  // there shouldn't be any scores < 0
   return 1 - std::pow(10, -0.1 * score);
 }
@@ -24,6 +27,7 @@ static double solexaScoreToProbCorrect( int score ){
 }
 
 int QualityScoreCalculator::probCorrectToMatchScore( double probCorrect ){
+  if( probCorrect <= 0 ) return mismatchScore;  // avoid underflow & log(0)
   double matchLR = std::exp( matchScore / temperature );
   double mismatchLR = std::exp( mismatchScore / temperature );
   double averageLR = probCorrect * matchLR + (1-probCorrect) * mismatchLR;
@@ -63,7 +67,7 @@ void QualityScoreCalculator::init( const int scoreMatrix[MAT][MAT],
   for( unsigned i = 0; i < MAT; ++i ){
     for( unsigned j = 0; j < MAT; ++j ){
       likelihoodRatioMatrix[i][j]
-	= std::exp( scoreMatrix[i][j] / temperature );
+	= std::exp( scoreMatrix[i][j] / temperature );  // can underflow to 0
     }
   }
 
@@ -85,7 +89,7 @@ void QualityScoreCalculator::makePssm( int pssm[][MAT],
 				       const uchar* qualityScores,
 				       const uchar* sequence,
 				       std::size_t seqSize,
-				       bool isSingleQualities ){
+				       bool isSingleQualities ) const{
   for( std::size_t i = 0; i < seqSize; ++i ){
     unsigned letter = sequence[i];
     if( !isCaseSensitiveMatrix ) letter = toUppercaseCode[letter];
@@ -147,6 +151,8 @@ void QualityScoreCalculator::makePssm( int pssm[][MAT],
 						   letterProbs + alphabetSize,
 						   likelihoodRatioMatrix[j],
 						   0.0 );
+      // XXX likelihoodRatio can be zero (if we have very negative
+      // match/mismatch scores, and maybe a Phred score of zero).
       pssm[i][j] = nearestInt( temperature * std::log(likelihoodRatio) );
     }
   }

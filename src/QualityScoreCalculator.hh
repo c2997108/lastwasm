@@ -31,7 +31,7 @@ public:
 		 const uchar* qualityScores,
 		 const uchar* sequence,
 		 std::size_t seqSize,
-		 bool isSingleQualities );  // one quality score per position?
+		 bool isSingleQualities ) const;  // one Q score per position?
 
 private:
   const int (*scoreMatrix)[MAT];

@@ -5,6 +5,7 @@
 
 namespace cbrc{
 
+// add fast special case(s) for simple scoring schemes (e.g. match-mismatch)?
 void SegmentPair::makeXdrop( indexT seed1, indexT seed2,
 			     const uchar* seq1, const uchar* seq2,
 			     const int scoreMatrix[MAT][MAT], int maxDrop ){

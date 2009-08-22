@@ -188,10 +188,12 @@ Advanced Options
     go faster. You can use suffixes K, M, and G to specify KibiBytes,
     MebiBytes, and GibiBytes.
 
--a  Specify your own alphabet, e.g. "-a ABCDE".  In this example, only
-    A, B, C, D, E will be allowed in initial matches (except in
-    skipped positions).  Other letters will be allowed in alignments,
-    but will receive the mismatch score.
+-a  Specify your own alphabet, e.g. "-a 0123".  In this example, only
+    0, 1, 2, 3 will be allowed in initial matches (except in skipped
+    positions).  Other symbols will be allowed in alignments, but will
+    receive the mismatch score.  The default (DNA) alphabet is
+    equivalent to "-a ACGT".  The protein alphabet (-p) is equivalent
+    to "-a ACDEFGHIKLMNPQRSTVWY".
 
 -b  Specify the depth of "buckets" used to accelerate initial match
     finding.  The deeper the faster, but the more memory is needed.
@@ -232,11 +234,13 @@ Score Parameters
 
 -r  Match score.
 
--q  Mismatch score.
+-q  Mismatch cost.
 
 -p  Obtain match and mismatch scores from the specified file.  The -r
     and -q options will then be ignored.  For examples of the format,
-    see HOXD70 and TiTv212 in the examples directory.
+    see HOXD70 and TiTv212 in the examples directory.  Any letters
+    that aren't in the file will get the lowest score in the file when
+    aligned to anything.
 
 -a  Gap existence cost.
 

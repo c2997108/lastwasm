@@ -203,9 +203,11 @@ void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
 	aln.write( text, query, strand, alph, args.outputFormat, out );
       }
       else{
-	// Redo gapless extension, using gapped score parameters.  Without
-	// this, if we self-compare a huge sequence, we risk getting a
-	// huge gapped extension.
+	// Redo gapless extension, using gapped score parameters.
+	// Without this, if we self-compare a huge sequence, we risk
+	// getting a huge gapped extension.  (Do this after getting
+	// all the gapless alignments, to make PSSM searching with
+	// soft-masking easier?)
 	sp.makeXdrop( *beg, i, tseq, qseq,
 		      matGapped, args.maxDropGapped, pssm );
 	if( !sp.isOptimal( tseq, qseq, matGapped, args.maxDropGapped, pssm ) ){
@@ -494,6 +496,10 @@ try{
   lastal( argc, argv );
   return EXIT_SUCCESS;
 }
+ catch( const std::bad_alloc& e ) {  // bad_alloc::what() may be unfriendly
+   std::cerr << "lastdb: out of memory\n";
+   return EXIT_FAILURE;
+ }
 catch( const std::exception& e ) {
   std::cerr << "lastal: " << e.what() << '\n';
   return EXIT_FAILURE;
