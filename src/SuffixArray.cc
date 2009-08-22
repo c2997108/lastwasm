@@ -27,7 +27,10 @@ int SuffixArray::makeIndex( indexT beg, indexT end, indexT step,
 }
 
 void SuffixArray::sortIndex(){
-  radixSort( &index[0], &index[0] + index.size(), 0, &text[0] );
+  if( alphSize == 4 )
+    radixSortAlph4( &index[0], &index[0] + index.size(), 0, &text[0] );
+  else
+    radixSort( &index[0], &index[0] + index.size(), 0, &text[0] );
 }
 
 void SuffixArray::clear(){
@@ -271,10 +274,10 @@ void SuffixArray::makeBucketMask( indexT bucketDepth ){
 #define PUSH(b1, e1, d1, t1) sp->b = b1, sp->e = e1, sp->d = d1, (sp++)->t = t1
 #define  POP(b1, e1, d1, t1) b1 = (--sp)->b, e1 = sp->e, d1 = sp->d, t1 = sp->t
 
+static SuffixArray::Stack stack[1048576];  // big enough???
+
 void SuffixArray::radixSort( indexT* beg, indexT* end,
 			     indexT depth, const uchar* textBase ){
-  struct Stack{ indexT* b; indexT* e; indexT d; const uchar* t; };
-  static Stack stack[1048576];  // big enough???
   static indexT bucketSize[256];  // initialized to zero at startup
   /*  */ indexT* bucketEnd[256];  // "static" makes little difference to speed
   Stack* sp = stack;
@@ -326,6 +329,66 @@ void SuffixArray::radixSort( indexT* beg, indexT* end,
       i += bucketSize[symbol];
       bucketSize[symbol] = 0;  // reset it so we can reuse it
     }
+  }
+}
+
+// Specialized radix sort for alphSize = 4 (plus one delimiter symbol)
+void SuffixArray::radixSortAlph4( indexT* beg, indexT* end,
+				  indexT depth, const uchar* textBase ){
+  Stack* sp = stack;
+  PUSH( beg, end, depth, textBase );
+
+  while( sp > stack ){
+    POP( beg, end, depth, textBase );
+
+    if( end - beg < 10 ){
+      insertionSort( beg, end, depth, textBase );
+      continue;
+    }
+
+    indexT* end0 = beg;  // end of '0's
+    indexT* end1 = beg;  // end of '1's
+    indexT* end2 = beg;  // end of '2's
+    indexT* beg3 = end;  // beginning of '3's
+    indexT* beg4 = end;  // beginning of '4's (delimiters)
+
+    while( end2 < beg3 ){
+      const indexT x = *end2;
+      switch( textBase[x] ){
+      case 0:
+	*end2++ = *end1;
+	*end1++ = *end0;
+	*end0++ = x;
+	break;
+      case 1:
+	*end2++ = *end1;
+	*end1++ = x;
+	break;
+      case 2:
+	end2++;
+	break;
+      case 3:
+	*end2 = *--beg3;
+	*beg3 = x;
+	break;
+      case 4:
+	*end2 = *--beg3;
+	*beg3 = *--beg4;
+	*beg4 = x;
+	break;
+      }
+    }
+
+    // get the next textBase, and increment depth, for sorting within buckets:
+    const uchar* textNext = textBase + mask[ depth % maskSize ];
+    ++depth;
+
+    // put buckets on the stack to sort within them later:
+    PUSH( beg, end0, depth, textNext );   // the '0's
+    PUSH( end0, end1, depth, textNext );  // the '1's
+    PUSH( end1, beg3, depth, textNext );  // the '2's
+    PUSH( beg3, beg4, depth, textNext );  // the '3's
+    // don't sort within the delimiter bucket
   }
 }
 

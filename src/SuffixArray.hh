@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct holds a suffix array.  The suffix array is just a list
 // of numbers indicating positions in a text, sorted according to the
@@ -15,6 +15,9 @@
 // numbers.  The A^k numbers are the starting locations in the suffix
 // array of every "proper" k-mer.  The extra A^(k-1) numbers are the
 // starting positions of improper k-mers.
+
+// (TRYME?  It's possible to store the buckets with a bit less memory,
+// but I'm not sure how fast it would be.)
 
 #ifndef SUFFIXARRAY_HH
 #define SUFFIXARRAY_HH
@@ -77,8 +80,12 @@ struct SuffixArray{
 
   void makeBucketMask( indexT bucketDepth );
 
+  struct Stack{ indexT* b; indexT* e; indexT d; const uchar* t; };
+
   void radixSort( indexT* beg, indexT* end,
 		  indexT depth, const uchar* textBase );
+  void radixSortAlph4( indexT* beg, indexT* end,
+		       indexT depth, const uchar* textBase );
   void insertionSort( indexT* beg, indexT* end,
 		      indexT depth, const uchar* textBase );
   void insertionSortSimple( indexT* beg, indexT* end,
