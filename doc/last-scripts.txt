@@ -130,6 +130,19 @@ given by MAF lines starting with 'p'.  (To get MAF lines starting with
 products are used.
 
 
+last-map-probs.py
+-----------------
+
+This script calculates "mapping probabilities" for alignments in LAST
+tabular format.  If one query sequence participates in more than one
+alignment, the script assumes that one of these alignments is the true
+mapping.  The script estimates a probability of each alignment being
+the true mapping (based on their scores).  It writes the alignments
+plus an extra column with the probabilities::
+
+  last-map-probs.py my-alignments.tab > my-alignments-with-probs
+
+
 Limitations
 -----------
 

@@ -436,12 +436,12 @@ void lastal( int argc, char** argv ){
   makeScoreMatrix( matrixFile );  // before alph.makeCaseInsensitive
   if( args.maskLowercase < 1 ) alph.makeCaseInsensitive();
 
-  double lambda = -1;
-  if( args.temperature < 0 && (args.outputType > 3 || args.inputFormat > 0) ){
-    // it makes no difference whether we use matGapped or matGapless here:
-    lambda = LambdaCalculator::calculate( matGapped, alph.size );
-    if( lambda < 0 )
+  // it makes no difference whether we use matGapped or matGapless here:
+  double lambda = LambdaCalculator::calculate( matGapped, alph.size );
+  if( lambda < 0 && args.temperature < 0 ){
+    if( args.outputType > 3 || args.inputFormat > 0 )
       throw std::runtime_error("can't calculate lambda for this score matrix");
+    else LOG( "can't calculate lambda for this score matrix" );
   }
 
   args.setDefaultsFromMatrix( scoreMatrix.maxScore, lambda );
