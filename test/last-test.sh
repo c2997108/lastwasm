@@ -21,6 +21,12 @@ db=/tmp/last-test
     lastdb -s1 $db $seq
     lastal -f0 -i1 -w0 $db $seq
     echo
-} | diff $ref -
+
+    echo TEST 3
+    lastal -j0 -i1 -s0 $db $seq
+    echo
+} |
+grep -v version |  # omit header lines with the LAST version number
+diff $ref -
 
 rm $db*

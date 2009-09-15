@@ -347,7 +347,10 @@ void reverseComplementQuery(){
 // Scan one batch of query sequences against all database volumes
 void scanAllVolumes( SuffixArray& suffixArray,
 		     unsigned volumes, std::ostream& out ){
-  if( args.outputType == 0 ) matchCounts.resize( query.finishedSequences() );
+  if( args.outputType == 0 ){
+    matchCounts.clear();
+    matchCounts.resize( query.finishedSequences() );
+  }
   else if( args.inputFormat > 0 ) pssm = new int[ query.ends.back() ][MAT];
 
   for( unsigned i = 0; i < volumes; ++i ){

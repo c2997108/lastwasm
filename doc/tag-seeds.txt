@@ -8,8 +8,8 @@ some ideas that might be helpful.
 1. A simple mapping procedure
 -----------------------------
 
-Suppose we wish to map tags of length 36 to the mouse genome.  The
-following commands do the job fairly quickly and accurately:
+Suppose we wish to map tags of length 36 to the mouse genome.  Here is
+one way to do it:
 
   lastdb -s16G mousedb mouse/chr*.fa
   lastal -a2 -e30 -f0 mousedb tags.fa
@@ -19,14 +19,32 @@ available.  This will make lastal run faster.  If you don't have 16
 gigabytes, omit this option.  We then used -a2 to set the gap
 existence cost to 2, and -e30 to get alignments with score >= 30.  We
 left the other score parameters at their default values: match score =
-1, mismatch cost = 1, gap extension cost = 1.  (The default gap
-existence cost is tuned for genome-versus-genome alignments, and it
-may be too high for short tags.)  These parameters allow a few
-mismatches and/or a few small gaps.  The -f0 option simply selects the
-compact tabular output format.
+1, mismatch cost = 1, gap extension cost = 1.  These parameters allow
+a few mismatches and/or a few small gaps.  The -f0 option simply
+selects the compact tabular output format.
 
-2. How does this procedure work: what are its limitations?
-----------------------------------------------------------
+2. Using sequence quality data
+------------------------------
+
+You can use sequence quality data in FASTQ or PRB format to get more
+accurate mappings.  For example:
+
+  lastal -F3 mousedb tags_prb.txt
+
+Using quality data improves mapping accuracy only if the quality data
+itself is accurate, which it might not be.
+
+3. Dealing with multi-mapping tags
+----------------------------------
+
+Often, one tag will align to more than one genome location.  You can
+use last-map-probs.py in the scripts directory to help judge which
+location the tag really maps to.  This script calculates a mapping
+probability for each alignment.  For example, if one tag aligns to two
+locations with identical scores, then the probabilities will be 50:50.
+
+4. How does the simple mapping procedure work: what are its limitations?
+------------------------------------------------------------------------
 
 If you want to understand how this mapping procedure works in more
 detail, read on.  LAST uses a two-step approach: first find initial
@@ -55,7 +73,7 @@ that have uniformly-spaced mismatches/gaps, and less likely to miss
 alignments with mismatches/gaps concentrated at the ends.  We think it
 does a good job in practice.
 
-3. Counting exact matches
+5. Counting exact matches
 -------------------------
 
 We can gain information on repetitive tags as follows:
@@ -70,7 +88,7 @@ nothing is missed, and there is no effect from database volumes.  The
 and makes the output smaller.  (Without -l36, it counts all matches of
 size >= 1: this is still quite fast.)
 
-4. Finding all matches with up to N mismatches
+6. Finding all matches with up to N mismatches
 ----------------------------------------------
 
 One approach to tag mapping is to guarantee finding all matches with
@@ -170,10 +188,7 @@ these publications:
 
 For longer tags, it becomes harder to determine the optimal seed patterns.
 
-5. Some useful Unix pipelines
------------------------------
-
-5a. Merging identical tag sequences
+7. Merging identical tag sequences
 -----------------------------------
 
 Suppose we have tag sequences in a FASTA format file called "tags.fa":
@@ -203,35 +218,8 @@ The output of this command looks as follows:
 The number after the colon is the count of the tag, and the number
 before the colon is just a serial number.
 
-5b. Discarding sub-optimal mappings
------------------------------------
-
-LAST will often align a tag to more than one genome location.  We may
-wish to keep only the highest-scoring alignment(s) for each tag.
-Suppose we have LAST alignments, in tabular format, in a file called
-"mymap".  The following pipeline obtains the highest-scoring
-alignment(s) for each tag:
-
-  grep -v '#' mymap | sort -k7,7 -k1,1nr | awk '$7!=n {n=$7; s=$1} $1==s'
-
-5c. Discarding tags that map equally well to multiple locations
----------------------------------------------------------------
-
-After using the previous pipeline, there may still be some tags that
-map to more than one location (with equal scores).  We may wish to
-discard such multi-mapping tags.  The following pipeline accomplishes
-this, assuming that the output of the previous pipeline is in
-"mymap2":
-
-  awk '{print $0 "\t" $7 "\t" $1}' mymap2 | uniq -uf12 | cut -f1-12
-
-6. Using sequence quality scores
---------------------------------
-
-LAST has a newer option to use sequence quality scores.  The quality
-scores can be in FASTQ or PRB format.  For example:
-
-  lastal -F3 mousedb tags_prb.txt
+8. How does lastal use sequence quality data?
+---------------------------------------------
 
 The quality scores have no effect on finding initial matches, but they
 do affect extending alignments from the initial matches.  If quality
