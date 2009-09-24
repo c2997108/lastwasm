@@ -29,20 +29,18 @@ void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
   if( !args.isCaseSensitive )       alph.makeCaseInsensitive();
 }
 
-// Find the maximum bucket depth, such that the total number of
-// buckets in all layers is at most 1/4 the number of indices
+// Find the maximum bucket depth, such that the total number of bucket
+// entries is at most 1/4 the number of indices
 indexT defaultBucketDepth( unsigned alphSize, indexT indexNum ){
-  indexT maxBuckets = indexNum / 4;
-  indexT layerBuckets = (alphSize + 1);  // buckets in outermost layer
-  indexT totalBuckets = layerBuckets;
-  if( totalBuckets > maxBuckets ) return 0;  // no buckets at all!
-
-  for( indexT depth = 1; /* noop */; ++depth ){
-    if( layerBuckets > maxBuckets / alphSize ) return depth;
-    layerBuckets *= alphSize;  // number of buckets in next layer
-    if( totalBuckets > maxBuckets - layerBuckets ) return depth;
-    totalBuckets += layerBuckets;
+  indexT maxBucketEntries = indexNum / 4;
+  indexT bucketEntries = 1;
+  indexT depth = 0;
+  while( bucketEntries <= maxBucketEntries / alphSize &&  // avoid overflow
+	 bucketEntries * alphSize < maxBucketEntries ){
+    bucketEntries = bucketEntries * alphSize + 1;
+    ++depth;
   }
+  return depth;
 }
 
 // Write the .prj file for the whole database
@@ -67,7 +65,7 @@ void writeInnerPrj( const std::string& fileName,
   f << "totallength=" << multi.ends.back() << '\n';
   f << "specialcharacters=" << multi.ends.back() - sa.index.size() << '\n';
   f << "numofsequences=" << multi.finishedSequences() << '\n';
-  f << "prefixlength=" << sa.bucketNest.size() << '\n';
+  f << "prefixlength=" << sa.bucketMask.size() << '\n';
   if( !f ) throw std::runtime_error("can't write file: " + fileName);
 }
 

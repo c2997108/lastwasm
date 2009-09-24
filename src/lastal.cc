@@ -79,15 +79,23 @@ void makeScoreMatrix( const std::string& matrixFile ){
 void readOuterPrj( const std::string& fileName, unsigned& volumes ){
   std::ifstream f( fileName.c_str() );
   if( !f ) throw std::runtime_error("can't open file: " + fileName );
+  unsigned version = 0;
 
   std::string word;
   while( std::getline( f >> std::ws, word, '=' ) ){  // eat leading whitespace
     /**/ if( word == "alphabet" ) f >> alph;
     else if( word == "spacedseed" ) f >> spacedSeed;
     else if( word == "volumes" ) f >> volumes;
+    else if( word == "version" ){
+      f >> word;
+      std::istringstream iss(word);
+      iss >> version;
+    }
     else f >> word;
   }
 
+  if( version < 63 ) throw std::runtime_error("the database format is old: "
+					      "please re-run lastdb");
   if( f.eof() && !f.bad() ) f.clear();
   if( alph.letters.empty() || spacedSeed.pattern.empty() || volumes == -1u ){
     f.setstate( std::ios::failbit );

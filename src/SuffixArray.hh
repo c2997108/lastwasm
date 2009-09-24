@@ -3,21 +3,18 @@
 // This struct holds a suffix array.  The suffix array is just a list
 // of numbers indicating positions in a text, sorted according to the
 // alphabetical order of the text suffixes starting at these
-// positions.  A query sequence can then be matched to the suffix
-// array using binary search.  For faster matching, we use "buckets",
-// which store the matching regions for all k-mers for k=1 to, say,
-// 12.  In addition, we allow skipping of positions while sorting and
+// positions.  A query sequence can then be matched incrementally to
+// the suffix array using binary search.
+
+// For faster matching, we use "buckets", which store the matching
+// regions for all k-mers for k=1 to, say, 12.  If the maximum k is B
+// (e.g. 12), and alphabet size is A (e.g. 4 for DNA), then the
+// buckets comprise A^B + A^(B-1) + ... + A + 1 numbers.  These
+// numbers give the start and end offsets in the suffix array of every
+// k-mer.
+
+// In addition, we allow skipping of positions while sorting and
 // matching, using a periodic spaced seed.
-
-// To allow for "improper" letters in the text (e.g. non-ACGT for
-// DNA), the buckets are slightly cunning.  For each k-mer size k, if
-// the alphabet size is A (e.g. 4 for DNA), we store A^k + A^(k-1)
-// numbers.  The A^k numbers are the starting locations in the suffix
-// array of every "proper" k-mer.  The extra A^(k-1) numbers are the
-// starting positions of improper k-mers.
-
-// (TRYME?  It's possible to store the buckets with a bit less memory,
-// but I'm not sure how fast it would be.)
 
 #ifndef SUFFIXARRAY_HH
 #define SUFFIXARRAY_HH
@@ -67,7 +64,8 @@ struct SuffixArray{
   unsigned alphSize;  // excluding delimiter symbol
   unsigned maskSize;  // same as mask.size(), but faster!!!
   std::vector<indexT> index;  // sorted indices
-  std::vector< std::vector<indexT> > bucketNest;
+  std::vector<indexT> buckets;
+  std::vector<indexT> bucketSteps;  // step size for each k-mer
   std::vector<indexT> bucketMask;  // extended mask, to avoid modulus
   indexT bucketMaskTotal;
 
@@ -78,6 +76,7 @@ struct SuffixArray{
   static const indexT* upperBound( const indexT* beg, const indexT* end,
 				   const uchar* textBase, uchar symbol );
 
+  void makeBucketSteps( indexT bucketDepth );
   void makeBucketMask( indexT bucketDepth );
 
   struct Stack{ indexT* b; indexT* e; indexT d; const uchar* t; };

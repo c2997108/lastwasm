@@ -35,7 +35,8 @@ void SuffixArray::sortIndex(){
 
 void SuffixArray::clear(){
   index.clear();
-  bucketNest.clear();
+  buckets.clear();
+  bucketSteps.clear();
   bucketMask.clear();
 }
 
@@ -44,39 +45,16 @@ void SuffixArray::fromFiles( const std::string& baseName,
   index.resize(indexNum);  // unwanted zero-fill
   vectorFromBinaryFile( index, baseName + ".suf" );
 
+  makeBucketSteps(bucketDepth);
   makeBucketMask(bucketDepth);
-  bucketNest.resize(bucketDepth);
 
-  if( bucketNest.empty() ) return;
-  std::string fileName = baseName + ".bck";
-  std::ifstream file( fileName.c_str(), std::ios::binary );
-  if( !file ) throw std::runtime_error("can't open file: " + fileName);
-
-  indexT bucketNum = 0;
-  for( indexT d = 0; d < bucketNest.size(); ++d ){
-    bucketNum += alphSize;
-    bucketNest[d].resize( bucketNum+1 );  // unwanted zero-fill
-    vectorFromStream( bucketNest[d], file );
-    bucketNum *= alphSize;
-    bucketNum -= 1;
-  }
-
-  if( !file ) throw std::runtime_error("can't read file: " + fileName);
+  buckets.resize( bucketSteps[0] * alphSize + 1 );  // unwanted zero-fill
+  vectorFromBinaryFile( buckets, baseName + ".bck" );
 }
 
 void SuffixArray::toFiles( const std::string& baseName ) const{
   vectorToBinaryFile( index, baseName + ".suf" );
-
-  if( bucketNest.empty() ) return;
-  std::string fileName = baseName + ".bck";
-  std::ofstream file( fileName.c_str() );
-  if( !file ) throw std::runtime_error("can't open file: " + fileName);
-
-  for( indexT d = 0; d < bucketNest.size(); ++d ){
-    vectorToStream( bucketNest[d], file );
-  }
-
-  if( !file ) throw std::runtime_error("can't write file: " + fileName);
+  vectorToBinaryFile( buckets, baseName + ".bck" );
 }
 
 // use past results to speed up long matches?
@@ -85,16 +63,18 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
 			 const uchar* queryPtr,
 			 indexT maxHits, indexT minDepth ) const{
   // match using buckets:
+  indexT bucketDepth = bucketMask.size();
   indexT bucketBeg = 0;
   indexT bucketEnd = index.size();
-  indexT bucketCode = 0;
+  const indexT* bucketPtr = &buckets[0];
 
-  for( indexT depth = 0; depth < bucketNest.size(); ++depth ){
+  for( indexT depth = 0; depth < bucketDepth; ++depth ){
     uchar symbol = *queryPtr;
     if( symbol < alphSize ){
-      bucketCode += symbol;
-      bucketBeg = bucketNest[depth][bucketCode];
-      bucketEnd = bucketNest[depth][bucketCode+1];
+      indexT step = bucketSteps[depth];
+      bucketPtr += symbol * step;
+      bucketBeg = *bucketPtr;
+      bucketEnd = *(bucketPtr + step);
     }else{
       bucketBeg = bucketEnd;
       depth = minDepth;
@@ -105,8 +85,6 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
       return;
     }
     queryPtr += bucketMask[depth];
-    bucketCode *= alphSize;
-    bucketCode += symbol;
   }
 
   // match using binary search:
@@ -114,7 +92,7 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
   end = &index[0] + bucketEnd;
   const uchar* textBase = &text[0] + bucketMaskTotal;
 
-  for( indexT depth = bucketNest.size(); /* noop */; ++depth ){
+  for( indexT depth = bucketDepth; /* noop */; ++depth ){
     uchar symbol = *queryPtr;
     if( symbol < alphSize ){
       equalRange( beg, end, textBase, symbol );
@@ -132,22 +110,22 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
 void SuffixArray::countMatches( std::vector<unsigned long long>& counts,
 				const uchar* queryPtr ) const{
   // match using buckets:
+  indexT bucketDepth = bucketMask.size();
   indexT bucketBeg = 0;
   indexT bucketEnd = index.size();
-  indexT bucketCode = 0;
+  const indexT* bucketPtr = &buckets[0];
 
-  for( indexT depth = 0; depth < bucketNest.size(); ++depth ){
+  for( indexT depth = 0; depth < bucketDepth; ++depth ){
     uchar symbol = *queryPtr;
     if( symbol >= alphSize ) return;
-    bucketCode += symbol;
-    bucketBeg = bucketNest[depth][bucketCode];
-    bucketEnd = bucketNest[depth][bucketCode+1];
+    indexT step = bucketSteps[depth];
+    bucketPtr += symbol * step;
+    bucketBeg = *bucketPtr;
+    bucketEnd = *(bucketPtr + step);
     if( bucketBeg == bucketEnd ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
     counts[depth] += bucketEnd - bucketBeg;
     queryPtr += bucketMask[depth];
-    bucketCode *= alphSize;
-    bucketCode += symbol;
   }
 
   // match using binary search:
@@ -155,7 +133,7 @@ void SuffixArray::countMatches( std::vector<unsigned long long>& counts,
   const indexT* end = &index[0] + bucketEnd;
   const uchar* textBase = &text[0] + bucketMaskTotal;
 
-  for( indexT depth = bucketNest.size(); /* noop */; ++depth ){
+  for( indexT depth = bucketDepth; /* noop */; ++depth ){
     uchar symbol = *queryPtr;
     if( symbol >= alphSize ) return;
     equalRange( beg, end, textBase, symbol );
@@ -224,9 +202,8 @@ SuffixArray::upperBound( const indexT* beg, const indexT* end,
 }
 
 void SuffixArray::makeBuckets( indexT bucketDepth ){
+  makeBucketSteps(bucketDepth);
   makeBucketMask(bucketDepth);
-  bucketNest.resize(bucketDepth);
-  // tried reserving memory for each bucket layer: no consistent speed-up
 
   for( indexT i = 0; i < index.size(); ++i ){
     indexT bucketIndex = 0;
@@ -234,26 +211,26 @@ void SuffixArray::makeBuckets( indexT bucketDepth ){
 
     for( indexT d = 0; d < bucketDepth; ++d ){
       unsigned symbol = *textPtr;
-      bucketIndex += symbol;
-      bucketNest[d].resize( bucketIndex+1, i );
-      bucketIndex *= alphSize;
-
-      if( symbol < alphSize ){
-	bucketIndex += symbol;
-	textPtr += bucketMask[d];
-      }
-      else{
-	bucketIndex -= 1;
-      }
+      indexT step = bucketSteps[d];
+      bucketIndex += symbol * step;
+      if( symbol >= alphSize ) break;
+      textPtr += bucketMask[d];
     }
+
+    buckets.resize( bucketIndex+1, i );
   }
 
-  indexT bucketIndex = 0;
-  for( indexT d = 0; d < bucketDepth; ++d ){
-    bucketIndex += alphSize;
-    bucketNest[d].resize( bucketIndex+1, index.size() );
-    bucketIndex *= alphSize;
-    bucketIndex -= 1;
+  buckets.resize( bucketSteps[0] * alphSize + 1, index.size() );
+}
+
+void SuffixArray::makeBucketSteps( indexT bucketDepth ){
+  bucketSteps.resize(bucketDepth);
+  indexT depth = bucketDepth;
+  indexT step = 1;
+  while( depth > 0 ){
+    --depth;
+    bucketSteps[depth] = step;
+    step = step * alphSize + 1;
   }
 }
 
@@ -309,6 +286,7 @@ void SuffixArray::radixSort( indexT* beg, indexT* end,
     ++depth;
 
     // get bucket ends, and put buckets on the stack to sort within them later:
+    // (could push biggest bucket first, to ensure logarithmic stack growth)
     indexT* pos = beg;
     for( unsigned i = 0; i < alphSize; ++i ){
       indexT* nextPos = pos + bucketSize[i];
@@ -384,6 +362,7 @@ void SuffixArray::radixSortAlph4( indexT* beg, indexT* end,
     ++depth;
 
     // put buckets on the stack to sort within them later:
+    // (could push biggest bucket first, to ensure logarithmic stack growth)
     PUSH( beg, end0, depth, textNext );   // the '0's
     PUSH( end0, end1, depth, textNext );  // the '1's
     PUSH( end1, beg3, depth, textNext );  // the '2's
