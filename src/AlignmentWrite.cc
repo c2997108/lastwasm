@@ -33,12 +33,13 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 
   os << seq1.seqName(w1) << '\t'
      << beg1() - seqStart1 << '\t'
-     << range1() << '\t'
+     << end1() - beg1() << '\t'
      << '+' << '\t'
-     << seq1.seqLen(w1) << '\t'
-     << seq2.seqName(w2) << '\t'
+     << seq1.seqLen(w1) << '\t';
+
+  os << seq2.seqName(w2) << '\t'
      << beg2() - seqStart2 << '\t'
-     << range2() << '\t'
+     << end2() - beg2() << '\t'
      << strand << '\t'
      << seq2.seqLen(w2) << '\t';
 
@@ -64,8 +65,8 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   const std::string n2 = seq2.seqName(w2);
   const std::string b1 = stringify( beg1() - seqStart1 );
   const std::string b2 = stringify( beg2() - seqStart2 );
-  const std::string r1 = stringify( range1() );
-  const std::string r2 = stringify( range2() );
+  const std::string r1 = stringify( end1() - beg1() );
+  const std::string r2 = stringify( end2() - beg2() );
   const std::string s1 = stringify( seq1.seqLen(w1) );
   const std::string s2 = stringify( seq2.seqLen(w2) );
 
@@ -81,8 +82,9 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
      << std::setw( nw ) << std::left << n1 << std::right << ' '
      << std::setw( bw ) << b1 << ' '
      << std::setw( rw ) << r1 << ' ' << '+' << ' '
-     << std::setw( sw ) << s1 << ' ' << topString( seq1.seq, alph ) << '\n'
-     << "s "
+     << std::setw( sw ) << s1 << ' ' << topString( seq1.seq, alph ) << '\n';
+
+  os << "s "
      << std::setw( nw ) << std::left << n2 << std::right << ' '
      << std::setw( bw ) << b2 << ' '
      << std::setw( rw ) << r2 << ' ' << strand << ' '

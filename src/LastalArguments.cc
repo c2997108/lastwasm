@@ -69,27 +69,27 @@ Main options (default settings):\n\
     + stringify(outputFormat) + ")\n\
 \n\
 Score parameters (default settings):\n\
--r: match score   (DNA: 1, protein: blosum62, F>0:  6)\n\
--q: mismatch cost (DNA: 1, protein: blosum62, F>0: 18)\n\
+-r: match score   (DNA: 1, protein: blosum62, Q>0:  6)\n\
+-q: mismatch cost (DNA: 1, protein: blosum62, Q>0: 18)\n\
 -p: file for residue pair scores\n\
--a: gap existence cost (DNA: 7, protein: 11, F>0: 21)\n\
--b: gap extension cost (DNA: 1, protein:  2, F>0:  9)\n\
+-a: gap existence cost (DNA: 7, protein: 11, Q>0: 21)\n\
+-b: gap extension cost (DNA: 1, protein:  2, Q>0:  9)\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
 -y: maximum score dropoff for gapless extensions (max-match-score * 10)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
--e: minimum score for gapped alignments (DNA: 40, protein: 100, F>0: 180)\n\
+-e: minimum score for gapped alignments (DNA: 40, protein: 100, Q>0: 180)\n\
 \n\
 Miscellaneous options (default settings):\n\
--F: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB (0)\n\
+-Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB (0)\n\
 -m: maximum multiplicity for initial matches ("
     + stringify(oneHitMultiplicity) + ")\n\
 -l: minimum depth for initial matches ("
     + stringify(minHitDepth) + ")\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
--i: query batch size (16 MiB if j=0, else 1 MiB if F>0, else 128 MiB)\n\
+-i: query batch size (16 MiB if j=0, else 1 MiB if Q>0, else 128 MiB)\n\
 -w: supress repeats within this distance inside large exact matches ("
     + stringify(maxRepeatDistance) + ")\n\
 -t: 'temperature' for calculating probabilities (1/lambda)\n\
@@ -104,7 +104,7 @@ Miscellaneous options (default settings):\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   while( (c = getopt(argc, argv,
-		     "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:F:m:l:k:i:w:t:g:vj:"))
+		     "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:Q:m:l:k:i:w:t:g:vj:"))
 	 != -1 ){
     switch(c){
     case 'h':
@@ -163,7 +163,7 @@ Miscellaneous options (default settings):\n\
       unstringify( minScoreGapped, optarg );
       if( minScoreGapped < 0 ) badopt( c, optarg );
       break;
-    case 'F':
+    case 'Q':
       unstringify( inputFormat, optarg );
       if( inputFormat < 0 || inputFormat > 3 ) badopt( c, optarg );
       break;
@@ -206,10 +206,10 @@ Miscellaneous options (default settings):\n\
   }
 
   if( maskLowercase == 2 && inputFormat > 0 )
-    throw std::runtime_error("can't combine option -u 2 with option -F > 0");
+    throw std::runtime_error("can't combine option -u 2 with option -Q > 0");
 
   if( outputType > 3 && inputFormat > 0 )
-    throw std::runtime_error("can't combine option -j > 3 with option -F > 0");
+    throw std::runtime_error("can't combine option -j > 3 with option -Q > 0");
 
   if( optionsOnly ) return;
   if( optind == argc ) throw std::runtime_error(usage);

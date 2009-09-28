@@ -61,8 +61,6 @@ struct Alignment{
   indexT beg2() const{ return blocks.front().beg2(); }
   indexT end1() const{ return blocks.back().end1(); }
   indexT end2() const{ return blocks.back().end2(); }
-  indexT range1() const{ return end1() - beg1(); }
-  indexT range2() const{ return end2() - beg2(); }
 
   void extend( std::vector< SegmentPair >& chunks,
 	       std::vector< double >& probs,

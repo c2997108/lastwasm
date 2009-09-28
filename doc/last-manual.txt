@@ -315,7 +315,7 @@ Miscellaneous Options
     It's a bad idea to try -j 0 when comparing a large sequence to
     itself.
 
--F  This option allows lastal to use sequence quality scores for the
+-Q  This option allows lastal to use sequence quality scores for the
     queries.  0 means read queries in FASTA format (without quality
     scores); 1 means FASTQ-Sanger format; 2 means FASTQ-Solexa format;
     3 means PRB format.  The FASTQ formats look like this::

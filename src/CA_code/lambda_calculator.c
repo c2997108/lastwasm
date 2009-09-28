@@ -388,7 +388,7 @@ Lambda Find_JP(const double** mat_b, double la_min, double la_max, double **JP, 
     return Lambda_local;
   }
   else if (flag_done == -1){
-    printf("no sensible solution in the plausible x range: (%lf,%lf)\n", la_min, la_max);
+    //printf("no sensible solution in the plausible x range: (%lf,%lf)\n", la_min, la_max);
     Lambda_local.flag = -1; Lambda_local.min = 0; Lambda_local.max = Infty;
     return Lambda_local; 
   }

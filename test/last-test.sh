@@ -8,25 +8,24 @@ PATH=$PATH:../src
 
 seq=galGal3-M-32.fa
 mat=../examples/HOXD70
-ref=last-test.out
 db=/tmp/last-test
 
 {
-    echo TEST 1
+    echo TEST 1  # spaced seeds, soft-masking, centroid alignment, matrix file
     lastdb -c -m110 $db $seq
     lastal -u2 -j5 -p $mat -x3400 -e2500 $db $seq
     echo
 
-    echo TEST 2
+    echo TEST 2  # multiple volumes & query batches
     lastdb -s1 $db $seq
     lastal -f0 -i1 -w0 $db $seq
     echo
 
-    echo TEST 3
+    echo TEST 3  # match-counting, with multiple query batches
     lastal -j0 -i1 -s0 $db $seq
     echo
 } |
 grep -v version |  # omit header lines with the LAST version number
-diff $ref -
+diff last-test.out -
 
 rm $db*

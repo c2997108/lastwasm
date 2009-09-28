@@ -29,7 +29,7 @@ selects the compact tabular output format.
 You can use sequence quality data in FASTQ or PRB format to get more
 accurate mappings.  For example:
 
-  lastal -F3 mousedb tags_prb.txt
+  lastal -Q3 mousedb tags_prb.txt
 
 Using quality data improves mapping accuracy only if the quality data
 itself is accurate, which it might not be.

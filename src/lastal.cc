@@ -94,13 +94,13 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes ){
     else f >> word;
   }
 
-  if( version < 63 ) throw std::runtime_error("the database format is old: "
-					      "please re-run lastdb");
   if( f.eof() && !f.bad() ) f.clear();
   if( alph.letters.empty() || spacedSeed.pattern.empty() || volumes == -1u ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) throw std::runtime_error("can't read file: " + fileName);
+  if( version < 63 ) throw std::runtime_error("the database format is old: "
+					      "please re-run lastdb");
 }
 
 // Read a per-volume .prj file, with info about a database volume

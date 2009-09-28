@@ -47,6 +47,7 @@ void SuffixArray::fromFiles( const std::string& baseName,
 
   makeBucketSteps(bucketDepth);
   makeBucketMask(bucketDepth);
+  if( bucketDepth == 0 ) return;
 
   buckets.resize( bucketSteps[0] * alphSize + 1 );  // unwanted zero-fill
   vectorFromBinaryFile( buckets, baseName + ".bck" );
@@ -204,6 +205,7 @@ SuffixArray::upperBound( const indexT* beg, const indexT* end,
 void SuffixArray::makeBuckets( indexT bucketDepth ){
   makeBucketSteps(bucketDepth);
   makeBucketMask(bucketDepth);
+  if( bucketDepth == 0 ) return;
 
   for( indexT i = 0; i < index.size(); ++i ){
     indexT bucketIndex = 0;
