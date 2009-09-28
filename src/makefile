@@ -18,15 +18,15 @@ SuffixArray.cc LastalArguments.cc io.cc ScoreMatrix.cc		\
 DiagonalTable.cc SegmentPair.cc Alignment.cc XdropAligner.cc	\
 SegmentPairPot.cc AlignmentPot.cc GeneralizedAffineGapCosts.cc	\
 Centroid.cc LambdaCalculator.cc QualityScoreCalculator.cc	\
-AlignmentWrite.cc MultiSequenceQual.cc SegmentPairPssm.cc	\
-XdropAlignerPssm.cc lastal.cc
+GeneticCode.cc AlignmentWrite.cc MultiSequenceQual.cc		\
+SegmentPairPssm.cc XdropAlignerPssm.cc lastal.cc
 
-ALINC = Alphabet.hh MultiSequence.hh PeriodicSpacedSeed.hh		\
-SuffixArray.hh LastalArguments.hh io.hh ScoreMatrix.hh			\
-DiagonalTable.hh SegmentPair.hh Alignment.hh XdropAligner.hh		\
-SegmentPairPot.hh AlignmentPot.hh GeneralizedAffineGapCosts.hh		\
-Centroid.hh LambdaCalculator.hh QualityScoreCalculator.hh stringify.hh	\
-version.hh
+ALINC = Alphabet.hh MultiSequence.hh PeriodicSpacedSeed.hh	\
+SuffixArray.hh LastalArguments.hh io.hh ScoreMatrix.hh		\
+DiagonalTable.hh SegmentPair.hh Alignment.hh XdropAligner.hh	\
+SegmentPairPot.hh AlignmentPot.hh GeneralizedAffineGapCosts.hh	\
+Centroid.hh LambdaCalculator.hh QualityScoreCalculator.hh	\
+GeneticCode.hh stringify.hh version.hh
 
 OBJ = lambda_calculator.o
 

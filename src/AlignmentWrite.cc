@@ -1,6 +1,7 @@
 // Copyright 2008, 2009 Martin C. Frith
 
 #include "Alignment.hh"
+#include "GeneticCode.hh"
 #include "MultiSequence.hh"
 #include "Alphabet.hh"
 #include "stringify.hh"
@@ -13,60 +14,89 @@
 
 using namespace cbrc;
 
+// write x - y as a signed integer
+static void writeSignedDifference( unsigned x, unsigned y, std::ostream& os ){
+  if( x >= y )  os << x - y;
+  else          os << '-' << y - x;
+}
+
 void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
-		       char strand, const Alphabet& alph, int format,
-		       std::ostream& os ) const{
-  /**/ if( format == 0 ) writeTab( seq1, seq2, strand, os );
-  else if( format == 1 ) writeMaf( seq1, seq2, strand, alph, os );
+		       char strand, bool isTranslated, const Alphabet& alph,
+		       int format, std::ostream& os ) const{
+  if( format == 0 ) writeTab( seq1, seq2, strand, isTranslated, os );
+  else              writeMaf( seq1, seq2, strand, isTranslated, alph, os );
 }
 
 void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
-			  char strand, std::ostream& os ) const{
-  indexT size2 = seq2.ends.back();
-  indexT w1 = seq1.whichSequence( beg1() );
-  indexT w2 = seq2.whichSequence( strand == '+' ? beg2() : size2 - beg2() );
+			  char strand, bool isTranslated,
+			  std::ostream& os ) const{
+  indexT alnBeg1 = beg1();
+  indexT alnEnd1 = end1();
+  indexT w1 = seq1.whichSequence(alnBeg1);
   indexT seqStart1 = seq1.seqBeg(w1);
+
+  indexT size2 = seq2.ends.back();
+  indexT frameSize2 = size2 / 3;  // only used for translated alignments
+  indexT alnBeg2 = isTranslated ? aaToDna( beg2(), frameSize2 ) : beg2();
+  indexT alnEnd2 = isTranslated ? aaToDna( end2(), frameSize2 ) : end2();
+  indexT w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
   indexT seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
   if( centroidScore < 0 ) os << score << '\t';
   else                    os << centroidScore << '\t';
 
   os << seq1.seqName(w1) << '\t'
-     << beg1() - seqStart1 << '\t'
-     << end1() - beg1() << '\t'
+     << alnBeg1 - seqStart1 << '\t'
+     << alnEnd1 - alnBeg1 << '\t'
      << '+' << '\t'
      << seq1.seqLen(w1) << '\t';
 
   os << seq2.seqName(w2) << '\t'
-     << beg2() - seqStart2 << '\t'
-     << end2() - beg2() << '\t'
+     << alnBeg2 - seqStart2 << '\t'
+     << alnEnd2 - alnBeg2 << '\t'
      << strand << '\t'
      << seq2.seqLen(w2) << '\t';
 
   for( unsigned i = 0; i < blocks.size(); ++i ){
     if( i > 0 ){
-      os << blocks[i].beg1() - blocks[i-1].end1() << ':'
-	 << blocks[i].beg2() - blocks[i-1].end2() << ',';
+      indexT oldEnd1 = blocks[i-1].end1();
+      indexT newBeg1 = blocks[i].beg1();
+      indexT oldEnd2 = blocks[i-1].end2();
+      indexT newBeg2 = blocks[i].beg2();
+      if( isTranslated ){
+	oldEnd2 = aaToDna( oldEnd2, frameSize2 );
+	newBeg2 = aaToDna( newBeg2, frameSize2 );
+      }
+      writeSignedDifference( newBeg1, oldEnd1, os );  // allow -1 frameshift
+      os << ':';
+      writeSignedDifference( newBeg2, oldEnd2, os );  // allow -1 frameshift
+      os << ',';
     }
     os << blocks[i].size << ( i+1 < blocks.size() ? ',' : '\n' );
   }
 }
 
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
-			  char strand, const Alphabet& alph,
+			  char strand, bool isTranslated, const Alphabet& alph,
 			  std::ostream& os ) const{
-  indexT size2 = seq2.ends.back();
-  indexT w1 = seq1.whichSequence( beg1() );
-  indexT w2 = seq2.whichSequence( strand == '+' ? beg2() : size2 - beg2() );
+  indexT alnBeg1 = beg1();
+  indexT alnEnd1 = end1();
+  indexT w1 = seq1.whichSequence(alnBeg1);
   indexT seqStart1 = seq1.seqBeg(w1);
+
+  indexT size2 = seq2.ends.back();
+  indexT frameSize2 = size2 / 3;  // only used for translated alignments
+  indexT alnBeg2 = isTranslated ? aaToDna( beg2(), frameSize2 ) : beg2();
+  indexT alnEnd2 = isTranslated ? aaToDna( end2(), frameSize2 ) : end2();
+  indexT w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
   indexT seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
   const std::string n1 = seq1.seqName(w1);
   const std::string n2 = seq2.seqName(w2);
-  const std::string b1 = stringify( beg1() - seqStart1 );
-  const std::string b2 = stringify( beg2() - seqStart2 );
-  const std::string r1 = stringify( end1() - beg1() );
-  const std::string r2 = stringify( end2() - beg2() );
+  const std::string b1 = stringify( alnBeg1 - seqStart1 );
+  const std::string b2 = stringify( alnBeg2 - seqStart2 );
+  const std::string r1 = stringify( alnEnd1 - alnBeg1 );
+  const std::string r2 = stringify( alnEnd2 - alnBeg2 );
   const std::string s1 = stringify( seq1.seqLen(w1) );
   const std::string s2 = stringify( seq2.seqLen(w2) );
 

@@ -34,6 +34,9 @@ struct LastalArguments{
   // write the parameter settings, starting each line with "#":
   void writeCommented( std::ostream& stream ) const;
 
+  // are we doing translated alignment (DNA versus protein)?
+  bool isTranslated(){ return frameshiftCost > 0; }
+
   // options:
   std::string outFile;
   int outputFormat;
@@ -47,6 +50,7 @@ struct LastalArguments{
   int gapExistCost;
   int gapExtendCost;
   int gapPairCost;
+  int frameshiftCost;
   std::string matrixFile;
   int maxDropGapped;
   int maxDropGapless;
@@ -58,6 +62,7 @@ struct LastalArguments{
   indexT maxRepeatDistance;  // supress repeats <= this distance apart
   double temperature;  // probability = exp( score / temperature ) / Z
   double gamma;        // parameter for gamma-centroid alignment
+  std::string geneticCodeFile;
   int verbosity;
 
   // positional arguments:

@@ -47,8 +47,8 @@ struct Alignment{
 		  const int pssm2[][MAT] = 0 );
 
   void write( const MultiSequence& seq1, const MultiSequence& seq2,
-	      char strand, const Alphabet& alph, int format,
-	      std::ostream& os ) const;
+	      char strand, bool isTranslated, const Alphabet& alph,
+	      int format, std::ostream& os ) const;
 
   // data:
   std::vector<SegmentPair> blocks;  // the gapless blocks of the alignment
@@ -74,10 +74,11 @@ struct Alignment{
 	       double gamma, int outputType );
 
   void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
-		 char strand, std::ostream& os ) const;
+		 char strand, bool isTranslated, std::ostream& os ) const;
 
   void writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
-		 char strand, const Alphabet& alph, std::ostream& os ) const;
+		 char strand, bool isTranslated, const Alphabet& alph,
+		 std::ostream& os ) const;
 
   std::string topString( const std::vector<uchar>& seq,
 			 const Alphabet& alph ) const;

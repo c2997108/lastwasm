@@ -29,6 +29,7 @@ LastalArguments::LastalArguments() :
   gapExistCost(-1),  // depends on the alphabet
   gapExtendCost(-1),  // depends on the alphabet
   gapPairCost(100000),  // I want it to be infinity, but avoid overflow
+  frameshiftCost(0),  // this means: ordinary, non-translated alignment
   matrixFile(""),
   maxDropGapped(-1),  // depends on gap costs & maxDropGapless
   maxDropGapless(-1),  // depends on the score matrix
@@ -40,6 +41,7 @@ LastalArguments::LastalArguments() :
   maxRepeatDistance(1000),  // sufficiently conservative?
   temperature(-1),  // depends on the score matrix
   gamma(1),
+  geneticCodeFile(""),
   verbosity(0){}
 
 void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
@@ -76,6 +78,7 @@ Score parameters (default settings):\n\
 -b: gap extension cost (DNA: 1, protein:  2, Q>0:  9)\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
+-F: frameshift cost\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
 -y: maximum score dropoff for gapless extensions (max-match-score * 10)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
@@ -95,6 +98,7 @@ Miscellaneous options (default settings):\n\
 -t: 'temperature' for calculating probabilities (1/lambda)\n\
 -g: 'gamma' parameter for gamma-centroid alignment ("
     + stringify(gamma) + ")\n\
+-G: genetic code file\n\
 -v: be verbose: write messages about what lastal is doing\n\
 -j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
                  4=probabilities, 5=centroid ("
@@ -104,7 +108,7 @@ Miscellaneous options (default settings):\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   while( (c = getopt(argc, argv,
-		     "ho:u:s:f:r:q:p:a:b:c:x:y:d:e:Q:m:l:k:i:w:t:g:vj:"))
+		     "ho:u:s:f:r:q:p:a:b:c:F:x:y:d:e:Q:m:l:k:i:w:t:g:G:vj:"))
 	 != -1 ){
     switch(c){
     case 'h':
@@ -146,6 +150,10 @@ Miscellaneous options (default settings):\n\
     case 'c':
       unstringify( gapPairCost, optarg );
       if( gapPairCost <= 0 ) badopt( c, optarg );
+      break;
+    case 'F':
+      unstringify( frameshiftCost, optarg );
+      if( frameshiftCost <= 0 ) badopt( c, optarg );
       break;
     case 'x':
       unstringify( maxDropGapped, optarg );
@@ -193,6 +201,9 @@ Miscellaneous options (default settings):\n\
       unstringify( gamma, optarg );
       if( gamma <= 0 ) badopt( c, optarg );
       break;
+    case 'G':
+      geneticCodeFile = optarg;
+      break;
     case 'v':
       ++verbosity;
       break;
@@ -210,6 +221,15 @@ Miscellaneous options (default settings):\n\
 
   if( outputType > 3 && inputFormat > 0 )
     throw std::runtime_error("can't combine option -j > 3 with option -Q > 0");
+
+  if( isTranslated() && inputFormat > 0 )
+    throw std::runtime_error("can't combine option -F with option -Q > 0");
+
+  if( isTranslated() && outputType > 3 )
+    throw std::runtime_error("can't combine option -F with option -j > 3");
+
+  if( isTranslated() && outputType == 0 )
+    throw std::runtime_error("can't combine option -F with option -j 0");
 
   if( optionsOnly ) return;
   if( optind == argc ) throw std::runtime_error(usage);
@@ -243,7 +263,7 @@ void LastalArguments::fromString( const std::string& s, bool optionsOnly ){
 }
 
 void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
-  if( strand < 0 ) strand = isDna ? 2 : 1;
+  if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
   if( isProtein ){
     // default match & mismatch scores: Blosum62 matrix
@@ -281,6 +301,9 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
     else if( inputFormat > 0 ) batchSize = 0x100000;   // 1 Mbyte
     else                       batchSize = 0x8000000;  // 128 Mbytes
   }
+
+  if( isTranslated() && frameshiftCost < gapExtendCost )
+    throw std::runtime_error("the frameshift cost must not be less than the gap extension cost");
 }
 
 void LastalArguments::setDefaultsFromMatrix( int maxMatchScore,
@@ -300,6 +323,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
 	 << "a=" << gapExistCost << ' '
 	 << "b=" << gapExtendCost << ' '
 	 << "c=" << gapPairCost << ' '
+	 << "F=" << frameshiftCost << ' '
 	 << "e=" << minScoreGapped << ' '
 	 << "d=" << minScoreGapless << ' '
 	 << "x=" << maxDropGapped << ' '

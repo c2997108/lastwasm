@@ -5,6 +5,7 @@
 #include "LastalArguments.hh"
 #include "QualityScoreCalculator.hh"
 #include "LambdaCalculator.hh"
+#include "GeneticCode.hh"
 #include "SuffixArray.hh"
 #include "Centroid.hh"
 #include "XdropAligner.hh"
@@ -38,6 +39,8 @@ namespace {
 
   LastalArguments args;
   Alphabet alph;
+  Alphabet queryAlph;  // for translated alignment
+  GeneticCode geneticCode;
   PeriodicSpacedSeed spacedSeed;
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
@@ -208,7 +211,8 @@ void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
       if( args.outputType == 1 ){  // we just want gapless alignments
 	Alignment aln;
 	aln.fromSegmentPair(sp);
-	aln.write( text, query, strand, alph, args.outputFormat, out );
+	aln.write( text, query, strand, args.isTranslated(),
+		   alph, args.outputFormat, out );
       }
       else{
 	// Redo gapless extension, using gapped score parameters.
@@ -284,7 +288,8 @@ void alignFinish( const AlignmentPot& gappedAlns,
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
-      aln.write( text, query, strand, alph, args.outputFormat, out );
+      aln.write( text, query, strand, args.isTranslated(),
+		 alph, args.outputFormat, out );
     }
     else{  // calculate match probabilities:
       Alignment probAln;
@@ -292,7 +297,8 @@ void alignFinish( const AlignmentPot& gappedAlns,
       probAln.makeXdrop( xdropAligner, centroid, &text.seq[0], &query.seq[0],
 			 matGapped, scoreMatrix.maxScore, gapCosts,
 			 args.maxDropGapped, pssm, args.gamma, args.outputType );
-      probAln.write( text, query, strand, alph, args.outputFormat, out );
+      probAln.write( text, query, strand, args.isTranslated(),
+		     alph, args.outputFormat, out );
     }
   }
 }
@@ -331,6 +337,23 @@ void scan( const SuffixArray& suffixArray, char strand, std::ostream& out ){
   alignFinish( gappedAlns, centroid, strand, out );
 }
 
+// Scan one batch of query sequences against one database volume,
+// after optionally translating the query
+void translateAndScan( const SuffixArray& suffixArray, char strand,
+		       std::ostream& out ){
+  if( args.isTranslated() ){
+    LOG( "translating..." );
+    std::vector<uchar> translation( query.ends.back() );
+    geneticCode.translate( query.seq.begin(),
+                           query.seq.begin() + query.ends.back(),
+			   translation.begin() );
+    query.seq.swap(translation);
+    scan( suffixArray, strand, out );
+    query.seq.swap(translation);
+  }
+  else scan( suffixArray, strand, out );
+}
+
 // Read one database volume
 void readVolume( SuffixArray& suffixArray, unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
@@ -344,7 +367,7 @@ void readVolume( SuffixArray& suffixArray, unsigned volumeNumber ){
 
 void reverseComplementQuery(){
   LOG( "reverse complementing..." );
-  alph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
+  queryAlph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
   if( args.inputFormat > 0 ){
     std::reverse( query.qualityScores.begin(),  // XXX ugly
 		  query.qualityScores.begin() + query.ends.back() *
@@ -366,12 +389,12 @@ void scanAllVolumes( SuffixArray& suffixArray,
 
     if( args.strand == 2 && i > 0 ) reverseComplementQuery();
 
-    if( args.strand != 0 ) scan( suffixArray, '+', out );
+    if( args.strand != 0 ) translateAndScan( suffixArray, '+', out );
 
     if( args.strand == 2 || (args.strand == 0 && i == 0) )
       reverseComplementQuery();
 
-    if( args.strand != 1 ) scan( suffixArray, '-', out );
+    if( args.strand != 1 ) translateAndScan( suffixArray, '-', out );
   }
 
   if( args.outputType == 0 ) writeCounts( out );
@@ -419,10 +442,11 @@ std::istream& appendFromFasta( std::istream& in ){
 
   /**/ if( args.inputFormat < 1 ) query.appendFromFasta( in, maxSeqBytes );
   else if( args.inputFormat < 3 ) query.appendFromFastq( in, maxSeqBytes );
-  else query.appendFromPrb( in, maxSeqBytes, alph.size, alph.decode );
+  else query.appendFromPrb( in, maxSeqBytes,
+			    queryAlph.size, queryAlph.decode );
 
   // encode the newly-read sequence
-  alph.tr( query.seq.begin() + oldSeqSize, query.seq.end() );
+  queryAlph.tr( query.seq.begin() + oldSeqSize, query.seq.end() );
 
   return in;
 }
@@ -472,13 +496,27 @@ void lastal( int argc, char** argv ){
 				 args.inputFormat < 2, asciiOffset );
   }
 
+  if( args.isTranslated() ){
+    queryAlph.fromString( queryAlph.dna );
+    if( args.geneticCodeFile.empty() )
+      geneticCode.fromString( geneticCode.standard );
+    else
+      geneticCode.fromFile( args.geneticCodeFile );
+    geneticCode.codeTableSet( alph, queryAlph );
+    query.initForAppending( spacedSeed.maxOffset * 3 );
+    // queryAlph.makeCaseInsensitive() is unnecessary
+  }
+  else{
+    queryAlph = alph;
+    query.initForAppending( spacedSeed.maxOffset );
+  }
+
+  queryAlph.tr( query.seq.begin(), query.seq.end() );
+
   std::ofstream outFileStream;
   std::ostream& out = openOut( args.outFile, outFileStream );
   writeHeader( out );
   out.precision(3);  // print non-integers more compactly
-
-  query.initForAppending( spacedSeed.maxOffset );
-  alph.tr( query.seq.begin(), query.seq.end() );
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
     LOG( "reading " << *i << "..." );
