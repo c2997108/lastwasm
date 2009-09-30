@@ -5,7 +5,6 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include <cassert>
 //#include <iostream>  // for debugging
 
 namespace cbrc{

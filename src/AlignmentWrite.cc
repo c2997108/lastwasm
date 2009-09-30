@@ -36,9 +36,9 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   indexT seqStart1 = seq1.seqBeg(w1);
 
   indexT size2 = seq2.ends.back();
-  indexT frameSize2 = size2 / 3;  // only used for translated alignments
-  indexT alnBeg2 = isTranslated ? aaToDna( beg2(), frameSize2 ) : beg2();
-  indexT alnEnd2 = isTranslated ? aaToDna( end2(), frameSize2 ) : end2();
+  indexT frameSize2 = isTranslated ? (size2 / 3) : 0;
+  indexT alnBeg2 = aaToDna( beg2(), frameSize2 );
+  indexT alnEnd2 = aaToDna( end2(), frameSize2 );
   indexT w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
   indexT seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
@@ -58,18 +58,15 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
      << seq2.seqLen(w2) << '\t';
 
   for( unsigned i = 0; i < blocks.size(); ++i ){
-    if( i > 0 ){
-      indexT oldEnd1 = blocks[i-1].end1();
-      indexT newBeg1 = blocks[i].beg1();
-      indexT oldEnd2 = blocks[i-1].end2();
-      indexT newBeg2 = blocks[i].beg2();
-      if( isTranslated ){
-	oldEnd2 = aaToDna( oldEnd2, frameSize2 );
-	newBeg2 = aaToDna( newBeg2, frameSize2 );
-      }
-      writeSignedDifference( newBeg1, oldEnd1, os );  // allow -1 frameshift
+    if( i > 0 ){  // between each pair of aligned blocks:
+      indexT gapBeg1 = blocks[i-1].end1();
+      indexT gapEnd1 = blocks[i].beg1();
+      writeSignedDifference( gapEnd1, gapBeg1, os );  // allow -1 frameshift
       os << ':';
-      writeSignedDifference( newBeg2, oldEnd2, os );  // allow -1 frameshift
+
+      indexT gapBeg2 = aaToDna( blocks[i-1].end2(), frameSize2 );
+      indexT gapEnd2 = aaToDna( blocks[i].beg2(), frameSize2 );
+      writeSignedDifference( gapEnd2, gapBeg2, os );  // allow -1 frameshift
       os << ',';
     }
     os << blocks[i].size << ( i+1 < blocks.size() ? ',' : '\n' );
@@ -85,9 +82,9 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   indexT seqStart1 = seq1.seqBeg(w1);
 
   indexT size2 = seq2.ends.back();
-  indexT frameSize2 = size2 / 3;  // only used for translated alignments
-  indexT alnBeg2 = isTranslated ? aaToDna( beg2(), frameSize2 ) : beg2();
-  indexT alnEnd2 = isTranslated ? aaToDna( end2(), frameSize2 ) : end2();
+  indexT frameSize2 = isTranslated ? (size2 / 3) : 0;
+  indexT alnBeg2 = aaToDna( beg2(), frameSize2 );
+  indexT alnEnd2 = aaToDna( end2(), frameSize2 );
   indexT w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
   indexT seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
@@ -112,13 +109,15 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
      << std::setw( nw ) << std::left << n1 << std::right << ' '
      << std::setw( bw ) << b1 << ' '
      << std::setw( rw ) << r1 << ' ' << '+' << ' '
-     << std::setw( sw ) << s1 << ' ' << topString( seq1.seq, alph ) << '\n';
+     << std::setw( sw ) << s1 << ' '
+     << topString( seq1.seq, alph, frameSize2 ) << '\n';
 
   os << "s "
      << std::setw( nw ) << std::left << n2 << std::right << ' '
      << std::setw( bw ) << b2 << ' '
      << std::setw( rw ) << r2 << ' ' << strand << ' '
-     << std::setw( sw ) << s2 << ' ' << botString( seq2.seq, alph ) << '\n';
+     << std::setw( sw ) << s2 << ' '
+     << botString( seq2.seq, alph, frameSize2 ) << '\n';
 
   if( seq2.qualityScores.size() > 0 ){
     os << "q "
@@ -131,7 +130,8 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
     os << 'p';
     CI(double) p = matchProbabilities.begin();
     for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-      if( i > blocks.begin() ){
+      if( i > blocks.begin() ){  // between each pair of aligned blocks:
+	// assume we're not doing translated alignment
 	for( indexT j = (i-1)->end1(); j < i->beg1(); ++j ) os << " -";
 	for( indexT j = (i-1)->end2(); j < i->beg2(); ++j ) os << " -";
       }
@@ -144,32 +144,65 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 }
 
 std::string Alignment::topString( const std::vector<uchar>& seq,
-				  const Alphabet& alph ) const{
+				  const Alphabet& alph,
+				  indexT frameSize ) const{
   std::string s;
+
   for( unsigned i = 0; i < blocks.size(); ++i ){
-    if( i > 0 ){
-      s.append( alph.rtString( seq.begin() + blocks[i-1].end1(),
-			       seq.begin() + blocks[i].beg1() ) );
-      s.append( blocks[i].beg2() - blocks[i-1].end2(), '-' );
+    if( i > 0 ){  // between each pair of aligned blocks:
+      indexT gapSize, frameshift;
+
+      // append unaligned chunk of top sequence:
+      indexT gapBeg1 = blocks[i-1].end1();
+      indexT gapEnd1 = blocks[i].beg1();
+      s.append( alph.rtString( seq.begin() + gapBeg1,
+			       seq.begin() + gapEnd1 ) );
+
+      // append gaps for unaligned chunk of bottom sequence:
+      indexT gapBeg2 = blocks[i-1].end2();
+      indexT gapEnd2 = blocks[i].beg2();
+      sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize, frameshift );
+      if( frameshift ) s.push_back( '-' );
+      s.append( gapSize, '-' );
     }
+
+    // append aligned chunk of top sequence:
     s.append( alph.rtString( seq.begin() + blocks[i].beg1(),
 			     seq.begin() + blocks[i].end1() ) );
   }
+
   return s;
 }
 
 std::string Alignment::botString( const std::vector<uchar>& seq,
-				  const Alphabet& alph ) const{
+				  const Alphabet& alph,
+				  indexT frameSize ) const{
   std::string s;
+
   for( unsigned i = 0; i < blocks.size(); ++i ){
-    if( i > 0 ){
-      s.append( blocks[i].beg1() - blocks[i-1].end1(), '-' );
-      s.append( alph.rtString( seq.begin() + blocks[i-1].end2(),
-			       seq.begin() + blocks[i].beg2() ) );
+    if( i > 0 ){  // between each pair of aligned blocks:
+      indexT gapSize, frameshift;
+
+      // append gaps for unaligned chunk of top sequence:
+      indexT gapBeg1 = blocks[i-1].end1();
+      indexT gapEnd1 = blocks[i].beg1();
+      s.append( gapEnd1 - gapBeg1, '-' );
+
+      //append unaligned chunk of bottom sequence:
+      indexT gapBeg2 = blocks[i-1].end2();
+      indexT gapEnd2 = blocks[i].beg2();
+      sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize, frameshift );
+      if( frameshift == 1 ) s.push_back( '\\' );
+      if( frameshift == 2 ) s.push_back( '/' );
+      s.append( alph.rtString( seq.begin() + gapEnd2 - gapSize,
+			       seq.begin() + gapEnd2 ) );
     }
+
+    // append aligned chunk of bottom sequence:
     s.append( alph.rtString( seq.begin() + blocks[i].beg2(),
 			     seq.begin() + blocks[i].end2() ) );
   }
+
   return s;
 }
 
@@ -180,11 +213,18 @@ std::string Alignment::qualityString( const std::vector<uchar>& qualities,
   assert( qualsPerBase > 0 );
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    if( i > blocks.begin() ){
+    if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      // assume we're not doing translated alignment
+
+      // append gaps for unaligned chunk of top sequence:
       s.append( i->beg1() - (i-1)->end1(), '-' );
+
+      //append qualities for unaligned chunk of bottom sequence:
       s.append( qualityBlock( qualities, (i-1)->end2(), i->beg2(),
 			      qualsPerBase ) );
     }
+
+    // append qualities for aligned chunk of bottom sequence:
     s.append( qualityBlock( qualities, i->beg2(), i->end2(), qualsPerBase ) );
   }
 

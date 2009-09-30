@@ -2,6 +2,7 @@
 
 #include "Alignment.hh"
 #include "Centroid.hh"
+#include "GeneticCode.hh"
 #include "GeneralizedAffineGapCosts.hh"
 #include <cassert>
 
@@ -76,14 +77,23 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int maxDrop,
 			   const GeneralizedAffineGapCosts& gap,
+			   int frameshiftCost, indexT frameSize,
 			   const int pssm2[][MAT] ){
   int maxScore = 0;
   int runningScore = 0;
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    if( i > blocks.begin() ){
-      indexT gapSize1 = i->beg1() - (i-1)->end1();
-      indexT gapSize2 = i->beg2() - (i-1)->end2();
+    if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      indexT gapBeg1 = (i-1)->end1();
+      indexT gapEnd1 = i->beg1();
+      indexT gapSize1 = gapEnd1 - gapBeg1;
+
+      indexT gapBeg2 = (i-1)->end2();
+      indexT gapEnd2 = i->beg2();
+      indexT gapSize2, frameshift2;
+      sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize2, frameshift2 );
+      if( frameshift2 ) runningScore -= frameshiftCost;
+
       runningScore -= gap.cost( gapSize1, gapSize2 );
       if( runningScore <= 0 || runningScore < maxScore - maxDrop ){
 	return false;

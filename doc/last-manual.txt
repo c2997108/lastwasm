@@ -356,13 +356,13 @@ Miscellaneous Options
 Credits & Citation
 ------------------
 
-LAST was developed by Martin C. Frith, Michiaki Hamada, and Paul
-B. Horton in the Computational Biology Research Center.  Many thanks
-to Hajime Harada for setting up the repository and website, and Takako
-Sugawara for making the logo.  LAST includes public domain code kindly
-provided by Yi-Kuo Yu and Stephen Altschul at the NCBI.  There is no
-journal publication yet, so please cite the website:
-http://last.cbrc.jp/.
+LAST was developed by Martin C. Frith, Michiaki Hamada, Toshiyuki
+Sato, and Paul Horton in the Computational Biology Research Center.
+Many thanks to Hajime Harada for setting up the repository and
+website, and Takako Sugawara for making the logo.  LAST includes
+public domain code kindly provided by Yi-Kuo Yu and Stephen Altschul
+at the NCBI.  There is no journal publication yet, so please cite the
+website: http://last.cbrc.jp/.
 
 
 Questions, Comments, Problems

@@ -242,6 +242,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 		  Centroid& centroid ){
   const uchar* qseq = &query.seq[0];
   const uchar* tseq = &text.seq[0];
+  indexT frameSize = args.isTranslated() ? (query.ends.back() / 3) : 0;
   countT gappedExtensionCount = 0;
 
   gaplessAlns.sort();  // sort the gapless alignments by score, highest first
@@ -265,8 +266,8 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
     if( aln.score < args.minScoreGapped ) continue;
 
-    if( !aln.isOptimal( tseq, qseq,
-			matGapped, args.maxDropGapped, gapCosts, pssm ) ){
+    if( !aln.isOptimal( tseq, qseq, matGapped, args.maxDropGapped, gapCosts,
+			args.frameshiftCost, frameSize, pssm ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-reduntantization.
       continue;

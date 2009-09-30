@@ -35,7 +35,7 @@ struct LastalArguments{
   void writeCommented( std::ostream& stream ) const;
 
   // are we doing translated alignment (DNA versus protein)?
-  bool isTranslated(){ return frameshiftCost > 0; }
+  bool isTranslated() const{ return frameshiftCost > 0; }
 
   // options:
   std::string outFile;

@@ -44,6 +44,7 @@ struct Alignment{
   bool isOptimal( const uchar* seq1, const uchar* seq2,
                   const int scoreMatrix[MAT][MAT], int maxDrop,
                   const GeneralizedAffineGapCosts& gap,
+		  int frameshiftCost, indexT frameSize,
 		  const int pssm2[][MAT] = 0 );
 
   void write( const MultiSequence& seq1, const MultiSequence& seq2,
@@ -81,10 +82,10 @@ struct Alignment{
 		 std::ostream& os ) const;
 
   std::string topString( const std::vector<uchar>& seq,
-			 const Alphabet& alph ) const;
+			 const Alphabet& alph, indexT frameSize ) const;
 
   std::string botString( const std::vector<uchar>& seq,
-			 const Alphabet& alph ) const;
+			 const Alphabet& alph, indexT frameSize ) const;
 
   std::string qualityString( const std::vector<uchar>& qualities,
 			     const std::vector<uchar>& seq ) const;

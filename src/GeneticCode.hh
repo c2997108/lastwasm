@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <iosfwd>
+#include <cassert>
 
 namespace cbrc{
 
@@ -46,6 +47,7 @@ class GeneticCode
 
 // Convert an amino-acid (translated) coordinate to a DNA coordinate
 inline unsigned aaToDna( unsigned aaCoordinate, unsigned frameSize ){
+  if( frameSize == 0 ) return aaCoordinate;  // for non-translated sequences
   unsigned frame = aaCoordinate / frameSize;
   unsigned offset = aaCoordinate % frameSize;
   return frame + offset * 3;
@@ -56,6 +58,25 @@ inline unsigned dnaToAa( unsigned dnaCoordinate, unsigned frameSize ){
   unsigned frame = dnaCoordinate % 3;
   unsigned offset = dnaCoordinate / 3;
   return frame * frameSize + offset;
+}
+
+// Convert begin and end coordinates to a size and a frameshift
+inline void sizeAndFrameshift( unsigned beg, unsigned end,
+			       unsigned frameSize,  // 0 means not translated
+			       unsigned& size, unsigned& frameshift ){
+  if( frameSize ){  // if it's a translated sequence:
+    unsigned dnaBeg = aaToDna( beg, frameSize );
+    unsigned dnaEnd = aaToDna( end, frameSize );
+    unsigned dnaSize = dnaEnd - dnaBeg;
+    assert( dnaBeg <= dnaEnd + 1 );  // allow a -1 frameshift
+    size = ( dnaSize + 1 ) / 3;
+    frameshift = ( dnaSize + 3 ) % 3;
+  }
+  else{  // if it's not a translated sequence:
+    assert( beg <= end );
+    size = end - beg;
+    frameshift = 0;
+  }
 }
 
 } // end namespace cbrc
