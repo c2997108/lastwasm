@@ -21,8 +21,8 @@ struct LastdbArguments{
   bool isProtein;
   bool isCaseSensitive;
   std::string maskPattern;
-  indexT indexStep;
   std::size_t volumeSize;  // type?
+  indexT indexStep;
   std::string userAlphabet;
   indexT bucketDepth;
   int verbosity;

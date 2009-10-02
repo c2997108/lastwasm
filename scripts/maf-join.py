@@ -10,7 +10,7 @@
 # WARNING: Alignment columns with a gap in the top genome are joined
 # arbitrarily!!!
 
-import sys, os, fileinput
+import sys, os, fileinput, optparse
 
 class peekable:  # Adapted from Python Cookbook 2nd edition
     """An iterator that supports a peek operation."""
@@ -228,9 +228,12 @@ def overlappingMafs(sortedMafInputs):
         for i in allOverlaps(windows, topSeqBeg(h), topSeqEnd(h)):
             yield (h,) + i
 
+op = optparse.OptionParser(usage="%prog sorted-file1.maf sorted-file2.maf ...")
+(opts, args) = op.parse_args()
+
 progName = os.path.basename(sys.argv[0])
 
-inputs = [peekable(sortedMafInput(fileinput.input(i))) for i in sys.argv[1:]]
+inputs = [peekable(sortedMafInput(fileinput.input(i))) for i in args]
 
 for mafs in overlappingMafs(inputs):
     mafJoin(mafs).write()

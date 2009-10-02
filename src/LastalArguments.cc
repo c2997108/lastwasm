@@ -3,10 +3,12 @@
 #include "LastalArguments.hh"
 #include "stringify.hh"
 #include <unistd.h>  // getopt
+#include <iostream>
 #include <sstream>
 #include <vector>
 #include <stdexcept>
 #include <cstring>  // strtok
+#include <cstdlib>  // EXIT_SUCCESS
 //#include <iostream>  // for debugging
 
 static void badopt( char opt, const char* arg ){
@@ -29,7 +31,7 @@ LastalArguments::LastalArguments() :
   gapExistCost(-1),  // depends on the alphabet
   gapExtendCost(-1),  // depends on the alphabet
   gapPairCost(100000),  // I want it to be infinity, but avoid overflow
-  frameshiftCost(0),  // this means: ordinary, non-translated alignment
+  frameshiftCost(-1),  // this means: ordinary, non-translated alignment
   matrixFile(""),
   maxDropGapped(-1),  // depends on gap costs & maxDropGapless
   maxDropGapless(-1),  // depends on the score matrix
@@ -46,7 +48,8 @@ LastalArguments::LastalArguments() :
 
 void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
   std::string usage = "\
-usage: lastal [options] lastdb-name fasta-sequence-file(s)\n\
+Usage: lastal [options] lastdb-name fasta-sequence-file(s)\n\
+Find local sequence alignments.\n\
 \n\
 Main options (default settings):\n\
 -h: show all options and their default settings\n\
@@ -55,20 +58,9 @@ Main options (default settings):\n\
     + stringify(maskLowercase) + ")\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -f: output format: 0=tabular, 1=maf ("
-    + stringify(outputFormat) + ")\n\
-";
+    + stringify(outputFormat) + ")";
 
-  std::string help = "\
-usage: lastal [options] lastdb-name fasta-sequence-file(s)\n\
-\n\
-Main options (default settings):\n\
--h: show all options and their default settings\n\
--o: output file\n\
--u: mask lowercase letters: 0=off, 1=softer, 2=soft, 3=hard ("
-    + stringify(maskLowercase) + ")\n\
--s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
--f: output format: 0=tabular, 1=maf ("
-    + stringify(outputFormat) + ")\n\
+  std::string help = usage + "\n\
 \n\
 Score parameters (default settings):\n\
 -r: match score   (DNA: 1, protein: blosum62, Q>0:  6)\n\
@@ -103,6 +95,9 @@ Miscellaneous options (default settings):\n\
 -j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
                  4=probabilities, 5=centroid ("
     + stringify(outputType) + ")\n\
+\n\
+Report bugs to: last (ATmark) cbrc (dot) jp\n\
+LAST home page: http://last.cbrc.jp/\n\
 ";
 
   optind = 1;  // allows us to scan arguments more than once(???)
@@ -112,7 +107,8 @@ Miscellaneous options (default settings):\n\
 	 != -1 ){
     switch(c){
     case 'h':
-      throw std::runtime_error(help);
+      std::cout << help;
+      throw EXIT_SUCCESS;
     case 'o':
       outFile = optarg;
       break;
@@ -232,7 +228,8 @@ Miscellaneous options (default settings):\n\
     throw std::runtime_error("can't combine option -F with option -j 0");
 
   if( optionsOnly ) return;
-  if( optind == argc ) throw std::runtime_error(usage);
+  if( optind == argc )
+    throw std::runtime_error("no input supplied\n\n" + usage);
   lastdbName = argv[optind++];
   inputStart = optind;
 }
@@ -300,6 +297,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
     /**/ if( outputType == 0 ) batchSize = 0x1000000;  // 16 Mbytes
     else if( inputFormat > 0 ) batchSize = 0x100000;   // 1 Mbyte
     else                       batchSize = 0x8000000;  // 128 Mbytes
+    // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
   }
 
   if( isTranslated() && frameshiftCost < gapExtendCost )

@@ -177,3 +177,6 @@ catch( const std::exception& e ) {
   std::cerr << "lastdb: " << e.what() << '\n';
   return EXIT_FAILURE;
 }
+catch( int i ) {
+  return i;
+}

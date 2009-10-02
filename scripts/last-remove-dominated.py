@@ -6,7 +6,10 @@
 # of Y.  This script assumes the alignments have been sorted by
 # maf-sort.sh.
 
-import fileinput, string, re, itertools
+import fileinput, string, re, itertools, optparse
+
+op = optparse.OptionParser(usage="%prog sorted-last-output.maf")
+(opts, args) = op.parse_args()
 
 def finalize_score_matrix(score_matrix, mask_lowercase):
     '''Add lowercase and non-standard letters to the score matrix.'''
@@ -129,7 +132,7 @@ aln = []  # the current alignment
 columns = []  # column headings for the score matrix
 mask_lowercase = False
 
-for line in fileinput.input():
+for line in fileinput.input(args):
     if line.startswith('#'):
         body = line[1:].strip()
         words = body.split()

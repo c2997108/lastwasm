@@ -5,7 +5,7 @@
 
 import optparse, fileinput, string, re
 
-parser = optparse.OptionParser()
+parser = optparse.OptionParser(usage="%prog [options] my-alignments.maf")
 parser.add_option("-n", type="int", default=2,
                   help="move the Nth sequence to the top (default: %default)")
 (opts, args) = parser.parse_args()

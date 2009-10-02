@@ -8,7 +8,7 @@
 
 import fileinput, operator, itertools, optparse
 
-op = optparse.OptionParser(usage="%prog [options] myAlignments.maf")
+op = optparse.OptionParser(usage="%prog [options] my-alignments.maf")
 op.add_option('-l', '--linesize', type="int", default=100, metavar="CHARS",
               help="write CHARS characters per line (default: %default)")
 (opts, args) = op.parse_args()

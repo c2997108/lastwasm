@@ -16,7 +16,7 @@ usage = """
   %prog [options] last-tabular-output dotplot.png
   %prog [options] last-tabular-output dotplot.gif
   etc."""
-parser = optparse.OptionParser(usage)
+parser = optparse.OptionParser(usage=usage)
 # Replace "width" & "height" with a single "length" option?
 parser.add_option("-x", "--width", type="int", dest="width", default=1000,
                   help="maximum width in pixels (default: %default)")

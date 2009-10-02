@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 # Convert MAF format alignments to tabular format
-import fileinput
+import fileinput, optparse
+
+op = optparse.OptionParser(usage="%prog my-alignments.maf")
+(opts, args) = op.parse_args()
 
 def gap_string(gap1, gap2):
     return str(gap1) + ':' + str(gap2)
@@ -39,7 +42,7 @@ def doit(aln):
 
 aln = []
 
-for line in fileinput.input():
+for line in fileinput.input(args):
     words = line.split()
     if line.startswith('a'):
         doit(aln)

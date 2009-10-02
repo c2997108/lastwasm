@@ -10,24 +10,36 @@
 # If option "-d" is specified, then it removes alignments that are
 # dominated in either genome.
 
-opt=
-if [ "$1" = "-d" ]
-then
-    opt=$1
-    shift
-fi
+sortOpt=
+while getopts hd opt
+do
+    case $opt in
+	h)  cat <<EOF
+Usage: $(basename $0) [options] last-output.maf
 
-dir=`dirname $0`  # assume the other scripts are in the same directory
+Options:
+  -h  show this help message and exit
+  -d  reduce alignments more aggressively
+EOF
+	    exit
+	    ;;
+	d)  sortOpt="-d"
+	    ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+PATH=$PATH:$(dirname $0)  # assume the other scripts are in the same directory
 
 {
     # remove alignments that are dominated in the upper sequence
-    $dir/maf-sort.sh "$@" |
-    $dir/last-remove-dominated.py
+    maf-sort.sh "$@" |
+    last-remove-dominated.py
 
     # remove alignments that are dominated in the lower sequence
-    $dir/maf-swap.py "$@" |
-    $dir/maf-sort.sh |
-    $dir/last-remove-dominated.py |
-    $dir/maf-swap.py
+    maf-swap.py "$@" |
+    maf-sort.sh |
+    last-remove-dominated.py |
+    maf-swap.py
 
-} | $dir/maf-sort.sh $opt  # merge the results
+} | maf-sort.sh $sortOpt  # merge the results

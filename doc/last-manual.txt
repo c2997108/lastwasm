@@ -159,6 +159,8 @@ Options for lastdb
 Main Options
 ~~~~~~~~~~~~
 
+-h  Show all options and their default settings.
+
 -p  Interpret the sequences as proteins.  The default is to interpret
     them as DNA.
 
@@ -177,16 +179,16 @@ Main Options
 Advanced Options
 ~~~~~~~~~~~~~~~~
 
--w  Allow initial matches to start only at every "w"th position in each
-    database sequence.  This reduces time and storage requirements, at
-    the expense of sensitivity.  To emulate BLAT, use "-w 11".
-
 -s  Split large databases into "volumes" of at most the specified
     number of bytes (excluding buckets).  If a single sequence exceeds
     this amount, however, it is not split.  The default is tuned for 2
     gigabytes of RAM: if you have more, increase this to make lastal
     go faster. You can use suffixes K, M, and G to specify KibiBytes,
     MebiBytes, and GibiBytes.
+
+-w  Allow initial matches to start only at every "w"th position in each
+    database sequence.  This reduces time and storage requirements, at
+    the expense of sensitivity.  To emulate BLAT, use "-w 11".
 
 -a  Specify your own alphabet, e.g. "-a 0123".  In this example, only
     0, 1, 2, 3 will be allowed in initial matches (except in skipped

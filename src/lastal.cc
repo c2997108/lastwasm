@@ -546,11 +546,14 @@ try{
   lastal( argc, argv );
   return EXIT_SUCCESS;
 }
- catch( const std::bad_alloc& e ) {  // bad_alloc::what() may be unfriendly
-   std::cerr << "lastdb: out of memory\n";
-   return EXIT_FAILURE;
- }
+catch( const std::bad_alloc& e ) {  // bad_alloc::what() may be unfriendly
+  std::cerr << "lastal: out of memory\n";
+  return EXIT_FAILURE;
+}
 catch( const std::exception& e ) {
   std::cerr << "lastal: " << e.what() << '\n';
   return EXIT_FAILURE;
+}
+catch( int i ) {
+  return i;
 }

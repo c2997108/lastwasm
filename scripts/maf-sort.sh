@@ -19,12 +19,24 @@
 LC_ALL=C
 export LC_ALL
 
-opt=
-if [ "$1" = "-d" ]
-then
-    opt=$1
-    shift
-fi
+uniqOpt=
+while getopts hd opt
+do
+    case $opt in
+	h)  cat <<EOF
+Usage: $(basename $0) [options] my-alignments.maf
+
+Options:
+  -h  show this help message and exit
+  -d  only print duplicate alignments
+EOF
+	    exit
+	    ;;
+	d)  uniqOpt="-d"
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
 
 tmpfile=${TMPDIR-/tmp}/maf-sort.$$
 
@@ -34,7 +46,7 @@ grep -v '^#' $tmpfile      |  # remove comment lines
 sed '/^a/y/ /!/'           |  # change spaces to '!'s in 'a' lines
 perl -pe 's/\n/#/ if /\S/' |  # join each alignment into one big line
 sort -k2,2 -k3,3n -k4,4n   |  # sort the lines
-uniq $opt                  |  # merge identical alignments (don't use sort -u)
+uniq $uniqOpt              |  # merge identical alignments (don't use sort -u)
 perl -pe 's/#/\n/g'        |  # undo the line-joining
 sed '/^a/y/!/ /'              # change '!'s back to spaces in 'a' lines
 

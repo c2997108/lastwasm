@@ -10,22 +10,23 @@
 # with input that is too big to all fit in memory.  An alternative
 # would be to write it to a temporary file.)
 
-import sys, os, fileinput, math
+import sys, os, fileinput, math, optparse
 
 progName = os.path.basename(sys.argv[0])
 
-if len(sys.argv) < 2:
-    sys.exit("usage: " + progName + " lastTabularOutput")
+op = optparse.OptionParser(usage="%prog last-tabular-output")
+(opts, args) = op.parse_args()
 
-if '-' in sys.argv[1:]:
-    sys.exit(progName + ": sorry, can't use '-' (standard input)")
+if not args: op.error("please give me a filename")
+
+if '-' in args: op.error("sorry, can't use '-' (standard input)")
 
 def likelihoodRatio(score, t): return math.exp(float(score) / t)
 
 temperature = -1
 denominators = {}
 
-for line in fileinput.input():
+for line in fileinput.input(args):
     words = line.split()
     if line.startswith('#') or not words:
         for i in words:
@@ -39,7 +40,7 @@ for line in fileinput.input():
         denominators.setdefault(tagName, 0.0)
         denominators[tagName] += lr
 
-for line in fileinput.input():
+for line in fileinput.input(args):
     words = line.split()
     if line.startswith('#') or not words:
         print line,
