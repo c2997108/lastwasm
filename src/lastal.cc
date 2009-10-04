@@ -8,7 +8,7 @@
 #include "GeneticCode.hh"
 #include "SuffixArray.hh"
 #include "Centroid.hh"
-#include "XdropAligner.hh"
+#include "Xdrop3FrameAligner.hh"
 #include "AlignmentPot.hh"
 #include "Alignment.hh"
 #include "SegmentPairPot.hh"
@@ -44,7 +44,7 @@ namespace {
   PeriodicSpacedSeed spacedSeed;
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
-  XdropAligner xdropAligner;
+  Xdrop3FrameAligner xdropAligner;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
@@ -261,7 +261,8 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
     // do gapped extension from each end of the seed:
     aln.makeXdrop( xdropAligner, centroid, tseq, qseq, matGapped,
-		   scoreMatrix.maxScore, gapCosts, args.maxDropGapped, pssm );
+		   scoreMatrix.maxScore, gapCosts, args.maxDropGapped,
+		   args.frameshiftCost, frameSize, pssm );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
@@ -286,6 +287,9 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( const AlignmentPot& gappedAlns,
 		  Centroid& centroid, char strand, std::ostream& out ){
+
+  indexT frameSize = args.isTranslated() ? (query.ends.back() / 3) : 0;
+
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
@@ -296,8 +300,9 @@ void alignFinish( const AlignmentPot& gappedAlns,
       Alignment probAln;
       probAln.seed = aln.seed;
       probAln.makeXdrop( xdropAligner, centroid, &text.seq[0], &query.seq[0],
-			 matGapped, scoreMatrix.maxScore, gapCosts,
-			 args.maxDropGapped, pssm, args.gamma, args.outputType );
+			 matGapped, scoreMatrix.maxScore,
+			 gapCosts, args.maxDropGapped, args.frameshiftCost,
+			 frameSize, pssm, args.gamma, args.outputType );
       probAln.write( text, query, strand, args.isTranslated(),
 		     alph, args.outputFormat, out );
     }
@@ -498,6 +503,8 @@ void lastal( int argc, char** argv ){
   }
 
   if( args.isTranslated() ){
+    if( alph.letters == alph.dna )  // allow user-defined alphabet
+      throw std::runtime_error("expected protein database, but got DNA");
     queryAlph.fromString( queryAlph.dna );
     if( args.geneticCodeFile.empty() )
       geneticCode.fromString( geneticCode.standard );

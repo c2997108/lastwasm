@@ -1,6 +1,11 @@
 // Copyright 2008, 2009 Martin C. Frith
 
-// X-drop algorithm for gapped extension of alignments.
+// X-drop algorithm for gapped extension of alignments.  We fill in
+// the dynamic programming matrix antidiagonal-by-antidiagonal, as
+// described in section 2 of: "A greedy algorithm for aligning DNA
+// sequences", Z Zhang, S Schwartz, L Wagner, W Miller, J Comput
+// Biol. 2000 7(1-2):203-14.  Unlike that description, we do not use
+// "half nodes".
 
 #ifndef XDROPALIGNER_HH
 #define XDROPALIGNER_HH
@@ -53,10 +58,10 @@ public:
 		const GeneralizedAffineGapCosts& gap,
 		const int pssm2[][MAT] );
 
-private:
+protected:
   typedef std::vector< std::vector< int > > matrix_t;
 
-  enum { INF = INT_MAX / 2 };  // big, but try to avoid overflow
+  enum { INF = INT_MAX / 3 };  // big, but try to avoid overflow
 
   int bestScore;
   size_t bestAntiDiagonal;
@@ -86,7 +91,7 @@ private:
   template < typename T >
   static const T* seqPtr( const T* seq, size_t start,
 			  direction dir, size_t pos ){
-    assert( pos > 0 );
+    //assert( pos > 0 );  // not always true for 3-frame alignment
     if( dir == FORWARD ) return &seq[ start + pos - 1 ];
     else                 return &seq[ start - pos ];
   }

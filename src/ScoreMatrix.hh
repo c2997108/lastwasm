@@ -18,7 +18,7 @@ namespace cbrc{
 struct ScoreMatrix{
   typedef unsigned char uchar;
 
-  enum { INF = INT_MAX / 2 };  // big, but try to avoid overflow
+  enum { INF = INT_MAX / 3 };  // big, but try to avoid overflow
   enum { MAT = 64 };           // matrix size = MAT x MAT
   enum { OUTPAD = 2 };         // cell-padding for output
 

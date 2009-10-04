@@ -70,7 +70,7 @@ Score parameters (default settings):\n\
 -b: gap extension cost (DNA: 1, protein:  2, Q>0:  9)\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
--F: frameshift cost\n\
+-F: frameshift cost (off)\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
 -y: maximum score dropoff for gapless extensions (max-match-score * 10)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\

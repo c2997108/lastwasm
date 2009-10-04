@@ -255,6 +255,9 @@ Score Parameters
     + c*j.  If c >= a + 2b (the default), it reduces to standard
     affine gaps.
 
+-F  Align DNA queries to a protein database, using the specified
+    frameshift cost.  A value of 15 seems to be reasonable.
+
 -x  Maximum score dropoff for gapped alignments.  Gapped alignments
     are forbidden from having any internal region with score < -x.
     This serves two purposes: accuracy (avoid spurious internal
@@ -305,6 +308,12 @@ Miscellaneous Options
     PNAS 105(9):3209-14).  When lastal does (gamma-)centroid
     alignment, it does not report the usual alignment score.  Instead,
     it reports: sum[prob * (1+g) - 1].
+
+-G  Use an alternative genetic code in the specified file.  For an
+    example of the format, see vertebrateMito.gc in the examples
+    directory.  By default, the standard genetic code is used.  This
+    option has no effect unless DNA-versus-protein alignment is
+    selected with option -F.
 
 -v  Be verbose: write messages about what lastal is doing.
 

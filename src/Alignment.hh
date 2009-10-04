@@ -4,7 +4,7 @@
 
 #ifndef ALIGNMENT_HH
 #define ALIGNMENT_HH
-#include "XdropAligner.hh"
+#include "Xdrop3FrameAligner.hh"
 #include "SegmentPair.hh"
 #include <string>
 #include <vector>
@@ -31,10 +31,11 @@ struct Alignment{
   // Alignment might not be "optimal" (see below).
   // If outputType > 3: calculates match probabilities.
   // If outputType > 4: does gamma-centroid alignment.
-  void makeXdrop( XdropAligner& aligner, Centroid& centroid,
+  void makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
 		  const uchar* seq1, const uchar* seq2,
 		  const int scoreMatrix[MAT][MAT], int smMax,
 		  const GeneralizedAffineGapCosts& gap, int maxDrop,
+		  int frameshiftCost, indexT frameSize,
 		  const int pssm2[][MAT] = 0,
 		  double gamma = 0, int outputType = 0 );
 
@@ -65,12 +66,13 @@ struct Alignment{
 
   void extend( std::vector< SegmentPair >& chunks,
 	       std::vector< double >& probs,
-	       XdropAligner& aligner, Centroid& centroid,
+	       Xdrop3FrameAligner& aligner, Centroid& centroid,
 	       const uchar* seq1, const uchar* seq2,
 	       indexT start1, indexT start2,
 	       XdropAligner::direction dir,
 	       const int sm[MAT][MAT], int smMax, int maxDrop,
 	       const GeneralizedAffineGapCosts& gap,
+	       int frameshiftCost, indexT frameSize,
 	       const int pssm2[][MAT],
 	       double gamma, int outputType );
 

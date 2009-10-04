@@ -7,7 +7,8 @@
 #include <cassert>
 
 // make C++ tolerable:
-#define CI(type) std::vector<type>::const_iterator
+#define BEG(vector) (&(vector)[0])
+#define END(vector) (&(vector)[0] + (vector).size())
 
 using namespace cbrc;
 
@@ -17,10 +18,11 @@ void Alignment::fromSegmentPair( const SegmentPair& sp ){
   centroidScore = -1;
 }
 
-void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
+void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int smMax,
 			   const GeneralizedAffineGapCosts& gap, int maxDrop,
+			   int frameshiftCost, indexT frameSize,
 			   const int pssm2[][MAT],
 			   double gamma, int outputType ){
   assert( seed.size > 0 );  // relax this requirement?
@@ -29,12 +31,15 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 
   extend( blocks, matchProbabilities, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), XdropAligner::REVERSE,
-	  scoreMatrix, smMax, maxDrop, gap, pssm2, gamma, outputType );
+	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
+	  frameSize, pssm2, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
-  for( unsigned i = 0; i < blocks.size(); ++i ){
-    blocks[i].start1 = seed.beg1() - blocks[i].end1();
-    blocks[i].start2 = seed.beg2() - blocks[i].end2();
+  indexT seedBeg1 = seed.beg1();
+  indexT seedBeg2 = aaToDna( seed.beg2(), frameSize );
+  for( SegmentPair* i = BEG(blocks); i < END(blocks); ++i ){
+    i->start1 = seedBeg1 - i->start1 - i->size;
+    i->start2 = dnaToAa( seedBeg2 - i->start2, frameSize ) - i->size;
   }
 
   if( !blocks.empty() &&
@@ -53,12 +58,15 @@ void Alignment::makeXdrop( XdropAligner& aligner, Centroid& centroid,
 
   extend( forwardBlocks, forwardProbs, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), XdropAligner::FORWARD,
-	  scoreMatrix, smMax, maxDrop, gap, pssm2, gamma, outputType );
+	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
+	  frameSize, pssm2, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
-  for( unsigned i = 0; i < forwardBlocks.size(); ++i ){
-    forwardBlocks[i].start1 += seed.end1();
-    forwardBlocks[i].start2 += seed.end2();
+  indexT seedEnd1 = seed.end1();
+  indexT seedEnd2 = aaToDna( seed.end2(), frameSize );
+  for( SegmentPair* i = BEG(forwardBlocks); i < END(forwardBlocks); ++i ){
+    i->start1 = seedEnd1 + i->start1;
+    i->start2 = dnaToAa( seedEnd2 + i->start2, frameSize );
   }
 
   SegmentPair& b = blocks.back();
@@ -82,8 +90,8 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
   int maxScore = 0;
   int runningScore = 0;
 
-  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    if( i > blocks.begin() ){  // between each pair of aligned blocks:
+  for( const SegmentPair* i = BEG(blocks); i < END(blocks); ++i ){
+    if( i > BEG(blocks) ){  // between each pair of aligned blocks:
       indexT gapBeg1 = (i-1)->end1();
       indexT gapEnd1 = i->beg1();
       indexT gapSize1 = gapEnd1 - gapBeg1;
@@ -111,7 +119,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 
       if( runningScore > maxScore ) maxScore = runningScore;
       else if( runningScore <= 0 ||                  // non-optimal prefix
-	       (s1 == e1 && i+1 == blocks.end()) ||  // non-optimal suffix
+	       (s1 == e1 && i+1 == END(blocks)) ||   // non-optimal suffix
 	       runningScore < maxScore - maxDrop ){  // excessive score drop
 	return false;
       }
@@ -123,14 +131,25 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< double >& probs,
-			XdropAligner& aligner, Centroid& centroid,
+			Xdrop3FrameAligner& aligner, Centroid& centroid,
 			const uchar* seq1, const uchar* seq2,
 			indexT start1, indexT start2,
 			XdropAligner::direction dir,
 			const int sm[MAT][MAT], int smMax, int maxDrop,
 			const GeneralizedAffineGapCosts& gap,
+			int frameshiftCost, indexT frameSize,
 			const int pssm2[][MAT],
 			double gamma, int outputType ){
+  if( frameSize ){
+    assert( outputType < 4 );
+    assert( !pssm2 );
+    score += aligner.fillThreeFrame( seq1, seq2, start1, start2, dir, sm,
+				     maxDrop, gap, frameshiftCost, frameSize );
+    aligner.traceThreeFrame( chunks, seq1, seq2, start1, start2, dir,
+			     sm, gap, frameshiftCost, frameSize );
+    return;
+  }
+
   score += aligner.fill( seq1, seq2, start1, start2, dir,
 			 sm, smMax, maxDrop, gap, pssm2 );
 

@@ -240,11 +240,11 @@ void XdropAligner::traceback( std::vector< SegmentPair >& chunks,
 
   while( k > 0 ){
     if( state == 0 ){
-      const int m =
-	maxIndex3( diag( x, k, i ) +
-		   match( seq1, seq2, start1, start2, dir, sm, pssm2, k, i ),
-		   hori( y, k, i ),
-		   vert( z, k, i ) );
+      const int matrixScore = match( seq1, seq2, start1, start2,
+				     dir, sm, pssm2, k, i );
+      const int m = maxIndex3( diag( x, k, i ) + matrixScore,
+			       hori( y, k, i ),
+			       vert( z, k, i ) );
       if( m == 0 ){
 	k -= 2;
 	i -= 1;

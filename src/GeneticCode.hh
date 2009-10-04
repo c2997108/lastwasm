@@ -55,6 +55,7 @@ inline unsigned aaToDna( unsigned aaCoordinate, unsigned frameSize ){
 
 // Convert a DNA coordinate to an amino-acid (translated) coordinate
 inline unsigned dnaToAa( unsigned dnaCoordinate, unsigned frameSize ){
+  if( frameSize == 0 ) return dnaCoordinate;  // for non-translated sequences
   unsigned frame = dnaCoordinate % 3;
   unsigned offset = dnaCoordinate / 3;
   return frame * frameSize + offset;
