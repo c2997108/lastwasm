@@ -485,7 +485,7 @@ void lastal( int argc, char** argv ){
     else LOG( "can't calculate lambda for this score matrix" );
   }
 
-  args.setDefaultsFromMatrix( scoreMatrix.maxScore, lambda );
+  args.setDefaultsFromMatrix(lambda);
 
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
 

@@ -29,7 +29,7 @@ struct LastalArguments{
 
   // set default option values that depend on input files:
   void setDefaultsFromAlphabet( bool isDna, bool isProtein );
-  void setDefaultsFromMatrix( int maxMatchScore, double lambda );
+  void setDefaultsFromMatrix( double lambda );
 
   // write the parameter settings, starting each line with "#":
   void writeCommented( std::ostream& stream ) const;

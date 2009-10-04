@@ -72,7 +72,7 @@ Score parameters (default settings):\n\
     + stringify(gapPairCost) + ")\n\
 -F: frameshift cost (off)\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
--y: maximum score dropoff for gapless extensions (max-match-score * 10)\n\
+-y: maximum score dropoff for gapless extensions (t*10)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
 -e: minimum score for gapped alignments (DNA: 40, protein: 100, Q>0: 180)\n\
 \n\
@@ -124,6 +124,7 @@ LAST home page: http://last.cbrc.jp/\n\
       unstringify( outputFormat, optarg );
       if( outputFormat < 0 || outputFormat > 1 ) badopt( c, optarg );
       break;
+
     case 'r':
       unstringify( matchScore, optarg );
       if( matchScore <= 0 ) badopt( c, optarg );
@@ -167,6 +168,7 @@ LAST home page: http://last.cbrc.jp/\n\
       unstringify( minScoreGapped, optarg );
       if( minScoreGapped < 0 ) badopt( c, optarg );
       break;
+
     case 'Q':
       unstringify( inputFormat, optarg );
       if( inputFormat < 0 || inputFormat > 3 ) badopt( c, optarg );
@@ -304,16 +306,18 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
     throw std::runtime_error("the frameshift cost must not be less than the gap extension cost");
 }
 
-void LastalArguments::setDefaultsFromMatrix( int maxMatchScore,
-					     double lambda ){
-  if( maxDropGapless < 0 ) maxDropGapless = maxMatchScore * 10;
+void LastalArguments::setDefaultsFromMatrix( double lambda ){
+  if( temperature < 0 ) temperature = 1 / lambda;
+
+  if( maxDropGapless < 0 ){
+    if( temperature < 0 ) maxDropGapless = 0;  // shouldn't happen
+    else                  maxDropGapless = 10.0 * temperature + 0.5;
+  }
 
   if( maxDropGapped < 0 ){
     maxDropGapped = std::max( gapExistCost + gapExtendCost * 20,
 			      maxDropGapless );
   }
-
-  if( temperature < 0 ) temperature = 1 / lambda;
 }
 
 void LastalArguments::writeCommented( std::ostream& stream ) const{

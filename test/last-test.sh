@@ -29,7 +29,7 @@ db=/tmp/last-test
 
     echo TEST 4  # translated alignment & genetic code file
     lastdb -p $db $protSeq
-    lastal -F999 -e40 -G $gc $db $dnaSeq
+    lastal -F12 -e40 -G $gc $db $dnaSeq
     echo
 } |
 grep -v version |  # omit header lines with the LAST version number
