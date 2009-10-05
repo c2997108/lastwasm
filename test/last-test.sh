@@ -8,6 +8,7 @@ PATH=$PATH:../src
 
 dnaSeq=galGal3-M-32.fa
 protSeq=Q2LCP8.fa
+fastq=SRR001981-1k.fastq
 mat=../examples/HOXD70
 gc=../examples/vertebrateMito.gc
 db=/tmp/last-test
@@ -27,7 +28,11 @@ db=/tmp/last-test
     lastal -j0 -i1 -s0 $db $dnaSeq
     echo
 
-    echo TEST 4  # translated alignment & genetic code file
+    echo TEST 4  # FASTQ quality scores
+    lastal -Q1 -e90 -a9 $db $fastq
+    echo
+
+    echo TEST 5  # translated alignment & genetic code file
     lastdb -p $db $protSeq
     lastal -F12 -e40 -G $gc $db $dnaSeq
     echo
