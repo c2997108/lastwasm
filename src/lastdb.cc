@@ -29,20 +29,6 @@ void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
   if( !args.isCaseSensitive )       alph.makeCaseInsensitive();
 }
 
-// Find the maximum bucket depth, such that the total number of bucket
-// entries is at most 1/4 the number of indices
-indexT defaultBucketDepth( unsigned alphSize, indexT indexNum ){
-  indexT maxBucketEntries = indexNum / 4;
-  indexT bucketEntries = 1;
-  indexT depth = 0;
-  while( bucketEntries <= maxBucketEntries / alphSize &&  // avoid overflow
-	 bucketEntries * alphSize < maxBucketEntries ){
-    bucketEntries = bucketEntries * alphSize + 1;
-    ++depth;
-  }
-  return depth;
-}
-
 // Write the .prj file for the whole database
 void writeOuterPrj( const std::string& fileName, const Alphabet& alph,
 		    const PeriodicSpacedSeed& seed, unsigned volumes ){
@@ -61,9 +47,9 @@ void writeInnerPrj( const std::string& fileName,
 		    const MultiSequence& multi, const SuffixArray& sa ){
   std::ofstream f( fileName.c_str() );
   f << "totallength=" << multi.ends.back() << '\n';
-  f << "specialcharacters=" << multi.ends.back() - sa.index.size() << '\n';
+  f << "specialcharacters=" << multi.ends.back() - sa.indexSize() << '\n';
   f << "numofsequences=" << multi.finishedSequences() << '\n';
-  f << "prefixlength=" << sa.bucketMask.size() << '\n';
+  f << "prefixlength=" << sa.maxBucketPrefix() << '\n';
   if( !f ) throw std::runtime_error("can't write file: " + fileName);
 }
 
@@ -83,9 +69,7 @@ void makeVolume( MultiSequence& multi, SuffixArray& sa,
   sa.sortIndex();
 
   LOG( "bucketing..." );
-  sa.makeBuckets( args.bucketDepth == -1u
-		  ? defaultBucketDepth( alph.size, sa.index.size() )
-		  : args.bucketDepth );
+  sa.makeBuckets( args.bucketDepth );
 
   LOG( "writing suf, bck..." );
   sa.toFiles( baseName );

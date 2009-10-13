@@ -1,17 +1,17 @@
 // Copyright 2008, 2009 Martin C. Frith
 
-// This struct holds a suffix array.  The suffix array is just a list
+// This class holds a suffix array.  The suffix array is just a list
 // of numbers indicating positions in a text, sorted according to the
 // alphabetical order of the text suffixes starting at these
 // positions.  A query sequence can then be matched incrementally to
 // the suffix array using binary search.
 
-// For faster matching, we use "buckets", which store the matching
-// regions for all k-mers for k=1 to, say, 12.  If the maximum k is B
-// (e.g. 12), and alphabet size is A (e.g. 4 for DNA), then the
-// buckets comprise A^B + A^(B-1) + ... + A + 1 numbers.  These
-// numbers give the start and end offsets in the suffix array of every
-// k-mer.
+// For faster matching, we use "buckets", which store the start and
+// end in the suffix array of all size-k prefixes of the suffixes.
+// They store this information for all values of k from 1 to, say, 12.
+// If the maximum k is B (e.g. 12), and alphabet size is A (e.g. 4 for
+// DNA), then the buckets comprise A^B + A^(B-1) + ... + A + 1
+// numbers.
 
 // In addition, we allow skipping of positions while sorting and
 // matching, using a periodic spaced seed.
@@ -23,7 +23,8 @@
 
 namespace cbrc{
 
-struct SuffixArray{
+class SuffixArray{
+public:
   typedef unsigned indexT;
   typedef unsigned char uchar;
 
@@ -37,13 +38,26 @@ struct SuffixArray{
   // return 0.
   int addIndices( indexT beg, indexT end, indexT step, std::size_t maxBytes );
 
+  indexT indexSize() const{ return index.size(); }
   std::size_t indexBytes() const{ return index.size() * sizeof(indexT); }
+
+  // Sort the suffix array (but don't make the buckets).
   void sortIndex();
+
+  // Make the buckets.  If bucketDepth == -1u, then a default
+  // bucketDepth is used.  The default is: the maximum possible
+  // bucketDepth such that the number of bucket entries is at most 1/4
+  // the number of suffix array entries.
   void makeBuckets( indexT bucketDepth );
+
+  // Return the maximum prefix size covered by the buckets.
+  indexT maxBucketPrefix() const { return bucketSteps.size(); }
+
   void clear();
 
   void fromFiles( const std::string& baseName,
 		  indexT indexNum, indexT bucketDepth );
+
   void toFiles( const std::string& baseName ) const;
 
   // Find the smallest match to the text, starting at the given
@@ -59,6 +73,7 @@ struct SuffixArray{
   void countMatches( std::vector<unsigned long long>& counts,
 		     const uchar* queryPtr ) const;
 
+private:
   const std::vector<uchar>& text;
   const std::vector<indexT>& mask;
   unsigned alphSize;  // excluding delimiter symbol
@@ -76,10 +91,9 @@ struct SuffixArray{
   static const indexT* upperBound( const indexT* beg, const indexT* end,
 				   const uchar* textBase, uchar symbol );
 
+  indexT defaultBucketDepth();
   void makeBucketSteps( indexT bucketDepth );
   void makeBucketMask( indexT bucketDepth );
-
-  struct Stack{ indexT* b; indexT* e; indexT d; const uchar* t; };
 
   void radixSort( indexT* beg, indexT* end,
 		  indexT depth, const uchar* textBase );

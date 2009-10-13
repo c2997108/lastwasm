@@ -7,8 +7,8 @@ CXXFLAGS = -Wall -W -Wcast-qual -Wwrite-strings -Wsign-promo	\
 
 CCFLAGS = -Wall -g
 
-DBSRC = Alphabet.cc MultiSequence.cc PeriodicSpacedSeed.cc	\
-SuffixArray.cc LastdbArguments.cc io.cc lastdb.cc
+DBSRC = Alphabet.cc MultiSequence.cc PeriodicSpacedSeed.cc		\
+SuffixArray.cc LastdbArguments.cc io.cc SuffixArraySort.cc lastdb.cc
 
 DBINC = Alphabet.hh MultiSequence.hh PeriodicSpacedSeed.hh	\
 SuffixArray.hh LastdbArguments.hh io.hh stringify.hh version.hh
