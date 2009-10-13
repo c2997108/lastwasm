@@ -35,7 +35,7 @@ struct SuffixArray{
   // and return 1.  Positions starting with delimiters aren't added.
   // If the index size would exceed maxBytes, don't add anything, and
   // return 0.
-  int makeIndex( indexT beg, indexT end, indexT step, std::size_t maxBytes );
+  int addIndices( indexT beg, indexT end, indexT step, std::size_t maxBytes );
 
   std::size_t indexBytes() const{ return index.size() * sizeof(indexT); }
   void sortIndex();
@@ -91,5 +91,5 @@ struct SuffixArray{
 			    const uchar* textBase );
 };
 
-}  // end namespace cbrc
-#endif  // SUFFIXARRAY_HH
+}  // end namespace
+#endif

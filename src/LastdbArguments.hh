@@ -20,7 +20,7 @@ struct LastdbArguments{
   // options:
   bool isProtein;
   bool isCaseSensitive;
-  std::string maskPattern;
+  std::string spacedSeed;
   std::size_t volumeSize;  // type?
   indexT indexStep;
   std::string userAlphabet;
@@ -32,5 +32,5 @@ struct LastdbArguments{
   int inputStart;  // index in argv of first input filename
 };
 
-}  // end namespace cbrc
-#endif  // LASTDBARGUMENTS_HH
+}  // end namespace
+#endif

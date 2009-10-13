@@ -5,10 +5,10 @@
 #include <cassert>
 //#include <iostream>  // for debugging
 
-namespace cbrc{
+using namespace cbrc;
 
-int SuffixArray::makeIndex( indexT beg, indexT end, indexT step,
-			    std::size_t maxBytes ){
+int SuffixArray::addIndices( indexT beg, indexT end, indexT step,
+			     std::size_t maxBytes ){
   assert( step > 0 );
   indexT oldSize = index.size();
 
@@ -418,5 +418,3 @@ void SuffixArray::insertionSortSimple( indexT* beg, indexT* end,
     }
   }
 }
-
-}  // end namespace cbrc

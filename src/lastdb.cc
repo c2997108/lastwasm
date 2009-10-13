@@ -17,7 +17,7 @@
 
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastdb: " << x << '\n'
 
-namespace cbrc{
+using namespace cbrc;
 
 typedef unsigned indexT;
 
@@ -45,14 +45,13 @@ indexT defaultBucketDepth( unsigned alphSize, indexT indexNum ){
 
 // Write the .prj file for the whole database
 void writeOuterPrj( const std::string& fileName, const Alphabet& alph,
-		    const PeriodicSpacedSeed& mask, unsigned volumes ){
+		    const PeriodicSpacedSeed& seed, unsigned volumes ){
   std::ofstream f( fileName.c_str() );
-  if( !f ) throw std::runtime_error("can't open file: " + fileName );
   f << "version=" <<
 #include "version.hh"
     << '\n';
   f << "alphabet=" << alph << '\n';
-  f << "spacedseed=" << mask << '\n';
+  f << "spacedseed=" << seed << '\n';
   f << "volumes=" << volumes << '\n';
   if( !f ) throw std::runtime_error("can't write file: " + fileName);
 }
@@ -61,7 +60,6 @@ void writeOuterPrj( const std::string& fileName, const Alphabet& alph,
 void writeInnerPrj( const std::string& fileName,
 		    const MultiSequence& multi, const SuffixArray& sa ){
   std::ofstream f( fileName.c_str() );
-  if( !f ) throw std::runtime_error("can't open file: " + fileName );
   f << "totallength=" << multi.ends.back() << '\n';
   f << "specialcharacters=" << multi.ends.back() - sa.index.size() << '\n';
   f << "numofsequences=" << multi.finishedSequences() << '\n';
@@ -119,8 +117,8 @@ appendFromFasta( MultiSequence& multi, SuffixArray& sa,
     if( args.volumeSize < multi.seq.size() ) maxIndexBytes = 0;
     if( multi.finishedSequences() == 1 ) maxIndexBytes = std::size_t(-1);
 
-    if( !sa.makeIndex( *(multi.ends.end() - 2), *(multi.ends.end() - 1),
-		       args.indexStep, maxIndexBytes ) ){
+    if( !sa.addIndices( *(multi.ends.end() - 2), *(multi.ends.end() - 1),
+			args.indexStep, maxIndexBytes ) ){
       multi.unfinish();
     }
   }
@@ -132,13 +130,13 @@ void lastdb( int argc, char** argv ){
   LastdbArguments args;
   args.fromArgs( argc, argv );
   Alphabet alph;
-  PeriodicSpacedSeed mask;
+  PeriodicSpacedSeed seed;
   MultiSequence multi;
   makeAlphabet( alph, args );
-  mask.fromString( args.maskPattern );
-  multi.initForAppending( mask.maxOffset );
+  seed.fromString( args.spacedSeed );
+  multi.initForAppending( seed.maxOffset );
   alph.tr( multi.seq.begin(), multi.seq.end() );
-  SuffixArray sa( multi.seq, mask.offsets, alph.size );
+  SuffixArray sa( multi.seq, seed.offsets, alph.size );
   unsigned volumeNumber = 0;
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
@@ -159,14 +157,12 @@ void lastdb( int argc, char** argv ){
     makeVolume( multi, sa, args, alph, volumeNumber++ );
   }
 
-  writeOuterPrj( args.lastdbName + ".prj", alph, mask, volumeNumber );
-}
-
+  writeOuterPrj( args.lastdbName + ".prj", alph, seed, volumeNumber );
 }
 
 int main( int argc, char** argv )
 try{
-  cbrc::lastdb( argc, argv );
+  lastdb( argc, argv );
   return EXIT_SUCCESS;
 }
 catch( const std::bad_alloc& e ) {  // bad_alloc::what() may be unfriendly

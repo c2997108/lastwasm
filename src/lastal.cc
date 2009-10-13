@@ -81,20 +81,16 @@ void makeScoreMatrix( const std::string& matrixFile ){
 // Read the .prj file for the whole database
 void readOuterPrj( const std::string& fileName, unsigned& volumes ){
   std::ifstream f( fileName.c_str() );
-  if( !f ) throw std::runtime_error("can't open file: " + fileName );
   unsigned version = 0;
 
-  std::string word;
-  while( std::getline( f >> std::ws, word, '=' ) ){  // eat leading whitespace
-    /**/ if( word == "alphabet" ) f >> alph;
-    else if( word == "spacedseed" ) f >> spacedSeed;
-    else if( word == "volumes" ) f >> volumes;
-    else if( word == "version" ){
-      f >> word;
-      std::istringstream iss(word);
-      iss >> version;
-    }
-    else f >> word;
+  std::string line, word;
+  while( getline( f, line ) ){
+    std::istringstream iss(line);
+    getline( iss, word, '=' );
+    if( word == "version" ) iss >> version;
+    if( word == "alphabet" ) iss >> alph;
+    if( word == "spacedseed" ) iss >> spacedSeed;
+    if( word == "volumes" ) iss >> volumes;
   }
 
   if( f.eof() && !f.bad() ) f.clear();
@@ -110,14 +106,14 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes ){
 void readInnerPrj( const std::string& fileName, indexT& seqCount,
 		   indexT& delimiterNum, indexT& bucketDepth ){
   std::ifstream f( fileName.c_str() );
-  if( !f ) throw std::runtime_error("can't open file: " + fileName );
 
-  std::string word;
-  while( std::getline( f >> std::ws, word, '=' ) ){  // eat leading whitespace
-    /**/ if( word == "numofsequences" ) f >> seqCount;
-    else if( word == "specialcharacters" ) f >> delimiterNum;
-    else if( word == "prefixlength" ) f >> bucketDepth;
-    else f >> word;
+  std::string line, word;
+  while( getline( f, line ) ){
+    std::istringstream iss(line);
+    getline( iss, word, '=' );
+    if( word == "numofsequences" ) iss >> seqCount;
+    if( word == "specialcharacters" ) iss >> delimiterNum;
+    if( word == "prefixlength" ) iss >> bucketDepth;
   }
 
   if( f.eof() && !f.bad() ) f.clear();

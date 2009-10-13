@@ -12,12 +12,12 @@ static void badopt( char opt, const char* arg ){
                             opt + ' ' + arg );
 }
 
-namespace cbrc{
+using namespace cbrc;
 
 LastdbArguments::LastdbArguments() :
   isProtein(false),
   isCaseSensitive(false),
-  maskPattern("1"),
+  spacedSeed("1"),
   volumeSize(0x50000000),  // 1.25 Gbytes
   indexStep(1),
   userAlphabet(""),
@@ -33,7 +33,7 @@ Main Options (default settings):\n\
 -h: show all options and their default settings\n\
 -p: interpret the sequences as proteins\n\
 -c: read the sequences case-sensitively\n\
--m: periodic spaced-seed pattern (" + maskPattern + ")";
+-m: spaced-seed pattern (" + spacedSeed + ")";
 
     std::string help = usage + "\n\
 \n\
@@ -61,7 +61,7 @@ LAST home page: http://last.cbrc.jp/\n\
       isCaseSensitive = true;
       break;
     case 'm':
-      maskPattern = optarg;
+      spacedSeed = optarg;
       break;
     case 's':
       unstringifySize( volumeSize, optarg );
@@ -89,5 +89,3 @@ LAST home page: http://last.cbrc.jp/\n\
   lastdbName = argv[optind++];
   inputStart = optind;
 }
-
-}  // end namespace cbrc
