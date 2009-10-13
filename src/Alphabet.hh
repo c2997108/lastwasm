@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2009 Martin C. Frith
 
 // This struct maps characters to codes (small integers) and back.
 // The mapping can be either case-sensitive or case-insensitive.
@@ -30,13 +30,16 @@ struct Alphabet{
   // make lowercase letters have the same codes as uppercase letters
   void makeCaseInsensitive();
 
-  void tr( std::vector<uchar>::iterator beg,  // translate (encode) in place
+  // translate (encode) a sequence of letters to numbers, in place
+  void tr( std::vector<uchar>::iterator beg,
 	   std::vector<uchar>::iterator end ) const;
 
-  std::string rtString( std::vector<uchar>::const_iterator beg,  // decode
+  // reverse-translate (decode) a sequence of numbers to letters
+  std::string rtString( std::vector<uchar>::const_iterator beg,
 			std::vector<uchar>::const_iterator end ) const;
 
-  void rc( std::vector<uchar>::iterator beg,  // reverse & complement in place
+  // reverse and complement a sequence of numbers, in place
+  void rc( std::vector<uchar>::iterator beg,
            std::vector<uchar>::iterator end ) const;
 
   // reduce the alphabet by merging codes for "improper" letters
@@ -58,5 +61,5 @@ struct Alphabet{
 std::ostream& operator<<( std::ostream& s, const Alphabet& a );
 std::istream& operator>>( std::istream& s, Alphabet& a );
 
-}  // end namespace cbrc
-#endif  // ALPHABET_HH
+}  // end namespace
+#endif

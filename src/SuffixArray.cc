@@ -57,10 +57,10 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
 			 const uchar* queryPtr,
 			 indexT maxHits, indexT minDepth ) const{
   // match using buckets:
-  indexT bucketDepth = bucketMask.size();
+  indexT bucketDepth = maxBucketPrefix();
+  const indexT* bucketPtr = &buckets[0];
   indexT bucketBeg = 0;
   indexT bucketEnd = index.size();
-  const indexT* bucketPtr = &buckets[0];
 
   for( indexT depth = 0; depth < bucketDepth; ++depth ){
     uchar symbol = *queryPtr;
@@ -104,10 +104,10 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
 void SuffixArray::countMatches( std::vector<unsigned long long>& counts,
 				const uchar* queryPtr ) const{
   // match using buckets:
-  indexT bucketDepth = bucketMask.size();
+  indexT bucketDepth = maxBucketPrefix();
+  const indexT* bucketPtr = &buckets[0];
   indexT bucketBeg = 0;
   indexT bucketEnd = index.size();
-  const indexT* bucketPtr = &buckets[0];
 
   for( indexT depth = 0; depth < bucketDepth; ++depth ){
     uchar symbol = *queryPtr;

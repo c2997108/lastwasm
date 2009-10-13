@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-namespace cbrc{
+using namespace cbrc;
 
 const char* Alphabet::dna = "ACGT";
 
@@ -132,14 +132,12 @@ void Alphabet::makeComplement(){
   }
 }
 
-std::ostream& operator<<( std::ostream& s, const Alphabet& a ){
+std::ostream& cbrc::operator<<( std::ostream& s, const Alphabet& a ){
   return s << a.letters;
 }
 
-std::istream& operator>>( std::istream& s, Alphabet& a ){
+std::istream& cbrc::operator>>( std::istream& s, Alphabet& a ){
   s >> a.letters;
   if( s ) a.init();
   return s;
 }
-
-}  // end namespace cbrc

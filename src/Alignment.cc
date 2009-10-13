@@ -7,8 +7,8 @@
 #include <cassert>
 
 // make C++ tolerable:
-#define BEG(vector) (&(vector)[0])
-#define END(vector) (&(vector)[0] + (vector).size())
+#define IT(type) std::vector<type>::iterator
+#define CI(type) std::vector<type>::const_iterator
 
 using namespace cbrc;
 
@@ -37,7 +37,7 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
   // convert left-extension coordinates to sequence coordinates:
   indexT seedBeg1 = seed.beg1();
   indexT seedBeg2 = aaToDna( seed.beg2(), frameSize );
-  for( SegmentPair* i = BEG(blocks); i < END(blocks); ++i ){
+  for( IT(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     i->start1 = seedBeg1 - i->start1 - i->size;
     i->start2 = dnaToAa( seedBeg2 - i->start2, frameSize ) - i->size;
   }
@@ -64,7 +64,8 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
   // convert right-extension coordinates to sequence coordinates:
   indexT seedEnd1 = seed.end1();
   indexT seedEnd2 = aaToDna( seed.end2(), frameSize );
-  for( SegmentPair* i = BEG(forwardBlocks); i < END(forwardBlocks); ++i ){
+  for( IT(SegmentPair) i = forwardBlocks.begin(); i < forwardBlocks.end();
+       ++i ){
     i->start1 = seedEnd1 + i->start1;
     i->start2 = dnaToAa( seedEnd2 + i->start2, frameSize );
   }
@@ -90,8 +91,8 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
   int maxScore = 0;
   int runningScore = 0;
 
-  for( const SegmentPair* i = BEG(blocks); i < END(blocks); ++i ){
-    if( i > BEG(blocks) ){  // between each pair of aligned blocks:
+  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
+    if( i > blocks.begin() ){  // between each pair of aligned blocks:
       indexT gapBeg1 = (i-1)->end1();
       indexT gapEnd1 = i->beg1();
       indexT gapSize1 = gapEnd1 - gapBeg1;
@@ -119,7 +120,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 
       if( runningScore > maxScore ) maxScore = runningScore;
       else if( runningScore <= 0 ||                  // non-optimal prefix
-	       (s1 == e1 && i+1 == END(blocks)) ||   // non-optimal suffix
+	       (s1 == e1 && i+1 == blocks.end()) ||   // non-optimal suffix
 	       runningScore < maxScore - maxDrop ){  // excessive score drop
 	return false;
       }
