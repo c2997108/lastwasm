@@ -66,10 +66,10 @@ void makeVolume( MultiSequence& multi, SuffixArray& sa,
   alph.mergeImproperCodes( multi.seq.begin(), multi.seq.end() );
 
   LOG( "sorting..." );
-  sa.sortIndex( &multi.seq[0], seed );
+  sa.sortIndex( &multi.seq[0], seed, alph.size );
 
   LOG( "bucketing..." );
-  sa.makeBuckets( &multi.seq[0], seed, args.bucketDepth );
+  sa.makeBuckets( &multi.seq[0], seed, alph.size, args.bucketDepth );
 
   LOG( "writing suf, bck..." );
   sa.toFiles( baseName );
@@ -103,7 +103,7 @@ appendFromFasta( MultiSequence& multi, SuffixArray& sa,
 
     if( !sa.addIndices( &multi.seq[0],
 			*(multi.ends.end() - 2), *(multi.ends.end() - 1),
-			args.indexStep, maxIndexBytes ) ){
+			args.indexStep, alph.size, maxIndexBytes ) ){
       multi.unfinish();
     }
   }
@@ -117,11 +117,11 @@ void lastdb( int argc, char** argv ){
   Alphabet alph;
   PeriodicSpacedSeed seed;
   MultiSequence multi;
+  SuffixArray sa;
   makeAlphabet( alph, args );
   seed.fromString( args.spacedSeed );
   multi.initForAppending( seed.maxOffset );
   alph.tr( multi.seq.begin(), multi.seq.end() );
-  SuffixArray sa( alph.size );
   unsigned volumeNumber = 0;
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){

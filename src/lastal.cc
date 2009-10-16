@@ -42,6 +42,7 @@ namespace {
   Alphabet queryAlph;  // for translated alignment
   GeneticCode geneticCode;
   PeriodicSpacedSeed spacedSeed;
+  SuffixArray suffixArray;
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
   Xdrop3FrameAligner xdropAligner;
@@ -139,7 +140,7 @@ void writeCounts( std::ostream& out ){
 }
 
 // Count all matches, of all sizes, of a query batch against a suffix array
-void countMatches( const SuffixArray& suffixArray, char strand ){
+void countMatches( char strand ){
   LOG( "counting..." );
   indexT seqNum = strand == '+' ? 0 : query.finishedSequences() - 1;
 
@@ -165,12 +166,12 @@ void countMatches( const SuffixArray& suffixArray, char strand ){
     }
 
     suffixArray.countMatches( matchCounts[seqNum], &query.seq[i],
-			      &text.seq[0], spacedSeed );
+			      &text.seq[0], spacedSeed, alph.size );
   }
 }
 
 // Find query matches to the suffix array, and do gapless extensions
-void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
+void alignGapless( SegmentPairPot& gaplessAlns,
 		   char strand, std::ostream& out ){
   const uchar* qseq = &query.seq[0];
   const uchar* tseq = &text.seq[0];
@@ -180,7 +181,7 @@ void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
-    suffixArray.match( beg, end, qseq + i, tseq, spacedSeed,
+    suffixArray.match( beg, end, qseq + i, tseq, spacedSeed, alph.size,
 		       args.oneHitMultiplicity, args.minHitDepth );
 
     // Tried: if we hit a delimiter when using contiguous seeds, then
@@ -307,9 +308,9 @@ void alignFinish( const AlignmentPot& gappedAlns,
 }
 
 // Scan one batch of query sequences against one database volume
-void scan( const SuffixArray& suffixArray, char strand, std::ostream& out ){
+void scan( char strand, std::ostream& out ){
   if( args.outputType == 0 ){  // we just want match counts
-    countMatches( suffixArray, strand );
+    countMatches( strand );
     return;
   }
 
@@ -323,7 +324,7 @@ void scan( const SuffixArray& suffixArray, char strand, std::ostream& out ){
   LOG( "scanning..." );
 
   SegmentPairPot gaplessAlns;
-  alignGapless( gaplessAlns, suffixArray, strand, out );
+  alignGapless( gaplessAlns, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
   Centroid centroid( xdropAligner, matGapped, args.temperature );  // slow?
@@ -342,8 +343,7 @@ void scan( const SuffixArray& suffixArray, char strand, std::ostream& out ){
 
 // Scan one batch of query sequences against one database volume,
 // after optionally translating the query
-void translateAndScan( const SuffixArray& suffixArray, char strand,
-		       std::ostream& out ){
+void translateAndScan( char strand, std::ostream& out ){
   if( args.isTranslated() ){
     LOG( "translating..." );
     std::vector<uchar> translation( query.ends.back() );
@@ -351,21 +351,21 @@ void translateAndScan( const SuffixArray& suffixArray, char strand,
                            query.seq.begin() + query.ends.back(),
 			   translation.begin() );
     query.seq.swap(translation);
-    scan( suffixArray, strand, out );
+    scan( strand, out );
     query.seq.swap(translation);
   }
-  else scan( suffixArray, strand, out );
+  else scan( strand, out );
 }
 
 // Read one database volume
-void readVolume( SuffixArray& suffixArray, unsigned volumeNumber ){
+void readVolume( unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
   LOG( "reading " << baseName << "..." );
   indexT seqCount = -1u, delimiterNum = -1u, bucketDepth = -1u;
   readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
   text.fromFiles( baseName, seqCount );
   suffixArray.fromFiles( baseName, text.ends.back() - delimiterNum,
-			 bucketDepth, spacedSeed );
+			 bucketDepth, spacedSeed, alph.size );
 }
 
 void reverseComplementQuery(){
@@ -379,8 +379,7 @@ void reverseComplementQuery(){
 }
 
 // Scan one batch of query sequences against all database volumes
-void scanAllVolumes( SuffixArray& suffixArray,
-		     unsigned volumes, std::ostream& out ){
+void scanAllVolumes( unsigned volumes, std::ostream& out ){
   if( args.outputType == 0 ){
     matchCounts.clear();
     matchCounts.resize( query.finishedSequences() );
@@ -388,16 +387,16 @@ void scanAllVolumes( SuffixArray& suffixArray,
   else if( args.inputFormat > 0 ) pssm = new int[ query.ends.back() ][MAT];
 
   for( unsigned i = 0; i < volumes; ++i ){
-    if( text.seq.empty() || volumes > 1 ) readVolume( suffixArray, i );
+    if( text.seq.empty() || volumes > 1 ) readVolume( i );
 
     if( args.strand == 2 && i > 0 ) reverseComplementQuery();
 
-    if( args.strand != 0 ) translateAndScan( suffixArray, '+', out );
+    if( args.strand != 0 ) translateAndScan( '+', out );
 
     if( args.strand == 2 || (args.strand == 0 && i == 0) )
       reverseComplementQuery();
 
-    if( args.strand != 1 ) translateAndScan( suffixArray, '-', out );
+    if( args.strand != 1 ) translateAndScan( '-', out );
   }
 
   if( args.outputType == 0 ) writeCounts( out );
@@ -486,8 +485,6 @@ void lastal( int argc, char** argv ){
 
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
 
-  SuffixArray suffixArray( alph.size );
-
   if( args.inputFormat > 0 ){
     assert( matGapless == matGapped );
     int asciiOffset = (args.inputFormat < 2) ? 33 : 64;
@@ -530,14 +527,14 @@ void lastal( int argc, char** argv ){
 
     while( appendFromFasta( in ) ){
       if( !query.isFinished() ){
-	scanAllVolumes( suffixArray, volumes, out );
+	scanAllVolumes( volumes, out );
 	query.reinitForAppending();
       }
     }
   }
 
   if( query.finishedSequences() > 0 ){
-    scanAllVolumes( suffixArray, volumes, out );
+    scanAllVolumes( volumes, out );
   }
 
   out.precision(6);  // reset the precision to the default value

@@ -20,7 +20,8 @@ namespace{
 #define  POP(b1, e1, d1, t1) b1 = (--sp)->b, e1 = sp->e, d1 = sp->d, t1 = sp->t
 
 void SuffixArray::sortIndex( const uchar* text,
-			     const PeriodicSpacedSeed& seed ){
+			     const PeriodicSpacedSeed& seed,
+			     unsigned alphSize ){
   PUSH( &index[0], &index[0] + index.size(), 0, text );
 
   while( sp > stack ){
@@ -31,7 +32,7 @@ void SuffixArray::sortIndex( const uchar* text,
     POP( beg, end, depth, textBase );
 
     if( end - beg < 10 ){  // 10 seems good for hg18 chr21
-      insertionSort( seed, beg, end, depth, textBase );
+      insertionSort( seed, alphSize, beg, end, depth, textBase );
       continue;
     }
 
@@ -42,12 +43,13 @@ void SuffixArray::sortIndex( const uchar* text,
     if( alphSize == 4 )
       radixSortAlph4( textBase, textNext, beg, end, depth );
     else
-      radixSort( textBase, textNext, beg, end, depth );
+      radixSort( textBase, textNext, beg, end, depth, alphSize );
   }
 }
 
 void SuffixArray::radixSort( const uchar* textBase, const uchar* textNext,
-			     indexT* beg, indexT* end, indexT depth ){
+			     indexT* beg, indexT* end, indexT depth,
+			     unsigned alphSize ){
   static indexT bucketSize[256];  // initialized to zero at startup
   /*  */ indexT* bucketEnd[256];  // "static" makes little difference to speed
 
@@ -133,10 +135,11 @@ void SuffixArray::radixSortAlph4( const uchar* textBase, const uchar* textNext,
 }
 
 void SuffixArray::insertionSort( const PeriodicSpacedSeed& seed,
+				 unsigned alphSize,
 				 indexT* beg, indexT* end,
 				 indexT depth, const uchar* textBase ){
   if( seed.weight == 1 && seed.offsets[0] == 1 ){
-    insertionSortSimple( beg, end, textBase );  // how much faster?
+    insertionSortSimple( alphSize, beg, end, textBase );  // how much faster?
     return;
   }
 
@@ -163,7 +166,8 @@ void SuffixArray::insertionSort( const PeriodicSpacedSeed& seed,
   }
 }
 
-void SuffixArray::insertionSortSimple( indexT* beg, indexT* end,
+void SuffixArray::insertionSortSimple( unsigned alphSize,
+				       indexT* beg, indexT* end,
 				       const uchar* textBase ){
   for( indexT* i = beg+1; i < end; ++i ){
     for( indexT* j = i; j > beg; --j ){

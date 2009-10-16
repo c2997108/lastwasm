@@ -10,7 +10,7 @@ using namespace cbrc;
 
 int SuffixArray::addIndices( const uchar* text,
 			     indexT beg, indexT end, indexT step,
-			     std::size_t maxBytes ){
+			     unsigned alphSize, std::size_t maxBytes ){
   assert( step > 0 );
   indexT oldSize = index.size();
 
@@ -37,11 +37,12 @@ void SuffixArray::clear(){
 
 void SuffixArray::fromFiles( const std::string& baseName,
 			     indexT indexNum, indexT bucketDepth,
-			     const PeriodicSpacedSeed& seed ){
+			     const PeriodicSpacedSeed& seed,
+			     unsigned alphSize ){
   index.resize(indexNum);  // unwanted zero-fill
   vectorFromBinaryFile( index, baseName + ".suf" );
 
-  makeBucketSteps( bucketDepth );
+  makeBucketSteps( alphSize, bucketDepth );
   makeBucketMask( seed, bucketDepth );
   if( bucketDepth == 0 ) return;
 
@@ -58,7 +59,7 @@ void SuffixArray::toFiles( const std::string& baseName ) const{
 // could & probably should return the match depth
 void SuffixArray::match( const indexT*& beg, const indexT*& end,
 			 const uchar* queryPtr, const uchar* text,
-			 const PeriodicSpacedSeed& seed,
+			 const PeriodicSpacedSeed& seed, unsigned alphSize,
 			 indexT maxHits, indexT minDepth ) const{
   // match using buckets:
   indexT bucketDepth = maxBucketPrefix();
@@ -107,7 +108,8 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
 
 void SuffixArray::countMatches( std::vector<unsigned long long>& counts,
 				const uchar* queryPtr, const uchar* text,
-				const PeriodicSpacedSeed& seed ) const{
+				const PeriodicSpacedSeed& seed,
+				unsigned alphSize ) const{
   // match using buckets:
   indexT bucketDepth = maxBucketPrefix();
   const indexT* bucketPtr = &buckets[0];
@@ -202,10 +204,10 @@ SuffixArray::upperBound( const indexT* beg, const indexT* end,
 
 void SuffixArray::makeBuckets( const uchar* text,
 			       const PeriodicSpacedSeed& seed,
-			       indexT bucketDepth ){
-  if( bucketDepth == -1u ) bucketDepth = defaultBucketDepth();
+			       unsigned alphSize, indexT bucketDepth ){
+  if( bucketDepth == -1u ) bucketDepth = defaultBucketDepth( alphSize );
 
-  makeBucketSteps( bucketDepth );
+  makeBucketSteps( alphSize, bucketDepth );
   makeBucketMask( seed, bucketDepth );
   if( bucketDepth == 0 ) return;
 
@@ -227,7 +229,7 @@ void SuffixArray::makeBuckets( const uchar* text,
   buckets.resize( bucketSteps[0] * alphSize + 1, index.size() );
 }
 
-void SuffixArray::makeBucketSteps( indexT bucketDepth ){
+void SuffixArray::makeBucketSteps( unsigned alphSize, indexT bucketDepth ){
   bucketSteps.resize(bucketDepth);
   indexT depth = bucketDepth;
   indexT step = 1;
@@ -250,7 +252,7 @@ void SuffixArray::makeBucketMask( const PeriodicSpacedSeed& seed,
   }
 }
 
-SuffixArray::indexT SuffixArray::defaultBucketDepth(){
+SuffixArray::indexT SuffixArray::defaultBucketDepth( unsigned alphSize ){
   indexT maxBucketEntries = index.size() / 4;
   indexT bucketDepth = 0;
   indexT kmerEntries = 1;
