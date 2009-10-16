@@ -94,16 +94,6 @@ private:
   indexT defaultBucketDepth( unsigned alphSize );
   void makeBucketSteps( unsigned alphSize, indexT bucketDepth );
   void makeBucketMask( const PeriodicSpacedSeed& seed, indexT bucketDepth );
-
-  void radixSort( const uchar* textBase, const uchar* textNext,
-		  indexT* beg, indexT* end, indexT depth, unsigned alphSize );
-  void radixSortAlph4( const uchar* textBase, const uchar* textNext,
-		       indexT* beg, indexT* end, indexT depth );
-  void insertionSort( const PeriodicSpacedSeed& seed, unsigned alphSize,
-		      indexT* beg, indexT* end,
-		      indexT depth, const uchar* textBase );
-  void insertionSortSimple( unsigned alphSize,
-			    indexT* beg, indexT* end, const uchar* textBase );
 };
 
 }  // end namespace
