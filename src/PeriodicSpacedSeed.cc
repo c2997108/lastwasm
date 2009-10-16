@@ -32,6 +32,8 @@ void PeriodicSpacedSeed::init(){
   offsets.push_back(off);
 
   maxOffset = *max_element( offsets.begin(), offsets.end() );
+
+  weight = offsets.size();
 }
 
 std::ostream& operator<<( std::ostream& s, const PeriodicSpacedSeed& m ){

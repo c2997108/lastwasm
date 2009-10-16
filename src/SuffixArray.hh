@@ -23,40 +23,42 @@
 
 namespace cbrc{
 
+class PeriodicSpacedSeed;
+
 class SuffixArray{
 public:
   typedef unsigned indexT;
   typedef unsigned char uchar;
 
-  SuffixArray( const std::vector<uchar>& t, const std::vector<indexT>& m,
-	       unsigned a )
-    : text(t), mask(m), alphSize(a), maskSize( m.size() ){}
+  SuffixArray( unsigned a ) : alphSize(a){}
 
   // Add (unsorted) indices for text positions between beg and end,
   // and return 1.  Positions starting with delimiters aren't added.
   // If the index size would exceed maxBytes, don't add anything, and
   // return 0.
-  int addIndices( indexT beg, indexT end, indexT step, std::size_t maxBytes );
+  int addIndices( const uchar* text, indexT beg, indexT end, indexT step,
+		  std::size_t maxBytes );
 
   indexT indexSize() const{ return index.size(); }
   std::size_t indexBytes() const{ return index.size() * sizeof(indexT); }
 
   // Sort the suffix array (but don't make the buckets).
-  void sortIndex();
+  void sortIndex( const uchar* text, const PeriodicSpacedSeed& seed );
 
   // Make the buckets.  If bucketDepth == -1u, then a default
   // bucketDepth is used.  The default is: the maximum possible
   // bucketDepth such that the number of bucket entries is at most 1/4
   // the number of suffix array entries.
-  void makeBuckets( indexT bucketDepth );
+  void makeBuckets( const uchar* text, const PeriodicSpacedSeed& seed,
+		    indexT bucketDepth );
 
   // Return the maximum prefix size covered by the buckets.
   indexT maxBucketPrefix() const { return bucketSteps.size(); }
 
   void clear();
 
-  void fromFiles( const std::string& baseName,
-		  indexT indexNum, indexT bucketDepth );
+  void fromFiles( const std::string& baseName, indexT indexNum,
+		  indexT bucketDepth, const PeriodicSpacedSeed& seed );
 
   void toFiles( const std::string& baseName ) const;
 
@@ -65,19 +67,18 @@ public:
   // matches, and the match-depth is at least minDepth.  Return the
   // range of matching indices via beg and end.
   void match( const indexT*& beg, const indexT*& end,
-	      const uchar* queryPtr,
+	      const uchar* queryPtr, const uchar* text,
+	      const PeriodicSpacedSeed& seed,
 	      indexT maxHits, indexT minDepth ) const;
 
   // Count matches of all sizes, starting at the given position in the
   // query.  Don't try this for large self-comparisons!
   void countMatches( std::vector<unsigned long long>& counts,
-		     const uchar* queryPtr ) const;
+		     const uchar* queryPtr, const uchar* text,
+		     const PeriodicSpacedSeed& seed ) const;
 
 private:
-  const std::vector<uchar>& text;
-  const std::vector<indexT>& mask;
   unsigned alphSize;  // excluding delimiter symbol
-  unsigned maskSize;  // same as mask.size(), but faster!!!
   std::vector<indexT> index;  // sorted indices
   std::vector<indexT> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
@@ -93,13 +94,14 @@ private:
 
   indexT defaultBucketDepth();
   void makeBucketSteps( indexT bucketDepth );
-  void makeBucketMask( indexT bucketDepth );
+  void makeBucketMask( const PeriodicSpacedSeed& seed, indexT bucketDepth );
 
   void radixSort( const uchar* textBase, const uchar* textNext,
 		  indexT* beg, indexT* end, indexT depth );
   void radixSortAlph4( const uchar* textBase, const uchar* textNext,
 		       indexT* beg, indexT* end, indexT depth );
-  void insertionSort( indexT* beg, indexT* end,
+  void insertionSort( const PeriodicSpacedSeed& seed,
+		      indexT* beg, indexT* end,
 		      indexT depth, const uchar* textBase );
   void insertionSortSimple( indexT* beg, indexT* end,
 			    const uchar* textBase );

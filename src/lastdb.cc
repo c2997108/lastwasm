@@ -56,7 +56,7 @@ void writeInnerPrj( const std::string& fileName,
 // Make one database volume, from one batch of sequences
 void makeVolume( MultiSequence& multi, SuffixArray& sa,
 		 const LastdbArguments& args, const Alphabet& alph,
-		 unsigned volumeNumber ){
+		 const PeriodicSpacedSeed& seed, unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
 
   LOG( "writing tis, des, ssp, sds..." );
@@ -66,10 +66,10 @@ void makeVolume( MultiSequence& multi, SuffixArray& sa,
   alph.mergeImproperCodes( multi.seq.begin(), multi.seq.end() );
 
   LOG( "sorting..." );
-  sa.sortIndex();
+  sa.sortIndex( &multi.seq[0], seed );
 
   LOG( "bucketing..." );
-  sa.makeBuckets( args.bucketDepth );
+  sa.makeBuckets( &multi.seq[0], seed, args.bucketDepth );
 
   LOG( "writing suf, bck..." );
   sa.toFiles( baseName );
@@ -101,7 +101,8 @@ appendFromFasta( MultiSequence& multi, SuffixArray& sa,
     if( args.volumeSize < multi.seq.size() ) maxIndexBytes = 0;
     if( multi.finishedSequences() == 1 ) maxIndexBytes = std::size_t(-1);
 
-    if( !sa.addIndices( *(multi.ends.end() - 2), *(multi.ends.end() - 1),
+    if( !sa.addIndices( &multi.seq[0],
+			*(multi.ends.end() - 2), *(multi.ends.end() - 1),
 			args.indexStep, maxIndexBytes ) ){
       multi.unfinish();
     }
@@ -120,7 +121,7 @@ void lastdb( int argc, char** argv ){
   seed.fromString( args.spacedSeed );
   multi.initForAppending( seed.maxOffset );
   alph.tr( multi.seq.begin(), multi.seq.end() );
-  SuffixArray sa( multi.seq, seed.offsets, alph.size );
+  SuffixArray sa( alph.size );
   unsigned volumeNumber = 0;
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
@@ -130,7 +131,7 @@ void lastdb( int argc, char** argv ){
 
     while( appendFromFasta( multi, sa, args, alph, in ) ){
       if( !multi.isFinished() ){
-	makeVolume( multi, sa, args, alph, volumeNumber++ );
+	makeVolume( multi, sa, args, alph, seed, volumeNumber++ );
 	sa.clear();
 	multi.reinitForAppending();
       }
@@ -138,7 +139,7 @@ void lastdb( int argc, char** argv ){
   }
 
   if( multi.finishedSequences() > 0 ){
-    makeVolume( multi, sa, args, alph, volumeNumber++ );
+    makeVolume( multi, sa, args, alph, seed, volumeNumber++ );
   }
 
   writeOuterPrj( args.lastdbName + ".prj", alph, seed, volumeNumber );

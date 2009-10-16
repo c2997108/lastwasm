@@ -164,7 +164,8 @@ void countMatches( const SuffixArray& suffixArray, char strand ){
       if( args.minHitDepth > j - query.seqBeg(seqNum) ) continue;
     }
 
-    suffixArray.countMatches( matchCounts[seqNum], &query.seq[i] );
+    suffixArray.countMatches( matchCounts[seqNum], &query.seq[i],
+			      &text.seq[0], spacedSeed );
   }
 }
 
@@ -179,7 +180,7 @@ void alignGapless( SegmentPairPot& gaplessAlns, const SuffixArray& suffixArray,
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
-    suffixArray.match( beg, end, qseq + i,
+    suffixArray.match( beg, end, qseq + i, tseq, spacedSeed,
 		       args.oneHitMultiplicity, args.minHitDepth );
 
     // Tried: if we hit a delimiter when using contiguous seeds, then
@@ -363,8 +364,8 @@ void readVolume( SuffixArray& suffixArray, unsigned volumeNumber ){
   indexT seqCount = -1u, delimiterNum = -1u, bucketDepth = -1u;
   readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
   text.fromFiles( baseName, seqCount );
-  suffixArray.fromFiles( baseName,
-			 text.ends.back() - delimiterNum, bucketDepth );
+  suffixArray.fromFiles( baseName, text.ends.back() - delimiterNum,
+			 bucketDepth, spacedSeed );
 }
 
 void reverseComplementQuery(){
@@ -485,7 +486,7 @@ void lastal( int argc, char** argv ){
 
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
 
-  SuffixArray suffixArray( text.seq, spacedSeed.offsets, alph.size );
+  SuffixArray suffixArray( alph.size );
 
   if( args.inputFormat > 0 ){
     assert( matGapless == matGapped );

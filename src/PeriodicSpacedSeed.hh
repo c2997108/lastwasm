@@ -19,6 +19,7 @@ struct PeriodicSpacedSeed{
   std::string pattern;            // e.g. "110"
   std::vector<unsigned> offsets;  // e.g. {1, 2}
   unsigned maxOffset;             // the maximum offset
+  unsigned weight;
 };
 
 std::ostream& operator<<( std::ostream& s, const PeriodicSpacedSeed& m );

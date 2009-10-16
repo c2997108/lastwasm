@@ -4,6 +4,7 @@
 // McIlroy, K Bostic, MD McIlroy.
 
 #include "SuffixArray.hh"
+#include "PeriodicSpacedSeed.hh"
 
 using namespace cbrc;
 
@@ -18,8 +19,9 @@ namespace{
 #define PUSH(b1, e1, d1, t1) sp->b = b1, sp->e = e1, sp->d = d1, (sp++)->t = t1
 #define  POP(b1, e1, d1, t1) b1 = (--sp)->b, e1 = sp->e, d1 = sp->d, t1 = sp->t
 
-void SuffixArray::sortIndex(){
-  PUSH( &index[0], &index[0] + index.size(), 0, &text[0] );
+void SuffixArray::sortIndex( const uchar* text,
+			     const PeriodicSpacedSeed& seed ){
+  PUSH( &index[0], &index[0] + index.size(), 0, text );
 
   while( sp > stack ){
     indexT* beg;
@@ -29,12 +31,12 @@ void SuffixArray::sortIndex(){
     POP( beg, end, depth, textBase );
 
     if( end - beg < 10 ){  // 10 seems good for hg18 chr21
-      insertionSort( beg, end, depth, textBase );
+      insertionSort( seed, beg, end, depth, textBase );
       continue;
     }
 
     // get the next textBase, and increment depth, for sorting within buckets:
-    const uchar* textNext = textBase + mask[ depth % maskSize ];
+    const uchar* textNext = textBase + seed.offsets[ depth % seed.weight ];
     ++depth;
 
     if( alphSize == 4 )
@@ -130,15 +132,16 @@ void SuffixArray::radixSortAlph4( const uchar* textBase, const uchar* textNext,
   // don't sort within the delimiter bucket
 }
 
-void SuffixArray::insertionSort( indexT* beg, indexT* end,
+void SuffixArray::insertionSort( const PeriodicSpacedSeed& seed,
+				 indexT* beg, indexT* end,
 				 indexT depth, const uchar* textBase ){
-  if( maskSize == 1 && mask[0] == 1 ){
+  if( seed.weight == 1 && seed.offsets[0] == 1 ){
     insertionSortSimple( beg, end, textBase );  // how much faster?
     return;
   }
 
-  const indexT* maskPtr = &mask[ depth % maskSize ];
-  const indexT* maskEnd = &mask[0] + maskSize;
+  const indexT* maskPtr = &seed.offsets[ depth % seed.weight ];
+  const indexT* maskEnd = &seed.offsets[0] + seed.weight;
 
   for( indexT* i = beg+1; i < end; ++i ){
     for( indexT* j = i; j > beg; --j ){
@@ -151,7 +154,7 @@ void SuffixArray::insertionSort( indexT* beg, indexT* end,
 	s += off;
 	t += off;
 	++m;
-	if( m == maskEnd ) m = &mask[0];  // seems to be faster than modulus
+	if( m == maskEnd ) m = &seed.offsets[0];  // seems faster than modulus
       }
 
       if( *s <= *t ) break;
