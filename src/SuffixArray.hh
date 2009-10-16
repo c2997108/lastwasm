@@ -95,10 +95,10 @@ private:
   void makeBucketSteps( indexT bucketDepth );
   void makeBucketMask( indexT bucketDepth );
 
-  void radixSort( indexT* beg, indexT* end,
-		  indexT depth, const uchar* textBase );
-  void radixSortAlph4( indexT* beg, indexT* end,
-		       indexT depth, const uchar* textBase );
+  void radixSort( const uchar* textBase, const uchar* textNext,
+		  indexT* beg, indexT* end, indexT depth );
+  void radixSortAlph4( const uchar* textBase, const uchar* textNext,
+		       indexT* beg, indexT* end, indexT depth );
   void insertionSort( indexT* beg, indexT* end,
 		      indexT depth, const uchar* textBase );
   void insertionSortSimple( indexT* beg, indexT* end,
