@@ -52,7 +52,7 @@ public:
 		    unsigned alphSize, indexT bucketDepth );
 
   // Return the maximum prefix size covered by the buckets.
-  indexT maxBucketPrefix() const { return bucketSteps.size(); }
+  indexT maxBucketPrefix() const { return bucketSteps.size() - 1; }
 
   void clear();
 

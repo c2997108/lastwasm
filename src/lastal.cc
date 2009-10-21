@@ -131,8 +131,8 @@ void writeCounts( std::ostream& out ){
   for( indexT i = 0; i < matchCounts.size(); ++i ){
     out << query.seqName(i) << '\n';
 
-    for( indexT j = args.minHitDepth - 1; j < matchCounts[i].size(); ++j ){
-      out << j+1 << '\t' << matchCounts[i][j] << '\n';
+    for( indexT j = args.minHitDepth; j < matchCounts[i].size(); ++j ){
+      out << j << '\t' << matchCounts[i][j] << '\n';
     }
 
     out << '\n';  // blank line afterwards

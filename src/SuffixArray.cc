@@ -44,9 +44,8 @@ void SuffixArray::fromFiles( const std::string& baseName,
 
   makeBucketSteps( alphSize, bucketDepth );
   makeBucketMask( seed, bucketDepth );
-  if( bucketDepth == 0 ) return;
 
-  buckets.resize( bucketSteps[0] * alphSize + 1 );  // unwanted zero-fill
+  buckets.resize( bucketSteps[0] );  // unwanted zero-fill
   vectorFromBinaryFile( buckets, baseName + ".bck" );
 }
 
@@ -61,29 +60,32 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
 			 const uchar* queryPtr, const uchar* text,
 			 const PeriodicSpacedSeed& seed, unsigned alphSize,
 			 indexT maxHits, indexT minDepth ) const{
+  indexT depth = 0;
+
   // match using buckets:
   indexT bucketDepth = maxBucketPrefix();
   const indexT* bucketPtr = &buckets[0];
   indexT bucketBeg = 0;
   indexT bucketEnd = index.size();
 
-  for( indexT depth = 0; depth < bucketDepth; ++depth ){
-    uchar symbol = *queryPtr;
-    if( symbol < alphSize ){
-      indexT step = bucketSteps[depth];
-      bucketPtr += symbol * step;
-      bucketBeg = *bucketPtr;
-      bucketEnd = *(bucketPtr + step);
-    }else{
-      bucketBeg = bucketEnd;
-      depth = minDepth;
-    }
-    if( bucketEnd - bucketBeg <= maxHits && depth+1 >= minDepth ){
+  while( depth < bucketDepth ){
+    if( bucketEnd - bucketBeg <= maxHits && depth >= minDepth ){
       beg = &index[0] + bucketBeg;
       end = &index[0] + bucketEnd;
       return;
     }
-    queryPtr += bucketMask[depth];
+    uchar symbol = *queryPtr;
+    if( symbol < alphSize ){
+      queryPtr += bucketMask[depth];
+      ++depth;
+      indexT step = bucketSteps[depth];
+      bucketPtr += symbol * step;
+      bucketBeg = *bucketPtr;
+      bucketEnd = *(bucketPtr + step);
+    }else{  // we hit a delimiter in the query, so finish without any matches:
+      bucketBeg = bucketEnd;
+      minDepth = 0;
+    }
   }
 
   // match using binary search:
@@ -91,18 +93,19 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
   end = &index[0] + bucketEnd;
   const uchar* textBase = text + bucketMaskTotal;
 
-  for( indexT depth = bucketDepth; /* noop */; ++depth ){
+  while( true ){
+    if( indexT(end - beg) <= maxHits && depth >= minDepth ) return;
     uchar symbol = *queryPtr;
     if( symbol < alphSize ){
       equalRange( beg, end, textBase, symbol );
-    }else{
+      indexT off = seed.offsets[ depth % seed.weight ];
+      queryPtr += off;
+      textBase += off;
+      ++depth;
+    }else{  // we hit a delimiter in the query, so finish without any matches:
       beg = end;
-      depth = minDepth;
+      minDepth = 0;
     }
-    if( indexT(end - beg) <= maxHits && depth+1 >= minDepth ) return;
-    indexT off = seed.offsets[ depth % seed.weight ];
-    queryPtr += off;
-    textBase += off;
   }
 }
 
@@ -110,23 +113,26 @@ void SuffixArray::countMatches( std::vector<unsigned long long>& counts,
 				const uchar* queryPtr, const uchar* text,
 				const PeriodicSpacedSeed& seed,
 				unsigned alphSize ) const{
+  indexT depth = 0;
+
   // match using buckets:
   indexT bucketDepth = maxBucketPrefix();
   const indexT* bucketPtr = &buckets[0];
   indexT bucketBeg = 0;
   indexT bucketEnd = index.size();
 
-  for( indexT depth = 0; depth < bucketDepth; ++depth ){
+  while( depth < bucketDepth ){
+    if( bucketBeg == bucketEnd ) return;
+    if( counts.size() <= depth ) counts.resize( depth+1 );
+    counts[depth] += bucketEnd - bucketBeg;
     uchar symbol = *queryPtr;
     if( symbol >= alphSize ) return;
+    queryPtr += bucketMask[depth];
+    ++depth;
     indexT step = bucketSteps[depth];
     bucketPtr += symbol * step;
     bucketBeg = *bucketPtr;
     bucketEnd = *(bucketPtr + step);
-    if( bucketBeg == bucketEnd ) return;
-    if( counts.size() <= depth ) counts.resize( depth+1 );
-    counts[depth] += bucketEnd - bucketBeg;
-    queryPtr += bucketMask[depth];
   }
 
   // match using binary search:
@@ -134,16 +140,17 @@ void SuffixArray::countMatches( std::vector<unsigned long long>& counts,
   const indexT* end = &index[0] + bucketEnd;
   const uchar* textBase = text + bucketMaskTotal;
 
-  for( indexT depth = bucketDepth; /* noop */; ++depth ){
-    uchar symbol = *queryPtr;
-    if( symbol >= alphSize ) return;
-    equalRange( beg, end, textBase, symbol );
+  while( true ){
     if( beg == end ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
     counts[depth] += end - beg;
+    uchar symbol = *queryPtr;
+    if( symbol >= alphSize ) return;
+    equalRange( beg, end, textBase, symbol );
     indexT off = seed.offsets[ depth % seed.weight ];
     queryPtr += off;
     textBase += off;
+    ++depth;
   }
 }
 
@@ -209,34 +216,39 @@ void SuffixArray::makeBuckets( const uchar* text,
 
   makeBucketSteps( alphSize, bucketDepth );
   makeBucketMask( seed, bucketDepth );
-  if( bucketDepth == 0 ) return;
 
   for( indexT i = 0; i < index.size(); ++i ){
-    indexT bucketIndex = 0;
     const uchar* textPtr = text + index[i];
+    indexT bucketIndex = 0;
+    indexT depth = 0;
 
-    for( indexT d = 0; d < bucketDepth; ++d ){
+    while( depth < bucketDepth ){
       unsigned symbol = *textPtr;
-      indexT step = bucketSteps[d];
+      if( symbol >= alphSize ){
+	bucketIndex += bucketSteps[depth] - 1;
+	break;
+      }
+      textPtr += bucketMask[depth];
+      ++depth;
+      indexT step = bucketSteps[depth];
       bucketIndex += symbol * step;
-      if( symbol >= alphSize ) break;
-      textPtr += bucketMask[d];
     }
 
     buckets.resize( bucketIndex+1, i );
   }
 
-  buckets.resize( bucketSteps[0] * alphSize + 1, index.size() );
+  buckets.resize( bucketSteps[0], index.size() );
 }
 
 void SuffixArray::makeBucketSteps( unsigned alphSize, indexT bucketDepth ){
-  bucketSteps.resize(bucketDepth);
-  indexT depth = bucketDepth;
-  indexT step = 1;
+  indexT step = 0;
+  indexT depth = bucketDepth + 1;
+  bucketSteps.resize( depth );
+
   while( depth > 0 ){
     --depth;
-    bucketSteps[depth] = step;
     step = step * alphSize + 1;
+    bucketSteps[depth] = step;
   }
 }
 
