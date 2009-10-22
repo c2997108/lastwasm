@@ -58,14 +58,6 @@ void Alphabet::rc( std::vector<uchar>::iterator beg,
   }
 }
 
-// perhaps slower than it could be:
-void Alphabet::mergeImproperCodes( std::vector<uchar>::iterator beg,
-				   std::vector<uchar>::iterator end ) const{
-  for( /* noop */; beg < end; ++beg ){
-    if( *beg > size ) *beg = size;
-  }
-}
-
 void Alphabet::init(){
   size = letters.size();
 

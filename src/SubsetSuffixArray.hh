@@ -6,26 +6,30 @@
 // positions.  A query sequence can then be matched incrementally to
 // the suffix array using binary search.
 
+// A "subset suffix array" means that, when comparing two suffixes, we
+// consider subsets of letters to be equivalent.  For example, we
+// might consider purines to be equivalent to each other, and
+// pyrimidines to be equivalent to each other.  The subsets may vary
+// from position to position as we compare two suffixes.
+
+// There is always a special subset, called DELIMITER, which doesn't
+// match anything.
+
 // For faster matching, we use "buckets", which store the start and
 // end in the suffix array of all size-k prefixes of the suffixes.
 // They store this information for all values of k from 1 to, say, 12.
-// If the maximum k is B (e.g. 12), and alphabet size is A (e.g. 4 for
-// DNA), then the buckets comprise A^B + A^(B-1) + ... + A + 1
-// numbers.
 
-// In addition, we allow skipping of positions while sorting and
-// matching, using a periodic spaced seed.
+#ifndef SUBSET_SUFFIX_ARRAY_HH
+#define SUBSET_SUFFIX_ARRAY_HH
 
-#ifndef SUFFIXARRAY_HH
-#define SUFFIXARRAY_HH
 #include <string>
 #include <vector>
 
 namespace cbrc{
 
-class PeriodicSpacedSeed;
+class CyclicSubsetSeed;
 
-class SuffixArray{
+class SubsetSuffixArray{
 public:
   typedef unsigned indexT;
   typedef unsigned char uchar;
@@ -35,21 +39,20 @@ public:
   // If the index size would exceed maxBytes, don't add anything, and
   // return 0.
   int addIndices( const uchar* text, indexT beg, indexT end, indexT step,
-		  unsigned alphSize, std::size_t maxBytes );
+		  const CyclicSubsetSeed& seed, std::size_t maxBytes );
 
   indexT indexSize() const{ return index.size(); }
   std::size_t indexBytes() const{ return index.size() * sizeof(indexT); }
 
   // Sort the suffix array (but don't make the buckets).
-  void sortIndex( const uchar* text, const PeriodicSpacedSeed& seed,
-		  unsigned alphSize );
+  void sortIndex( const uchar* text, const CyclicSubsetSeed& seed );
 
   // Make the buckets.  If bucketDepth == -1u, then a default
   // bucketDepth is used.  The default is: the maximum possible
   // bucketDepth such that the number of bucket entries is at most 1/4
   // the number of suffix array entries.
-  void makeBuckets( const uchar* text, const PeriodicSpacedSeed& seed,
-		    unsigned alphSize, indexT bucketDepth );
+  void makeBuckets( const uchar* text, const CyclicSubsetSeed& seed,
+		    indexT bucketDepth );
 
   // Return the maximum prefix size covered by the buckets.
   indexT maxBucketPrefix() const { return bucketSteps.size() - 1; }
@@ -57,8 +60,7 @@ public:
   void clear();
 
   void fromFiles( const std::string& baseName, indexT indexNum,
-		  indexT bucketDepth, const PeriodicSpacedSeed& seed,
-		  unsigned alphSize );
+		  indexT bucketDepth, const CyclicSubsetSeed& seed );
 
   void toFiles( const std::string& baseName ) const;
 
@@ -68,32 +70,33 @@ public:
   // range of matching indices via beg and end.
   void match( const indexT*& beg, const indexT*& end,
 	      const uchar* queryPtr, const uchar* text,
-	      const PeriodicSpacedSeed& seed, unsigned alphSize,
+	      const CyclicSubsetSeed& seed,
 	      indexT maxHits, indexT minDepth ) const;
 
   // Count matches of all sizes, starting at the given position in the
   // query.  Don't try this for large self-comparisons!
   void countMatches( std::vector<unsigned long long>& counts,
 		     const uchar* queryPtr, const uchar* text,
-		     const PeriodicSpacedSeed& seed, unsigned alphSize ) const;
+		     const CyclicSubsetSeed& seed ) const;
 
 private:
   std::vector<indexT> index;  // sorted indices
   std::vector<indexT> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
-  std::vector<indexT> bucketMask;  // extended mask, to avoid modulus
-  indexT bucketMaskTotal;
 
   static void equalRange( const indexT*& beg, const indexT*& end,
-			  const uchar* textBase, uchar symbol );
+			  const uchar* textBase,
+			  const uchar* subsetMap, uchar symbol );
   static const indexT* lowerBound( const indexT* beg, const indexT* end,
-				   const uchar* textBase, uchar symbol );
+				   const uchar* textBase,
+				   const uchar* subsetMap, uchar subset );
   static const indexT* upperBound( const indexT* beg, const indexT* end,
-				   const uchar* textBase, uchar symbol );
+				   const uchar* textBase,
+				   const uchar* subsetMap, uchar subset );
 
-  indexT defaultBucketDepth( unsigned alphSize );
-  void makeBucketSteps( unsigned alphSize, indexT bucketDepth );
-  void makeBucketMask( const PeriodicSpacedSeed& seed, indexT bucketDepth );
+  indexT defaultBucketDepth( const CyclicSubsetSeed& seed );
+
+  void makeBucketSteps( const CyclicSubsetSeed& seed, indexT bucketDepth );
 };
 
 }  // end namespace

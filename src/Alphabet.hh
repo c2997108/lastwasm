@@ -42,10 +42,6 @@ struct Alphabet{
   void rc( std::vector<uchar>::iterator beg,
            std::vector<uchar>::iterator end ) const;
 
-  // reduce the alphabet by merging codes for "improper" letters
-  void mergeImproperCodes( std::vector<uchar>::iterator beg,
-			   std::vector<uchar>::iterator end ) const;
-
   std::string letters;    // the "proper" letters, e.g. ACGT for DNA
   unsigned size;          // same as letters.size(): excludes delimiters
   uchar encode[256];      // translate ASCII letters to codes (small integers)

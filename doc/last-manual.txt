@@ -125,7 +125,7 @@ Steps in lastal
 ---------------
 
 1) Find initial matches:
-     keep those with multiplicity <= m and depth >= l.
+     keep those with multiplicity <= m and length >= l.
 
 2) Extend gapless alignments from the initial matches:
      keep those with score >= d.
@@ -165,15 +165,14 @@ Main Options
     them as DNA.
 
 -c  Read the sequences case-sensitively.  Lowercase letters are then
-    forbidden in initial matches (except in skipped positions), but
-    they may participate in gapless and gapped alignments, depending
-    on the -u option of lastal.  The default is to convert all letters
-    to uppercase on reading.
+    forbidden in initial matches (even in skipped positions), but they
+    may participate in gapless and gapped alignments, depending on the
+    -u option of lastal.  The default is to convert all letters to
+    uppercase on reading.
 
 -m  Specify skipped positions in initial matches, e.g. "-m 110101". In
     this example, every third and fifth position out of six will be
-    skipped.  The first position cannot be skipped, i.e. it must be
-    "1".
+    skipped.
 
 
 Advanced Options
@@ -190,12 +189,16 @@ Advanced Options
     database sequence.  This reduces time and storage requirements, at
     the expense of sensitivity.  To emulate BLAT, use "-w 11".
 
--a  Specify your own alphabet, e.g. "-a 0123".  In this example, only
-    0, 1, 2, 3 will be allowed in initial matches (except in skipped
-    positions).  Other symbols will be allowed in alignments, but will
-    receive the mismatch score.  The default (DNA) alphabet is
-    equivalent to "-a ACGT".  The protein alphabet (-p) is equivalent
-    to "-a ACDEFGHIKLMNPQRSTVWY".
+-u  Use a subset seed in the specified file.  The -m option will then
+    be ignored.  For an example of the format, see yass.seed in the
+    examples directory.
+
+-a  Specify your own alphabet, e.g. "-a 0123".  The default (DNA)
+    alphabet is equivalent to "-a ACGT".  The protein alphabet (-p) is
+    equivalent to "-a ACDEFGHIKLMNPQRSTVWY".  Non-alphabet letters are
+    allowed in sequences, but by default they are forbidden in initial
+    matches (even in skipped positions) and get the mismatch score
+    when aligned to anything.
 
 -b  Specify the depth of "buckets" used to accelerate initial match
     finding.  The deeper the faster, but the more memory is needed.
@@ -279,8 +282,8 @@ Miscellaneous Options
     lengthened until it occurs at most this many times in the database
     volume.
 
--l  Minimum depth for initial matches.  "Depth" is the number of
-    matched, non-skipped nucleotides.
+-l  Minimum length for initial matches.  (Skipped positions are
+    included in the length.)
 
 -k  Look for initial matches starting only at every "k"th position in
     the query.  This increases speed at the expense of sensitivity.
@@ -288,8 +291,8 @@ Miscellaneous Options
 -i  Search queries in batches of at most this many bytes.  If a single
     sequence exceeds this amount, however, it is not split.  You can
     use suffixes K, M, and G to specify KibiBytes, MebiBytes, and
-    GibiBytes. This option has no effect on the results (apart from
-    their order). Higher values can reduce disk reads.
+    GibiBytes.  This option has no effect on the results (apart from
+    their order).  Higher values can reduce disk reads.
 
 -w  This option is a kludge to avoid catastrophic time and memory
     usage when self-comparing a large sequence.  If a large identical

@@ -80,7 +80,7 @@ Miscellaneous options (default settings):\n\
 -Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB (0)\n\
 -m: maximum multiplicity for initial matches ("
     + stringify(oneHitMultiplicity) + ")\n\
--l: minimum depth for initial matches ("
+-l: minimum length for initial matches ("
     + stringify(minHitDepth) + ")\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\

@@ -23,6 +23,7 @@ struct LastdbArguments{
   std::string spacedSeed;
   std::size_t volumeSize;  // type?
   indexT indexStep;
+  std::string subsetSeedFile;
   std::string userAlphabet;
   indexT bucketDepth;
   int verbosity;

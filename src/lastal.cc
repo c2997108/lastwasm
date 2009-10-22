@@ -6,7 +6,7 @@
 #include "QualityScoreCalculator.hh"
 #include "LambdaCalculator.hh"
 #include "GeneticCode.hh"
-#include "SuffixArray.hh"
+#include "SubsetSuffixArray.hh"
 #include "Centroid.hh"
 #include "Xdrop3FrameAligner.hh"
 #include "AlignmentPot.hh"
@@ -16,7 +16,7 @@
 #include "ScoreMatrix.hh"
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
-#include "PeriodicSpacedSeed.hh"
+#include "CyclicSubsetSeed.hh"
 #include "DiagonalTable.hh"
 #include "GeneralizedAffineGapCosts.hh"
 #include "io.hh"
@@ -41,8 +41,8 @@ namespace {
   Alphabet alph;
   Alphabet queryAlph;  // for translated alignment
   GeneticCode geneticCode;
-  PeriodicSpacedSeed spacedSeed;
-  SuffixArray suffixArray;
+  CyclicSubsetSeed subsetSeed;
+  SubsetSuffixArray suffixArray;
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
   Xdrop3FrameAligner xdropAligner;
@@ -90,12 +90,15 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes ){
     getline( iss, word, '=' );
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alph;
-    if( word == "spacedseed" ) iss >> spacedSeed;
     if( word == "volumes" ) iss >> volumes;
+    if( word == "subsetseed" ){
+      if( alph.letters.empty() ) f.setstate( std::ios::failbit );
+      else subsetSeed.appendPosition( iss, true, alph.encode );
+    }
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( alph.letters.empty() || spacedSeed.pattern.empty() || volumes == -1u ){
+  if( !subsetSeed.span() || volumes == -1u ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) throw std::runtime_error("can't read file: " + fileName);
@@ -166,7 +169,7 @@ void countMatches( char strand ){
     }
 
     suffixArray.countMatches( matchCounts[seqNum], &query.seq[i],
-			      &text.seq[0], spacedSeed, alph.size );
+			      &text.seq[0], subsetSeed );
   }
 }
 
@@ -181,7 +184,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
-    suffixArray.match( beg, end, qseq + i, tseq, spacedSeed, alph.size,
+    suffixArray.match( beg, end, qseq + i, tseq, subsetSeed,
 		       args.oneHitMultiplicity, args.minHitDepth );
 
     // Tried: if we hit a delimiter when using contiguous seeds, then
@@ -365,7 +368,7 @@ void readVolume( unsigned volumeNumber ){
   readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
   text.fromFiles( baseName, seqCount );
   suffixArray.fromFiles( baseName, text.ends.back() - delimiterNum,
-			 bucketDepth, spacedSeed, alph.size );
+			 bucketDepth, subsetSeed );
 }
 
 void reverseComplementQuery(){
@@ -505,12 +508,12 @@ void lastal( int argc, char** argv ){
     else
       geneticCode.fromFile( args.geneticCodeFile );
     geneticCode.codeTableSet( alph, queryAlph );
-    query.initForAppending( spacedSeed.maxOffset * 3 );
+    query.initForAppending(3);
     // queryAlph.makeCaseInsensitive() is unnecessary
   }
   else{
     queryAlph = alph;
-    query.initForAppending( spacedSeed.maxOffset );
+    query.initForAppending(1);
   }
 
   queryAlph.tr( query.seq.begin(), query.seq.end() );

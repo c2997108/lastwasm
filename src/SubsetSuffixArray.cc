@@ -1,21 +1,23 @@
 // Copyright 2008, 2009 Martin C. Frith
 
-#include "SuffixArray.hh"
-#include "PeriodicSpacedSeed.hh"
+#include "SubsetSuffixArray.hh"
+#include "CyclicSubsetSeed.hh"
 #include "io.hh"
 #include <cassert>
 //#include <iostream>  // for debugging
 
 using namespace cbrc;
 
-int SuffixArray::addIndices( const uchar* text,
-			     indexT beg, indexT end, indexT step,
-			     unsigned alphSize, std::size_t maxBytes ){
+int SubsetSuffixArray::addIndices( const uchar* text,
+				   indexT beg, indexT end, indexT step,
+				   const CyclicSubsetSeed& seed,
+				   std::size_t maxBytes ){
   assert( step > 0 );
   indexT oldSize = index.size();
+  const uchar* subsetMap = seed.firstMap();
 
   for( indexT i = beg; i < end; i += step ){
-    if( text[i] < alphSize ){
+    if( subsetMap[ text[i] ] < CyclicSubsetSeed::DELIMITER ){
       index.push_back(i);
 
       if( indexBytes() > maxBytes ){
@@ -28,39 +30,37 @@ int SuffixArray::addIndices( const uchar* text,
   return 1;
 }
 
-void SuffixArray::clear(){
+void SubsetSuffixArray::clear(){
   index.clear();
   buckets.clear();
   bucketSteps.clear();
-  bucketMask.clear();
 }
 
-void SuffixArray::fromFiles( const std::string& baseName,
-			     indexT indexNum, indexT bucketDepth,
-			     const PeriodicSpacedSeed& seed,
-			     unsigned alphSize ){
+void SubsetSuffixArray::fromFiles( const std::string& baseName,
+				   indexT indexNum, indexT bucketDepth,
+				   const CyclicSubsetSeed& seed ){
   index.resize(indexNum);  // unwanted zero-fill
   vectorFromBinaryFile( index, baseName + ".suf" );
 
-  makeBucketSteps( alphSize, bucketDepth );
-  makeBucketMask( seed, bucketDepth );
+  makeBucketSteps( seed, bucketDepth );
 
   buckets.resize( bucketSteps[0] );  // unwanted zero-fill
   vectorFromBinaryFile( buckets, baseName + ".bck" );
 }
 
-void SuffixArray::toFiles( const std::string& baseName ) const{
+void SubsetSuffixArray::toFiles( const std::string& baseName ) const{
   vectorToBinaryFile( index, baseName + ".suf" );
   vectorToBinaryFile( buckets, baseName + ".bck" );
 }
 
 // use past results to speed up long matches?
 // could & probably should return the match depth
-void SuffixArray::match( const indexT*& beg, const indexT*& end,
-			 const uchar* queryPtr, const uchar* text,
-			 const PeriodicSpacedSeed& seed, unsigned alphSize,
-			 indexT maxHits, indexT minDepth ) const{
+void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
+			       const uchar* queryPtr, const uchar* text,
+			       const CyclicSubsetSeed& seed,
+			       indexT maxHits, indexT minDepth ) const{
   indexT depth = 0;
+  const uchar* subsetMap = seed.firstMap();
 
   // match using buckets:
   indexT bucketDepth = maxBucketPrefix();
@@ -74,14 +74,14 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
       end = &index[0] + bucketEnd;
       return;
     }
-    uchar symbol = *queryPtr;
-    if( symbol < alphSize ){
-      queryPtr += bucketMask[depth];
+    uchar subset = subsetMap[ queryPtr[depth] ];
+    if( subset < CyclicSubsetSeed::DELIMITER ){
       ++depth;
       indexT step = bucketSteps[depth];
-      bucketPtr += symbol * step;
+      bucketPtr += subset * step;
       bucketBeg = *bucketPtr;
       bucketEnd = *(bucketPtr + step);
+      subsetMap = seed.nextMap( subsetMap );
     }else{  // we hit a delimiter in the query, so finish without any matches:
       bucketBeg = bucketEnd;
       minDepth = 0;
@@ -91,17 +91,14 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
   // match using binary search:
   beg = &index[0] + bucketBeg;
   end = &index[0] + bucketEnd;
-  const uchar* textBase = text + bucketMaskTotal;
 
   while( true ){
     if( indexT(end - beg) <= maxHits && depth >= minDepth ) return;
-    uchar symbol = *queryPtr;
-    if( symbol < alphSize ){
-      equalRange( beg, end, textBase, symbol );
-      indexT off = seed.offsets[ depth % seed.weight ];
-      queryPtr += off;
-      textBase += off;
+    uchar subset = subsetMap[ queryPtr[depth] ];
+    if( subset < CyclicSubsetSeed::DELIMITER ){
+      equalRange( beg, end, text+depth, subsetMap, subset );
       ++depth;
+      subsetMap = seed.nextMap( subsetMap );
     }else{  // we hit a delimiter in the query, so finish without any matches:
       beg = end;
       minDepth = 0;
@@ -109,11 +106,11 @@ void SuffixArray::match( const indexT*& beg, const indexT*& end,
   }
 }
 
-void SuffixArray::countMatches( std::vector<unsigned long long>& counts,
-				const uchar* queryPtr, const uchar* text,
-				const PeriodicSpacedSeed& seed,
-				unsigned alphSize ) const{
+void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
+				      const uchar* queryPtr, const uchar* text,
+				      const CyclicSubsetSeed& seed ) const{
   indexT depth = 0;
+  const uchar* subsetMap = seed.firstMap();
 
   // match using buckets:
   indexT bucketDepth = maxBucketPrefix();
@@ -125,113 +122,114 @@ void SuffixArray::countMatches( std::vector<unsigned long long>& counts,
     if( bucketBeg == bucketEnd ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
     counts[depth] += bucketEnd - bucketBeg;
-    uchar symbol = *queryPtr;
-    if( symbol >= alphSize ) return;
-    queryPtr += bucketMask[depth];
+    uchar subset = subsetMap[ queryPtr[depth] ];
+    if( subset == CyclicSubsetSeed::DELIMITER ) return;
     ++depth;
     indexT step = bucketSteps[depth];
-    bucketPtr += symbol * step;
+    bucketPtr += subset * step;
     bucketBeg = *bucketPtr;
     bucketEnd = *(bucketPtr + step);
+    subsetMap = seed.nextMap( subsetMap );
   }
 
   // match using binary search:
   const indexT* beg = &index[0] + bucketBeg;
   const indexT* end = &index[0] + bucketEnd;
-  const uchar* textBase = text + bucketMaskTotal;
 
   while( true ){
     if( beg == end ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
     counts[depth] += end - beg;
-    uchar symbol = *queryPtr;
-    if( symbol >= alphSize ) return;
-    equalRange( beg, end, textBase, symbol );
-    indexT off = seed.offsets[ depth % seed.weight ];
-    queryPtr += off;
-    textBase += off;
+    uchar subset = subsetMap[ queryPtr[depth] ];
+    if( subset == CyclicSubsetSeed::DELIMITER ) return;
+    equalRange( beg, end, text+depth, subsetMap, subset );
     ++depth;
+    subsetMap = seed.nextMap( subsetMap );
   }
 }
 
-void SuffixArray::equalRange( const indexT*& beg, const indexT*& end,
-			      const uchar* textBase, uchar symbol ){
+void SubsetSuffixArray::equalRange( const indexT*& beg, const indexT*& end,
+				    const uchar* textBase,
+				    const uchar* subsetMap, uchar subset ){
   while( beg < end ){
     const indexT* mid = beg + std::size_t( end - beg ) / 2;
-    uchar s = textBase[ *mid ];
-    if( s < symbol ){
+    uchar s = subsetMap[ textBase[ *mid ] ];
+    if( s < subset ){
       beg = mid + 1;
-    }else if( s > symbol ){
+    }else if( s > subset ){
       end = mid;
     }else{
-      beg = lowerBound( beg, mid, textBase, symbol );
-      end = upperBound( mid + 1, end, textBase, symbol );
+      beg = lowerBound( beg, mid, textBase, subsetMap, subset );
+      end = upperBound( mid + 1, end, textBase, subsetMap, subset );
       return;
     }
   }
 }
 
-const SuffixArray::indexT*
-SuffixArray::lowerBound( const indexT* beg, const indexT* end,
-			 const uchar* textBase, uchar symbol ){
+const SubsetSuffixArray::indexT*
+SubsetSuffixArray::lowerBound( const indexT* beg, const indexT* end,
+			       const uchar* textBase,
+			       const uchar* subsetMap, uchar subset ){
   for( ;; ){
     std::size_t size = end - beg;
     if( size <= 4 ) break;  // 3,4 seem good for hg18 chr21 versus itself
     const indexT* mid = beg + size / 2;
-    if( textBase[ *mid ] < symbol ){
+    if( subsetMap[ textBase[ *mid ] ] < subset ){
       beg = mid + 1;
     }else{
       end = mid;
     }
   }
 
-  while( textBase[ *beg ] < symbol ) ++beg;  // linear search
+  while( subsetMap[ textBase[ *beg ] ] < subset ) ++beg;  // linear search
 
   return beg;
 }
 
-const SuffixArray::indexT*
-SuffixArray::upperBound( const indexT* beg, const indexT* end,
-			 const uchar* textBase, uchar symbol ){
+const SubsetSuffixArray::indexT*
+SubsetSuffixArray::upperBound( const indexT* beg, const indexT* end,
+			       const uchar* textBase,
+			       const uchar* subsetMap, uchar subset ){
   for( ;; ){
     std::size_t size = end - beg;
     if( size <= 4 ) break;  // 3,4 seem good for hg18 chr21 versus itself
     const indexT* mid = beg + size / 2;
-    if( textBase[ *mid ] <= symbol ){
+    if( subsetMap[ textBase[ *mid ] ] <= subset ){
       beg = mid + 1;
     }else{
       end = mid;
     }
   }
 
-  while( textBase[ *(end-1) ] > symbol ) --end;  // linear search
+  while( subsetMap[ textBase[ *(end-1) ] ] > subset ) --end;  // linear search
 
   return end;
 }
 
-void SuffixArray::makeBuckets( const uchar* text,
-			       const PeriodicSpacedSeed& seed,
-			       unsigned alphSize, indexT bucketDepth ){
-  if( bucketDepth == -1u ) bucketDepth = defaultBucketDepth( alphSize );
+void SubsetSuffixArray::makeBuckets( const uchar* text,
+				     const CyclicSubsetSeed& seed,
+				     indexT bucketDepth ){
+  if( bucketDepth == -1u ) bucketDepth = defaultBucketDepth(seed);
 
-  makeBucketSteps( alphSize, bucketDepth );
-  makeBucketMask( seed, bucketDepth );
+  makeBucketSteps( seed, bucketDepth );
 
   for( indexT i = 0; i < index.size(); ++i ){
     const uchar* textPtr = text + index[i];
+    const uchar* subsetMap = seed.firstMap();
     indexT bucketIndex = 0;
     indexT depth = 0;
 
     while( depth < bucketDepth ){
-      unsigned symbol = *textPtr;
-      if( symbol >= alphSize ){
+      uchar subset = subsetMap[ *textPtr ];
+      if( subset == CyclicSubsetSeed::DELIMITER ){
 	bucketIndex += bucketSteps[depth] - 1;
 	break;
       }
-      textPtr += bucketMask[depth];
+      ++textPtr;
       ++depth;
       indexT step = bucketSteps[depth];
-      bucketIndex += symbol * step;
+      bucketIndex += subset * step;
+      subsetMap = seed.nextMap( subsetMap );
     }
 
     buckets.resize( bucketIndex+1, i );
@@ -240,39 +238,30 @@ void SuffixArray::makeBuckets( const uchar* text,
   buckets.resize( bucketSteps[0], index.size() );
 }
 
-void SuffixArray::makeBucketSteps( unsigned alphSize, indexT bucketDepth ){
+void SubsetSuffixArray::makeBucketSteps( const CyclicSubsetSeed& seed,
+					 indexT bucketDepth ){
   indexT step = 0;
   indexT depth = bucketDepth + 1;
   bucketSteps.resize( depth );
 
   while( depth > 0 ){
     --depth;
-    step = step * alphSize + 1;
+    step = step * seed.subsetCount(depth) + 1;
     bucketSteps[depth] = step;
   }
 }
 
-void SuffixArray::makeBucketMask( const PeriodicSpacedSeed& seed,
-				  indexT bucketDepth ){
-  bucketMaskTotal = 0;  // necessary!!!
-  bucketMask.resize(bucketDepth);
-
-  for( indexT i = 0; i < bucketDepth; ++i ){
-    indexT offset = seed.offsets[ i % seed.weight ];
-    bucketMask[i] = offset;
-    bucketMaskTotal += offset;
-  }
-}
-
-SuffixArray::indexT SuffixArray::defaultBucketDepth( unsigned alphSize ){
+SubsetSuffixArray::indexT
+SubsetSuffixArray::defaultBucketDepth( const CyclicSubsetSeed& seed ){
   indexT maxBucketEntries = index.size() / 4;
   indexT bucketDepth = 0;
   indexT kmerEntries = 1;
   indexT bucketEntries = 1;
 
   while(true){
-    if( kmerEntries > maxBucketEntries / alphSize ) return bucketDepth;
-    kmerEntries *= alphSize;
+    indexT nextSubsetCount = seed.subsetCount(bucketDepth);
+    if( kmerEntries > maxBucketEntries / nextSubsetCount ) return bucketDepth;
+    kmerEntries *= nextSubsetCount;
     if( bucketEntries > maxBucketEntries - kmerEntries ) return bucketDepth;
     bucketEntries += kmerEntries;
     ++bucketDepth;
