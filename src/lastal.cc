@@ -417,7 +417,7 @@ void writeHeader( std::ostream& out ){
   out << "#\n";
 
   if( args.outputType == 0 ){  // we just want hit counts
-    out << "# depth\tcount\n";
+    out << "# length\tcount\n";
   }
   else{  // we want alignments
     scoreMatrix.writeCommented( out );

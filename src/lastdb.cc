@@ -80,20 +80,16 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
 		 unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
 
-  LOG( "writing tis, des, ssp, sds..." );
-  multi.toFiles( baseName );
-
   LOG( "sorting..." );
   sa.sortIndex( &multi.seq[0], seed );
 
   LOG( "bucketing..." );
   sa.makeBuckets( &multi.seq[0], seed, args.bucketDepth );
 
-  LOG( "writing suf, bck..." );
-  sa.toFiles( baseName );
-
-  LOG( "writing prj..." );
+  LOG( "writing..." );
   writeInnerPrj( baseName + ".prj", multi, sa );
+  multi.toFiles( baseName );
+  sa.toFiles( baseName );
 
   LOG( "done!" );
 }

@@ -126,7 +126,7 @@ TEST 3
 # u=0 s=0 m=10 l=1 k=1 i=1 w=1000 t=0.910239 g=1 j=0
 # /tmp/last-test
 #
-# depth	count
+# length	count
 #
 chrM
 1	69355802
@@ -348,4 +348,30 @@ s Q2LCP8  138 23 +   491 ISSICFYILALNKNSRKGIEGGL
 s chrM   7839 69 - 16775 VSSADFWALSVKHSWSSGDEGGL
 
 # CPU time: 0.9 seconds
+
+TEST 6
+#
+# a=7 b=1 c=100000 F=-1 e=18 d=10 x=27 y=9
+# u=0 s=0 m=10 l=1 k=1 i=134217728 w=1000 t=0.910239 g=1 j=3
+# /tmp/last-test
+#
+#    A  C  G  T
+# A  1 -1 -1 -1
+# C -1  1 -1 -1
+# G -1 -1  1 -1
+# T -1 -1 -1  1
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+#
+26	chrM	3996	46	+	16775	chrM	10159	46	-	16775	46
+26	chrM	6570	46	+	16775	chrM	12733	46	-	16775	46
+22	chrM	978	34	+	16775	chrM	15763	34	-	16775	34
+21	chrM	977	35	+	16775	chrM	15763	35	-	16775	35
+19	chrM	4168	33	+	16775	chrM	12574	33	-	16775	33
+18	chrM	31	34	+	16775	chrM	16710	34	-	16775	34
+18	chrM	965	58	+	16775	chrM	15752	58	-	16775	58
+# CPU time: 0.1 seconds
 

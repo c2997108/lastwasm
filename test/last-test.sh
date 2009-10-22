@@ -11,6 +11,7 @@ protSeq=Q2LCP8.fa
 fastq=SRR001981-1k.fastq
 mat=../examples/HOXD70
 gc=../examples/vertebrateMito.gc
+seed=../examples/yass.seed
 db=/tmp/last-test
 
 {
@@ -35,6 +36,11 @@ db=/tmp/last-test
     echo TEST 5  # translated alignment & genetic code file
     lastdb -p $db $protSeq
     lastal -F12 -e40 -G $gc $db $dnaSeq
+    echo
+
+    echo TEST 6  # subset seed file, soft-masking
+    lastdb -c -u $seed $db $dnaSeq
+    lastal -s0 -f0 -e18 $db $dnaSeq
     echo
 } |
 grep -v version |  # omit header lines with the LAST version number
