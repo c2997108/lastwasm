@@ -21,14 +21,6 @@ void Alphabet::fromString( const std::string& alphString ){
   init();
 }
 
-void Alphabet::makeCaseInsensitive(){
-  for( const char* i = all; *i; ++i ){
-    uchar upper = std::toupper( *i );
-    uchar lower = std::tolower( *i );
-    encode[lower] = encode[upper];
-  }
-}
-
 void Alphabet::tr( std::vector<uchar>::iterator beg,
 		   std::vector<uchar>::iterator end ) const{
   for( /* noop */; beg < end; ++beg ){

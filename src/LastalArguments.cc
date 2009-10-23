@@ -54,8 +54,6 @@ Find local sequence alignments.\n\
 Main options (default settings):\n\
 -h: show all options and their default settings\n\
 -o: output file\n\
--u: mask lowercase letters: 0=off, 1=softer, 2=soft, 3=hard ("
-    + stringify(maskLowercase) + ")\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -f: output format: 0=tabular, 1=maf ("
     + stringify(outputFormat) + ")";
@@ -78,6 +76,8 @@ Score parameters (default settings):\n\
 \n\
 Miscellaneous options (default settings):\n\
 -Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB (0)\n\
+-u: mask lowercase during extensions: 0=neither, 1=gapless, 2=gapless+gapped ("
+    + stringify(maskLowercase) + ")\n\
 -m: maximum multiplicity for initial matches ("
     + stringify(oneHitMultiplicity) + ")\n\
 -l: minimum length for initial matches ("
@@ -113,8 +113,8 @@ LAST home page: http://last.cbrc.jp/\n\
       outFile = optarg;
       break;
     case 'u':
-      unstringify( maskLowercase, optarg );  // 4 not supported yet
-      if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );
+      unstringify( maskLowercase, optarg );  // maybe allow 3 in future
+      if( maskLowercase < 0 || maskLowercase > 2 ) badopt( c, optarg );
       break;
     case 's':
       unstringify( strand, optarg );
@@ -214,8 +214,8 @@ LAST home page: http://last.cbrc.jp/\n\
     }
   }
 
-  if( maskLowercase == 2 && inputFormat > 0 )
-    throw std::runtime_error("can't combine option -u 2 with option -Q > 0");
+  if( maskLowercase == 1 && inputFormat > 0 )
+    throw std::runtime_error("can't combine option -u 1 with option -Q > 0");
 
   if( outputType > 3 && inputFormat > 0 )
     throw std::runtime_error("can't combine option -j > 3 with option -Q > 0");

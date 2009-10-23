@@ -33,7 +33,7 @@ Prepare sequences for subsequent alignment with lastal.\n\
 Main Options:\n\
 -h: show all options and their default settings\n\
 -p: interpret the sequences as proteins\n\
--c: read the sequences case-sensitively\n\
+-c: soft-mask lowercase letters\n\
 -m: spaced seed pattern";
 
     std::string help = usage + "\n\

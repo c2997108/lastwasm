@@ -49,11 +49,11 @@ every third position when matching: this makes it more sensitive for
 matching protein-coding DNA (and non-coding DNA to some extent).
 Secondly, compare the fugu sequence to the human database::
 
-  lastal -o myalns.maf -u2 humanMito fuguMito.fa
+  lastal -o myalns.maf humanMito fuguMito.fa
 
-This will write alignments in a file called "myalns.maf".  Here, we
-used "-u2" to soft-mask lowercase letters.  To view the alignments,
-you'll want to avoid text-wrapping, e.g. 'less -S myalns.maf'.
+This will write alignments in a file called "myalns.maf".  To view the
+alignments, you'll want to avoid text-wrapping, e.g. 'less -S
+myalns.maf'.
 
 For an example of aligning multiple mitochondrial genomes, see
 multiMito.sh in the examples directory.
@@ -68,7 +68,7 @@ regions are in lowercase.  We can compare them using the same steps as
 above::
 
   lastdb -c -m110 -v mousedb mouse/chr*.fa
-  lastal -o myalns.maf -u2 -v mousedb cat/chr*.fa
+  lastal -o myalns.maf -v mousedb cat/chr*.fa
 
 The "-v" (verbose) option just makes it write progress messages on the
 screen.  Next, we might want to remove paralogs or make a dotplot: see
@@ -164,11 +164,8 @@ Main Options
 -p  Interpret the sequences as proteins.  The default is to interpret
     them as DNA.
 
--c  Read the sequences case-sensitively.  Lowercase letters are then
-    forbidden in initial matches (even in skipped positions), but they
-    may participate in gapless and gapped alignments, depending on the
-    -u option of lastal.  The default is to convert all letters to
-    uppercase on reading.
+-c  Be case-sensitive: lowercase letters will then be forbidden in
+    initial matches (even in skipped positions).
 
 -m  Specify skipped positions in initial matches, e.g. "-m 110101". In
     this example, every third and fifth position out of six will be
@@ -219,15 +216,6 @@ Main Options
 
 -o  Write output to the specified file, instead of the screen.
 
--u  Specify treatment of lowercase letters in the query sequences.  0
-    means convert them to uppercase; 1 means mask when finding initial
-    matches but not thereafter; 2 means mask when finding initial
-    matches and performing gapless extensions but not when performing
-    gapped extensions; 3 means mask at all stages.  If lastdb was run
-    with "-c", then this treatment will also apply to the database
-    sequences, except that lowercase regions in the database are
-    always masked when finding initial matches.
-
 -s  Specify which query strand should be used: 0 means reverse only, 1
     means forward only, and 2 means both.
 
@@ -277,6 +265,13 @@ Score Parameters
 
 Miscellaneous Options
 ~~~~~~~~~~~~~~~~~~~~~
+
+-u  Specify treatment of lowercase letters for gapless and gapped
+    extensions.  0 means mask them for neither stage; 1 means mask
+    them for gapless extensions but not for gapped extensions; 2 means
+    mask them for both stages.  "Mask" means give them the worst
+    mismatch score when aligned to anything.  Note that treatment of
+    lowercase for initial matches is set by lastdb's -c option.
 
 -m  Maximum multiplicity for initial matches.  Each initial match is
     lengthened until it occurs at most this many times in the database

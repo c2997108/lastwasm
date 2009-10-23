@@ -72,10 +72,10 @@ void makeScoreMatrix( const std::string& matrixFile ){
 
   scoreMatrix.init( alph.encode );
 
-  matGapless = args.maskLowercase < 2 ?
+  matGapless = args.maskLowercase < 1 ?
     scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
 
-  matGapped = args.maskLowercase < 3 ?
+  matGapped = args.maskLowercase < 2 ?
     scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
 }
 
@@ -83,6 +83,7 @@ void makeScoreMatrix( const std::string& matrixFile ){
 void readOuterPrj( const std::string& fileName, unsigned& volumes ){
   std::ifstream f( fileName.c_str() );
   unsigned version = 0;
+  int isMaskLowercase = -1;  // "-1" means "undefined"
 
   std::string line, word;
   while( getline( f, line ) ){
@@ -90,10 +91,13 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes ){
     getline( iss, word, '=' );
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alph;
+    if( word == "masklowercase" ) iss >> isMaskLowercase;
     if( word == "volumes" ) iss >> volumes;
     if( word == "subsetseed" ){
-      if( alph.letters.empty() ) f.setstate( std::ios::failbit );
-      else subsetSeed.appendPosition( iss, true, alph.encode );
+      if( alph.letters.empty() || isMaskLowercase < 0 )
+	f.setstate( std::ios::failbit );
+      else
+	subsetSeed.appendPosition( iss, isMaskLowercase, alph.encode );
     }
   }
 
@@ -473,8 +477,7 @@ void lastal( int argc, char** argv ){
 
   args.setDefaultsFromAlphabet( alph.letters == alph.dna,
 				alph.letters == alph.protein );
-  makeScoreMatrix( matrixFile );  // before alph.makeCaseInsensitive
-  if( args.maskLowercase < 1 ) alph.makeCaseInsensitive();
+  makeScoreMatrix( matrixFile );
 
   // it makes no difference whether we use matGapped or matGapless here:
   double lambda = LambdaCalculator::calculate( matGapped, alph.size );
@@ -493,7 +496,7 @@ void lastal( int argc, char** argv ){
     int asciiOffset = (args.inputFormat < 2) ? 33 : 64;
     bool isMatchMismatch = args.matrixFile.empty() && args.matchScore > 0;
     qualityScoreCalculator.init( matGapped, alph.size, args.temperature,
-				 args.maskLowercase > 2, isMatchMismatch,
+				 args.maskLowercase > 1, isMatchMismatch,
 				 args.matchScore, -args.mismatchCost,
 				 alph.canonical,
 				 args.inputFormat < 2, asciiOffset );
@@ -509,7 +512,6 @@ void lastal( int argc, char** argv ){
       geneticCode.fromFile( args.geneticCodeFile );
     geneticCode.codeTableSet( alph, queryAlph );
     query.initForAppending(3);
-    // queryAlph.makeCaseInsensitive() is unnecessary
   }
   else{
     queryAlph = alph;

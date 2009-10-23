@@ -26,34 +26,37 @@ void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
   if( !args.userAlphabet.empty() )  alph.fromString( args.userAlphabet );
   else if( args.isProtein )         alph.fromString( alph.protein );
   else                              alph.fromString( alph.dna );
-  if( !args.isCaseSensitive )       alph.makeCaseInsensitive();
 }
 
 // Set up a subset seed, based on the user options
 void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
 		     const Alphabet& alph ){
   if( !args.subsetSeedFile.empty() ){
-    seed.fromFile( args.subsetSeedFile, true, alph.encode );
+    seed.fromFile( args.subsetSeedFile, args.isCaseSensitive, alph.encode );
   }
   else if( !args.spacedSeed.empty() ){
-    seed.fromSpacedSeed( args.spacedSeed, alph.letters, true, alph.encode );
+    seed.fromSpacedSeed( args.spacedSeed, alph.letters,
+			 args.isCaseSensitive, alph.encode );
   }
   else{
     if( args.isProtein )
-      seed.fromString( seed.proteinSeed, true, alph.encode );
+      seed.fromString( seed.proteinSeed, args.isCaseSensitive, alph.encode );
     else
-      seed.fromSpacedSeed( "1", alph.letters, true, alph.encode );
+      seed.fromSpacedSeed( "1", alph.letters,
+			   args.isCaseSensitive, alph.encode );
   }
 }
 
 // Write the .prj file for the whole database
-void writeOuterPrj( const std::string& fileName, const Alphabet& alph,
+void writeOuterPrj( const std::string& fileName,
+		    const LastdbArguments& args, const Alphabet& alph,
 		    const CyclicSubsetSeed& seed, unsigned volumes ){
   std::ofstream f( fileName.c_str() );
   f << "version=" <<
 #include "version.hh"
     << '\n';
   f << "alphabet=" << alph << '\n';
+  f << "masklowercase=" << args.isCaseSensitive << '\n';
   f << "volumes=" << volumes << '\n';
   for( unsigned i = 0; i < seed.span(); ++i ){
     f << "subsetseed=";
@@ -156,7 +159,7 @@ void lastdb( int argc, char** argv ){
     makeVolume( sa, multi, args, seed, volumeNumber++ );
   }
 
-  writeOuterPrj( args.lastdbName + ".prj", alph, seed, volumeNumber );
+  writeOuterPrj( args.lastdbName + ".prj", args, alph, seed, volumeNumber );
 }
 
 int main( int argc, char** argv )

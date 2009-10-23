@@ -17,7 +17,7 @@ db=/tmp/last-test
 {
     echo TEST 1  # spaced seeds, soft-masking, centroid alignment, matrix file
     lastdb -c -m110 $db $dnaSeq
-    lastal -u2 -j5 -p $mat -x3400 -e2500 $db $dnaSeq
+    lastal -u1 -j5 -p $mat -x3400 -e2500 $db $dnaSeq
     echo
 
     echo TEST 2  # multiple volumes & query batches

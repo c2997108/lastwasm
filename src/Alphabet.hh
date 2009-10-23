@@ -1,7 +1,6 @@
 // Copyright 2008, 2009 Martin C. Frith
 
 // This struct maps characters to codes (small integers) and back.
-// The mapping can be either case-sensitive or case-insensitive.
 
 // We allow for both "proper" letters (e.g. ACGT for DNA), which get
 // the lowest codes, and "improper" letters.  This is because real
@@ -26,9 +25,6 @@ struct Alphabet{
 
   // make an Alphabet from a string containing the "proper" letters
   void fromString( const std::string& alphString );
-
-  // make lowercase letters have the same codes as uppercase letters
-  void makeCaseInsensitive();
 
   // translate (encode) a sequence of letters to numbers, in place
   void tr( std::vector<uchar>::iterator beg,
