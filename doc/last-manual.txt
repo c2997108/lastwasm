@@ -44,7 +44,9 @@ sequence::
   lastdb -c -m110 humanMito humanMito.fa
 
 This will make some new files whose names begin with "humanMito".
-Here, we used "-c" to soft-mask lowercase letters, and "-m110" to skip
+Here, we used "-c" to soft-mask lowercase letters.  (Lowercase
+indicates repetitive sequence, and "soft-masking" helps to avoid
+uninteresting repetitive alignments.)  We also used "-m110" to skip
 every third position when matching: this makes it more sensitive for
 matching protein-coding DNA (and non-coding DNA to some extent).
 Secondly, compare the fugu sequence to the human database::
