@@ -159,7 +159,8 @@ void SubsetSuffixArray::equalRange( const indexT*& beg, const indexT*& end,
     }else if( s > subset ){
       end = mid;
     }else{
-      beg = lowerBound( beg, mid, textBase, subsetMap, subset );
+      if( subset > 0 )  // this "if" is unnecessary, but makes it a bit faster
+	beg = lowerBound( beg, mid, textBase, subsetMap, subset );
       end = upperBound( mid + 1, end, textBase, subsetMap, subset );
       return;
     }
