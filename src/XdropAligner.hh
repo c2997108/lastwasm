@@ -146,11 +146,11 @@ protected:
 // mhamada: changed these to templates:
 
 template< typename T > T max3( T a, T b, T c ){
-  return a > b ? std::max(a, c) : std::max(b, c);
+  return std::max( std::max(a, b), c );
 }
 
 template< typename T > T max4( T a, T b, T c, T d ){
-  return a > b ? max3(a, c, d) : max3(b, c, d);
+  return std::max( std::max( a, b ), std::max( c, d ) );
 }
 
 template< typename T > int maxIndex2( T a, T b ){
