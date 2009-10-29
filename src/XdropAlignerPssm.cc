@@ -88,17 +88,21 @@ int XdropAligner::fillPssm( const uchar* seq1, const uchar* seq2,
 	do{
 	  // if xScore <- yScore1, then newGap <= yScore1 - gap.extend:
 	  // but using this logic doesn't seem to make it faster!
-	  const int yScore1 = *y1++;
-	  const int zScore1 = *++z1;
 	  const int matchScore = *x2++ + ( *p2 )[ *s1 ];
-	  const int xScore = max3( matchScore, yScore1, zScore1 );
-	  const int newGap = xScore - gap.first;
-	  *z0++ = std::max( newGap, zScore1 - gap.extend );
-	  *y0++ = std::max( newGap, yScore1 - gap.extend );
-	  updateBest( xScore, k, x0 );
-	  *x0++ = drop( xScore, minScore );
 	  s1 += seqIncrement;
 	  p2 -= seqIncrement;
+	  const int yScore1 = *y1++;
+	  const int zScore1 = *++z1;
+	  const int xScore = max3( matchScore, yScore1, zScore1 );
+	  if( xScore >= minScore ){
+	    const int newGap = xScore - gap.first;
+	    *z0 = std::max( newGap, zScore1 - gap.extend );
+	    *y0 = std::max( newGap, yScore1 - gap.extend );
+	    updateBest( xScore, k, x0 );
+	    *x0 = xScore;
+	  }
+	  else *x0 = *y0 = *z0 = -INF;
+	  ++x0;  ++y0;  ++z0;
 	}while( x0 != x0end );
       }else{  // the general case (generalized affine gap costs)
 	const int* x1 = &x[ k1 ][ horiBeg ];
@@ -106,9 +110,11 @@ int XdropAligner::fillPssm( const uchar* seq1, const uchar* seq2,
 	const int* z2 = &z[ k2 ][ diagBeg ];
 	int newPair = *x1++ - gap.firstPair;
 	do{
+	  const int matchScore = *x2++ + ( *p2 )[ *s1 ];
+	  s1 += seqIncrement;
+	  p2 -= seqIncrement;
 	  const int yScore1 = *y1++;
 	  const int zScore1 = *++z1;
-	  const int matchScore = *x2++ + ( *p2 )[ *s1 ];
 	  const int xScore = max3( matchScore, yScore1, zScore1 );
 	  const int newGap = xScore - gap.first;
 	  *z0++ = max4( newGap, zScore1 - gap.extend,
@@ -118,8 +124,6 @@ int XdropAligner::fillPssm( const uchar* seq1, const uchar* seq2,
 			newPair, *y2++ - gap.extendPair );
 	  updateBest( xScore, k, x0 );
 	  *x0++ = drop( xScore, minScore );
-	  s1 += seqIncrement;
-	  p2 -= seqIncrement;
 	}while( x0 != x0end );
       }
     }

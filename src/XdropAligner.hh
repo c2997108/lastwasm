@@ -70,6 +70,7 @@ protected:
   matrix_t x;
   matrix_t y;
   matrix_t z;
+  // (it might be more efficient to combine x, y, and z into one matrix_t)
   std::vector< size_t > offsets;
 
   static int drop( int score, int minScore );

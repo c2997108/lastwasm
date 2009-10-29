@@ -183,13 +183,14 @@ void alignGapless( SegmentPairPot& gaplessAlns,
   const uchar* qseq = &query.seq[0];
   const uchar* tseq = &text.seq[0];
   DiagonalTable dt;  // record already-covered positions on each diagonal
-  countT gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
+  countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
   for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
     suffixArray.match( beg, end, qseq + i, tseq, subsetSeed,
 		       args.oneHitMultiplicity, args.minHitDepth );
+    matchCount += end - beg;
 
     // Tried: if we hit a delimiter when using contiguous seeds, then
     // increase "i" to the delimiter position.  This gave a speed-up
@@ -238,6 +239,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
     }
   }
 
+  LOG( "initial matches=" << matchCount );
   LOG( "gapless extensions=" << gaplessExtensionCount );
   LOG( "gapless alignments=" << gaplessAlignmentCount );
 }
@@ -275,7 +277,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     if( !aln.isOptimal( tseq, qseq, matGapped, args.maxDropGapped, gapCosts,
 			args.frameshiftCost, frameSize, pssm ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
-      // alignments, e.g. during non-reduntantization.
+      // alignments, e.g. during non-redundantization.
       continue;
     }
 

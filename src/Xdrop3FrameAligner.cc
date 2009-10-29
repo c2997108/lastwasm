@@ -242,20 +242,24 @@ int Xdrop3FrameAligner::fillThreeFrame( const uchar* seq1, const uchar* seq2,
       // innermost loop: split into special cases for speed
       if( gap.firstPair >= 2 * gap.first ){  // standard affine gap costs
 	do{
-	  const int yScore3 = *y3++;
-	  const int zScore3 = *++z3;
-	  const int secondScore = *x5++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
 	  const int matchScore  = *x6++ + sm[ *s1 ][ *s2 ];
+	  const int secondScore = *x5++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
 	  const int fourthScore = *x7++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
-	  const int xScore = max5( yScore3, zScore3,
-				   secondScore, matchScore, fourthScore );
-	  const int newGap = xScore - gap.first;
-	  *z0++ = std::max( newGap, zScore3 - gap.extend );
-	  *y0++ = std::max( newGap, yScore3 - gap.extend );
-	  updateBest( xScore, k, x0 );
-	  *x0++ = drop( xScore, minScore );
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
+	  const int yScore3 = *y3++;
+	  const int zScore3 = *++z3;
+	  const int xScore = max5( yScore3, zScore3,
+				   secondScore, matchScore, fourthScore );
+	  if( xScore >= minScore ){
+	    const int newGap = xScore - gap.first;
+	    *z0 = std::max( newGap, zScore3 - gap.extend );
+	    *y0 = std::max( newGap, yScore3 - gap.extend );
+	    updateBest( xScore, k, x0 );
+	    *x0 = xScore;
+	  }
+	  else *x0 = *y0 = *z0 = -INF;
+	  ++x0;  ++y0;  ++z0;
 	}while( x0 != x0end );
       }else{  // the general case (generalized affine gap costs)
 	const int* x3 = &x[ k3 ][ loopBeg - 1 - off3 ];
@@ -263,11 +267,13 @@ int Xdrop3FrameAligner::fillThreeFrame( const uchar* seq1, const uchar* seq2,
 	const int* z6 = &z[ k6 ][ loopBeg - 1 - off6 ];
 	newPair = *x3++ - gap.firstPair;
 	do{
+	  const int matchScore  = *x6++ + sm[ *s1 ][ *s2 ];
+	  const int secondScore = *x5++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
+	  const int fourthScore = *x7++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
+	  s1 += seqIncrement;
+	  s2 -= seqIncrement;
 	  const int yScore3 = *y3++;
 	  const int zScore3 = *++z3;
-	  const int secondScore = *x5++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
-	  const int matchScore  = *x6++ + sm[ *s1 ][ *s2 ];
-	  const int fourthScore = *x7++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
 	  const int xScore = max5( yScore3, zScore3,
 				   secondScore, matchScore, fourthScore );
 	  const int newGap = xScore - gap.first;
@@ -278,8 +284,6 @@ int Xdrop3FrameAligner::fillThreeFrame( const uchar* seq1, const uchar* seq2,
 			newPair, *y6++ - gap.extendPair );
 	  updateBest( xScore, k, x0 );
 	  *x0++ = drop( xScore, minScore );
-	  s1 += seqIncrement;
-	  s2 -= seqIncrement;
 	}while( x0 != x0end );
       }
     }
