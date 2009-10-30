@@ -84,7 +84,7 @@ protected:
 };
 
 template< typename T > T max5( T a, T b, T c, T d, T e ){
-  return a > b ? max4(a, c, d, e) : max4(b, c, d, e);
+  return std::max( max4( a, b, c, d ), e );
 }
 
 template< typename T > int maxIndex5( T a, T b, T c, T d, T e ){

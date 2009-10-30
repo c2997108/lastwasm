@@ -14,6 +14,7 @@ the genome to be the query and the repeat library to be the database.
 
 Q: Why does lastdb run forever without finishing?!
 
-A: Perhaps you gave it two copies of the same genome by mistake?  The
-lastdb algorithm becomes horribly slow if there are huge exact
-repeats.
+A: Perhaps you gave it two copies of the same genome by mistake?  It
+becomes horribly slow if there are huge exact repeats.  (But it copes
+OK with the exact duplicates between chromosomes X and Y in some
+versions of the human genome.)

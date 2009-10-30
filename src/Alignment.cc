@@ -18,6 +18,11 @@ void Alignment::fromSegmentPair( const SegmentPair& sp ){
   centroidScore = -1;
 }
 
+// Does x precede and touch y in both sequences?
+static bool isNext( const SegmentPair& x, const SegmentPair& y ){
+  return x.end1() == y.beg1() && x.end2() == y.beg2();
+}
+
 void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int smMax,
@@ -25,10 +30,10 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
 			   int frameshiftCost, indexT frameSize,
 			   const int pssm2[][MAT],
 			   double gamma, int outputType ){
-  assert( seed.size > 0 );  // relax this requirement?
   score = seed.score;
   centroidScore = (outputType < 5 ? -1 : gamma * seed.size);
 
+  // extend a gapped alignment in the left/reverse direction from the seed:
   extend( blocks, matchProbabilities, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), XdropAligner::REVERSE,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
@@ -42,20 +47,9 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
     i->start2 = dnaToAa( seedBeg2 - i->start2, frameSize ) - i->size;
   }
 
-  if( !blocks.empty() &&
-      blocks.back().end1() == seed.beg1() &&
-      blocks.back().end2() == seed.beg2() ){
-    blocks.back().size += seed.size;
-  }
-  else blocks.push_back(seed);
-
-  if( outputType > 3 ){  // set match probabilities in the seed to 1.0 (?)
-    matchProbabilities.insert( matchProbabilities.end(), seed.size, 1.0 );
-  }
-
+  // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
   std::vector<double> forwardProbs;
-
   extend( forwardBlocks, forwardProbs, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), XdropAligner::FORWARD,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
@@ -70,15 +64,29 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
     i->start2 = dnaToAa( seedEnd2 + i->start2, frameSize );
   }
 
-  SegmentPair& b = blocks.back();
-  if( !forwardBlocks.empty() &&
-      b.end1() == forwardBlocks.back().beg1() &&
-      b.end2() == forwardBlocks.back().beg2() ){
-    b.size += forwardBlocks.back().size;
+  // check that the seed isn't very bizarre and dubious:
+  assert( (seed.size > 0) ||
+	  (!blocks.empty() && isNext( blocks.back(), seed )) ||
+	  (!forwardBlocks.empty() && isNext( seed, forwardBlocks.back() )) );
+
+  // splice together the two extensions and the seed (a bit messy):
+
+  if( !blocks.empty() && isNext( blocks.back(), seed ) ){
+    blocks.back().size += seed.size;
+  }
+  else blocks.push_back(seed);
+
+  if( !forwardBlocks.empty() && isNext( seed, forwardBlocks.back() ) ){
+    blocks.back().size += forwardBlocks.back().size;
     forwardBlocks.pop_back();
   }
 
   blocks.insert( blocks.end(), forwardBlocks.rbegin(), forwardBlocks.rend() );
+
+  if( outputType > 3 ){  // set match probabilities in the seed to 1.0 (?)
+    matchProbabilities.insert( matchProbabilities.end(), seed.size, 1.0 );
+  }
+
   matchProbabilities.insert( matchProbabilities.end(),
 			     forwardProbs.rbegin(), forwardProbs.rend() );
 }
@@ -120,7 +128,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 
       if( runningScore > maxScore ) maxScore = runningScore;
       else if( runningScore <= 0 ||                  // non-optimal prefix
-	       (s1 == e1 && i+1 == blocks.end()) ||   // non-optimal suffix
+	       (s1 == e1 && i+1 == blocks.end()) ||  // non-optimal suffix
 	       runningScore < maxScore - maxDrop ){  // excessive score drop
 	return false;
       }

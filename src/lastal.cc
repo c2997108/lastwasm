@@ -264,6 +264,8 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
     // Shrink the seed to its longest run of identical matches.  This
     // trims off possibly unreliable parts of the gapless alignment.
+    // It may not be the best strategy for protein alignment with
+    // subset seeds: there could be few or no identical matches...
     aln.seed.maxIdenticalRun( tseq, qseq, alph.canonical, matGapped, pssm );
 
     // do gapped extension from each end of the seed:

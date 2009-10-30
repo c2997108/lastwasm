@@ -23,6 +23,7 @@ static void writeSignedDifference( unsigned x, unsigned y, std::ostream& os ){
 void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 		       char strand, bool isTranslated, const Alphabet& alph,
 		       int format, std::ostream& os ) const{
+  assert( !blocks.empty() );
   if( format == 0 ) writeTab( seq1, seq2, strand, isTranslated, os );
   else              writeMaf( seq1, seq2, strand, isTranslated, alph, os );
 }

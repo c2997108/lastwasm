@@ -143,16 +143,24 @@ Steps in lastal
 6) Redo the gapped extensions using centroid alignment (OFF by default).
 
 
-How Probabilities are Calculated
---------------------------------
+What the Probabilities Mean
+---------------------------
 
-We assume that each gapped extension has probability proportional to:
-exp(lambda * score).  Here, lambda is the scale parameter of the
-scoring matrix (YK Yu et al. 2003, PNAS 100(26):15688-93).  Then, the
-probability of each letter-pair is the sum of the probabilities of all
-possible gapped extensions that include this pairing.  Gapped
-extensions are made from fixed "seeds", which are perfect matches:
-each pairing within a seed is assigned a probability of 1.
+The probabilities indicate the reliability of each pairing, *assuming
+that the alignment is not wholly spurious*.  In more detail, gapped
+alignments are extended (in step 3) from either side of a "core"
+alignment (derived from the gapless alignment of step 2).  The
+probabilities are contingent upon the core being correct, and pairings
+within the core automatically get a probability of 1.  So the
+probabilities give no indication if an alignment is wholly spurious.
+For that, please use the accompanying E-value tables.
+
+The probabilities are calculated as follows.  We assume that each
+gapped extension has probability proportional to: exp(lambda * score).
+Here, lambda is the scale parameter of the scoring matrix (YK Yu et
+al. 2003, PNAS 100(26):15688-93).  Then, the probability of each
+letter-pair is the sum of the probabilities of all possible gapped
+extensions that include this pairing.
 
 
 Options for lastdb

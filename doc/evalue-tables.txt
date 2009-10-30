@@ -25,7 +25,7 @@ The E-values were calculated with this formula::
 
 The values of K and lambda are also shown: they depend on the scoring
 scheme and letter abundances.  They were calculated using ALP
-(ftp://ftp.ncbi.nih.gov/pub/spouge/BLAST_Gumbel/).
+(http://www.ncbi.nlm.nih.gov/CBBresearch/Spouge/html/index/software.html).
 
 For short sequences -- very roughly, shorter than 100 -- these
 E-values are inaccurate (too high).  This can be fixed using a
