@@ -21,7 +21,9 @@ struct Alphabet{
 
   static const char* dna;
   static const char* protein;
-  static const char* all;
+
+  static const unsigned capacity = 256;
+  static const unsigned dummyCode = capacity - 1;
 
   // make an Alphabet from a string containing the "proper" letters
   void fromString( const std::string& alphString );
@@ -40,13 +42,13 @@ struct Alphabet{
 
   std::string letters;    // the "proper" letters, e.g. ACGT for DNA
   unsigned size;          // same as letters.size(): excludes delimiters
-  uchar encode[256];      // translate ASCII letters to codes (small integers)
-  uchar decode[256];      // translate codes to ASCII letters
-  uchar canonical[256];   // translate lowercase codes to uppercase codes
-  uchar complement[256];  // translate DNA codes to their complements
+  uchar encode[capacity];  // translate ASCII letters to codes (small integers)
+  uchar decode[capacity];  // translate codes to ASCII letters
+  uchar canonical[capacity];   // translate lowercase codes to uppercase codes
+  uchar complement[capacity];  // translate DNA codes to their complements
 
   void init();
-  uchar newCode( uchar letter, uchar code );
+  void addLetters( const std::string& lettersToAdd, unsigned& code );
   void makeComplement();
 };
 

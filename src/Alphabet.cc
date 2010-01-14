@@ -13,9 +13,6 @@ const char* Alphabet::dna = "ACGT";
 // U=selenocysteine, O=pyrrolysine, *=stop?
 const char* Alphabet::protein = "ACDEFGHIKLMNPQRSTVWY";
 
-// need to allow "*", because blosum62 includes it:
-const char* Alphabet::all = "ABCDEFGHIJKLMNOPQRSTUVWXYZ*";
-
 void Alphabet::fromString( const std::string& alphString ){
   letters = alphString;
   init();
@@ -25,7 +22,7 @@ void Alphabet::tr( std::vector<uchar>::iterator beg,
 		   std::vector<uchar>::iterator end ) const{
   for( /* noop */; beg < end; ++beg ){
     uchar code = encode[ *beg ];
-    if( code == 255 ){
+    if( code == dummyCode ){
       throw std::runtime_error( std::string("bad symbol: ") + char(*beg) );
     }
     *beg = code;
@@ -51,58 +48,48 @@ void Alphabet::rc( std::vector<uchar>::iterator beg,
 }
 
 void Alphabet::init(){
-  size = letters.size();
-
   // std::toupper doesn't work here!
   std::transform( letters.begin(), letters.end(), letters.begin(), toupper );
 
-  std::fill_n( encode, 256, 255 );  // fill encode with value 255
+  std::fill_n( encode, capacity, dummyCode );
 
-  for( unsigned i = 0; i < 256; ++i ){
+  for( unsigned i = 0; i < capacity; ++i ){
     canonical[i] = i;
   }
 
-  uchar code = 0;
+  unsigned code = 0;
+  addLetters( letters, code );
+  size = code;
+  addLetters( " ", code );  // add space as a delimiter symbol
 
-  // add the "real" alphabet letters:
-  for( std::string::iterator i = letters.begin(); i < letters.end(); ++i ){
-    uchar letter = *i;
-    if( letter == ' ' || encode[ letter ] != 255 ){
-      throw std::runtime_error( "bad alphabet: " + letters );
-    }
-    code = newCode( letter, code );
+  if( code - 1 != letters.size() ){
+    throw std::runtime_error( "bad alphabet: " + letters );
   }
 
-  // add space as a delimiter symbol:
-  code = newCode( ' ', code );
-
-  // add any remaining letters (e.g. ambiguous nucleotides):
-  for( const char* i = all; *i; ++i ){
-    uchar letter = *i;
-    if( encode[ letter ] == 255 ) code = newCode( letter, code );
-  }
-
-  // add lowercase letters:
-  for( const char* i = all; *i; ++i ){
-    uchar letter = std::tolower( *i );
-    if( encode[ letter ] == 255 ) code = newCode( letter, code );
-  }
+  addLetters( "ABCDEFGHIJKLMNOPQRSTUVWXYZ", code );
+  addLetters( "*", code );  // sometimes appears in protein sequences
+  addLetters( "abcdefghijklmnopqrstuvwxyz", code );
 
   makeComplement();
 }
 
-Alphabet::uchar Alphabet::newCode( uchar letter, uchar code ){
-  encode[letter] = code;
-  decode[code] = letter;
-  canonical[code] = encode[ std::toupper(letter) ];
-  return code + 1;
+void Alphabet::addLetters( const std::string& lettersToAdd, unsigned& code ){
+  for( unsigned i = 0; i < lettersToAdd.size(); ++i ){
+    uchar letter = lettersToAdd[i];
+    if( encode[letter] == dummyCode ){
+      encode[letter] = code;
+      decode[code] = letter;
+      canonical[code] = encode[ std::toupper(letter) ];
+      ++code;
+    }
+  }
 }
 
 void Alphabet::makeComplement(){
   static const char* x = "ACGTRYSWKMBDHVN";
   static const char* y = "TGCAYRSWMKVHDBN";
 
-  for( unsigned i = 0; i < 256; ++i ){
+  for( unsigned i = 0; i < capacity; ++i ){
     complement[i] = i;
   }
 
