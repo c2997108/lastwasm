@@ -29,8 +29,7 @@ void Alphabet::tr( std::vector<uchar>::iterator beg,
   }
 }
 
-std::string Alphabet::rtString( std::vector<uchar>::const_iterator beg,
-				std::vector<uchar>::const_iterator end ) const{
+std::string Alphabet::rtString( const uchar* beg, const uchar* end ) const{
   std::string s;
   for( /* noop */; beg < end; ++beg ){
     s += decode[ *beg ];

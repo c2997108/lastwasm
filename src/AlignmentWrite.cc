@@ -111,20 +111,20 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
      << std::setw( bw ) << b1 << ' '
      << std::setw( rw ) << r1 << ' ' << '+' << ' '
      << std::setw( sw ) << s1 << ' '
-     << topString( seq1.seq, alph, frameSize2 ) << '\n';
+     << topString( seq1.seqBase(), alph, frameSize2 ) << '\n';
 
   os << "s "
      << std::setw( nw ) << std::left << n2 << std::right << ' '
      << std::setw( bw ) << b2 << ' '
      << std::setw( rw ) << r2 << ' ' << strand << ' '
      << std::setw( sw ) << s2 << ' '
-     << botString( seq2.seq, alph, frameSize2 ) << '\n';
+     << botString( seq2.seqBase(), alph, frameSize2 ) << '\n';
 
-  if( seq2.qualityScores.size() > 0 ){
+  if( seq2.qualsPerLetter() > 0 ){
     os << "q "
        << std::setw( nw ) << std::left << n2 << std::right << ' '
        << std::setw( bw + rw + sw + 5 ) << ""
-       << qualityString( seq2.qualityScores, seq2.seq ) << '\n';
+       << qualityString( seq2.qualityBase(), seq2.qualsPerLetter() ) << '\n';
   }
 
   if( matchProbabilities.size() > 0 ){
@@ -144,8 +144,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   os << '\n';  // blank line afterwards
 }
 
-std::string Alignment::topString( const std::vector<uchar>& seq,
-				  const Alphabet& alph,
+std::string Alignment::topString( const uchar* seq, const Alphabet& alph,
 				  indexT frameSize ) const{
   std::string s;
 
@@ -156,8 +155,7 @@ std::string Alignment::topString( const std::vector<uchar>& seq,
       // append unaligned chunk of top sequence:
       indexT gapBeg1 = blocks[i-1].end1();
       indexT gapEnd1 = blocks[i].beg1();
-      s.append( alph.rtString( seq.begin() + gapBeg1,
-			       seq.begin() + gapEnd1 ) );
+      s.append( alph.rtString( seq + gapBeg1, seq + gapEnd1 ) );
 
       // append gaps for unaligned chunk of bottom sequence:
       indexT gapBeg2 = blocks[i-1].end2();
@@ -168,15 +166,14 @@ std::string Alignment::topString( const std::vector<uchar>& seq,
     }
 
     // append aligned chunk of top sequence:
-    s.append( alph.rtString( seq.begin() + blocks[i].beg1(),
-			     seq.begin() + blocks[i].end1() ) );
+    s.append( alph.rtString( seq + blocks[i].beg1(),
+			     seq + blocks[i].end1() ) );
   }
 
   return s;
 }
 
-std::string Alignment::botString( const std::vector<uchar>& seq,
-				  const Alphabet& alph,
+std::string Alignment::botString( const uchar* seq, const Alphabet& alph,
 				  indexT frameSize ) const{
   std::string s;
 
@@ -195,23 +192,20 @@ std::string Alignment::botString( const std::vector<uchar>& seq,
       sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize, frameshift );
       if( frameshift == 1 ) s.push_back( '\\' );
       if( frameshift == 2 ) s.push_back( '/' );
-      s.append( alph.rtString( seq.begin() + gapEnd2 - gapSize,
-			       seq.begin() + gapEnd2 ) );
+      s.append( alph.rtString( seq + gapEnd2 - gapSize, seq + gapEnd2 ) );
     }
 
     // append aligned chunk of bottom sequence:
-    s.append( alph.rtString( seq.begin() + blocks[i].beg2(),
-			     seq.begin() + blocks[i].end2() ) );
+    s.append( alph.rtString( seq + blocks[i].beg2(),
+			     seq + blocks[i].end2() ) );
   }
 
   return s;
 }
 
-std::string Alignment::qualityString( const std::vector<uchar>& qualities,
-				      const std::vector<uchar>& seq ) const{
+std::string Alignment::qualityString( const uchar* qualities,
+				      unsigned qualsPerBase ) const{
   std::string s;
-  unsigned qualsPerBase = qualities.size() / seq.size();
-  assert( qualsPerBase > 0 );
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
@@ -232,12 +226,12 @@ std::string Alignment::qualityString( const std::vector<uchar>& qualities,
   return s;
 }
 
-std::string Alignment::qualityBlock( const std::vector<uchar>& qualities,
+std::string Alignment::qualityBlock( const uchar* qualities,
 				     indexT beg, indexT end,
 				     unsigned qualsPerBase ){
   std::string s;
   for( indexT i = beg; i < end; ++i ){
-    const uchar* q = &qualities[ i * qualsPerBase ];
+    const uchar* q = qualities + i * qualsPerBase;
     s += *std::max_element( q, q + qualsPerBase );
   }
   return s;

@@ -33,8 +33,7 @@ struct Alphabet{
 	   std::vector<uchar>::iterator end ) const;
 
   // reverse-translate (decode) a sequence of numbers to letters
-  std::string rtString( std::vector<uchar>::const_iterator beg,
-			std::vector<uchar>::const_iterator end ) const;
+  std::string rtString( const uchar* beg, const uchar* end ) const;
 
   // reverse and complement a sequence of numbers, in place
   void rc( std::vector<uchar>::iterator beg,

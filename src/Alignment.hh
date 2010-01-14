@@ -83,16 +83,16 @@ struct Alignment{
 		 char strand, bool isTranslated, const Alphabet& alph,
 		 std::ostream& os ) const;
 
-  std::string topString( const std::vector<uchar>& seq,
-			 const Alphabet& alph, indexT frameSize ) const;
+  std::string topString( const uchar* seq, const Alphabet& alph,
+                         indexT frameSize ) const;
 
-  std::string botString( const std::vector<uchar>& seq,
-			 const Alphabet& alph, indexT frameSize ) const;
+  std::string botString( const uchar* seq, const Alphabet& alph,
+                         indexT frameSize ) const;
 
-  std::string qualityString( const std::vector<uchar>& qualities,
-			     const std::vector<uchar>& seq ) const;
+  std::string qualityString( const uchar* qualities,
+			     unsigned qualsPerBase ) const;
 
-  static std::string qualityBlock( const std::vector<uchar>& qualities,
+  static std::string qualityBlock( const uchar* qualities,
 				   indexT beg, indexT end,
 				   unsigned qualsPerBase );
 };

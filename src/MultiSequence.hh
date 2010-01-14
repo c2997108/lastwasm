@@ -66,6 +66,17 @@ struct MultiSequence{
   indexT seqLen( indexT seqNum ) const{ return seqEnd(seqNum) - ends[seqNum]; }
   std::string seqName( indexT seqNum ) const;
 
+  // get a pointer to the start of the sequence data
+  const uchar* seqBase() const{ return &seq[0]; }
+
+  // get a pointer to the start of the quality data
+  const uchar* qualityBase() const { return &qualityScores[0]; }
+
+  // How many quality scores are there per letter?  There might be
+  // none at all, one per letter, or several (e.g. 4) per letter.
+  unsigned qualsPerLetter() const
+  { return qualityScores.size() / seq.size(); }
+
   // data:
   indexT padSize;  // number of delimiter chars between sequences
   std::vector<uchar> seq;  // concatenated sequences
@@ -73,10 +84,9 @@ struct MultiSequence{
   std::vector<char> names;  // concatenated sequence names (to save memory)
   std::vector<indexT> nameEnds;  // endpoints of the names
 
-  // There might be no quality scores, one score per letter, or
-  // several (e.g. 4) scores per letter.  They may be ASCII-coded: to
-  // get the real scores, subtract e.g. 33 or 64.  The real scores
-  // might be related to error probabilities in one of these ways:
+  // The quality scores may be ASCII-coded: to get the real scores,
+  // subtract e.g. 33 or 64.  The real scores might be related to
+  // error probabilities in one of these ways:
   // Qphred = -10*log10(p)
   // Qsolexa = -10*log10(p/(1-p))
   std::vector<uchar> qualityScores;

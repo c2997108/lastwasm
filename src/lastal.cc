@@ -172,16 +172,16 @@ void countMatches( char strand ){
       if( args.minHitDepth > j - query.seqBeg(seqNum) ) continue;
     }
 
-    suffixArray.countMatches( matchCounts[seqNum], &query.seq[i],
-			      &text.seq[0], subsetSeed );
+    suffixArray.countMatches( matchCounts[seqNum], query.seqBase() + i,
+			      text.seqBase(), subsetSeed );
   }
 }
 
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( SegmentPairPot& gaplessAlns,
 		   char strand, std::ostream& out ){
-  const uchar* qseq = &query.seq[0];
-  const uchar* tseq = &text.seq[0];
+  const uchar* qseq = query.seqBase();
+  const uchar* tseq = text.seqBase();
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
@@ -247,8 +247,8 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 // Do gapped extensions of the gapless alignments
 void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 		  Centroid& centroid ){
-  const uchar* qseq = &query.seq[0];
-  const uchar* tseq = &text.seq[0];
+  const uchar* qseq = query.seqBase();
+  const uchar* tseq = text.seqBase();
   indexT frameSize = args.isTranslated() ? (query.ends.back() / 3) : 0;
   countT gappedExtensionCount = 0;
 
@@ -308,7 +308,8 @@ void alignFinish( const AlignmentPot& gappedAlns,
     else{  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( xdropAligner, centroid, &text.seq[0], &query.seq[0],
+      probAln.makeXdrop( xdropAligner, centroid,
+                         text.seqBase(), query.seqBase(),
 			 matGapped, scoreMatrix.maxScore,
 			 gapCosts, args.maxDropGapped, args.frameshiftCost,
 			 frameSize, pssm, args.gamma, args.outputType );
@@ -327,8 +328,8 @@ void scan( char strand, std::ostream& out ){
 
   if( args.inputFormat > 0 ){
     LOG( "making PSSM..." );
-    qualityScoreCalculator.makePssm( pssm, &query.qualityScores[0],
-				     &query.seq[0], query.ends.back(),
+    qualityScoreCalculator.makePssm( pssm, query.qualityBase(),
+				     query.seqBase(), query.ends.back(),
 				     args.inputFormat < 3 );
   }
 
@@ -383,9 +384,9 @@ void reverseComplementQuery(){
   LOG( "reverse complementing..." );
   queryAlph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
   if( args.inputFormat > 0 ){
-    std::reverse( query.qualityScores.begin(),  // XXX ugly
-		  query.qualityScores.begin() + query.ends.back() *
-		  (query.qualityScores.size() / query.seq.size()) );
+    std::reverse( query.qualityScores.begin(),
+		  query.qualityScores.begin() +
+                  query.ends.back() * query.qualsPerLetter() );
   }
 }
 
