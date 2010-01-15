@@ -36,7 +36,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   indexT w1 = seq1.whichSequence(alnBeg1);
   indexT seqStart1 = seq1.seqBeg(w1);
 
-  indexT size2 = seq2.ends.back();
+  indexT size2 = seq2.finishedSize();
   indexT frameSize2 = isTranslated ? (size2 / 3) : 0;
   indexT alnBeg2 = aaToDna( beg2(), frameSize2 );
   indexT alnEnd2 = aaToDna( end2(), frameSize2 );
@@ -82,7 +82,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   indexT w1 = seq1.whichSequence(alnBeg1);
   indexT seqStart1 = seq1.seqBeg(w1);
 
-  indexT size2 = seq2.ends.back();
+  indexT size2 = seq2.finishedSize();
   indexT frameSize2 = isTranslated ? (size2 / 3) : 0;
   indexT alnBeg2 = aaToDna( beg2(), frameSize2 );
   indexT alnEnd2 = aaToDna( end2(), frameSize2 );

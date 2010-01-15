@@ -55,6 +55,9 @@ struct MultiSequence{
   // how many finished sequences are there?
   indexT finishedSequences() const{ return ends.size() - 1; }
 
+  // total length of finished sequences plus delimiters
+  indexT finishedSize() const{ return ends.back(); }
+
   // can we finish the last sequence and stay within the memory limit?
   bool isFinishable( std::size_t maxBytes ) const;
 

@@ -70,8 +70,8 @@ void writeOuterPrj( const std::string& fileName,
 void writeInnerPrj( const std::string& fileName,
 		    const MultiSequence& multi, const SubsetSuffixArray& sa ){
   std::ofstream f( fileName.c_str() );
-  f << "totallength=" << multi.ends.back() << '\n';
-  f << "specialcharacters=" << multi.ends.back() - sa.indexSize() << '\n';
+  f << "totallength=" << multi.finishedSize() << '\n';
+  f << "specialcharacters=" << multi.finishedSize() - sa.indexSize() << '\n';
   f << "numofsequences=" << multi.finishedSequences() << '\n';
   f << "prefixlength=" << sa.maxBucketPrefix() << '\n';
   if( !f ) throw std::runtime_error("can't write file: " + fileName);
@@ -84,10 +84,10 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
   std::string baseName = args.lastdbName + stringify(volumeNumber);
 
   LOG( "sorting..." );
-  sa.sortIndex( &multi.seq[0], seed );
+  sa.sortIndex( multi.seqBase(), seed );
 
   LOG( "bucketing..." );
-  sa.makeBuckets( &multi.seq[0], seed, args.bucketDepth );
+  sa.makeBuckets( multi.seqBase(), seed, args.bucketDepth );
 
   LOG( "writing..." );
   writeInnerPrj( baseName + ".prj", multi, sa );
@@ -107,6 +107,7 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
   if( multi.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
 
   indexT oldSeqSize = multi.seq.size();
+  indexT oldFinishedSize = multi.finishedSize();
 
   multi.appendFromFasta( in, maxSeqBytes );
 
@@ -118,8 +119,7 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
     if( args.volumeSize < multi.seq.size() ) maxIndexBytes = 0;
     if( multi.finishedSequences() == 1 ) maxIndexBytes = std::size_t(-1);
 
-    if( !sa.addIndices( &multi.seq[0],
-			*(multi.ends.end() - 2), *(multi.ends.end() - 1),
+    if( !sa.addIndices( multi.seqBase(), oldFinishedSize, multi.finishedSize(),
 			args.indexStep, seed, maxIndexBytes ) ){
       multi.unfinish();
     }

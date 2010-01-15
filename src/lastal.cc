@@ -151,7 +151,7 @@ void countMatches( char strand ){
   LOG( "counting..." );
   indexT seqNum = strand == '+' ? 0 : query.finishedSequences() - 1;
 
-  for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
+  for( indexT i = 0; i < query.finishedSize(); i += args.queryStep ){
     if( strand == '+' ){
       for( ;; ){
 	if( seqNum == query.finishedSequences() ) return;
@@ -162,7 +162,7 @@ void countMatches( char strand ){
       if( args.minHitDepth > query.seqEnd(seqNum) - i ) continue;
     }
     else{
-      indexT j = query.ends.back() - i;
+      indexT j = query.finishedSize() - i;
       for( ;; ){
 	if( seqNum == -1u ) return;
 	if( query.seqBeg(seqNum) < j ) break;
@@ -185,7 +185,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
-  for( indexT i = 0; i < query.ends.back(); i += args.queryStep ){
+  for( indexT i = 0; i < query.finishedSize(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
     suffixArray.match( beg, end, qseq + i, tseq, subsetSeed,
@@ -249,7 +249,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 		  Centroid& centroid ){
   const uchar* qseq = query.seqBase();
   const uchar* tseq = text.seqBase();
-  indexT frameSize = args.isTranslated() ? (query.ends.back() / 3) : 0;
+  indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
   countT gappedExtensionCount = 0;
 
   gaplessAlns.sort();  // sort the gapless alignments by score, highest first
@@ -297,7 +297,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 void alignFinish( const AlignmentPot& gappedAlns,
 		  Centroid& centroid, char strand, std::ostream& out ){
 
-  indexT frameSize = args.isTranslated() ? (query.ends.back() / 3) : 0;
+  indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
 
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
@@ -329,7 +329,7 @@ void scan( char strand, std::ostream& out ){
   if( args.inputFormat > 0 ){
     LOG( "making PSSM..." );
     qualityScoreCalculator.makePssm( pssm, query.qualityBase(),
-				     query.seqBase(), query.ends.back(),
+				     query.seqBase(), query.finishedSize(),
 				     args.inputFormat < 3 );
   }
 
@@ -358,9 +358,9 @@ void scan( char strand, std::ostream& out ){
 void translateAndScan( char strand, std::ostream& out ){
   if( args.isTranslated() ){
     LOG( "translating..." );
-    std::vector<uchar> translation( query.ends.back() );
+    std::vector<uchar> translation( query.finishedSize() );
     geneticCode.translate( query.seq.begin(),
-                           query.seq.begin() + query.ends.back(),
+                           query.seq.begin() + query.finishedSize(),
 			   translation.begin() );
     query.seq.swap(translation);
     scan( strand, out );
@@ -376,17 +376,17 @@ void readVolume( unsigned volumeNumber ){
   indexT seqCount = -1u, delimiterNum = -1u, bucketDepth = -1u;
   readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
   text.fromFiles( baseName, seqCount );
-  suffixArray.fromFiles( baseName, text.ends.back() - delimiterNum,
+  suffixArray.fromFiles( baseName, text.finishedSize() - delimiterNum,
 			 bucketDepth, subsetSeed );
 }
 
 void reverseComplementQuery(){
   LOG( "reverse complementing..." );
-  queryAlph.rc( query.seq.begin(), query.seq.begin() + query.ends.back() );
+  queryAlph.rc( query.seq.begin(), query.seq.begin() + query.finishedSize() );
   if( args.inputFormat > 0 ){
     std::reverse( query.qualityScores.begin(),
 		  query.qualityScores.begin() +
-                  query.ends.back() * query.qualsPerLetter() );
+                  query.finishedSize() * query.qualsPerLetter() );
   }
 }
 
@@ -396,7 +396,7 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
     matchCounts.clear();
     matchCounts.resize( query.finishedSequences() );
   }
-  else if( args.inputFormat > 0 ) pssm = new int[ query.ends.back() ][MAT];
+  else if( args.inputFormat > 0 ) pssm = new int[ query.finishedSize() ][MAT];
 
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.seq.empty() || volumes > 1 ) readVolume( i );
