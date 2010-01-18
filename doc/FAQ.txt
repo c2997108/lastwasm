@@ -18,3 +18,35 @@ A: Perhaps you gave it two copies of the same genome by mistake?  It
 becomes horribly slow if there are huge exact repeats.  (But it copes
 OK with the exact duplicates between chromosomes X and Y in some
 versions of the human genome.)
+
+
+Q: How can I find alignments with > 95% identity?
+
+A: One way is to use a scoring scheme like this: +5 for a match, and
+-95 for a mismatch or a gap.  You'll also need to set the alignment
+score threshold to a reasonable value.  In this example we set it to
+150, which means that we require at least 30 matches:
+
+  lastal -r5 -q95 -a0 -b95 -e150
+
+
+Q: How can I guarantee to find all matches of size-72 DNA reads to a
+genome, allowing up to 2 differences (mismatches or gaps)?
+
+A: Let's consider the worst case.  If each difference is an insertion
+in the read relative to the genome, that leaves 72 - 2 = 70 bases that
+match.  If the differences are evenly spaced along the read, then the
+matching bases are broken into three regions of length 23, 23, and 24.
+So we are guaranteed to have an exact match of size 24.  With LAST,
+we could do something like this:
+
+  lastdb -s16G genomedb genome.fa
+  lastal -l24 -m100 -d0 -y0 -a0 -x2 -e68 genomedb reads.fa
+
+The -l24 tells it to look for size-24 matches.  The -m100 tells it to
+ignore highly-repeated size-24 matches: if you really want your
+guarantee, replace this with -m4000000000, but then the output might
+be huge.  The -e68 sets the alignment score threshold to 68, which is
+the minimum score for a size-72 read with 2 differences.  The -x2 just
+makes it faster, by quitting alignments early if it finds more than 2
+differences.

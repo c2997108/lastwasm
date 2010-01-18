@@ -380,9 +380,16 @@ Sato, and Paul Horton in the Computational Biology Research Center.
 Many thanks to Hajime Harada for setting up the repository and
 website, and Takako Sugawara for making the logo.  LAST includes
 public domain code kindly provided by Yi-Kuo Yu and Stephen Altschul
-at the NCBI.  There is no journal publication yet, so please cite the
-website: http://last.cbrc.jp/.
+at the NCBI.  If you use LAST in your research, please cite one (or
+more) of the following publications:
 
+| Incorporating sequence quality data into alignment improves DNA read mapping
+| Martin C. Frith, Raymond Wan, Paul Horton
+| Nucleic Acids Research, 2010 (in press)
+
+| Parameters for Accurate Genome Alignment
+| Martin C. Frith, Michiaki Hamada, Paul Horton
+| BMC Bioinformatics, 2010 (in press)
 
 Questions, Comments, Problems
 -----------------------------
