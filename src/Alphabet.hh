@@ -23,7 +23,6 @@ struct Alphabet{
   static const char* protein;
 
   static const unsigned capacity = 256;
-  static const unsigned dummyCode = capacity - 1;
 
   // make an Alphabet from a string containing the "proper" letters
   void fromString( const std::string& alphString );

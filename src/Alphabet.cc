@@ -8,6 +8,8 @@
 
 using namespace cbrc;
 
+static const unsigned dummyCode = Alphabet::capacity - 1;
+
 const char* Alphabet::dna = "ACGT";
 
 // U=selenocysteine, O=pyrrolysine, *=stop?

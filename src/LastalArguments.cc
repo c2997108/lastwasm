@@ -311,7 +311,7 @@ void LastalArguments::setDefaultsFromMatrix( double lambda ){
 
   if( maxDropGapless < 0 ){
     if( temperature < 0 ) maxDropGapless = 0;  // shouldn't happen
-    else                  maxDropGapless = 10.0 * temperature + 0.5;
+    else                  maxDropGapless = int( 10.0 * temperature + 0.5 );
   }
 
   if( maxDropGapped < 0 ){
