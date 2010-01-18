@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 // This struct maps characters to codes (small integers) and back.
 
@@ -10,7 +10,7 @@
 
 #ifndef ALPHABET_HH
 #define ALPHABET_HH
-#include <vector>
+
 #include <string>
 #include <iosfwd>
 
@@ -29,15 +29,13 @@ struct Alphabet{
   void fromString( const std::string& alphString );
 
   // translate (encode) a sequence of letters to numbers, in place
-  void tr( std::vector<uchar>::iterator beg,
-	   std::vector<uchar>::iterator end ) const;
+  void tr( uchar* beg, uchar* end ) const;
 
   // reverse-translate (decode) a sequence of numbers to letters
   std::string rtString( const uchar* beg, const uchar* end ) const;
 
   // reverse and complement a sequence of numbers, in place
-  void rc( std::vector<uchar>::iterator beg,
-           std::vector<uchar>::iterator end ) const;
+  void rc( uchar* beg, uchar* end ) const;
 
   std::string letters;    // the "proper" letters, e.g. ACGT for DNA
   unsigned size;          // same as letters.size(): excludes delimiters

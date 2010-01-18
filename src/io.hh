@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 // Generally useful input/output functions, mostly for binary reading
 // and writing of vectors.
@@ -27,8 +27,8 @@ template <typename T>  // T should be a vector-iterator or a pointer
 void memoryFromStream( T beg, T end, std::istream& s ){
   assert( beg < end );
   enum { CHUNK_SIZE = 1073741824 };  // need to do big reads in chunks: why?
-  char * b = (char*)&(*beg);
-  char * e = (char*)&(*end);
+  char * b = reinterpret_cast<char*>(&(*beg));
+  char * e = reinterpret_cast<char*>(&(*end));
   while( e - b > CHUNK_SIZE ){
     s.read( b, CHUNK_SIZE );
     b += CHUNK_SIZE;

@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
@@ -172,16 +172,16 @@ void countMatches( char strand ){
       if( args.minHitDepth > j - query.seqBeg(seqNum) ) continue;
     }
 
-    suffixArray.countMatches( matchCounts[seqNum], query.seqBase() + i,
-			      text.seqBase(), subsetSeed );
+    suffixArray.countMatches( matchCounts[seqNum], query.seqReader() + i,
+			      text.seqReader(), subsetSeed );
   }
 }
 
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( SegmentPairPot& gaplessAlns,
 		   char strand, std::ostream& out ){
-  const uchar* qseq = query.seqBase();
-  const uchar* tseq = text.seqBase();
+  const uchar* qseq = query.seqReader();
+  const uchar* tseq = text.seqReader();
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
@@ -247,8 +247,8 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 // Do gapped extensions of the gapless alignments
 void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 		  Centroid& centroid ){
-  const uchar* qseq = query.seqBase();
-  const uchar* tseq = text.seqBase();
+  const uchar* qseq = query.seqReader();
+  const uchar* tseq = text.seqReader();
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
   countT gappedExtensionCount = 0;
 
@@ -309,7 +309,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
       Alignment probAln;
       probAln.seed = aln.seed;
       probAln.makeXdrop( xdropAligner, centroid,
-                         text.seqBase(), query.seqBase(),
+                         text.seqReader(), query.seqReader(),
 			 matGapped, scoreMatrix.maxScore,
 			 gapCosts, args.maxDropGapped, args.frameshiftCost,
 			 frameSize, pssm, args.gamma, args.outputType );
@@ -328,8 +328,8 @@ void scan( char strand, std::ostream& out ){
 
   if( args.inputFormat > 0 ){
     LOG( "making PSSM..." );
-    qualityScoreCalculator.makePssm( pssm, query.qualityBase(),
-				     query.seqBase(), query.finishedSize(),
+    qualityScoreCalculator.makePssm( pssm, query.qualityReader(),
+				     query.seqReader(), query.finishedSize(),
 				     args.inputFormat < 3 );
   }
 
@@ -359,12 +359,12 @@ void translateAndScan( char strand, std::ostream& out ){
   if( args.isTranslated() ){
     LOG( "translating..." );
     std::vector<uchar> translation( query.finishedSize() );
-    geneticCode.translate( query.seq.begin(),
-                           query.seq.begin() + query.finishedSize(),
-			   translation.begin() );
-    query.seq.swap(translation);
+    geneticCode.translate( query.seqReader(),
+                           query.seqReader() + query.finishedSize(),
+			   &translation[0] );
+    query.swapSeq(translation);
     scan( strand, out );
-    query.seq.swap(translation);
+    query.swapSeq(translation);
   }
   else scan( strand, out );
 }
@@ -382,11 +382,12 @@ void readVolume( unsigned volumeNumber ){
 
 void reverseComplementQuery(){
   LOG( "reverse complementing..." );
-  queryAlph.rc( query.seq.begin(), query.seq.begin() + query.finishedSize() );
+  queryAlph.rc( query.seqWriter(), query.seqWriter() + query.finishedSize() );
   if( args.inputFormat > 0 ){
-    std::reverse( query.qualityScores.begin(),
-		  query.qualityScores.begin() +
+    std::reverse( query.qualityWriter(),
+		  query.qualityWriter() +
                   query.finishedSize() * query.qualsPerLetter() );
+    // I think the multiplication can overflow, but it's very unlikely
   }
 }
 
@@ -399,7 +400,7 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
   else if( args.inputFormat > 0 ) pssm = new int[ query.finishedSize() ][MAT];
 
   for( unsigned i = 0; i < volumes; ++i ){
-    if( text.seq.empty() || volumes > 1 ) readVolume( i );
+    if( text.unfinishedSize() == 0 || volumes > 1 ) readVolume( i );
 
     if( args.strand == 2 && i > 0 ) reverseComplementQuery();
 
@@ -452,7 +453,7 @@ std::istream& appendFromFasta( std::istream& in ){
   std::size_t maxSeqBytes = args.batchSize;
   if( query.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
 
-  indexT oldSeqSize = query.seq.size();
+  indexT oldUnfinishedSize = query.unfinishedSize();
 
   /**/ if( args.inputFormat < 1 ) query.appendFromFasta( in, maxSeqBytes );
   else if( args.inputFormat < 3 ) query.appendFromFastq( in, maxSeqBytes );
@@ -460,7 +461,8 @@ std::istream& appendFromFasta( std::istream& in ){
 			    queryAlph.size, queryAlph.decode );
 
   // encode the newly-read sequence
-  queryAlph.tr( query.seq.begin() + oldSeqSize, query.seq.end() );
+  queryAlph.tr( query.seqWriter() + oldUnfinishedSize,
+                query.seqWriter() + query.unfinishedSize() );
 
   return in;
 }
@@ -523,7 +525,8 @@ void lastal( int argc, char** argv ){
     query.initForAppending(1);
   }
 
-  queryAlph.tr( query.seq.begin(), query.seq.end() );
+  queryAlph.tr( query.seqWriter(),
+                query.seqWriter() + query.unfinishedSize() );
 
   std::ofstream outFileStream;
   std::ostream& out = openOut( args.outFile, outFileStream );

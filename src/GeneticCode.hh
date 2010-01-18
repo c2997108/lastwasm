@@ -38,9 +38,9 @@ class GeneticCode
   virtual void 			fromFile( const std::string& codeTable );
   virtual void 			fromString( const std::string& s );
   virtual void			codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph );
-  virtual void 			translate( std::vector<uchar>::const_iterator beg,
-					   std::vector<uchar>::const_iterator end,
-					   std::vector<uchar>::iterator dest );
+  virtual void 			translate( const uchar* beg,
+                                           const uchar* end,
+					   uchar* dest );
 
   static const char* standard;  // the standard genetic code
 };

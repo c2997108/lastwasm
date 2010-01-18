@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 #include "Alignment.hh"
 #include "GeneticCode.hh"
@@ -111,20 +111,20 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
      << std::setw( bw ) << b1 << ' '
      << std::setw( rw ) << r1 << ' ' << '+' << ' '
      << std::setw( sw ) << s1 << ' '
-     << topString( seq1.seqBase(), alph, frameSize2 ) << '\n';
+     << topString( seq1.seqReader(), alph, frameSize2 ) << '\n';
 
   os << "s "
      << std::setw( nw ) << std::left << n2 << std::right << ' '
      << std::setw( bw ) << b2 << ' '
      << std::setw( rw ) << r2 << ' ' << strand << ' '
      << std::setw( sw ) << s2 << ' '
-     << botString( seq2.seqBase(), alph, frameSize2 ) << '\n';
+     << botString( seq2.seqReader(), alph, frameSize2 ) << '\n';
 
   if( seq2.qualsPerLetter() > 0 ){
     os << "q "
        << std::setw( nw ) << std::left << n2 << std::right << ' '
        << std::setw( bw + rw + sw + 5 ) << ""
-       << qualityString( seq2.qualityBase(), seq2.qualsPerLetter() ) << '\n';
+       << qualityString( seq2.qualityReader(), seq2.qualsPerLetter() ) << '\n';
   }
 
   if( matchProbabilities.size() > 0 ){

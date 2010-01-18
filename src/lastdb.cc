@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 // Read fasta-format sequences; construct a suffix array of them; and
 // write the results to files.
@@ -84,10 +84,10 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
   std::string baseName = args.lastdbName + stringify(volumeNumber);
 
   LOG( "sorting..." );
-  sa.sortIndex( multi.seqBase(), seed );
+  sa.sortIndex( multi.seqReader(), seed );
 
   LOG( "bucketing..." );
-  sa.makeBuckets( multi.seqBase(), seed, args.bucketDepth );
+  sa.makeBuckets( multi.seqReader(), seed, args.bucketDepth );
 
   LOG( "writing..." );
   writeInnerPrj( baseName + ".prj", multi, sa );
@@ -106,21 +106,23 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
   if( args.volumeSize < sa.indexBytes() ) maxSeqBytes = 0;
   if( multi.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
 
-  indexT oldSeqSize = multi.seq.size();
+  indexT oldUnfinishedSize = multi.unfinishedSize();
   indexT oldFinishedSize = multi.finishedSize();
 
   multi.appendFromFasta( in, maxSeqBytes );
 
   // encode the newly-read sequence
-  alph.tr( multi.seq.begin() + oldSeqSize, multi.seq.end() );
+  alph.tr( multi.seqWriter() + oldUnfinishedSize,
+           multi.seqWriter() + multi.unfinishedSize() );
 
   if( in && multi.isFinished() ){
-    std::size_t maxIndexBytes = args.volumeSize - multi.seq.size();
-    if( args.volumeSize < multi.seq.size() ) maxIndexBytes = 0;
+    std::size_t maxIndexBytes = args.volumeSize - multi.unfinishedSize();
+    if( args.volumeSize < multi.unfinishedSize() ) maxIndexBytes = 0;
     if( multi.finishedSequences() == 1 ) maxIndexBytes = std::size_t(-1);
 
-    if( !sa.addIndices( multi.seqBase(), oldFinishedSize, multi.finishedSize(),
-			args.indexStep, seed, maxIndexBytes ) ){
+    if( !sa.addIndices( multi.seqReader(),
+                        oldFinishedSize, multi.finishedSize(),
+                        args.indexStep, seed, maxIndexBytes ) ){
       multi.unfinish();
     }
   }
@@ -138,7 +140,7 @@ void lastdb( int argc, char** argv ){
   makeAlphabet( alph, args );
   makeSubsetSeed( seed, args, alph );
   multi.initForAppending(1);
-  alph.tr( multi.seq.begin(), multi.seq.end() );
+  alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
   unsigned volumeNumber = 0;
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){

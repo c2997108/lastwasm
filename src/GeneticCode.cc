@@ -84,15 +84,13 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
     }
   }
 
-  aaAlph.tr( genome2residue.begin(), genome2residue.end() );
+  aaAlph.tr( &genome2residue.front(), &genome2residue.back() + 1 );
 
   return;
 }
 
 //
-void GeneticCode::translate( std::vector<uchar>::const_iterator beg,
-			      std::vector<uchar>::const_iterator end,
-			      std::vector<uchar>::iterator dest ){
+void GeneticCode::translate( const uchar* beg, const uchar* end, uchar* dest ){
   std::size_t size = end - beg;
 
   for( unsigned int i = 0 ; i < 3 ; i++ ){
@@ -125,7 +123,7 @@ int GeneticCode::codon2number( const uchar *codon )
 //
 int GeneticCode::codon2number2( std::vector<uchar> codon, const Alphabet& dnaAlph )
 {
-  dnaAlph.tr( codon.begin(), codon.end() );
+  dnaAlph.tr( &codon.front(), &codon.back() + 1 );
   return codon2number( &codon[0] );
 }
 

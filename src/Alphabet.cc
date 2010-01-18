@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 #include "Alphabet.hh"
 #include <istream>
@@ -18,8 +18,7 @@ void Alphabet::fromString( const std::string& alphString ){
   init();
 }
 
-void Alphabet::tr( std::vector<uchar>::iterator beg,
-		   std::vector<uchar>::iterator end ) const{
+void Alphabet::tr( uchar* beg, uchar* end ) const{
   for( /* noop */; beg < end; ++beg ){
     uchar code = encode[ *beg ];
     if( code == dummyCode ){
@@ -37,8 +36,7 @@ std::string Alphabet::rtString( const uchar* beg, const uchar* end ) const{
   return s;
 }
 
-void Alphabet::rc( std::vector<uchar>::iterator beg,
-		   std::vector<uchar>::iterator end ) const{
+void Alphabet::rc( uchar* beg, uchar* end ) const{
   std::reverse( beg, end );
 
   for( /* noop */; beg < end; ++beg ){

@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 #include "MultiSequence.hh"
 #include "io.hh"
@@ -6,12 +6,14 @@
 #include <algorithm>  // upper_bound
 #include <cassert>
 
-namespace cbrc{
+using namespace cbrc;
 
 void MultiSequence::initForAppending( indexT padSizeIn ){
   padSize = padSizeIn;
-  nameEnds.push_back( names.size() );
-  finish();
+  seq.assign( padSize, ' ' );
+  ends.assign( 1, padSize );
+  names.clear();
+  nameEnds.assign( 1, 0 );
 }
 
 void MultiSequence::reinitForAppending(){
@@ -89,11 +91,13 @@ MultiSequence::appendFromFasta( std::istream& stream, std::size_t maxBytes ){
 }
 
 void MultiSequence::finish(){
+  assert( !isFinished() );
   seq.insert( seq.end(), padSize, ' ' );
   ends.push_back( seq.size() );
 }
 
 void MultiSequence::unfinish(){
+  assert( isFinished() );
   ends.pop_back();
   seq.erase( seq.end() - padSize, seq.end() );
 }
@@ -113,5 +117,3 @@ std::string MultiSequence::seqName( indexT seqNum ) const{
   return std::string( names.begin() + nameEnds[ seqNum ],
 		      names.begin() + nameEnds[ seqNum + 1 ] );
 }
-
-}  // end namespace cbrc
