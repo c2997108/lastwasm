@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Copyright 2009 Martin C. Frith
+# Copyright 2009, 2010 Martin C. Frith
 
 # Join two or more sets of MAF-format multiple alignments into bigger
 # multiple alignments.  The 'join field' is the top genome, which
@@ -10,7 +10,9 @@
 # WARNING: Alignment columns with a gap in the top genome are joined
 # arbitrarily!!!
 
-import sys, os, fileinput, optparse
+import sys, os, fileinput, optparse, signal
+
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
 
 class peekable:  # Adapted from Python Cookbook 2nd edition
     """An iterator that supports a peek operation."""

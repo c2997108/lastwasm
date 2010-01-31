@@ -3,7 +3,9 @@
 # Change the order of sequences in MAF alignments, then make sure the
 # top sequence is on the + strand.  The MAF spacing might get messed up.
 
-import optparse, fileinput, string, re
+import optparse, fileinput, string, re, signal
+
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
 
 parser = optparse.OptionParser(usage="%prog [options] my-alignments.maf")
 parser.add_option("-n", type="int", default=2,

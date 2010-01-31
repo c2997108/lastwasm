@@ -6,7 +6,9 @@
 # of Y.  This script assumes the alignments have been sorted by
 # maf-sort.sh.
 
-import fileinput, string, re, itertools, optparse
+import fileinput, string, re, itertools, optparse, signal
+
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
 
 op = optparse.OptionParser(usage="%prog sorted-last-output.maf")
 (opts, args) = op.parse_args()

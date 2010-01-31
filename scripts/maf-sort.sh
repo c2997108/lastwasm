@@ -15,11 +15,15 @@
 # XXX Alignments with differences in whitespace are considered
 # non-identical.
 
+# This script uses perl instead of specialized commands like uniq.
+# The reason is that, on some systems (e.g. Mac OS X), uniq doesn't
+# work with long lines.
+
 # Make "sort" use a standard ordering:
 LC_ALL=C
 export LC_ALL
 
-uniqOpt=
+uniqOpt=1
 while getopts hd opt
 do
     case $opt in
@@ -32,7 +36,7 @@ Options:
 EOF
 	    exit
 	    ;;
-	d)  uniqOpt="-d"
+	d)  uniqOpt=2
             ;;
     esac
 done
@@ -40,14 +44,17 @@ shift $((OPTIND - 1))
 
 tmpfile=${TMPDIR-/tmp}/maf-sort.$$
 
-cat "$@" | tee $tmpfile | grep '^#'
+cat "$@" | tee $tmpfile | perl -ne 'print if /^#/'
 
-grep -v '^#' $tmpfile      |  # remove comment lines
-sed '/^a/y/ /!/'           |  # change spaces to '!'s in 'a' lines
-perl -pe 's/\n/#/ if /\S/' |  # join each alignment into one big line
-sort -k2,2 -k3,3n -k4,4n   |  # sort the lines
-uniq $uniqOpt              |  # merge identical alignments (don't use sort -u)
-perl -pe 's/#/\n/g'        |  # undo the line-joining
-sed '/^a/y/!/ /'              # change '!'s back to spaces in 'a' lines
+perl -ne 'print unless /^#/' $tmpfile |  # remove comment lines
+perl -pe 'y/ /!/  if /^a/'    |  # change spaces to '!'s in 'a' lines
+perl -pe 's/\n/#/ if /\S/'    |  # join each alignment into one big line
+sort -k2,2 -k3,3n -k4,4n      |  # sort the lines
+
+# print only the first (or second) of each run of identical lines:
+perl -ne '$c = 0 if $x ne $_; $x = $_; print if ++$c == '$uniqOpt |
+
+perl -pe 's/#/\n/g'           |  # undo the line-joining
+perl -pe 'y/!/ / if /^a/'        # change '!'s back to spaces in 'a' lines
 
 rm $tmpfile

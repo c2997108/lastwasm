@@ -10,7 +10,9 @@
 # with input that is too big to all fit in memory.  An alternative
 # would be to write it to a temporary file.)
 
-import sys, os, fileinput, math, optparse
+import sys, os, fileinput, math, optparse, signal
+
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
 
 progName = os.path.basename(sys.argv[0])
 

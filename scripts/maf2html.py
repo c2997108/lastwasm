@@ -1,12 +1,14 @@
 #! /usr/bin/env python
 
-# Copyright 2009 Martin C. Frith
+# Copyright 2009, 2010 Martin C. Frith
 
 # Read MAF-format sequence alignments: write them in human-friendly
 # HTML, with colours indicating alignment probabilities (from MAF
 # lines starting with 'p'.)
 
-import fileinput, operator, itertools, optparse
+import fileinput, operator, itertools, optparse, signal
+
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
 
 op = optparse.OptionParser(usage="%prog [options] my-alignments.maf")
 op.add_option('-l', '--linesize', type="int", default=100, metavar="CHARS",

@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # Convert MAF format alignments to tabular format
-import fileinput, optparse
+import fileinput, optparse, signal
+
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
 
 op = optparse.OptionParser(usage="%prog my-alignments.maf")
 (opts, args) = op.parse_args()
