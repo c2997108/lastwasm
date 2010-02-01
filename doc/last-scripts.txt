@@ -19,7 +19,11 @@ To get a nicer font, try something like::
   last-dotplot.py -f /usr/share/fonts/truetype/freefont/FreeSans.ttf al al.png
 
 If the fonts are located somewhere different on your computer, change
-this as appropriate.  To limit the plot to 500x500 pixels::
+this as appropriate.  To turn off the text and margins completely::
+
+  last-dotplot.py -s0 al al.png
+
+To limit the plot to 500x500 pixels::
 
   last-dotplot.py -x500 -y500 al al.png
 

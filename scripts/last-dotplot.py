@@ -25,7 +25,7 @@ parser.add_option("-y", "--height", type="int", dest="height", default=1000,
 parser.add_option("-f", "--fontfile", dest="fontfile",
                   help="TrueType or OpenType font file")
 parser.add_option("-s", "--fontsize", type="int", dest="fontsize", default=11,
-                  help="font size (default: %default)")
+                  help="TrueType or OpenType font size (default: %default)")
 (opts, args) = parser.parse_args()
 if len(args) != 2: parser.error("2 arguments needed")
 
@@ -64,6 +64,7 @@ def natural_sort_key(my_string):
 
 def get_text_sizes(my_strings):
     '''Get widths & heights, in pixels, of some strings.'''
+    if opts.fontsize == 0: return [(0, 0) for i in my_strings]
     image_size = 1, 1
     im = Image.new('L', image_size)
     draw = ImageDraw.Draw(im)
@@ -195,11 +196,13 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix):
 image_size = width, height
 im = Image.new('L', image_size)
 im.putdata(hits)
-axis1 = get_axis_image(seq_names1, name_sizes1, seq_starts1, seq_pix1)
-axis2 = get_axis_image(seq_names2, name_sizes2, seq_starts2, seq_pix2)
-axis2 = axis2.rotate(270)
-im.paste(axis1, (0, 0))
-im.paste(axis2, (0, 0))
+
+if opts.fontsize != 0:
+    axis1 = get_axis_image(seq_names1, name_sizes1, seq_starts1, seq_pix1)
+    axis2 = get_axis_image(seq_names2, name_sizes2, seq_starts2, seq_pix2)
+    axis2 = axis2.rotate(270)
+    im.paste(axis1, (0, 0))
+    im.paste(axis2, (0, 0))
 
 for i in seq_starts1[1:]:
     box = i - pix_tween_seqs, margin2, i, height
