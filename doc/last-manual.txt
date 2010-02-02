@@ -372,6 +372,21 @@ Miscellaneous Options
       Rix = T * ln[ sum(y){ Qiy * exp[ Sxy / T ] } ]
 
 
+Parallelization and Memory Sharing
+----------------------------------
+
+If you run two lastal jobs at the same time on the same computer,
+using the same lastdb database, they will share memory for the
+database.  In other words, the database gets loaded into memory only
+once.  So you can run lastal in parallel without excessive memory
+requirements.
+
+This memory sharing will be less effective if the database has more
+than one volume.  (If there is more than one file ending in ".suf",
+there is more than one volume.)  The lastdb -s option controls
+voluming.
+
+
 Credits & Citation
 ------------------
 

@@ -9,7 +9,8 @@
 #ifndef MULTISEQUENCE_HH
 #define MULTISEQUENCE_HH
 
-#include <vector>
+#include "VectorOrMmap.hh"
+
 #include <string>
 #include <iosfwd>
 
@@ -72,10 +73,10 @@ class MultiSequence{
 
   // get a pointer to the start of the sequence data
   const uchar* seqReader() const{ return &seq[0]; }
-  /***/ uchar* seqWriter()      { return &seq[0]; }
+  /***/ uchar* seqWriter()      { return &seq.v[0]; }
 
   // swap the sequence data with some other sequence data
-  void swapSeq( std::vector<uchar>& otherSeq ){ seq.swap(otherSeq); }
+  void swapSeq( std::vector<uchar>& otherSeq ){ seq.v.swap(otherSeq); }
 
   // get a pointer to the start of the quality data
   const uchar* qualityReader() const{ return &qualityScores[0]; }
@@ -88,10 +89,10 @@ class MultiSequence{
 
  private:
   indexT padSize;  // number of delimiter chars between sequences
-  std::vector<uchar> seq;  // concatenated sequences
-  std::vector<indexT> ends;  // coordinates of ends of delimiter pads
-  std::vector<char> names;  // concatenated sequence names (to save memory)
-  std::vector<indexT> nameEnds;  // endpoints of the names
+  VectorOrMmap<uchar> seq;  // concatenated sequences
+  VectorOrMmap<indexT> ends;  // coordinates of ends of delimiter pads
+  VectorOrMmap<char> names;  // concatenated sequence names (to save memory)
+  VectorOrMmap<indexT> nameEnds;  // endpoints of the names
 
   // The quality scores may be ASCII-coded: to get the real scores,
   // subtract e.g. 33 or 64.  The real scores might be related to

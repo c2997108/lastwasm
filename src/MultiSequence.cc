@@ -10,39 +10,31 @@ using namespace cbrc;
 
 void MultiSequence::initForAppending( indexT padSizeIn ){
   padSize = padSizeIn;
-  seq.assign( padSize, ' ' );
-  ends.assign( 1, padSize );
-  names.clear();
-  nameEnds.assign( 1, 0 );
+  seq.v.assign( padSize, ' ' );
+  ends.v.assign( 1, padSize );
+  names.v.clear();
+  nameEnds.v.assign( 1, 0 );
 }
 
 void MultiSequence::reinitForAppending(){
-  seq.erase( seq.begin(), seq.begin() + ends.back() - padSize );
-  names.erase( names.begin(),
-	       names.begin() + nameEnds[ finishedSequences() ] );
-  ends.resize(1);
-  nameEnds.resize(1);
-  if( !names.empty() ) nameEnds.push_back( names.size() );
+  seq.v.erase( seq.v.begin(), seq.v.begin() + ends.v.back() - padSize );
+  names.v.erase( names.v.begin(),
+                 names.v.begin() + nameEnds.v[ finishedSequences() ] );
+  ends.v.resize(1);
+  nameEnds.v.resize(1);
+  if( !names.v.empty() ) nameEnds.v.push_back( names.v.size() );
 }
 
 void MultiSequence::fromFiles( const std::string& baseName, indexT seqCount ){
-  ends.resize( seqCount + 1 );  // unwanted zero-fill
-  vectorFromBinaryFile( ends, baseName + ".ssp" );
-
-  seq.resize( ends.back() );  // unwanted zero-fill
-  vectorFromBinaryFile( seq, baseName + ".tis" );
-
-  nameEnds.resize( seqCount + 1 );  // unwanted zero-fill
-  vectorFromBinaryFile( nameEnds, baseName + ".sds" );
-
-  names.resize( nameEnds.back() );  // unwanted zero-fill
-  vectorFromBinaryFile( names, baseName + ".des" );
-
-  padSize = ends[0];
+  ends.m.open( baseName + ".ssp", seqCount + 1 );
+  seq.m.open( baseName + ".tis", ends.m.back() );
+  nameEnds.m.open( baseName + ".sds", seqCount + 1 );
+  names.m.open( baseName + ".des", nameEnds.m.back() );
+  padSize = ends.m[0];
 }
 
 void MultiSequence::toFiles( const std::string& baseName ) const{
-  vectorToBinaryFile( ends, baseName + ".ssp" );
+  memoryToBinaryFile( ends.begin(), ends.end(), baseName + ".ssp" );
 
   memoryToBinaryFile( seq.begin(), seq.begin() + ends.back(),
 		      baseName + ".tis" );
@@ -63,8 +55,8 @@ std::istream& MultiSequence::readFastaName( std::istream& stream ){
   std::istringstream iss(line);
   iss >> word;
   if( !stream ) return stream;
-  names.insert( names.end(), word.begin(), word.end() );
-  nameEnds.push_back( names.size() );
+  names.v.insert( names.v.end(), word.begin(), word.end() );
+  nameEnds.v.push_back( names.v.size() );
   return stream;
 }
 
@@ -82,7 +74,7 @@ MultiSequence::appendFromFasta( std::istream& stream, std::size_t maxBytes ){
       stream.unget();
       break;
     }
-    seq.push_back(c);
+    seq.v.push_back(c);
   }
 
   if( isFinishable(maxBytes) ) finish();
@@ -92,23 +84,22 @@ MultiSequence::appendFromFasta( std::istream& stream, std::size_t maxBytes ){
 
 void MultiSequence::finish(){
   assert( !isFinished() );
-  seq.insert( seq.end(), padSize, ' ' );
-  ends.push_back( seq.size() );
+  seq.v.insert( seq.v.end(), padSize, ' ' );
+  ends.v.push_back( seq.v.size() );
 }
 
 void MultiSequence::unfinish(){
   assert( isFinished() );
-  ends.pop_back();
-  seq.erase( seq.end() - padSize, seq.end() );
+  ends.v.pop_back();
+  seq.v.erase( seq.v.end() - padSize, seq.v.end() );
 }
 
 bool MultiSequence::isFinishable( std::size_t maxBytes ) const{
-  return seq.size() + padSize <= maxBytes;
+  return seq.v.size() + padSize <= maxBytes;
 }
 
 MultiSequence::indexT MultiSequence::whichSequence( indexT coordinate ) const{
-  std::vector<indexT>::const_iterator u =
-    std::upper_bound( ends.begin(), ends.end(), coordinate );
+  const indexT* u = std::upper_bound( ends.begin(), ends.end(), coordinate );
   assert( u != ends.begin() && u != ends.end() );
   return u - ends.begin() - 1;
 }

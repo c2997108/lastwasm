@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 // This class holds a suffix array.  The suffix array is just a list
 // of numbers indicating positions in a text, sorted according to the
@@ -22,8 +22,9 @@
 #ifndef SUBSET_SUFFIX_ARRAY_HH
 #define SUBSET_SUFFIX_ARRAY_HH
 
+#include "VectorOrMmap.hh"
+
 #include <string>
-#include <vector>
 
 namespace cbrc{
 
@@ -42,7 +43,7 @@ public:
 		  const CyclicSubsetSeed& seed, std::size_t maxBytes );
 
   indexT indexSize() const{ return index.size(); }
-  std::size_t indexBytes() const{ return index.size() * sizeof(indexT); }
+  std::size_t indexBytes() const{ return index.v.size() * sizeof(indexT); }
 
   // Sort the suffix array (but don't make the buckets).
   void sortIndex( const uchar* text, const CyclicSubsetSeed& seed );
@@ -69,9 +70,9 @@ public:
   // matches, and the match-depth is at least minDepth.  Return the
   // range of matching indices via beg and end.
   void match( const indexT*& beg, const indexT*& end,
-	      const uchar* queryPtr, const uchar* text,
-	      const CyclicSubsetSeed& seed,
-	      indexT maxHits, indexT minDepth ) const;
+              const uchar* queryPtr, const uchar* text,
+              const CyclicSubsetSeed& seed,
+              indexT maxHits, indexT minDepth ) const;
 
   // Count matches of all sizes, starting at the given position in the
   // query.  Don't try this for large self-comparisons!
@@ -80,8 +81,8 @@ public:
 		     const CyclicSubsetSeed& seed ) const;
 
 private:
-  std::vector<indexT> index;  // sorted indices
-  std::vector<indexT> buckets;
+  VectorOrMmap<indexT> index;  // sorted indices
+  VectorOrMmap<indexT> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
 
   static void equalRange( const indexT*& beg, const indexT*& end,

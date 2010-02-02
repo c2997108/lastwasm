@@ -7,27 +7,30 @@ CXXFLAGS = -Wall -W -Wcast-qual -Wwrite-strings -Wsign-promo	\
 
 CCFLAGS = -Wall -g
 
-DBSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc		\
-SubsetSuffixArray.cc LastdbArguments.cc io.cc SubsetSuffixArraySort.cc	\
-lastdb.cc
+DBSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc	\
+SubsetSuffixArray.cc LastdbArguments.cc io.cc fileMap.cc	\
+SubsetSuffixArraySort.cc lastdb.cc
 
-DBINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh		\
-SubsetSuffixArray.hh LastdbArguments.hh io.hh stringify.hh version.hh
+DBINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh	\
+SubsetSuffixArray.hh LastdbArguments.hh io.hh fileMap.hh	\
+Mmap.hh VectorOrMmap.hh stringify.hh version.hh
 
-ALSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc		\
-SubsetSuffixArray.cc LastalArguments.cc io.cc ScoreMatrix.cc		\
-DiagonalTable.cc SegmentPair.cc Alignment.cc XdropAligner.cc		\
-SegmentPairPot.cc AlignmentPot.cc GeneralizedAffineGapCosts.cc		\
-Centroid.cc LambdaCalculator.cc QualityScoreCalculator.cc		\
-GeneticCode.cc Xdrop3FrameAligner.cc AlignmentWrite.cc			\
-MultiSequenceQual.cc SegmentPairPssm.cc XdropAlignerPssm.cc lastal.cc
+ALSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc	\
+SubsetSuffixArray.cc LastalArguments.cc io.cc fileMap.cc	\
+ScoreMatrix.cc DiagonalTable.cc SegmentPair.cc Alignment.cc	\
+XdropAligner.cc SegmentPairPot.cc AlignmentPot.cc		\
+GeneralizedAffineGapCosts.cc Centroid.cc LambdaCalculator.cc	\
+QualityScoreCalculator.cc GeneticCode.cc Xdrop3FrameAligner.cc	\
+AlignmentWrite.cc MultiSequenceQual.cc SegmentPairPssm.cc	\
+XdropAlignerPssm.cc lastal.cc
 
 ALINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh	\
-SubsetSuffixArray.hh LastalArguments.hh io.hh ScoreMatrix.hh	\
-DiagonalTable.hh SegmentPair.hh Alignment.hh XdropAligner.hh	\
-SegmentPairPot.hh AlignmentPot.hh GeneralizedAffineGapCosts.hh	\
-Centroid.hh LambdaCalculator.hh QualityScoreCalculator.hh	\
-GeneticCode.hh Xdrop3FrameAligner.hh stringify.hh version.hh
+SubsetSuffixArray.hh LastalArguments.hh io.hh fileMap.hh	\
+ScoreMatrix.hh DiagonalTable.hh SegmentPair.hh Alignment.hh	\
+XdropAligner.hh SegmentPairPot.hh AlignmentPot.hh		\
+GeneralizedAffineGapCosts.hh Centroid.hh LambdaCalculator.hh	\
+QualityScoreCalculator.hh GeneticCode.hh Xdrop3FrameAligner.hh	\
+Mmap.hh VectorOrMmap.hh stringify.hh version.hh
 
 OBJ = lambda_calculator.o
 

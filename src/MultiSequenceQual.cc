@@ -1,4 +1,4 @@
-// Copyright 2009 Martin C. Frith
+// Copyright 2009, 2010 Martin C. Frith
 
 #include "MultiSequence.hh"
 #include "stringify.hh"
@@ -19,9 +19,9 @@ MultiSequence::appendFromFastq( std::istream& stream, std::size_t maxBytes ){
     qualityScores.insert( qualityScores.end(), padSize, padQualityScore );
 
   // reinitForAppending:
-  if( qualityScores.size() > seq.size() )
+  if( qualityScores.size() > seq.v.size() )
     qualityScores.erase( qualityScores.begin(),
-			 qualityScores.end() - seq.size() );
+			 qualityScores.end() - seq.v.size() );
 
   if( isFinished() ){
     readFastaName(stream);
@@ -31,16 +31,16 @@ MultiSequence::appendFromFastq( std::istream& stream, std::size_t maxBytes ){
 
     // don't bother to obey maxBytes exactly: harmless for short sequences
     while( stream >> c && c != '+' ){  // skips whitespace
-      seq.push_back(c);
+      seq.v.push_back(c);
     }
 
     stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
-    while( qualityScores.size() < seq.size() && stream >> c ){  // skips WS
+    while( qualityScores.size() < seq.v.size() && stream >> c ){  // skips WS
       qualityScores.push_back(c);
     }
 
-    if( seq.size() != qualityScores.size() )
+    if( seq.v.size() != qualityScores.size() )
       throw std::runtime_error("bad FASTQ data");
   }
 
@@ -57,7 +57,7 @@ MultiSequence::appendFromPrb( std::istream& stream, std::size_t maxBytes,
 			      unsigned alphSize, const uchar decode[] ){
   const uchar padQualityScore = 0;  // dummy value: should never get used
   indexT qualPadSize = padSize * alphSize;
-  indexT qualSize = seq.size() * alphSize;
+  indexT qualSize = seq.v.size() * alphSize;
 
   // initForAppending:
   if( qualityScores.empty() )
@@ -76,8 +76,8 @@ MultiSequence::appendFromPrb( std::istream& stream, std::size_t maxBytes,
     // give the sequence a boring name:
     static std::size_t lineCount = 0;
     std::string name = stringify( ++lineCount );
-    names.insert( names.end(), name.begin(), name.end() );
-    nameEnds.push_back( names.size() );
+    names.v.insert( names.v.end(), name.begin(), name.end() );
+    nameEnds.v.push_back( names.v.size() );
 
     std::istringstream iss(line);
     int q;
@@ -93,7 +93,7 @@ MultiSequence::appendFromPrb( std::istream& stream, std::size_t maxBytes,
     for( CI(uchar) i = qualityScores.begin() + qualSize;
 	 i < qualityScores.end(); i += alphSize ){
       unsigned maxIndex = std::max_element( i, i + alphSize ) - i;
-      seq.push_back( decode[ maxIndex ] );
+      seq.v.push_back( decode[ maxIndex ] );
     }
   }
 
