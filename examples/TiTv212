@@ -2,8 +2,8 @@
 # -2 to transversions.  When used with a gap existence cost of 16 and
 # a gap extension cost of 1, it gives very sensitive and accurate
 # alignments of distantly-related protein-coding sequences (MC Frith
-# et al., manuscript in preparation).  The next line tells lastal to
-# use these gap costs:
+# et al. 2010, BMC Bioinformatics).  The next line tells lastal to use
+# these gap costs:
 #lastal -a 16 -b 1
 # Let's also use a minimum alignment score of 90:
 #lastal -e 90

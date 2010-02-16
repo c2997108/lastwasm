@@ -7,9 +7,10 @@
 #include <stdexcept>
 #include <cstdlib>  // EXIT_SUCCESS
 
+#define ERR(x) throw std::runtime_error(x)
+
 static void badopt( char opt, const char* arg ){
-  throw std::runtime_error( std::string("bad option value: -") +
-                            opt + ' ' + arg );
+  ERR( std::string("bad option value: -") + opt + ' ' + arg );
 }
 
 using namespace cbrc;
@@ -85,12 +86,12 @@ LAST home page: http://last.cbrc.jp/\n\
       ++verbosity;
       break;
     case '?':
-      throw std::runtime_error("bad option");
+      ERR( "bad option" );
     }
   }
 
-  if( optind == argc )
-    throw std::runtime_error("no input supplied\n\n" + usage);
+  if( optind + 1 >= argc )
+    ERR( "please give me an output name and sequence file(s)\n\n" + usage );
   lastdbName = argv[optind++];
   inputStart = optind;
 }

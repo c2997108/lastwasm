@@ -11,9 +11,10 @@
 #include <cstdlib>  // EXIT_SUCCESS
 //#include <iostream>  // for debugging
 
+#define ERR(x) throw std::runtime_error(x)
+
 static void badopt( char opt, const char* arg ){
-  throw std::runtime_error( std::string("bad option value: -") +
-			    opt + ' ' + arg );
+  ERR( std::string("bad option value: -") + opt + ' ' + arg );
 }
 
 namespace cbrc{
@@ -210,28 +211,28 @@ LAST home page: http://last.cbrc.jp/\n\
       if( outputType < 0 || outputType > 5 ) badopt( c, optarg );
       break;
     case '?':
-      throw std::runtime_error("bad option");
+      ERR( "bad option" );
     }
   }
 
   if( maskLowercase == 1 && inputFormat > 0 )
-    throw std::runtime_error("can't combine option -u 1 with option -Q > 0");
+    ERR( "can't combine option -u 1 with option -Q > 0" );
 
   if( outputType > 3 && inputFormat > 0 )
-    throw std::runtime_error("can't combine option -j > 3 with option -Q > 0");
+    ERR( "can't combine option -j > 3 with option -Q > 0" );
 
   if( isTranslated() && inputFormat > 0 )
-    throw std::runtime_error("can't combine option -F with option -Q > 0");
+    ERR( "can't combine option -F with option -Q > 0" );
 
   if( isTranslated() && outputType > 3 )
-    throw std::runtime_error("can't combine option -F with option -j > 3");
+    ERR( "can't combine option -F with option -j > 3" );
 
   if( isTranslated() && outputType == 0 )
-    throw std::runtime_error("can't combine option -F with option -j 0");
+    ERR( "can't combine option -F with option -j 0" );
 
   if( optionsOnly ) return;
-  if( optind == argc )
-    throw std::runtime_error("no input supplied\n\n" + usage);
+  if( optind + 1 >= argc )
+    ERR( "please give me a database name and sequence file(s)\n\n" + usage );
   lastdbName = argv[optind++];
   inputStart = optind;
 }
@@ -303,7 +304,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
   }
 
   if( isTranslated() && frameshiftCost < gapExtendCost )
-    throw std::runtime_error("the frameshift cost must not be less than the gap extension cost");
+    ERR( "the frameshift cost must not be less than the gap extension cost" );
 }
 
 void LastalArguments::setDefaultsFromMatrix( double lambda ){
