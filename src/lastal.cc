@@ -158,7 +158,7 @@ void countMatches( char strand ){
 	if( query.seqEnd(seqNum) > i ) break;
 	++seqNum;
       }
-      // speed-up (for spaced seeds it's not optimal):
+      // speed-up:
       if( args.minHitDepth > query.seqEnd(seqNum) - i ) continue;
     }
     else{
@@ -168,7 +168,7 @@ void countMatches( char strand ){
 	if( query.seqBeg(seqNum) < j ) break;
 	--seqNum;
       }
-      // speed-up (for spaced seeds it's not optimal):
+      // speed-up:
       if( args.minHitDepth > j - query.seqBeg(seqNum) ) continue;
     }
 
@@ -196,7 +196,12 @@ void alignGapless( SegmentPairPot& gaplessAlns,
     // increase "i" to the delimiter position.  This gave a speed-up
     // of only 3%, with 34-nt tags.
 
+    indexT gaplessAlignmentsPerQueryPosition = 0;
+
     for( /* noop */; beg < end; ++beg ){  // loop over suffix-array matches
+      if( gaplessAlignmentsPerQueryPosition ==
+          args.maxGaplessAlignmentsPerQueryPosition ) break;
+
       if( dt.isCovered( i, *beg ) ) continue;
 
       // tried: first get the score only, not the endpoints: slower!
@@ -234,6 +239,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 	gaplessAlns.add(sp);  // add the gapless alignment to the pot
       }
 
+      ++gaplessAlignmentsPerQueryPosition;
       ++gaplessAlignmentCount;
       dt.addEndpoint( sp.end2(), sp.end1() );
     }

@@ -50,7 +50,7 @@ If you want to understand how this mapping procedure works in more
 detail, read on.  LAST uses a two-step approach: first find initial
 matches, then extend alignments from these matches.  In this case, the
 "initial matches" are: all exact matches of any part of a tag to the
-genome, of any size, where the match occurs at most ten times in the
+genome, of any length, where the match occurs at most ten times in the
 genome.
 
 One consequence of this is that repetitive tags will not be mapped: if
@@ -84,37 +84,19 @@ Here, -j0 tells lastal to just report counts of initial matches.  In
 this case, there is no limit on how often the matches occur: matches
 that occur more than ten times in the genome are counted too.  So
 nothing is missed, and there is no effect from database volumes.  The
--l36 option requests matches of size >= 36 only: this makes it faster
-and makes the output smaller.  (Without -l36, it counts all matches of
-size >= 1: this is still quite fast.)
+-l36 option requests matches of length >= 36 only: this makes it
+faster and makes the output smaller.  (Without -l36, it counts all
+matches of length >= 1: this is still quite fast.)
 
-6. Finding all matches with up to N mismatches
-----------------------------------------------
-
-One approach to tag mapping is to guarantee finding all matches with
-up to N mismatches.  The "guarantee" part sounds good, but there are
-some drawbacks to this approach:
-
-* It does not allow for insertions or deletions.
-
-* It does not allow for higher error rates near the ends of tags.
-
-* It is not suitable for partial matches, e.g. if a tag crosses a
-  splice junction.
-
-* Usually, some tags match repetitively to millions of genome
-  locations: finding all these matches is slow and produces huge
-  output.
-
-You can mitigate the last drawback by counting exact matches (as
-explained above) and then removing tags with many exact matches.
+6. Guaranteeing to map tags with up to N mismatches
+---------------------------------------------------
 
 Suppose we wish to find all matches of our length-36 tags to the
 genome, allowing up to two mismatches.  A naive approach is to start
-by finding all exact matches of size 12, and extend alignments from
+by finding all exact matches of length 12, and extend alignments from
 these.  This works because any length-36 tag with two mismatches is
-guaranteed to have an exact match of size 12.  It will be very slow,
-however, because there will be many unproductive size-12 matches.
+guaranteed to have an exact match of length 12.  It will be very slow,
+however, because there will be many unproductive length-12 matches.
 
 We can do better by finding matches using a spaced seed, and then
 extending alignments.  For example, our tags are guaranteed to have a
@@ -123,15 +105,16 @@ Since this seed has 18 matched positions (18 "1"s), we will get far
 fewer unproductive matches.  With LAST, we can do this as follows:
 
   lastdb -m11111011000 mydb genome.fa
-  lastal -l26 -m4000000000 -j1 -q0 -d34 mydb tags.fa
+  lastal -l26 -m4000000000 -j1 -q0 -d34 -n100 mydb tags.fa
 
 In the lastdb command, the seed pattern gets cyclically repeated, so
 we only need to specify the repeating unit of the pattern.  In the
 lastal command, we used -l26 to get length-26 initial matches, and
 -m4000000000 to accept hugely repeated initial matches.  We also used
 -j1 to request gapless alignments, -q0 to set the mismatch cost to 0,
-and -d34 to request alignments with score >= 34.  This will give us
-all 36-mer alignments with at most two mismatches.
+and -d34 to request alignments with score >= 34.  Finally, -n100
+limits the output: if one tag has many matches, an arbitrary sample
+(at least 100) of them will be returned.
 
 The following table shows optimal spaced seed patterns for various tag
 sizes and numbers of mismatches.  Each entry shows the match length

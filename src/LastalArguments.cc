@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 #include "LastalArguments.hh"
 #include "stringify.hh"
@@ -39,6 +39,7 @@ LastalArguments::LastalArguments() :
   inputFormat(0),
   minHitDepth(1),
   oneHitMultiplicity(10),
+  maxGaplessAlignmentsPerQueryPosition(-1),  // effectively infinity
   queryStep(1),
   batchSize(0),  // depends on the outputType
   maxRepeatDistance(1000),  // sufficiently conservative?
@@ -83,6 +84,7 @@ Miscellaneous options (default settings):\n\
     + stringify(oneHitMultiplicity) + ")\n\
 -l: minimum length for initial matches ("
     + stringify(minHitDepth) + ")\n\
+-n: maximum number of gapless alignments per query position (infinity)\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
 -i: query batch size (16 MiB if j=0, else 1 MiB if Q>0, else 128 MiB)\n\
@@ -104,7 +106,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   while( (c = getopt(argc, argv,
-		     "ho:u:s:f:r:q:p:a:b:c:F:x:y:d:e:Q:m:l:k:i:w:t:g:G:vj:"))
+		     "ho:u:s:f:r:q:p:a:b:c:F:x:y:d:e:Q:m:l:n:k:i:w:t:g:G:vj:"))
 	 != -1 ){
     switch(c){
     case 'h':
@@ -180,6 +182,9 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'l':
       unstringify( minHitDepth, optarg );
       if( minHitDepth <= 0 ) badopt( c, optarg );
+      break;
+    case 'n':
+      unstringify( maxGaplessAlignmentsPerQueryPosition, optarg );
       break;
     case 'k':
       unstringify( queryStep, optarg );
@@ -337,6 +342,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
 	 << "s=" << strand << ' '
 	 << "m=" << oneHitMultiplicity << ' '
 	 << "l=" << minHitDepth << ' '
+         << "n=" << maxGaplessAlignmentsPerQueryPosition << ' '
 	 << "k=" << queryStep << ' '
 	 << "i=" << batchSize << ' '
 	 << "w=" << maxRepeatDistance << ' '

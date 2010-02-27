@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 #include "LastdbArguments.hh"
 #include "stringify.hh"

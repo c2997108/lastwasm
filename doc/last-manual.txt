@@ -22,7 +22,7 @@ Optional: to run the scripts, you need a Unix-like environment with
 Python.  To make dotplots, you need the Python Imaging Library.
 
 Luxury: to handle mammalian genomes with maximum efficiency, it's good
-to have about 16 gigabytes of RAM (and use it with "lastdb -s16G").
+to have about 16 gigabytes of RAM (and use it with "lastdb -s").
 
 
 Installation
@@ -190,7 +190,8 @@ Advanced Options
     this amount, however, it is not split.  The default is tuned for 2
     gigabytes of RAM: if you have more, increase this to make lastal
     go faster. You can use suffixes K, M, and G to specify KibiBytes,
-    MebiBytes, and GibiBytes.
+    MebiBytes, and GibiBytes.  Example: if you have 6G of RAM, "-s 5G"
+    seems to work well.
 
 -w  Allow initial matches to start only at every "w"th position in each
     database sequence.  This reduces time and storage requirements, at
@@ -290,6 +291,12 @@ Miscellaneous Options
 -l  Minimum length for initial matches.  (Skipped positions are
     included in the length.)
 
+-n  Maximum number of gapless alignments per query position.  When
+    lastal extends gapless alignments from initial matches that start
+    at one query position, if it gets n successful extensions, it
+    skips any remaining initial matches starting at that position.
+    This option has no effect unless -n is less than -m.
+
 -k  Look for initial matches starting only at every "k"th position in
     the query.  This increases speed at the expense of sensitivity.
 
@@ -325,12 +332,12 @@ Miscellaneous Options
 
 -v  Be verbose: write messages about what lastal is doing.
 
--j  Output type: 0 means counts of initial matches (of all sizes); 1
+-j  Output type: 0 means counts of initial matches (of all lengths); 1
     means gapless alignments; 2 means gapped alignments before
     non-redundantization; 3 means gapped alignments after
     non-redundantization; 4 means alignments with probabilities; 5
     means centroid alignments.  Match counts (-j 0) respect the
-    minimum depth option but not the maximum multiplicity option.
+    minimum length option but not the maximum multiplicity option.
     It's a bad idea to try -j 0 when comparing a large sequence to
     itself.
 

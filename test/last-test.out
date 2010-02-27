@@ -1,7 +1,7 @@
 TEST 1
 #
 # a=400 b=30 c=100000 F=-1 e=2500 d=1500 x=3400 y=962
-# u=1 s=2 m=10 l=1 k=1 i=134217728 w=1000 t=96.1735 g=1 j=5
+# u=1 s=2 m=10 l=1 n=4294967295 k=1 i=134217728 w=1000 t=96.1735 g=1 j=5
 # /tmp/last-test
 #
 #    A  C  G  T
@@ -85,12 +85,12 @@ s chrM  6566 86 + 16775 CAGAGTCGATAAGAAGAGGAATTGAACCTCTGTAAAAAGGACTACAGCCTAACGCT
 s chrM 12729 89 - 16775 CGGGGTAGCTAGGGAGAGGATTTGAACCTCTGGATAAAGGGCTTAAGCCTTTTGC------ATTTGCCGAGCTCTGCCACGCTAGCTGGATCCTT
 p 0.615 0.697 0.787 0.819 0.864 0.886 0.89 0.921 0.933 0.967 0.978 0.982 0.988 0.991 0.995 0.997 0.998 0.999 0.999 0.999 0.998 1 1 1 1 1 1 1 1 1 1 1 0.992 0.99 0.985 0.988 0.99 0.991 0.992 0.99 0.983 0.981 0.972 0.954 0.953 0.968 0.971 0.966 0.946 0.892 0.805 0.761 0.75 0.746 0.697 - - - - - - - - - - - - - - - 0.654 0.85 0.894 0.905 0.909 0.933 0.937 0.938 0.933 0.914 0.898 0.899 0.905 0.905 0.893 0.893 0.884 0.848 0.654 0.625 0.609 0.621 0.612 0.573 0.503
 
-# CPU time: 1.01 seconds
+# CPU time: 0.83 seconds
 
 TEST 2
 #
 # a=7 b=1 c=100000 F=-1 e=40 d=24 x=27 y=9
-# u=0 s=2 m=10 l=1 k=1 i=1 w=0 t=0.910239 g=1 j=3
+# u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1 w=0 t=0.910239 g=1 j=3
 # /tmp/last-test
 #
 #    A  C  G  T
@@ -118,12 +118,12 @@ TEST 2
 44	chr32	51	158	+	1028	chr32	3	158	+	1028	158
 42	chr32	3	138	+	1028	chr32	69	138	+	1028	138
 42	chr32	69	138	+	1028	chr32	3	138	+	1028	138
-# CPU time: 0.16 seconds
+# CPU time: 0.15 seconds
 
 TEST 3
 #
 # a=7 b=1 c=100000 F=-1 e=40 d=24 x=27 y=9
-# u=0 s=0 m=10 l=1 k=1 i=1 w=1000 t=0.910239 g=1 j=0
+# u=0 s=0 m=10 l=1 n=4294967295 k=1 i=1 w=1000 t=0.910239 g=1 j=0
 # /tmp/last-test
 #
 # length	count
@@ -163,7 +163,7 @@ chr32
 TEST 4
 #
 # a=9 b=9 c=100000 F=-1 e=90 d=54 x=189 y=44
-# u=0 s=2 m=10 l=1 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
+# u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
 # /tmp/last-test
 #
 #    A  C  G  T
@@ -252,7 +252,7 @@ q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$II
 TEST 5
 #
 # a=11 b=2 c=100000 F=12 e=40 d=24 x=51 y=31
-# u=0 s=2 m=10 l=1 k=1 i=134217728 w=1000 t=3.08611 g=1 j=3
+# u=0 s=2 m=10 l=1 n=4294967295 k=1 i=134217728 w=1000 t=3.08611 g=1 j=3
 # /tmp/last-test
 #
 #    A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  J  Z  X  *
@@ -347,12 +347,12 @@ a score=40
 s Q2LCP8  138 23 +   491 ISSICFYILALNKNSRKGIEGGL
 s chrM   7839 69 - 16775 VSSADFWALSVKHSWSSGDEGGL
 
-# CPU time: 0.9 seconds
+# CPU time: 0.83 seconds
 
 TEST 6
 #
 # a=7 b=1 c=100000 F=-1 e=18 d=10 x=27 y=9
-# u=0 s=0 m=10 l=1 k=1 i=134217728 w=1000 t=0.910239 g=1 j=3
+# u=0 s=0 m=10 l=1 n=4294967295 k=1 i=134217728 w=1000 t=0.910239 g=1 j=3
 # /tmp/last-test
 #
 #    A  C  G  T
@@ -372,5 +372,5 @@ TEST 6
 19	chrM	4168	33	+	16775	chrM	12574	33	-	16775	33
 18	chrM	31	34	+	16775	chrM	16710	34	-	16775	34
 18	chrM	965	58	+	16775	chrM	15752	58	-	16775	58
-# CPU time: 0.1 seconds
+# CPU time: 0.09 seconds
 

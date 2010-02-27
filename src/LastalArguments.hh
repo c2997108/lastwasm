@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 // This struct holds the command line arguments for lastal.
 
@@ -57,6 +57,7 @@ struct LastalArguments{
   int inputFormat;
   indexT minHitDepth;
   indexT oneHitMultiplicity;
+  indexT maxGaplessAlignmentsPerQueryPosition;
   indexT queryStep;
   indexT batchSize;  // approx size of query sequences to scan in 1 batch
   indexT maxRepeatDistance;  // supress repeats <= this distance apart
