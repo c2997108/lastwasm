@@ -538,6 +538,7 @@ void lastal( int argc, char** argv ){
   std::ostream& out = openOut( args.outFile, outFileStream );
   writeHeader( out );
   out.precision(3);  // print non-integers more compactly
+  countT queryBatchCount = 0;
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
     LOG( "reading " << *i << "..." );
@@ -548,6 +549,8 @@ void lastal( int argc, char** argv ){
       if( !query.isFinished() ){
 	scanAllVolumes( volumes, out );
 	query.reinitForAppending();
+        // this enables downstream parsers to read one batch at a time:
+        out << "# batch " << ++queryBatchCount << "\n";
       }
     }
   }

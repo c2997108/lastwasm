@@ -46,7 +46,9 @@ aln = []
 
 for line in fileinput.input(args):
     words = line.split()
-    if line.startswith('a'):
+    if line.startswith('#'):
+        print line,
+    elif line.startswith('a'):
         doit(aln)
         aln = [words]
     elif line.startswith('s'):
