@@ -102,14 +102,18 @@ std::istream&
 appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
 		 const LastdbArguments& args, const Alphabet& alph,
 		 const CyclicSubsetSeed& seed, std::istream& in ){
-  std::size_t maxSeqBytes = args.volumeSize - sa.indexBytes();
-  if( args.volumeSize < sa.indexBytes() ) maxSeqBytes = 0;
-  if( multi.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
+  indexT maxSeqLen = args.volumeSize - sa.indexBytes();
+  if( maxSeqLen < args.volumeSize - sa.indexBytes() ) maxSeqLen = -1;
+  if( args.volumeSize < sa.indexBytes() ) maxSeqLen = 0;
+  if( multi.finishedSequences() == 0 ) maxSeqLen = -1;
 
   indexT oldUnfinishedSize = multi.unfinishedSize();
   indexT oldFinishedSize = multi.finishedSize();
 
-  multi.appendFromFasta( in, maxSeqBytes );
+  multi.appendFromFasta( in, maxSeqLen );
+
+  if( !multi.isFinished() && multi.finishedSequences() == 0 )
+    throw std::runtime_error("encountered a sequence that's too long");
 
   // encode the newly-read sequence
   alph.tr( multi.seqWriter() + oldUnfinishedSize,
@@ -144,9 +148,9 @@ void lastdb( int argc, char** argv ){
   unsigned volumeNumber = 0;
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
-    LOG( "reading " << *i << "..." );
     std::ifstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
+    LOG( "reading " << *i << "..." );
 
     while( appendFromFasta( multi, sa, args, alph, seed, in ) ){
       if( !multi.isFinished() ){

@@ -393,7 +393,6 @@ void reverseComplementQuery(){
     std::reverse( query.qualityWriter(),
 		  query.qualityWriter() +
                   query.finishedSize() * query.qualsPerLetter() );
-    // I think the multiplication can overflow, but it's very unlikely
   }
 }
 
@@ -456,15 +455,19 @@ void writeHeader( std::ostream& out ){
 
 // Read the next sequence, adding it to the MultiSequence
 std::istream& appendFromFasta( std::istream& in ){
-  std::size_t maxSeqBytes = args.batchSize;
-  if( query.finishedSequences() == 0 ) maxSeqBytes = std::size_t(-1);
+  indexT maxSeqLen = args.batchSize;
+  if( maxSeqLen < args.batchSize ) maxSeqLen = -1;
+  if( query.finishedSequences() == 0 ) maxSeqLen = -1;
 
   indexT oldUnfinishedSize = query.unfinishedSize();
 
-  /**/ if( args.inputFormat < 1 ) query.appendFromFasta( in, maxSeqBytes );
-  else if( args.inputFormat < 3 ) query.appendFromFastq( in, maxSeqBytes );
-  else query.appendFromPrb( in, maxSeqBytes,
+  /**/ if( args.inputFormat < 1 ) query.appendFromFasta( in, maxSeqLen );
+  else if( args.inputFormat < 3 ) query.appendFromFastq( in, maxSeqLen );
+  else query.appendFromPrb( in, maxSeqLen,
 			    queryAlph.size, queryAlph.decode );
+
+  if( !query.isFinished() && query.finishedSequences() == 0 )
+    throw std::runtime_error("encountered a sequence that's too long");
 
   // encode the newly-read sequence
   queryAlph.tr( query.seqWriter() + oldUnfinishedSize,
@@ -541,9 +544,9 @@ void lastal( int argc, char** argv ){
   countT queryBatchCount = 0;
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
-    LOG( "reading " << *i << "..." );
     std::ifstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
+    LOG( "reading " << *i << "..." );
 
     while( appendFromFasta( in ) ){
       if( !query.isFinished() ){

@@ -11,7 +11,7 @@
 using namespace cbrc;
 
 std::istream&
-MultiSequence::appendFromFastq( std::istream& stream, std::size_t maxBytes ){
+MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
   const uchar padQualityScore = 0;  // dummy value: should never get used
 
   // initForAppending:
@@ -29,7 +29,7 @@ MultiSequence::appendFromFastq( std::istream& stream, std::size_t maxBytes ){
 
     uchar c;
 
-    // don't bother to obey maxBytes exactly: harmless for short sequences
+    // don't bother to obey maxSeqLen exactly: harmless for short sequences
     while( stream >> c && c != '+' ){  // skips whitespace
       seq.v.push_back(c);
     }
@@ -44,7 +44,7 @@ MultiSequence::appendFromFastq( std::istream& stream, std::size_t maxBytes ){
       throw std::runtime_error("bad FASTQ data");
   }
 
-  if( isFinishable(maxBytes) ){
+  if( isFinishable(maxSeqLen) ){
     finish();
     qualityScores.insert( qualityScores.end(), padSize, padQualityScore );
   }
@@ -53,11 +53,11 @@ MultiSequence::appendFromFastq( std::istream& stream, std::size_t maxBytes ){
 }
 
 std::istream&
-MultiSequence::appendFromPrb( std::istream& stream, std::size_t maxBytes,
+MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
 			      unsigned alphSize, const uchar decode[] ){
   const uchar padQualityScore = 0;  // dummy value: should never get used
-  indexT qualPadSize = padSize * alphSize;
-  indexT qualSize = seq.v.size() * alphSize;
+  std::size_t qualPadSize = padSize * alphSize;
+  std::size_t qualSize = seq.v.size() * alphSize;
 
   // initForAppending:
   if( qualityScores.empty() )
@@ -76,8 +76,7 @@ MultiSequence::appendFromPrb( std::istream& stream, std::size_t maxBytes,
     // give the sequence a boring name:
     static std::size_t lineCount = 0;
     std::string name = stringify( ++lineCount );
-    names.v.insert( names.v.end(), name.begin(), name.end() );
-    nameEnds.v.push_back( names.v.size() );
+    addName(name);
 
     std::istringstream iss(line);
     int q;
@@ -97,7 +96,7 @@ MultiSequence::appendFromPrb( std::istream& stream, std::size_t maxBytes,
     }
   }
 
-  if( isFinishable(maxBytes) ){
+  if( isFinishable(maxSeqLen) ){
     finish();
     qualityScores.insert( qualityScores.end(), qualPadSize, padQualityScore );
   }

@@ -90,11 +90,11 @@ struct Alignment{
                          indexT frameSize ) const;
 
   std::string qualityString( const uchar* qualities,
-			     unsigned qualsPerBase ) const;
+			     std::size_t qualsPerBase ) const;
 
   static std::string qualityBlock( const uchar* qualities,
 				   indexT beg, indexT end,
-				   unsigned qualsPerBase );
+				   std::size_t qualsPerBase );
 };
 
 }  // end namespace cbrc

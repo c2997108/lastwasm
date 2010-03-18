@@ -34,15 +34,15 @@ class MultiSequence{
   void toFiles( const std::string& baseName ) const;
 
   // Append a sequence with delimiters.  Don't let the total size of
-  // the concatenated sequences plus pads exceed maxBytes: thus it may
-  // not finish reading the sequence.
-  std::istream& appendFromFasta( std::istream& stream, std::size_t maxBytes );
+  // the concatenated sequences plus pads exceed maxSeqLen: thus it
+  // may not finish reading the sequence.
+  std::istream& appendFromFasta( std::istream& stream, indexT maxSeqLen );
 
   // As above, but read quality scores too.
-  std::istream& appendFromFastq( std::istream& stream, std::size_t maxBytes );
+  std::istream& appendFromFastq( std::istream& stream, indexT maxSeqLen );
 
   // As above, but read quality scores too.
-  std::istream& appendFromPrb( std::istream& stream, std::size_t maxBytes,
+  std::istream& appendFromPrb( std::istream& stream, indexT maxSeqLen,
 			       unsigned alphSize, const uchar decode[] );
 
   // finish the last sequence: add final pad and end coordinate
@@ -84,7 +84,7 @@ class MultiSequence{
 
   // How many quality scores are there per letter?  There might be
   // none at all, one per letter, or several (e.g. 4) per letter.
-  unsigned qualsPerLetter() const
+  std::size_t qualsPerLetter() const
   { return qualityScores.size() / seq.size(); }
 
  private:
@@ -104,8 +104,11 @@ class MultiSequence{
   // read a FASTA header: read the whole line but store just the first word
   std::istream& readFastaName( std::istream& stream );
 
+  // add a new sequence name
+  void addName( std::string& name );
+
   // can we finish the last sequence and stay within the memory limit?
-  bool isFinishable( std::size_t maxBytes ) const;
+  bool isFinishable( indexT maxSeqLen ) const;
 };
 
 }  // end namespace cbrc

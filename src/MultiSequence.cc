@@ -47,6 +47,13 @@ void MultiSequence::toFiles( const std::string& baseName ) const{
 		      baseName + ".des" );
 }
 
+void MultiSequence::addName( std::string& name ){
+  names.v.insert( names.v.end(), name.begin(), name.end() );
+  nameEnds.v.push_back( names.v.size() );
+  if( nameEnds.v.back() < names.v.size() )
+    throw std::runtime_error("the sequence names are too long");
+}
+
 std::istream& MultiSequence::readFastaName( std::istream& stream ){
   char c;
   stream >> c;  // don't check that it's '>': works for FASTQ too
@@ -55,21 +62,20 @@ std::istream& MultiSequence::readFastaName( std::istream& stream ){
   std::istringstream iss(line);
   iss >> word;
   if( !stream ) return stream;
-  names.v.insert( names.v.end(), word.begin(), word.end() );
-  nameEnds.v.push_back( names.v.size() );
+  addName(word);
   return stream;
 }
 
 // probably slower than it could be:
 std::istream&
-MultiSequence::appendFromFasta( std::istream& stream, std::size_t maxBytes ){
+MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
   if( isFinished() ){
     readFastaName(stream);
     if( !stream ) return stream;
   }
 
   uchar c;
-  while( isFinishable(maxBytes) && stream >> c ){  // skips whitespace
+  while( isFinishable(maxSeqLen) && stream >> c ){  // skips whitespace
     if( c == '>' ){
       stream.unget();
       break;
@@ -77,7 +83,7 @@ MultiSequence::appendFromFasta( std::istream& stream, std::size_t maxBytes ){
     seq.v.push_back(c);
   }
 
-  if( isFinishable(maxBytes) ) finish();
+  if( isFinishable(maxSeqLen) ) finish();
   if( stream.eof() && !stream.bad() ) stream.clear();
   return stream;
 }
@@ -86,6 +92,7 @@ void MultiSequence::finish(){
   assert( !isFinished() );
   seq.v.insert( seq.v.end(), padSize, ' ' );
   ends.v.push_back( seq.v.size() );
+  assert( ends.v.back() == seq.v.size() );
 }
 
 void MultiSequence::unfinish(){
@@ -94,8 +101,8 @@ void MultiSequence::unfinish(){
   seq.v.erase( seq.v.end() - padSize, seq.v.end() );
 }
 
-bool MultiSequence::isFinishable( std::size_t maxBytes ) const{
-  return seq.v.size() + padSize <= maxBytes;
+bool MultiSequence::isFinishable( indexT maxSeqLen ) const{
+  return seq.v.size() + padSize <= maxSeqLen;
 }
 
 MultiSequence::indexT MultiSequence::whichSequence( indexT coordinate ) const{

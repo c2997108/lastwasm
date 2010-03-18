@@ -4,11 +4,10 @@ LAST: Genome-Scale Sequence Comparison
 Introduction
 ------------
 
-LAST is software for comparing and aligning sequences, typically DNA
-or protein sequences.  LAST is similar to BLAST, but it copes better
-with huge amounts of sequence data.  It can also report probabilities
-for every pair of aligned letters, indicating the reliability of each
-pairing.
+LAST finds similar regions between sequences, and aligns them.  LAST
+is similar to BLAST, but it copes better with giga-scale biological
+sequences.  It can also indicate the reliability of each aligned
+column, and it can use sequence quality data.
 
 
 Requirements

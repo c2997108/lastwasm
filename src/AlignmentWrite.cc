@@ -204,7 +204,7 @@ std::string Alignment::botString( const uchar* seq, const Alphabet& alph,
 }
 
 std::string Alignment::qualityString( const uchar* qualities,
-				      unsigned qualsPerBase ) const{
+				      std::size_t qualsPerBase ) const{
   std::string s;
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
@@ -228,7 +228,7 @@ std::string Alignment::qualityString( const uchar* qualities,
 
 std::string Alignment::qualityBlock( const uchar* qualities,
 				     indexT beg, indexT end,
-				     unsigned qualsPerBase ){
+				     std::size_t qualsPerBase ){
   std::string s;
   for( indexT i = beg; i < end; ++i ){
     const uchar* q = qualities + i * qualsPerBase;
