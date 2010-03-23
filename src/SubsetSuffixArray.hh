@@ -48,7 +48,7 @@ public:
   // Sort the suffix array (but don't make the buckets).
   void sortIndex( const uchar* text, const CyclicSubsetSeed& seed );
 
-  // Make the buckets.  If bucketDepth == -1u, then a default
+  // Make the buckets.  If bucketDepth+1 == 0, then a default
   // bucketDepth is used.  The default is: the maximum possible
   // bucketDepth such that the number of bucket entries is at most 1/4
   // the number of suffix array entries.

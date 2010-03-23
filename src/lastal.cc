@@ -102,7 +102,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes ){
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( !subsetSeed.span() || volumes == -1u ){
+  if( !subsetSeed.span() || volumes+1 == 0 ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) throw std::runtime_error("can't read file: " + fileName);
@@ -125,7 +125,7 @@ void readInnerPrj( const std::string& fileName, indexT& seqCount,
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( seqCount == -1u || delimiterNum == -1u || bucketDepth == -1u ){
+  if( seqCount+1 == 0 || delimiterNum+1 == 0 || bucketDepth+1 == 0 ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) throw std::runtime_error("can't read file: " + fileName);
@@ -164,7 +164,7 @@ void countMatches( char strand ){
     else{
       indexT j = query.finishedSize() - i;
       for( ;; ){
-	if( seqNum == -1u ) return;
+	if( seqNum+1 == 0 ) return;
 	if( query.seqBeg(seqNum) < j ) break;
 	--seqNum;
       }
@@ -379,7 +379,9 @@ void translateAndScan( char strand, std::ostream& out ){
 void readVolume( unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
   LOG( "reading " << baseName << "..." );
-  indexT seqCount = -1u, delimiterNum = -1u, bucketDepth = -1u;
+  indexT seqCount = indexT(-1);
+  indexT delimiterNum = indexT(-1);
+  indexT bucketDepth = indexT(-1);
   readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
   text.fromFiles( baseName, seqCount );
   suffixArray.fromFiles( baseName, text.finishedSize() - delimiterNum,
@@ -456,8 +458,8 @@ void writeHeader( std::ostream& out ){
 // Read the next sequence, adding it to the MultiSequence
 std::istream& appendFromFasta( std::istream& in ){
   indexT maxSeqLen = args.batchSize;
-  if( maxSeqLen < args.batchSize ) maxSeqLen = -1;
-  if( query.finishedSequences() == 0 ) maxSeqLen = -1;
+  if( maxSeqLen < args.batchSize ) maxSeqLen = indexT(-1);
+  if( query.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
   indexT oldUnfinishedSize = query.unfinishedSize();
 
@@ -488,7 +490,7 @@ void lastal( int argc, char** argv ){
     args.fromArgs( argc, argv );  // command line overrides matrix file
   }
 
-  unsigned volumes = -1u;  // initialize it to an "error" value
+  unsigned volumes = unsigned(-1);  // initialize it to an "error" value
   readOuterPrj( args.lastdbName + ".prj", volumes );
 
   args.setDefaultsFromAlphabet( alph.letters == alph.dna,

@@ -23,7 +23,7 @@ LastdbArguments::LastdbArguments() :
   indexStep(1),
   subsetSeedFile(""),
   userAlphabet(""),
-  bucketDepth(-1u),  // means: use the default (adapts to the data)
+  bucketDepth(indexT(-1)),  // means: use the default (adapts to the data)
   verbosity(0){}
 
 void LastdbArguments::fromArgs( int argc, char** argv ){

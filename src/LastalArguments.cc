@@ -39,7 +39,7 @@ LastalArguments::LastalArguments() :
   inputFormat(0),
   minHitDepth(1),
   oneHitMultiplicity(10),
-  maxGaplessAlignmentsPerQueryPosition(-1),  // effectively infinity
+  maxGaplessAlignmentsPerQueryPosition(indexT(-1)),  // effectively infinity
   queryStep(1),
   batchSize(0),  // depends on the outputType
   maxRepeatDistance(1000),  // sufficiently conservative?

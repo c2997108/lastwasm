@@ -206,7 +206,7 @@ SubsetSuffixArray::upperBound( const indexT* beg, const indexT* end,
 void SubsetSuffixArray::makeBuckets( const uchar* text,
 				     const CyclicSubsetSeed& seed,
 				     indexT bucketDepth ){
-  if( bucketDepth == -1u ) bucketDepth = defaultBucketDepth(seed);
+  if( bucketDepth+1 == 0 ) bucketDepth = defaultBucketDepth(seed);
 
   makeBucketSteps( seed, bucketDepth );
 

@@ -103,9 +103,9 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
 		 const LastdbArguments& args, const Alphabet& alph,
 		 const CyclicSubsetSeed& seed, std::istream& in ){
   indexT maxSeqLen = args.volumeSize - sa.indexBytes();
-  if( maxSeqLen < args.volumeSize - sa.indexBytes() ) maxSeqLen = -1;
+  if( maxSeqLen < args.volumeSize - sa.indexBytes() ) maxSeqLen = indexT(-1);
   if( args.volumeSize < sa.indexBytes() ) maxSeqLen = 0;
-  if( multi.finishedSequences() == 0 ) maxSeqLen = -1;
+  if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
   indexT oldUnfinishedSize = multi.unfinishedSize();
   indexT oldFinishedSize = multi.finishedSize();
