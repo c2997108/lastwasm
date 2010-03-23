@@ -37,13 +37,17 @@ chromosomes with names like "chr1_random"::
   last-dotplot.py plotme plotme.png
 
 
-maf2tab.py
-----------
+maf-convert.py
+--------------
 
-This script simply converts MAF-format alignments to tabular format.
-This is needed to feed MAF alignments to last-dotplot.py.  Usage::
+This script can convert MAF-format alignments to tabular format.  This
+is needed to feed MAF alignments to last-dotplot.py.  Usage::
 
-  maf2tab.py my-alignments.maf > my-alignments.tab
+  maf-convert.py tab my-alignments.maf > my-alignments.tab
+
+It can also convert MAF to AXT format, should you wish to do that::
+
+  maf-convert.py axt my-alignments.maf > my-alignments.axt
 
 
 last-reduce-alignments.sh
@@ -139,12 +143,17 @@ last-map-probs.py
 
 This script calculates "mapping probabilities" for alignments in LAST
 tabular format.  If one query sequence participates in more than one
-alignment, the script assumes that one of these alignments is the true
+alignment, the script ASSUMES that ONE of these alignments is the true
 mapping.  The script estimates a probability of each alignment being
 the true mapping (based on their scores).  It writes the alignments
 plus an extra column with the probabilities::
 
   last-map-probs.py my-alignments.tab > my-alignments-with-probs
+
+This script does not indicate whether alignments are significantly
+similar: for that, you need the accompanying E-value tables.
+Furthermore, if you feed this script weak alignments that might exist
+just by chance, then its assumption is unlikely to be valid.
 
 
 Limitations
