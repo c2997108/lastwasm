@@ -21,7 +21,7 @@ Optional: to run the scripts, you need a Unix-like environment with
 Python.  To make dotplots, you need the Python Imaging Library.
 
 Luxury: to handle mammalian genomes with maximum efficiency, it's good
-to have about 16 gigabytes of RAM (and use it with "lastdb -s").
+to have about 16-20 gigabytes of RAM.
 
 
 Installation
@@ -40,15 +40,13 @@ You can find these sequences in the examples directory: humanMito.fa
 and fuguMito.fa.  Firstly, make a LAST database of the human
 sequence::
 
-  lastdb -c -m110 humanMito humanMito.fa
+  lastdb -c humanMito humanMito.fa
 
 This will make some new files whose names begin with "humanMito".
 Here, we used "-c" to soft-mask lowercase letters.  (Lowercase
 indicates repetitive sequence, and "soft-masking" helps to avoid
-uninteresting repetitive alignments.)  We also used "-m110" to skip
-every third position when matching: this makes it more sensitive for
-matching protein-coding DNA (and non-coding DNA to some extent).
-Secondly, compare the fugu sequence to the human database::
+uninteresting repetitive alignments.)  Secondly, compare the fugu
+sequence to the human database::
 
   lastal -o myalns.maf humanMito fuguMito.fa
 
@@ -65,33 +63,37 @@ Example 2: Compare the cat and mouse genomes
 
 Let's assume you have the cat and mouse genomes in FASTA-format files:
 cat/chr*.fa and mouse/chr*.fa.  We'll assume also that repetitive
-regions are in lowercase.  We can compare them using the same steps as
-above::
+regions are in lowercase.  We can compare them using these steps::
 
-  lastdb -c -m110 -v mousedb mouse/chr*.fa
+  lastdb -c -s20G -v mousedb mouse/chr*.fa
   lastal -o myalns.maf -v mousedb cat/chr*.fa
 
-The "-v" (verbose) option just makes it write progress messages on the
-screen.  Next, we might want to remove paralogs or make a dotplot: see
-the accompanying document last-scripts.txt.
+The "-s20G" tells it that >20 GiB of memory are available, so it can
+put the whole mouse genome into one database volume.  (For mouse, it
+will use well under 20 GiB.)  Without this, it assumes that <2 GiB are
+available, so it puts the chromosomes into multiple volumes: this
+makes lastal slower (e.g. 1 day instead of several hours).  The "-v"
+(verbose) option just makes it write progress messages on the screen.
+
+Next, we might want to remove paralogs or make a dotplot: see the
+accompanying document last-scripts.txt.
 
 
-Example 3: Map short sequence tags to the human genome
-------------------------------------------------------
+Example 3: Map DNA reads to the human genome
+--------------------------------------------
 
-Let's assume you have the human genome and tag sequences in
-FASTA-format files: human/chr*.fa and tags.fa.  This time, we will not
-mask repeats, because we want to map repetitive tags too::
+Let's assume you have the human genome in FASTA-format files
+(human/chr*.fa), and the reads in FASTQ-Sanger format (reads.fastq).
+This time, we will not mask repeats, because we want to map repetitive
+reads too::
 
-  lastdb -v humandb human/chr*.fa
-  lastal -o myalns.maf -a2 -e30 -v humandb tags.fa
+  lastdb -m1111110 -s20G -v humandb human/chr*.fa
+  lastal -Q1 -o myalns.maf -v humandb reads.fastq
 
-Here, we used "-a2" to set the gap existence cost to 2, and "-e30" to
-get alignments with score >= 30.  The appropriate score parameters
-depend on how long the tags are and how many errors you want to allow:
-the default scoring scheme assigns +1 to each match and -1 to each
-mismatch.  For more ideas on tag mapping, see the accompanying
-document tag-seeds.txt.
+The "-m1111110" makes it better at finding short, strong alignments.
+(The default settings are tuned for long, weak alignments.)  The "-Q1"
+indicates that the reads are in FASTQ-Sanger format.  For more ideas
+on read mapping, see the accompanying document tag-seeds.txt.
 
 
 Output Formats
@@ -176,10 +178,6 @@ Main Options
 -c  Be case-sensitive: lowercase letters will then be forbidden in
     initial matches (even in skipped positions).
 
--m  Specify skipped positions in initial matches, e.g. "-m 110101". In
-    this example, every third and fifth position out of six will be
-    skipped.
-
 
 Advanced Options
 ~~~~~~~~~~~~~~~~
@@ -192,13 +190,17 @@ Advanced Options
     MebiBytes, and GibiBytes.  Example: if you have 6G of RAM, "-s 5G"
     seems to work well.
 
--w  Allow initial matches to start only at every "w"th position in each
-    database sequence.  This reduces time and storage requirements, at
-    the expense of sensitivity.  To emulate BLAT, use "-w 11".
+-m  Specify skipped positions in initial matches, e.g. "-m 110101". In
+    this example, every third and fifth position out of six will be
+    skipped.
 
 -u  Use a subset seed in the specified file.  The -m option will then
     be ignored.  For an example of the format, see yass.seed in the
     examples directory.
+
+-w  Allow initial matches to start only at every "w"th position in each
+    database sequence.  This reduces time and storage requirements, at
+    the expense of sensitivity.  To emulate BLAT, use "-w 11".
 
 -a  Specify your own alphabet, e.g. "-a 0123".  The default (DNA)
     alphabet is equivalent to "-a ACGT".  The protein alphabet (-p) is
@@ -243,7 +245,8 @@ Score Parameters
     and -q options will then be ignored.  For examples of the format,
     see HOXD70 and TiTv212 in the examples directory.  Any letters
     that aren't in the file will get the lowest score in the file when
-    aligned to anything.
+    aligned to anything.  Asymmetric scores are allowed: query letters
+    correspond to columns and database letters correspond to rows.
 
 -a  Gap existence cost.
 

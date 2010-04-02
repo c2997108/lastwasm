@@ -19,7 +19,7 @@
 
 using namespace cbrc;
 
-typedef unsigned indexT;
+typedef MultiSequence::indexT indexT;
 
 // Set up an alphabet (e.g. DNA or protein), based on the user options
 void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
@@ -42,8 +42,7 @@ void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
     if( args.isProtein )
       seed.fromString( seed.proteinSeed, args.isCaseSensitive, alph.encode );
     else
-      seed.fromSpacedSeed( "1", alph.letters,
-			   args.isCaseSensitive, alph.encode );
+      seed.fromString( seed.yassSeed, args.isCaseSensitive, alph.encode );
   }
 }
 

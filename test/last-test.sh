@@ -21,7 +21,7 @@ db=/tmp/last-test
     echo
 
     echo TEST 2  # multiple volumes & query batches
-    lastdb -s1 $db $dnaSeq
+    lastdb -m1 -s1 $db $dnaSeq
     lastal -f0 -i1 -w0 $db $dnaSeq
     echo
 

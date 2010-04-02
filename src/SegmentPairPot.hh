@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 // This struct holds segment-pairs, and allows us to find
 // (near-)overlaps between sets of segment-pairs efficiently.  To find
@@ -14,7 +14,7 @@
 namespace cbrc{
 
 struct SegmentPairPot{
-  typedef unsigned indexT;
+  typedef SegmentPair::indexT indexT;
   typedef std::vector<SegmentPair>::iterator iterator;
   typedef std::vector<SegmentPair>::const_iterator const_iterator;
 

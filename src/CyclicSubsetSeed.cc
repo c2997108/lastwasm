@@ -1,4 +1,4 @@
-// Copyright 2009 Martin C. Frith
+// Copyright 2009, 2010 Martin C. Frith
 
 #include "CyclicSubsetSeed.hh"
 #include "stringify.hh"
@@ -17,6 +17,23 @@ using namespace cbrc;
 // some testing:
 const char* CyclicSubsetSeed::proteinSeed =
   "A C D E F G H I K L M N P Q R S T V W Y";
+
+// This seed pattern is recommended in "YASS: enhancing the
+// sensitivity of DNA similarity search", NAR 2005 33:W540-W543.
+const char* CyclicSubsetSeed::yassSeed = "\
+A C G T  \n\
+AG CT    \n\
+A C G T  \n\
+ACGT     \n\
+ACGT     \n\
+A C G T  \n\
+A C G T  \n\
+ACGT     \n\
+ACGT     \n\
+A C G T  \n\
+ACGT     \n\
+A C G T  \n\
+";
 
 void CyclicSubsetSeed::fromFile( const std::string& fileName,
 				 bool isMaskLowercase,

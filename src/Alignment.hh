@@ -18,7 +18,7 @@ class Alphabet;
 class Centroid;
 
 struct Alignment{
-  typedef unsigned indexT;
+  typedef SegmentPair::indexT indexT;
   typedef unsigned char uchar;
 
   enum { MAT = 64 };

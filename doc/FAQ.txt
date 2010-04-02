@@ -6,10 +6,10 @@ genomes, the difference should be minor.  When mapping tags to a
 genome, you probably want the genome to be the database, and the tags
 to be the query.  That way, for each tag, it will search for several
 most-similar locations in the genome.  The other way, for each
-location in the genome, it will search for several most-similar tags,
-which is probably not what you want.  As a final example, if you
-compare a genome to a library of repeat sequences, you probably want
-the genome to be the query and the repeat library to be the database.
+location in the genome, it will search for several most-similar tags.
+As a final example, if you compare a genome to a library of repeat
+sequences, you probably want the genome to be the query and the repeat
+library to be the database.
 
 
 Q: Why does lastdb run forever without finishing?!
@@ -40,7 +40,7 @@ matching bases are broken into three regions of length 23, 23, and 24.
 So we are guaranteed to have an exact match of length 24.  With LAST,
 we could do something like this:
 
-  lastdb -s16G genomedb genome.fa
+  lastdb -m1 -s20G genomedb genome.fa
   lastal -l24 -m100 -d0 -y0 -a0 -x2 -e68 genomedb reads.fa
 
 The -l24 tells it to find matches of length 24 or greater.  The -m100

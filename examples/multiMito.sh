@@ -11,7 +11,7 @@
 PATH=$PATH:../src:../scripts
 
 # Make a LAST database of the human sequence:
-lastdb -c -m110 humanMito humanMito.fa
+lastdb -c humanMito humanMito.fa
 
 # Align the mouse sequence to the human sequence:
 # Let's use a score threshold of 25.  The accompanying E-value tables

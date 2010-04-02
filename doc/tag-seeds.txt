@@ -1,111 +1,102 @@
-Mapping tags to a genome with LAST
-==================================
+Mapping reads to a genome with LAST
+===================================
 
 LAST has many adjustable parameters, providing many ways of mapping
-tags to a genome.  We cannot tell you which way is best, but here are
+reads to a genome.  We cannot tell you which way is best, but here are
 some ideas that might be helpful.
 
-1. A simple mapping procedure
------------------------------
+1. A reasonable mapping procedure
+---------------------------------
 
-Suppose we wish to map tags of length 36 to the mouse genome.  Here is
-one way to do it:
+This procedure has worked well for us with different kinds of read
+(Illumina and FLX Titanium):
 
-  lastdb -s16G mousedb mouse/chr*.fa
-  lastal -a2 -e30 -f0 mousedb tags.fa
+  lastdb -m1111110 -s20G genomedb genome/chr*.fa
+  lastal -Q1 genomedb reads.fastq
 
-Here, we used -s16G to indicate that 16 gigabytes of memory are
-available.  This will make lastal run faster.  If you don't have 16
-gigabytes, omit this option.  We then used -a2 to set the gap
-existence cost to 2, and -e30 to get alignments with score >= 30.  We
-left the other score parameters at their default values: match score =
-1, mismatch cost = 1, gap extension cost = 1.  These parameters allow
-a few mismatches and/or a few small gaps.  The -f0 option simply
-selects the compact tabular output format.
+If your reads are in plain FASTA format (without quality data), then
+omit "-Q1".  Beware, however, that this changes the default score
+parameters: without -Q they are tuned for long, weak genome/genome
+alignments, and with -Q they are tuned for short, strong read/genome
+alignments.  To use the latter parameters, do this:
 
-2. Using sequence quality data
-------------------------------
+  lastal -r6 -q18 -a21 -b9 -e180 genomedb reads.fa
 
-You can use sequence quality data in FASTQ or PRB format to get more
-accurate mappings.  For example:
+Quality data improves mapping accuracy, as long as the quality data
+itself is not too inaccurate.
 
-  lastal -Q3 mousedb tags_prb.txt
+2. Dealing with multi-mapping reads
+-----------------------------------
 
-Using quality data improves mapping accuracy only if the quality data
-itself is accurate, which it might not be.
-
-3. Dealing with multi-mapping tags
-----------------------------------
-
-Often, one tag will align to more than one genome location.  You can
+Often, one read will align to more than one genome location.  You can
 use last-map-probs.py in the scripts directory to help judge which
-location the tag really maps to.  This script calculates a mapping
-probability for each alignment.  For example, if one tag aligns to two
-locations with identical scores, then the probabilities will be 50:50.
+location the read really maps to.  This script calculates a mapping
+probability for each alignment.  For example, if one read aligns to
+two locations with identical scores, then the probabilities will be
+50:50.
 
-4. How does the simple mapping procedure work: what are its limitations?
-------------------------------------------------------------------------
+3. Very short reads
+-------------------
 
-If you want to understand how this mapping procedure works in more
+The default score parameters do not align reads shorter than 30 bp,
+because the match score is 6 and the score threshold is 180.  To align
+shorter reads, reduce the score threshold (lastal -e).
+
+If the score threshold is too low, you will get meaningless, random
+alignments.  (You might also need to adjust lastal -d, which defaults
+to e*3/5: if it is too low, lastal might be slow.)
+
+4. How does this alignment procedure work: what are its limitations?
+--------------------------------------------------------------------
+
+If you want to understand how this alignment procedure works in more
 detail, read on.  LAST uses a two-step approach: first find initial
-matches, then extend alignments from these matches.  In this case, the
-"initial matches" are: all exact matches of any part of a tag to the
-genome, of any length, where the match occurs at most ten times in the
-genome.
+matches, then extend alignments from these matches.  The "initial
+matches" are: all matches of any part of a read to the genome, of any
+length, where the match occurs at most ten times in the genome.
 
-One consequence of this is that repetitive tags will not be mapped: if
-a tag perfectly matches more than ten locations in the genome, it gets
+One consequence is that repetitive reads will not be mapped: if a read
+perfectly matches more than ten locations in the genome, it gets
 dropped at the first step.
 
-Another wrinkle is the effect of database volumes.  LAST is designed
-to work with 2 gigabytes of memory, so it splits large
-(e.g. mammalian) genomes into "volumes", and maps tags to each volume
-in turn as if they were separate genomes.  If a tag perfectly matches
-more than ten locations in one volume, but less than ten in another,
-then the former matches will not be reported but the latter will.  You
-can avoid this inconsistency by using -s16G to put the whole mouse
-genome into one volume.  Even if the genome is in one volume, however,
-the two strands get searched separately.
-
 The main point is that this procedure does not guarantee to find all
-alignments with score >= 30.  It is more likely to miss alignments
+alignments with score >= 180.  It is more likely to miss alignments
 that have uniformly-spaced mismatches/gaps, and less likely to miss
 alignments with mismatches/gaps concentrated at the ends.  We think it
 does a good job in practice.
 
-5. Counting exact matches
--------------------------
+5. Diagnosing repetitive reads
+------------------------------
 
-We can gain information on repetitive tags as follows:
+We can detect repetitive reads as follows:
 
-  lastal -j0 -l36 mousedb tags.fa
+  lastal -j0 -l30 genomedb reads.fastq
 
 Here, -j0 tells lastal to just report counts of initial matches.  In
 this case, there is no limit on how often the matches occur: matches
-that occur more than ten times in the genome are counted too.  So
-nothing is missed, and there is no effect from database volumes.  The
--l36 option requests matches of length >= 36 only: this makes it
-faster and makes the output smaller.  (Without -l36, it counts all
+that occur more than ten times in the genome are counted too.  The
+-l30 option requests matches of length >= 30 only: this makes it
+faster and makes the output smaller.  (Without -l30, it counts all
 matches of length >= 1: this is still quite fast.)
 
-6. Guaranteeing to map tags with up to N mismatches
----------------------------------------------------
+6. Guaranteeing to map reads with up to N mismatches
+----------------------------------------------------
 
-Suppose we wish to find all matches of our length-36 tags to the
-genome, allowing up to two mismatches.  A naive approach is to start
-by finding all exact matches of length 12, and extend alignments from
-these.  This works because any length-36 tag with two mismatches is
+Suppose we wish to find all matches of length-36 reads to the genome,
+allowing up to two mismatches.  A naive approach is to start by
+finding all exact matches of length 12, and extend alignments from
+these.  This works because any length-36 read with two mismatches is
 guaranteed to have an exact match of length 12.  It will be very slow,
 however, because there will be many unproductive length-12 matches.
 
 We can do better by finding matches using a spaced seed, and then
-extending alignments.  For example, our tags are guaranteed to have a
+extending alignments.  For example, our reads are guaranteed to have a
 match using this spaced seed pattern: 11111011000111110110001111.
 Since this seed has 18 matched positions (18 "1"s), we will get far
 fewer unproductive matches.  With LAST, we can do this as follows:
 
   lastdb -m11111011000 mydb genome.fa
-  lastal -l26 -m4000000000 -j1 -q0 -d34 -n100 mydb tags.fa
+  lastal -l26 -m4000000000 -j1 -q0 -d34 -n100 mydb reads.fa
 
 In the lastdb command, the seed pattern gets cyclically repeated, so
 we only need to specify the repeating unit of the pattern.  In the
@@ -113,15 +104,15 @@ lastal command, we used -l26 to get length-26 initial matches, and
 -m4000000000 to accept hugely repeated initial matches.  We also used
 -j1 to request gapless alignments, -q0 to set the mismatch cost to 0,
 and -d34 to request alignments with score >= 34.  Finally, -n100
-limits the output: if one tag has many matches, an arbitrary sample
+limits the output: if one read has many matches, an arbitrary sample
 (at least 100) of them will be returned.
 
-The following table shows optimal spaced seed patterns for various tag
-sizes and numbers of mismatches.  Each entry shows the match length
-(e.g. 26) and the pattern (e.g. 11111011000).
+The following table shows optimal spaced seed patterns for various
+read sizes and numbers of mismatches.  Each entry shows the match
+length (e.g. 26) and the pattern (e.g. 11111011000).
 
 ====  ===========  ================  ==================  ======================
-Tag   1 mismatch   2 mismatches      3 mismatches        4 mismatches
+Read  1 mismatch   2 mismatches      3 mismatches        4 mismatches
 size
 ====  ===========  ================  ==================  ======================
 16    12 11110     10 1110100         9 11010000          3 1110
@@ -168,27 +159,27 @@ these publications:
   Bioinform 2:51-61.
 * S Burkhardt, J Kärkkäinen (2003) Fundamenta Informaticae 56:51-70.
 
-For longer tags, it becomes harder to determine the optimal seed patterns.
+For longer reads, it becomes harder to determine the optimal patterns.
 
-7. Merging identical tag sequences
+7. Merging identical read sequences
 -----------------------------------
 
-Suppose we have tag sequences in a FASTA format file called "tags.fa":
+Suppose we have read sequences in a FASTA file called "reads.fa":
 
-  >tagA
+  >readA
   GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
-  >tagB
+  >readB
   GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
-  >tagC
+  >readC
   GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
-  >tagD
+  >readD
   GGCACTCTTTCCCTACACGACGCTCTTCCGATCTGG
 
-If there are many identical sequences, we can speed up the mapping by
-merging them.  The following Unix pipeline merges identical sequences
-(assuming each sequence is all on one line):
+If there are many identical sequences, we can speed up the alignment
+by merging them.  The following Unix pipeline merges identical
+sequences (assuming each sequence is all on one line):
 
-  grep -v '>' tags.fa | sort | uniq -c | awk '{print ">" NR ":" $1 "\n" $2}'
+  grep -v '>' reads.fa | sort | uniq -c | awk '{print ">" NR ":" $1 "\n" $2}'
 
 The output of this command looks as follows:
 
@@ -197,20 +188,17 @@ The output of this command looks as follows:
   >2:1
   GGCACTCTTTCCCTACACGACGCTCTTCCGATCTGG
 
-The number after the colon is the count of the tag, and the number
+The number after the colon is the count of the read, and the number
 before the colon is just a serial number.
 
 8. How does lastal use sequence quality data?
 ---------------------------------------------
 
 The quality scores have no effect on finding initial matches, but they
-do affect extending alignments from the initial matches.  If quality
-scores are used, the default alignment scoring scheme is +6 for a
-high-quality match and -18 for a high-quality mismatch.  Low-quality
-matches and mismatches get scores between these values, as shown in
-the following table.  If your tags are very short, make sure that the
-alignment score threshold does not exceed the tag length times 6,
-otherwise you will not get any matches!
+do affect the alignment scores.  If quality scores are used, the
+default alignment scoring scheme is +6 for a high-quality match and
+-18 for a high-quality mismatch.  Low-quality matches and mismatches
+get scores between these values, as shown in the following table.
 
 ======  ========  ========      ======  ========  ========
 Solexa  Match     Mismatch      Phred   Match     Mismatch

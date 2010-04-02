@@ -33,7 +33,7 @@
 using namespace cbrc;
 
 namespace {
-  typedef unsigned indexT;
+  typedef MultiSequence::indexT indexT;
   typedef unsigned char uchar;
   typedef unsigned long long countT;
 

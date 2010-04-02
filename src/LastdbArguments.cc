@@ -35,14 +35,15 @@ Main Options:\n\
 -h: show all options and their default settings\n\
 -p: interpret the sequences as proteins\n\
 -c: soft-mask lowercase letters\n\
--m: spaced seed pattern";
+";
 
     std::string help = usage + "\n\
 \n\
 Advanced Options (default settings):\n\
 -s: volume size (1280 MiB)\n\
+-m: spaced seed pattern\n\
+-u: subset seed file (yass.seed)\n\
 -w: index step (" + stringify(indexStep) + ")\n\
--u: subset seed file\n\
 -a: user-defined alphabet\n\
 -b: bucket depth\n\
 -v: be verbose: write messages about what lastdb is doing\n\
