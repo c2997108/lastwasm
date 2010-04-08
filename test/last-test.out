@@ -376,3 +376,27 @@ TEST 6
 18	chrM	965	58	+	16775	chrM	15752	58	-	16775	58
 # CPU time: 0.09 seconds
 
+TEST 7
+#
+# a=500 b=50 c=100000 F=-1 e=2000 d=1200 x=1500 y=992
+# u=0 s=0 m=10 l=1 n=4294967295 k=1 i=134217728 w=1000 t=99.2157 g=1 j=3
+# /tmp/last-test
+#
+#    A  C  G  T
+# A 53 -51 -51 -69
+# C -11 88 -92 -11
+# G -11 -92 88 -11
+# T -69 -51 -51 53
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+#
+2475	chrM	3957	91	+	16775	chrM	10123	88	-	16775	31,3:0,57
+2122	chrM	6564	57	+	16775	chrM	12727	57	-	16775	57
+2102	chr32	665	274	+	1028	chrM	7941	268	-	16775	117,5:0,72,1:0,79
+2089	chr32	690	217	+	1028	chrM	6958	219	-	16775	43,0:4,138,2:0,34
+2060	chr32	721	195	+	1028	chrM	7144	192	-	16775	91,3:0,101
+# CPU time: 0.08 seconds
+

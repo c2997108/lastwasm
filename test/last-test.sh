@@ -42,6 +42,10 @@ db=/tmp/last-test
     lastdb -c -u $seed $db $dnaSeq
     lastal -s0 -f0 -e18 $db $dnaSeq
     echo
+
+    echo TEST 7  # asymmetric scoring matrix
+    lastal -s0 -f0 -p asymmetric.mat -e2000 $db $dnaSeq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
