@@ -63,8 +63,9 @@ template<typename T>  // T should be a vector-iterator or a pointer
 void memoryFromBinaryFile( T beg, T end, const std::string& fileName ){
   if( beg == end ) return;
   std::ifstream file( fileName.c_str(), std::ios::binary );
+  if( !file ) throw std::runtime_error( "can't open file: " + fileName );
   memoryFromStream( beg, end, file );
-  if( !file ) throw std::runtime_error("can't read file: " + fileName);
+  if( !file ) throw std::runtime_error( "can't read file: " + fileName );
 }
 
 template<typename T>
@@ -77,8 +78,9 @@ template<typename T>  // T should be a vector-iterator or a pointer
 void memoryToBinaryFile( T beg, T end, const std::string& fileName ){
   if( beg == end ) return;
   std::ofstream file( fileName.c_str(), std::ios::binary );
+  if( !file ) throw std::runtime_error( "can't open file: " + fileName );
   memoryToStream( beg, end, file );
-  if( !file ) throw std::runtime_error("can't write file: " + fileName);
+  if( !file ) throw std::runtime_error( "can't write file: " + fileName );
 }
 
 template<typename T>

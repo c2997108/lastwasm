@@ -25,6 +25,9 @@ struct GeneralizedAffineGapCosts{
   void assign( int a, int b, int c )
   { exist = a; extend = b; extendPair = c; first = a + b; firstPair = a + c; }
 
+  // Will standard affine gaps always suffice for maximal alignment scores?
+  bool isAffine() const { return (firstPair >= 2 * first); }
+
   // Return the score of a gap with the given sizes in a pair of
   // sequences, considering that it might be either one "generalized"
   // gap or two neighbouring "affine" gaps.

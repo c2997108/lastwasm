@@ -240,7 +240,7 @@ int Xdrop3FrameAligner::fillThreeFrame( const uchar* seq1, const uchar* seq2,
       const int* const x0end = x0 + loopSize;
 
       // innermost loop: split into special cases for speed
-      if( gap.firstPair >= 2 * gap.first ){  // standard affine gap costs
+      if( gap.isAffine() ){  // standard affine gap costs
 	do{
 	  const int matchScore  = *x6++ + sm[ *s1 ][ *s2 ];
 	  const int secondScore = *x5++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
