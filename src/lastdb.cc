@@ -15,6 +15,7 @@
 #include <iostream>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 
+#define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastdb: " << x << '\n'
 
 using namespace cbrc;
@@ -62,7 +63,7 @@ void writeOuterPrj( const std::string& fileName,
     seed.writePosition( f, i );
     f << '\n';
   }
-  if( !f ) throw std::runtime_error("can't write file: " + fileName);
+  if( !f ) ERR( "can't write file: " + fileName );
 }
 
 // Write a per-volume .prj file, with info about a database volume
@@ -73,7 +74,7 @@ void writeInnerPrj( const std::string& fileName,
   f << "specialcharacters=" << multi.finishedSize() - sa.indexSize() << '\n';
   f << "numofsequences=" << multi.finishedSequences() << '\n';
   f << "prefixlength=" << sa.maxBucketPrefix() << '\n';
-  if( !f ) throw std::runtime_error("can't write file: " + fileName);
+  if( !f ) ERR( "can't write file: " + fileName );
 }
 
 // Make one database volume, from one batch of sequences
@@ -112,7 +113,7 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
   multi.appendFromFasta( in, maxSeqLen );
 
   if( !multi.isFinished() && multi.finishedSequences() == 0 )
-    throw std::runtime_error("encountered a sequence that's too long");
+    ERR( "encountered a sequence that's too long" );
 
   // encode the newly-read sequence
   alph.tr( multi.seqWriter() + oldUnfinishedSize,

@@ -60,18 +60,20 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 
   for( unsigned i = 0; i < blocks.size(); ++i ){
     if( i > 0 ){  // between each pair of aligned blocks:
+      os << ',';
       indexT gapBeg1 = blocks[i-1].end1();
       indexT gapEnd1 = blocks[i].beg1();
       writeSignedDifference( gapEnd1, gapBeg1, os );  // allow -1 frameshift
       os << ':';
-
       indexT gapBeg2 = aaToDna( blocks[i-1].end2(), frameSize2 );
       indexT gapEnd2 = aaToDna( blocks[i].beg2(), frameSize2 );
       writeSignedDifference( gapEnd2, gapBeg2, os );  // allow -1 frameshift
       os << ',';
     }
-    os << blocks[i].size << ( i+1 < blocks.size() ? ',' : '\n' );
+    os << blocks[i].size;
   }
+
+  os << '\n';
 }
 
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,

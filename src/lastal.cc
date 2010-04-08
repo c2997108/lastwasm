@@ -28,6 +28,7 @@
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 #include <cassert>
 
+#define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
 
 using namespace cbrc;
@@ -105,9 +106,8 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes ){
   if( !subsetSeed.span() || volumes+1 == 0 ){
     f.setstate( std::ios::failbit );
   }
-  if( !f ) throw std::runtime_error("can't read file: " + fileName);
-  if( version < 63 ) throw std::runtime_error("the database format is old: "
-					      "please re-run lastdb");
+  if( !f ) ERR( "can't read file: " + fileName );
+  if( version < 63 ) ERR( "the database format is old: please re-run lastdb" );
 }
 
 // Read a per-volume .prj file, with info about a database volume
@@ -128,7 +128,7 @@ void readInnerPrj( const std::string& fileName, indexT& seqCount,
   if( seqCount+1 == 0 || delimiterNum+1 == 0 || bucketDepth+1 == 0 ){
     f.setstate( std::ios::failbit );
   }
-  if( !f ) throw std::runtime_error("can't read file: " + fileName);
+  if( !f ) ERR( "can't read file: " + fileName );
 }
 
 // Write match counts for each query sequence
@@ -469,7 +469,7 @@ std::istream& appendFromFasta( std::istream& in ){
 			    queryAlph.size, queryAlph.decode );
 
   if( !query.isFinished() && query.finishedSequences() == 0 )
-    throw std::runtime_error("encountered a sequence that's too long");
+    ERR( "encountered a sequence that's too long" );
 
   // encode the newly-read sequence
   queryAlph.tr( query.seqWriter() + oldUnfinishedSize,
@@ -501,7 +501,7 @@ void lastal( int argc, char** argv ){
   double lambda = LambdaCalculator::calculate( matGapped, alph.size );
   if( lambda < 0 && args.temperature < 0 ){
     if( args.outputType > 3 || args.inputFormat > 0 )
-      throw std::runtime_error("can't calculate lambda for this score matrix");
+      ERR( "can't calculate lambda for this score matrix" );
     else LOG( "can't calculate lambda for this score matrix" );
   }
 
@@ -522,7 +522,7 @@ void lastal( int argc, char** argv ){
 
   if( args.isTranslated() ){
     if( alph.letters == alph.dna )  // allow user-defined alphabet
-      throw std::runtime_error("expected protein database, but got DNA");
+      ERR( "expected protein database, but got DNA" );
     queryAlph.fromString( queryAlph.dna );
     if( args.geneticCodeFile.empty() )
       geneticCode.fromString( geneticCode.standard );
