@@ -57,7 +57,6 @@ struct Alignment{
   int score;
   SegmentPair seed;  // the alignment remembers its seed
   std::vector<double> matchProbabilities;
-  double centroidScore;  // negative value = "not a gamma-centroid alignment"
 
   indexT beg1() const{ return blocks.front().beg1(); }
   indexT beg2() const{ return blocks.front().beg2(); }

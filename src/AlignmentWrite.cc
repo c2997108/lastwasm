@@ -43,8 +43,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   indexT w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
   indexT seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
-  if( centroidScore < 0 ) os << score << '\t';
-  else                    os << centroidScore << '\t';
+  os << score << '\t';
 
   os << seq1.seqName(w1) << '\t'
      << alnBeg1 - seqStart1 << '\t'
@@ -105,8 +104,9 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   const std::size_t rw = std::max( r1.size(), r2.size() );
   const std::size_t sw = std::max( s1.size(), s2.size() );
 
-  if( centroidScore < 0 ) os << "a score=" << score << '\n';
-  else                    os << "a score=" << centroidScore << '\n';
+  os << "a";
+  os << " score=" << score;
+  os << '\n';
 
   os << "s "
      << std::setw( nw ) << std::left << n1 << std::right << ' '

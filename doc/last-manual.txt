@@ -322,9 +322,8 @@ Miscellaneous Options
     al. 2009, Bioinformatics 25(4):465-73).  Such alignments only
     include pairings with probability > 1/(1+g).  When g=1, this is
     the same as "centroid alignment" (LE Carvalho & CE Lawrence 2008,
-    PNAS 105(9):3209-14).  When lastal does (gamma-)centroid
-    alignment, it does not report the usual alignment score.  Instead,
-    it reports: sum[prob * (1+g) - 1].
+    PNAS 105(9):3209-14).  The reported alignment score is that of the
+    ordinary gapped alignment, not of the (gamma-)centroid alignment.
 
 -G  Use an alternative genetic code in the specified file.  For an
     example of the format, see vertebrateMito.gc in the examples

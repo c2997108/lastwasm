@@ -15,7 +15,6 @@ using namespace cbrc;
 void Alignment::fromSegmentPair( const SegmentPair& sp ){
   blocks.assign( 1, sp );
   score = sp.score;
-  centroidScore = -1;
 }
 
 // Does x precede and touch y in both sequences?
@@ -31,7 +30,6 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
 			   const int pssm2[][MAT],
 			   double gamma, int outputType ){
   score = seed.score;
-  centroidScore = (outputType < 5 ? -1 : gamma * seed.size);
 
   // extend a gapped alignment in the left/reverse direction from the seed:
   extend( blocks, matchProbabilities, aligner, centroid, seq1, seq2,
@@ -174,7 +172,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     centroid.backward( seq1, seq2, start1, start2, dir, gap );
 
     if( outputType > 4 ){  // do gamma-centroid alignment
-      centroidScore += centroid.dp( gamma );
+      centroid.dp( gamma );
       centroid.traceback( chunks, gamma );
     }
 
