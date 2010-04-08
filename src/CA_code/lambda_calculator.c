@@ -44,9 +44,10 @@ bool Check_range( const double** mat_b );
 double *Locate_det_zero( const double** mat_b, int * ); //pointer to root list are returned with how many of them by int 
 
 
-double calculate_lambda ( const double** mat_b, int alpha_size )
+double calculate_lambda ( const double** mat_b, int alpha_size,
+                          double* p, double* q )
 {
-  double **JP, *q, *p;
+  double **JP/*, *q, *p*/;
   int k;
   double *root_location;
   int N_root; 
@@ -59,22 +60,22 @@ double calculate_lambda ( const double** mat_b, int alpha_size )
   root_location = Locate_det_zero(mat_b, &N_root);
   if( root_location == NULL ) return -1.0;
 
-  q=dvector(1,Alphsize);
-  p=dvector(1,Alphsize);
+  //q=dvector(1,Alphsize);
+  //p=dvector(1,Alphsize);
   JP = dmatrix(1,Alphsize,1,Alphsize);
 
   if (N_root == 0){
     Lambda_local = Find_JP(mat_b, 0, Lambda_UB, JP, p, q);
     if (1 == Lambda_local.flag) { // sensible solution found  
       // Remember to find the right place to free the vectors
-      free_dvector(p, 1,Alphsize);
-      free_dvector(q, 1,Alphsize);
+      //free_dvector(p, 1,Alphsize);
+      //free_dvector(q, 1,Alphsize);
       free( root_location );
       free_dmatrix( JP, 1, Alphsize, 1, Alphsize );
       return (Lambda_local.min + Lambda_local.max) / 2.0;
     }
     else if (-1 == Lambda_local.flag) {
-      printf("matrix pass first screening but no sensible solution found. :-( \n");
+      //printf("matrix pass first screening but no sensible solution found. :-( \n");
     }
   } 
   else if (N_root > 0) {
@@ -86,8 +87,8 @@ double calculate_lambda ( const double** mat_b, int alpha_size )
       else {Lambda_local.min = root_location[k-1]; Lambda_local.max = root_location[k]; }
       Lambda_local = Find_JP(mat_b, Lambda_local.min, Lambda_local.max, JP, p, q);
       if (1 == Lambda_local.flag) { // sensible solution found  
-	free_dvector(p, 1,Alphsize);
-	free_dvector(q, 1,Alphsize);
+	//free_dvector(p, 1,Alphsize);
+	//free_dvector(q, 1,Alphsize);
 	free( root_location );
       free_dmatrix( JP, 1, Alphsize, 1, Alphsize );
 	return (Lambda_local.min + Lambda_local.max) / 2.0;
@@ -98,8 +99,8 @@ double calculate_lambda ( const double** mat_b, int alpha_size )
     }
   } 
   // Remember to find the right place to free the vectors
-  free_dvector(p, 1,Alphsize);
-  free_dvector(q, 1,Alphsize);
+  //free_dvector(p, 1,Alphsize);
+  //free_dvector(q, 1,Alphsize);
   free( root_location );
   free_dmatrix( JP, 1, Alphsize, 1, Alphsize );
   return -1.0;

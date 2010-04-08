@@ -47,6 +47,7 @@ namespace {
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
   Xdrop3FrameAligner xdropAligner;
+  LambdaCalculator lambdaCalculator;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
@@ -78,6 +79,25 @@ void makeScoreMatrix( const std::string& matrixFile ){
 
   matGapped = args.maskLowercase < 2 ?
     scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
+}
+
+// Calculate statistical parameters for the alignment scoring scheme
+void calculateScoreStatistics(){
+  if( args.outputType == 0 ) return;
+
+  // it makes no difference whether we use matGapped or matGapless here
+
+  LOG( "calculating matrix probabilities..." );
+  lambdaCalculator.calculate( matGapless, alph.size );
+  if( lambdaCalculator.isBad() ){
+    if( args.temperature < 0 &&
+        (args.outputType > 3 || args.inputFormat > 0) )
+      ERR( "can't get probabilities for this score matrix" );
+    else
+      LOG( "can't get probabilities for this score matrix" );
+  }else{
+    LOG( "lambda=" << lambdaCalculator.lambda() );
+  }
 }
 
 // Read the .prj file for the whole database
@@ -496,18 +516,9 @@ void lastal( int argc, char** argv ){
   args.setDefaultsFromAlphabet( alph.letters == alph.dna,
 				alph.letters == alph.protein );
   makeScoreMatrix( matrixFile );
-
-  // it makes no difference whether we use matGapped or matGapless here:
-  double lambda = LambdaCalculator::calculate( matGapped, alph.size );
-  if( lambda < 0 && args.temperature < 0 ){
-    if( args.outputType > 3 || args.inputFormat > 0 )
-      ERR( "can't calculate lambda for this score matrix" );
-    else LOG( "can't calculate lambda for this score matrix" );
-  }
-
-  args.setDefaultsFromMatrix(lambda);
-
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
+  calculateScoreStatistics();
+  args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
 
   if( args.inputFormat > 0 ){
     assert( matGapless == matGapped );
