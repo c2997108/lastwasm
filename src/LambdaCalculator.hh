@@ -5,6 +5,10 @@
 // calculation might fail for various reasons, putting it into a
 // "bad/undefined" state.
 
+// If the score matrix is symmetric, then the two sets of letter
+// probabilities should be identical.  With this code, they might
+// differ minutely from exact identity.
+
 #ifndef LAMBDA_CALCULATOR_HH
 #define LAMBDA_CALCULATOR_HH
 

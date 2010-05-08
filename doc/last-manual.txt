@@ -207,7 +207,7 @@ Advanced Options
     equivalent to "-a ACDEFGHIKLMNPQRSTVWY".  Non-alphabet letters are
     allowed in sequences, but by default they are forbidden in initial
     matches (even in skipped positions) and get the mismatch score
-    when aligned to anything.
+    when aligned to anything.  If -a is specified, -p is ignored.
 
 -b  Specify the depth of "buckets" used to accelerate initial match
     finding.  The deeper the faster, but the more memory is needed.

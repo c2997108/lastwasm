@@ -39,11 +39,15 @@ void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
     seed.fromSpacedSeed( args.spacedSeed, alph.letters,
 			 args.isCaseSensitive, alph.encode );
   }
+  else if( alph.letters == alph.dna ){
+    seed.fromString( seed.yassSeed, args.isCaseSensitive, alph.encode );
+  }
+  else if( alph.letters == alph.protein ){
+    seed.fromString( seed.proteinSeed, args.isCaseSensitive, alph.encode );
+  }
   else{
-    if( args.isProtein )
-      seed.fromString( seed.proteinSeed, args.isCaseSensitive, alph.encode );
-    else
-      seed.fromString( seed.yassSeed, args.isCaseSensitive, alph.encode );
+    seed.fromSpacedSeed( "1", alph.letters,
+                         args.isCaseSensitive, alph.encode );
   }
 }
 

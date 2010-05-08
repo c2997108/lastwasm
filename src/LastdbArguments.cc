@@ -34,8 +34,7 @@ Prepare sequences for subsequent alignment with lastal.\n\
 Main Options:\n\
 -h: show all options and their default settings\n\
 -p: interpret the sequences as proteins\n\
--c: soft-mask lowercase letters\n\
-";
+-c: soft-mask lowercase letters";
 
     std::string help = usage + "\n\
 \n\
