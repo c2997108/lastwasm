@@ -20,6 +20,14 @@ void Alphabet::fromString( const std::string& alphString ){
   init();
 }
 
+void Alphabet::count( const uchar* beg, const uchar* end,
+                      countT* counts ) const{
+  for( /* noop */; beg < end; ++beg ){
+    unsigned uppercase = canonical[ *beg ];
+    if( uppercase < size ) ++counts[ uppercase ];
+  }
+}
+
 void Alphabet::tr( uchar* beg, uchar* end ) const{
   for( /* noop */; beg < end; ++beg ){
     uchar code = encode[ *beg ];

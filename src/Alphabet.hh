@@ -18,6 +18,7 @@ namespace cbrc{
 
 struct Alphabet{
   typedef unsigned char uchar;
+  typedef unsigned long long countT;
 
   static const char* dna;
   static const char* protein;
@@ -26,6 +27,9 @@ struct Alphabet{
 
   // make an Alphabet from a string containing the "proper" letters
   void fromString( const std::string& alphString );
+
+  // add counts of "proper" letters to "counts" (counting lowercase too)
+  void count( const uchar* beg, const uchar* end, countT* counts ) const;
 
   // translate (encode) a sequence of letters to numbers, in place
   void tr( uchar* beg, uchar* end ) const;

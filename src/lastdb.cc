@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
+#include <numeric>  // accumulate
 
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastdb: " << x << '\n'
@@ -21,6 +22,7 @@
 using namespace cbrc;
 
 typedef MultiSequence::indexT indexT;
+typedef unsigned long long countT;
 
 // Set up an alphabet (e.g. DNA or protein), based on the user options
 void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
@@ -52,14 +54,26 @@ void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
 }
 
 // Write the .prj file for the whole database
-void writeOuterPrj( const std::string& fileName,
-		    const LastdbArguments& args, const Alphabet& alph,
+void writeOuterPrj( const std::string& fileName, const LastdbArguments& args,
+                    const Alphabet& alph, countT sequenceCount,
+                    const std::vector<countT>& letterCounts,
 		    const CyclicSubsetSeed& seed, unsigned volumes ){
+  countT letterTotal = std::accumulate( letterCounts.begin(),
+                                        letterCounts.end(), countT(0) );
+
   std::ofstream f( fileName.c_str() );
   f << "version=" <<
 #include "version.hh"
     << '\n';
   f << "alphabet=" << alph << '\n';
+  f << "numofsequences=" << sequenceCount << '\n';
+  f << "numofletters=" << letterTotal << '\n';
+  f << "letterfreqs=";
+  for( unsigned i = 0; i < letterCounts.size(); ++i ){
+    if( i > 0 ) f << ' ';
+    f << letterCounts[i];
+  }
+  f << '\n';
   f << "masklowercase=" << args.isCaseSensitive << '\n';
   f << "volumes=" << volumes << '\n';
   for( unsigned i = 0; i < seed.span(); ++i ){
@@ -150,6 +164,8 @@ void lastdb( int argc, char** argv ){
   multi.initForAppending(1);
   alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
   unsigned volumeNumber = 0;
+  countT sequenceCount = 0;
+  std::vector<countT> letterCounts( alph.size );
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
     std::ifstream inFileStream;
@@ -157,7 +173,14 @@ void lastdb( int argc, char** argv ){
     LOG( "reading " << *i << "..." );
 
     while( appendFromFasta( multi, sa, args, alph, seed, in ) ){
-      if( !multi.isFinished() ){
+      if( multi.isFinished() ){
+        ++sequenceCount;
+        indexT lastSeq = multi.finishedSequences() - 1;
+        alph.count( multi.seqReader() + multi.seqBeg(lastSeq),
+                    multi.seqReader() + multi.seqEnd(lastSeq),
+                    &letterCounts[0] );
+      }
+      else{
 	makeVolume( sa, multi, args, seed, volumeNumber++ );
 	sa.clear();
 	multi.reinitForAppending();
@@ -169,7 +192,8 @@ void lastdb( int argc, char** argv ){
     makeVolume( sa, multi, args, seed, volumeNumber++ );
   }
 
-  writeOuterPrj( args.lastdbName + ".prj", args, alph, seed, volumeNumber );
+  writeOuterPrj( args.lastdbName + ".prj", args, alph,
+                 sequenceCount, letterCounts, seed, volumeNumber );
 }
 
 int main( int argc, char** argv )
