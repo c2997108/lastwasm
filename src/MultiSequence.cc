@@ -5,6 +5,8 @@
 #include <sstream>
 #include <algorithm>  // upper_bound
 #include <cassert>
+#include <cctype>  // isspace
+#include <iterator>  // istreambuf_iterator
 
 using namespace cbrc;
 
@@ -66,7 +68,6 @@ std::istream& MultiSequence::readFastaName( std::istream& stream ){
   return stream;
 }
 
-// probably slower than it could be:
 std::istream&
 MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
   if( isFinished() ){
@@ -74,17 +75,19 @@ MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
     if( !stream ) return stream;
   }
 
-  uchar c;
-  while( isFinishable(maxSeqLen) && stream >> c ){  // skips whitespace
-    if( c == '>' ){
-      stream.unget();
-      break;
+  std::istreambuf_iterator<char> inpos(stream);
+  std::istreambuf_iterator<char> endpos;
+  while( inpos != endpos ){
+    uchar c = *inpos;
+    if( c == '>' ) break;  // we have hit the next FASTA sequence
+    if( !std::isspace(c) ){
+      if( seq.v.size() >= maxSeqLen ) break;
+      seq.v.push_back(c);
     }
-    seq.v.push_back(c);
+    ++inpos;
   }
 
   if( isFinishable(maxSeqLen) ) finish();
-  if( stream.eof() && !stream.bad() ) stream.clear();
   return stream;
 }
 
