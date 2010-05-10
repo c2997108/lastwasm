@@ -24,6 +24,7 @@ LastdbArguments::LastdbArguments() :
   subsetSeedFile(""),
   userAlphabet(""),
   bucketDepth(indexT(-1)),  // means: use the default (adapts to the data)
+  isCountsOnly(false),
   verbosity(0){}
 
 void LastdbArguments::fromArgs( int argc, char** argv ){
@@ -45,6 +46,7 @@ Advanced Options (default settings):\n\
 -w: index step (" + stringify(indexStep) + ")\n\
 -a: user-defined alphabet\n\
 -b: bucket depth\n\
+-x: just count sequences and letters\n\
 -v: be verbose: write messages about what lastdb is doing\n\
 \n\
 Report bugs to: last (ATmark) cbrc (dot) jp\n\
@@ -52,7 +54,7 @@ LAST home page: http://last.cbrc.jp/\n\
 ";
 
   int c;
-  while( (c = getopt(argc, argv, "hpcm:s:w:u:a:b:v")) != -1 ) {
+  while( (c = getopt(argc, argv, "hpcm:s:w:u:a:b:xv")) != -1 ) {
     switch(c){
     case 'h':
       std::cout << help;
@@ -81,6 +83,9 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'b':
       unstringify( bucketDepth, optarg );
+      break;
+    case 'x':
+      isCountsOnly = true;
       break;
     case 'v':
       ++verbosity;

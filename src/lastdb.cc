@@ -74,13 +74,17 @@ void writeOuterPrj( const std::string& fileName, const LastdbArguments& args,
     f << letterCounts[i];
   }
   f << '\n';
-  f << "masklowercase=" << args.isCaseSensitive << '\n';
-  f << "volumes=" << volumes << '\n';
-  for( unsigned i = 0; i < seed.span(); ++i ){
-    f << "subsetseed=";
-    seed.writePosition( f, i );
-    f << '\n';
+
+  if( !args.isCountsOnly ){
+    f << "masklowercase=" << args.isCaseSensitive << '\n';
+    f << "volumes=" << volumes << '\n';
+    for( unsigned i = 0; i < seed.span(); ++i ){
+      f << "subsetseed=";
+      seed.writePosition( f, i );
+      f << '\n';
+    }
   }
+
   if( !f ) ERR( "can't write file: " + fileName );
 }
 
@@ -99,6 +103,8 @@ void writeInnerPrj( const std::string& fileName,
 void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
 		 const LastdbArguments& args, const CyclicSubsetSeed& seed,
 		 unsigned volumeNumber ){
+  if( args.isCountsOnly ) return;
+
   std::string baseName = args.lastdbName + stringify(volumeNumber);
 
   LOG( "sorting..." );
@@ -137,7 +143,7 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
   alph.tr( multi.seqWriter() + oldUnfinishedSize,
            multi.seqWriter() + multi.unfinishedSize() );
 
-  if( in && multi.isFinished() ){
+  if( in && multi.isFinished() && !args.isCountsOnly ){
     std::size_t maxIndexBytes = args.volumeSize - multi.unfinishedSize();
     if( args.volumeSize < multi.unfinishedSize() ) maxIndexBytes = 0;
     if( multi.finishedSequences() == 1 ) maxIndexBytes = std::size_t(-1);

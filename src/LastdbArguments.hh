@@ -26,6 +26,7 @@ struct LastdbArguments{
   std::string subsetSeedFile;
   std::string userAlphabet;
   indexT bucketDepth;
+  bool isCountsOnly;
   int verbosity;
 
   // positional arguments:
