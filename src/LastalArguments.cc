@@ -256,7 +256,7 @@ void LastalArguments::fromLine( const std::string& line, bool optionsOnly ){
 }
 
 void LastalArguments::fromStream( std::istream& is, bool optionsOnly ){
-  std::string trigger = "#lastal";
+  std::string trigger = "#last";
   for( std::string line; std::getline( is, line ); /* noop */ )
     if( line.compare( 0, trigger.size(), trigger ) == 0 )
       fromLine( line, optionsOnly );

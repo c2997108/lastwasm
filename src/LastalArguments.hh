@@ -21,10 +21,10 @@ struct LastalArguments{
   // set parameters from a command line (by splitting it into arguments):
   void fromLine( const std::string& line, bool optionsOnly = true );
 
-  // set parameters from lines beginning with "#lastal":
+  // set parameters from lines beginning with "#last":
   void fromStream( std::istream& is, bool optionsOnly = true );
 
-  // set parameters from lines beginning with "#lastal":
+  // set parameters from lines beginning with "#last":
   void fromString( const std::string& s, bool optionsOnly = true );
 
   // set default option values that depend on input files:

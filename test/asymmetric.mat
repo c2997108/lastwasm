@@ -9,7 +9,7 @@
 #   .4   .1   .1   .4
 #
 # Some gap costs:
-#lastal -a500 -b50
+#last -a500 -b50
 
     a   c   g   t
 a  53 -51 -51 -69
