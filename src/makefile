@@ -1,11 +1,12 @@
 CXX = g++
 CC  = gcc
 
-# use -W instead of -Wextra, so that it works with old versions of g++
-CXXFLAGS = -Wall -W -Wcast-qual -Wwrite-strings -Wsign-promo	\
--Wcast-align -Wno-long-long -ansi -pedantic -O3 -g
+CXXFLAGS = -O3
+CFLAGS = -Wall
 
-CCFLAGS = -Wall -g
+STRICT = -Wall -W -Wcast-qual -Wwrite-strings -Wsign-promo	\
+-Wcast-align -Wno-long-long -ansi -pedantic
+# use -W instead of -Wextra, so that it works with old versions of g++
 
 DBSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc	\
 SubsetSuffixArray.cc LastdbArguments.cc io.cc fileMap.cc	\
@@ -32,15 +33,24 @@ GeneralizedAffineGapCosts.hh Centroid.hh LambdaCalculator.hh	\
 QualityScoreCalculator.hh GeneticCode.hh Xdrop3FrameAligner.hh	\
 Mmap.hh VectorOrMmap.hh stringify.hh version.hh
 
+EXSRC = Alphabet.cc LastexArguments.cc io.cc ScoreMatrix.cc lastex.cc	\
+gumbel_params/*.cpp
+
+EXINC = Alphabet.hh LastexArguments.hh io.hh ScoreMatrix.hh	\
+gumbel_params/*.hpp gumbel_params/*/*.h*
+
 OBJ = lambda_calculator.o
 
-all: lastdb lastal
+all: lastdb lastal lastex
 
 lastdb: $(DBSRC) $(DBINC) makefile
-	$(CXX) $(CXXFLAGS) -o $@ $(DBSRC)
+	$(CXX) $(STRICT) $(CXXFLAGS) -o $@ $(DBSRC)
 
 lastal: $(ALSRC) $(ALINC) makefile $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $(ALSRC) $(OBJ)
+	$(CXX) $(STRICT) $(CXXFLAGS) -o $@ $(ALSRC) $(OBJ)
+
+lastex: $(EXSRC) $(EXINC) makefile
+	$(CXX) -Igumbel_params $(CXXFLAGS) -o $@ $(EXSRC)
 
 $(OBJ): CA_code/*.c CA_code/*.h makefile
-	$(CC) $(CCFLAGS) -c CA_code/lambda_calculator.c
+	$(CC) $(CFLAGS) -c CA_code/lambda_calculator.c

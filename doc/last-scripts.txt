@@ -151,9 +151,9 @@ plus an extra column with the probabilities::
   last-map-probs.py my-alignments.tab > my-alignments-with-probs
 
 This script does not indicate whether alignments are significantly
-similar: for that, you need the accompanying E-value tables.
-Furthermore, if you feed this script weak alignments that might exist
-just by chance, then its assumption is unlikely to be valid.
+similar: for that, you need lastex.  Furthermore, if you feed this
+script weak alignments that might exist just by chance, then its
+assumption is unlikely to be valid.
 
 
 Limitations

@@ -27,10 +27,10 @@ to have about 16-20 gigabytes of RAM.
 Installation
 ------------
 
-Just go into the src directory and type 'make'.  This should make two
-programs: lastdb and lastal.  (If you checked it out using subversion,
-then type 'make' in the top-level directory, not the src directory.)
-Run the programs without arguments to get usage messages.
+Just go into the src directory and type 'make'.  (If you checked it
+out using subversion, then type 'make' in the top-level directory, not
+the src directory.)  This should make three programs: lastdb, lastal,
+and lastex.  Run the programs without arguments to get usage messages.
 
 
 Example 1: Compare the human and fugu mitochondrial genomes
@@ -154,7 +154,7 @@ alignment (derived from the gapless alignment of step 2).  The
 probabilities are contingent upon the core being correct, and pairings
 within the core automatically get a probability of 1.  So the
 probabilities give no indication if an alignment is wholly spurious.
-For that, please use the accompanying E-value tables.
+For that, please use lastex.
 
 The probabilities are calculated as follows.  We assume that each
 gapped extension has probability proportional to: exp(lambda * score).
@@ -215,6 +215,10 @@ Advanced Options
     byte per possible match start position.  This option has no effect
     on the results.
 
+-x  Don't make a full LAST database; just count sequences and letters.
+    This is useful with lastex.  (Letter counting is never
+    case-sensitive.)
+
 -v  Be verbose: write messages about what lastdb is doing.
 
 
@@ -241,12 +245,14 @@ Score Parameters
 
 -q  Mismatch cost.
 
--p  Obtain match and mismatch scores from the specified file.  The -r
-    and -q options will then be ignored.  For examples of the format,
-    see HOXD70 and TiTv212 in the examples directory.  Any letters
-    that aren't in the file will get the lowest score in the file when
-    aligned to anything.  Asymmetric scores are allowed: query letters
-    correspond to columns and database letters correspond to rows.
+-p  Obtain match and mismatch scores from the specified file.  Options
+    -r and -q will be ignored.  For examples of the format, see HOXD70
+    and TiTv212 in the examples directory.  Any letters that aren't in
+    the file will get the lowest score in the file when aligned to
+    anything.  Asymmetric scores are allowed: query letters correspond
+    to columns and database letters correspond to rows.  Other options
+    can be specified on lines starting with "#last", but command line
+    options override them.
 
 -a  Gap existence cost.
 
@@ -270,10 +276,10 @@ Score Parameters
 -y  Maximum score dropoff for gapless alignments.
 
 -d  Minimum score for gapless alignments.  For guidance on choosing
-    this parameter, see the accompanying E-value tables.
+    this parameter, use lastex.
 
 -e  Minimum score for gapped alignments.  For guidance on choosing
-    this parameter, see the accompanying E-value tables.
+    this parameter, use lastex.
 
 
 Miscellaneous Options
