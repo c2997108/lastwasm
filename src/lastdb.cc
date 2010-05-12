@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
+#include <cstring>  // strchr
 #include <numeric>  // accumulate
 
 #define ERR(x) throw std::runtime_error(x)
@@ -29,6 +30,22 @@ void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
   if( !args.userAlphabet.empty() )  alph.fromString( args.userAlphabet );
   else if( args.isProtein )         alph.fromString( alph.protein );
   else                              alph.fromString( alph.dna );
+}
+
+// Does the first sequence look like it isn't really DNA?
+bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
+  typedef unsigned char uchar;
+  const uchar* seq = multi.seqReader() + multi.seqBeg(0);
+  unsigned dnaCount = 0;
+
+  for( indexT i = 0; i < 100; ++i ){  // look at the first 100 letters
+    uchar c = alph.canonical[ seq[i] ];
+    if( c == alph.size ) return false;  // we hit the end of the sequence early
+    if( c < alph.size || c == alph.encode[ 'N' ] ) ++dnaCount;
+  }
+
+  if( dnaCount < 90 ) return true;  // more than 10% unexpected letters
+  else return false;
 }
 
 // Set up a subset seed, based on the user options
@@ -179,6 +196,11 @@ void lastdb( int argc, char** argv ){
     LOG( "reading " << *i << "..." );
 
     while( appendFromFasta( multi, sa, args, alph, seed, in ) ){
+      if( !args.isProtein && args.userAlphabet.empty() &&
+          sequenceCount == 0 && isDubiousDna( alph, multi ) ){
+        std::cerr << "lastdb: that's some funny-lookin DNA\n";
+      }
+
       if( multi.isFinished() ){
         ++sequenceCount;
         indexT lastSeq = multi.finishedSequences() - 1;
