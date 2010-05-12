@@ -37,7 +37,7 @@ EXSRC = Alphabet.cc LastexArguments.cc io.cc ScoreMatrix.cc lastex.cc	\
 gumbel_params/*.cpp
 
 EXINC = Alphabet.hh LastexArguments.hh io.hh ScoreMatrix.hh	\
-gumbel_params/*.hpp gumbel_params/*/*.h*
+gumbel_params/*.hpp gumbel_params/*/*.h* version.hh
 
 OBJ = lambda_calculator.o
 
