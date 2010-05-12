@@ -207,6 +207,10 @@ void writeEvalues( const std::string& matrixString ){
   makeStrandStats();
   makeEvaluer();
 
+  std::cout << "LAST version " <<
+#include "version.hh"
+            << "\n";
+  std::cout << "\n";
   std::cout << "Score\tExpected number of alignments\n";
 
   if( args.score >= 0 ){
