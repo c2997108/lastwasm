@@ -5,6 +5,7 @@
 #include <ostream>
 #include <algorithm>
 #include <stdexcept>
+#include <cctype>  // toupper, tolower
 
 using namespace cbrc;
 
@@ -55,8 +56,8 @@ void Alphabet::rc( uchar* beg, uchar* end ) const{
 }
 
 void Alphabet::init(){
-  // std::toupper doesn't work here!
-  std::transform( letters.begin(), letters.end(), letters.begin(), toupper );
+  for( std::string::iterator i = letters.begin(); i < letters.end(); ++i )
+    *i = std::toupper( *i );
 
   std::fill_n( encode, capacity, dummyCode );
 

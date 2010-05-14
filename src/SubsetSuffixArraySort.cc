@@ -5,6 +5,7 @@
 
 #include "SubsetSuffixArray.hh"
 #include "CyclicSubsetSeed.hh"
+#include <algorithm>  // iter_swap, min
 
 using namespace cbrc;
 

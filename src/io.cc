@@ -1,7 +1,8 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 #include "io.hh"
 #include <iostream>
+#include <iterator>  // istreambuf_iterator
 
 namespace cbrc{
 

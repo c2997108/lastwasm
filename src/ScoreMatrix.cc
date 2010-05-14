@@ -1,11 +1,12 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 #include "ScoreMatrix.hh"
 #include <sstream>
 #include <iomanip>
-#include <algorithm>
+#include <algorithm>  // min, max
 #include <stdexcept>
 #include <cassert>
+#include <cctype>  // toupper, tolower
 //#include <iostream>  // for debugging
 
 #define ERR(x) throw std::runtime_error(x)
@@ -65,8 +66,11 @@ void ScoreMatrix::fromString( const std::string& matString ){
 void ScoreMatrix::init( const uchar encode[] ){
   assert( !rows.empty() && !cols.empty() );
 
-  std::transform( rows.begin(), rows.end(), rows.begin(), toupper );
-  std::transform( cols.begin(), cols.end(), cols.begin(), toupper );
+  for( std::string::iterator i = rows.begin(); i < rows.end(); ++i )
+    *i = std::toupper( *i );
+
+  for( std::string::iterator i = cols.begin(); i < cols.end(); ++i )
+    *i = std::toupper( *i );
 
   minScore = cells[0][0];
   maxScore = cells[0][0];

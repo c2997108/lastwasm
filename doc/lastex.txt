@@ -90,6 +90,10 @@ and ignore the length information in query.prj.  On the other hand, it
 will use the length information in reference.prj, and the letter
 frequencies in query.prj and reference.prj.
 
+One interesting effect of -z1 is that identical alignments of long and
+short query sequences will get different E-values.  This is because it
+is easier to get chance alignments with longer sequences.
+
 
 Example 4: A hand-made counts file
 ----------------------------------

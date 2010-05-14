@@ -7,6 +7,7 @@
 #include <algorithm>  // sort
 #include <stdexcept>
 #include <cassert>
+#include <cctype>  // toupper, tolower
 //#include <iostream>  // for debugging
 
 #define ERR(x) throw std::runtime_error(x)

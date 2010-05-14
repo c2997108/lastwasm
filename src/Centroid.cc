@@ -1,11 +1,11 @@
 // Copyright 2008, 2009 Michiaki Hamada
 
 #include "Centroid.hh"
-#include <algorithm>  // max_element
+#include <algorithm>
 #include <cassert>
 #include <cmath> // for exp
-#include <string>
 #include <cfloat>   // for DBL_MAX
+#include <cstdlib>  // for abs
 
 #define CI(type) std::vector<type>::const_iterator  // added by MCF
 

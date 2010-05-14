@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2010 Martin C. Frith
 
 // This struct records coverage of "diagonals" by gapless alignments,
 // when comparing two sequences.  The diagonal is the coordinate in
@@ -15,6 +15,7 @@
 
 #ifndef DIAGONALTABLE_HH
 #define DIAGONALTABLE_HH
+#include <utility>  // pair
 #include <vector>
 
 namespace cbrc{

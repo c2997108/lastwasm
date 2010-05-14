@@ -3,6 +3,7 @@
 #include "LastalArguments.hh"
 #include "stringify.hh"
 #include <unistd.h>  // getopt
+#include <algorithm>  // max
 #include <iostream>
 #include <sstream>
 #include <vector>

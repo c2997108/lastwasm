@@ -9,6 +9,7 @@
 #ifndef MMAP_HH
 #define MMAP_HH
 
+#include <algorithm>  // swap
 #include <stdexcept>
 
 #include "fileMap.hh"

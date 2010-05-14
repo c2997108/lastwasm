@@ -1,7 +1,6 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2010 Martin C. Frith
 
 #include "AlignmentPot.hh"
-#include <algorithm>
 
 namespace cbrc{
 
