@@ -227,7 +227,7 @@ void writeEvalues( const std::string& matrixString ){
   if( args.score < 0 && args.maxEvalue < 0 ){
     int oldScore = 0;
     for( int i = -10; i <= 10; ++i ){
-      double maxEvalue = std::pow( 10, i );
+      double maxEvalue = std::pow( 10.0, i );  // the ".0" is needed!
       int s = evaluer.minScore( maxEvalue,
                                 stats1.letterCount, stats2.letterCount,
                                 stats1.sequenceCount, stats2.sequenceCount );
