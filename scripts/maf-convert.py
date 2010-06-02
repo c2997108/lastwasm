@@ -10,11 +10,16 @@ import sys, os, fileinput, optparse, itertools, signal
 
 def flatten(listOfLists): return sum(listOfLists, [])
 
-def scoreFromMaf(mafLines):
+def valueFromMaf(mafLines, keyword):
     for word in mafLines[0]:
-        if word.startswith("score="):
+        if word.startswith(keyword + '='):
             return word.split('=')[1]
-    raise Exception("encountered an alignment without a score")
+    return ''
+
+def scoreFromMaf(mafLines):
+    score = valueFromMaf(mafLines, "score")
+    if not score: raise Exception("encountered an alignment without a score")
+    return score
 
 ##### Routines for converting to AXT format: #####
 
@@ -87,6 +92,7 @@ def gapSizePerLetter(sLine):
 
 def writeTab(maf):
     score = scoreFromMaf(maf)
+    expect = valueFromMaf(maf, "expect")
     sLines = [i for i in maf if i[0] == "s"]
     if len(sLines) != 2: raise Exception("pairwise alignments only, please")
     outWords = [i[1:6] for i in sLines]
@@ -94,7 +100,9 @@ def writeTab(maf):
     sizes = map(gapSizePerLetter, sLines)
     gapInfo = matchAndGapSizes(sequences[0], sequences[1], sizes[0], sizes[1])
     gapString = ','.join(gapInfo)
-    print "\t".join([score] + flatten(outWords) + [gapString])
+    fields = [score] + flatten(outWords) + [gapString]
+    if expect: fields += [expect]
+    print "\t".join(fields)
 
 ##### Routines for reading MAF format: #####
 
