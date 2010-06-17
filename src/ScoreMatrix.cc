@@ -96,8 +96,10 @@ void ScoreMatrix::init( const uchar encode[] ){
       uchar y = encode[ uchar(cols[j]) ];
       uchar a = encode[ std::tolower( rows[i] ) ];
       uchar b = encode[ std::tolower( cols[j] ) ];
-      if( a >= MAT ) ERR( std::string("bad symbol: ") + rows[i] );
-      if( b >= MAT ) ERR( std::string("bad symbol: ") + cols[j] );
+      if( a >= MAT )
+        ERR( std::string("bad letter in score matrix: ") + rows[i] );
+      if( b >= MAT )
+        ERR( std::string("bad letter in score matrix: ") + cols[j] );
       caseSensitive[x][y] = cells[i][j];
       caseInsensitive[x][y] = cells[i][j];
       caseInsensitive[x][b] = cells[i][j];

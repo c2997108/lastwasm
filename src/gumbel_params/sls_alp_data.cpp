@@ -1268,7 +1268,7 @@ double *RR2_)
                         {
                                 for(j=0;j<number_of_AA_;j++)
                                 {
-                                        if(RR1_[j]*RR2_[i]<=threshold)
+                                        if(RR1_[i]*RR2_[j]<=threshold)
                                         {
                                                 continue;
                                         };

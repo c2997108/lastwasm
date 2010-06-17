@@ -84,7 +84,7 @@ int XdropAligner::fillPssm( const uchar* seq1, const uchar* seq2,
       const int* x2 = &x[ k2 ][ diagBeg ];
 
       // innermost loop: split into special cases for speed
-      if( gap.firstPair >= 2 * gap.first ){  // standard affine gap costs
+      if( gap.isAffine() ){  // standard affine gap costs
 	do{
 	  // if xScore <- yScore1, then newGap <= yScore1 - gap.extend:
 	  // but using this logic doesn't seem to make it faster!

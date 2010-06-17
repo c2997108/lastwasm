@@ -58,7 +58,7 @@ double calculate_lambda ( const double** mat_b, int alpha_size,
   if( ! Check_range( mat_b ) ) return -1.0;
 
   root_location = Locate_det_zero(mat_b, &N_root);
-  if( root_location == NULL ) return -1.0;
+  if( root_location == NULL && N_root > 0 ) return -1.0;
 
   //q=dvector(1,Alphsize);
   //p=dvector(1,Alphsize);
@@ -286,6 +286,7 @@ double * Locate_det_zero(const double** mat_b, int *N_root_add)
     if (zero_monitor >= N/4) {
       //printf("It is likely that uniform zero determinant is occurring.\n");
       //printf("number of small det points = %d out of %d, exit now....\n",zero_monitor, N);
+      free( root_temp );
       return NULL;
       //exit(1);
     }

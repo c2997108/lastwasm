@@ -4,8 +4,8 @@
 // sequence quality scores.  The "init" routine creates some lookup
 // tables, so that "makePssm" is fast.
 
-#ifndef QUALITY_SCORE_CALCULATOR
-#define QUALITY_SCORE_CALCULATOR
+#ifndef QUALITY_SCORE_CALCULATOR_HH
+#define QUALITY_SCORE_CALCULATOR_HH
 
 #include <cstddef>  // size_t
 
