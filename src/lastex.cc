@@ -333,6 +333,7 @@ void parseHeader( const std::vector<std::string>& lines,
     args.setDefaultsFromAlphabet( alph.letters == alph.dna,
                                   alph.letters == alph.protein );
     makeScoreMatrix( matrixString );
+    makeStrandStats();
   }
   else{  // we got the parameters from the header successfully
     if( args.matchScore < 0 && args.mismatchCost < 0 &&
@@ -351,13 +352,17 @@ void parseHeader( const std::vector<std::string>& lines,
       args.isGapless = (j < 2);
       args.strand = s;
       makeScoreMatrix( headerMatrix );
+
+      // F>0 means translated alignment.  In this case, the DNA counts
+      // file should have counts for translated DNA (3 frames or 6
+      // frames).
+      if( F <= 0 ) makeStrandStats();
     }
     else{
       ERR( "can't redefine parameters that are in the alignments file" );
     }
   }
 
-  makeStrandStats();
   makeEvaluer();
 }
 
