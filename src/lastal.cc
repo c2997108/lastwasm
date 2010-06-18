@@ -427,7 +427,7 @@ void reverseComplementPssm(){
     --end;
     for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
       unsigned j = queryAlph.complement[i];
-      if( beg+i < end+j ) std::iter_swap( beg+i, end+j );
+      if( beg < end || i < j ) std::swap( (*beg)[i], (*end)[j] );
     }
     ++beg;
   }
