@@ -64,18 +64,18 @@ Main options (default settings):\n\
   std::string help = usage + "\n\
 \n\
 Score parameters (default settings):\n\
--r: match score   (DNA: 1, protein: blosum62, Q>0:  6)\n\
--q: mismatch cost (DNA: 1, protein: blosum62, Q>0: 18)\n\
+-r: match score   (DNA: 1, protein: blosum62, 0<Q<4:  6)\n\
+-q: mismatch cost (DNA: 1, protein: blosum62, 0<Q<4: 18)\n\
 -p: file for residue pair scores\n\
--a: gap existence cost (DNA: 7, protein: 11, Q>0: 21)\n\
--b: gap extension cost (DNA: 1, protein:  2, Q>0:  9)\n\
+-a: gap existence cost (DNA: 7, protein: 11, 0<Q<4: 21)\n\
+-b: gap extension cost (DNA: 1, protein:  2, 0<Q<4:  9)\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
 -F: frameshift cost (off)\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
 -y: maximum score dropoff for gapless extensions (t*10)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
--e: minimum score for gapped alignments (DNA: 40, protein: 100, Q>0: 180)\n\
+-e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<4: 180)\n\
 \n\
 Miscellaneous options (default settings):\n\
 -Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB, 4=PSSM ("
@@ -89,7 +89,7 @@ Miscellaneous options (default settings):\n\
 -n: maximum number of gapless alignments per query position (infinity)\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
--i: query batch size (16 MiB if j=0, else 1 MiB if Q>0, else 128 MiB)\n\
+-i: query batch size (1 MiB if Q>0, else 16 MiB if j=0, else 128 MiB)\n\
 -w: supress repeats within this distance inside large exact matches ("
     + stringify(maxRepeatDistance) + ")\n\
 -t: 'temperature' for calculating probabilities (1/lambda)\n\
@@ -304,8 +304,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
 
   if( batchSize == 0 ){
-    /**/ if( outputType == 0 ) batchSize = 0x1000000;  // 16 Mbytes
-    else if( inputFormat > 0 ) batchSize = 0x100000;   // 1 Mbyte
+    /**/ if( inputFormat > 0 ) batchSize = 0x100000;   // 1 Mbyte
+    else if( outputType == 0 ) batchSize = 0x1000000;  // 16 Mbytes
     else                       batchSize = 0x8000000;  // 128 Mbytes
     // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
   }
