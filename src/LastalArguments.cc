@@ -78,7 +78,8 @@ Score parameters (default settings):\n\
 -e: minimum score for gapped alignments (DNA: 40, protein: 100, Q>0: 180)\n\
 \n\
 Miscellaneous options (default settings):\n\
--Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB (0)\n\
+-Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB, 4=PSSM ("
+    + stringify(inputFormat) + ")\n\
 -u: mask lowercase during extensions: 0=neither, 1=gapless, 2=gapless+gapped ("
     + stringify(maskLowercase) + ")\n\
 -m: maximum multiplicity for initial matches ("
@@ -175,7 +176,7 @@ LAST home page: http://last.cbrc.jp/\n\
 
     case 'Q':
       unstringify( inputFormat, optarg );
-      if( inputFormat < 0 || inputFormat > 3 ) badopt( c, optarg );
+      if( inputFormat < 0 || inputFormat > 4 ) badopt( c, optarg );
       break;
     case 'm':
       unstringify( oneHitMultiplicity, optarg );
@@ -279,7 +280,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
     if( gapExtendCost  < 0 ) gapExtendCost  =   2;
     if( minScoreGapped < 0 ) minScoreGapped = 100;
   }
-  else if( inputFormat == 0 ){
+  else if( !isQualityScores() ){
     if( matchScore     < 0 ) matchScore     =   1;
     if( mismatchCost   < 0 ) mismatchCost   =   1;
     if( gapExistCost   < 0 ) gapExistCost   =   7;

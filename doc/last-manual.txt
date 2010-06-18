@@ -348,10 +348,11 @@ Miscellaneous Options
     It's a bad idea to try -j 0 when comparing a large sequence to
     itself.
 
--Q  This option allows lastal to use sequence quality scores for the
-    queries.  0 means read queries in FASTA format (without quality
-    scores); 1 means FASTQ-Sanger format; 2 means FASTQ-Solexa format;
-    3 means PRB format.  The FASTQ formats look like this::
+-Q  This option allows lastal to use sequence quality scores, or
+    PSSMs, for the queries.  0 means read queries in FASTA format
+    (without quality scores); 1 means FASTQ-Sanger format; 2 means
+    FASTQ-Solexa format; 3 means PRB format; 4 means read PSSMs.  The
+    FASTQ formats look like this::
 
       @mySequenceName
       TTTTTTTTGCCTCGGGCCTGAGTTCTTAGCCGCG
@@ -384,6 +385,23 @@ Miscellaneous Options
     for aligning base x (A, C, G, or T) to position i is::
 
       Rix = T * ln[ sum(y){ Qiy * exp[ Sxy / T ] } ]
+
+    Finally, PSSM means "position-specific scoring matrix".  The
+    format is::
+
+             A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V
+      1 M   -2 -2 -3 -4 -2 -1 -3 -3 -2  1  2 -2  8 -1 -3 -2 -1 -2 -2  0
+      2 S    0 -2  0  1  3 -1 -1 -1 -2 -3 -3 -1 -2 -3 -2  5  0 -4 -3 -2
+      3 D   -1 -2  0  7 -4 -1  1 -2 -2 -4 -4 -2 -4 -4 -2 -1 -2 -5 -4 -4
+
+    The sequence appears in the second column, and columns 3 onwards
+    contain the position-specific scores.  Any letters not specified
+    by any column will get the lowest score in each row.  Since this
+    format does not store PSSM names, lastal uses the PSSM number
+    (starting from 1) as the name.  This format is a simplified
+    version of PSI-BLAST's ASCII format: the non-simplified version is
+    allowed too.  If you use PSSMs, options -r -q and -p are mostly
+    ignored, except that they determine the default value of -y.
 
 
 Parallelization and Memory Sharing

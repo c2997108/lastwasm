@@ -14,7 +14,7 @@ SubsetSuffixArraySort.cc lastdb.cc
 
 DBINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh	\
 SubsetSuffixArray.hh LastdbArguments.hh io.hh fileMap.hh	\
-Mmap.hh VectorOrMmap.hh stringify.hh version.hh
+Mmap.hh VectorOrMmap.hh ScoreMatrixRow.hh stringify.hh version.hh
 
 ALSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc	\
 SubsetSuffixArray.cc LastalArguments.cc io.cc fileMap.cc	\
@@ -31,7 +31,7 @@ ScoreMatrix.hh DiagonalTable.hh SegmentPair.hh Alignment.hh	\
 XdropAligner.hh SegmentPairPot.hh AlignmentPot.hh		\
 GeneralizedAffineGapCosts.hh Centroid.hh LambdaCalculator.hh	\
 QualityScoreCalculator.hh GeneticCode.hh Xdrop3FrameAligner.hh	\
-Mmap.hh VectorOrMmap.hh stringify.hh version.hh
+Mmap.hh VectorOrMmap.hh ScoreMatrixRow.hh stringify.hh version.hh
 
 EXSRC = Alphabet.cc LastexArguments.cc io.cc ScoreMatrix.cc lastex.cc	\
 gumbel_params/*.cpp

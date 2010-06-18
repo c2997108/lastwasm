@@ -9,6 +9,7 @@
 #ifndef MULTISEQUENCE_HH
 #define MULTISEQUENCE_HH
 
+#include "ScoreMatrixRow.hh"
 #include "VectorOrMmap.hh"
 
 #include <string>
@@ -45,6 +46,11 @@ class MultiSequence{
   std::istream& appendFromPrb( std::istream& stream, indexT maxSeqLen,
 			       unsigned alphSize, const uchar decode[] );
 
+  // As above, but read a PSSM too, in PSI-BLAST ASCII format.
+  std::istream& appendFromPssm( std::istream& stream, indexT maxSeqLen,
+                                const uchar* lettersToNumbers,
+                                bool isMaskLowercase );
+
   // finish the last sequence: add final pad and end coordinate
   void finish();
 
@@ -78,6 +84,19 @@ class MultiSequence{
   // swap the sequence data with some other sequence data
   void swapSeq( std::vector<uchar>& otherSeq ){ seq.v.swap(otherSeq); }
 
+  // make the PSSM have the same length as the sequence
+  void resizePssm()
+  { pssm.resize( finishedSize() * std::size_t(scoreMatrixRowSize) ); }
+
+  // get a pointer to the start of the PSSM
+  // I am not totally sure about the reinterpret_cast...
+
+  const ScoreMatrixRow* pssmReader() const
+  { return reinterpret_cast< const ScoreMatrixRow* >( &pssm[0] ); }
+
+  /* */ ScoreMatrixRow* pssmWriter()
+  { return reinterpret_cast<       ScoreMatrixRow* >( &pssm[0] ); }
+
   // get a pointer to the start of the quality data
   const uchar* qualityReader() const{ return &qualityScores[0]; }
   /***/ uchar* qualityWriter()      { return &qualityScores[0]; }
@@ -94,6 +113,9 @@ class MultiSequence{
   VectorOrMmap<char> names;  // concatenated sequence names (to save memory)
   VectorOrMmap<indexT> nameEnds;  // endpoints of the names
 
+  std::vector<int> pssm;  // position-specific scoring matrix
+  std::vector<uchar> pssmColumnLetters;  // which input column is which letter
+
   // The quality scores may be ASCII-coded: to get the real scores,
   // subtract e.g. 33 or 64.  The real scores might be related to
   // error probabilities in one of these ways:
@@ -103,6 +125,9 @@ class MultiSequence{
 
   // read a FASTA header: read the whole line but store just the first word
   std::istream& readFastaName( std::istream& stream );
+
+  // read the letters above PSSM columns, so we know which column is which
+  std::istream& readPssmHeader( std::istream& stream );
 
   // add a new sequence name
   void addName( std::string& name );

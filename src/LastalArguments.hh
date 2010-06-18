@@ -37,6 +37,9 @@ struct LastalArguments{
   // are we doing translated alignment (DNA versus protein)?
   bool isTranslated() const{ return frameshiftCost > 0; }
 
+  // are we reading query sequences with quality scores?
+  bool isQualityScores() const{ return inputFormat > 0 && inputFormat < 4; }
+
   // options:
   std::string outFile;
   int outputFormat;

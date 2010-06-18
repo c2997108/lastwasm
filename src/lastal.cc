@@ -51,11 +51,9 @@ namespace {
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
-  enum { MAT = 64 };
-  const int (*matGapless)[MAT];  // score matrix for gapless alignment
-  const int (*matGapped)[MAT];  // score matrix for gapped alignment
+  const ScoreMatrixRow* matGapless;  // score matrix for gapless alignment
+  const ScoreMatrixRow* matGapped;  // score matrix for gapped alignment
   QualityScoreCalculator qualityScoreCalculator;
-  int (*pssm)[MAT];  // Position Specific Score Matrix
 }
 
 // Set up a scoring matrix, based on the user options
@@ -79,9 +77,18 @@ void makeScoreMatrix( const std::string& matrixFile ){
 
   matGapped = args.maskLowercase < 2 ?
     scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
+
+  // If the input is a PSSM, the score matrix is not used, and its
+  // maximum score should not be used.  Here, we set it to a high
+  // enough value that it has no effect.  This is a kludge - it would
+  // be nice to use the maximum PSSM score.
+  if( args.inputFormat > 3 ){
+    scoreMatrix.maxScore = args.maxDropGapped + 1;
+  }
 }
 
 // Calculate statistical parameters for the alignment scoring scheme
+// Meaningless for PSSMs, unless they have the same scale as the score matrix
 void calculateScoreStatistics(){
   if( args.outputType == 0 ) return;
 
@@ -91,7 +98,7 @@ void calculateScoreStatistics(){
   lambdaCalculator.calculate( matGapless, alph.size );
   if( lambdaCalculator.isBad() ){
     if( args.temperature < 0 &&
-        (args.outputType > 3 || args.inputFormat > 0) )
+        (args.outputType > 3 || args.isQualityScores()) )
       ERR( "can't get probabilities for this score matrix" );
     else
       LOG( "can't get probabilities for this score matrix" );
@@ -202,6 +209,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 		   char strand, std::ostream& out ){
   const uchar* qseq = query.seqReader();
   const uchar* tseq = text.seqReader();
+  const ScoreMatrixRow* pssm = query.pssmReader();
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
@@ -275,6 +283,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 		  Centroid& centroid ){
   const uchar* qseq = query.seqReader();
   const uchar* tseq = text.seqReader();
+  const ScoreMatrixRow* pssm = query.pssmReader();
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
   countT gappedExtensionCount = 0;
 
@@ -338,7 +347,8 @@ void alignFinish( const AlignmentPot& gappedAlns,
                          text.seqReader(), query.seqReader(),
 			 matGapped, scoreMatrix.maxScore,
 			 gapCosts, args.maxDropGapped, args.frameshiftCost,
-			 frameSize, pssm, args.gamma, args.outputType );
+			 frameSize, query.pssmReader(),
+                         args.gamma, args.outputType );
       probAln.write( text, query, strand, args.isTranslated(),
 		     alph, args.outputFormat, out );
     }
@@ -352,9 +362,10 @@ void scan( char strand, std::ostream& out ){
     return;
   }
 
-  if( args.inputFormat > 0 ){
+  if( args.isQualityScores() ){
     LOG( "making PSSM..." );
-    qualityScoreCalculator.makePssm( pssm, query.qualityReader(),
+    query.resizePssm();
+    qualityScoreCalculator.makePssm( query.pssmWriter(), query.qualityReader(),
 				     query.seqReader(), query.finishedSize(),
 				     args.inputFormat < 3 );
   }
@@ -408,13 +419,29 @@ void readVolume( unsigned volumeNumber ){
 			 bucketDepth, subsetSeed );
 }
 
+void reverseComplementPssm(){
+  ScoreMatrixRow* beg = query.pssmWriter();
+  ScoreMatrixRow* end = beg + query.finishedSize();
+
+  while( beg < end ){
+    --end;
+    for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
+      unsigned j = queryAlph.complement[i];
+      if( beg+i < end+j ) std::iter_swap( beg+i, end+j );
+    }
+    ++beg;
+  }
+}
+
 void reverseComplementQuery(){
   LOG( "reverse complementing..." );
   queryAlph.rc( query.seqWriter(), query.seqWriter() + query.finishedSize() );
-  if( args.inputFormat > 0 ){
+  if( args.isQualityScores() ){
     std::reverse( query.qualityWriter(),
 		  query.qualityWriter() +
                   query.finishedSize() * query.qualsPerLetter() );
+  }else if( args.inputFormat > 3 ){
+    reverseComplementPssm();
   }
 }
 
@@ -424,7 +451,6 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
     matchCounts.clear();
     matchCounts.resize( query.finishedSequences() );
   }
-  else if( args.inputFormat > 0 ) pssm = new int[ query.finishedSize() ][MAT];
 
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || volumes > 1 ) readVolume( i );
@@ -440,7 +466,6 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
   }
 
   if( args.outputType == 0 ) writeCounts( out );
-  else if( args.inputFormat > 0 ) delete[] pssm;
 
   LOG( "query batch done!" );
 }
@@ -457,8 +482,11 @@ void writeHeader( std::ostream& out ){
     out << "# length\tcount\n";
   }
   else{  // we want alignments
-    scoreMatrix.writeCommented( out );
-    out << "#\n";
+    if( args.inputFormat < 4 || !args.matrixFile.empty() ){
+      // we're not reading PSSMs, or we bothered to specify a matrix file
+      scoreMatrix.writeCommented( out );
+      out << "#\n";
+    }
     out << "# Coordinates are 0-based.  For - strand matches, coordinates\n";
     out << "# in the reverse complement of the 2nd sequence are used.\n";
     out << "#\n";
@@ -485,8 +513,11 @@ std::istream& appendFromFasta( std::istream& in ){
 
   /**/ if( args.inputFormat < 1 ) query.appendFromFasta( in, maxSeqLen );
   else if( args.inputFormat < 3 ) query.appendFromFastq( in, maxSeqLen );
-  else query.appendFromPrb( in, maxSeqLen,
-			    queryAlph.size, queryAlph.decode );
+  else if( args.inputFormat < 4 ) query.appendFromPrb( in, maxSeqLen,
+                                                       queryAlph.size,
+                                                       queryAlph.decode );
+  else query.appendFromPssm( in, maxSeqLen, queryAlph.encode,
+                             args.maskLowercase > 1 );
 
   if( !query.isFinished() && query.finishedSequences() == 0 )
     ERR( "encountered a sequence that's too long" );
@@ -520,7 +551,7 @@ void lastal( int argc, char** argv ){
   calculateScoreStatistics();
   args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
 
-  if( args.inputFormat > 0 ){
+  if( args.isQualityScores() ){
     assert( matGapless == matGapped );
     int asciiOffset = (args.inputFormat < 2) ? 33 : 64;
     bool isMatchMismatch = args.matrixFile.empty() && args.matchScore > 0;
