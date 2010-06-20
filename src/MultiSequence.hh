@@ -88,14 +88,18 @@ class MultiSequence{
   void resizePssm()
   { pssm.resize( finishedSize() * std::size_t(scoreMatrixRowSize) ); }
 
-  // get a pointer to the start of the PSSM
+  // get a pointer to the start of the PSSM, or NULL if there is no PSSM
   // I am not totally sure about the reinterpret_cast...
 
-  const ScoreMatrixRow* pssmReader() const
-  { return reinterpret_cast< const ScoreMatrixRow* >( &pssm[0] ); }
+  const ScoreMatrixRow* pssmReader() const{
+    return pssm.empty() ? 0
+        : reinterpret_cast< const ScoreMatrixRow* >( &pssm[0] );
+  }
 
-  /* */ ScoreMatrixRow* pssmWriter()
-  { return reinterpret_cast<       ScoreMatrixRow* >( &pssm[0] ); }
+  /* */ ScoreMatrixRow* pssmWriter()      {
+    return pssm.empty() ? 0
+        : reinterpret_cast<       ScoreMatrixRow* >( &pssm[0] );
+  }
 
   // get a pointer to the start of the quality data
   const uchar* qualityReader() const{ return &qualityScores[0]; }

@@ -389,6 +389,7 @@ Miscellaneous Options
     Finally, PSSM means "position-specific scoring matrix".  The
     format is::
 
+      myLovelyPSSM
              A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V
       1 M   -2 -2 -3 -4 -2 -1 -3 -3 -2  1  2 -2  8 -1 -3 -2 -1 -2 -2  0
       2 S    0 -2  0  1  3 -1 -1 -1 -2 -3 -3 -1 -2 -3 -2  5  0 -4 -3 -2
@@ -396,12 +397,11 @@ Miscellaneous Options
 
     The sequence appears in the second column, and columns 3 onwards
     contain the position-specific scores.  Any letters not specified
-    by any column will get the lowest score in each row.  Since this
-    format does not store PSSM names, lastal uses the PSSM number
-    (starting from 1) as the name.  This format is a simplified
-    version of PSI-BLAST's ASCII format: the non-simplified version is
-    allowed too.  If you use PSSMs, options -r -q and -p are mostly
-    ignored, except that they determine the default value of -y.
+    by any column will get the lowest score in each row.  This format
+    is a simplified version of PSI-BLAST's ASCII format: the
+    non-simplified version is allowed too.  If you use PSSMs, options
+    -r -q and -p are mostly ignored, except that they determine the
+    default value of -y.
 
 
 Parallelization and Memory Sharing

@@ -106,13 +106,17 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
 }
 
 std::istream& MultiSequence::readPssmHeader( std::istream& stream ){
-  pssmColumnLetters.clear();
+  // read the name of the sequence/PSSM:
+  std::string name;
+  stream >> name;
+  stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
   // Look for a line with one letter per column of the PSSM:
-  std::string line;
+  pssmColumnLetters.clear();
+  std::string line, word;
+
   while( getline( stream, line ) ){
     std::istringstream iss(line);
-    std::string word;
 
     while( iss >> word ){
       if( word.size() == 1 ){
@@ -130,12 +134,7 @@ std::istream& MultiSequence::readPssmHeader( std::istream& stream ){
   }
 
   if( !stream ) return stream;
-
-  // give the PSSM a boring name:
-  static std::size_t pssmCount = 0;
-  std::string name = stringify( ++pssmCount );
   addName(name);
-
   return stream;
 }
 
