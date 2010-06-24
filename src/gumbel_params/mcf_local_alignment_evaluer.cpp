@@ -29,7 +29,8 @@ void LocalAlignmentEvaluer::initGapless(
     const std::vector<double>& letterProbs2,
     const int *const *scoreMatrix) {
   try {
-    const double maxSeconds = 10;  // ?
+    // don't limit the time, in order to get reproducible results:
+    const double maxSeconds = 1e99;
     const double error = 1e-6;
 
     ncbi::blast::Njn::LocalMaxStatMatrix x(letterProbs1.size(), scoreMatrix,
@@ -92,7 +93,8 @@ void LocalAlignmentEvaluer::initGapped(const std::vector<double>& letterProbs1,
   try {
     const double lambdaTolerance = 0.01;  // ?
     const double kTolerance = 0.05;  // ?
-    const double maxSeconds = 10;  // ?
+    // don't limit the time, in order to get reproducible results:
+    const double maxSeconds = 1e99;
     const double maxMegabytes = 200;
     const int randomSeed = 1;  // ?
 
