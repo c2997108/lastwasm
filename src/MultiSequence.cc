@@ -57,8 +57,6 @@ void MultiSequence::addName( std::string& name ){
 }
 
 std::istream& MultiSequence::readFastaName( std::istream& stream ){
-  char c;
-  stream >> c;  // don't check that it's '>': works for FASTQ too
   std::string line, word;
   getline( stream, line );
   std::istringstream iss(line);
@@ -71,6 +69,10 @@ std::istream& MultiSequence::readFastaName( std::istream& stream ){
 std::istream&
 MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
   if( isFinished() ){
+    char c = '>';
+    stream >> c;
+    if( c != '>' )
+      throw std::runtime_error("bad FASTA sequence data: missing '>'");
     readFastaName(stream);
     if( !stream ) return stream;
   }

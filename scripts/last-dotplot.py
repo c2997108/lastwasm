@@ -56,6 +56,9 @@ for line in f:
 sys.stderr.write(my_name + ": done\n")
 f.close()
 
+if not alignments:
+    sys.exit(my_name + ": there are no alignments")
+
 def natural_sort_key(my_string):
     '''Return a sort key for "natural" ordering, e.g. chr9 < chr10.'''
     parts = re.split(r'(\d+)', my_string)

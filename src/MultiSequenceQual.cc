@@ -27,10 +27,11 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
 			 qualityScores.end() - seq.v.size() );
 
   if( isFinished() ){
+    uchar c = '@';
+    stream >> c;
+    if( c != '@' ) ERR( "bad FASTQ data: missing '@'" );
     readFastaName(stream);
     if( !stream ) return stream;
-
-    uchar c;
 
     // don't bother to obey maxSeqLen exactly: harmless for short sequences
     while( stream >> c && c != '+' ){  // skips whitespace
