@@ -1,4 +1,4 @@
-// Copyright 2009 Martin C. Frith
+// Copyright 2009, 2010 Martin C. Frith
 
 #include "QualityScoreCalculator.hh"
 
@@ -19,11 +19,11 @@ static double phredScoreToProbCorrect( int score ){
   // XXX real data sometimes has score=0, and perhaps this really
   // means that the error probability is 3/4, not 1.
   if( score < 0 ) return 0;  // there shouldn't be any scores < 0
-  return 1 - std::pow(10, -0.1 * score);
+  return 1 - std::pow(10.0, -0.1 * score);
 }
 
 static double solexaScoreToProbCorrect( int score ){
-  return 1 / (1 + std::pow(10, -0.1 * score));
+  return 1 / (1 + std::pow(10.0, -0.1 * score));
 }
 
 int QualityScoreCalculator::probCorrectToMatchScore( double probCorrect ){

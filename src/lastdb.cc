@@ -14,7 +14,6 @@
 #include <fstream>
 #include <iostream>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
-#include <cstring>  // strchr
 #include <numeric>  // accumulate
 
 #define ERR(x) throw std::runtime_error(x)
@@ -120,8 +119,6 @@ void writeInnerPrj( const std::string& fileName,
 void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
 		 const LastdbArguments& args, const CyclicSubsetSeed& seed,
 		 unsigned volumeNumber ){
-  if( args.isCountsOnly ) return;
-
   std::string baseName = args.lastdbName + stringify(volumeNumber);
 
   LOG( "sorting..." );
@@ -207,6 +204,8 @@ void lastdb( int argc, char** argv ){
         alph.count( multi.seqReader() + multi.seqBeg(lastSeq),
                     multi.seqReader() + multi.seqEnd(lastSeq),
                     &letterCounts[0] );
+        // memory-saving, which seems to be important on 32-bit systems:
+        if( args.isCountsOnly ) multi.reinitForAppending();
       }
       else{
 	makeVolume( sa, multi, args, seed, volumeNumber++ );

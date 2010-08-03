@@ -363,7 +363,7 @@ Lambda Find_JP(const double** mat_b, double la_min, double la_max, double **JP, 
     }
   }
   
-  for (i=1;i<N; i++){
+  for (i=1;i<N; i++){  // should be N-1 ???
     if (flag_sign == 0) {printf("flag_sign = 0 \n"); exit(1);}
     if (s_here[i-1]*s_here[i] < 0){
       lambda_min = l_here[i-1];
@@ -414,6 +414,13 @@ Sum Nail_lambda(const double** mat_b, int flag_sign, double lambda_min, double l
   while (fabs(Sum_local.value-1.0)>E_bound){
     if (flag_sign*(Sum_local.value-1.0)<0) lambda_max = lambda;
     else if (flag_sign*(Sum_local.value-1.0)> 0) lambda_min = lambda;
+
+    // Added by MCF to avoid infinite loop:
+    if (lambda == (lambda_min+lambda_max)/2.0){
+      Sum_local.flag = -1;
+      break;
+    }
+
     lambda = (lambda_min+lambda_max)/2.0;
     Sum_local = Check_root(mat_b, a, lambda, p, q); 
   }
