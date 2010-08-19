@@ -151,6 +151,8 @@ double LocalAlignmentEvaluer::evalue(int score,
                                      double sequenceCount1,
                                      double sequenceCount2) /*const*/ {
   assert(!isBad());
+  assert(sequenceCount1 > 0);
+  assert(sequenceCount2 > 0);
 
   double averageLength1 = letterCount1 / sequenceCount1;
   double averageLength2 = letterCount2 / sequenceCount2;

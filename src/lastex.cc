@@ -24,6 +24,7 @@ using namespace cbrc;
 // Scale the elements of v so that they sum to 1
 void normalize( std::vector<double>& v ){
   double t = std::accumulate( v.begin(), v.end(), 0.0 );
+  // assume that t != 0
 
   for( std::vector<double>::iterator i = v.begin(); i < v.end(); ++i )
     *i /= t;
@@ -40,8 +41,8 @@ struct SequenceStatistics{
 };
 
 bool isBad( const SequenceStatistics& s ){
-  if( s.letterCount < 0 ) return true;
-  if( s.sequenceCount < 0 ) return true;
+  if( s.letterCount <= 0 ) return true;
+  if( s.sequenceCount <= 0 ) return true;
   if( s.alphabet.size() == 0 ) return true;
   if( s.letterProbs.size() != s.alphabet.size() ) return true;
 
@@ -49,7 +50,11 @@ bool isBad( const SequenceStatistics& s ){
     if( s.letterProbs[i] < 0 ) return true;
   }
 
-  return false;
+  for( unsigned i = 0; i < s.letterProbs.size(); ++i ){
+    if( s.letterProbs[i] > 0 ) return false;
+  }
+
+  return true;
 }
 
 SequenceStatistics readStats( const std::string& fileName ){
