@@ -1,4 +1,4 @@
-// Copyright 2008 Martin C. Frith
+// Copyright 2008, 2010 Martin C. Frith
 
 #include "SegmentPairPot.hh"
 #include <algorithm>
@@ -24,13 +24,13 @@ void SegmentPairPot::markOverlaps( const SegmentPair& sp ){
   if( i > items.begin() &&
       (i-1)->diagonal() == sp.diagonal() &&
       (i-1)->end1() > sp.beg1() ){
-    (i-1)->score = 0;
+    mark( *(i-1) );
   }
 
   while( i < items.end() &&
 	 i->diagonal() == sp.diagonal() &&
 	 i->beg1() < sp.end1() ){
-    i->score = 0;
+    mark( *i );
     ++i;
   }
 }
@@ -51,7 +51,7 @@ void SegmentPairPot::markTandemRepeats( const SegmentPair& sp,
   iterator j = i;
   do{  // funny loop to deal with wrap-around
     if( j->diagonal() - sp.diagonal() > maxDistance )  break;
-    if( j->beg2() >= sp.beg2() && j->end1() <= sp.end1() )  j->score = 0;
+    if( j->beg2() >= sp.beg2() && j->end1() <= sp.end1() )  mark( *j );
     ++j;
     if( j == items.end() )  j = items.begin();
   }while( j != i );
@@ -61,8 +61,8 @@ void SegmentPairPot::markTandemRepeats( const SegmentPair& sp,
     if( k == items.begin() )  k = items.end();
     --k;
     if( sp.diagonal() - k->diagonal() > maxDistance )  break;
-    if( k->beg1() >= sp.beg1() && k->end2() <= sp.end2() )  k->score = 0;
+    if( k->beg1() >= sp.beg1() && k->end2() <= sp.end2() )  mark( *k );
   }while( k != i );
 }
 
-}  // end namespace cbrc
+}

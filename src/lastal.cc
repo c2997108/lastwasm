@@ -292,7 +292,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
   for( std::size_t i = 0; i < gaplessAlns.size(); ++i ){
     const SegmentPair& sp = gaplessAlns.get(i);
 
-    if( sp.score == 0 ) continue;  // it has been marked as redundant
+    if( SegmentPairPot::isMarked(sp) ) continue;
 
     Alignment aln;
     aln.seed = sp;
@@ -320,8 +320,9 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
     gaplessAlns.markAllOverlaps( aln.blocks );
     gaplessAlns.markTandemRepeats( aln.seed, args.maxRepeatDistance ); 
+
     gappedAlns.add(aln);  // add the gapped alignment to the pot
- }
+  }
 
   LOG( "gapped extensions=" << gappedExtensionCount );
   LOG( "gapped alignments=" << gappedAlns.size() );

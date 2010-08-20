@@ -6,8 +6,8 @@
 // position.  To mark a segment-pair that is overlapped, we set its
 // score to zero.
 
-#ifndef SEGMENTPAIRPOT_HH
-#define SEGMENTPAIRPOT_HH
+#ifndef SEGMENT_PAIR_POT_HH
+#define SEGMENT_PAIR_POT_HH
 #include "SegmentPair.hh"
 #include <vector>
 
@@ -57,7 +57,12 @@ struct SegmentPairPot{
       :    (x->start1 != y->start1) ? (x->start1 < y->start1)
       :                               (x->start2 < y->start2);
   }
+
+  static void mark( SegmentPair& s ) { s.score = 0; }
+
+  static bool isMarked( const SegmentPair& s ) { return s.score == 0; }
 };
 
-}  // end namespace cbrc
-#endif  // SEGMENTPAIRPOT_HH
+}
+
+#endif
