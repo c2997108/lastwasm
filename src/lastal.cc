@@ -254,16 +254,6 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 		   alph, args.outputFormat, out );
       }
       else{
-	// Redo gapless extension, using gapped score parameters.
-	// Without this, if we self-compare a huge sequence, we risk
-	// getting a huge gapped extension.  (Do this after getting
-	// all the gapless alignments, to make PSSM searching with
-	// soft-masking easier?)
-	sp.makeXdrop( *beg, i, tseq, qseq,
-		      matGapped, args.maxDropGapped, pssm );
-	if( !sp.isOptimal( tseq, qseq, matGapped, args.maxDropGapped, pssm ) ){
-	  continue;
-	}
 	gaplessAlns.add(sp);  // add the gapless alignment to the pot
       }
 
@@ -287,7 +277,25 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
   countT gappedExtensionCount = 0;
 
-  gaplessAlns.sort();  // sort the gapless alignments by score, highest first
+  // Redo the gapless extensions, using gapped score parameters.
+  // Without this, if we self-compare a huge sequence, we risk getting
+  // huge gapped extensions.
+  for( std::size_t i = 0; i < gaplessAlns.size(); ++i ){
+    SegmentPair& sp = gaplessAlns.items[i];
+
+    sp.makeXdrop( sp.beg1(), sp.beg2(), tseq, qseq,
+                  matGapped, args.maxDropGapped, pssm );
+
+    if( !sp.isOptimal( tseq, qseq, matGapped, args.maxDropGapped, pssm ) ){
+      SegmentPairPot::mark(sp);
+    }
+  }
+
+  erase_if( gaplessAlns.items, SegmentPairPot::isMarked );
+
+  gaplessAlns.sort();  // sort by score descending, and remove duplicates
+
+  LOG( "redone gapless alignments=" << gaplessAlns.size() );
 
   for( std::size_t i = 0; i < gaplessAlns.size(); ++i ){
     const SegmentPair& sp = gaplessAlns.get(i);

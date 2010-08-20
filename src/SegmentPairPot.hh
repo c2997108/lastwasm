@@ -9,9 +9,15 @@
 #ifndef SEGMENT_PAIR_POT_HH
 #define SEGMENT_PAIR_POT_HH
 #include "SegmentPair.hh"
+#include <algorithm>  // remove_if
 #include <vector>
 
 namespace cbrc{
+
+template< typename Container, typename Predicate >
+void erase_if( Container& c, Predicate p ){
+  c.erase( std::remove_if( c.begin(), c.end(), p ), c.end() );
+}
 
 struct SegmentPairPot{
   typedef SegmentPair::indexT indexT;

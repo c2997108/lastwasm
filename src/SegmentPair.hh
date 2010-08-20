@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010 Martin C. Frith
 
 // This struct holds a pair of equal-length segments, in a pair of
 // sequences.  In other words, it holds a gapless alignment.
@@ -45,6 +45,12 @@ struct SegmentPair{
   indexT end1() const{ return start1 + size; }  // end in sequence 1
   indexT end2() const{ return start2 + size; }  // end in sequence 2
   indexT diagonal() const{ return start1 - start2; }  // may wrap around!
+
+  bool operator==( const SegmentPair& s ) const{
+    return start1 == s.start1
+        && start2 == s.start2
+        && size == s.size
+        && score == s.score; }
 
   indexT start1;
   indexT start2;

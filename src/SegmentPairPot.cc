@@ -1,7 +1,6 @@
 // Copyright 2008, 2010 Martin C. Frith
 
 #include "SegmentPairPot.hh"
-#include <algorithm>
 #include <cassert>
 
 namespace cbrc{
@@ -10,6 +9,12 @@ void SegmentPairPot::sort(){
   assert( iters.empty() );  // could just clear it
 
   std::sort( items.begin(), items.end(), itemLess );
+
+  // Remove duplicates.  We assume that, after sorting, duplicates are
+  // consecutive.  This will be true if non-duplicates never overlap,
+  // which is true if all the SegmentPairs are "optimal".
+  iterator newEnd = std::unique( items.begin(), items.end() );
+  items.erase( newEnd, items.end() );
 
   for( const_iterator i = items.begin(); i < items.end(); ++i ){
     iters.push_back(i);
@@ -21,6 +26,8 @@ void SegmentPairPot::sort(){
 void SegmentPairPot::markOverlaps( const SegmentPair& sp ){
   iterator i = std::lower_bound( items.begin(), items.end(), sp, itemLess );
 
+  // Assume we need to check just one previous item.  This assumption
+  // will be true provided that the items never overlap each other.
   if( i > items.begin() &&
       (i-1)->diagonal() == sp.diagonal() &&
       (i-1)->end1() > sp.beg1() ){
