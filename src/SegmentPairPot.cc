@@ -6,8 +6,6 @@
 namespace cbrc{
 
 void SegmentPairPot::sort(){
-  assert( iters.empty() );  // could just clear it
-
   std::sort( items.begin(), items.end(), itemLess );
 
   // Remove duplicates.  We assume that, after sorting, duplicates are
@@ -16,7 +14,9 @@ void SegmentPairPot::sort(){
   iterator newEnd = std::unique( items.begin(), items.end() );
   items.erase( newEnd, items.end() );
 
-  for( const_iterator i = items.begin(); i < items.end(); ++i ){
+  iters.clear();
+
+  for( iterator i = items.begin(); i < items.end(); ++i ){
     iters.push_back(i);
   }
 

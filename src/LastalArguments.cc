@@ -80,7 +80,8 @@ Score parameters (default settings):\n\
 Miscellaneous options (default settings):\n\
 -Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB, 4=PSSM ("
     + stringify(inputFormat) + ")\n\
--u: mask lowercase during extensions: 0=neither, 1=gapless, 2=gapless+gapped ("
+-u: mask lowercase during extensions: 0=never, 1=gapless,\n\
+    2=gapless+gapped but not final, 3=always ("
     + stringify(maskLowercase) + ")\n\
 -m: maximum multiplicity for initial matches ("
     + stringify(oneHitMultiplicity) + ")\n\
@@ -118,8 +119,8 @@ LAST home page: http://last.cbrc.jp/\n\
       outFile = optarg;
       break;
     case 'u':
-      unstringify( maskLowercase, optarg );  // maybe allow 3 in future
-      if( maskLowercase < 0 || maskLowercase > 2 ) badopt( c, optarg );
+      unstringify( maskLowercase, optarg );
+      if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );
       break;
     case 's':
       unstringify( strand, optarg );
@@ -224,6 +225,9 @@ LAST home page: http://last.cbrc.jp/\n\
 
   if( maskLowercase == 1 && inputFormat > 0 )
     ERR( "can't combine option -u 1 with option -Q > 0" );
+
+  if( maskLowercase == 2 && inputFormat > 0 )
+    ERR( "can't combine option -u 2 with option -Q > 0" );
 
   if( outputType > 3 && inputFormat > 0 )
     ERR( "can't combine option -j > 3 with option -Q > 0" );

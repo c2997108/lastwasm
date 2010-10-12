@@ -34,7 +34,7 @@ struct SegmentPairPot{
   void sort();
 
   // get the i-th SegmentPair, sorted by score
-  const SegmentPair& get( std::size_t i ) const { return *iters[i]; }
+  SegmentPair& get( std::size_t i ) { return *iters[i]; }
 
   // set the score of all items that overlap sp to zero
   void markOverlaps( const SegmentPair& sp );
@@ -48,7 +48,7 @@ struct SegmentPairPot{
 
   // data:
   std::vector<SegmentPair> items;
-  std::vector<const_iterator> iters;
+  std::vector<iterator> iters;
 
   // sort criterion for sorting by position
   static bool itemLess( const SegmentPair& x, const SegmentPair& y ){
@@ -57,7 +57,7 @@ struct SegmentPairPot{
   }
 
   // sort criterion for sorting by score (in descending order)
-  static bool iterLess( const const_iterator& x, const const_iterator& y ){
+  static bool iterLess( const iterator& x, const iterator& y ){
     // break ties in an arbitrary way, to make the results more reproducible:
     return (x->score  != y->score ) ? (x->score  > y->score )
       :    (x->start1 != y->start1) ? (x->start1 < y->start1)
@@ -67,6 +67,12 @@ struct SegmentPairPot{
   static void mark( SegmentPair& s ) { s.score = 0; }
 
   static bool isMarked( const SegmentPair& s ) { return s.score == 0; }
+
+  // It turns out that we need a second kind of mark also:
+
+  static void markAsGood( SegmentPair& s ) { s.size = 0; }
+
+  static bool isNotMarkedAsGood( const SegmentPair& s ) { return s.size != 0; }
 };
 
 }
