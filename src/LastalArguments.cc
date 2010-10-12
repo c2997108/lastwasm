@@ -25,7 +25,7 @@ LastalArguments::LastalArguments() :
   outputFormat(1),
   outputType(3),
   strand(-1),  // depends on the alphabet
-  maskLowercase(0),
+  maskLowercase(-1),  // depends on the lowercase option used with lastdb
   minScoreGapped(-1),  // depends on the alphabet
   minScoreGapless(-1),  // depends on minScoreGapped
   matchScore(-1),  // depends on the alphabet
@@ -83,8 +83,7 @@ Miscellaneous options (default settings):\n\
 -Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB, 4=PSSM ("
     + stringify(inputFormat) + ")\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
-    2=gapless+gapped but not final, 3=always ("
-    + stringify(maskLowercase) + ")\n\
+    2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q=0, else 0)\n\
 -m: maximum multiplicity for initial matches ("
     + stringify(oneHitMultiplicity) + ")\n\
 -l: minimum length for initial matches ("
@@ -279,7 +278,8 @@ void LastalArguments::fromString( const std::string& s, bool optionsOnly ){
   fromStream( iss, optionsOnly );
 }
 
-void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
+void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
+                                               bool isCaseSensitiveSeeds ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
   if( isProtein ){
@@ -312,6 +312,11 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein ){
   }
 
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
+
+  if( maskLowercase < 0 ){
+    if( isCaseSensitiveSeeds && inputFormat == 0 ) maskLowercase = 2;
+    else                                           maskLowercase = 0;
+  }
 
   if( batchSize == 0 ){
     /**/ if( inputFormat > 0 ) batchSize = 0x100000;   // 1 Mbyte

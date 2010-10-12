@@ -112,10 +112,10 @@ void calculateScoreStatistics(){
 }
 
 // Read the .prj file for the whole database
-void readOuterPrj( const std::string& fileName, unsigned& volumes ){
+void readOuterPrj( const std::string& fileName, unsigned& volumes,
+                   int& isCaseSenstitiveSeeds ){
   std::ifstream f( fileName.c_str() );
   unsigned version = 0;
-  int isMaskLowercase = -1;  // "-1" means "undefined"
 
   std::string line, word;
   while( getline( f, line ) ){
@@ -123,13 +123,13 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes ){
     getline( iss, word, '=' );
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alph;
-    if( word == "masklowercase" ) iss >> isMaskLowercase;
+    if( word == "masklowercase" ) iss >> isCaseSenstitiveSeeds;
     if( word == "volumes" ) iss >> volumes;
     if( word == "subsetseed" ){
-      if( alph.letters.empty() || isMaskLowercase < 0 )
+      if( alph.letters.empty() || isCaseSenstitiveSeeds < 0 )
 	f.setstate( std::ios::failbit );
       else
-	subsetSeed.appendPosition( iss, isMaskLowercase, alph.encode );
+	subsetSeed.appendPosition( iss, isCaseSenstitiveSeeds, alph.encode );
     }
   }
 
@@ -567,10 +567,12 @@ void lastal( int argc, char** argv ){
   }
 
   unsigned volumes = unsigned(-1);  // initialize it to an "error" value
-  readOuterPrj( args.lastdbName + ".prj", volumes );
+  int isCaseSenstitiveSeeds = -1;  // initialize it to an "error" value
+  readOuterPrj( args.lastdbName + ".prj", volumes, isCaseSenstitiveSeeds );
 
   args.setDefaultsFromAlphabet( alph.letters == alph.dna,
-				alph.letters == alph.protein );
+				alph.letters == alph.protein,
+                                isCaseSenstitiveSeeds );
   makeScoreMatrix( matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
   calculateScoreStatistics();

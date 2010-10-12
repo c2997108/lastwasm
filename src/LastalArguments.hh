@@ -28,7 +28,8 @@ struct LastalArguments{
   void fromString( const std::string& s, bool optionsOnly = true );
 
   // set default option values that depend on input files:
-  void setDefaultsFromAlphabet( bool isDna, bool isProtein );
+  void setDefaultsFromAlphabet( bool isDna, bool isProtein,
+                                bool isCaseSensitiveSeeds );
   void setDefaultsFromMatrix( double lambda );
 
   // write the parameter settings, starting each line with "#":
