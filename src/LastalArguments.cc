@@ -37,6 +37,7 @@ LastalArguments::LastalArguments() :
   matrixFile(""),
   maxDropGapped(-1),  // depends on gap costs & maxDropGapless
   maxDropGapless(-1),  // depends on the score matrix
+  maxDropFinal(-1),  // depends on maxDropGapped
   inputFormat(0),
   minHitDepth(1),
   oneHitMultiplicity(10),
@@ -74,6 +75,7 @@ Score parameters (default settings):\n\
 -F: frameshift cost (off)\n\
 -x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
 -y: maximum score dropoff for gapless extensions (t*10)\n\
+-z: maximum score dropoff for final gapped extensions (x)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
 -e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<4: 180)\n\
 \n\
@@ -108,9 +110,9 @@ LAST home page: http://last.cbrc.jp/\n\
 
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
-  while( (c = getopt(argc, argv,
-		     "ho:u:s:f:r:q:p:a:b:c:F:x:y:d:e:Q:m:l:n:k:i:w:t:g:G:vj:"))
-	 != -1 ){
+  const char optionString[] =
+      "ho:u:s:f:r:q:p:a:b:c:F:x:y:z:d:e:Q:m:l:n:k:i:w:t:g:G:vj:";
+  while( (c = getopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
       std::cout << help;
@@ -165,6 +167,10 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'y':
       unstringify( maxDropGapless, optarg );
       if( maxDropGapless < 0 ) badopt( c, optarg );
+      break;
+    case 'z':
+      unstringify( maxDropFinal, optarg );
+      if( maxDropFinal < 0 ) badopt( c, optarg );
       break;
     case 'd':
       unstringify( minScoreGapless, optarg );
@@ -330,6 +336,8 @@ void LastalArguments::setDefaultsFromMatrix( double lambda ){
     maxDropGapped = std::max( gapExistCost + gapExtendCost * 20,
 			      maxDropGapless );
   }
+
+  if( maxDropFinal < 0 ) maxDropFinal = maxDropGapped;
 }
 
 void LastalArguments::writeCommented( std::ostream& stream ) const{
@@ -341,7 +349,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
 	 << "e=" << minScoreGapped << ' '
 	 << "d=" << minScoreGapless << ' '
 	 << "x=" << maxDropGapped << ' '
-	 << "y=" << maxDropGapless << '\n';
+	 << "y=" << maxDropGapless << ' '
+	 << "z=" << maxDropFinal << '\n';
 
   stream << "# "
 	 << "u=" << maskLowercase << ' '

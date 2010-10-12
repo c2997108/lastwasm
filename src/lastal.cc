@@ -87,7 +87,7 @@ void makeScoreMatrix( const std::string& matrixFile ){
   // enough value that it has no effect.  This is a kludge - it would
   // be nice to use the maximum PSSM score.
   if( args.inputFormat > 3 ){
-    scoreMatrix.maxScore = args.maxDropGapped + 1;
+    scoreMatrix.maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
   }
 }
 
@@ -363,7 +363,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
       probAln.makeXdrop( xdropAligner, centroid,
                          text.seqReader(), query.seqReader(),
 			 matFinal, scoreMatrix.maxScore,
-			 gapCosts, args.maxDropGapped, args.frameshiftCost,
+			 gapCosts, args.maxDropFinal, args.frameshiftCost,
 			 frameSize, query.pssmReader(),
                          args.gamma, args.outputType );
       probAln.write( text, query, strand, args.isTranslated(),
@@ -397,13 +397,13 @@ void scan( char strand, std::ostream& out ){
 
   AlignmentPot gappedAlns;
 
-  if( matFinal != matGapped ){
+  if( matFinal != matGapped || args.maxDropFinal != args.maxDropGapped ){
     alignGapped( gappedAlns, gaplessAlns, matGapped, args.maxDropGapped,
                  false, centroid );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
-  alignGapped( gappedAlns, gaplessAlns, matFinal, args.maxDropGapped,
+  alignGapped( gappedAlns, gaplessAlns, matFinal, args.maxDropFinal,
                true, centroid );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
