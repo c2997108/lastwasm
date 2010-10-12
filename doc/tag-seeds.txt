@@ -11,7 +11,7 @@ some ideas that might be helpful.
 This procedure has worked well for us with different kinds of read
 (Illumina and FLX Titanium):
 
-  lastdb -m1111110 -s20G genomedb genome/chr*.fa
+  lastdb -m1111110 genomedb genome/chr*.fa
   lastal -Q1 genomedb reads.fastq
 
 If your reads are in plain FASTA format (without quality data), then

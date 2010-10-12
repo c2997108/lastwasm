@@ -19,7 +19,7 @@ LastdbArguments::LastdbArguments() :
   isProtein(false),
   isCaseSensitive(false),
   spacedSeed(""),
-  volumeSize(0x50000000),  // 1.25 Gbytes
+  volumeSize(-1),
   indexStep(1),
   subsetSeedFile(""),
   userAlphabet(""),
@@ -40,7 +40,7 @@ Main Options:\n\
     std::string help = usage + "\n\
 \n\
 Advanced Options (default settings):\n\
--s: volume size (1280 MiB)\n\
+-s: volume size (unlimited)\n\
 -m: spaced seed pattern\n\
 -u: subset seed file (yass.seed)\n\
 -w: index step (" + stringify(indexStep) + ")\n\

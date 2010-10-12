@@ -13,15 +13,12 @@ column, and it can use sequence quality data.
 Requirements
 ------------
 
-To handle mammalian genomes, you will need at least 2 gigabytes of
-RAM, and a few tens of gigabytes of disk space.  To install the
+To handle mammalian genomes, it's best if you have at least 10-20
+gigabytes of RAM, but you can get by with 2 gigabytes.  To install the
 software, you need a C++ compiler.
 
 Optional: to run the scripts, you need a Unix-like environment with
 Python.  To make dotplots, you need the Python Imaging Library.
-
-Luxury: to handle mammalian genomes with maximum efficiency, it's good
-to have about 16-20 gigabytes of RAM.
 
 
 Installation
@@ -65,15 +62,12 @@ Let's assume you have the cat and mouse genomes in FASTA-format files:
 cat/chr*.fa and mouse/chr*.fa.  We'll assume also that repetitive
 regions are in lowercase.  We can compare them using these steps::
 
-  lastdb -c -s20G -v mousedb mouse/chr*.fa
+  lastdb -c -v mousedb mouse/chr*.fa
   lastal -o myalns.maf -v mousedb cat/chr*.fa
 
-The "-s20G" tells it that >20 GiB of memory are available, so it can
-put the whole mouse genome into one database volume.  (For mouse, it
-will use well under 20 GiB.)  Without this, it assumes that <2 GiB are
-available, so it puts the chromosomes into multiple volumes: this
-makes lastal slower (e.g. 1 day instead of several hours).  The "-v"
-(verbose) option just makes it write progress messages on the screen.
+This will use perhaps 9 gigabytes of RAM: if you do not have that
+much, you need lastdb's "-s" option (see below).  The "-v" (verbose)
+option just makes it write progress messages on the screen.
 
 Next, we might want to remove paralogs or make a dotplot: see the
 accompanying document last-scripts.txt.
@@ -87,7 +81,7 @@ Let's assume you have the human genome in FASTA-format files
 This time, we will not mask repeats, because we want to map repetitive
 reads too::
 
-  lastdb -m1111110 -s20G -v humandb human/chr*.fa
+  lastdb -m1111110 -v humandb human/chr*.fa
   lastal -Q1 -o myalns.maf -v humandb reads.fastq
 
 The "-m1111110" makes it better at finding short, strong alignments.
@@ -186,12 +180,13 @@ Advanced Options
 ~~~~~~~~~~~~~~~~
 
 -s  Split large databases into "volumes" of at most the specified
-    number of bytes (excluding buckets).  If a single sequence exceeds
-    this amount, however, it is not split.  The default is tuned for 2
-    gigabytes of RAM: if you have more, increase this to make lastal
-    go faster. You can use suffixes K, M, and G to specify KibiBytes,
-    MebiBytes, and GibiBytes.  Example: if you have 6G of RAM, "-s 5G"
-    seems to work well.
+    number of bytes.  (This refers to the bytes used by the sequence
+    [tis] and the index [suf] but not the buckets [bck].)  If a single
+    sequence requires more than this, however, it is not split.  You
+    can use suffixes K, M, and G to specify KibiBytes, MebiBytes, and
+    GibiBytes.  Example: if you have 6G of RAM, "-s 5G" seems to work
+    well.  There is a hard limit of about 4 billion sequence letters
+    per volume.
 
 -m  Specify skipped positions in initial matches, e.g. "-m 110101". In
     this example, every third and fifth position out of six will be

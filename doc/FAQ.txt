@@ -40,7 +40,7 @@ matching bases are broken into three regions of length 23, 23, and 24.
 So we are guaranteed to have an exact match of length 24.  With LAST,
 we could do something like this:
 
-  lastdb -m1 -s20G genomedb genome.fa
+  lastdb -m1 genomedb genome.fa
   lastal -l24 -m100 -d0 -y0 -a0 -x2 -e68 genomedb reads.fa
 
 The -l24 tells it to find matches of length 24 or greater.  The -m100
