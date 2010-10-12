@@ -8,7 +8,8 @@
 # according to the number of aligned nt-pairs within it, but the
 # result is too faint.  How can this be done better?
 
-import sys, os, re, itertools, optparse, Image, ImageDraw, ImageFont
+import sys, os, re, itertools, optparse
+import Image, ImageDraw, ImageFont, ImageColor
 
 my_name = os.path.basename(sys.argv[0])
 usage = """
@@ -26,6 +27,10 @@ parser.add_option("-f", "--fontfile", dest="fontfile",
                   help="TrueType or OpenType font file")
 parser.add_option("-s", "--fontsize", type="int", dest="fontsize", default=11,
                   help="TrueType or OpenType font size (default: %default)")
+parser.add_option("-c", "--forwardcolor", dest="forwardcolor", default="black",
+                  help="Color for forward alignments (default: %default)")
+parser.add_option("-r", "--reversecolor", dest="reversecolor", default="black",
+                  help="Color for reverse alignments (default: %default)")
 (opts, args) = parser.parse_args()
 if len(args) != 2: parser.error("2 arguments needed")
 
@@ -33,9 +38,16 @@ if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
 else:              font = ImageFont.load_default()
 
 # Make these options too?
+text_color = "black"
+background_color = "white"
 pix_tween_seqs = 3  # number of border pixels between sequences
-border_shade = 239  # the shade of grey to use for border pixels
+border_shade = 239, 239, 239  # the shade of grey to use for border pixels
 label_space = 5     # minimum number of pixels between axis labels
+
+image_mode = 'RGB'
+forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
+reverse_color = ImageColor.getcolor(opts.reversecolor, image_mode)
+overlap_color = tuple([(i+j)//2 for i, j in zip(forward_color, reverse_color)])
 
 seq_size_dic1 = {}  # sizes of the first set of sequences
 seq_size_dic2 = {}  # sizes of the second set of sequences
@@ -69,7 +81,7 @@ def get_text_sizes(my_strings):
     '''Get widths & heights, in pixels, of some strings.'''
     if opts.fontsize == 0: return [(0, 0) for i in my_strings]
     image_size = 1, 1
-    im = Image.new('L', image_size)
+    im = Image.new(image_mode, image_size)
     draw = ImageDraw.Draw(im)
     return [draw.textsize(i, font=font) for i in my_strings]
 
@@ -132,7 +144,7 @@ seq_pix1, seq_starts1, width  = get_pix_info(seq_sizes1, margin1)
 seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, margin2)
 seq_start_dic1 = dict(zip(seq_names1, seq_starts1))
 seq_start_dic2 = dict(zip(seq_names2, seq_starts2))
-hits = [255] * (width * height)  # the image data
+hits = [0] * (width * height)  # the image data
 
 sys.stderr.write(my_name + ": processing alignments...\n")
 for aln in alignments:
@@ -142,6 +154,8 @@ for aln in alignments:
     seq_start1 = seq_start_dic1[seq1]
     seq_start2 = seq_start_dic2[seq2]
     block_list = map(int, re.split(r'\W', blocks))
+    if strand1 == strand2: store_value = 1
+    else:                  store_value = 2
     for i, b in enumerate(block_list):
         state = i % 3
         if state == 0:
@@ -152,7 +166,7 @@ for aln in alignments:
                 else:              real_pos2 = last2 - pos2
                 pix1 = seq_start1 + real_pos1 // bp_per_pix
                 pix2 = seq_start2 + real_pos2 // bp_per_pix
-                hits[pix2 * width + pix1] = 0
+                hits[pix2 * width + pix1] |= store_value
                 pos1 += 1
                 pos2 += 1
         elif state == 1:
@@ -189,16 +203,23 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix):
     labels.sort()
     labels = get_nonoverlapping_labels(labels)
     image_size = max_pos, height
-    im = Image.new('L', image_size, border_shade)
+    im = Image.new(image_mode, image_size, border_shade)
     draw = ImageDraw.Draw(im)
     for i in labels:
         position = i[1], 0
-        draw.text(position, i[3], font=font)
+        draw.text(position, i[3], font=font, fill=text_color)
     return im
 
 image_size = width, height
-im = Image.new('L', image_size)
-im.putdata(hits)
+im = Image.new(image_mode, image_size, background_color)
+
+for i in range(height):
+    for j in range(width):
+        store_value = hits[i * width + j]
+        xy = j, i
+        if   store_value == 1: im.putpixel(xy, forward_color)
+        elif store_value == 2: im.putpixel(xy, reverse_color)
+        elif store_value == 3: im.putpixel(xy, overlap_color)
 
 if opts.fontsize != 0:
     axis1 = get_axis_image(seq_names1, name_sizes1, seq_starts1, seq_pix1)

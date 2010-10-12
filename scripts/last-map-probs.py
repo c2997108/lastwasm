@@ -23,6 +23,7 @@ if not args: op.error("please give me a filename")
 
 if '-' in args: op.error("sorry, can't use '-' (standard input)")
 
+# XXX sometimes overflows!
 def likelihoodRatio(score, t): return math.exp(float(score) / t)
 
 temperature = -1
