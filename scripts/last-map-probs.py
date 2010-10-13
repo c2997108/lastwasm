@@ -23,8 +23,10 @@ if not args: op.error("please give me a filename")
 
 if '-' in args: op.error("sorry, can't use '-' (standard input)")
 
-# XXX sometimes overflows!
-def likelihoodRatio(score, t): return math.exp(float(score) / t)
+def logsum(x, y):
+    a = max(x, y)
+    b = min(x, y)
+    return a + math.log(1 + math.exp(b-a))
 
 temperature = -1
 denominators = {}
@@ -39,9 +41,9 @@ for line in fileinput.input(args):
             sys.exit(progName + 
                      ": I need a header line with: t=(a positive value)")
         tagName = words[6]
-        lr = likelihoodRatio(words[0], temperature)
-        denominators.setdefault(tagName, 0.0)
-        denominators[tagName] += lr
+        x = float(words[0]) / temperature
+        y = denominators.get(tagName, -1e9)
+        denominators[tagName] = logsum(x, y)
 
 for line in fileinput.input(args):
     words = line.split()
@@ -49,6 +51,7 @@ for line in fileinput.input(args):
         print line,
     else:
         tagName = words[6]
-        lr = likelihoodRatio(words[0], temperature)
-        prob = lr / denominators[tagName]
+        x = float(words[0]) / temperature
+        y = denominators[tagName]
+        prob = math.exp(x - y)
         print '\t'.join(words + ['%g' % prob])
