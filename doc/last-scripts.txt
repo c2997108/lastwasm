@@ -40,14 +40,23 @@ chromosomes with names like "chr1_random"::
 maf-convert.py
 --------------
 
-This script can convert MAF-format alignments to tabular format.  This
-is needed to feed MAF alignments to last-dotplot.py.  Usage::
+This script converts MAF format alignments to various other formats::
 
   maf-convert.py tab my-alignments.maf > my-alignments.tab
-
-It can also convert MAF to AXT format, should you wish to do that::
-
   maf-convert.py axt my-alignments.maf > my-alignments.axt
+  maf-convert.py psl my-alignments.maf > my-alignments.psl
+  maf-convert.py blast my-alignments.maf > my-alignments.blast
+  maf-convert.py html my-alignments.maf > my-alignments.html
+
+You can set the line length for blast and html formats with "-l"::
+
+  maf-convert.py -l50 html my-alignments.maf > my-alignments.html
+
+For html: if the input includes probability lines starting with 'p',
+then the output will be coloured by column probability.  (To get lines
+starting with 'p', run lastal with option -j4 or -j5.)  If an
+alignment has multiple 'p' lines (e.g. after using maf-join.py), then
+the column-wise products are used.
 
 
 last-reduce-alignments.sh
@@ -117,25 +126,6 @@ last-remove-dominated.py
 This script is used by last-reduce-alignments.sh.  It reads sorted
 alignments, and removes alignments of A in genome 1 with B in genome 2
 if A also aligns more strongly to a different region X.
-
-
-maf2html.py
------------
-
-This script converts MAF-format alignments to a human-friendly HTML
-format::
-
-  maf2html.py multiMito.maf > multiMito.html
-
-You can change the number of letters per line using the "-l" option::
-
-  maf2html.py -l50 multiMito.maf > multiMito.html
-
-Each alignment column gets coloured according to its probability,
-given by MAF lines starting with 'p'.  (To get MAF lines starting with
-'p', run lastal with option -j4 or -j5.)  If an alignment has multiple
-'p' lines (e.g. after using maf-join.py), then the column-wise
-products are used.
 
 
 last-map-probs.py

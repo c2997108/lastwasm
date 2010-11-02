@@ -1,147 +1,425 @@
 #! /usr/bin/env python
-
 # Copyright 2010 Martin C. Frith
-
 # Read MAF-format alignments: write them in other formats.
+# Seems to work with Python 2.x, x>=4
 
-import sys, os, fileinput, optparse, itertools, signal
+from itertools import *
+import sys, os, fileinput, operator, optparse, signal
 
-##### General-purpose routines: #####
+def maxlen(s):
+    return max(map(len, s))
 
-def flatten(listOfLists): return sum(listOfLists, [])
+def joined(things, delimiter):
+    return delimiter.join(map(str, things))
 
-def valueFromMaf(mafLines, keyword):
-    for word in mafLines[0]:
-        if word.startswith(keyword + '='):
-            return word.split('=')[1]
-    return ''
+def quantify(iterable, pred=bool):
+    """Count how many times the predicate is true."""
+    return sum(map(pred, iterable))
 
-def scoreFromMaf(mafLines):
-    score = valueFromMaf(mafLines, "score")
-    if not score: raise Exception("encountered an alignment without a score")
-    return score
+def dictFromStrings(strings):
+    pairs = [i.split("=") for i in strings]
+    return dict(pairs)
+
+class Maf:
+    def __init__(self, lines):
+        lines = map(str.split, lines)
+
+        aLines = [i[1:] for i in lines if i[0] == "a"]
+        aStrings = chain(*aLines)
+        self.namesAndValues = dictFromStrings(aStrings)
+
+        sLines = [i for i in lines if i[0] == "s"]
+        if not sLines: raise Exception("empty alignment")
+        cols = zip(*sLines)
+        self.seqNames = cols[1]
+        self.alnStarts = map(int, cols[2])
+        self.alnSizes = map(int, cols[3])
+        self.strands = cols[4]
+        self.seqSizes = map(int, cols[5])
+        self.alnStrings = cols[6]
+
+        self.pLines = [i for i in lines if i[0] == "p"]
+
+def dieUnlessPairwise(maf):
+    if len(maf.alnStrings) != 2:
+        raise Exception("pairwise alignments only, please")
+
+def insertionCounts(alnString):
+    gaps = alnString.count("-")
+    forwardFrameshifts = alnString.count("\\")
+    reverseFrameshifts = alnString.count("/")
+    letters = len(alnString) - gaps - forwardFrameshifts - reverseFrameshifts
+    return letters, forwardFrameshifts, reverseFrameshifts
+
+def coordinatesPerLetter(alnString, alnSize):
+    letters, forwardShifts, reverseShifts = insertionCounts(alnString)
+    if forwardShifts or reverseShifts or letters < alnSize: return 3
+    else: return 1
+
+def mafLetterSizes(maf):
+    return map(coordinatesPerLetter, maf.alnStrings, maf.alnSizes)
+
+def insertionSize(alnString, letterSize):
+    """Get the length of sequence included in the alnString."""
+    letters, forwardShifts, reverseShifts = insertionCounts(alnString)
+    return letters * letterSize + forwardShifts - reverseShifts
+
+def isMatch(alignmentColumn):
+    first = alignmentColumn[0].upper()
+    for i in alignmentColumn[1:]:
+        if i.upper() != first: return False
+    return True
+
+def isGapless(alignmentColumn):
+    return "-" not in alignmentColumn
+
+def matchAndInsertSizes(alignmentColumns, letterSizes):
+    """Get sizes of gapless blocks, and of the inserts between them."""
+    for k, v in groupby(alignmentColumns, isGapless):
+        if k:
+            sizeOfGaplessBlock = len(list(v))
+            yield [sizeOfGaplessBlock]
+        else:
+            blockRows = zip(*v)
+            blockRows = map(''.join, blockRows)
+            yield map(insertionSize, blockRows, letterSizes)
 
 ##### Routines for converting to AXT format: #####
 
-def axtDataFromMafLine(sLine):
-    chr = sLine[1]
-    mafBeg = int(sLine[2])
-    mafLen = int(sLine[3])
-    axtBeg = str(mafBeg + 1)  # convert from 0-based to 1-based coordinate
-    axtEnd = str(mafBeg + mafLen)
-    strand = sLine[4]
-    return [chr, axtBeg, axtEnd, strand]
-
-axtCounter = itertools.count()
+axtCounter = count()
 
 def writeAxt(maf):
-    count = str(axtCounter.next())
-    score = scoreFromMaf(maf)
-    sLines = [i for i in maf if i[0] == "s"]
-    if not sLines: raise Exception("empty alignment")
-    sequences = [i[6] for i in sLines]
-    axtData = map(axtDataFromMafLine, sLines)
-    dataHead, dataTail  = axtData[0], axtData[1:]
-    if dataHead[3] != "+":
+    if maf.strands[0] != "+":
         raise Exception("for AXT, the 1st strand in each alignment must be +")
-    print " ".join([count] + dataHead[:3] + flatten(dataTail) + [score])
-    for i in sequences: print i
+
+    # Convert to AXT's 1-based coordinates:
+    alnStarts = imap(operator.add, maf.alnStarts, repeat(1))
+    alnEnds = imap(operator.add, maf.alnStarts, maf.alnSizes)
+
+    rows = zip(maf.seqNames, alnStarts, alnEnds, maf.strands)
+    head, tail = rows[0], rows[1:]
+
+    outWords = []
+    outWords.append(axtCounter.next())
+    outWords.extend(head[:3])
+    outWords.extend(chain(*tail))
+    outWords.append(maf.namesAndValues["score"])
+
+    print joined(outWords, " ")
+    for i in maf.alnStrings: print i
     print  # print a blank line at the end
 
 ##### Routines for converting to tabular format: #####
 
-def gapString(gap1, gap2):
-    return str(gap1) + ":" + str(gap2)
-
-def symbolSize(symbol, letterSize):
-    if symbol == "-": return 0
-    elif symbol == "\\": return 1
-    elif symbol == "/": return -1
-    else: return letterSize
-
-def matchAndGapSizes(sequence1, sequence2, letterSize1, letterSize2):
-    if len(sequence1) != len(sequence2):
-        raise Exception('aligned sequences have different lengths')
-    matchSize = 0
-    gap1 = gap2 = 0
-    for i, j in zip(sequence1, sequence2):
-        if '-' in (i, j):
-            if matchSize != 0:
-                yield str(matchSize)
-                matchSize = 0
-            gap1 += symbolSize(i, letterSize1)
-            gap2 += symbolSize(j, letterSize2)
-        else:
-            if gap1 != 0 or gap2 != 0:
-                yield gapString(gap1, gap2)
-                gap1 = gap2 = 0
-            matchSize += 1  # this is correct for translated alignments too
-    if matchSize != 0:
-        yield str(matchSize)
-    elif gap1 != 0 or gap2 != 0:
-        yield gapString(gap1, gap2)
-
-def gapSizePerLetter(sLine):
-    sequence = sLine[6]
-    if "/" in sequence or "\\" in sequence: return 3
-    gaps = sequence.count("-")
-    nonGaps = len(sequence) - gaps
-    mafLen = int(sLine[3])
-    if mafLen == nonGaps * 3: return 3
-    return 1
-
 def writeTab(maf):
-    score = scoreFromMaf(maf)
-    expect = valueFromMaf(maf, "expect")
-    sLines = [i for i in maf if i[0] == "s"]
-    if len(sLines) != 2: raise Exception("pairwise alignments only, please")
-    outWords = [i[1:6] for i in sLines]
-    sequences = [i[6] for i in sLines]
-    sizes = map(gapSizePerLetter, sLines)
-    gapInfo = matchAndGapSizes(sequences[0], sequences[1], sizes[0], sizes[1])
-    gapString = ','.join(gapInfo)
-    fields = [score] + flatten(outWords) + [gapString]
-    if expect: fields += [expect]
-    print "\t".join(fields)
+    outWords = []
+    outWords.append(maf.namesAndValues["score"])
+
+    cols = maf.seqNames, maf.alnStarts, maf.alnSizes, maf.strands, maf.seqSizes
+    rows = zip(*cols)
+    outWords.extend(chain(*rows))
+
+    alignmentColumns = zip(*maf.alnStrings)
+    letterSizes = mafLetterSizes(maf)
+    gapInfo = matchAndInsertSizes(alignmentColumns, letterSizes)
+    gapStrings = imap(joined, gapInfo, repeat(":"))
+    gapWord = ",".join(gapStrings)
+    outWords.append(gapWord)
+
+    try: outWords.append(maf.namesAndValues["expect"])
+    except KeyError: pass
+
+    print joined(outWords, "\t")
+
+##### Routines for converting to PSL format: #####
+
+def pslBlocks(alignmentColumns, alnStarts, letterSizes):
+    """Get sizes and start coordinates of gapless blocks in an alignment."""
+    coordinates = alnStarts
+    for i in matchAndInsertSizes(alignmentColumns, letterSizes):
+        if len(i) == 1:  # we have the size of a gapless block
+            yield i + coordinates
+            increments = imap(operator.mul, letterSizes, cycle(i))
+            coordinates = map(operator.add, coordinates, increments)
+        else:  # we have sizes of inserts between gapless blocks
+            coordinates = map(operator.add, coordinates, i)
+
+def pslCommaString(things):
+    # UCSC software seems to prefer a trailing comma
+    return joined(things, ",") + ","
+
+def gapRunCount(letters):
+    """Get the number of runs of gap characters."""
+    uniqLetters = map(operator.itemgetter(0), groupby(letters))
+    return uniqLetters.count("-")
+
+def pslEndpoints(alnStart, alnSize, strand, seqSize):
+    alnEnd = alnStart + alnSize
+    if strand == "+": return alnStart, alnEnd
+    else: return seqSize - alnEnd, seqSize - alnStart
+
+def caseSensitivePairwiseMatchCount(columns):  # faster than "quantify"
+    return len([1 for x, y in columns if x == y])
+
+def gaplessColumnCount(columns):  # faster than "quantify"
+    return len([1 for i in columns if "-" not in i])
+
+def writePsl(maf):
+    dieUnlessPairwise(maf)
+
+    alnStrings = map(str.upper, maf.alnStrings)
+    alignmentColumns = zip(*alnStrings)
+    letterSizes = mafLetterSizes(maf)
+    numGaplessColumns = gaplessColumnCount(alignmentColumns)
+
+    matches = caseSensitivePairwiseMatchCount(alignmentColumns)
+    mismatches = numGaplessColumns - matches
+    repMatches = 0  # unimplemented
+    nCount = 0  # unimplemented: it's hard to know if we have DNA or proteins
+
+    qNumInsert = gapRunCount(maf.alnStrings[0])
+    qBaseInsert = maf.alnSizes[1] - numGaplessColumns * letterSizes[1]
+
+    tNumInsert = gapRunCount(maf.alnStrings[1])
+    tBaseInsert = maf.alnSizes[0] - numGaplessColumns * letterSizes[0]
+
+    strand = maf.strands[1]
+    if max(letterSizes) > 1:
+        strand += maf.strands[0]
+    elif maf.strands[0] != "+":
+        raise Exception("for non-translated PSL, the 1st strand in each alignment must be +")
+
+    tName, qName = maf.seqNames
+    tSeqSize, qSeqSize = maf.seqSizes
+
+    rows = zip(maf.alnStarts, maf.alnSizes, maf.strands, maf.seqSizes)
+    tStart, tEnd = pslEndpoints(*rows[0])
+    qStart, qEnd = pslEndpoints(*rows[1])
+
+    blocks = list(pslBlocks(alignmentColumns, maf.alnStarts, letterSizes))
+    blockCount = len(blocks)
+    blockSizes, tStarts, qStarts = map(pslCommaString, zip(*blocks))
+
+    outWords = (matches, mismatches, repMatches, nCount,
+                qNumInsert, qBaseInsert, tNumInsert, tBaseInsert, strand,
+                qName, qSeqSize, qStart, qEnd, tName, tSeqSize, tStart, tEnd,
+                blockCount, blockSizes, qStarts, tStarts)
+    print joined(outWords, "\t")
+
+##### Routines for converting to BLAST-like format: #####
+
+def pairwiseMatchSymbol(alignmentColumn):
+    if isMatch(alignmentColumn): return "|"
+    else: return " "
+
+def strandText(strand):
+    if strand == "+": return "Plus"
+    else: return "Minus"
+
+def blastCoordinate(oneBasedCoordinate, strand, seqSize):
+    if strand == "-":
+        oneBasedCoordinate = seqSize - oneBasedCoordinate + 1
+    return str(oneBasedCoordinate)
+
+def chunker(things, chunkSize):
+    for i in range(0, len(things), chunkSize):
+        yield things[i:i+chunkSize]
+
+def blastChunker(maf, lineSize, alignmentColumns):
+    letterSizes = mafLetterSizes(maf)
+    coords = maf.alnStarts
+    for chunkCols in chunker(alignmentColumns, lineSize):
+        chunkRows = zip(*chunkCols)
+        chunkRows = map(''.join, chunkRows)
+        starts = [i + 1 for i in coords]  # change to 1-based coordinates
+        starts = map(blastCoordinate, starts, maf.strands, maf.seqSizes)
+        increments = map(insertionSize, chunkRows, letterSizes)
+        coords = map(operator.add, coords, increments)
+        ends = map(blastCoordinate, coords, maf.strands, maf.seqSizes)
+        yield chunkCols, chunkRows, starts, ends
+
+def writeBlast(maf, lineSize):
+    dieUnlessPairwise(maf)
+
+    print "Query= %s" % maf.seqNames[1]
+    print "         (%s letters)" % maf.seqSizes[1]
+    print
+    print ">%s" % maf.seqNames[0]
+    print "          Length = %s" % maf.seqSizes[0]
+    print
+
+    scoreLine = " Score = %s" % maf.namesAndValues["score"]
+    try: scoreLine += ", Expect = %s" % maf.namesAndValues["expect"]
+    except KeyError: pass
+    print scoreLine
+
+    alignmentColumns = zip(*maf.alnStrings)
+
+    alnSize = len(alignmentColumns)
+    matches = quantify(alignmentColumns, isMatch)
+    matchPercent = 100 * matches // alnSize  # round down, like BLAST
+    identLine = " Identities = %s/%s (%s%%)" % (matches, alnSize, matchPercent)
+    gaps = alnSize - gaplessColumnCount(alignmentColumns)
+    gapPercent = 100 * gaps // alnSize  # round down, like BLAST
+    if gaps: identLine += ", Gaps = %s/%s (%s%%)" % (gaps, alnSize, gapPercent)
+    print identLine
+
+    strands = map(strandText, maf.strands)
+    print " Strand = %s / %s" % (strands[1], strands[0])
+    print
+
+    for chunk in blastChunker(maf, lineSize, alignmentColumns):
+        cols, rows, starts, ends = chunk
+        startWidth = maxlen(starts)
+        matchSymbols = map(pairwiseMatchSymbol, cols)
+        matchSymbols = ''.join(matchSymbols)
+        print "Query: %-*s %s %s" % (startWidth, starts[1], rows[1], ends[1])
+        print "       %-*s %s"    % (startWidth, " ", matchSymbols)
+        print "Sbjct: %-*s %s %s" % (startWidth, starts[0], rows[0], ends[0])
+        print
+
+##### Routines for converting to HTML format: #####
+
+def writeHtmlHeader():
+    print '''
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en"><head>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+<title>Reliable Alignments</title>
+<style type="text/css">
+.a {background-color: #3333FF}
+.b {background-color: #9933FF}
+.c {background-color: #FF66CC}
+.d {background-color: #FF3333}
+.e {background-color: #FF9933}
+.f {background-color: #FFFF00}
+.key {display:inline; margin-right:2em}
+</style>
+</head><body>
+
+<div style="line-height:1">
+<pre class="key"><span class="a">  </span> prob &gt; 0.999</pre>
+<pre class="key"><span class="b">  </span> prob &gt; 0.99 </pre>
+<pre class="key"><span class="c">  </span> prob &gt; 0.95 </pre>
+<pre class="key"><span class="d">  </span> prob &gt; 0.9  </pre>
+<pre class="key"><span class="e">  </span> prob &gt; 0.5  </pre>
+<pre class="key"><span class="f">  </span> prob &le; 0.5  </pre>
+</div>
+'''
+
+def probabilityClass(probabilityColumn):
+    # here, imap seems to be a little bit faster than map:
+    try: p = reduce(operator.mul, imap(float, probabilityColumn))
+    except ValueError: return None
+    if   p > 0.999: return 'a'
+    elif p > 0.99: return 'b'
+    elif p > 0.95: return 'c'
+    elif p > 0.9: return 'd'
+    elif p > 0.5: return 'e'
+    else: return 'f'
+
+def identicalRuns(s):
+    """Yield (item, start, end) for each run of identical items in s."""
+    beg = 0
+    for k, v in groupby(s):
+        end = beg + len(list(v))
+        yield k, beg, end
+        beg = end
+
+def htmlSpan(text, classRun):
+    key, beg, end = classRun
+    textbit = text[beg:end]
+    if key: return '<span class="%s">%s</span>' % (key, textbit)
+    else: return textbit
+
+def multipleMatchSymbol(alignmentColumn):
+    if isMatch(alignmentColumn): return "*"
+    else: return " "
+
+def writeHtml(maf, lineSize):
+    scoreLine = "Alignment"
+    try:
+        scoreLine += " score=%s" % maf.namesAndValues["score"]
+        scoreLine += ", expect=%s" % maf.namesAndValues["expect"]
+    except KeyError: pass
+    print "<h3>%s:</h3>" % scoreLine
+
+    if maf.pLines:
+        probCols = izip(*maf.pLines)
+        probCols = islice(probCols, 1, None)
+        classes = imap(probabilityClass, probCols)
+    else:
+        classes = repeat(None)
+
+    nameWidth = maxlen(maf.seqNames)
+    alignmentColumns = zip(*maf.alnStrings)
+
+    print '<pre>'
+    for chunk in blastChunker(maf, lineSize, alignmentColumns):
+        cols, rows, starts, ends = chunk
+        startWidth = maxlen(starts)
+        endWidth = maxlen(ends)
+        matchSymbols = map(multipleMatchSymbol, cols)
+        matchSymbols = ''.join(matchSymbols)
+        classChunk = islice(classes, lineSize)
+        classRuns = list(identicalRuns(classChunk))
+        for n, s, r, e in zip(maf.seqNames, starts, rows, ends):
+            spans = [htmlSpan(r, i) for i in classRuns]
+            spans = ''.join(spans)
+            formatParams = nameWidth, n, startWidth, s, spans, endWidth, e
+            print '%-*s %*s %s %*s' % formatParams
+        print ' ' * nameWidth, ' ' * startWidth, matchSymbols
+        print
+    print '</pre>'
 
 ##### Routines for reading MAF format: #####
 
+def filterComments(lines, isKeepCommentLines):
+    for i in lines:
+        if i.startswith("#"):
+            if isKeepCommentLines: print i,
+        else: yield i
+
 def mafInput(lines):
-    maf = []
-    for line in lines:
-        if line.startswith("#"):
-            print line,
-        elif line.isspace():
-            if maf: yield maf
-            maf = []
-        else:
-            maf.append(line.split())
-    if maf: yield maf
+    for k, v in groupby(lines, str.isspace):
+        if not k: yield Maf(v)
 
-def formatName(formatString):
-    s = formatString.lower()
-    if   "axt".startswith(s): return "axt"
-    elif "tabular".startswith(s): return "tab"
-    else: raise Exception("unknown format: " + formatString)
+def isFormat(myString, myFormat):
+    return myFormat.startswith(myString)
 
-def mafConvert(args):
-    format = formatName(args[0])
-    for maf in mafInput(fileinput.input(args[1])):
-        if format == "axt": writeAxt(maf)
-        else: writeTab(maf)
+def mafConvert(opts, args):
+    format = args[0].lower()
+    inputLines = fileinput.input(args[1])
+    if isFormat(format, "html"): writeHtmlHeader()
+    isKeepCommentLines = not isFormat(format, "html")
+    for maf in mafInput(filterComments(inputLines, isKeepCommentLines)):
+        if   isFormat(format, "axt"): writeAxt(maf)
+        elif isFormat(format, "blast"): writeBlast(maf, opts.linesize)
+        elif isFormat(format, "html"): writeHtml(maf, opts.linesize)
+        elif isFormat(format, "psl"): writePsl(maf)
+        elif isFormat(format, "tabular"): writeTab(maf)
+        else: raise Exception("unknown format: " + format)
+    if isFormat(format, "html"): print "</body></html>"
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
 
     usage = """
   %prog axt my-alignments.maf
+  %prog blast my-alignments.maf
+  %prog html my-alignments.maf
+  %prog psl my-alignments.maf
   %prog tab my-alignments.maf"""
 
     op = optparse.OptionParser(usage=usage)
+    op.add_option("-l", "--linesize", type="int", default=60, #metavar="CHARS",
+                  help="line length for blast and html formats (default: %default)")
     (opts, args) = op.parse_args()
+    if opts.linesize <= 0: op.error("option -l: should be >= 1")
     if len(args) != 2: op.error("I need a format-name and a file-name")
 
-    try: mafConvert(args)
+    try: mafConvert(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message
     except Exception, e:
         prog = os.path.basename(sys.argv[0])
