@@ -39,7 +39,8 @@ struct LastalArguments{
   bool isTranslated() const{ return frameshiftCost > 0; }
 
   // are we reading query sequences with quality scores?
-  bool isQualityScores() const{ return inputFormat > 0 && inputFormat < 4; }
+  bool isQualityScores() const
+  { return inputFormat != fasta && inputFormat != pssm; }
 
   // options:
   std::string outFile;
@@ -59,7 +60,7 @@ struct LastalArguments{
   int maxDropGapped;
   int maxDropGapless;
   int maxDropFinal;
-  int inputFormat;
+  enum InputFormat { fasta, fastqSanger, fastqSolexa, prb, pssm } inputFormat;
   indexT minHitDepth;
   indexT oneHitMultiplicity;
   indexT maxGaplessAlignmentsPerQueryPosition;

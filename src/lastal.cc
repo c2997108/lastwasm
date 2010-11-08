@@ -86,7 +86,7 @@ void makeScoreMatrix( const std::string& matrixFile ){
   // maximum score should not be used.  Here, we set it to a high
   // enough value that it has no effect.  This is a kludge - it would
   // be nice to use the maximum PSSM score.
-  if( args.inputFormat > 3 ){
+  if( args.inputFormat == args.pssm ){
     scoreMatrix.maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
   }
 }
@@ -384,7 +384,7 @@ void scan( char strand, std::ostream& out ){
     query.resizePssm();
     qualityScoreCalculator.makePssm( query.pssmWriter(), query.qualityReader(),
 				     query.seqReader(), query.finishedSize(),
-				     args.inputFormat < 3 );
+				     args.inputFormat != args.prb );
   }
 
   LOG( "scanning..." );
@@ -465,7 +465,7 @@ void reverseComplementQuery(){
     std::reverse( query.qualityWriter(),
 		  query.qualityWriter() +
                   query.finishedSize() * query.qualsPerLetter() );
-  }else if( args.inputFormat > 3 ){
+  }else if( args.inputFormat == args.pssm ){
     reverseComplementPssm();
   }
 }
@@ -507,7 +507,7 @@ void writeHeader( std::ostream& out ){
     out << "# length\tcount\n";
   }
   else{  // we want alignments
-    if( args.inputFormat < 4 || !args.matrixFile.empty() ){
+    if( args.inputFormat != args.pssm || !args.matrixFile.empty() ){
       // we're not reading PSSMs, or we bothered to specify a matrix file
       scoreMatrix.writeCommented( out );
       out << "#\n";
@@ -536,13 +536,15 @@ std::istream& appendFromFasta( std::istream& in ){
 
   indexT oldUnfinishedSize = query.unfinishedSize();
 
-  /**/ if( args.inputFormat < 1 ) query.appendFromFasta( in, maxSeqLen );
-  else if( args.inputFormat < 3 ) query.appendFromFastq( in, maxSeqLen );
-  else if( args.inputFormat < 4 ) query.appendFromPrb( in, maxSeqLen,
-                                                       queryAlph.size,
-                                                       queryAlph.decode );
-  else query.appendFromPssm( in, maxSeqLen, queryAlph.encode,
-                             args.maskLowercase > 1 );
+  /**/ if( args.inputFormat == args.fasta )
+    query.appendFromFasta( in, maxSeqLen );
+  else if( args.inputFormat == args.prb )
+    query.appendFromPrb( in, maxSeqLen, queryAlph.size, queryAlph.decode );
+  else if( args.inputFormat == args.pssm )
+    query.appendFromPssm( in, maxSeqLen, queryAlph.encode,
+                          args.maskLowercase > 1 );
+  else
+    query.appendFromFastq( in, maxSeqLen );
 
   if( !query.isFinished() && query.finishedSequences() == 0 )
     ERR( "encountered a sequence that's too long" );
@@ -581,13 +583,13 @@ void lastal( int argc, char** argv ){
   if( args.isQualityScores() ){
     assert( matGapless == matGapped );
     assert( matGapped == matFinal );
-    int asciiOffset = (args.inputFormat < 2) ? 33 : 64;
+    bool isPhred = (args.inputFormat == args.fastqSanger);
+    int asciiOffset = (args.inputFormat == args.fastqSanger) ? 33 : 64;
     bool isMatchMismatch = args.matrixFile.empty() && args.matchScore > 0;
     qualityScoreCalculator.init( matGapped, alph.size, args.temperature,
 				 args.maskLowercase > 1, isMatchMismatch,
 				 args.matchScore, -args.mismatchCost,
-				 alph.canonical,
-				 args.inputFormat < 2, asciiOffset );
+				 alph.canonical, isPhred, asciiOffset );
   }
 
   if( args.isTranslated() ){

@@ -20,6 +20,19 @@ static void badopt( char opt, const char* arg ){
 
 namespace cbrc{
 
+static int readSmallInt( std::istream& s, int max ){
+  int i = 0;
+  s >> i;
+  if( i < 0 || i > max ) s.setstate(std::ios::failbit);
+  return i;
+}
+
+std::istream& operator>>( std::istream& s, LastalArguments::InputFormat& x ){
+  int i = readSmallInt( s, LastalArguments::pssm );
+  if(s) x = static_cast<LastalArguments::InputFormat>(i);
+  return s;
+}
+
 LastalArguments::LastalArguments() :
   outFile("-"),
   outputFormat(1),
@@ -38,7 +51,7 @@ LastalArguments::LastalArguments() :
   maxDropGapped(-1),  // depends on gap costs & maxDropGapless
   maxDropGapless(-1),  // depends on the score matrix
   maxDropFinal(-1),  // depends on maxDropGapped
-  inputFormat(0),
+  inputFormat(fasta),
   minHitDepth(1),
   oneHitMultiplicity(10),
   maxGaplessAlignmentsPerQueryPosition(indexT(-1)),  // effectively infinity
@@ -182,7 +195,6 @@ LAST home page: http://last.cbrc.jp/\n\
 
     case 'Q':
       unstringify( inputFormat, optarg );
-      if( inputFormat < 0 || inputFormat > 4 ) badopt( c, optarg );
       break;
     case 'm':
       unstringify( oneHitMultiplicity, optarg );
@@ -314,14 +326,14 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
 
   if( maskLowercase < 0 ){
-    if( isCaseSensitiveSeeds && inputFormat == 0 ) maskLowercase = 2;
-    else                                           maskLowercase = 0;
+    if( isCaseSensitiveSeeds && inputFormat == fasta ) maskLowercase = 2;
+    else                                               maskLowercase = 0;
   }
 
   if( batchSize == 0 ){
-    /**/ if( inputFormat > 0 ) batchSize = 0x100000;   // 1 Mbyte
-    else if( outputType == 0 ) batchSize = 0x1000000;  // 16 Mbytes
-    else                       batchSize = 0x8000000;  // 128 Mbytes
+    /**/ if( inputFormat != fasta ) batchSize = 0x100000;   // 1 Mbyte
+    else if( outputType == 0 )      batchSize = 0x1000000;  // 16 Mbytes
+    else                            batchSize = 0x8000000;  // 128 Mbytes
     // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
   }
 

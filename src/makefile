@@ -4,7 +4,7 @@ CC  = gcc
 CXXFLAGS = -O3
 CFLAGS = -Wall
 
-STRICT = -Wall -W -Wcast-qual -Wwrite-strings -Wsign-promo	\
+STRICT = -Wall -W -Wcast-qual -Wswitch-enum -Wundef	\
 -Wcast-align -Wno-long-long -ansi -pedantic
 # use -W instead of -Wextra, so that it works with old versions of g++
 
