@@ -352,8 +352,8 @@ Miscellaneous Options
 -Q  This option allows lastal to use sequence quality scores, or
     PSSMs, for the queries.  0 means read queries in FASTA format
     (without quality scores); 1 means FASTQ-Sanger format; 2 means
-    FASTQ-Solexa format; 3 means PRB format; 4 means read PSSMs.  The
-    FASTQ formats look like this::
+    FASTQ-Solexa format; 3 means FASTQ-Illumina format; 4 means PRB
+    format; 5 means read PSSMs.  The FASTQ formats look like this::
 
       @mySequenceName
       TTTTTTTTGCCTCGGGCCTGAGTTCTTAGCCGCG
@@ -364,20 +364,20 @@ Miscellaneous Options
     sequence and quality codes are allowed to wrap onto more than one
     line.  For FASTQ-Sanger, the quality scores are obtained by
     subtracting 33 from the ASCII values of the characters below the
-    "+", and for FASTQ-Solexa, they are obtained by subtracting 64.
-    PRB format stores four quality scores (A, C, G, T) per position,
-    with one sequence per line, like this::
+    "+".  For FASTQ-Solexa and FASTQ-Illumina, they are obtained by
+    subtracting 64.  PRB format stores four quality scores (A, C, G,
+    T) per position, with one sequence per line, like this::
 
       -40   40  -40  -40      -12    1  -12   -3      -10   10  -40  -40
 
     Since PRB does not store sequence names, lastal uses the line
-    number (starting from 1) as the name.  In FASTQ-Sanger format, the
-    quality scores are related to error probabilities like this:
-    qScore = -10log10[p].  In FASTQ-Solexa and PRB, however, qScore =
-    -10log10[p/(1-p)].  In lastal's MAF output, the quality scores are
-    written on lines starting with "q".  For FASTQ, they are written
-    with the same encoding as the input.  For PRB, they are written in
-    the FASTQ-Solexa (ASCII-64) encoding.
+    number (starting from 1) as the name.  In FASTQ-Sanger and
+    FASTQ-Illumina format, the quality scores are related to error
+    probabilities like this: qScore = -10log10[p].  In FASTQ-Solexa
+    and PRB, however, qScore = -10log10[p/(1-p)].  In lastal's MAF
+    output, the quality scores are written on lines starting with "q".
+    For FASTQ, they are written with the same encoding as the input.
+    For PRB, they are written in the FASTQ-Solexa (ASCII-64) encoding.
 
     The quality scores influence alignment scores as follows.  Let Qiy
     be the probability that the base at position i is y (y = A, C, G,

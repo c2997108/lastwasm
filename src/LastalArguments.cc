@@ -78,11 +78,11 @@ Main options (default settings):\n\
   std::string help = usage + "\n\
 \n\
 Score parameters (default settings):\n\
--r: match score   (DNA: 1, protein: blosum62, 0<Q<4:  6)\n\
--q: mismatch cost (DNA: 1, protein: blosum62, 0<Q<4: 18)\n\
+-r: match score   (DNA: 1, protein: blosum62, 0<Q<5:  6)\n\
+-q: mismatch cost (DNA: 1, protein: blosum62, 0<Q<5: 18)\n\
 -p: file for residue pair scores\n\
--a: gap existence cost (DNA: 7, protein: 11, 0<Q<4: 21)\n\
--b: gap extension cost (DNA: 1, protein:  2, 0<Q<4:  9)\n\
+-a: gap existence cost (DNA: 7, protein: 11, 0<Q<5: 21)\n\
+-b: gap extension cost (DNA: 1, protein:  2, 0<Q<5:  9)\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
 -F: frameshift cost (off)\n\
@@ -90,10 +90,11 @@ Score parameters (default settings):\n\
 -y: maximum score dropoff for gapless extensions (t*10)\n\
 -z: maximum score dropoff for final gapped extensions (x)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
--e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<4: 180)\n\
+-e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<5: 180)\n\
 \n\
 Miscellaneous options (default settings):\n\
--Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=PRB, 4=PSSM ("
+-Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=FASTQ-Illumina,\n\
+                  4=PRB, 5=PSSM ("
     + stringify(inputFormat) + ")\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
     2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q=0, else 0)\n\

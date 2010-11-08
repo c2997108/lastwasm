@@ -60,7 +60,8 @@ struct LastalArguments{
   int maxDropGapped;
   int maxDropGapless;
   int maxDropFinal;
-  enum InputFormat { fasta, fastqSanger, fastqSolexa, prb, pssm } inputFormat;
+  enum InputFormat { fasta, fastqSanger, fastqSolexa, fastqIllumina, prb,
+                     pssm } inputFormat;
   indexT minHitDepth;
   indexT oneHitMultiplicity;
   indexT maxGaplessAlignmentsPerQueryPosition;

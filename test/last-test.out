@@ -398,3 +398,32 @@ TEST 7
 2060	chr32	721	195	+	1028	chrM	7144	192	-	16775	91,3:0,101
 # CPU time: 0.08 seconds
 
+TEST 8
+#
+# a=21 b=9 c=100000 F=-1 e=110 d=66 x=201 y=44 z=201
+# u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
+# /tmp/last-test
+#
+#    A  C  G  T
+# A  6 -18 -18 -18
+# C -18  6 -18 -18
+# G -18 -18  6 -18
+# T -18 -18 -18  6
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+a score=118
+s chr32                  110 31 + 1028 cctaaccctaagccaaaccctagccctaacc
+s HWW-E2:1:1:10:1477#0/1  11 31 +   50 CCTAACCCTAANCCTAACCCTAACCCTAACC
+q HWW-E2:1:1:10:1477#0/1               aaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^a
+
+a score=112
+s chr32                  97 40 + 1028 ccctaagcttaagcctaaccctaagccaaaccctagccct
+s HWW-E2:1:1:10:1477#0/1 10 40 +   50 CCCTAACCCTAANCCTAACCCTAACCCTAACCCTAACCCT
+q HWW-E2:1:1:10:1477#0/1              aaaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^aaS\RMX]\
+
+# CPU time: 0.01 seconds
+

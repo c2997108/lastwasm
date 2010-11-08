@@ -46,6 +46,11 @@ db=/tmp/last-test
     echo TEST 7  # asymmetric scoring matrix
     lastal -s0 -f0 -p asymmetric.mat -e2000 $db $dnaSeq
     echo
+
+    echo TEST 8  # FASTQ-Illumina quality scores
+    lastdb -m1111110 $db $dnaSeq
+    lastal -Q3 -e110 $db illumina100.txt
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -

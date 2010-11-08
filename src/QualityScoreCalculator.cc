@@ -101,6 +101,8 @@ void QualityScoreCalculator::makePssm( int pssm[][MAT],
       continue;
     }
 
+    // Check here for impossible negative phred quality values?
+
     // This special case for match-mismatch matrices is unnecessary,
     // but faster.  Unfortunately, it can give slightly different
     // results for PRB data (if the PRB probabilities don't add up to

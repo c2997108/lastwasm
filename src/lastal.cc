@@ -583,7 +583,8 @@ void lastal( int argc, char** argv ){
   if( args.isQualityScores() ){
     assert( matGapless == matGapped );
     assert( matGapped == matFinal );
-    bool isPhred = (args.inputFormat == args.fastqSanger);
+    bool isPhred = (args.inputFormat == args.fastqSanger ||
+                    args.inputFormat == args.fastqIllumina);
     int asciiOffset = (args.inputFormat == args.fastqSanger) ? 33 : 64;
     bool isMatchMismatch = args.matrixFile.empty() && args.matchScore > 0;
     qualityScoreCalculator.init( matGapped, alph.size, args.temperature,
