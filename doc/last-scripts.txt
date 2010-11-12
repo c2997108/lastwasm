@@ -116,8 +116,8 @@ top (it defaults to 2)::
 maf-sort.sh
 -----------
 
-This sorts MAF-format alignments by sequence name, then start
-position, then end position, of the top sequence.
+This sorts MAF-format alignments by sequence name, then strand, then
+start position, then end position, of the top sequence.
 
 
 last-remove-dominated.py
@@ -155,3 +155,7 @@ Limitations
 2) The scripts that read MAF format work with the simple subset of MAF
    produced by lastal, but they don't necessarily work with more
    complex MAF data from elsewhere.
+
+3) These scripts do not work for DNA-versus-protein alignments:
+   last-dotplot.py, maf-join.py, last-reduce-alignments.sh,
+   last-remove-dominated.py.

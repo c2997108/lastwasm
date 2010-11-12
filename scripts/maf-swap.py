@@ -1,74 +1,127 @@
 #! /usr/bin/env python
 
-# Change the order of sequences in MAF alignments, then make sure the
-# top sequence is on the + strand.  The MAF spacing might get messed up.
+# Read MAF-format alignments, and write them, after moving the Nth
+# sequence to the top in each alignment.
 
-import optparse, fileinput, string, re, signal
+# Before writing, if the top sequence would be on the - strand, then
+# flip all the strands.  But don't do this if the top sequence is
+# translated DNA.
 
-signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
+# Seems to work with Python 2.x, x>=4
 
-parser = optparse.OptionParser(usage="%prog [options] my-alignments.maf")
-parser.add_option("-n", type="int", default=2,
-                  help="move the Nth sequence to the top (default: %default)")
-(opts, args) = parser.parse_args()
-if opts.n < 1: parser.error("option -n: should be >= 1")
+import fileinput, itertools, optparse, os, signal, string, sys
+
+def filterComments(lines):
+    for i in lines:
+        if i.startswith("#"): print i,
+        else: yield i
+
+def mafInput(lines):
+    for k, v in itertools.groupby(lines, str.isspace):
+        if not k: yield list(v)
+
+def indexOfNthSequence(mafLines, n):
+    for i, line in enumerate(mafLines):
+        if line.startswith("s"):
+            if n == 1: return i
+            n -= 1
+    raise Exception("encountered an alignment with too few sequences")
 
 complement = string.maketrans('ACGTNSWRYKMBDHVacgtnswrykmbdhv',
                               'TGCANSWYRMKVHDBtgcanswyrmkvhdb')
-
+# doesn't handle "U" in RNA sequences
 def revcomp(seq):
     return seq[::-1].translate(complement)
 
-def flipstrand(strand):
-    if strand == '-': return '+'
-    else:             return '-'
+def flippedMafS(words):
+    alnStart = int(words[2])
+    alnSize = int(words[3])
+    strand = words[4]
+    seqSize = int(words[5])
+    alnString = words[6]
+    newStart = seqSize - alnStart - alnSize
+    if strand == "-": newStrand = "+"
+    else:             newStrand = "-"
+    newString = revcomp(alnString)
+    out = words[0], words[1], newStart, alnSize, newStrand, seqSize, newString
+    return map(str, out)
 
-def flip_s_line(words):
-    start = int(words[4])
-    alnsize = int(words[6])
-    seqsize = int(words[10])
-    newstart = seqsize - start - alnsize
-    words[4] = str(newstart)
-    words[8] = flipstrand(words[8])
-    words[12] = revcomp(words[12])
+def flippedMafP(words):
+    return words[:1] + words[:0:-1]
 
-def flip_p_line(words):
-    words[2:-2] = words[-3:1:-1]
+def flippedMafQ(words):
+    qualityString = words[2]
+    flippedString = qualityString[::-1]
+    return words[:2] + [flippedString]
 
-def flip_q_line(words):
-    words[2] = words[2][::-1]
+def flippedMafLine(mafLine):
+    words = mafLine.split()
+    if   words[0] == "s": return flippedMafS(words)
+    elif words[0] == "p": return flippedMafP(words)
+    elif words[0] == "q": return flippedMafQ(words)
+    else: return words
 
-def flip_line(line):
-    words = re.split(r'(\s+)', line)  # keep the spaces
-    if   line.startswith('s'): flip_s_line(words)
-    elif line.startswith('p'): flip_p_line(words)
-    elif line.startswith('q'): flip_q_line(words)
-    return ''.join(words)
+def maxlen(s):
+    return max(map(len, s))
 
-def indexOfNthSequence(lines, n):
-    for i, line in enumerate(lines):
-        if line.startswith('s'):
-            if n == 1: return i
-            n -= 1
-    parser.error("option -n: should be <= the number of sequences")
+def sLineFieldWidths(mafLines):
+    sLines = (i for i in mafLines if i[0] == "s")
+    sColumns = zip(*sLines)
+    return map(maxlen, sColumns)
 
-def write(lines):
-    if not lines: return
-    indexToMove = indexOfNthSequence(lines, opts.n)
-    lines.insert(1, lines.pop(indexToMove))
-    if lines[1].split()[4] == '-':
-        lines = map(flip_line, lines)
-    print ''.join(lines)  # this prints a blank line at the end
+def joinedMafS(words, fieldWidths):
+    formatParams = itertools.chain(*zip(fieldWidths, words))
+    return "%*s %-*s %*s %*s %*s %*s %*s\n" % tuple(formatParams)
 
-lines = []
-
-for line in fileinput.input(args):
-    if line.startswith('#'):
-        print line,
-    elif line.isspace():
-        write(lines)
-        lines = []
+def joinedMafLine(words, fieldWidths):
+    if words[0] == "s":
+        return joinedMafS(words, fieldWidths)
+    elif words[0] == "q":
+        words = words[:2] + [""] * 4 + words[2:]
+        return joinedMafS(words, fieldWidths)
     else:
-        lines.append(line)
+        return " ".join(words) + "\n"
 
-write(lines)
+def flippedMaf(mafLines):
+    flippedLines = map(flippedMafLine, mafLines)
+    fieldWidths = sLineFieldWidths(flippedLines)
+    return (joinedMafLine(i, fieldWidths) for i in flippedLines)
+
+def isCanonicalStrand(mafLine):
+    words = mafLine.split()
+    strand = words[4]
+    if strand == "+": return True
+    alnString = words[6]
+    if "/" in alnString or "\\" in alnString: return True  # frameshifts
+    alnSize = int(words[3])
+    gapCount = alnString.count("-")
+    if len(alnString) - gapCount < alnSize: return True  # translated DNA
+    return False
+
+def mafSwap(opts, args):
+    inputLines = fileinput.input(args)
+    for mafLines in mafInput(filterComments(inputLines)):
+        indexToMove = indexOfNthSequence(mafLines, opts.n)
+        lineToMove = mafLines.pop(indexToMove)
+        mafLines.insert(1, lineToMove)
+        if not isCanonicalStrand(lineToMove):
+            mafLines = flippedMaf(mafLines)
+        for i in mafLines: print i,
+        print  # blank line after each alignment
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
+
+    usage = "%prog [options] my-alignments.maf"
+    description = "Change the order of sequences in MAF-format alignments."
+    op = optparse.OptionParser(usage=usage, description=description)
+    op.add_option("-n", type="int", default=2,
+                  help="move the Nth sequence to the top (default: %default)")
+    (opts, args) = op.parse_args()
+    if opts.n < 1: op.error("option -n: should be >= 1")
+
+    try: mafSwap(opts, args)
+    except KeyboardInterrupt: pass  # avoid silly error message
+    except Exception, e:
+        prog = os.path.basename(sys.argv[0])
+        sys.exit(prog + ": error: " + str(e))
