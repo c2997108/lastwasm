@@ -6,7 +6,10 @@
 #include <numeric>  // inner_product
 #include <algorithm>  // fill_n
 #include <cmath>
-//#include <cassert>  // for debugging
+#include <cassert>
+#include <stdexcept>
+
+#define ERR(x) throw std::runtime_error(x)
 
 using namespace cbrc;
 
@@ -18,8 +21,8 @@ static int nearestInt( double x ){
 static double phredScoreToProbCorrect( int score ){
   // XXX real data sometimes has score=0, and perhaps this really
   // means that the error probability is 3/4, not 1.
-  if( score < 0 ) return 0;  // there shouldn't be any scores < 0
   return 1 - std::pow(10.0, -0.1 * score);
+  // if score<0, the result is negative, which indicates a bad phred score
 }
 
 static double solexaScoreToProbCorrect( int score ){
@@ -31,6 +34,7 @@ int QualityScoreCalculator::probCorrectToMatchScore( double probCorrect ){
   double matchLR = std::exp( matchScore / temperature );
   double mismatchLR = std::exp( mismatchScore / temperature );
   double averageLR = probCorrect * matchLR + (1-probCorrect) * mismatchLR;
+  assert( averageLR > 0 );
   return nearestInt( temperature * std::log( averageLR ) );
 }
 
@@ -101,7 +105,12 @@ void QualityScoreCalculator::makePssm( int pssm[][MAT],
       continue;
     }
 
-    // Check here for impossible negative phred quality values?
+    if( isSingleQualities ){  // partial check for wrong FASTQ format:
+      uchar q = qualityScores[i];
+      if( qualityToProbCorrect[q] < 0 ){
+        ERR( std::string("bad symbol for sequence quality: ") + char(q) );
+      }
+    }
 
     // This special case for match-mismatch matrices is unnecessary,
     // but faster.  Unfortunately, it can give slightly different
