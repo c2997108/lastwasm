@@ -27,6 +27,16 @@ def indexOfNthSequence(mafLines, n):
             n -= 1
     raise Exception("encountered an alignment with too few sequences")
 
+def rangeOfNthSequence(mafLines, n):
+    """Get the range of lines associated with the Nth sequence."""
+    start = indexOfNthSequence(mafLines, n)
+    stop = start + 1
+    while stop < len(mafLines):
+        line = mafLines[stop]
+        if not (line.startswith("q") or line.startswith("i")): break
+        stop += 1
+    return start, stop
+
 complement = string.maketrans('ACGTNSWRYKMBDHVacgtnswrykmbdhv',
                               'TGCANSWYRMKVHDBtgcanswyrmkvhdb')
 # doesn't handle "U" in RNA sequences
@@ -101,10 +111,9 @@ def isCanonicalStrand(mafLine):
 def mafSwap(opts, args):
     inputLines = fileinput.input(args)
     for mafLines in mafInput(filterComments(inputLines)):
-        indexToMove = indexOfNthSequence(mafLines, opts.n)
-        lineToMove = mafLines.pop(indexToMove)
-        mafLines.insert(1, lineToMove)
-        if not isCanonicalStrand(lineToMove):
+        start, stop = rangeOfNthSequence(mafLines, opts.n)
+        mafLines[1:stop] = mafLines[start:stop] + mafLines[1:start]
+        if not isCanonicalStrand(mafLines[1]):
             mafLines = flippedMaf(mafLines)
         for i in mafLines: print i,
         print  # blank line after each alignment
