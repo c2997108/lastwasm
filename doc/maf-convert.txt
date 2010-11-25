@@ -1,0 +1,41 @@
+maf-convert.py
+==============
+
+This script reads alignments in maf format, and writes them in another
+format.  It can write them in these formats: axt, blast, html, psl,
+sam, tab.  You can use it like this:
+
+  maf-convert.py psl my-alignments.maf > my-alignments.psl
+
+For html: if the input includes probability lines starting with 'p',
+then the output will be coloured by column probability.  (To get lines
+starting with 'p', run lastal with option -j4 or -j5.)  If an
+alignment has multiple 'p' lines (e.g. after using maf-join.py), then
+the column-wise products are used.
+
+Options
+-------
+
+  -h, --help
+         Print a help message and exit.
+
+  -p, --protein
+         Specify that the alignments are of proteins, rather than
+         nucleotides.  This affects psl format only (the first 4
+         columns).
+
+  -l CHARS, --linesize=CHARS
+         Write CHARS characters per line.  This affects blast and html
+         formats only.
+
+"Bugs"
+------
+
+* For sam: the QUAL field (column 11) is simply copied from the MAF q
+  line.  The QUAL is supposed to be encoded as ASCII(phred+33),
+  whereas MAF q lines are encoded differently according to the UCSC
+  Genome FAQ.  However, if you run lastal with option -Q1, the maf q
+  lines will in fact be ASCII(phred+33).
+
+* The blast format is merely blast-like: it is not identical to NCBI
+  BLAST.

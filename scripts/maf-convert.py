@@ -4,13 +4,17 @@
 # Seems to work with Python 2.x, x>=4
 
 from itertools import *
-import sys, os, fileinput, operator, optparse, signal
+import sys, os, fileinput, math, operator, optparse, signal, string
 
 def maxlen(s):
     return max(map(len, s))
 
 def joined(things, delimiter):
     return delimiter.join(map(str, things))
+
+identityTranslation = string.maketrans("", "")
+def deleted(myString, deleteChars):
+    return myString.translate(identityTranslation, deleteChars)
 
 def quantify(iterable, pred=bool):
     """Count how many times the predicate is true."""
@@ -39,6 +43,7 @@ class Maf:
         self.alnStrings = cols[6]
 
         self.pLines = [i for i in lines if i[0] == "p"]
+        self.qLines = [i for i in lines if i[0] == "q"]
 
 def dieUnlessPairwise(maf):
     if len(maf.alnStrings) != 2:
@@ -65,6 +70,7 @@ def insertionSize(alnString, letterSize):
     return letters * letterSize + forwardShifts - reverseShifts
 
 def isMatch(alignmentColumn):
+    # No special treatment of ambiguous bases/residues: same as NCBI BLAST.
     first = alignmentColumn[0].upper()
     for i in alignmentColumn[1:]:
         if i.upper() != first: return False
@@ -129,6 +135,9 @@ def writeTab(maf):
     try: outWords.append(maf.namesAndValues["expect"])
     except KeyError: pass
 
+    try: outWords.append(maf.namesAndValues["mismap"])
+    except KeyError: pass
+
     print joined(outWords, "\t")
 
 ##### Routines for converting to PSL format: #####
@@ -158,24 +167,30 @@ def pslEndpoints(alnStart, alnSize, strand, seqSize):
     if strand == "+": return alnStart, alnEnd
     else: return seqSize - alnEnd, seqSize - alnStart
 
-def caseSensitivePairwiseMatchCount(columns):  # faster than "quantify"
-    return len([1 for x, y in columns if x == y])
+def caseSensitivePairwiseMatchCounts(columns, isProtein):
+    # repMatches is always zero
+    # for proteins, nCount is always zero, because that's what BLATv34 does
+    standardBases = "ACGTU"
+    matches = mismatches = repMatches = nCount = 0
+    for i in columns:
+        if "-" in i: continue
+        x, y = i
+        if x in standardBases and y in standardBases or isProtein:
+            if x == y: matches += 1
+            else: mismatches += 1
+        else: nCount += 1
+    return matches, mismatches, repMatches, nCount
 
-def gaplessColumnCount(columns):  # faster than "quantify"
-    return len([1 for i in columns if "-" not in i])
-
-def writePsl(maf):
+def writePsl(maf, isProtein):
     dieUnlessPairwise(maf)
 
     alnStrings = map(str.upper, maf.alnStrings)
     alignmentColumns = zip(*alnStrings)
     letterSizes = mafLetterSizes(maf)
-    numGaplessColumns = gaplessColumnCount(alignmentColumns)
 
-    matches = caseSensitivePairwiseMatchCount(alignmentColumns)
-    mismatches = numGaplessColumns - matches
-    repMatches = 0  # unimplemented
-    nCount = 0  # unimplemented: it's hard to know if we have DNA or proteins
+    matchCounts = caseSensitivePairwiseMatchCounts(alignmentColumns, isProtein)
+    matches, mismatches, repMatches, nCount = matchCounts
+    numGaplessColumns = sum(matchCounts)
 
     qNumInsert = gapRunCount(maf.alnStrings[0])
     qBaseInsert = maf.alnSizes[1] - numGaplessColumns * letterSizes[1]
@@ -205,6 +220,93 @@ def writePsl(maf):
                 qName, qSeqSize, qStart, qEnd, tName, tSeqSize, tStart, tEnd,
                 blockCount, blockSizes, qStarts, tStarts)
     print joined(outWords, "\t")
+
+##### Routines for converting to SAM format: #####
+
+mapqMissing = 255
+mapqMaximum = 254
+
+def mapqFromProb(probString):
+    try: p = float(probString)
+    except ValueError: raise Exception("bad probability: " + probString)
+    if p < 0 or p > 1: raise Exception("bad probability: " + probString)
+    if p == 0: return mapqMaximum
+    phred = -10 * math.log(p, 10)
+    if phred > mapqMaximum: return mapqMaximum
+    return int(round(phred))
+
+def cigarCategory(alignmentColumn):
+    x, y = alignmentColumn
+    if x == "-":
+        if y == "-": return "P"
+        else: return "I"
+    else:
+        if y == "-": return "D"
+        else: return "M"
+
+def cigarParts(alignmentColumns):
+    # (doesn't handle translated alignments)
+    for k, v in groupby(alignmentColumns, cigarCategory):
+        yield len(list(v)), k
+
+def writeSam(maf):
+    if 3 in mafLetterSizes(maf):
+        raise Exception("this looks like translated DNA - can't convert to SAM format")
+
+    try: score = "AS:i:" + maf.namesAndValues["score"]
+    except KeyError: score = None
+
+    try: evalue = "EV:Z:" + maf.namesAndValues["expect"]
+    except KeyError: evalue = None
+
+    try: mapq = mapqFromProb(maf.namesAndValues["mismap"])
+    except KeyError: mapq = mapqMissing
+
+    rows = zip(maf.seqNames, maf.alnStarts, maf.alnSizes,
+               maf.strands, maf.seqSizes, maf.alnStrings)
+    head, tail = rows[0], rows[1:]
+
+    rName, rStart, rAlnSize, rStrand, rSeqSize, rAlnString = head
+    if rStrand != "+":
+        raise Exception("for SAM, the 1st strand in each alignment must be +")
+    pos = rStart + 1  # convert to 1-based coordinate
+
+    for qName, qStart, qAlnSize, qStrand, qSeqSize, qAlnString in tail:
+        alignmentColumns = zip(rAlnString.upper(), qAlnString.upper())
+
+        flag = 0
+        if qStrand == "-": flag = 16
+
+        cigar = []
+        if qStart:
+            pair = qStart, "H"
+            cigar.append(pair)
+        cigar.extend(cigarParts(alignmentColumns))
+        qRevStart = qSeqSize - qStart - qAlnSize
+        if qRevStart:
+            pair = qRevStart, "H"
+            cigar.append(pair)
+        cigar = joined(chain(*cigar), "")
+
+        seq = deleted(qAlnString, "-")
+
+        qual = "*"
+        if maf.qLines:
+            q, qualityName, qualityString = maf.qLines[0]
+            # don't try to handle multiple alignments for now (YAGNI):
+            if len(maf.qLines) > 1 or len(tail) > 1 or qualityName != qName:
+                raise Exception("can't interpret the quality data")
+            qual = deleted(qualityString, "-")
+
+        editDistance = sum(1 for x, y in alignmentColumns if x != y)
+        # no special treatment of ambiguous bases: might be a minor bug
+        editDistance = "NM:i:" + str(editDistance)
+
+        outWords = [qName, flag, rName, pos, mapq, cigar, "*", 0, 0, seq, qual]
+        outWords.append(editDistance)
+        if score: outWords.append(score)
+        if evalue: outWords.append(evalue)
+        print joined(outWords, "\t")
 
 ##### Routines for converting to BLAST-like format: #####
 
@@ -397,7 +499,8 @@ def mafConvert(opts, args):
         if   isFormat(format, "axt"): writeAxt(maf)
         elif isFormat(format, "blast"): writeBlast(maf, opts.linesize)
         elif isFormat(format, "html"): writeHtml(maf, opts.linesize)
-        elif isFormat(format, "psl"): writePsl(maf)
+        elif isFormat(format, "psl"): writePsl(maf, opts.protein)
+        elif isFormat(format, "sam"): writeSam(maf)
         elif isFormat(format, "tabular"): writeTab(maf)
         else: raise Exception("unknown format: " + format)
     if isFormat(format, "html"): print "</body></html>"
@@ -406,13 +509,19 @@ if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
 
     usage = """
+  %prog --help
   %prog axt my-alignments.maf
   %prog blast my-alignments.maf
   %prog html my-alignments.maf
   %prog psl my-alignments.maf
+  %prog sam my-alignments.maf
   %prog tab my-alignments.maf"""
 
-    op = optparse.OptionParser(usage=usage)
+    description = "Read MAF-format alignments & write them in another format."
+
+    op = optparse.OptionParser(usage=usage, description=description)
+    op.add_option("-p", "--protein", action="store_true",
+                  help="assume protein alignments, for psl match counts")
     op.add_option("-l", "--linesize", type="int", default=60, #metavar="CHARS",
                   help="line length for blast and html formats (default: %default)")
     (opts, args) = op.parse_args()

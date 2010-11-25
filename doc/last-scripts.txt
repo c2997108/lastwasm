@@ -37,28 +37,6 @@ chromosomes with names like "chr1_random"::
   last-dotplot.py plotme plotme.png
 
 
-maf-convert.py
---------------
-
-This script converts MAF format alignments to various other formats::
-
-  maf-convert.py tab my-alignments.maf > my-alignments.tab
-  maf-convert.py axt my-alignments.maf > my-alignments.axt
-  maf-convert.py psl my-alignments.maf > my-alignments.psl
-  maf-convert.py blast my-alignments.maf > my-alignments.blast
-  maf-convert.py html my-alignments.maf > my-alignments.html
-
-You can set the line length for blast and html formats with "-l"::
-
-  maf-convert.py -l50 html my-alignments.maf > my-alignments.html
-
-For html: if the input includes probability lines starting with 'p',
-then the output will be coloured by column probability.  (To get lines
-starting with 'p', run lastal with option -j4 or -j5.)  If an
-alignment has multiple 'p' lines (e.g. after using maf-join.py), then
-the column-wise products are used.
-
-
 last-reduce-alignments.sh
 -------------------------
 
@@ -126,24 +104,6 @@ last-remove-dominated.py
 This script is used by last-reduce-alignments.sh.  It reads sorted
 alignments, and removes alignments of A in genome 1 with B in genome 2
 if A also aligns more strongly to a different region X.
-
-
-last-map-probs.py
------------------
-
-This script calculates "mapping probabilities" for alignments in LAST
-tabular format.  If one query sequence participates in more than one
-alignment, the script ASSUMES that ONE of these alignments is the true
-mapping.  The script estimates a probability of each alignment being
-the true mapping (based on their scores).  It writes the alignments
-plus an extra column with the probabilities::
-
-  last-map-probs.py my-alignments.tab > my-alignments-with-probs
-
-This script does not indicate whether alignments are significantly
-similar: for that, you need lastex.  Furthermore, if you feed this
-script weak alignments that might exist just by chance, then its
-assumption is unlikely to be valid.
 
 
 Limitations

@@ -1,0 +1,67 @@
+last-map-probs.py
+=================
+
+This script aims to choose between several alignments of a query
+sequence.  It assumes that exactly one reported alignment reflects the
+origin of each query sequence.  It calculates the probability that
+each alignment is a "mismap" (is not the one that reflects the origin
+of the query).
+
+Example 1: If a query sequence only has one reported alignment, its
+           mismap probability will be zero.
+
+Example 2: If a query sequence has two reported alignments, with
+           identical alignment scores, their mismap probabilities will
+           be 0.5.
+
+This script can read alignments in either of the formats produced by
+lastal (maf or tabular).  You can use it like this:
+
+  last-map-probs.py my-alignments > my-alignments-with-mismap-probs
+
+The input must be a real file (not a pipe), because the script makes
+two passes over it.
+
+Options
+-------
+
+  -h, --help          Print a help message and exit.
+  -m M, --mismap=M    Don't write alignments with mismap probability > M.
+  -s S, --score=S     Don't write alignments with score < S.
+
+Suggestions
+-----------
+
+* Use alignments with low scores in the input, but remove them from
+  the output.  For example, use alignments with score >= 150 in the
+  input, but remove alignments with score < 180 from the output.  This
+  is because the mismap probability of an alignment with score 180 may
+  depend on alignments with score < 180.
+
+* Don't trust low-scoring alignments that might arise by chance
+  between unrelated sequences.  You can use lastex to calculate how
+  frequently various alignment scores arise by chance.  If all the
+  alignments of a query sequence have such low scores, then maybe none
+  of them reflect the origin of the query.
+
+* Consider masking simple repeats (e.g. atatatatat) before aligning.
+  This can reduce the risk of mapping contaminants, i.e. query
+  sequences that do not come from the reference sequence.  If a query
+  sequence is repetitive, it may be impossible to determine whether or
+  not it is a contaminant.  Repeat-masking does not help with
+  contaminants that have close homology to the reference sequence.
+
+Limitations
+-----------
+
+* It is possible that two or more alignments reflect the origin of one
+  query sequence, for instance if the query arose by splicing.  This
+  script makes no allowance for that possibility.
+
+Reference
+---------
+
+The method used by last-map-probs.py is described in this article:
+  Incorporating sequence quality data into alignment improves DNA read mapping
+  Frith MC, Wan R, Horton P
+  Nucleic Acids Res. 2010 38:e100
