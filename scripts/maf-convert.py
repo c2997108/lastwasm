@@ -253,8 +253,8 @@ def writeSam(maf):
     if 3 in mafLetterSizes(maf):
         raise Exception("this looks like translated DNA - can't convert to SAM format")
 
-    try: score = "AS:i:" + maf.namesAndValues["score"]
-    except KeyError: score = None
+    try: score = "AS:i:" + str(int(maf.namesAndValues["score"]))
+    except (KeyError, ValueError): score = None  # it must be an integer
 
     try: evalue = "EV:Z:" + maf.namesAndValues["expect"]
     except KeyError: evalue = None
