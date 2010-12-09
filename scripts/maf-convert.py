@@ -3,6 +3,9 @@
 # Read MAF-format alignments: write them in other formats.
 # Seems to work with Python 2.x, x>=4
 
+# By "MAF" we mean "multiple alignment format" described in the UCSC
+# Genome FAQ, not e.g. "MIRA assembly format".
+
 from itertools import *
 import sys, os, fileinput, math, operator, optparse, signal, string
 
@@ -361,7 +364,7 @@ def writeBlast(maf, lineSize):
     matches = quantify(alignmentColumns, isMatch)
     matchPercent = 100 * matches // alnSize  # round down, like BLAST
     identLine = " Identities = %s/%s (%s%%)" % (matches, alnSize, matchPercent)
-    gaps = alnSize - gaplessColumnCount(alignmentColumns)
+    gaps = alnSize - quantify(alignmentColumns, isGapless)
     gapPercent = 100 * gaps // alnSize  # round down, like BLAST
     if gaps: identLine += ", Gaps = %s/%s (%s%%)" % (gaps, alnSize, gapPercent)
     print identLine

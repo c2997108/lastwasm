@@ -14,8 +14,8 @@ PATH=$PATH:../src:../scripts
 lastdb -c humanMito humanMito.fa
 
 # Align the mouse sequence to the human sequence:
-# Let's use a score threshold of 25.  The accompanying E-value tables
-# show that this is a reasonable threshold for sequences of this size.
+# Let's use a score threshold of 25.  Lastex shows that this is a
+# reasonable threshold for sequences of this size.
 lastal -e25 -j4 humanMito mouseMito.fa > hm.maf
 
 # Remove paralogs (if any):
