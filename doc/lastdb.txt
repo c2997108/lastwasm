@@ -1,0 +1,119 @@
+lastdb
+======
+
+This program prepares sequences for subsequent comparison and
+alignment using lastal.  You can use it like this:
+
+  lastdb humanDb humanChromosome*.fasta
+
+This will read files called humanChromosome*.fasta, and write several
+files whose names begin with humanDb.
+
+Input
+-----
+
+The input should be one or more files in fasta format, which looks
+like this:
+
+  >MyFirstSequence
+  ATCGGGATATATGGAGAGCTTAGAG
+  TTTGGATATG
+  >My2ndSequence
+  TTTAGAGGGTTCTTCGGGATT
+
+If you wish to read standard input (e.g. from a pipe), use the special
+file name "-".
+
+Options
+-------
+
+Main Options
+~~~~~~~~~~~~
+
+  -h  Show all options and their default settings.
+
+  -p  Interpret the sequences as proteins.  The default is to interpret
+      them as DNA.
+
+  -c  Soft-mask lowercase letters.  This means that, when we compare
+      these sequences to some other sequences using lastal, lowercase
+      letters will be excluded from initial matches.  This will apply
+      to lowercase letters in both sets of sequences.
+
+Advanced Options
+~~~~~~~~~~~~~~~~
+
+  -s BYTES      
+      Limit memory usage, by splitting the output files into smaller
+      "volumes" if necessary.  This will limit the memory usage of
+      both lastdb and lastal, but it will make lastal slower.  It is
+      also likely to change the exact results found by lastal.
+
+      BYTES should be slightly less than the amount of real memory on
+      your computer.  You can use suffixes K, M, and G to specify
+      KibiBytes, MebiBytes, and GibiBytes.  For example, "-s 5G" has
+      worked well with 6G, and "-s 1280M" has worked well with 2G.
+
+      However, the output for one sequence is never split.  Since the
+      output files are several-fold bigger than the input, this means
+      that mammalian chromosomes cannot be processed using much less
+      than 2G.
+
+      There is a hard upper limit of about 4 billion sequence letters
+      per volume.  Together with the previous point, this means that
+      lastdb will refuse to process any single sequence longer than
+      about 4 billion.
+
+  -m PATTERN
+      Specify a spaced seed pattern, for example "-m 110101".  In this
+      example, mismatches will be allowed at every third and fifth
+      position out of six in initial matches.
+
+      This option does not constrain the length of initial matches.
+      The pattern will get cyclically repeated as often as necessary
+      to cover any length.
+
+      Although the 0 positions allow mismatches, they exclude
+      non-standard letters (e.g. non-ACGT for DNA).  If option -c is
+      used, they also exclude lowercase letters.
+
+  -u FILE
+      Specify a subset seed file.  The -m option will then be ignored.
+      For an example of the format, see yass.seed in the examples
+      directory.
+
+  -w STEP
+      Allow initial matches to start only at every STEP-th position in
+      each of the sequences given to lastdb.  This reduces the memory
+      usage of lastdb and lastal, and it makes lastdb faster.  Its
+      effect on the speed and sensitivity of lastal is not entirely
+      clear.  To emulate BLAT, use "-w 11".
+
+  -a SYMBOLS
+      Specify your own alphabet, e.g. "-a 0123".  The default (DNA)
+      alphabet is equivalent to "-a ACGT".  The protein alphabet (-p)
+      is equivalent to "-a ACDEFGHIKLMNPQRSTVWY".  Non-alphabet
+      letters are allowed in sequences, but by default they are
+      excluded from initial matches and get the mismatch score when
+      aligned to anything.  If -a is specified, -p is ignored.
+
+  -b DEPTH
+      Specify the depth of "buckets" used to accelerate initial match
+      finding.  Larger values increase the memory usage of lastdb and
+      lastal, make lastal faster, and have no effect on lastal's
+      results.  The default is to use the maximum depth that consumes
+      at most one byte per possible match start position.
+
+  -x  Just count sequences and letters.  This is much faster, and the
+      results are useful with lastex.  Letter counting is never
+      case-sensitive.
+
+  -v  Be verbose: write messages about what lastdb is doing.
+
+Limitations
+-----------
+
+lastdb can become catastrophically slow for sequences with large
+repeats.  It copes fine with all biological data that we have tried,
+including a version of the human genome where large parts of the X and
+Y chromosomes are identical.

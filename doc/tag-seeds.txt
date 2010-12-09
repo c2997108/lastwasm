@@ -1,90 +1,39 @@
-Mapping reads to a genome with LAST
-===================================
+Guaranteed alignments with LAST
+===============================
 
-LAST has many adjustable parameters, providing many ways of mapping
-reads to a genome.  We cannot tell you which way is best, but here are
-some ideas that might be helpful.
+Occasionally, we may wish to find alignments with certain guarantees.
+For example, find all alignments of DNA reads to a genome allowing up
+to 3 mismatches.
 
-1. A reasonable mapping procedure
----------------------------------
+The first step of lastal is to find initial matches:
+  * For each possible start position in the query, find the shortest
+    match with length >= l that occurs <= m times in the reference.
 
-This procedure has worked well for us with different kinds of read
-(Illumina and FLX Titanium):
+By default, l=1 and m=10.  This typically works well, but it does not
+guarantee to find alignments.  For example, if a short query sequence
+perfectly matches more than ten locations in the reference, no
+alignments will be found.
 
-  lastdb -m1111110 genomedb genome/chr*.fa
-  lastal -Q1 genomedb reads.fastq
+1. Counting exact matches
+-------------------------
 
-If your reads are in plain FASTA format (without quality data), then
-omit "-Q1".  Beware, however, that this changes the default score
-parameters: without -Q they are tuned for long, weak genome/genome
-alignments, and with -Q they are tuned for short, strong read/genome
-alignments.  To use the latter parameters, do this:
+This example counts all exact matches of length >= 30:
 
-  lastal -r6 -q18 -a21 -b9 -e180 genomedb reads.fa
+  lastdb -m1 genomedb genome.fa
+  lastal -l30 -j0 genomedb reads.fa
 
-Quality data improves mapping accuracy, as long as the quality data
-itself is not too inaccurate.
+The -m1 option ensures that the initial matches are exact matches.
+The -l30 option requests initial matches of length >= 30.  Finally,
+the -j0 option tells lastal to simply count initial matches and not
+extend alignments.  When -j0 is used, lastal applies no restriction on
+how often the matches occur: it counts all matches of length >= 30.
 
-2. Dealing with multi-mapping reads
------------------------------------
+2. Guaranteeing to align reads with up to N mismatches
+------------------------------------------------------
 
-Often, one read will align to more than one genome location.  You can
-use last-map-probs.py in the scripts directory to help judge which
-location the read really maps to.  This script calculates a mapping
-probability for each alignment.  For example, if one read aligns to
-two locations with identical scores, then the probabilities will be
-50:50.
-
-3. Very short reads
--------------------
-
-The default score parameters do not align reads shorter than 30 bp,
-because the match score is 6 and the score threshold is 180.  To align
-shorter reads, reduce the score threshold (lastal -e).
-
-If the score threshold is too low, you will get meaningless, random
-alignments.  (You might also need to adjust lastal -d, which defaults
-to e*3/5: if it is too low, lastal might be slow.)
-
-4. How does this alignment procedure work: what are its limitations?
---------------------------------------------------------------------
-
-If you want to understand how this alignment procedure works in more
-detail, read on.  LAST uses a two-step approach: first find initial
-matches, then extend alignments from these matches.  The "initial
-matches" are: all matches of any part of a read to the genome, of any
-length, where the match occurs at most ten times in the genome.
-
-One consequence is that repetitive reads will not be mapped: if a read
-perfectly matches more than ten locations in the genome, it gets
-dropped at the first step.
-
-The main point is that this procedure does not guarantee to find all
-alignments with score >= 180.  It is more likely to miss alignments
-that have uniformly-spaced mismatches/gaps, and less likely to miss
-alignments with mismatches/gaps concentrated at the ends.  We think it
-does a good job in practice.
-
-5. Diagnosing repetitive reads
-------------------------------
-
-We can detect repetitive reads as follows:
-
-  lastal -j0 -l30 genomedb reads.fastq
-
-Here, -j0 tells lastal to just report counts of initial matches.  In
-this case, there is no limit on how often the matches occur: matches
-that occur more than ten times in the genome are counted too.  The
--l30 option requests matches of length >= 30 only: this makes it
-faster and makes the output smaller.  (Without -l30, it counts all
-matches of length >= 1: this is still quite fast.)
-
-6. Guaranteeing to map reads with up to N mismatches
-----------------------------------------------------
-
-Suppose we wish to find all matches of length-36 reads to the genome,
-allowing up to two mismatches.  A naive approach is to start by
-finding all exact matches of length 12, and extend alignments from
+Suppose we wish to find all alignments of length-36 reads to the
+genome, allowing up to two mismatches.  A naive approach is to start
+by finding all exact matches of length 12, and extend alignments from
 these.  This works because any length-36 read with two mismatches is
 guaranteed to have an exact match of length 12.  It will be very slow,
 however, because there will be many unproductive length-12 matches.
@@ -161,111 +110,25 @@ these publications:
 
 For longer reads, it becomes harder to determine the optimal patterns.
 
-7. Merging identical read sequences
------------------------------------
+3. Guaranteeing to align reads with up to N mismatches or indels
+----------------------------------------------------------------
 
-Suppose we have read sequences in a FASTA file called "reads.fa":
+LAST has no clever way to do this, only brute force.  Any alignment of
+a length-L read, with N mismatches or insertions or deletions, must
+include an exact match of this length:
 
-  >readA
-  GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
-  >readB
-  GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
-  >readC
-  GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
-  >readD
-  GGCACTCTTTCCCTACACGACGCTCTTCCGATCTGG
+  int[ L / (N+1) ]
 
-If there are many identical sequences, we can speed up the alignment
-by merging them.  The following Unix pipeline merges identical
-sequences (assuming each sequence is all on one line):
+Here, "int" means round fractions down.  For example, if L=72 and N=2,
+there must be an exact match of length 24.  We can find the alignments
+like this:
 
-  grep -v '>' reads.fa | sort | uniq -c | awk '{print ">" NR ":" $1 "\n" $2}'
+  lastdb -m1 genomedb genome.fa
+  lastal -l24 -m4000000000 -d0 -y0 -a0 -x2 -e68 genomedb reads.fa
 
-The output of this command looks as follows:
-
-  >1:3
-  GGACAAAAACCAAAAAAAACAAAAAAAAAAAAAAAA
-  >2:1
-  GGCACTCTTTCCCTACACGACGCTCTTCCGATCTGG
-
-The number after the colon is the count of the read, and the number
-before the colon is just a serial number.
-
-8. How does lastal use sequence quality data?
----------------------------------------------
-
-The quality scores have no effect on finding initial matches, but they
-do affect the alignment scores.  If quality scores are used, the
-default alignment scoring scheme is +6 for a high-quality match and
--18 for a high-quality mismatch.  Low-quality matches and mismatches
-get scores between these values, as shown in the following table.
-
-======  ========  ========      ======  ========  ========
-Solexa  Match     Mismatch      Phred   Match     Mismatch
-score   score     score         score   score     score
-======  ========  ========      ======  ========  ========
-]  29       6       -18	        >  29       6       -18
-\  28       6       -17	        =  28       6       -17
-[  27       6       -17	        <  27       6       -17
-Z  26       6       -17	        ;  26       6       -17
-Y  25       6       -17	        :  25       6       -17
-X  24       6       -17	        9  24       6       -17
-W  23       6       -17	        8  23       6       -17
-V  22       6       -16	        7  22       6       -16
-U  21       6       -16	        6  21       6       -16
-T  20       6       -15	        5  20       6       -15
-S  19       6       -15	        4  19       6       -15
-R  18       6       -14	        3  18       6       -14
-Q  17       6       -14	        2  17       6       -14
-P  16       6       -13	        1  16       6       -13
-O  15       6       -13	        0  15       6       -12
-N  14       6       -12	        /  14       6       -12
-M  13       6       -11	        .  13       6       -11
-L  12       6       -10         -  12       6       -10
-K  11       6       -10         ,  11       6        -9 
-J  10       6        -9         +  10       6        -8 
-I   9       5        -8         *   9       5        -7 
-H   8       5        -7         )   8       5        -7 
-G   7       5        -6         (   7       5        -6 
-F   6       5        -6         '   6       5        -5 
-E   5       5        -5         &   5       4        -4 
-D   4       5        -4         %   4       4        -3 
-C   3       4        -3         $   3       3        -2 
-B   2       4        -3         #   2       2        -1 
-A   1       3        -2         "   1      -1         0  
-@   0       3        -2         !   0     -18         1  
-?  -1       2        -1
->  -2       2        -1
-=  -3       1        -1
-<  -4       1         0
-;  -5       0         0
-   -6      -1         0
-   -7      -2         0
-   -8      -3         1
-   -9      -3         1
-  -10      -4         1
-  -11      -5         1
-  -12      -6         1
-  -13      -7         1
-  -14      -8         1
-  -15      -9         1
-  -16     -10         1
-  -17     -10         1
-  -18     -11         1
-  -19     -12         1
-  -20     -13         1
-  -21     -13         1
-  -22     -14         1
-  -23     -15         1
-  -24     -15         1
-  -25     -16         1
-  -26     -16         1
-  -27     -16         1
-  -28     -17         1
-  -29     -17         1
-  -30     -17         1
-  -31     -17         1
-  -32     -17         1
-  -33     -17         1
-  -34     -18         1
-======  ========  ========      ======  ========  ========
+The lastdb -m1 option requests exact initial matches, the -l24 sets
+their length to 24, and -m4000000000 accepts hugely repeated initial
+matches.  The -e68 sets the alignment score threshold to 68, which is
+the minimum score for a size-72 read with 2 differences.  The -x2 just
+makes it faster, by quitting alignments early if it finds more than 2
+differences.

@@ -64,20 +64,13 @@ LastalArguments::LastalArguments() :
   verbosity(0){}
 
 void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
-  std::string usage = "\
-Usage: lastal [options] lastdb-name fasta-sequence-file(s)\n\
-Find local sequence alignments.\n\
-\n\
-Main options (default settings):\n\
--h: show all options and their default settings\n\
--o: output file\n\
--s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
--f: output format: 0=tabular, 1=maf ("
-    + stringify(outputFormat) + ")";
+  std::string usage =
+      "Usage: lastal [options] lastdb-name fasta-sequence-file(s)";
 
   std::string help = usage + "\n\
+Find local sequence alignments.\n\
 \n\
-Score parameters (default settings):\n\
+Score options (default settings):\n\
 -r: match score   (DNA: 1, protein: blosum62, 0<Q<5:  6)\n\
 -q: mismatch cost (DNA: 1, protein: blosum62, 0<Q<5: 18)\n\
 -p: file for residue pair scores\n\
@@ -86,18 +79,21 @@ Score parameters (default settings):\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
 -F: frameshift cost (off)\n\
--x: maximum score dropoff for gapped extensions (max[y, a+b*20])\n\
--y: maximum score dropoff for gapless extensions (t*10)\n\
--z: maximum score dropoff for final gapped extensions (x)\n\
+-x: maximum score drop for gapped alignments (max[y, a+b*20])\n\
+-y: maximum score drop for gapless alignments (t*10)\n\
+-z: maximum score drop for final gapped alignments (x)\n\
 -d: minimum score for gapless alignments (e*3/5)\n\
 -e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<5: 180)\n\
 \n\
+Cosmetic options (default settings):\n\
+-h: show all options and their default settings\n\
+-v: be verbose: write messages about what lastal is doing\n\
+-o: output file\n\
+-f: output format: 0=tabular, 1=maf ("
+    + stringify(outputFormat) + ")\n\
+\n\
 Miscellaneous options (default settings):\n\
--Q: input format: 0=FASTA, 1=FASTQ-Sanger, 2=FASTQ-Solexa, 3=FASTQ-Illumina,\n\
-                  4=PRB, 5=PSSM ("
-    + stringify(inputFormat) + ")\n\
--u: mask lowercase during extensions: 0=never, 1=gapless,\n\
-    2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q=0, else 0)\n\
+-s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -m: maximum multiplicity for initial matches ("
     + stringify(oneHitMultiplicity) + ")\n\
 -l: minimum length for initial matches ("
@@ -106,16 +102,20 @@ Miscellaneous options (default settings):\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
 -i: query batch size (1 MiB if Q>0, else 16 MiB if j=0, else 128 MiB)\n\
--w: supress repeats within this distance inside large exact matches ("
+-u: mask lowercase during extensions: 0=never, 1=gapless,\n\
+    2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q=0, else 0)\n\
+-w: supress repeats inside exact matches, offset by this distance or less ("
     + stringify(maxRepeatDistance) + ")\n\
 -t: 'temperature' for calculating probabilities (1/lambda)\n\
 -g: 'gamma' parameter for gamma-centroid alignment ("
     + stringify(gamma) + ")\n\
 -G: genetic code file\n\
--v: be verbose: write messages about what lastal is doing\n\
 -j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
-                 4=probabilities, 5=centroid ("
+                 4=column ambiguity estimates, 5=gamma-centroid ("
     + stringify(outputType) + ")\n\
+-Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina,\n\
+                  4=prb, 5=PSSM ("
+    + stringify(inputFormat) + ")\n\
 \n\
 Report bugs to: last (ATmark) cbrc (dot) jp\n\
 LAST home page: http://last.cbrc.jp/\n\
