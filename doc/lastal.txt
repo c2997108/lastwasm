@@ -46,6 +46,40 @@ Steps in lastal
 Options
 -------
 
+Cosmetic Options
+~~~~~~~~~~~~~~~~
+
+  -h  Show all options and their default settings.
+
+  -v  Be verbose: write messages about what lastal is doing.
+
+  -o FILE
+      Write output to the specified file, instead of the screen.
+
+  -f NUMBER
+      Choose the output format: 0 means tabular and 1 means MAF.  MAF
+      format looks like this:
+
+        a score=15
+        s chr3L        19433515 23 + 24543557 TTTGGGAGTTGAAGTTTTCGCCC
+        s H04BA01F1907        2 21 +       25 TTTGGGAGTTGAAGGTT--GCCC
+
+      Lines starting with "s" contain: the sequence name, the start
+      coordinate of the alignment, the number of sequence letters
+      spanned by the alignment, the strand, the sequence length, and
+      the aligned letters.  The start coordinates are zero-based.  If
+      the strand is "-", the start coordinate is in the reverse
+      strand.
+
+      The same alignment in tabular format looks like this:
+
+        15 chr3L 19433515 23 + 24543557 H04BA01F1907 2 21 + 25 17,2:0,4
+
+      The final column shows the sizes and offsets of gapless blocks
+      in the alignment.  In this case, we have a block of size 17,
+      then an offset of size 2 in the upper sequence and 0 in the
+      lower sequence, then a block of size 4.
+
 Score Options
 ~~~~~~~~~~~~~
 
@@ -82,7 +116,20 @@ Score Options
   -F COST
       Align DNA queries to protein reference sequences, using the
       specified frameshift cost.  A value of 15 seems to be
-      reasonable.
+      reasonable.  The output looks like this:
+
+        a score=108
+        s myprot 422  40 +  649 FLLQAVKLQDP-STPHQIVPSP-VSDLIATHTLCPRMKYQDD
+        s mydna  878 117 + 1000 FFLQ-IKLWDP\STPH*IVSSP/PSDLISAHTLCPRMKSQDN
+
+      The "\" indicates a forward shift by one nucleotide, and the "/"
+      indicates a reverse shift by one nucleotide.  The "*" indicates
+      a stop codon.  The same alignment in tabular format looks like
+      this:
+
+        108 myprot 422 40 + 649 mydna 878 117 + 1000 4,1:0,6,0:1,10,0:-1,19
+
+      The "-1" in the final column indicates the reverse frameshift.
 
   -x DROP
       Maximum score drop for gapped alignments.  Gapped alignments are
@@ -101,40 +148,6 @@ Score Options
 
   -e SCORE
       Minimum score for gapped alignments.
-
-Cosmetic Options
-~~~~~~~~~~~~~~~~
-
-  -h  Show all options and their default settings.
-
-  -v  Be verbose: write messages about what lastal is doing.
-
-  -o FILE
-      Write output to the specified file, instead of the screen.
-
-  -f NUMBER
-      Choose the output format: 0 means tabular and 1 means MAF.  MAF
-      format looks like this:
-
-        a score=15
-        s chr3L        19433515 23 + 24543557 TTTGGGAGTTGAAGTTTTCGCCC
-        s H04BA01F1907        2 21 +       25 TTTGGGAGTTGAAGGTT--GCCC
-
-      Lines starting with "s" contain: the sequence name, the start
-      coordinate of the alignment, the number of sequence letters
-      spanned by the alignment, the strand, the sequence length, and
-      the aligned letters.  The start coordinates are zero-based.  If
-      the strand is "-", the start coordinate is in the reverse
-      strand.
-
-      The same alignment in tabular format looks like this:
-
-        15 chr3L 19433515 23 + 24543557 H04BA01F1907 2 21 + 25 17,2:0,4
-
-      The final column shows the sizes and offsets of gapless blocks
-      in the alignment.  In this case, we have a block of size 17,
-      then an offset of size 2 in the upper sequence and 0 in the
-      lower sequence, then a block of size 4.
 
 Miscellaneous Options
 ~~~~~~~~~~~~~~~~~~~~~
@@ -208,7 +221,10 @@ Miscellaneous Options
       Parameter for converting between scores and likelihood ratios.
       This affects the column ambiguity estimates, and the use of
       sequence quality data.  A score is converted to a likelihood
-      ratio by this formula: exp(score / TEMPERATURE).
+      ratio by this formula: exp(score / TEMPERATURE).  The default
+      value is 1/lambda, where lambda is the scale factor of the
+      scoring matrix, which is calculated by the method of Yu and
+      Altschul (YK Yu et al. 2003, PNAS 100(26):15688-93).
 
   -g GAMMA
       This option allows use of "gamma-centroid alignment" (M Hamada

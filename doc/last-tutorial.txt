@@ -82,8 +82,8 @@ Example 4: Compare DNA sequences to protein sequences
 The -F15 option specifies translated alignment, with a score penalty
 of 15 for frameshifts.
 
-Example 5: Choosing the minimum alignment score
------------------------------------------------
+Example 5: Calculate E-values of alignment scores
+-------------------------------------------------
 
 lastal reports alignments whose score is at least some minimum value,
 e.g. 40.  If this value is too high we may miss meaningful alignments,
@@ -114,8 +114,9 @@ abbreviated version:
 This tells us, for example, that there will be on average 398
 alignments of score 12 or more between random sequences with these
 lengths and base frequencies.  Also, 22 is the minimum score such that
-the average number of alignments is no more than 0.01.  Finally, we
-can find alignments with score at least 22 like this:
+the average number of alignments is no more than 0.01.
+
+Finally, we can find alignments with score at least 22 like this:
 
   lastdb -c humdb humanMito.fa
   lastal -e22 humdb fuguMito.fa > myalns.maf
@@ -149,8 +150,8 @@ use option -Q3 instead of -Q1.
 Alignment scoring schemes
 -------------------------
 
-The default scoring scheme used by lastal is tuned for finding long,
-weak alignments.  It is:
+The default DNA scoring scheme used by lastal is tuned for finding
+long, weak alignments.  It is:
 
   match score = 1,  mismatch cost = 1,  gap cost = 7 + 1 * (gap length),
   minimum alignment score = 40
@@ -182,21 +183,24 @@ alignments:
   lastdb -c humandb human/chr*.fa
   lastal -Q1 -r5 -q5 -a35 -b5 humandb reads.fastq > myalns.maf
 
-This example uses a scaled version of the default scores (1:1:7:1 ->
-5:5:35:5).  The reason for this is to put them on roughly the same
-scale as the fastq quality data.  Without this, lastal would
-internally scale down the quality data, which loses accuracy.
+This example uses a scaled version of the default alignment scores
+(1:1:7:1 -> 5:5:35:5).  The reason for this is to put them on roughly
+the same scale as the fastq quality scores.
+
+lastal uses the quality scores to modify the alignment scores, and
+then rounds the modified scores to integers.  By using scaled
+alignment scores, we reduce the information loss caused by rounding.
 
 Very short reads
 ----------------
 
-The default score parameters do not align reads shorter than 30 bp,
-because the match score is 6 and the score threshold is 180.  To align
-shorter reads, reduce the score threshold (lastal -e).
+WARNING!  The default score parameters do not align reads shorter than
+30 bp, because the match score is 6 and the score threshold is 180.
+To align shorter reads, reduce the score threshold (lastal -e).
 
 If the score threshold is too low, you will get meaningless, random
-alignments.  (You might also need to adjust lastal -d, which defaults
-to e*3/5: if it is too low, lastal becomes slow.)
+alignments.  You might also need to adjust lastal -d, which defaults
+to e*3/5: if it is too low, lastal becomes slow.
 
 Example 9: Ambiguity of alignment columns
 -----------------------------------------
@@ -223,3 +227,46 @@ alignment is grown from a "core" region, which contains exact matches
 only.  The column probabilities are contingent on the core being
 correct, and pairings within the core automatically get a probability
 of 1.
+
+Example 10: Masking repeats
+---------------------------
+
+Biological sequences are rife with repeats.  There are two categories
+of repeat: simple (e.g. ATATATATATATAT) and interspersed (e.g. LINEs
+and SINEs).  Simple repeats are more fundamentally troublesome,
+because they cause similarities that are not homologies (i.e. not
+evolutionarily related):
+
+  Human DNA  ATATATATATATATATATATATATATATATATATATATA
+             |||||||||||||||||||||||||||||||||||||||
+  Squid DNA  ATATATATATATATATATATATATATATATATATATATA
+
+If the goal is to find homologous regions, then it is important to
+mask simple repeats.  While there are many repeat-masking tools, they
+do not work equally well, and we recommend tantan
+(http://www.cbrc.jp/tantan/) [1].
+
+Let's compare the human and fugu mitochondrial genomes, with careful
+repeat-masking:
+
+  tantan humanMito.fa > humanMasked.fa
+  tantan fuguMito.fa > fuguMasked.fa
+  lastdb -c humdb humanMasked.fa
+  lastal humdb fuguMasked.fa > myalns.maf
+
+The tantan commands convert simple repeats to lowercase.  We recommend
+masking both sequences.
+
+When comparing large genomes, we would probably mask interspersed
+repeats too.  While they do not cause non-homologous similarities,
+they cause very many uninteresting homologies and they slow down
+lastal.  The choice of masking method is less important: we have been
+happy with either WindowMasker or the masking in the UCSC genome
+database.
+
+References
+----------
+
+[1] A new repeat-masking method enables specific detection of
+    homologous sequences.  MC Frith.  Nucleic Acids Research
+    doi:10.1093/nar/gkq1212.
