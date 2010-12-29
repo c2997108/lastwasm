@@ -103,7 +103,7 @@ Miscellaneous options (default settings):\n\
     + stringify(queryStep) + ")\n\
 -i: query batch size (1 MiB if Q>0, else 16 MiB if j=0, else 128 MiB)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
-    2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q=0, else 0)\n\
+    2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q<5, else 0)\n\
 -w: supress repeats inside exact matches, offset by this distance or less ("
     + stringify(maxRepeatDistance) + ")\n\
 -t: 'temperature' for calculating probabilities (1/lambda)\n\
@@ -241,11 +241,11 @@ LAST home page: http://last.cbrc.jp/\n\
     }
   }
 
-  if( maskLowercase == 1 && inputFormat > 0 )
-    ERR( "can't combine option -u 1 with option -Q > 0" );
+  if( maskLowercase == 1 && inputFormat == 5 )
+    ERR( "can't combine option -u 1 with option -Q 5" );
 
-  if( maskLowercase == 2 && inputFormat > 0 )
-    ERR( "can't combine option -u 2 with option -Q > 0" );
+  if( maskLowercase == 2 && inputFormat == 5 )
+    ERR( "can't combine option -u 2 with option -Q 5" );
 
   if( outputType > 3 && inputFormat > 0 )
     ERR( "can't combine option -j > 3 with option -Q > 0" );
@@ -327,8 +327,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
 
   if( maskLowercase < 0 ){
-    if( isCaseSensitiveSeeds && inputFormat == fasta ) maskLowercase = 2;
-    else                                               maskLowercase = 0;
+    if( isCaseSensitiveSeeds && inputFormat != pssm ) maskLowercase = 2;
+    else                                              maskLowercase = 0;
   }
 
   if( batchSize == 0 ){

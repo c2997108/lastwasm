@@ -54,7 +54,8 @@ namespace {
   const ScoreMatrixRow* matGapless;  // score matrix for gapless alignment
   const ScoreMatrixRow* matGapped;  // score matrix for gapped alignment
   const ScoreMatrixRow* matFinal;  // score matrix for final alignment
-  QualityScoreCalculator qualityScoreCalculator;
+  QualityScoreCalculator uppercaseQualityScorer;  // masks lowercase
+  QualityScoreCalculator lowercaseQualityScorer;  // doesn't mask lowercase
 }
 
 // Set up a scoring matrix, based on the user options
@@ -89,6 +90,25 @@ void makeScoreMatrix( const std::string& matrixFile ){
   if( args.inputFormat == args.pssm ){
     scoreMatrix.maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
   }
+}
+
+void makeQualityScorers(){
+  bool isPhred = (args.inputFormat == args.fastqSanger ||
+                  args.inputFormat == args.fastqIllumina);
+  int asciiOffset = (args.inputFormat == args.fastqSanger) ? 33 : 64;
+  bool isMatchMismatch = args.matrixFile.empty() && args.matchScore > 0;
+  if( args.maskLowercase > 0 )
+    uppercaseQualityScorer.init( scoreMatrix.caseSensitive,
+                                 alph.size, args.temperature,
+                                 true, isMatchMismatch,
+                                 args.matchScore, -args.mismatchCost,
+                                 alph.canonical, isPhred, asciiOffset );
+  if( args.maskLowercase < 3 )
+    lowercaseQualityScorer.init( scoreMatrix.caseInsensitive,
+                                 alph.size, args.temperature,
+                                 false, isMatchMismatch,
+                                 args.matchScore, -args.mismatchCost,
+                                 alph.canonical, isPhred, asciiOffset );
 }
 
 // Calculate statistical parameters for the alignment scoring scheme
@@ -372,6 +392,15 @@ void alignFinish( const AlignmentPot& gappedAlns,
   }
 }
 
+void makeQualityPssm( const QualityScoreCalculator& qualityScorer ){
+  if( !args.isQualityScores() ) return;
+  LOG( "making PSSM..." );
+  query.resizePssm();
+  qualityScorer.makePssm( query.pssmWriter(), query.qualityReader(),
+                          query.seqReader(), query.finishedSize(),
+                          args.inputFormat != args.prb );
+}
+
 // Scan one batch of query sequences against one database volume
 void scan( char strand, std::ostream& out ){
   if( args.outputType == 0 ){  // we just want match counts
@@ -379,19 +408,16 @@ void scan( char strand, std::ostream& out ){
     return;
   }
 
-  if( args.isQualityScores() ){
-    LOG( "making PSSM..." );
-    query.resizePssm();
-    qualityScoreCalculator.makePssm( query.pssmWriter(), query.qualityReader(),
-				     query.seqReader(), query.finishedSize(),
-				     args.inputFormat != args.prb );
-  }
+  if( args.maskLowercase == 0 ) makeQualityPssm( lowercaseQualityScorer );
+  else                          makeQualityPssm( uppercaseQualityScorer );
 
   LOG( "scanning..." );
 
   SegmentPairPot gaplessAlns;
   alignGapless( gaplessAlns, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
+
+  if( args.maskLowercase == 1 ) makeQualityPssm( lowercaseQualityScorer );
 
   Centroid centroid( xdropAligner, matFinal, args.temperature );  // slow?
 
@@ -402,6 +428,8 @@ void scan( char strand, std::ostream& out ){
                  false, centroid );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
+
+  if( args.maskLowercase == 2 ) makeQualityPssm( lowercaseQualityScorer );
 
   alignGapped( gappedAlns, gaplessAlns, matFinal, args.maxDropFinal,
                true, centroid );
@@ -580,18 +608,7 @@ void lastal( int argc, char** argv ){
   calculateScoreStatistics();
   args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
 
-  if( args.isQualityScores() ){
-    assert( matGapless == matGapped );
-    assert( matGapped == matFinal );
-    bool isPhred = (args.inputFormat == args.fastqSanger ||
-                    args.inputFormat == args.fastqIllumina);
-    int asciiOffset = (args.inputFormat == args.fastqSanger) ? 33 : 64;
-    bool isMatchMismatch = args.matrixFile.empty() && args.matchScore > 0;
-    qualityScoreCalculator.init( matGapped, alph.size, args.temperature,
-				 args.maskLowercase > 1, isMatchMismatch,
-				 args.matchScore, -args.mismatchCost,
-				 alph.canonical, isPhred, asciiOffset );
-  }
+  if( args.isQualityScores() ) makeQualityScorers();
 
   if( args.isTranslated() ){
     if( alph.letters == alph.dna )  // allow user-defined alphabet
