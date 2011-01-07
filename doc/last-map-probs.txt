@@ -44,13 +44,6 @@ Suggestions
   alignments of a query sequence have such low scores, then maybe none
   of them reflect the origin of the query.
 
-* Consider masking simple repeats (e.g. atatatatat) before aligning.
-  This can reduce the risk of mapping contaminants, i.e. query
-  sequences that do not come from the reference sequence.  If a query
-  sequence is repetitive, it may be impossible to determine whether or
-  not it is a contaminant.  Repeat-masking does not help with
-  contaminants that have close homology to the reference sequence.
-
 Limitations
 -----------
 

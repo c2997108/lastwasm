@@ -34,9 +34,9 @@ Options
 "Bugs"
 ------
 
-* For sam: the QUAL field (column 11) is simply copied from the MAF q
+* For sam: the QUAL field (column 11) is simply copied from the maf q
   line.  The QUAL is supposed to be encoded as ASCII(phred+33),
-  whereas MAF q lines are encoded differently according to the UCSC
+  whereas maf q lines are encoded differently according to the UCSC
   Genome FAQ.  However, if you run lastal with option -Q1, the maf q
   lines will in fact be ASCII(phred+33).
 
