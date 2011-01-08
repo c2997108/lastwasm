@@ -226,6 +226,25 @@ def writePsl(maf, isProtein):
 
 ##### Routines for converting to SAM format: #####
 
+def readSequenceLengths(lines):
+    """Read name & length of topmost sequence in each maf block."""
+    sequenceLengths = {}  # an OrderedDict might be nice
+    isSearching = True
+    for line in lines:
+        if line.isspace(): isSearching = True
+        elif isSearching:
+            w = line.split()
+            if w[0] == "s":
+                seqName, seqSize = w[1], w[5]
+                sequenceLengths[seqName] = seqSize
+                isSearching = False
+    return sequenceLengths
+
+def writeSamHeader(sequenceLengths):
+    print "@HD VN:1.3 SO:unknown"
+    for nameAndLength in sequenceLengths.items():
+        print "@SQ SN:%s LN:%s" % nameAndLength
+
 mapqMissing = 255
 mapqMaximum = 254
 
@@ -495,9 +514,13 @@ def isFormat(myString, myFormat):
 
 def mafConvert(opts, args):
     format = args[0].lower()
+    if isFormat(format, "sam"):
+        if opts.dictionary: d = readSequenceLengths(fileinput.input(args[1]))
+        else: d = {}
+        writeSamHeader(d)
     inputLines = fileinput.input(args[1])
     if isFormat(format, "html"): writeHtmlHeader()
-    isKeepCommentLines = not isFormat(format, "html")
+    isKeepCommentLines = isFormat(format, "tabular")
     for maf in mafInput(filterComments(inputLines, isKeepCommentLines)):
         if   isFormat(format, "axt"): writeAxt(maf)
         elif isFormat(format, "blast"): writeBlast(maf, opts.linesize)
@@ -525,11 +548,15 @@ if __name__ == "__main__":
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-p", "--protein", action="store_true",
                   help="assume protein alignments, for psl match counts")
+    op.add_option("-d", "--dictionary", action="store_true",
+                  help="include dictionary of sequence lengths in sam format")
     op.add_option("-l", "--linesize", type="int", default=60, #metavar="CHARS",
                   help="line length for blast and html formats (default: %default)")
     (opts, args) = op.parse_args()
     if opts.linesize <= 0: op.error("option -l: should be >= 1")
     if len(args) != 2: op.error("I need a format-name and a file-name")
+    if opts.dictionary and args[1] == "-":
+        op.error("can't use '-' (standard input) with option -d")
 
     try: mafConvert(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message
