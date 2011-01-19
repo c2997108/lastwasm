@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# Copyright 2010 Martin C. Frith
+# Copyright 2010, 2011 Martin C. Frith
 # Read MAF-format alignments: write them in other formats.
 # Seems to work with Python 2.x, x>=4
 
@@ -241,9 +241,9 @@ def readSequenceLengths(lines):
     return sequenceLengths
 
 def writeSamHeader(sequenceLengths):
-    print "@HD VN:1.3 SO:unknown"
+    print "@HD\tVN:1.3\tSO:unknown"
     for nameAndLength in sequenceLengths.items():
-        print "@SQ SN:%s LN:%s" % nameAndLength
+        print "@SQ\tSN:%s\tLN:%s" % nameAndLength
 
 mapqMissing = 255
 mapqMaximum = 254
