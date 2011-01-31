@@ -194,9 +194,11 @@ alignment scores, we reduce the information loss caused by rounding.
 Very short reads
 ----------------
 
-WARNING!  The default score parameters do not align reads shorter than
-30 bp, because the match score is 6 and the score threshold is 180.
-To align shorter reads, reduce the score threshold (lastal -e).
+WARNING!  The default score parameters do not align very short reads.
+This is because the match score is 6 and the score threshold is 180,
+so at least 30 high-quality matches are required (or a greater number
+of low-quality matches).  To align very short reads, reduce the score
+threshold (lastal -e).
 
 If the score threshold is too low, you will get meaningless, random
 alignments.  You might also need to adjust lastal -d, which defaults

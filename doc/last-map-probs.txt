@@ -29,20 +29,27 @@ Options
   -m M, --mismap=M    Don't write alignments with mismap probability > M.
   -s S, --score=S     Don't write alignments with score < S.
 
-Suggestions
------------
+Typical usage
+=============
 
-* Use alignments with low scores in the input, but remove them from
-  the output.  For example, use alignments with score >= 150 in the
-  input, but remove alignments with score < 180 from the output.  This
-  is because the mismap probability of an alignment with score 180 may
-  depend on alignments with score < 180.
+The following parameters can be suitable for mapping short DNA reads
+(e.g. 50 bp) to a mammalian genome:
 
-* Don't trust low-scoring alignments that might arise by chance
-  between unrelated sequences.  You can use lastex to calculate how
-  frequently various alignment scores arise by chance.  If all the
-  alignments of a query sequence have such low scores, then maybe none
-  of them reflect the origin of the query.
+  lastdb -m1111110 humandb human/chr*.fa
+  lastal -Q1 -d108 -e120 humandb reads.fastq > myalns.maf
+  last-map-probs.py -s150 myalns.maf > myalns2.maf
+
+* The final alignments have score >= 150 (-s150).  This score is high
+  enough that random, spurious alignments are expected only once every
+  few thousand reads.
+
+* The initial alignments have score >= 120 (-e120).  This is because
+  the mismap probability of an alignment with score 150 may depend on
+  alignments with score < 150.  Setting e = s-30 seems to work well.
+
+* The gapless score threshold when finding initial alignments is 108
+  (-d108).  This should be high enough to avoid triggering too many
+  time-consuming gapped alignments.
 
 Limitations
 -----------

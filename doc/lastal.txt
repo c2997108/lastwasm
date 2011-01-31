@@ -36,7 +36,8 @@ Steps in lastal
      step is performed only if u=2 or if z differs from x.
 
   f) Non-redundantize the alignments: remove those that share an
-     endpoint with a higher-scoring alignment.
+     endpoint (same coordinates in both sequences) with a
+     higher-scoring alignment.
 
   g) Estimate the ambiguity of each aligned column (OFF by default).
 

@@ -318,7 +318,8 @@ def writeSam(maf):
             # don't try to handle multiple alignments for now (YAGNI):
             if len(maf.qLines) > 1 or len(tail) > 1 or qualityName != qName:
                 raise Exception("can't interpret the quality data")
-            qual = deleted(qualityString, "-")
+            qual = ''.join(j for i, j in zip(qAlnString, qualityString)
+                           if i != "-")
 
         editDistance = sum(1 for x, y in alignmentColumns if x != y)
         # no special treatment of ambiguous bases: might be a minor bug

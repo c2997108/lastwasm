@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
@@ -84,12 +84,12 @@ void makeScoreMatrix( const std::string& matrixFile ){
       scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
 
   // If the input is a PSSM, the score matrix is not used, and its
-  // maximum score should not be used.  Here, we set it to a high
-  // enough value that it has no effect.  This is a kludge - it would
-  // be nice to use the maximum PSSM score.
-  if( args.inputFormat == args.pssm ){
-    scoreMatrix.maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
-  }
+  // maximum score should not be used.  Here, we try to set it to a
+  // high enough value that it has no effect.  This is a kludge - it
+  // would be nice to use the maximum PSSM score.
+  if( args.inputFormat == args.pssm ) scoreMatrix.maxScore = 10000;
+  // This would work, except the maxDrops aren't finalized yet:
+  // maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
 }
 
 void makeQualityScorers(){
