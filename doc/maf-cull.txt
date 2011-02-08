@@ -2,7 +2,7 @@ maf-cull.py
 ===========
 
 This script aims to "cull" redundant alignments.  It removes
-alignments whose coordinates in the top-most sequence are contained
+alignments whose coordinates in the top-most sequence are contained in
 LIMIT or more higher-scoring alignments.
 
 Alignments using opposite strands of the top-most sequence are not

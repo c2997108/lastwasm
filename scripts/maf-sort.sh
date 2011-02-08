@@ -22,7 +22,8 @@ LC_ALL=C
 export LC_ALL
 
 uniqOpt=1
-while getopts hd opt
+whichSequence=1
+while getopts hdn: opt
 do
     case $opt in
 	h)  cat <<EOF
@@ -31,28 +32,40 @@ Usage: $(basename $0) [options] my-alignments.maf
 Options:
   -h  show this help message and exit
   -d  only print duplicate alignments
+  -n  sort by the n-th sequence (default: 1)
 EOF
 	    exit
 	    ;;
 	d)  uniqOpt=2
             ;;
+	n)  whichSequence="$OPTARG"
+	    ;;
     esac
 done
 shift $((OPTIND - 1))
+
+baseField=$((6 * $whichSequence))
+a=$(($baseField - 4))
+a=$a,$a
+b=$(($baseField - 1))
+b=$b,$b
+c=$(($baseField - 3))
+c=$c,$c
+d=$(($baseField - 2))
+d=$d,$d
 
 tmpfile=${TMPDIR-/tmp}/maf-sort.$$
 
 cat "$@" | tee $tmpfile | perl -ne 'print if /^#/'
 
 perl -ne 'print unless /^#/' $tmpfile |  # remove comment lines
-perl -pe 'y/ /!/  if /^a/'     |  # change spaces to '!'s in 'a' lines
-perl -pe 's/\n/#/ if /\S/'     |  # join each alignment into one big line
-sort -k2,2 -k5,5 -k3,3n -k4,4n |  # sort the lines
+perl -pe 'y/ /\a/ unless /^s/' |  # replace spaces except in 's' lines
+perl -pe 'y/\n/\b/ if /\S/'    |  # join each alignment into one big line
+sort -k$a -k$b -k${c}n -k${d}n |  # sort the lines
 
 # print only the first (or second) of each run of identical lines:
 perl -ne '$c = 0 if $x ne $_; $x = $_; print if ++$c == '$uniqOpt |
 
-perl -pe 's/#/\n/g'            |  # undo the line-joining
-perl -pe 'y/!/ / if /^a/'         # change '!'s back to spaces in 'a' lines
+perl -pe 'y/\a\b/ \n/'            # restore spaces and newlines
 
 rm $tmpfile

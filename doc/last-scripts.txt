@@ -95,7 +95,8 @@ maf-sort.sh
 -----------
 
 This sorts MAF-format alignments by sequence name, then strand, then
-start position, then end position, of the top sequence.
+start position, then end position, of the top sequence.  You can use
+option "-n" to sort by the "n"th sequence instead of the top sequence.
 
 
 last-remove-dominated.py
