@@ -77,6 +77,7 @@ void Alphabet::init(){
   addLetters( "ABCDEFGHIJKLMNOPQRSTUVWXYZ", code );
   addLetters( "*", code );  // sometimes appears in protein sequences
   addLetters( "abcdefghijklmnopqrstuvwxyz", code );
+  addLetters( ".", code );  // sometimes appears in FASTQ
 
   makeComplement();
 }

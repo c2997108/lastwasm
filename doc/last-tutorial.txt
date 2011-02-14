@@ -137,7 +137,11 @@ fastq-sanger format.
 
 Often, one read will align to more than one genome location.  You can
 use last-map-probs.py to help judge which location reflects the origin
-of the read.
+of the read.  Please see the "typical usage" recipe in
+last-map-probs.txt.
+
+If you have paired end reads, then last-pair-probs.py may be useful
+(see last-pair-probs.txt).
 
 Fastq format confusion
 ----------------------

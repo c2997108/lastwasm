@@ -6,11 +6,12 @@
 # at the top, in unchanged order.  If option "-d" is specified, then
 # alignments that appear only once are omitted (like uniq -d).
 
-# XXX Preceding whitespace is considered part of the sequence name.  I
+# Minor flaws, that do not matter for typical MAF input:
+# 1) It might not work if the input includes TABs.
+# 2) Preceding whitespace is considered part of the sequence name.  I
 # want to use sort -b, but it seems to be broken in different ways for
 # different versions of sort!
-
-# XXX Alignments with differences in whitespace are considered
+# 3) Alignments with differences in whitespace are considered
 # non-identical.
 
 # This script uses perl instead of specialized commands like uniq.
@@ -54,18 +55,23 @@ c=$c,$c
 d=$(($baseField - 2))
 d=$d,$d
 
-tmpfile=${TMPDIR-/tmp}/maf-sort.$$
+# 1) Add digits to "#" lines, so that sorting won't change their order.
+# 2) Replace spaces, except in "s" lines.
+# 3) Join each alignment into one big line.
+perl -pe '
+s/^#/sprintf("#%.9d",$c++)/e;
+y/ /\a/ unless /^s/;
+y/\n/\b/ if /^\w/;
+' "$@" |
 
-cat "$@" | tee $tmpfile | perl -ne 'print if /^#/'
-
-perl -ne 'print unless /^#/' $tmpfile |  # remove comment lines
-perl -pe 'y/ /\a/ unless /^s/' |  # replace spaces except in 's' lines
-perl -pe 'y/\n/\b/ if /\S/'    |  # join each alignment into one big line
 sort -k$a -k$b -k${c}n -k${d}n |  # sort the lines
 
-# print only the first (or second) of each run of identical lines:
+# Print only the first (or second) of each run of identical lines:
 perl -ne '$c = 0 if $x ne $_; $x = $_; print if ++$c == '$uniqOpt |
 
-perl -pe 'y/\a\b/ \n/'            # restore spaces and newlines
-
-rm $tmpfile
+# 1) Remove the digits from "#" lines.
+# 2) Restore spaces and newlines.
+perl -pe '
+s/^#.{9}/#/;
+y/\a\b/ \n/;
+'

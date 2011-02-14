@@ -1,0 +1,79 @@
+last-pair-probs.py
+==================
+
+This script reads alignments of DNA reads to a genome, and estimates
+the probability that each alignment represents the genomic source of
+the read.  It assumes that the reads come in pairs, where each pair is
+from either end of a DNA fragment.
+
+The script takes as input two files of alignments, where one read from
+each pair is in one file, and the other read is in the other file.
+The alignments must be in ASCII-betical order of read name.
+
+Typical usage
+-------------
+
+  lastdb -m1111110 humandb human/chr*.fa
+  lastal -Q1 -d108 -e120 humandb reads1.fastq | maf-sort.sh -n2 > out1.maf
+  lastal -Q1 -d108 -e120 humandb reads2.fastq | maf-sort.sh -n2 > out2.maf
+  last-pair-probs.py out1.maf out2.maf > results.maf
+
+Details
+-------
+
+* This script assumes that each read is from the edge of the fragment
+  to the interior, in the 5' to 3' direction.  Thus, each pair is from
+  opposite strands of the fragment.
+
+* It assumes that the fragment lengths roughly follow a normal
+  distribution.
+
+* It assumes that reads are paired if their names are identical,
+  ignoring the last character.  For example: myDNA/1, myDNA/2.
+
+* The alignments may be in either format produced by lastal (maf or
+  tabular).
+
+* The inputs must be real files (not pipes), because the script makes
+  two passes over them.
+
+* The script writes the alignments with "mismap" probabilities,
+  i.e. the probability that the alignment does not represent the
+  genomic source of the read.
+
+Options
+-------
+
+  -h, --help
+         Print a help message and exit.
+
+  -m M, --mismap=M
+         Don't write alignments with mismap probability > M.
+
+  -f BP, --fraglen=BP
+         The mean fragment length in bp.  If this is not specified,
+         the script will estimate it from the alignments.
+
+  -s BP, --sdev=BP
+         The standard deviation of fragment length in bp.  If this is
+         not specified, the script will estimate it from the
+         alignments.
+
+  -g BP, --genome=BP
+         The haploid genome size in bp.  If this is not specified, the
+         script infers it from the alignments.
+
+  -d PROB, --disjoint=PROB
+         The prior probability that a pair of reads comes from
+         disjoint locations (e.g., different chromosomes).  This may
+         arise from real differences between the genome and the source
+         of the reads, or from errors in obtaining the reads or the
+         genome sequence.
+
+  -c CHROM, --circular=CHROM
+         Specifies that the chromosome named CHROM is circular.  You
+         can use this option more than once (e.g., -c chrM -c chrP).
+         As a special case, "." means all chromosomes are circular.
+         If this option is not used, "chrM" is assumed to be circular
+         (but if it is used, only the specified CHROMs are assumed to
+         be circular.)

@@ -1,11 +1,15 @@
 Guaranteed alignments with LAST
 ===============================
 
-Occasionally, we may wish to find alignments with certain guarantees.
-For example, find all alignments of DNA reads to a genome allowing up
-to 3 mismatches.
+This document describes how to guarantee finding alignments with a
+limited number of mismatches or gaps.
+
+** This is mostly of theoretical interest!  In most cases, you are **
+** advised to use the methods in last-tutorial.txt and documents   **
+** referred to thence.  You should probably ignore this document!  **
 
 The first step of lastal is to find initial matches:
+
   * For each possible start position in the query, find the shortest
     match with length >= l that occurs <= m times in the reference.
 

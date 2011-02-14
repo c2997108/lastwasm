@@ -14,14 +14,6 @@ Example 2: If a query sequence has two reported alignments, with
            identical alignment scores, their mismap probabilities will
            be 0.5.
 
-This script can read alignments in either of the formats produced by
-lastal (maf or tabular).  You can use it like this:
-
-  last-map-probs.py my-alignments > my-alignments-with-mismap-probs
-
-The input must be a real file (not a pipe), because the script makes
-two passes over it.
-
 Options
 -------
 
@@ -30,10 +22,9 @@ Options
   -s S, --score=S     Don't write alignments with score < S.
 
 Typical usage
-=============
+-------------
 
-The following parameters can be suitable for mapping short DNA reads
-(e.g. 50 bp) to a mammalian genome:
+This is a typical way of mapping short DNA reads to a genome:
 
   lastdb -m1111110 humandb human/chr*.fa
   lastal -Q1 -d108 -e120 humandb reads.fastq > myalns.maf
@@ -41,7 +32,7 @@ The following parameters can be suitable for mapping short DNA reads
 
 * The final alignments have score >= 150 (-s150).  This score is high
   enough that random, spurious alignments are expected only once every
-  few thousand reads.
+  few thousand reads (for ~50 bp reads versus a mammalian genome).
 
 * The initial alignments have score >= 120 (-e120).  This is because
   the mismap probability of an alignment with score 150 may depend on
@@ -50,6 +41,15 @@ The following parameters can be suitable for mapping short DNA reads
 * The gapless score threshold when finding initial alignments is 108
   (-d108).  This should be high enough to avoid triggering too many
   time-consuming gapped alignments.
+
+Details
+-------
+
+* This script can read alignments in either of the formats produced by
+  lastal (maf or tabular).
+
+* The input must be a real file (not a pipe), because the script makes
+  two passes over it.
 
 Limitations
 -----------
