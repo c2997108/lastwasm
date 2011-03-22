@@ -1,16 +1,11 @@
 #! /usr/bin/env python
 
-# Copyright 2010 Martin C. Frith
+# Copyright 2010, 2011 Martin C. Frith
 
 # Read query-genome alignments: write them along with the probability
 # that each alignment is not the true mapping of its query.  These
 # probabilities make the risky assumption that one of the alignments
 # reported for each query is correct.
-
-# The input must be readable twice, so not a pipe.  (This is because
-# the algorithm needs 2 passes over the input, and we want to cope
-# with input that is too big to all fit in memory.  An alternative
-# would be to write it to a temporary file.)
 
 import sys, os, fileinput, math, optparse, signal
 
@@ -19,13 +14,6 @@ def logsum(x, y):
     a = max(x, y)
     b = min(x, y)
     return a + math.log(1 + math.exp(b-a))
-
-def addScore(score, temperature, queryName, denominators):
-    if temperature < 0:
-        raise Exception("I need a header line with: t=(a positive value)")
-    x = score / temperature
-    y = denominators.get(queryName, -1e9)
-    denominators[queryName] = logsum(x, y)
 
 def mismapProb(score, temperature, queryName, denominators):
     x = score / temperature
@@ -41,57 +29,77 @@ def mafScore(words):
             return float(word[6:])
     raise Exception("found an alignment without a score")
 
-def lastMapProbs(opts, args):
-    temperature = -1
-    denominators = {}
-
-    for line in fileinput.input(args):
-        words = line.split()
-        if not words: pass
-        elif line.startswith('#'):
-            for i in words:
-                if i.startswith('t='): temperature = float(i[2:])
-        elif words[0].isdigit():  # we have an alignment in tabular format
-            score = float(words[0])
-            queryName = words[6]
-            addScore(score, temperature, queryName, denominators)
-        elif words[0] == "a":  # we have maf format
-            score = mafScore(words)
+def namesAndScores(lines):
+    queryNames = []
+    scores = []
+    for line in lines:
+        if line.startswith("a"):
+            s = mafScore(line.split())
+            scores.append(s)
             sLineCount = 0
-        elif words[0] == "s":  # we have maf format
+        elif line.startswith("s"):
             sLineCount += 1
-            if sLineCount == 2:  # the query sequence is on the 2nd s line
-                queryName = words[1]
-                addScore(score, temperature, queryName, denominators)
+            if sLineCount == 2: queryNames.append(line.split()[1])
+            # maxsplit doesn't seem to make it faster
+        elif line[0].isdigit():  # we have an alignment in tabular format
+            w = line.split()
+            scores.append(float(w[0]))
+            queryNames.append(w[6])
+    return queryNames, scores
 
-    storedLines = None
-    for line in fileinput.input(args):
-        words = line.split()
-        if not words: pass
-        elif words[0].isdigit():  # we have an alignment in tabular format
-            score = float(words[0])
-            queryName = words[6]
-            p = mismapProb(score, temperature, queryName, denominators)
-            if score < opts.score or p > opts.mismap: continue
+def scoreTotals(queryNames, scores, temperature):
+    denominators = {}
+    for n, s in zip(queryNames, scores):
+        r = s / temperature
+        d = denominators.get(n, -1e9)
+        denominators[n] = logsum(d, r)
+    return denominators
+
+def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
+    isWanted = True
+    i = 0
+    for line in lines:
+        if line.startswith("a"):
+            s = scores[i]
+            p = mismapProb(s, temperature, queryNames[i], denominators)
+            i += 1
+            if s < opts.score or p > opts.mismap:
+                isWanted = False
+            else:
+                newLineEnd = " mismap=%g\n" % p
+                line = line.rstrip() + newLineEnd
+        elif line[0].isdigit():  # we have an alignment in tabular format
+            s = scores[i]
+            p = mismapProb(s, temperature, queryNames[i], denominators)
+            i += 1
+            if s < opts.score or p > opts.mismap: continue
             newLineEnd = "\t%g\n" % p
             line = line.rstrip() + newLineEnd
-        elif words[0] == "a":  # we have maf format
-            score = mafScore(words)
-            sLineCount = 0
-            storedLines = []  # start storing lines instead of printing them
-        elif words[0] == "s":  # we have maf format
-            sLineCount += 1
-            if sLineCount == 2:  # the query sequence is on the 2nd s line
-                queryName = words[1] 
-                p = mismapProb(score, temperature, queryName, denominators)
-                if score < opts.score or p > opts.mismap: continue
-                newLineEnd = " mismap=%g\n" % p
-                storedLines[0] = storedLines[0].rstrip() + newLineEnd
-                for i in storedLines: print i,
-                storedLines = None
-        if storedLines is None: print line,
-        else: storedLines.append(line)
-        if not words: storedLines = None  # reset at end of maf paragraph
+        if isWanted: print line,
+        if line.isspace(): isWanted = True  # reset at end of maf paragraph
+
+def processOneBatch(lines, opts, temperature):
+    if not lines: return
+    if temperature < 0:
+        raise Exception("I need a header line with: t=(a positive value)")
+
+    queryNames, scores = namesAndScores(lines)
+    denominators = scoreTotals(queryNames, scores, temperature)
+    writeOneBatch(lines, queryNames, scores, denominators, opts, temperature)
+
+def lastMapProbs(opts, args):
+    temperature = -1
+    lines = []
+
+    for line in fileinput.input(args):
+        if line.startswith("#"):
+            for i in line.split():
+                if i.startswith("t="): temperature = float(i[2:])
+        if line.startswith("# batch"):
+            processOneBatch(lines, opts, temperature)
+            lines = []
+        lines.append(line)
+    processOneBatch(lines, opts, temperature)
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
@@ -108,8 +116,6 @@ if __name__ == "__main__":
     op.add_option("-s", "--score", type="float", default=0, metavar="S",
                   help="don't write alignments with score < S (default: %default)")
     (opts, args) = op.parse_args()
-    if not args: op.error("please give me a filename")
-    if '-' in args: op.error("sorry, can't use '-' (standard input)")
 
     try: lastMapProbs(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message

@@ -1,18 +1,41 @@
 last-map-probs.py
 =================
 
-This script aims to choose between several alignments of a query
-sequence.  It assumes that exactly one reported alignment reflects the
-origin of each query sequence.  It calculates the probability that
-each alignment is a "mismap" (is not the one that reflects the origin
-of the query).
+This script reads alignments of DNA reads to a genome, and estimates
+the probability that each alignment represents the genomic source of
+the read.
 
-Example 1: If a query sequence only has one reported alignment, its
-           mismap probability will be zero.
+It writes the alignments with "mismap" probabilities, i.e. the
+probability that the alignment does not represent the genomic source
+of the read.  By default, it discards alignments with mismap
+probability > 0.01.
 
-Example 2: If a query sequence has two reported alignments, with
-           identical alignment scores, their mismap probabilities will
-           be 0.5.
+Typical usage
+-------------
+
+These commands map DNA reads to the human genome:
+
+  lastdb -m1111110 hu human/chr*.fa
+  lastal -Q1 -d108 -e120 hu reads.fastq | last-map-probs.py -s150 > myalns.maf
+
+Explanation of typical usage
+----------------------------
+
+These commands find alignments with mismap probability <= 0.01 and
+score >= 150 (-s150).  The score threshold should be high enough to
+avoid random, spurious alignments: otherwise, the mismap probabilities
+will not be reliable.  A threshold of 150 is often reasonable.  For
+instance, if we compare 50 bp reads to the human genome, we expect a
+random alignment with score >= 150 once every few thousand reads.
+
+The lastal command finds alignments with score >= 120 (-e120).  This
+is because the mismap probability of an alignment with score 150 may
+depend on alignments with score < 150.  Setting e = s-30 seems to work
+well.
+
+Finally, the -d108 option makes lastal use a score threshold of 108 in
+its gapless alignment phase.  This is needed because the default (d =
+e*3/5) is too low and would make lastal too slow.
 
 Options
 -------
@@ -21,35 +44,16 @@ Options
   -m M, --mismap=M    Don't write alignments with mismap probability > M.
   -s S, --score=S     Don't write alignments with score < S.
 
-Typical usage
--------------
-
-This is a typical way of mapping short DNA reads to a genome:
-
-  lastdb -m1111110 humandb human/chr*.fa
-  lastal -Q1 -d108 -e120 humandb reads.fastq > myalns.maf
-  last-map-probs.py -s150 myalns.maf > myalns2.maf
-
-* The final alignments have score >= 150 (-s150).  This score is high
-  enough that random, spurious alignments are expected only once every
-  few thousand reads (for ~50 bp reads versus a mammalian genome).
-
-* The initial alignments have score >= 120 (-e120).  This is because
-  the mismap probability of an alignment with score 150 may depend on
-  alignments with score < 150.  Setting e = s-30 seems to work well.
-
-* The gapless score threshold when finding initial alignments is 108
-  (-d108).  This should be high enough to avoid triggering too many
-  time-consuming gapped alignments.
-
 Details
 -------
 
 * This script can read alignments in either of the formats produced by
   lastal (maf or tabular).
 
-* The input must be a real file (not a pipe), because the script makes
-  two passes over it.
+* The script reads one batch of alignments at a time (by looking for
+  lines starting with "# batch").  If the batches are huge, it might
+  need too much memory.  You can make the batches smaller using
+  lastal's -i option.
 
 Limitations
 -----------
