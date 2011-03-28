@@ -1,3 +1,18 @@
+Q: Is there a multi-core / multi-threaded version of LAST?
+
+A: No, but you can easily do it yourself.  Suppose you want to compare
+   sequences in three files (dna1.fa, dna2.fa, dna3.fa) to a lastdb
+   database called "mydb".  You can do something like this:
+
+     lastal mydb dna1.fa > out1.maf &
+     lastal mydb dna2.fa > out2.maf &
+     lastal mydb dna3.fa > out3.maf &
+
+  This will process the files in parallel.  (It will not need three
+  times as much memory, because the lastal processes will use shared
+  memory for mydb.)
+
+
 Q: Does it matter which sequence is used as the "reference" (given to
    lastdb) and which is used as the "query" (given to lastal)?
 

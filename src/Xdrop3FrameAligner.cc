@@ -208,12 +208,14 @@ int Xdrop3FrameAligner::fillThreeFrame( const uchar* seq1, const uchar* seq2,
     for( unsigned int i = off0 ; i < loopBeg ; i++ ){
       int yScore3 = hori3( y, k, i );
       int zScore3 = vert3( z, k, i );
-      int matrixScore = sm[ *s1 ][ *s2 ];
-      int secondScore = diag3( x, k + 1, i ) + matrixScore - frameshiftCost;
-      int matchScore  = diag3( x, k    , i ) + matrixScore;
-      int fourthScore = diag3( x, k - 1, i ) + matrixScore - frameshiftCost;
-      const int xScore = max5( yScore3, zScore3,
-			       secondScore, matchScore, fourthScore );
+      int secondScore = diag3( x, k + 1, i );
+      int mScore      = diag3( x, k    , i );
+      int fourthScore = diag3( x, k - 1, i );
+
+      int shiftScore = std::max( secondScore, fourthScore ) - frameshiftCost;
+      if( shiftScore >= minScore ) mScore = std::max( mScore, shiftScore );
+      const int matchScore = mScore + sm[ *s1 ][ *s2 ];
+      const int xScore = max3( matchScore, yScore3, zScore3 );
       const int newGap = xScore - gap.first;
       *z0++ = max4( newGap, zScore3 - gap.extend,
 		    newPair, diag3( z, k, i ) - gap.extendPair );
@@ -242,15 +244,15 @@ int Xdrop3FrameAligner::fillThreeFrame( const uchar* seq1, const uchar* seq2,
       // innermost loop: split into special cases for speed
       if( gap.isAffine() ){  // standard affine gap costs
 	do{
-	  const int matchScore  = *x6++ + sm[ *s1 ][ *s2 ];
-	  const int secondScore = *x5++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
-	  const int fourthScore = *x7++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
+          const int shiftScore = std::max( *x5++, *x7++ ) - frameshiftCost;
+          int mScore = *x6++;
+          if( shiftScore >= minScore ) mScore = std::max( mScore, shiftScore );
+          const int matchScore = mScore + sm[ *s1 ][ *s2 ];
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	  const int yScore3 = *y3++;
 	  const int zScore3 = *++z3;
-	  const int xScore = max5( yScore3, zScore3,
-				   secondScore, matchScore, fourthScore );
+	  const int xScore = max3( matchScore, yScore3, zScore3 );
 	  if( xScore >= minScore ){
 	    const int newGap = xScore - gap.first;
 	    *z0 = std::max( newGap, zScore3 - gap.extend );
@@ -267,15 +269,15 @@ int Xdrop3FrameAligner::fillThreeFrame( const uchar* seq1, const uchar* seq2,
 	const int* z6 = &z[ k6 ][ loopBeg - 1 - off6 ];
 	newPair = *x3++ - gap.firstPair;
 	do{
-	  const int matchScore  = *x6++ + sm[ *s1 ][ *s2 ];
-	  const int secondScore = *x5++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
-	  const int fourthScore = *x7++ + sm[ *s1 ][ *s2 ] - frameshiftCost;
+          const int shiftScore = std::max( *x5++, *x7++ ) - frameshiftCost;
+          int mScore = *x6++;
+          if( shiftScore >= minScore ) mScore = std::max( mScore, shiftScore );
+          const int matchScore = mScore + sm[ *s1 ][ *s2 ];
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	  const int yScore3 = *y3++;
 	  const int zScore3 = *++z3;
-	  const int xScore = max5( yScore3, zScore3,
-				   secondScore, matchScore, fourthScore );
+	  const int xScore = max3( matchScore, yScore3, zScore3 );
 	  const int newGap = xScore - gap.first;
 	  *z0++ = max4( newGap, zScore3 - gap.extend,
 			newPair, *z6++ - gap.extendPair );
@@ -294,12 +296,14 @@ int Xdrop3FrameAligner::fillThreeFrame( const uchar* seq1, const uchar* seq2,
     for( unsigned int i = loopEnd ; i < end0 ; i++ ){
       int yScore3 = hori3( y, k, i );
       int zScore3 = vert3( z, k, i );
-      int matrixScore = sm[ *s1 ][ *s2 ];
-      int secondScore = diag3( x, k + 1, i ) + matrixScore - frameshiftCost;
-      int matchScore  = diag3( x, k    , i ) + matrixScore;
-      int fourthScore = diag3( x, k - 1, i ) + matrixScore - frameshiftCost;
-      const int xScore = max5( yScore3, zScore3,
-			       secondScore, matchScore, fourthScore );
+      int secondScore = diag3( x, k + 1, i );
+      int mScore      = diag3( x, k    , i );
+      int fourthScore = diag3( x, k - 1, i );
+
+      int shiftScore = std::max( secondScore, fourthScore ) - frameshiftCost;
+      if( shiftScore >= minScore ) mScore = std::max( mScore, shiftScore );
+      const int matchScore = mScore + sm[ *s1 ][ *s2 ];
+      const int xScore = max3( matchScore, yScore3, zScore3 );
       const int newGap = xScore - gap.first;
       *z0++ = max4( newGap, zScore3 - gap.extend,
 		    newPair, diag3( z, k, i ) - gap.extendPair );
@@ -333,11 +337,19 @@ void Xdrop3FrameAligner::traceThreeFrame( std::vector< SegmentPair >& chunks,
       const int matrixScore = match2( seq1, seq2, start1, start2,
 				      dir, sm, frameSize, k, i );
       const int shiftedScore = matrixScore - frameshiftCost;
-      const int m = maxIndex5( diag3( x, k,     i ) + matrixScore,
-			       hori3( y, k,     i ),
-			       vert3( z, k,     i ),
-			       diag3( x, k + 1, i ) + shiftedScore,
-			       diag3( x, k - 1, i ) + shiftedScore );
+      int s1 = diag3( x, k,     i ) + matrixScore;
+      int s2 = hori3( y, k,     i );
+      int s3 = vert3( z, k,     i );
+      int s4 = diag3( x, k + 1, i ) + shiftedScore;
+      int s5 = diag3( x, k - 1, i ) + shiftedScore;
+
+      int s0 = cell( x, k, i );
+      if( s4 > s0 ) s4 = -INF;
+      if( s5 > s0 ) s5 = -INF;
+      assert( max5( s1, s2, s3, s4, s5 ) == s0 );
+
+      const int m = maxIndex5( s1, s2, s3, s4, s5 );
+
       if( m < 1 || m > 2 ){
 	k -= 6;
 	i -= 1;
