@@ -2,6 +2,7 @@ CXX = g++
 CC  = gcc
 
 CXXFLAGS = -O3
+# -fomit-frame-pointer ?
 CFLAGS = -Wall
 
 STRICT = -Wall -W -Wcast-qual -Wswitch-enum -Wundef	\

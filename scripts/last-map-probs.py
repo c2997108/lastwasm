@@ -116,6 +116,9 @@ if __name__ == "__main__":
     op.add_option("-s", "--score", type="float", default=0, metavar="S",
                   help="don't write alignments with score < S (default: %default)")
     (opts, args) = op.parse_args()
+    if not args and sys.stdin.isatty():
+        op.print_help()
+        op.exit()
 
     try: lastMapProbs(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message

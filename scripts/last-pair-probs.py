@@ -12,6 +12,15 @@
 
 # Seems to work with Python 2.x, x>=4.
 
+# The --rna option makes it assume that the genomic fragment lengths
+# follow a log-normal distribution (instead of a normal distribution).
+# In one test with human RNA, log-normal was a remarkably good fit,
+# but not perfect.  The true distribution looked like a mixture of 2
+# log-normals: a dominant one for shorter introns, and a minor one for
+# huge introns.  Thus, our use of a single log-normal fails to model
+# rare, huge introns.  To compensate for that, the default value of
+# --disjoint is increased when --rna is used.
+
 # (Should we try to estimate the prior probability of disjoint mapping
 # from the data?  But maybe ignore low-scoring alignments for that?
 # Estimate disjoint maps to opposite strands of same chromosome = maps
@@ -108,7 +117,11 @@ def conjointScores(aln1, alns2, opts):  # maybe slow
         if i.chromName != aln1.chromName or i.strand == aln1.strand: continue
         length = fragmentLength(aln1, i)
         if length <= 0: continue
-        yield i.score + opts.inner * (length - opts.fraglen) ** 2
+        if opts.rna:  # use a log-normal distribution
+            loglen = math.log(length)
+            yield i.score + opts.inner * (loglen - opts.fraglen) ** 2 - loglen
+        else:         # use a normal distribution
+            yield i.score + opts.inner * (length - opts.fraglen) ** 2
 
 def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
     if alignments2:
@@ -235,11 +248,14 @@ def estimateFragmentLengthDistribution(lengths, opts):
     warn("fragment length quartiles:", quartile1, quartile2, quartile3)
 
     if opts.fraglen is None:
-        opts.fraglen = quartile2
+        if opts.rna: opts.fraglen = math.log(quartile2)
+        else:        opts.fraglen = quartile2
         warn("estimated mean fragment length:", opts.fraglen)
 
     if opts.sdev is None:
-        opts.sdev = (quartile3 - quartile1) / 1.35  # Normal Distribution
+        if opts.rna: iqr = math.log(quartile3) - math.log(quartile1)
+        else:        iqr = quartile3 - quartile1
+        opts.sdev = iqr / 1.35  # Normal Distribution
         warn("estimated standard deviation:", "%g" % opts.sdev)
 
     if quartile1 <= 0:
@@ -251,7 +267,8 @@ def safeLog(x):
 
 def calculateScorePieces(opts, params1, params2):
     if opts.sdev == 0:
-        opts.outer = 0
+        if opts.rna: opts.outer = opts.fraglen
+        else:        opts.outer = 0
         opts.inner = -1e99
     else:  # parameters for a Normal Distribution (of fragment lengths):
         opts.outer = -math.log(opts.sdev * math.sqrt(2 * math.pi))
@@ -264,8 +281,10 @@ def calculateScorePieces(opts, params1, params2):
     #opts.disjointScore = math.log(opts.disjoint / (opts.genome * 2.0))
 
     # Max possible influence of an alignment just below the score threshold:
-    opts.maxMissingScore1 = (params1.e - 1) / params1.t + opts.outer
-    opts.maxMissingScore2 = (params2.e - 1) / params2.t + opts.outer
+    maxLogPrior = opts.outer
+    if opts.rna: maxLogPrior += opts.sdev ** 2 / 2 - opts.fraglen
+    opts.maxMissingScore1 = (params1.e - 1) / params1.t + maxLogPrior
+    opts.maxMissingScore2 = (params2.e - 1) / params2.t + maxLogPrior
 
 def lastPairProbs(opts, args):
     fileName1, fileName2 = args
@@ -324,6 +343,8 @@ if __name__ == "__main__":
     description = "Read alignments of paired DNA reads to a genome, and estimate the probability that each alignment represents the genomic source of the read."
 
     op = optparse.OptionParser(usage=usage, description=description)
+    op.add_option("-r", "--rna", action="store_true", help=
+                  "specifies that the reads are from potentially-spliced RNA")
     op.add_option("-m", "--mismap", type="float", default=0.01, metavar="M",
                   help="don't write alignment pairs with mismap probability > M (default: %default)")
     op.add_option("-f", "--fraglen", type="float", metavar="BP",
@@ -332,12 +353,15 @@ if __name__ == "__main__":
                   help="standard deviation of fragment length")
     op.add_option("-g", "--genome", type="float", metavar="BP",
                   help="haploid genome size in bp")
-    op.add_option("-d", "--disjoint", type="float", default=0.01,
+    op.add_option("-d", "--disjoint", type="float",
                   metavar="PROB", help=
-                  "prior probability of disjoint mapping (default: %default)")
+                  "prior probability of disjoint mapping (default: 0.02 if -r, else 0.01)")
     op.add_option("-c", "--circular", action="append", metavar="CHROM",
                   help="specifies that chromosome CHROM is circular (default: chrM)")
     (opts, args) = op.parse_args()
+    if opts.disjoint is None:
+        if opts.rna: opts.disjoint = 0.02
+        else:        opts.disjoint = 0.01
     if opts.disjoint < 0: op.error("option -d: should be >= 0")
     if opts.disjoint > 1: op.error("option -d: should be <= 1")
     if len(args) != 2: op.error("please give me two file names")

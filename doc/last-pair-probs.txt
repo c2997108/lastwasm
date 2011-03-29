@@ -18,15 +18,22 @@ Typical usage
   lastal -Q1 -d108 -e120 humandb reads2.fastq | maf-sort.sh -n2 > out2.maf
   last-pair-probs.py out1.maf out2.maf > results.maf
 
+If your reads come from potentially-spliced RNA molecules, use the -r
+option:
+
+  last-pair-probs.py -r out1.maf out2.maf > results.maf
+
+Without -r, it assumes the reads come from genomic fragments whose
+lengths follow a normal distribution.  With -r, it assumes the lengths
+follow a skewed (log-normal) distribution, which is much more
+appropriate for spliced RNA.
+
 Details
 -------
 
 * This script assumes that each read is from the edge of the fragment
   to the interior, in the 5' to 3' direction.  Thus, each pair is from
   opposite strands of the fragment.
-
-* It assumes that the fragment lengths roughly follow a normal
-  distribution.
 
 * It assumes that reads are paired if their names are identical,
   ignoring the last character.  For example: myDNA/1, myDNA/2.
@@ -39,7 +46,8 @@ Details
 
 * The script writes the alignments with "mismap" probabilities,
   i.e. the probability that the alignment does not represent the
-  genomic source of the read.
+  genomic source of the read.  By default, it discards alignments with
+  mismap probability > 0.01.
 
 Options
 -------
@@ -47,17 +55,21 @@ Options
   -h, --help
          Print a help message and exit.
 
+  -r, --rna
+         Specifies that the fragments are from potentially-spliced RNA.
+
   -m M, --mismap=M
          Don't write alignments with mismap probability > M.
 
   -f BP, --fraglen=BP
-         The mean fragment length in bp.  If this is not specified,
-         the script will estimate it from the alignments.
+         The mean fragment length in bp.  (With -r, the mean of
+         ln[length].)  If this is not specified, the script will
+         estimate it from the alignments.
 
   -s BP, --sdev=BP
-         The standard deviation of fragment length in bp.  If this is
-         not specified, the script will estimate it from the
-         alignments.
+         The standard deviation of fragment length in bp.  (With -r,
+         the standard deviation of ln[length].)  If this is not
+         specified, the script will estimate it from the alignments.
 
   -g BP, --genome=BP
          The haploid genome size in bp.  If this is not specified, the
