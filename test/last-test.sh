@@ -51,6 +51,10 @@ db=/tmp/last-test
     lastdb -m1111110 $db $dnaSeq
     lastal -Q3 -e110 $db illumina100.txt
     echo
+
+    echo TEST 9  # PRB-format quality data
+    lastal -Q4 -e90 $db mouse_tss_prb.txt
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -

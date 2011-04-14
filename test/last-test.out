@@ -427,3 +427,47 @@ q HWW-E2:1:1:10:1477#0/1              aaaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^aaS\RMX]\
 
 # CPU time: 0.01 seconds
 
+TEST 9
+#
+# a=21 b=9 c=100000 F=-1 e=90 d=54 x=201 y=44 z=201
+# u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
+# /tmp/last-test
+#
+#    A  C  G  T
+# A  6 -18 -18 -18
+# C -18  6 -18 -18
+# G -18 -18  6 -18
+# T -18 -18 -18  6
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+a score=126
+s chrM 2016 26 + 16775 GGTGGG-AGAAATGGGCTACATTTTCT
+s 36      0 27 +    36 GGTGGGAAGAAATGGGCTACATTTTCT
+q 36                   hhhhhhhhhhhhhhhhhhhhhhhhhhh
+
+a score=112
+s chrM 956 32 + 16775 tttgttattttttaattttttttttatttttt
+s 2      0 32 -    36 TATTTTATTTTTTGCTTTTTTTTTTTTTTTTT
+q 2                   C@JK?B?BBEJFA>==TXBSVSDAFF`hhDNF
+
+a score=97
+s chrM 960 28 + 16775 ttattttttaattttttttttatttttt
+s 2      3 28 -    36 TTTATTTTTTGCTTTTTTTTTTTTTTTT
+q 2                   K?B?BBEJFA>==TXBSVSDAFF`hhDN
+
+a score=93
+s chrM 948 31 + 16775 Attttttctttgttattttttaatttttttt
+s 2      1 31 -    36 ATTTTATTTTTTGCTTTTTTTTTTTTTTTTT
+q 2                   @JK?B?BBEJFA>==TXBSVSDAFF`hhDNF
+
+a score=92
+s chrM 958 30 + 16775 tgttattttttaattttttttttatttttt
+s 2      0 30 -    36 TATTTTATTTTTTGCTTTTTTTTTTTTTTT
+q 2                   C@JK?B?BBEJFA>==TXBSVSDAFF`hhD
+
+# CPU time: 0.02 seconds
+
