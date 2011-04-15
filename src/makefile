@@ -7,6 +7,7 @@ CFLAGS = -Wall
 
 STRICT = -Wall -W -Wcast-qual -Wswitch-enum -Wundef	\
 -Wcast-align -Wno-long-long -ansi -pedantic
+# -Wconversion
 # use -W instead of -Wextra, so that it works with old versions of g++
 
 DBSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc	\
@@ -22,17 +23,18 @@ SubsetSuffixArray.cc LastalArguments.cc io.cc fileMap.cc	\
 ScoreMatrix.cc DiagonalTable.cc SegmentPair.cc Alignment.cc	\
 XdropAligner.cc SegmentPairPot.cc AlignmentPot.cc		\
 GeneralizedAffineGapCosts.cc Centroid.cc LambdaCalculator.cc	\
-QualityScoreCalculator.cc GeneticCode.cc Xdrop3FrameAligner.cc	\
-AlignmentWrite.cc MultiSequenceQual.cc SegmentPairPssm.cc	\
-XdropAlignerPssm.cc lastal.cc
+OneQualityScoreMatrix.cc QualityPssmMaker.cc GeneticCode.cc	\
+Xdrop3FrameAligner.cc AlignmentWrite.cc MultiSequenceQual.cc	\
+SegmentPairPssm.cc XdropAlignerPssm.cc lastal.cc
 
 ALINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh	\
 SubsetSuffixArray.hh LastalArguments.hh io.hh fileMap.hh	\
 ScoreMatrix.hh DiagonalTable.hh SegmentPair.hh Alignment.hh	\
 XdropAligner.hh SegmentPairPot.hh AlignmentPot.hh		\
 GeneralizedAffineGapCosts.hh Centroid.hh LambdaCalculator.hh	\
-QualityScoreCalculator.hh GeneticCode.hh Xdrop3FrameAligner.hh	\
-Mmap.hh VectorOrMmap.hh ScoreMatrixRow.hh stringify.hh version.hh
+OneQualityScoreMatrix.hh QualityPssmMaker.hh GeneticCode.hh	\
+Xdrop3FrameAligner.hh Mmap.hh VectorOrMmap.hh ScoreMatrixRow.hh	\
+qualityScoreUtil.hh stringify.hh version.hh
 
 EXSRC = Alphabet.cc LastexArguments.cc io.cc ScoreMatrix.cc lastex.cc	\
 gumbel_params/*.cpp

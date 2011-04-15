@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 #include "ScoreMatrix.hh"
 #include <sstream>
@@ -100,7 +100,10 @@ void ScoreMatrix::init( const uchar encode[] ){
         ERR( std::string("bad letter in score matrix: ") + rows[i] );
       if( b >= MAT )
         ERR( std::string("bad letter in score matrix: ") + cols[j] );
-      caseSensitive[x][y] = cells[i][j];
+      caseSensitive[x][b] = std::min( cells[i][j], 0 );
+      caseSensitive[a][y] = std::min( cells[i][j], 0 );
+      caseSensitive[a][b] = std::min( cells[i][j], 0 );
+      caseSensitive[x][y] = cells[i][j];  // careful: maybe a==x or b==y
       caseInsensitive[x][y] = cells[i][j];
       caseInsensitive[x][b] = cells[i][j];
       caseInsensitive[a][y] = cells[i][j];

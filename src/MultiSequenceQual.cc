@@ -1,4 +1,4 @@
-// Copyright 2009, 2010 Martin C. Frith
+// Copyright 2009, 2010, 2011 Martin C. Frith
 
 #include "MultiSequence.hh"
 #include "stringify.hh"
@@ -15,7 +15,7 @@ using namespace cbrc;
 
 std::istream&
 MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
-  const uchar padQualityScore = 0;  // dummy value: should never get used
+  const uchar padQualityScore = 64;  // should never be used, but a valid value
 
   // initForAppending:
   if( qualityScores.empty() )
@@ -58,7 +58,7 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
 std::istream&
 MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
 			      unsigned alphSize, const uchar decode[] ){
-  const uchar padQualityScore = 0;  // dummy value: should never get used
+  const uchar padQualityScore = 64;  // should never be used, but a valid value
   std::size_t qualPadSize = padSize * alphSize;
   std::size_t qualSize = seq.v.size() * alphSize;
 
@@ -181,11 +181,10 @@ MultiSequence::appendFromPssm( std::istream& stream, indexT maxSeqLen,
       if( column >= scoreMatrixRowSize )
         ERR( std::string("bad column-letter in PSSM: ") + char(columnLetter) );
       row[column] = scores[i];
-      if( !isMaskLowercase ){
-        unsigned column = lettersToNumbers[ std::tolower(columnLetter) ];
-        if( column >= scoreMatrixRowSize ) continue;  // ?
-        row[column] = scores[i];
-      }
+      unsigned maskColumn = lettersToNumbers[ std::tolower(columnLetter) ];
+      if( maskColumn >= scoreMatrixRowSize ) continue;  // ?
+      if( isMaskLowercase ) scores[i] = std::min(scores[i], 0);
+      if( maskColumn != column ) row[maskColumn] = scores[i];
     }
     unsigned delimiterColumn = lettersToNumbers[' '];
     assert( delimiterColumn < scoreMatrixRowSize );

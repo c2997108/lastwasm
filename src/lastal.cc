@@ -3,7 +3,9 @@
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
 #include "LastalArguments.hh"
-#include "QualityScoreCalculator.hh"
+#include "QualityPssmMaker.hh"
+#include "OneQualityScoreMatrix.hh"
+#include "qualityScoreUtil.hh"
 #include "LambdaCalculator.hh"
 #include "GeneticCode.hh"
 #include "SubsetSuffixArray.hh"
@@ -35,7 +37,6 @@ using namespace cbrc;
 
 namespace {
   typedef MultiSequence::indexT indexT;
-  typedef unsigned char uchar;
   typedef unsigned long long countT;
 
   LastalArguments args;
@@ -54,8 +55,9 @@ namespace {
   const ScoreMatrixRow* matGapless;  // score matrix for gapless alignment
   const ScoreMatrixRow* matGapped;  // score matrix for gapped alignment
   const ScoreMatrixRow* matFinal;  // score matrix for final alignment
-  QualityScoreCalculator uppercaseQualityScorer;  // masks lowercase
-  QualityScoreCalculator lowercaseQualityScorer;  // doesn't mask lowercase
+  OneQualityScoreMatrix oneQualityScoreMatrix;
+  OneQualityScoreMatrix oneQualityScoreMatrixMasked;
+  QualityPssmMaker qualityPssmMaker;
 }
 
 // Set up a scoring matrix, based on the user options
@@ -92,23 +94,35 @@ void makeScoreMatrix( const std::string& matrixFile ){
   // maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
 }
 
+static bool isPhred(){
+  return (args.inputFormat == args.fastqSanger ||
+          args.inputFormat == args.fastqIllumina);
+}
+
+static int qualityOffset(){
+  return (args.inputFormat == args.fastqSanger) ? 33 : 64;
+}
+
 void makeQualityScorers(){
-  bool isPhred = (args.inputFormat == args.fastqSanger ||
-                  args.inputFormat == args.fastqIllumina);
-  int asciiOffset = (args.inputFormat == args.fastqSanger) ? 33 : 64;
-  bool isMatchMismatch = args.matrixFile.empty() && args.matchScore > 0;
+  double lambda = lambdaCalculator.lambda();
+  const double *letterProbs2 = &lambdaCalculator.letterProbs2()[0];
+
+  if( args.inputFormat == args.prb ){
+    bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
+    qualityPssmMaker.init( matFinal, alph.size, lambda, isMatchMismatch,
+                           args.matchScore, -args.mismatchCost,
+                           qualityOffset(), alph.canonical );
+    return;
+  }
+
   if( args.maskLowercase > 0 )
-    uppercaseQualityScorer.init( scoreMatrix.caseSensitive,
-                                 alph.size, args.temperature,
-                                 true, isMatchMismatch,
-                                 args.matchScore, -args.mismatchCost,
-                                 alph.canonical, isPhred, asciiOffset );
+    oneQualityScoreMatrixMasked.init( matFinal, alph.size, lambda,
+                                      letterProbs2, isPhred(),
+                                      qualityOffset(), alph.canonical, true );
   if( args.maskLowercase < 3 )
-    lowercaseQualityScorer.init( scoreMatrix.caseInsensitive,
-                                 alph.size, args.temperature,
-                                 false, isMatchMismatch,
-                                 args.matchScore, -args.mismatchCost,
-                                 alph.canonical, isPhred, asciiOffset );
+    oneQualityScoreMatrix.init( matFinal, alph.size, lambda,
+                                letterProbs2, isPhred(),
+                                qualityOffset(), alph.canonical, false );
 }
 
 // Calculate statistical parameters for the alignment scoring scheme
@@ -121,8 +135,8 @@ void calculateScoreStatistics(){
   LOG( "calculating matrix probabilities..." );
   lambdaCalculator.calculate( matGapless, alph.size );
   if( lambdaCalculator.isBad() ){
-    if( args.temperature < 0 &&
-        (args.outputType > 3 || args.isQualityScores()) )
+    if( args.isQualityScores() ||
+        (args.temperature < 0 && args.outputType > 3) )
       ERR( "can't get probabilities for this score matrix" );
     else
       LOG( "can't get probabilities for this score matrix" );
@@ -392,13 +406,25 @@ void alignFinish( const AlignmentPot& gappedAlns,
   }
 }
 
-void makeQualityPssm( const QualityScoreCalculator& qualityScorer ){
+void makeQualityPssm( bool isApplyMasking ){
   if( !args.isQualityScores() ) return;
+
   LOG( "making PSSM..." );
   query.resizePssm();
-  qualityScorer.makePssm( query.pssmWriter(), query.qualityReader(),
-                          query.seqReader(), query.finishedSize(),
-                          args.inputFormat != args.prb );
+
+  const uchar *seqBeg = query.seqReader();
+  const uchar *seqEnd = seqBeg + query.finishedSize();
+  const uchar *q = query.qualityReader();
+  int *pssm = *query.pssmWriter();
+
+  if( args.inputFormat == args.prb ){
+    qualityPssmMaker.make( seqBeg, seqEnd, q, pssm, isApplyMasking );
+  }
+  else {
+    const OneQualityScoreMatrix &m =
+        isApplyMasking ? oneQualityScoreMatrixMasked : oneQualityScoreMatrix;
+    makePositionSpecificScoreMatrix( m, seqBeg, seqEnd, q, pssm );
+  }
 }
 
 // Scan one batch of query sequences against one database volume
@@ -408,8 +434,8 @@ void scan( char strand, std::ostream& out ){
     return;
   }
 
-  if( args.maskLowercase == 0 ) makeQualityPssm( lowercaseQualityScorer );
-  else                          makeQualityPssm( uppercaseQualityScorer );
+  bool isApplyMasking = (args.maskLowercase > 0);
+  makeQualityPssm(isApplyMasking);
 
   LOG( "scanning..." );
 
@@ -417,7 +443,7 @@ void scan( char strand, std::ostream& out ){
   alignGapless( gaplessAlns, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
-  if( args.maskLowercase == 1 ) makeQualityPssm( lowercaseQualityScorer );
+  if( args.maskLowercase == 1 ) makeQualityPssm(false);
 
   Centroid centroid( xdropAligner, matFinal, args.temperature );  // slow?
 
@@ -429,7 +455,7 @@ void scan( char strand, std::ostream& out ){
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
-  if( args.maskLowercase == 2 ) makeQualityPssm( lowercaseQualityScorer );
+  if( args.maskLowercase == 2 ) makeQualityPssm(false);
 
   alignGapped( gappedAlns, gaplessAlns, matFinal, args.maxDropFinal,
                true, centroid );
@@ -580,6 +606,11 @@ std::istream& appendFromFasta( std::istream& in ){
   // encode the newly-read sequence
   queryAlph.tr( query.seqWriter() + oldUnfinishedSize,
                 query.seqWriter() + query.unfinishedSize() );
+
+  if( isPhred() )
+    checkQualityCodes( query.qualityReader() + oldUnfinishedSize,
+                       query.qualityReader() + query.unfinishedSize(),
+                       qualityOffset() );
 
   return in;
 }
