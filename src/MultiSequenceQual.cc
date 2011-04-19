@@ -18,13 +18,13 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
   const uchar padQualityScore = 64;  // should never be used, but a valid value
 
   // initForAppending:
-  if( qualityScores.empty() )
-    qualityScores.insert( qualityScores.end(), padSize, padQualityScore );
+  if( qualityScores.v.empty() )
+    qualityScores.v.insert( qualityScores.v.end(), padSize, padQualityScore );
 
   // reinitForAppending:
-  if( qualityScores.size() > seq.v.size() )
-    qualityScores.erase( qualityScores.begin(),
-			 qualityScores.end() - seq.v.size() );
+  if( qualityScores.v.size() > seq.v.size() )
+    qualityScores.v.erase( qualityScores.v.begin(),
+                           qualityScores.v.end() - seq.v.size() );
 
   if( isFinished() ){
     uchar c = '@';
@@ -40,16 +40,16 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
 
     stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
-    while( qualityScores.size() < seq.v.size() && stream >> c ){  // skips WS
-      qualityScores.push_back(c);
+    while( qualityScores.v.size() < seq.v.size() && stream >> c ){  // skips WS
+      qualityScores.v.push_back(c);
     }
 
-    if( seq.v.size() != qualityScores.size() ) ERR( "bad FASTQ data" );
+    if( seq.v.size() != qualityScores.v.size() ) ERR( "bad FASTQ data" );
   }
 
   if( isFinishable(maxSeqLen) ){
     finish();
-    qualityScores.insert( qualityScores.end(), padSize, padQualityScore );
+    qualityScores.v.insert( qualityScores.v.end(), padSize, padQualityScore );
   }
 
   return stream;
@@ -63,13 +63,14 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
   std::size_t qualSize = seq.v.size() * alphSize;
 
   // initForAppending:
-  if( qualityScores.empty() )
-    qualityScores.insert( qualityScores.end(), qualPadSize, padQualityScore );
+  if( qualityScores.v.empty() )
+    qualityScores.v.insert( qualityScores.v.end(), qualPadSize,
+                            padQualityScore );
 
   // reinitForAppending:
-  if( qualityScores.size() > qualSize )
-    qualityScores.erase( qualityScores.begin(),
-			 qualityScores.end() - qualSize );
+  if( qualityScores.v.size() > qualSize )
+    qualityScores.v.erase( qualityScores.v.begin(),
+                           qualityScores.v.end() - qualSize );
 
   if( isFinished() ){
     std::string line;
@@ -86,13 +87,13 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
     while( iss >> q ){
       if( q < -64 || q > 62 )
 	ERR( "quality score too large: " + stringify(q) );
-      qualityScores.push_back( q + 64 );  // ASCII-encode the quality score
+      qualityScores.v.push_back( q + 64 );  // ASCII-encode the quality score
     }
 
-    if( qualityScores.size() % alphSize != 0 ) ERR( "bad PRB data" );
+    if( qualityScores.v.size() % alphSize != 0 ) ERR( "bad PRB data" );
 
-    for( CI(uchar) i = qualityScores.begin() + qualSize;
-	 i < qualityScores.end(); i += alphSize ){
+    for( CI(uchar) i = qualityScores.v.begin() + qualSize;
+	 i < qualityScores.v.end(); i += alphSize ){
       unsigned maxIndex = std::max_element( i, i + alphSize ) - i;
       seq.v.push_back( decode[ maxIndex ] );
     }
@@ -100,7 +101,8 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
 
   if( isFinishable(maxSeqLen) ){
     finish();
-    qualityScores.insert( qualityScores.end(), qualPadSize, padQualityScore );
+    qualityScores.v.insert( qualityScores.v.end(), qualPadSize,
+                            padQualityScore );
   }
 
   return stream;

@@ -103,7 +103,7 @@ class MultiSequence{
 
   // get a pointer to the start of the quality data
   const uchar* qualityReader() const{ return &qualityScores[0]; }
-  /***/ uchar* qualityWriter()      { return &qualityScores[0]; }
+  /***/ uchar* qualityWriter()      { return &qualityScores.v[0]; }
 
   // How many quality scores are there per letter?  There might be
   // none at all, one per letter, or several (e.g. 4) per letter.
@@ -125,7 +125,7 @@ class MultiSequence{
   // error probabilities in one of these ways:
   // Qphred = -10*log10(p)
   // Qsolexa = -10*log10(p/(1-p))
-  std::vector<uchar> qualityScores;
+  VectorOrMmap<uchar> qualityScores;
 
   // read a FASTA header: read the whole line but store just the first word
   std::istream& readFastaName( std::istream& stream );
