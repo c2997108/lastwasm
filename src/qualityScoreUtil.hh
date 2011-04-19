@@ -11,6 +11,8 @@
 
 namespace cbrc {
 
+typedef unsigned char uchar;
+
 inline int nearestInt(double x) {
   if (x > 0) return  static_cast<int>(0.5 + x);
   else       return -static_cast<int>(0.5 - x);

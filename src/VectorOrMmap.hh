@@ -16,8 +16,8 @@ struct VectorOrMmap{
   std::vector<T> v;
   Mmap<T> m;
 
-  const T* begin() const { return v.empty() ? &m.front()    : &v.front();    }
-  const T* end()   const { return v.empty() ? &m.back() + 1 : &v.back() + 1; }
+  const T* begin() const { return v.empty() ? m.begin() : &v.front();    }
+  const T* end()   const { return v.empty() ? m.end()   : &v.back() + 1; }
 
   std::size_t size() const { return v.empty() ? m.size() : v.size(); }
 

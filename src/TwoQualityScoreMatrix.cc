@@ -16,9 +16,9 @@ void TwoQualityMatrixIndexer::init(const uchar *toUnmasked) {
   indexMap.resize(qualityCapacity * scoreMatrixRowSize);
 
   for (int quality = 0; quality < qualityCapacity; ++quality) {
-    int normalStart = quality * numDeep;
+    int normalStart = quality * numQualityLetters;
     int maskedStart = normalStart + numNormalLetters;
-    int abnormalPos = qualityCapacity * numDeep;
+    int abnormalPos = 0;
 
     for (int letter = 0; letter < scoreMatrixRowSize; ++letter) {
       int unmasked = toUnmasked[letter];
@@ -31,12 +31,14 @@ void TwoQualityMatrixIndexer::init(const uchar *toUnmasked) {
       else
         indexMap[i] = abnormalPos++;
     }
+
+    assert(abnormalPos <= minQuality * numQualityLetters);
   }
 }
 
 static int qualityEnd(const TwoQualityMatrixIndexer &indexer, int letter) {
   if (indexer(0, letter, 0, 0) == indexer(0, letter, 0, 1))
-    return 1;
+    return indexer.minQuality + 1;
   else
     return indexer.qualityCapacity;
 }
@@ -72,8 +74,8 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
       int end1 = qualityEnd(indexer, letter1);
       int end2 = qualityEnd(indexer, letter2);
 
-      for (int q1 = 0; q1 < end1; ++q1) {
-        for (int q2 = 0; q2 < end2; ++q2) {
+      for (int q1 = indexer.minQuality; q1 < end1; ++q1) {
+        for (int q2 = indexer.minQuality; q2 < end2; ++q2) {
           if (isUseQuality) {
             double p1 = letterProbs1[unmasked1];
             double u1 = qualityUncertainty(q1, qualityOffset1, isPhred1, p1);
@@ -102,8 +104,8 @@ void TwoQualityExpMatrix::init(const TwoQualityScoreMatrix &m,
       int end1 = qualityEnd(indexer, i1);
       int end2 = qualityEnd(indexer, i2);
 
-      for (int q1 = 0; q1 < end1; ++q1)
-        for (int q2 = 0; q2 < end2; ++q2)
+      for (int q1 = indexer.minQuality; q1 < end1; ++q1)
+        for (int q2 = indexer.minQuality; q2 < end2; ++q2)
           data[indexer(i1, i2, q1, q2)] =
               std::exp(m(i1, i2, q1, q2) / temperature);
     }

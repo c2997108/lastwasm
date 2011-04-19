@@ -56,6 +56,9 @@ class OneQualityScoreMatrix {
             const uchar *toUnmasked,  // maps letters to unmasked letters
             bool isApplyMasking);
 
+  // Tests whether init has been called:
+  operator const void *() const { return data.empty() ? 0 : this; }
+
   int operator()(int letter1, int letter2, int quality2) const
   { return data[oneQualityMatrixIndex(letter1, letter2, quality2)]; }
 
@@ -67,6 +70,9 @@ class OneQualityScoreMatrix {
 class OneQualityExpMatrix {
  public:
   void init(const OneQualityScoreMatrix &m, double temperature);
+
+  // Tests whether init has been called:
+  operator const void *() const { return data.empty() ? 0 : this; }
 
   double operator()(int letter1, int letter2, int quality2) const
   { return data[oneQualityMatrixIndex(letter1, letter2, quality2)]; }

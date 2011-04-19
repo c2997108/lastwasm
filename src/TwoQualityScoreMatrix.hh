@@ -46,9 +46,9 @@ class TwoQualityMatrixIndexer {
  public:
   static const int qualityCapacity = 128;
   static const int numNormalLetters = 4;
-  static const int numDeep = numNormalLetters * 2;
-  static const int numFlat = scoreMatrixRowSize - numDeep;
-  static const int numSymbols = numDeep * qualityCapacity + numFlat;
+  static const int numQualityLetters = numNormalLetters * 2;  // normal+masked
+  static const int numSymbols = numQualityLetters * qualityCapacity;
+  static const int minQuality = 32;
 
   void init(const uchar *toUnmasked);
 
@@ -80,6 +80,9 @@ class TwoQualityScoreMatrix {
             const uchar *toUnmasked,  // maps letters to unmasked letters
             bool isApplyMasking);
 
+  // Tests whether init has been called:
+  operator const void *() const { return data.empty() ? 0 : this; }
+
   int operator()(int letter1, int letter2, int quality1, int quality2) const
   { return data[indexer(letter1, letter2, quality1, quality2)]; }
 
@@ -92,6 +95,9 @@ class TwoQualityScoreMatrix {
 class TwoQualityExpMatrix {
  public:
   void init(const TwoQualityScoreMatrix &m, double temperature);
+
+  // Tests whether init has been called:
+  operator const void *() const { return data.empty() ? 0 : this; }
 
   double operator()(int letter1, int letter2, int quality1, int quality2) const
   { return data[indexer(letter1, letter2, quality1, quality2)]; }
