@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 // This struct holds a gapped, pair-wise alignment.
 
@@ -88,7 +88,10 @@ struct Alignment{
   std::string botString( const uchar* seq, const Alphabet& alph,
                          indexT frameSize ) const;
 
-  std::string qualityString( const uchar* qualities,
+  std::string topQualString( const uchar* qualities,
+			     std::size_t qualsPerBase ) const;
+
+  std::string botQualString( const uchar* qualities,
 			     std::size_t qualsPerBase ) const;
 
   static std::string qualityBlock( const uchar* qualities,

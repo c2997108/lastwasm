@@ -1,4 +1,4 @@
-// Copyright 2010 Martin C. Frith
+// Copyright 2010, 2011 Martin C. Frith
 
 // Container that holds its data in either a std::vector or an Mmap.
 

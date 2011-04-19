@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 #include "Alignment.hh"
 #include "GeneticCode.hh"
@@ -115,6 +115,13 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
      << std::setw( sw ) << s1 << ' '
      << topString( seq1.seqReader(), alph, frameSize2 ) << '\n';
 
+  if( seq1.qualsPerLetter() > 0 ){
+    os << "q "
+       << std::setw( nw ) << std::left << n1 << std::right << ' '
+       << std::setw( bw + rw + sw + 5 ) << ""
+       << topQualString( seq1.qualityReader(), seq1.qualsPerLetter() ) << '\n';
+  }
+
   os << "s "
      << std::setw( nw ) << std::left << n2 << std::right << ' '
      << std::setw( bw ) << b2 << ' '
@@ -126,7 +133,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
     os << "q "
        << std::setw( nw ) << std::left << n2 << std::right << ' '
        << std::setw( bw + rw + sw + 5 ) << ""
-       << qualityString( seq2.qualityReader(), seq2.qualsPerLetter() ) << '\n';
+       << botQualString( seq2.qualityReader(), seq2.qualsPerLetter() ) << '\n';
   }
 
   if( matchProbabilities.size() > 0 ){
@@ -205,7 +212,30 @@ std::string Alignment::botString( const uchar* seq, const Alphabet& alph,
   return s;
 }
 
-std::string Alignment::qualityString( const uchar* qualities,
+std::string Alignment::topQualString( const uchar* qualities,
+                                      std::size_t qualsPerBase ) const{
+  std::string s;
+
+  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
+    if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      // assume we're not doing translated alignment
+
+      // append qualities for unaligned chunk of top sequence:
+      s.append( qualityBlock( qualities, (i-1)->end1(), i->beg1(),
+                              qualsPerBase ) );
+
+      // append gaps for unaligned chunk of bottom sequence:
+      s.append( i->beg2() - (i-1)->end2(), '-' );
+    }
+
+    // append qualities for aligned chunk of top sequence:
+    s.append( qualityBlock( qualities, i->beg1(), i->end1(), qualsPerBase ) );
+  }
+
+  return s;
+}
+
+std::string Alignment::botQualString( const uchar* qualities,
 				      std::size_t qualsPerBase ) const{
   std::string s;
 
@@ -216,7 +246,7 @@ std::string Alignment::qualityString( const uchar* qualities,
       // append gaps for unaligned chunk of top sequence:
       s.append( i->beg1() - (i-1)->end1(), '-' );
 
-      //append qualities for unaligned chunk of bottom sequence:
+      // append qualities for unaligned chunk of bottom sequence:
       s.append( qualityBlock( qualities, (i-1)->end2(), i->beg2(),
 			      qualsPerBase ) );
     }
