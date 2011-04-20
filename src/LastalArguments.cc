@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 #include "LastalArguments.hh"
 #include "stringify.hh"
@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <cstring>  // strtok
 #include <cstdlib>  // EXIT_SUCCESS
-//#include <iostream>  // for debugging
 
 #define ERR(x) throw std::runtime_error(x)
 
@@ -19,19 +18,6 @@ static void badopt( char opt, const char* arg ){
 }
 
 namespace cbrc{
-
-static int readSmallInt( std::istream& s, int max ){
-  int i = 0;
-  s >> i;
-  if( i < 0 || i > max ) s.setstate(std::ios::failbit);
-  return i;
-}
-
-std::istream& operator>>( std::istream& s, LastalArguments::InputFormat& x ){
-  int i = readSmallInt( s, LastalArguments::pssm );
-  if(s) x = static_cast<LastalArguments::InputFormat>(i);
-  return s;
-}
 
 LastalArguments::LastalArguments() :
   outFile("-"),
@@ -51,7 +37,7 @@ LastalArguments::LastalArguments() :
   maxDropGapped(-1),  // depends on gap costs & maxDropGapless
   maxDropGapless(-1),  // depends on the score matrix
   maxDropFinal(-1),  // depends on maxDropGapped
-  inputFormat(fasta),
+  inputFormat(sequenceFormat::fasta),
   minHitDepth(1),
   oneHitMultiplicity(10),
   maxGaplessAlignmentsPerQueryPosition(indexT(-1)),  // effectively infinity
@@ -303,7 +289,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     if( gapExtendCost  < 0 ) gapExtendCost  =   2;
     if( minScoreGapped < 0 ) minScoreGapped = 100;
   }
-  else if( !isQualityScores() ){
+  else if( !isQuality( inputFormat ) ){
     if( matchScore     < 0 ) matchScore     =   1;
     if( mismatchCost   < 0 ) mismatchCost   =   1;
     if( gapExistCost   < 0 ) gapExistCost   =   7;
@@ -327,14 +313,19 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
 
   if( maskLowercase < 0 ){
-    if( isCaseSensitiveSeeds && inputFormat != pssm ) maskLowercase = 2;
-    else                                              maskLowercase = 0;
+    if( isCaseSensitiveSeeds && inputFormat != sequenceFormat::pssm )
+      maskLowercase = 2;
+    else
+      maskLowercase = 0;
   }
 
   if( batchSize == 0 ){
-    /**/ if( inputFormat != fasta ) batchSize = 0x100000;   // 1 Mbyte
-    else if( outputType == 0 )      batchSize = 0x1000000;  // 16 Mbytes
-    else                            batchSize = 0x8000000;  // 128 Mbytes
+    if( inputFormat != sequenceFormat::fasta )
+      batchSize = 0x100000;   // 1 Mbyte
+    else if( outputType == 0 )
+      batchSize = 0x1000000;  // 16 Mbytes
+    else
+      batchSize = 0x8000000;  // 128 Mbytes
     // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
   }
 
@@ -345,7 +336,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 void LastalArguments::setDefaultsFromMatrix( double lambda ){
   if( temperature < 0 ) temperature = 1 / lambda;
 
-  if( maxDropGapless < 0 ){
+  if( maxDropGapless < 0 ){  // should it depend on temperature or lambda?
     if( temperature < 0 ) maxDropGapless = 0;  // shouldn't happen
     else                  maxDropGapless = int( 10.0 * temperature + 0.5 );
   }

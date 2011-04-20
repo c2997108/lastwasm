@@ -89,40 +89,33 @@ void makeScoreMatrix( const std::string& matrixFile ){
   // maximum score should not be used.  Here, we try to set it to a
   // high enough value that it has no effect.  This is a kludge - it
   // would be nice to use the maximum PSSM score.
-  if( args.inputFormat == args.pssm ) scoreMatrix.maxScore = 10000;
+  if( args.inputFormat == sequenceFormat::pssm ) scoreMatrix.maxScore = 10000;
   // This would work, except the maxDrops aren't finalized yet:
   // maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
 }
 
-static bool isPhred(){
-  return (args.inputFormat == args.fastqSanger ||
-          args.inputFormat == args.fastqIllumina);
-}
-
-static int qualityOffset(){
-  return (args.inputFormat == args.fastqSanger) ? 33 : 64;
-}
-
 void makeQualityScorers(){
   double lambda = lambdaCalculator.lambda();
-  const double *letterProbs2 = &lambdaCalculator.letterProbs2()[0];
+  const std::vector<double>& lp2 = lambdaCalculator.letterProbs2();
+  bool isPhred2 = isPhred( args.inputFormat );
+  int offset2 = qualityOffset( args.inputFormat );
 
-  if( args.inputFormat == args.prb ){
+  if( isFastq( args.inputFormat ) ) {
+    if( args.maskLowercase > 0 )
+      oneQualityScoreMatrixMasked.init( matFinal, alph.size, lambda,
+                                        &lp2[0], isPhred2, offset2,
+                                        alph.canonical, true );
+    if( args.maskLowercase < 3 )
+      oneQualityScoreMatrix.init( matFinal, alph.size, lambda,
+                                  &lp2[0], isPhred2, offset2,
+                                  alph.canonical, false );
+  }
+  else if( args.inputFormat == sequenceFormat::prb ){
     bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
     qualityPssmMaker.init( matFinal, alph.size, lambda, isMatchMismatch,
                            args.matchScore, -args.mismatchCost,
-                           qualityOffset(), alph.canonical );
-    return;
+                           offset2, alph.canonical );
   }
-
-  if( args.maskLowercase > 0 )
-    oneQualityScoreMatrixMasked.init( matFinal, alph.size, lambda,
-                                      letterProbs2, isPhred(),
-                                      qualityOffset(), alph.canonical, true );
-  if( args.maskLowercase < 3 )
-    oneQualityScoreMatrix.init( matFinal, alph.size, lambda,
-                                letterProbs2, isPhred(),
-                                qualityOffset(), alph.canonical, false );
 }
 
 // Calculate statistical parameters for the alignment scoring scheme
@@ -135,7 +128,7 @@ void calculateScoreStatistics(){
   LOG( "calculating matrix probabilities..." );
   lambdaCalculator.calculate( matGapless, alph.size );
   if( lambdaCalculator.isBad() ){
-    if( args.isQualityScores() ||
+    if( isQuality( args.inputFormat ) ||
         (args.temperature < 0 && args.outputType > 3) )
       ERR( "can't get probabilities for this score matrix" );
     else
@@ -407,7 +400,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
 }
 
 void makeQualityPssm( bool isApplyMasking ){
-  if( !args.isQualityScores() ) return;
+  if( !isQuality( args.inputFormat ) ) return;
 
   LOG( "making PSSM..." );
   query.resizePssm();
@@ -417,7 +410,7 @@ void makeQualityPssm( bool isApplyMasking ){
   const uchar *q = query.qualityReader();
   int *pssm = *query.pssmWriter();
 
-  if( args.inputFormat == args.prb ){
+  if( args.inputFormat == sequenceFormat::prb ){
     qualityPssmMaker.make( seqBeg, seqEnd, q, pssm, isApplyMasking );
   }
   else {
@@ -515,11 +508,11 @@ void reverseComplementPssm(){
 void reverseComplementQuery(){
   LOG( "reverse complementing..." );
   queryAlph.rc( query.seqWriter(), query.seqWriter() + query.finishedSize() );
-  if( args.isQualityScores() ){
+  if( isQuality( args.inputFormat ) ){
     std::reverse( query.qualityWriter(),
 		  query.qualityWriter() +
                   query.finishedSize() * query.qualsPerLetter() );
-  }else if( args.inputFormat == args.pssm ){
+  }else if( args.inputFormat == sequenceFormat::pssm ){
     reverseComplementPssm();
   }
 }
@@ -561,7 +554,7 @@ void writeHeader( std::ostream& out ){
     out << "# length\tcount\n";
   }
   else{  // we want alignments
-    if( args.inputFormat != args.pssm || !args.matrixFile.empty() ){
+    if( args.inputFormat != sequenceFormat::pssm || !args.matrixFile.empty() ){
       // we're not reading PSSMs, or we bothered to specify a matrix file
       scoreMatrix.writeCommented( out );
       out << "#\n";
@@ -590,11 +583,11 @@ std::istream& appendFromFasta( std::istream& in ){
 
   indexT oldUnfinishedSize = query.unfinishedSize();
 
-  /**/ if( args.inputFormat == args.fasta )
+  /**/ if( args.inputFormat == sequenceFormat::fasta )
     query.appendFromFasta( in, maxSeqLen );
-  else if( args.inputFormat == args.prb )
+  else if( args.inputFormat == sequenceFormat::prb )
     query.appendFromPrb( in, maxSeqLen, queryAlph.size, queryAlph.decode );
-  else if( args.inputFormat == args.pssm )
+  else if( args.inputFormat == sequenceFormat::pssm )
     query.appendFromPssm( in, maxSeqLen, queryAlph.encode,
                           args.maskLowercase > 1 );
   else
@@ -607,10 +600,10 @@ std::istream& appendFromFasta( std::istream& in ){
   queryAlph.tr( query.seqWriter() + oldUnfinishedSize,
                 query.seqWriter() + query.unfinishedSize() );
 
-  if( isPhred() )
+  if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
     checkQualityCodes( query.qualityReader() + oldUnfinishedSize,
                        query.qualityReader() + query.unfinishedSize(),
-                       qualityOffset() );
+                       qualityOffset( args.inputFormat ) );
 
   return in;
 }
@@ -639,7 +632,7 @@ void lastal( int argc, char** argv ){
   calculateScoreStatistics();
   args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
 
-  if( args.isQualityScores() ) makeQualityScorers();
+  makeQualityScorers();
 
   if( args.isTranslated() ){
     if( alph.letters == alph.dna )  // allow user-defined alphabet

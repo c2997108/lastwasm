@@ -1,9 +1,12 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 // This struct holds the command line arguments for lastal.
 
 #ifndef LASTALARGUMENTS_HH
 #define LASTALARGUMENTS_HH
+
+#include "SequenceFormat.hh"
+
 #include <string>
 #include <iosfwd>
 
@@ -38,10 +41,6 @@ struct LastalArguments{
   // are we doing translated alignment (DNA versus protein)?
   bool isTranslated() const{ return frameshiftCost > 0; }
 
-  // are we reading query sequences with quality scores?
-  bool isQualityScores() const
-  { return inputFormat != fasta && inputFormat != pssm; }
-
   // options:
   std::string outFile;
   int outputFormat;
@@ -60,8 +59,7 @@ struct LastalArguments{
   int maxDropGapped;
   int maxDropGapless;
   int maxDropFinal;
-  enum InputFormat { fasta, fastqSanger, fastqSolexa, fastqIllumina, prb,
-                     pssm } inputFormat;
+  sequenceFormat::Enum inputFormat;
   indexT minHitDepth;
   indexT oneHitMultiplicity;
   indexT maxGaplessAlignmentsPerQueryPosition;

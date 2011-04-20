@@ -34,7 +34,7 @@ XdropAligner.hh SegmentPairPot.hh AlignmentPot.hh		\
 GeneralizedAffineGapCosts.hh Centroid.hh LambdaCalculator.hh	\
 OneQualityScoreMatrix.hh QualityPssmMaker.hh GeneticCode.hh	\
 Xdrop3FrameAligner.hh Mmap.hh VectorOrMmap.hh ScoreMatrixRow.hh	\
-qualityScoreUtil.hh stringify.hh version.hh
+SequenceFormat.hh qualityScoreUtil.hh stringify.hh version.hh
 
 EXSRC = Alphabet.cc LastexArguments.cc io.cc ScoreMatrix.cc lastex.cc	\
 gumbel_params/*.cpp
