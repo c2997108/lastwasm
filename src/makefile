@@ -12,11 +12,12 @@ STRICT = -Wall -W -Wcast-qual -Wswitch-enum -Wundef	\
 
 DBSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc	\
 SubsetSuffixArray.cc LastdbArguments.cc io.cc fileMap.cc	\
-SubsetSuffixArraySort.cc lastdb.cc
+SubsetSuffixArraySort.cc MultiSequenceQual.cc lastdb.cc
 
-DBINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh	\
-SubsetSuffixArray.hh LastdbArguments.hh io.hh fileMap.hh	\
-Mmap.hh VectorOrMmap.hh ScoreMatrixRow.hh stringify.hh version.hh
+DBINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh		\
+SubsetSuffixArray.hh LastdbArguments.hh io.hh fileMap.hh Mmap.hh	\
+VectorOrMmap.hh ScoreMatrixRow.hh SequenceFormat.hh			\
+qualityScoreUtil.hh stringify.hh version.hh
 
 ALSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc	\
 SubsetSuffixArray.cc LastalArguments.cc io.cc fileMap.cc	\

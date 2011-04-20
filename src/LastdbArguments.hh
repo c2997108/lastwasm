@@ -1,9 +1,12 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 // This struct holds the command line arguments for lastdb.
 
 #ifndef LASTDBARGUMENTS_HH
 #define LASTDBARGUMENTS_HH
+
+#include "SequenceFormat.hh"
+
 #include <string>
 
 namespace cbrc{
@@ -28,6 +31,7 @@ struct LastdbArguments{
   indexT bucketDepth;
   bool isCountsOnly;
   int verbosity;
+  sequenceFormat::Enum inputFormat;
 
   // positional arguments:
   std::string lastdbName;

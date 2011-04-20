@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 // Read fasta-format sequences; construct a suffix array of them; and
 // write the results to files.
@@ -9,6 +9,7 @@
 #include "MultiSequence.hh"
 #include "CyclicSubsetSeed.hh"
 #include "io.hh"
+#include "qualityScoreUtil.hh"
 #include "stringify.hh"
 #include <stdexcept>
 #include <fstream>
@@ -93,6 +94,9 @@ void writeOuterPrj( const std::string& fileName, const LastdbArguments& args,
 
   if( !args.isCountsOnly ){
     f << "masklowercase=" << args.isCaseSensitive << '\n';
+    if( args.inputFormat != sequenceFormat::fasta ){
+      f << "sequenceformat=" << args.inputFormat << '\n';
+    }
     f << "volumes=" << volumes << '\n';
     for( unsigned i = 0; i < seed.span(); ++i ){
       f << "subsetseed=";
@@ -135,20 +139,29 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
   LOG( "done!" );
 }
 
+static std::size_t spareBytes( std::size_t maxBytes, std::size_t usedBytes ){
+  if( usedBytes > maxBytes ) return 0;
+  return maxBytes - usedBytes;
+}
+
 // Read the next sequence, adding it to the MultiSequence and the SuffixArray
 std::istream&
 appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
 		 const LastdbArguments& args, const Alphabet& alph,
 		 const CyclicSubsetSeed& seed, std::istream& in ){
-  indexT maxSeqLen = args.volumeSize - sa.indexBytes();
-  if( maxSeqLen < args.volumeSize - sa.indexBytes() ) maxSeqLen = indexT(-1);
-  if( args.volumeSize < sa.indexBytes() ) maxSeqLen = 0;
+  std::size_t maxSeqBytes = spareBytes( args.volumeSize, sa.indexBytes() );
+  if( isFastq( args.inputFormat ) ) maxSeqBytes /= 2;
+  indexT maxSeqLen = maxSeqBytes;
+  if( maxSeqLen < maxSeqBytes ) maxSeqLen = indexT(-1);
   if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
   indexT oldUnfinishedSize = multi.unfinishedSize();
   indexT oldFinishedSize = multi.finishedSize();
 
-  multi.appendFromFasta( in, maxSeqLen );
+  if ( args.inputFormat == sequenceFormat::fasta )
+    multi.appendFromFasta( in, maxSeqLen );
+  else
+    multi.appendFromFastq( in, maxSeqLen );
 
   if( !multi.isFinished() && multi.finishedSequences() == 0 )
     ERR( "encountered a sequence that's too long" );
@@ -157,9 +170,15 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
   alph.tr( multi.seqWriter() + oldUnfinishedSize,
            multi.seqWriter() + multi.unfinishedSize() );
 
+  if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
+    checkQualityCodes( multi.qualityReader() + oldUnfinishedSize,
+                       multi.qualityReader() + multi.unfinishedSize(),
+                       qualityOffset( args.inputFormat ) );
+
   if( in && multi.isFinished() && !args.isCountsOnly ){
-    std::size_t maxIndexBytes = args.volumeSize - multi.unfinishedSize();
-    if( args.volumeSize < multi.unfinishedSize() ) maxIndexBytes = 0;
+    std::size_t seqBytes = multi.unfinishedSize();
+    if( isFastq( args.inputFormat ) ) seqBytes *= 2;
+    std::size_t maxIndexBytes = spareBytes( args.volumeSize, seqBytes );
     if( multi.finishedSequences() == 1 ) maxIndexBytes = std::size_t(-1);
 
     if( !sa.addIndices( multi.seqReader(),

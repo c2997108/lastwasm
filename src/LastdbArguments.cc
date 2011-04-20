@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 #include "LastdbArguments.hh"
 #include "stringify.hh"
@@ -25,7 +25,8 @@ LastdbArguments::LastdbArguments() :
   userAlphabet(""),
   bucketDepth(indexT(-1)),  // means: use the default (adapts to the data)
   isCountsOnly(false),
-  verbosity(0){}
+  verbosity(0),
+  inputFormat(sequenceFormat::fasta){}
 
 void LastdbArguments::fromArgs( int argc, char** argv ){
   std::string usage = "\
@@ -37,7 +38,8 @@ Main Options:\n\
 -p: interpret the sequences as proteins\n\
 -c: soft-mask lowercase letters";
 
-    std::string help = usage + "\n\
+  // Keep option -Q secret, because it's not yet useful:
+  std::string help = usage + "\n\
 \n\
 Advanced Options (default settings):\n\
 -s: volume size (unlimited)\n\
@@ -54,7 +56,7 @@ LAST home page: http://last.cbrc.jp/\n\
 ";
 
   int c;
-  while( (c = getopt(argc, argv, "hpcm:s:w:u:a:b:xv")) != -1 ) {
+  while( (c = getopt(argc, argv, "hpcm:s:w:u:a:b:xvQ:")) != -1 ) {
     switch(c){
     case 'h':
       std::cout << help;
@@ -89,6 +91,10 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'v':
       ++verbosity;
+      break;
+    case 'Q':
+      unstringify( inputFormat, optarg );
+      if( inputFormat >= sequenceFormat::prb ) badopt( c, optarg );
       break;
     case '?':
       ERR( "bad option" );
