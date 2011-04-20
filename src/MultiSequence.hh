@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 // This class holds multiple sequences and their names.  The sequences
 // are concatenated, with delimiters between them.
@@ -29,7 +29,8 @@ class MultiSequence{
   void reinitForAppending();
 
   // read seqCount finished sequences, and their names, from binary files
-  void fromFiles( const std::string& baseName, indexT seqCount );
+  void fromFiles( const std::string& baseName, indexT seqCount,
+                  std::size_t qualitiesPerLetter );
 
   // write all the finished sequences and their names to binary files
   void toFiles( const std::string& baseName ) const;

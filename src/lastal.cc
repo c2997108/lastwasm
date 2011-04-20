@@ -5,6 +5,7 @@
 #include "LastalArguments.hh"
 #include "QualityPssmMaker.hh"
 #include "OneQualityScoreMatrix.hh"
+#include "TwoQualityScoreMatrix.hh"
 #include "qualityScoreUtil.hh"
 #include "LambdaCalculator.hh"
 #include "GeneticCode.hh"
@@ -58,6 +59,9 @@ namespace {
   OneQualityScoreMatrix oneQualityScoreMatrix;
   OneQualityScoreMatrix oneQualityScoreMatrixMasked;
   QualityPssmMaker qualityPssmMaker;
+  sequenceFormat::Enum referenceFormat;  // defaults to 0
+  TwoQualityScoreMatrix twoQualityScoreMatrix;
+  TwoQualityScoreMatrix twoQualityScoreMatrixMasked;
 }
 
 // Set up a scoring matrix, based on the user options
@@ -96,25 +100,45 @@ void makeScoreMatrix( const std::string& matrixFile ){
 
 void makeQualityScorers(){
   double lambda = lambdaCalculator.lambda();
+  const std::vector<double>& lp1 = lambdaCalculator.letterProbs1();
+  bool isPhred1 = isPhred( referenceFormat );
+  int offset1 = qualityOffset( referenceFormat );
   const std::vector<double>& lp2 = lambdaCalculator.letterProbs2();
   bool isPhred2 = isPhred( args.inputFormat );
   int offset2 = qualityOffset( args.inputFormat );
 
-  if( isFastq( args.inputFormat ) ) {
-    if( args.maskLowercase > 0 )
-      oneQualityScoreMatrixMasked.init( matFinal, alph.size, lambda,
-                                        &lp2[0], isPhred2, offset2,
-                                        alph.canonical, true );
-    if( args.maskLowercase < 3 )
-      oneQualityScoreMatrix.init( matFinal, alph.size, lambda,
-                                  &lp2[0], isPhred2, offset2,
-                                  alph.canonical, false );
+  if( referenceFormat == sequenceFormat::fasta ){
+    if( isFastq( args.inputFormat ) ){
+      if( args.maskLowercase > 0 )
+        oneQualityScoreMatrixMasked.init( matFinal, alph.size, lambda,
+                                          &lp2[0], isPhred2, offset2,
+                                          alph.canonical, true );
+      if( args.maskLowercase < 3 )
+        oneQualityScoreMatrix.init( matFinal, alph.size, lambda,
+                                    &lp2[0], isPhred2, offset2,
+                                    alph.canonical, false );
+    }
+    else if( args.inputFormat == sequenceFormat::prb ){
+      bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
+      qualityPssmMaker.init( matFinal, alph.size, lambda, isMatchMismatch,
+                             args.matchScore, -args.mismatchCost,
+                             offset2, alph.canonical );
+    }
   }
-  else if( args.inputFormat == sequenceFormat::prb ){
-    bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
-    qualityPssmMaker.init( matFinal, alph.size, lambda, isMatchMismatch,
-                           args.matchScore, -args.mismatchCost,
-                           offset2, alph.canonical );
+  else{
+    if( isFastq( args.inputFormat ) ){
+      if( args.maskLowercase > 0 )
+        twoQualityScoreMatrixMasked.init( matFinal, lambda, &lp1[0], &lp2[0],
+                                          isPhred1, offset1, isPhred2, offset2,
+                                          alph.canonical, true);
+      if( args.maskLowercase < 3 )
+        twoQualityScoreMatrix.init( matFinal, lambda, &lp1[0], &lp2[0],
+                                    isPhred1, offset1, isPhred2, offset2,
+                                    alph.canonical, false );
+    }
+    else{
+      ERR( "when the reference is fastq, the query must also be fastq" );
+    }
   }
 }
 
@@ -151,6 +175,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alph;
     if( word == "masklowercase" ) iss >> isCaseSenstitiveSeeds;
+    if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "volumes" ) iss >> volumes;
     if( word == "subsetseed" ){
       if( alph.letters.empty() || isCaseSenstitiveSeeds < 0 )
@@ -161,7 +186,8 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( !subsetSeed.span() || volumes+1 == 0 ){
+  if( !subsetSeed.span() || volumes+1 == 0 ||
+      referenceFormat >= sequenceFormat::prb ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
@@ -400,7 +426,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
 }
 
 void makeQualityPssm( bool isApplyMasking ){
-  if( !isQuality( args.inputFormat ) ) return;
+  if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
 
   LOG( "making PSSM..." );
   query.resizePssm();
@@ -486,7 +512,7 @@ void readVolume( unsigned volumeNumber ){
   indexT delimiterNum = indexT(-1);
   indexT bucketDepth = indexT(-1);
   readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
-  text.fromFiles( baseName, seqCount );
+  text.fromFiles( baseName, seqCount, isFastq( referenceFormat ) );
   suffixArray.fromFiles( baseName, text.finishedSize() - delimiterNum,
 			 bucketDepth, subsetSeed );
 }
@@ -557,6 +583,7 @@ void writeHeader( std::ostream& out ){
     if( args.inputFormat != sequenceFormat::pssm || !args.matrixFile.empty() ){
       // we're not reading PSSMs, or we bothered to specify a matrix file
       scoreMatrix.writeCommented( out );
+      // Write lambda?
       out << "#\n";
     }
     out << "# Coordinates are 0-based.  For - strand matches, coordinates\n";

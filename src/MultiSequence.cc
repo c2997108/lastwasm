@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 #include "MultiSequence.hh"
 #include "io.hh"
@@ -27,12 +27,16 @@ void MultiSequence::reinitForAppending(){
   if( !names.v.empty() ) nameEnds.v.push_back( names.v.size() );
 }
 
-void MultiSequence::fromFiles( const std::string& baseName, indexT seqCount ){
+void MultiSequence::fromFiles( const std::string& baseName, indexT seqCount,
+                               std::size_t qualitiesPerLetter ){
   ends.m.open( baseName + ".ssp", seqCount + 1 );
   seq.m.open( baseName + ".tis", ends.m.back() );
   nameEnds.m.open( baseName + ".sds", seqCount + 1 );
   names.m.open( baseName + ".des", nameEnds.m.back() );
   padSize = ends.m[0];
+
+  qualityScores.m.open( baseName + ".qua",
+                        ends.m.back() * qualitiesPerLetter );
 }
 
 void MultiSequence::toFiles( const std::string& baseName ) const{
@@ -47,6 +51,10 @@ void MultiSequence::toFiles( const std::string& baseName ) const{
   memoryToBinaryFile( names.begin(),
 		      names.begin() + nameEnds[ finishedSequences() ],
 		      baseName + ".des" );
+
+  memoryToBinaryFile( qualityScores.begin(),
+                      qualityScores.begin() + ends.back() * qualsPerLetter(),
+                      baseName + ".qua" );
 }
 
 void MultiSequence::addName( std::string& name ){
