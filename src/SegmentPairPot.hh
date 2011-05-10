@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 // This struct holds segment-pairs, and allows us to find
 // (near-)overlaps between sets of segment-pairs efficiently.  To find
@@ -10,6 +10,7 @@
 #define SEGMENT_PAIR_POT_HH
 #include "SegmentPair.hh"
 #include <algorithm>  // remove_if
+#include <cstddef>  // size_t
 #include <vector>
 
 namespace cbrc{

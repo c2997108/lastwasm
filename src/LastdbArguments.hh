@@ -2,9 +2,10 @@
 
 // This struct holds the command line arguments for lastdb.
 
-#ifndef LASTDBARGUMENTS_HH
-#define LASTDBARGUMENTS_HH
+#ifndef LASTDB_ARGUMENTS_HH
+#define LASTDB_ARGUMENTS_HH
 
+#include <cstddef>  // size_t
 #include "SequenceFormat.hh"
 
 #include <string>

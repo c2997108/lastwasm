@@ -413,6 +413,8 @@ def writeHtmlHeader():
 <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
 <title>Reliable Alignments</title>
 <style type="text/css">
+/* Try to force monospace, working around browser insanity: */
+pre {font-family: "Courier New", monospace, serif; font-size: 0.8125em}
 .a {background-color: #3333FF}
 .b {background-color: #9933FF}
 .c {background-color: #FF66CC}

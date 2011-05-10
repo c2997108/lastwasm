@@ -1,10 +1,11 @@
-// Copyright 2010 Martin C. Frith
+// Copyright 2010, 2011 Martin C. Frith
 
 // Functions for mapping files into memory.
 
 #ifndef FILE_MAP_HH
 #define FILE_MAP_HH
 
+#include <cstddef>  // size_t
 #include <string>
 
 namespace cbrc{

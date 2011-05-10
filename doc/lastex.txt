@@ -68,6 +68,10 @@ tabular.  lastex will obtain the scoring scheme from the header of the
 alignment file (if present, otherwise you have to specify it with
 options to lastex.)
 
+lastex can also be used in a pipeline, like this:
+
+  lastal humdb fuguMito.fa | lastex humdb.prj fm.prj -
+
 
 Example 3: Assigning per-sequence E-values to alignments
 --------------------------------------------------------

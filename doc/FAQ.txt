@@ -33,6 +33,20 @@ A: Probably because the files are huge and your disk is slow (or lots
    of people are using it).  Try to use a reasonably fast disk.
 
 
+Q: How does LAST get the sequence names?  How can I get nice, short,
+   unique names?
+
+A: The first whitespace-delimited word in the sequence header line is
+   used as the name.  You can arbitrarily customise the names using
+   standard Unix tools.  For example, this will replace each name with
+   a unique serial number:
+
+     awk '/>/ {$0 = ">" ++n} {print}' queries.fa | lastal myDb -
+
+   Sometimes you can make LAST's output significantly smaller by
+   shortening the names.
+
+
 Q: How can I find alignments with > 95% identity?
 
 A: One way is to use a scoring scheme like this: +5 for a match, and

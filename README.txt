@@ -28,9 +28,9 @@ Miscellaneous
 For usage instructions, please see the doc directory, especially
 last-tutorial.txt.
 
-LAST is distributed under the GNU General Public License, either
-version 3 of the License, or (at your option) any later version.  For
-details, see COPYING.txt.
+LAST (including the scripts) is distributed under the GNU General
+Public License, either version 3 of the License, or (at your option)
+any later version.  For details, see COPYING.txt.
 
 LAST includes public domain code kindly provided by Yi-Kuo Yu and
 Stephen Altschul at the NCBI.

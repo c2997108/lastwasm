@@ -12,6 +12,7 @@
 #include <vector>
 #include <cassert>
 #include <climits>  // INT_MAX
+#include <stddef.h>  // size_t
 
 namespace cbrc{
 
