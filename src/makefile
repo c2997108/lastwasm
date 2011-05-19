@@ -25,8 +25,9 @@ ScoreMatrix.cc DiagonalTable.cc SegmentPair.cc Alignment.cc		\
 XdropAligner.cc SegmentPairPot.cc AlignmentPot.cc			\
 GeneralizedAffineGapCosts.cc Centroid.cc LambdaCalculator.cc		\
 TwoQualityScoreMatrix.cc OneQualityScoreMatrix.cc QualityPssmMaker.cc	\
-GeneticCode.cc Xdrop3FrameAligner.cc AlignmentWrite.cc			\
-MultiSequenceQual.cc SegmentPairPssm.cc XdropAlignerPssm.cc lastal.cc
+GeneticCode.cc Xdrop3FrameAligner.cc gaplessXdrop.cc			\
+gaplessPssmXdrop.cc gaplessTwoQualityXdrop.cc AlignmentWrite.cc		\
+MultiSequenceQual.cc XdropAlignerPssm.cc lastal.cc
 
 ALINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh		\
 SubsetSuffixArray.hh LastalArguments.hh io.hh fileMap.hh		\
@@ -34,7 +35,8 @@ ScoreMatrix.hh DiagonalTable.hh SegmentPair.hh Alignment.hh		\
 XdropAligner.hh SegmentPairPot.hh AlignmentPot.hh			\
 GeneralizedAffineGapCosts.hh Centroid.hh LambdaCalculator.hh		\
 TwoQualityScoreMatrix.hh OneQualityScoreMatrix.hh QualityPssmMaker.hh	\
-GeneticCode.hh Xdrop3FrameAligner.hh Mmap.hh VectorOrMmap.hh		\
+GeneticCode.hh Xdrop3FrameAligner.hh gaplessXdrop.hh			\
+gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh Mmap.hh VectorOrMmap.hh	\
 ScoreMatrixRow.hh SequenceFormat.hh qualityScoreUtil.hh stringify.hh	\
 version.hh
 

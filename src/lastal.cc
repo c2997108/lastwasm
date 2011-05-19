@@ -22,6 +22,9 @@
 #include "CyclicSubsetSeed.hh"
 #include "DiagonalTable.hh"
 #include "GeneralizedAffineGapCosts.hh"
+#include "gaplessXdrop.hh"
+#include "gaplessPssmXdrop.hh"
+#include "gaplessTwoQualityXdrop.hh"
 #include "io.hh"
 #include "stringify.hh"
 #include <iostream>
@@ -53,9 +56,6 @@ namespace {
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
-  const ScoreMatrixRow* matGapless;  // score matrix for gapless alignment
-  const ScoreMatrixRow* matGapped;  // score matrix for gapped alignment
-  const ScoreMatrixRow* matFinal;  // score matrix for final alignment
   OneQualityScoreMatrix oneQualityScoreMatrix;
   OneQualityScoreMatrix oneQualityScoreMatrixMasked;
   QualityPssmMaker qualityPssmMaker;
@@ -79,15 +79,6 @@ void makeScoreMatrix( const std::string& matrixFile ){
   }
 
   scoreMatrix.init( alph.encode );
-
-  matGapless = args.maskLowercase < 1 ?
-    scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
-
-  matGapped = args.maskLowercase < 2 ?
-    scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
-
-  matFinal = args.maskLowercase < 3 ?
-      scoreMatrix.caseInsensitive : scoreMatrix.caseSensitive;
 
   // If the input is a PSSM, the score matrix is not used, and its
   // maximum score should not be used.  Here, we try to set it to a
@@ -265,19 +256,82 @@ void countMatches( char strand ){
   }
 }
 
+namespace Phase{ enum Enum{ gapless, gapped, final }; }
+
+struct Dispatcher{
+  const uchar* a;  // the reference sequence
+  const uchar* b;  // the query sequence
+  const uchar* i;  // the reference quality data
+  const uchar* j;  // the query quality data
+  const ScoreMatrixRow* p;  // the query PSSM
+  const ScoreMatrixRow* m;  // the score matrix
+  const TwoQualityScoreMatrix& t;
+  int d;  // the maximum score drop
+  int z;
+
+  Dispatcher( Phase::Enum e ) :
+      a( text.seqReader() ),
+      b( query.seqReader() ),
+      i( text.qualityReader() ),
+      j( query.qualityReader() ),
+      p( query.pssmReader() ),
+      m( (e < args.maskLowercase) ?
+         scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive ),
+      t( (e < args.maskLowercase) ?
+         twoQualityScoreMatrixMasked : twoQualityScoreMatrix ),
+      d( (e == Phase::gapless) ? args.maxDropGapless :
+         (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
+      z( (args.inputFormat == sequenceFormat::fasta) ? 0 :
+         (referenceFormat  == sequenceFormat::fasta) ? 1 : 2 ){}
+
+  int forwardGaplessScore( indexT x, indexT y ) const{
+    if( z==0 ) return forwardGaplessXdropScore( a+x, b+y, m, d );
+    if( z==1 ) return forwardGaplessPssmXdropScore( a+x, p+y, d );
+    return forwardGaplessTwoQualityXdropScore( a+x, i+x, b+y, j+y, t, d );
+  }
+
+  int reverseGaplessScore( indexT x, indexT y ) const{
+    if( z==0 ) return reverseGaplessXdropScore( a+x, b+y, m, d );
+    if( z==1 ) return reverseGaplessPssmXdropScore( a+x, p+y, d );
+    return reverseGaplessTwoQualityXdropScore( a+x, i+x, b+y, j+y, t, d );
+  }
+
+  indexT forwardGaplessEnd( indexT x, indexT y, int s ) const{
+    if( z==0 ) return forwardGaplessXdropEnd( a+x, b+y, m, s ) - a;
+    if( z==1 ) return forwardGaplessPssmXdropEnd( a+x, p+y, s ) - a;
+    return forwardGaplessTwoQualityXdropEnd( a+x, i+x, b+y, j+y, t, s ) - a;
+  }
+
+  indexT reverseGaplessEnd( indexT x, indexT y, int s ) const{
+    if( z==0 ) return reverseGaplessXdropEnd( a+x, b+y, m, s ) - a;
+    if( z==1 ) return reverseGaplessPssmXdropEnd( a+x, p+y, s ) - a;
+    return reverseGaplessTwoQualityXdropEnd( a+x, i+x, b+y, j+y, t, s ) - a;
+  }
+
+  bool isOptimalGapless( indexT x, indexT e, indexT y ) const{
+    if( z==0 ) return isOptimalGaplessXdrop( a+x, a+e, b+y, m, d );
+    if( z==1 ) return isOptimalGaplessPssmXdrop( a+x, a+e, p+y, d );
+    return isOptimalGaplessTwoQualityXdrop( a+x, a+e, i+x, b+y, j+y, t, d );
+  }
+
+  int gaplessScore( indexT x, indexT e, indexT y ) const{
+    if( z==0 ) return gaplessAlignmentScore( a+x, a+e, b+y, m );
+    if( z==1 ) return gaplessPssmAlignmentScore( a+x, a+e, p+y );
+    return gaplessTwoQualityAlignmentScore( a+x, a+e, i+x, b+y, j+y, t );
+  }
+};
+
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( SegmentPairPot& gaplessAlns,
 		   char strand, std::ostream& out ){
-  const uchar* qseq = query.seqReader();
-  const uchar* tseq = text.seqReader();
-  const ScoreMatrixRow* pssm = query.pssmReader();
+  Dispatcher dis( Phase::gapless );
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
   for( indexT i = 0; i < query.finishedSize(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
-    suffixArray.match( beg, end, qseq + i, tseq, subsetSeed,
+    suffixArray.match( beg, end, dis.b + i, dis.a, subsetSeed,
 		       args.oneHitMultiplicity, args.minHitDepth );
     matchCount += end - beg;
 
@@ -291,22 +345,25 @@ void alignGapless( SegmentPairPot& gaplessAlns,
       if( gaplessAlignmentsPerQueryPosition ==
           args.maxGaplessAlignmentsPerQueryPosition ) break;
 
-      if( dt.isCovered( i, *beg ) ) continue;
+      indexT j = *beg;  // coordinate in the reference sequence
 
-      // tried: first get the score only, not the endpoints: slower!
-      SegmentPair sp;  // do the gapless extension:
-      sp.makeXdrop( *beg, i, tseq, qseq,
-		    matGapless, args.maxDropGapless, pssm );
+      if( dt.isCovered( i, j ) ) continue;
+
+      int fs = dis.forwardGaplessScore( j, i );
+      int rs = dis.reverseGaplessScore( j, i );
+      int score = fs + rs;
       ++gaplessExtensionCount;
 
       // Tried checking the score after isOptimal & addEndpoint, but
       // the number of extensions decreased by < 10%, and it was
       // slower overall.
-      if( sp.score < args.minScoreGapless ) continue;
+      if( score < args.minScoreGapless ) continue;
 
-      if( !sp.isOptimal( tseq, qseq, matGapless, args.maxDropGapless, pssm ) ){
-	continue;  // ignore sucky gapless extensions
-      }
+      indexT tEnd = dis.forwardGaplessEnd( j, i, fs );
+      indexT tBeg = dis.reverseGaplessEnd( j, i, rs );
+      indexT qBeg = i - (j - tBeg);
+      if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ) continue;
+      SegmentPair sp( tBeg, qBeg, tEnd - tBeg, score );
 
       if( args.outputType == 1 ){  // we just want gapless alignments
 	Alignment aln;
@@ -329,13 +386,19 @@ void alignGapless( SegmentPairPot& gaplessAlns,
   LOG( "gapless alignments=" << gaplessAlignmentCount );
 }
 
+// Shrink the SegmentPair to its longest run of identical matches.
+// This trims off possibly unreliable parts of the gapless alignment.
+// It may not be the best strategy for protein alignment with subset
+// seeds: there could be few or no identical matches...
+void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
+  sp.maxIdenticalRun( dis.a, dis.b, alph.canonical );
+  sp.score = dis.gaplessScore( sp.beg1(), sp.end1(), sp.beg2() );
+}
+
 // Do gapped extensions of the gapless alignments
 void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
-                  const ScoreMatrixRow* matrix, int maxScoreDrop,
-                  bool isKeepAlignments, Centroid& centroid ){
-  const uchar* qseq = query.seqReader();
-  const uchar* tseq = text.seqReader();
-  const ScoreMatrixRow* pssm = query.pssmReader();
+                  Phase::Enum phase, Centroid& centroid ){
+  Dispatcher dis(phase);
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
@@ -345,10 +408,14 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
   for( std::size_t i = 0; i < gaplessAlns.size(); ++i ){
     SegmentPair& sp = gaplessAlns.items[i];
 
-    sp.makeXdrop( sp.beg1(), sp.beg2(), tseq, qseq,
-                  matrix, maxScoreDrop, pssm );
+    int fs = dis.forwardGaplessScore( sp.beg1(), sp.beg2() );
+    int rs = dis.reverseGaplessScore( sp.beg1(), sp.beg2() );
+    indexT tEnd = dis.forwardGaplessEnd( sp.beg1(), sp.beg2(), fs );
+    indexT tBeg = dis.reverseGaplessEnd( sp.beg1(), sp.beg2(), rs );
+    indexT qBeg = sp.beg2() - (sp.beg1() - tBeg);
+    sp = SegmentPair( tBeg, qBeg, tEnd - tBeg, fs + rs );
 
-    if( !sp.isOptimal( tseq, qseq, matrix, maxScoreDrop, pssm ) ){
+    if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ){
       SegmentPairPot::mark(sp);
     }
   }
@@ -367,22 +434,18 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     Alignment aln;
     aln.seed = sp;
 
-    // Shrink the seed to its longest run of identical matches.  This
-    // trims off possibly unreliable parts of the gapless alignment.
-    // It may not be the best strategy for protein alignment with
-    // subset seeds: there could be few or no identical matches...
-    aln.seed.maxIdenticalRun( tseq, qseq, alph.canonical, matrix, pssm );
+    shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( xdropAligner, centroid, tseq, qseq, matrix,
-		   scoreMatrix.maxScore, gapCosts, maxScoreDrop,
-		   args.frameshiftCost, frameSize, pssm );
+    aln.makeXdrop( xdropAligner, centroid, dis.a, dis.b, dis.m,
+		   scoreMatrix.maxScore, gapCosts, dis.d,
+		   args.frameshiftCost, frameSize, dis.p );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
 
-    if( !aln.isOptimal( tseq, qseq, matrix, maxScoreDrop, gapCosts,
-			args.frameshiftCost, frameSize, pssm ) ){
+    if( !aln.isOptimal( dis.a, dis.b, dis.m, dis.d, gapCosts,
+			args.frameshiftCost, frameSize, dis.p ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-redundantization.
       continue;
@@ -391,7 +454,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     gaplessAlns.markAllOverlaps( aln.blocks );
     gaplessAlns.markTandemRepeats( aln.seed, args.maxRepeatDistance ); 
 
-    if( isKeepAlignments ) gappedAlns.add(aln);
+    if( phase == Phase::final ) gappedAlns.add(aln);
     else SegmentPairPot::markAsGood(sp);
 
     ++gappedAlignmentCount;
@@ -405,7 +468,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( const AlignmentPot& gappedAlns,
 		  Centroid& centroid, char strand, std::ostream& out ){
-
+  Dispatcher dis( Phase::final );
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
 
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
@@ -417,11 +480,9 @@ void alignFinish( const AlignmentPot& gappedAlns,
     else{  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( xdropAligner, centroid,
-                         text.seqReader(), query.seqReader(),
-			 matFinal, scoreMatrix.maxScore,
-			 gapCosts, args.maxDropFinal, args.frameshiftCost,
-			 frameSize, query.pssmReader(),
+      probAln.makeXdrop( xdropAligner, centroid, dis.a, dis.b, dis.m,
+                         scoreMatrix.maxScore, gapCosts, dis.d,
+                         args.frameshiftCost, frameSize, dis.p,
                          args.gamma, args.outputType );
       probAln.write( text, query, strand, args.isTranslated(),
 		     alph, args.outputFormat, out );
@@ -468,20 +529,20 @@ void scan( char strand, std::ostream& out ){
 
   if( args.maskLowercase == 1 ) makeQualityPssm(false);
 
-  Centroid centroid( xdropAligner, matFinal, args.temperature );  // slow?
+  const ScoreMatrixRow* m = (args.maskLowercase > Phase::final) ?
+      scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive;
+  Centroid centroid( xdropAligner, m, args.temperature );  // slow?
 
   AlignmentPot gappedAlns;
 
   if( args.maskLowercase == 2 || args.maxDropFinal != args.maxDropGapped ){
-    alignGapped( gappedAlns, gaplessAlns, matGapped, args.maxDropGapped,
-                 false, centroid );
+    alignGapped( gappedAlns, gaplessAlns, Phase::gapped, centroid );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
   if( args.maskLowercase == 2 ) makeQualityPssm(false);
 
-  alignGapped( gappedAlns, gaplessAlns, matFinal, args.maxDropFinal,
-               true, centroid );
+  alignGapped( gappedAlns, gaplessAlns, Phase::final, centroid );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
