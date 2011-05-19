@@ -79,7 +79,7 @@ class MultiSequence{
   std::string seqName( indexT seqNum ) const;
 
   // get a pointer to the start of the sequence data
-  const uchar* seqReader() const{ return &seq[0]; }
+  const uchar* seqReader() const{ return seq.begin(); }
   /***/ uchar* seqWriter()      { return &seq.v[0]; }
 
   // swap the sequence data with some other sequence data
@@ -103,7 +103,7 @@ class MultiSequence{
   }
 
   // get a pointer to the start of the quality data
-  const uchar* qualityReader() const{ return &qualityScores[0]; }
+  const uchar* qualityReader() const{ return qualityScores.begin(); }
   /***/ uchar* qualityWriter()      { return &qualityScores.v[0]; }
 
   // How many quality scores are there per letter?  There might be

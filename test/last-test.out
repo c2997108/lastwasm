@@ -3,6 +3,7 @@ TEST 1
 # a=400 b=30 c=100000 F=-1 e=2500 d=1500 x=3400 y=962 z=3400
 # u=1 s=2 m=10 l=1 n=4294967295 k=1 i=134217728 w=1000 t=96.1735 g=1 j=5
 # /tmp/last-test
+# Reference sequences=2 normal letters=17803
 #
 #    A  C  G  T
 # A 91 -114 -31 -123
@@ -92,6 +93,7 @@ TEST 2
 # a=7 b=1 c=100000 F=-1 e=40 d=24 x=27 y=9 z=27
 # u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1 w=0 t=0.910239 g=1 j=3
 # /tmp/last-test
+# Reference sequences=2 normal letters=17803
 #
 #    A  C  G  T
 # A  1 -1 -1 -1
@@ -126,6 +128,7 @@ TEST 3
 # a=7 b=1 c=100000 F=-1 e=40 d=24 x=27 y=0 z=27
 # u=0 s=0 m=10 l=1 n=4294967295 k=1 i=1 w=1000 t=-1 g=1 j=0
 # /tmp/last-test
+# Reference sequences=2 normal letters=17803
 #
 # length	count
 #
@@ -167,6 +170,7 @@ TEST 4
 # a=9 b=9 c=100000 F=-1 e=90 d=54 x=189 y=44 z=189
 # u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
 # /tmp/last-test
+# Reference sequences=2 normal letters=17803
 #
 #    A  C  G  T
 # A  6 -18 -18 -18
@@ -256,6 +260,7 @@ TEST 5
 # a=11 b=2 c=100000 F=12 e=40 d=24 x=51 y=31 z=51
 # u=0 s=2 m=10 l=1 n=4294967295 k=1 i=134217728 w=1000 t=3.08611 g=1 j=3
 # /tmp/last-test
+# Reference sequences=1 normal letters=491
 #
 #    A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  J  Z  X  *
 # A  4 -1 -2 -2  0 -1 -1  0 -2 -1 -1 -1 -1 -2 -1  1  0 -3 -2  0 -2 -1 -1 -1 -4
@@ -356,6 +361,7 @@ TEST 6
 # a=7 b=1 c=100000 F=-1 e=18 d=10 x=27 y=9 z=27
 # u=2 s=0 m=10 l=1 n=4294967295 k=1 i=134217728 w=1000 t=0.910239 g=1 j=3
 # /tmp/last-test
+# Reference sequences=2 normal letters=17803
 #
 #    A  C  G  T
 # A  1 -1 -1 -1
@@ -379,6 +385,7 @@ TEST 7
 # a=500 b=50 c=100000 F=-1 e=2000 d=1200 x=1500 y=992 z=1500
 # u=2 s=0 m=10 l=1 n=4294967295 k=1 i=134217728 w=1000 t=99.2157 g=1 j=3
 # /tmp/last-test
+# Reference sequences=2 normal letters=17803
 #
 #    A  C  G  T
 # A 53 -51 -51 -69
@@ -403,6 +410,7 @@ TEST 8
 # a=21 b=9 c=100000 F=-1 e=110 d=66 x=201 y=44 z=201
 # u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
 # /tmp/last-test
+# Reference sequences=2 normal letters=17803
 #
 #    A  C  G  T
 # A  6 -18 -18 -18
@@ -432,6 +440,7 @@ TEST 9
 # a=21 b=9 c=100000 F=-1 e=90 d=54 x=201 y=44 z=201
 # u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
 # /tmp/last-test
+# Reference sequences=2 normal letters=17803
 #
 #    A  C  G  T
 # A  6 -18 -18 -18

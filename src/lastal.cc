@@ -99,6 +99,7 @@ void makeScoreMatrix( const std::string& matrixFile ){
 }
 
 void makeQualityScorers(){
+  const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
   double lambda = lambdaCalculator.lambda();
   const std::vector<double>& lp1 = lambdaCalculator.letterProbs1();
   bool isPhred1 = isPhred( referenceFormat );
@@ -110,17 +111,17 @@ void makeQualityScorers(){
   if( referenceFormat == sequenceFormat::fasta ){
     if( isFastq( args.inputFormat ) ){
       if( args.maskLowercase > 0 )
-        oneQualityScoreMatrixMasked.init( matFinal, alph.size, lambda,
+        oneQualityScoreMatrixMasked.init( m, alph.size, lambda,
                                           &lp2[0], isPhred2, offset2,
                                           alph.canonical, true );
       if( args.maskLowercase < 3 )
-        oneQualityScoreMatrix.init( matFinal, alph.size, lambda,
+        oneQualityScoreMatrix.init( m, alph.size, lambda,
                                     &lp2[0], isPhred2, offset2,
                                     alph.canonical, false );
     }
     else if( args.inputFormat == sequenceFormat::prb ){
       bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
-      qualityPssmMaker.init( matFinal, alph.size, lambda, isMatchMismatch,
+      qualityPssmMaker.init( m, alph.size, lambda, isMatchMismatch,
                              args.matchScore, -args.mismatchCost,
                              offset2, alph.canonical );
     }
@@ -128,11 +129,11 @@ void makeQualityScorers(){
   else{
     if( isFastq( args.inputFormat ) ){
       if( args.maskLowercase > 0 )
-        twoQualityScoreMatrixMasked.init( matFinal, lambda, &lp1[0], &lp2[0],
+        twoQualityScoreMatrixMasked.init( m, lambda, &lp1[0], &lp2[0],
                                           isPhred1, offset1, isPhred2, offset2,
                                           alph.canonical, true);
       if( args.maskLowercase < 3 )
-        twoQualityScoreMatrix.init( matFinal, lambda, &lp1[0], &lp2[0],
+        twoQualityScoreMatrix.init( m, lambda, &lp1[0], &lp2[0],
                                     isPhred1, offset1, isPhred2, offset2,
                                     alph.canonical, false );
     }
@@ -147,10 +148,10 @@ void makeQualityScorers(){
 void calculateScoreStatistics(){
   if( args.outputType == 0 ) return;
 
-  // it makes no difference whether we use matGapped or matGapless here
+  // the case-sensitivity of the matrix makes no difference here
 
   LOG( "calculating matrix probabilities..." );
-  lambdaCalculator.calculate( matGapless, alph.size );
+  lambdaCalculator.calculate( scoreMatrix.caseSensitive, alph.size );
   if( lambdaCalculator.isBad() ){
     if( isQuality( args.inputFormat ) ||
         (args.temperature < 0 && args.outputType > 3) )
@@ -164,7 +165,8 @@ void calculateScoreStatistics(){
 
 // Read the .prj file for the whole database
 void readOuterPrj( const std::string& fileName, unsigned& volumes,
-                   int& isCaseSenstitiveSeeds ){
+                   int& isCaseSensitiveSeeds,
+                   countT& refSequences, countT& refLetters ){
   std::ifstream f( fileName.c_str() );
   unsigned version = 0;
 
@@ -174,14 +176,16 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     getline( iss, word, '=' );
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alph;
-    if( word == "masklowercase" ) iss >> isCaseSenstitiveSeeds;
+    if( word == "numofsequences" ) iss >> refSequences;
+    if( word == "numofletters" ) iss >> refLetters;
+    if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "volumes" ) iss >> volumes;
     if( word == "subsetseed" ){
-      if( alph.letters.empty() || isCaseSenstitiveSeeds < 0 )
+      if( alph.letters.empty() || isCaseSensitiveSeeds < 0 )
 	f.setstate( std::ios::failbit );
       else
-	subsetSeed.appendPosition( iss, isCaseSenstitiveSeeds, alph.encode );
+	subsetSeed.appendPosition( iss, isCaseSensitiveSeeds, alph.encode );
     }
   }
 
@@ -468,7 +472,7 @@ void scan( char strand, std::ostream& out ){
 
   AlignmentPot gappedAlns;
 
-  if( matFinal != matGapped || args.maxDropFinal != args.maxDropGapped ){
+  if( args.maskLowercase == 2 || args.maxDropFinal != args.maxDropGapped ){
     alignGapped( gappedAlns, gaplessAlns, matGapped, args.maxDropGapped,
                  false, centroid );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
@@ -568,12 +572,16 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
   LOG( "query batch done!" );
 }
 
-void writeHeader( std::ostream& out ){
+void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
   out << "# LAST version " <<
 #include "version.hh"
       << "\n";
   out << "#\n";
   args.writeCommented( out );
+  if( refSequences + 1 > 0 && refLetters + 1 > 0 ){
+    out << "# Reference sequences=" << refSequences
+        << " normal letters=" << refLetters << "\n";
+  }
   out << "#\n";
 
   if( args.outputType == 0 ){  // we just want hit counts
@@ -648,12 +656,15 @@ void lastal( int argc, char** argv ){
   }
 
   unsigned volumes = unsigned(-1);  // initialize it to an "error" value
-  int isCaseSenstitiveSeeds = -1;  // initialize it to an "error" value
-  readOuterPrj( args.lastdbName + ".prj", volumes, isCaseSenstitiveSeeds );
+  int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
+  countT refSequences = -1;
+  countT refLetters = -1;
+  readOuterPrj( args.lastdbName + ".prj",
+                volumes, isCaseSensitiveSeeds, refSequences, refLetters );
 
   args.setDefaultsFromAlphabet( alph.letters == alph.dna,
 				alph.letters == alph.protein,
-                                isCaseSenstitiveSeeds );
+                                isCaseSensitiveSeeds );
   makeScoreMatrix( matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
   calculateScoreStatistics();
@@ -682,7 +693,7 @@ void lastal( int argc, char** argv ){
 
   std::ofstream outFileStream;
   std::ostream& out = openOut( args.outFile, outFileStream );
-  writeHeader( out );
+  writeHeader( refSequences, refLetters, out );
   out.precision(3);  // print non-integers more compactly
   countT queryBatchCount = 0;
 
@@ -706,7 +717,7 @@ void lastal( int argc, char** argv ){
   }
 
   out.precision(6);  // reset the precision to the default value
-  out << "# CPU time: " << (clock() - startTime + 0.0) / CLOCKS_PER_SEC
+  out << "# CPU time: " << (std::clock() - startTime + 0.0) / CLOCKS_PER_SEC
       << " seconds\n";
 }
 
