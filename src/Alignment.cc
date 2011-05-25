@@ -166,7 +166,6 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   }
 
   if( outputType > 3 ){  // calculate match probabilities
-    assert( !pssm2 );
     centroid.reset();
     centroid.forward( seq1, seq2, start1, start2, dir, gap );
     centroid.backward( seq1, seq2, start1, start2, dir, gap );

@@ -1,11 +1,13 @@
-// Copyright 2008, 2009 Michiaki Hamada
+// Copyright 2008, 2009, 2010, 2011 Michiaki Hamada
 
 #include "Centroid.hh"
+#include "ScoreMatrixRow.hh"
 #include <algorithm>
 #include <cassert>
 #include <cmath> // for exp
 #include <cfloat>   // for DBL_MAX
 #include <cstdlib>  // for abs
+#include <iomanip> 
 
 #define CI(type) std::vector<type>::const_iterator  // added by MCF
 
@@ -19,6 +21,8 @@ namespace{
 
 
 namespace cbrc{
+
+  typedef double ScoreMatrixRowDouble[scoreMatrixRowSize];
 
   ExpectedCount::ExpectedCount () 
   {
@@ -80,22 +84,44 @@ namespace cbrc{
     }
   }
 
-  Centroid::Centroid( const XdropAligner& xa_, const int sm[MAT][MAT], double T_ ) 
-    : xa( xa_ ), T( T_ ), lastAntiDiagonal ( xa_.offsets.size () - 1 ), bestScore ( 0 ),
-      bestAntiDiagonal (0), bestPos1 (0) {
+  Centroid::Centroid( const XdropAligner& xa_ ) 
+    : xa( xa_ ), lastAntiDiagonal ( xa_.offsets.size () - 1 ), bestScore ( 0 ), bestAntiDiagonal (0), bestPos1 (0)  {
+  }
+
+  void Centroid::setScoreMatrix( const int sm[MAT][MAT], double T ) {
+    this -> T = T;
+    this -> isPssm = false;
     for ( int n=0; n<MAT; ++n )
       for ( int m=0; m<MAT; ++m ) {
 	match_score[n][m] = EXP ( sm[ n ][ m ] / T );
       }
   }
 
+  void Centroid::setPssm( const int pssm[][MAT], const unsigned int qsize, double T, const OneQualityExpMatrix& oqem, const uchar* sequenceBeg, const uchar* qualityBeg ) {
+    this->T = T;
+    this -> isPssm = true;
+    pssmExp.resize( qsize * MAT );
+    pssmExp2 = reinterpret_cast<ScoreMatrixRowDouble*> ( &pssmExp[0] );
+
+    if( oqem ){  // fast special case
+      makePositionSpecificExpMatrix( oqem, sequenceBeg, sequenceBeg + qsize,
+                                     qualityBeg, &pssmExp[0] );
+    }
+    else{  // slow general case
+      for ( uint i=0; i<qsize; ++i ) {
+        for ( uint j=0; j<MAT; ++j ) {
+          pssmExp2[ i ][ j ] = EXP ( pssm[ i ][ j ] / T );
+        }
+      }
+    }
+  }
 
   void Centroid::initForwardMatrix(){
     fM.resize( lastAntiDiagonal + 1 );
     fD.resize( lastAntiDiagonal + 1 );
     fI.resize( lastAntiDiagonal + 1 );
     fP.resize( lastAntiDiagonal + 1 );
-    scale.resize ( lastAntiDiagonal + 1, 1.0 ); // scaling
+    scale.assign ( lastAntiDiagonal + 1, 1.0 ); // scaling
 
     for( size_t k=0; k < fM.size(); ++k ){
       fM[k].resize( xa.x[k].size() ); 
@@ -117,6 +143,11 @@ namespace cbrc{
     bI.resize( fM.size() );
     bP.resize( fM.size() );
     pp.resize( fM.size() );
+    mD.assign( fM.size(), 0.0 );
+    mI.assign( fM.size(), 0.0 );
+    mX1.assign ( fM.size(), 1.0 );
+    mX2.assign ( fM.size(), 1.0 );
+
     for( size_t k = fM.size() - 1; k != (size_t) -1; --k ){
       double d1 = 1.0;
       if ( k != fM.size() - 1 ) d1 = bM[ k + 1 ][0] / (scale[k]);
@@ -134,7 +165,7 @@ namespace cbrc{
   void Centroid::initDecodingMatrix(){
     X.resize( fM.size() );
     for( size_t k = 0; k < fM.size(); ++k ){
-      X[ k ].resize( fM[ k ].size(), 0.0 );
+      X[ k ].assign( fM[ k ].size(), 0.0 );
     }
   }
 
@@ -150,6 +181,7 @@ namespace cbrc{
 			    size_t start1, size_t start2, XdropAligner::direction dir,
 			    const GeneralizedAffineGapCosts& gap ){
 
+    //std::cout << "[forward] start1=" << start1 << "," << "start2=" << start2 << "," << "dir=" << dir << std::endl;
     const int seqIncrement = (dir == XdropAligner::FORWARD) ? 1 : -1;
 
     initForwardMatrix();
@@ -189,11 +221,15 @@ namespace cbrc{
 
       if( off0 == off1 ){  // do first cell on boundary
 	double eS = 0;
-	if ( off0 > 0 && k - off0 > 0 ) {
+	if ( off0 > 0 && k - off0 > 0 ){
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, off0 );
-	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - off0 );
-	  assert ( *s1 < MAT && *s2 < MAT );
-	  eS = match_score[ *s1 ][ *s2 ];
+	  if (! isPssm){
+	    const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - off0 );
+	    eS = match_score[ *s1 ][ *s2 ]; 
+	  }else{
+	    const double (*p2)[MAT] = XdropAligner::seqPtr ( pssmExp2, start2, dir, k -  off0 );
+	    eS = ( *p2 )[ *s1 ];
+	  }
 	}
 	const double fM1 = fM[ k1 ].front();
 	const double fD1 = fD[ k1 ].front();
@@ -211,17 +247,12 @@ namespace cbrc{
 	if ( k > 1 )
 	  *fP0 = ( fM2 * eQ +  fP2 * eP ) * scale12;
 	sum_f += *fM0;
-	assert ( *fM0 < DINF && *fD0 < DINF && *fI0 < DINF && *fP0 < DINF );
-
 	fM0++; fD0++; fI0++; fP0++;
       }
 
       if( loopBeg < loopEnd ){
-	assert( k > 1 );
+	//assert( k > 1 );
 	const double* const fM0end = fM0 + (loopEnd - loopBeg);
-	const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, loopBeg );
-	const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - loopBeg );
-	assert ( *s1 < MAT && *s2 < MAT );
 	const size_t horiBeg = loopBeg - 1 - off1;
 	const size_t diagBeg = loopBeg - 1 - xa.offsets[ k2 ];
 	const double* fM1 = &fM[ k1 ][ horiBeg ];
@@ -232,27 +263,65 @@ namespace cbrc{
 	const double* fD2 = &fD[ k2 ][ diagBeg ];
 	const double* fI2 = &fI[ k2 ][ diagBeg ];
 	const double* fP2 = &fP[ k2 ][ diagBeg ];
-
 	double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
-	do{ // start: inner most loop
-	  const double S = match_score[ *s1 ][ *s2 ] * scale12;
-	  const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
-	  *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
-	  *fD0 = ( xM1 ) * seF + ( xD1 + xP1 ) * seE;
-	  xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
-	  *fI0 = ( xM1 + xD1 ) * seF + ( xI1 + xP1 ) * seE;
-	  *fP0 = xM2 * seQ + xP2 * seP;
-	  fM2++; fD2++; fI2++; fP2++;
-	  sum_f += *fM0;
-	  //assert ( *fM0 < DINF && *fD0 < DINF && *fI0 < DINF && *fP0 < DINF );
-	  fM0++; fD0++; fI0++; fP0++;
-	  s1 += seqIncrement;
-	  s2 -= seqIncrement;
-	}while( fM0 != fM0end ); // end: inner most loop
-      } 
-     
+
+	const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, loopBeg );
+
+	if (! isPssm) {	  
+	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - loopBeg );
+	  do{ // start: inner most loop
+	    const double S = match_score[ *s1 ][ *s2 ] * scale12; // (loopBeg, k - loopBeg)
+	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
+	    *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
+	    *fD0 = ( xM1 ) * seF + ( xD1 + xP1 ) * seE;
+	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
+	    *fI0 = ( xM1 + xD1 ) * seF + ( xI1 + xP1 ) * seE;
+	    *fP0 = xM2 * seQ + xP2 * seP;
+	    fM2++; fD2++; fI2++; fP2++;
+	    sum_f += *fM0;
+	    fM0++; fD0++; fI0++; fP0++;
+	    s1 += seqIncrement;
+	    s2 -= seqIncrement;
+	  }while( fM0 != fM0end ); // end: inner most loop
+	} // end: if (! isPssm)
+	else { // when pssm2 is given
+	  //assert( k > 1 );
+	  const double (*p2)[MAT] = XdropAligner::seqPtr( pssmExp2, start2, dir, k - loopBeg );
+	  
+	  double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
+	  if (gap.isAffine() ){
+	    do{ // start: inner most loop
+	      const double S = (*p2)[ *s1 ]  * scale12;
+	      const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2;
+	      *fM0 = ( xM2 + xD2 + xI2 ) * S;
+	      *fD0 = ( xM1 ) * seF + ( xD1 ) * seE;
+	      xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; 
+	      *fI0 = ( xM1 + xD1 ) * seF + ( xI1 ) * seE;
+	      fM2++; fD2++; fI2++; 
+	      sum_f += *fM0;
+	      fM0++; fD0++; fI0++; 
+	      s1 += seqIncrement;
+	      p2 -= seqIncrement;
+	    }while( fM0 != fM0end ); // end: inner most loop
+	  }else{
+	      const double S = (*p2)[ *s1 ]  * scale12;
+	      const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
+	      *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
+	      *fD0 = ( xM1 ) * seF + ( xD1 + xP1 ) * seE;
+	      xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
+	      *fI0 = ( xM1 + xD1 ) * seF + ( xI1 + xP1 ) * seE;
+	      *fP0 = xM2 * seQ + xP2 * seP;
+	      fM2++; fD2++; fI2++; fP2++;
+	      sum_f += *fM0;
+	      fM0++; fD0++; fI0++; fP0++;
+	      s1 += seqIncrement;
+	      p2 -= seqIncrement;
+	  }
+	}
+      } // else
+      
       if( end0 > end1 ){  // do last cell on boundary
-	assert ( end0 == end1 + 1 );
+	//assert ( end0 == end1 + 1 );
 	const double fM1 = fM[ k1 ].back();
 	const double fD1 = fD[ k1 ].back();
 	const double fP1 = fP[ k1 ].back();
@@ -264,23 +333,26 @@ namespace cbrc{
 	double eS = 0;
 	if ( end0 > 1 && k - end0 + 1 > 0 ) {
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, end0 - 1 );
-	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - end0 + 1 );
-	  assert ( *s1 < MAT && *s2 < MAT );
-	  eS = match_score[ *s1 ][ *s2 ];
+	  if (! isPssm) {
+	    const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - end0 + 1 );
+	    eS = match_score[ *s1 ][ *s2 ];
+	  }else{
+	    const double (*p2)[MAT] = XdropAligner::seqPtr( pssmExp2, start2, dir, k - end0 + 1 );
+	    eS = ( *p2 )[ *s1 ];
+	  }
 	}
 	if ( k > 1 ) *fM0 = ( fM2 + fD2 + fI2 + fP2 ) * eS * scale12;
 	*fD0 = ( fM1 * eF + ( fD1 + fP1 ) * eE ) * scale1;
 	*fI0 = 0;
 	if ( k > 1 ) *fP0 = ( fM2 * eQ + fP2 * eP ) * scale12;
 	sum_f += *fM0;
-	assert ( *fM0 < DINF && *fD0 < DINF && *fI0 < DINF && *fP0 < DINF );
 	fM0++; fD0++; fI0++; fP0++;
       }
-
       Z += sum_f;
       scale[k] = sum_f + 1.0;  // seems ugly
       Z /= scale[k]; // scaling
     } // k
+    //std::cout << "Z=" << Z << std::endl;
     return log(Z);
   }
 
@@ -291,6 +363,7 @@ namespace cbrc{
 			     size_t start1, size_t start2, XdropAligner::direction dir,
 			     const GeneralizedAffineGapCosts& gap ){
 
+    //std::cout << "[backward] start1=" << start1 << "," << "start2=" << start2 << "," << "dir=" << dir << std::endl;
     const int seqIncrement = (dir == XdropAligner::FORWARD) ? 1 : -1;
 
     initBackwardMatrix();
@@ -328,9 +401,13 @@ namespace cbrc{
       const double* bD0 = &bD[ k ][ 0 ];
       const double* bI0 = &bI[ k ][ 0 ];
       const double* bP0 = &bP[ k ][ 0 ];
-      double* pp0 = &pp[ k ][ 0 ];
+
+      double* pp0 = &pp[ k ][ 0 ]; //
 
       const double* fM0 = &fM[ k ][ 0 ];
+      const double* fD0 = &fD[ k ][ 0 ];
+      const double* fI0 = &fI[ k ][ 0 ];
+      const double* fP0 = &fP[ k ][ 0 ];
 
       if( off0 == off1 ){  // do first cell on boundary
 	double* bM1 = &bM[ k1 ][ 0 ];
@@ -344,10 +421,15 @@ namespace cbrc{
 
 	if( k2 < k && xa.offsets[ k2 ] + 1 <= off0 ) { // there exists diagonal values
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, off0 );
-	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - off0 );
-	  assert ( *s1 < MAT && *s2 < MAT );
-	  double eS = match_score[ *s1 ][ *s2 ];
-
+	  double eS;
+	  if (! isPssm ) {
+	    const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - off0 );
+	    //assert ( *s1 < MAT && *s2 < MAT );
+	    eS = match_score[ *s1 ][ *s2 ];
+	  } else {
+	    const double (*p2)[MAT] = XdropAligner::seqPtr( pssmExp2, start2, dir, k - off0 );
+	    eS = ( *p2 )[ *s1 ];
+	  }
 	  const size_t dig = off0 - 1 - xa.offsets[ k2 ];
 	  double* bM2 = &bM[ k2 ][ dig ];
 	  double* bD2 = &bD[ k2 ][ dig ];
@@ -358,21 +440,25 @@ namespace cbrc{
 	  *bI2 += *bM0 * eS * scale12;
 	  *bP2 += ( *bM0 * eS + *bP0 * eP ) * scale12;
 	}
-	double prob = *fM0 * *bM0 / Z; 
-	//assert( 0 <= prob && prob <= 1 );
-	*pp0 = prob;
+	*pp0 = *fM0 * *bM0 / Z;
+	double probd = *fD0 * *bD0 / Z;
+	double probi = *fI0 * *bI0 / Z;
+	double probp = *fP0 * *bP0 / Z;
+ 	mD[ off0 ] += probd + probp;
+ 	mI[ k - off0 ] += probi + probp;
+	mX1 [ off0 ] -= ( *pp0 + probd + probp );
+	mX2 [ k - off0 ] -= ( *pp0 + probi + probp );
+
 	// iteration
 	bM0++; bD0++; bI0++; bP0++; 
-	fM0++; 
-	pp0++;
+	fM0++; fD0++; fI0++; fP0++; 
+	pp0++; //pD0++; pI0++; pP0++;
       }
 
       if( loopBeg < loopEnd ){
-	assert( k > 1 );
+
+	//assert( k > 1 );
 	const double* const fM0end = fM0 + (loopEnd - loopBeg);
-	const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, loopBeg );
-	const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - loopBeg );
-	assert ( *s1 < MAT && *s2 < MAT );
 	const size_t horiBeg = loopBeg - 1 - off1;
 	const size_t diagBeg = loopBeg - 1 - xa.offsets[ k2 ];
 	double* bM1 = &bM[ k1 ][ horiBeg ];
@@ -384,42 +470,135 @@ namespace cbrc{
 	double* bI2 = &bI[ k2 ][ diagBeg ];
 	double* bP2 = &bP[ k2 ][ diagBeg ];
 
-	do{ // inner most loop
-	  const double S = match_score[ *s1 ][ *s2 ];
-	  const double tmp1 = *bM0 * S * scale12;
-	  const double tmp2 = *bP0;
-	  *bM2 += tmp1 + tmp2 * seQ; 
-	  *bD2 += tmp1; 
-	  *bI2 += tmp1; 
-	  *bP2 += tmp1 + tmp2 * seP; 
-	  const double tmp3 = *bD0;
-	  *bM1++ += tmp3 * seF; 
-	  *bD1++ += tmp3 * seE; 
-	  bI1++;
-	  *bP1++ += tmp3 * seE; 
-	  const double tmp4 = *bI0;
-	  const double tmp5 = tmp4 * seF; 
-	  const double tmp6 = tmp4 * seE;
-	  *bM1 += tmp5; 
-	  *bD1 += tmp5; 
-	  *bI1 += tmp6; 
-	  *bP1 += tmp6; 
-	  double prob = *fM0 * *bM0 / Z; 
-	  //assert( 0 <= prob && prob <= 1 );
-	  *pp0 = prob;
-	  // iteration
-	  bM2++; bD2++; bI2++; bP2++;
-	  bM0++; bD0++; bI0++; bP0++;
-	  fM0++; 
-	  pp0++;
-	  s1 += seqIncrement;
-	  s2 -= seqIncrement;
-	}while( fM0 != fM0end ); // inner most loop end;
+	int i = loopBeg; int j = k-loopBeg;
 
+	const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, loopBeg );
+	if (! isPssm ) {
+	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - loopBeg );
+
+	  do{ // inner most loop
+	    const double S = match_score[ *s1 ][ *s2 ];
+	    const double tmp1 = *bM0 * S * scale12;
+	    const double tmp2 = *bP0;
+	    *bM2 += tmp1 + tmp2 * seQ; 
+	    *bD2 += tmp1; 
+	    *bI2 += tmp1; 
+	    *bP2 += tmp1 + tmp2 * seP; 
+	    const double tmp3 = *bD0;
+	    *bM1++ += tmp3 * seF; 
+	    *bD1++ += tmp3 * seE; 
+	    bI1++;
+	    *bP1++ += tmp3 * seE; 
+	    const double tmp4 = *bI0;
+	    const double tmp5 = tmp4 * seF; 
+	    const double tmp6 = tmp4 * seE;
+	    *bM1 += tmp5; 
+	    *bD1 += tmp5; 
+	    *bI1 += tmp6; 
+	    *bP1 += tmp6; 
+
+	    *pp0 = *fM0 * *bM0 / Z; 
+	    double probd = *fD0 * *bD0 / Z;
+	    double probi = *fI0 * *bI0 / Z;
+	    double probp = *fP0 * *bP0 / Z;
+ 	    mD[ i ] += probd + probp; 
+ 	    mI[ j ] += probi + probp; 
+	    mX1 [ i ] -= ( *pp0 + probd + probp );
+	    mX2 [ j ] -= ( *pp0 + probi + probp );
+	    i++; j--;
+	    // iteration
+	    bM2++; bD2++; bI2++; bP2++;
+	    bM0++; bD0++; bI0++; bP0++;
+	    fM0++; fD0++; fI0++; fP0++; 
+	    pp0++; 
+	    s1 += seqIncrement;
+	    s2 -= seqIncrement;
+	  }while( fM0 != fM0end ); // inner most loop end;
+      } // if (!ppsm2)
+      else {
+	  //assert( k > 1 );
+	  const double (*p2)[MAT] = XdropAligner::seqPtr( pssmExp2, start2, dir, k - loopBeg);
+	  
+	  int i = loopBeg; int j = k-loopBeg;
+	  if( gap.isAffine () ) {
+	    do{ // inner most loop
+	      const double S = ( *p2 )[ *s1 ];
+	      const double tmp1 = *bM0 * S * scale12;
+	      *bM2 += tmp1; 
+	      *bD2 += tmp1; 
+	      *bI2 += tmp1; 
+	      const double tmp3 = *bD0;
+	      *bM1++ += tmp3 * seF; 
+	      *bD1++ += tmp3 * seE; 
+	      bI1++;
+	      const double tmp4 = *bI0;
+	      const double tmp5 = tmp4 * seF; 
+	      const double tmp6 = tmp4 * seE;
+	      *bM1 += tmp5; 
+	      *bD1 += tmp5; 
+	      *bI1 += tmp6; 
+	      double prob = *fM0 * *bM0 / Z; 
+	      *pp0 = prob;
+	      double probd = *fD0 * *bD0 / Z;
+	      double probi = *fI0 * *bI0 / Z;
+ 	      mD[ i ] += probd; 
+ 	      mI[ j ] += probi; 
+	      mX1 [ i ] -= ( prob + probd );
+	      mX2 [ j ] -= ( prob + probi );
+	      i++; j--;
+	      // iteration
+	      bM2++; bD2++; bI2++;
+	      bM0++; bD0++; bI0++;
+	      fM0++; fD0++; fI0++; 
+	      pp0++;
+	      s1 += seqIncrement;
+	      p2 -= seqIncrement;
+	    }while( fM0 != fM0end ); // inner most loop end;
+	  }else{
+	    do{
+	      const double S = ( *p2 )[ *s1 ];
+	      const double tmp1 = *bM0 * S * scale12;
+	      const double tmp2 = *bP0;
+	      *bM2 += tmp1 + tmp2 * seQ; 
+	      *bD2 += tmp1; 
+	      *bI2 += tmp1; 
+	      *bP2 += tmp1 + tmp2 * seP; 
+	      const double tmp3 = *bD0;
+	      *bM1++ += tmp3 * seF; 
+	      *bD1++ += tmp3 * seE; 
+	      bI1++;
+	      *bP1++ += tmp3 * seE; 
+	      const double tmp4 = *bI0;
+	      const double tmp5 = tmp4 * seF; 
+	      const double tmp6 = tmp4 * seE;
+	      *bM1 += tmp5; 
+	      *bD1 += tmp5; 
+	      *bI1 += tmp6; 
+	      *bP1 += tmp6; 
+	      double prob = *fM0 * *bM0 / Z; 
+	      *pp0 = prob;
+	      double probd = *fD0 * *bD0 / Z;
+	      double probi = *fI0 * *bI0 / Z;
+	      double probp = *fP0 * *bP0 / Z;
+ 	      mD[ i ] += probd + probp; 
+ 	      mI[ j ] += probi + probp; 
+	      mX1 [ i ] -= ( prob + probd + probp );
+	      mX2 [ j ] -= ( prob + probi + probp );
+	      i++; j--;
+	      // iteration
+	      bM2++; bD2++; bI2++; bP2++;
+	      bM0++; bD0++; bI0++; bP0++;
+	      fM0++; fD0++; fI0++; fP0++; 
+	      pp0++;
+	      s1 += seqIncrement;
+	      p2 -= seqIncrement;
+	    }while( fM0 != fM0end ); // inner most loop end;
+	  }
+	}
       }
 
       if( end0 > end1 ){  // do last cell on boundary
-	assert ( end0 == end1 + 1 );
+	//assert ( end0 == end1 + 1 );
 	double* bM1 = &bM[ k1 ][ bM[ k1 ].size() - 1 ];
 	double* bD1 = &bD[ k1 ][ bD[ k1 ].size() - 1 ];
 	double* bP1 = &bP[ k1 ][ bP[ k1 ].size() - 1 ];
@@ -433,37 +612,52 @@ namespace cbrc{
 	  double* bD2 = &bD[ k2 ][ dig ];
 	  double* bI2 = &bI[ k2 ][ dig ];
 	  double* bP2 = &bP[ k2 ][ dig ];
-	  //double eS = 1;
-	  //if ( end0 > 1 && k - end0 + 1 > 0 ) { // comment out because not need
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, end0 - 1 );
-	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - end0 + 1);
-	  assert ( *s1 < MAT && *s2 < MAT );
-	  double eS = match_score[ *s1 ][ *s2 ];
-	  //} 
+	  double eS;
+	  if (! isPssm ) {
+	    const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - end0 + 1);
+	    //assert ( *s1 < MAT && *s2 < MAT );
+	    eS = match_score[ *s1 ][ *s2 ];
+	  } else {
+	    const double (*p2)[MAT] = XdropAligner::seqPtr ( pssmExp2, start2, dir, k - end0 + 1);
+	    eS = ( *p2 )[ *s1 ];	    
+	  }
 	  const double tmp1 = *bM0 * eS;
 	  *bM2 += ( tmp1 + *bP0 * eQ ) * scale12;
 	  *bD2 += tmp1 * scale12;
 	  *bI2 += tmp1 * scale12;
 	  *bP2 += ( tmp1 + *bP0 * eP ) * scale12;
 	}
+	*pp0 = *fM0 * *bM0 / Z; 
+	double probd = *fD0 * *bD0 / Z;
+	double probi = *fI0 * *bI0 / Z;
+	double probp = *fP0 * *bP0 / Z;
+ 	mD[ end0 - 1 ]      += probd + probp;
+ 	mI[ k - end0 + 1 ]  += probi + probp;
+	mX1 [ end0 - 1 ] -= ( *pp0 + probd + probp );
+	mX2 [ k - end0 + 1 ] -= (*pp0 + probi + probp );
 
-	double prob = *fM0 * *bM0 / Z; 
-	//assert( 0 <= prob && prob <= 1 );
-	*pp0 = prob;
 	bM0++; bD0++; bI0++; bP0++;
-	fM0++; 
-	pp0++;
+	fM0++; fD0++; fI0++; fP0++; 
+	pp0++; 
       }
     }
-    // This is a test for computeExpectedCounts (...)
-    //ExpectedCount c;
-    //computeExpectedCounts (seq1, seq2, start1, start2, dir, gap, c); 
-    //c.write (std::cout, Z);
-    //
     return log( bM[0][0] );
   }
 
   double Centroid::dp( double gamma ){
+    if (outputType == 5 ) return dp_centroid( gamma );
+    else if (outputType == 6 ) return dp_ama (gamma);
+    return 0;
+  }
+
+  void Centroid::traceback( std::vector< SegmentPair >& chunks,
+			    double gamma ) const{
+    if (outputType==5) traceback_centroid( chunks, gamma );
+    else if (outputType==6) traceback_ama( chunks, gamma);
+  }
+
+  double Centroid::dp_centroid( double gamma ){
 
     initDecodingMatrix();
 
@@ -488,14 +682,14 @@ namespace cbrc{
 	const double X2 = xa.diag( X, k, off0 );
 	const double s = ( gamma + 1 ) * ( *P0++ ) - 1;
 	const double score = std::max( X1, X2 + s );
-	assert ( score >= 0 );
+	//assert ( score >= 0 );
 	updateScore ( score, k, cur );
 	*X0++ = score;
 	cur++;
       }
 
       if( loopBeg < loopEnd ){
-	assert( k > 1 );
+	//assert( k > 1 );
 	const double* const p0end = p0 + (loopEnd - loopBeg);
 	const size_t horiBeg = loopBeg - 1 - off1;
 	const size_t diagBeg = loopBeg - 1 - xa.offsets[ k2 ];
@@ -506,7 +700,7 @@ namespace cbrc{
 	  const double s = ( gamma + 1 ) * ( *P0++ ) - 1;
 	  const double oldX1 = *X1++;  // Added by MCF
 	  const double score = std::max( std::max( oldX1, *X1 ), *X2++ + s );
-	  assert ( score >= 0 );
+	  //assert ( score >= 0 );
 	  updateScore ( score, k, cur );
 	  *X0++ = score;
 	  cur++;
@@ -514,23 +708,22 @@ namespace cbrc{
       }
  
       if( end0 > end1 ){  // do last cell on boundary
-	assert ( end0 == end1 + 1 );
+	//assert ( end0 == end1 + 1 );
 	const double X1 = X[ k1 ].back();
 	const double X2 = xa.diag( X, k, end0 - 1 );
 	const double s = ( gamma + 1 ) * ( *P0++ ) - 1;
 	const double score = std::max( X1, X2 + s );
-	assert ( score >= 0 );
+	//assert ( score >= 0 );
 	updateScore ( score, k, cur );
 	*X0++ = score;
 	cur++;
       }
     }
-
     return bestScore;
   }
 
-  void Centroid::traceback( std::vector< SegmentPair >& chunks,
-			    double gamma ) const{
+  void Centroid::traceback_centroid( std::vector< SegmentPair >& chunks,
+				     double gamma ) const{
     //std::cout << "[c] bestAntiDiagonal=" << bestAntiDiagonal << ": bestPos1=" << bestPos1 << std::endl;
 
     size_t k = bestAntiDiagonal;
@@ -542,6 +735,103 @@ namespace cbrc{
 	maxIndex3( xa.diag( X, k, i ) + ( gamma + 1 ) * xa.cell( pp, k, i ) - 1,
 		   xa.hori( X, k, i ),
 		   xa.vert( X, k, i ) );
+      if( m == 0 ){
+	k -= 2;
+	i -= 1;
+      }
+      if( (m > 0 && oldPos1 != i) || k == 0 ){
+	chunks.push_back( SegmentPair( i, k - i, oldPos1 - i ) );
+      }
+      if( m > 0 ){
+	k -= 1;
+	i -= (m == 1);
+	oldPos1 = i;
+      }
+    }
+  }
+
+  double Centroid::dp_ama( double gamma ){
+
+    initDecodingMatrix();
+
+    for( size_t k = 1; k <= lastAntiDiagonal; ++k ){  // loop over antidiagonals
+      const size_t k1 = k - 1;
+      const size_t k2 = k - 2;  // might wrap around
+      const size_t off1 = xa.offsets[ k1 ];
+      const size_t end1 = off1 + xa.x[ k1 ].size();
+      const size_t off0 = xa.offsets[ k ];
+      const size_t end0 = off0 + xa.x[ k ].size();
+      const size_t loopBeg = off0 + ( off0 == off1 );
+      const size_t loopEnd = end0 - ( end0 > end1 );
+
+      double* X0 = &X[ k ][ 0 ];
+      const double* P0 = &pp[ k ][ 0 ];
+      size_t cur = off0;
+
+      if( off0 == off1 ){  // do first cell on boundary
+	const double X1 = X[ k1 ].front();
+	const double X2 = xa.diag( X, k, off0 );
+	const double s = 2 * gamma * *P0++ - ( mX1[ cur ] + mX2[ k - cur ]); 
+	const double t = gamma * mI[ k - cur ] - mX2[ k - cur ];
+	const double score = std::max( X1 + t, X2 + s );
+	//assert ( score >= 0 );
+	updateScore ( score, k, cur );
+	*X0++ = score;
+	cur++;
+      }
+
+      if( loopBeg < loopEnd ){
+	//assert( k > 1 );
+	const double* const p0end = P0 + (loopEnd - loopBeg);
+	const size_t horiBeg = loopBeg - 1 - off1;
+	const size_t diagBeg = loopBeg - 1 - xa.offsets[ k2 ];
+	const double* X1 = &X[ k1 ][ horiBeg ];
+	const double* X2 = &X[ k2 ][ diagBeg ];
+	do{
+	  const double s = 2 * gamma * *P0++ - ( mX1[ cur ] + mX2[ k - cur ] ); 
+	  const double oldX1 = *X1++;  // Added by MCF
+	  const double u = gamma * mD[ cur ] - mX1[ cur ];
+	  const double t = gamma * mI[ k- cur ] - mX2[ k - cur ];
+	  const double score = std::max( std::max( oldX1 + u, *X1 + t), *X2++ + s );
+	  updateScore ( score, k, cur );
+	  *X0++ = score;
+	  cur++;
+	}while( P0 != p0end );
+      }
+ 
+      if( end0 > end1 ){  // do last cell on boundary
+	//assert ( end0 == end1 + 1 );
+	const double X1 = X[ k1 ].back();
+	const double X2 = xa.diag( X, k, end0 - 1 );
+	const double s = 2 * gamma * *P0++ - ( mX1[ cur ] + mX2[ k - cur ] );
+	const double u = gamma * mD[ cur ] - mX1[ cur ];
+	const double score = std::max( X1 + u, X2 + s );
+	//assert ( score >= 0 );
+	updateScore ( score, k, cur );
+	*X0++ = score;
+	cur++;
+      }
+    }
+
+    return bestScore;
+  }
+
+  void Centroid::traceback_ama( std::vector< SegmentPair >& chunks,
+			    double gamma ) const{
+    //std::cout << "[c] bestAntiDiagonal=" << bestAntiDiagonal << ": bestPos1=" << bestPos1 << std::endl;
+
+    size_t k = bestAntiDiagonal;
+    size_t i = bestPos1;
+    size_t oldPos1 = i;
+
+    while( k > 0 ){
+      const double s = 2 * gamma * xa.cell( pp, k, i ) - ( mX1[ i ] + mX2[ k - i ] ); 
+      const double t = gamma * mI[ k - i ] - mX2[ k - i ];
+      const double u = gamma * mD[ i ] - mX1[ i ];
+      const int m =
+	maxIndex3( xa.diag( X, k, i ) + s,
+		   xa.hori( X, k, i ) + u,
+		   xa.vert( X, k, i ) + t);
       if( m == 0 ){
 	k -= 2;
 	i -= 1;
@@ -572,7 +862,6 @@ namespace cbrc{
     }
   }
 
-  
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 					 size_t start1, size_t start2, XdropAligner::direction dir,
 					 const GeneralizedAffineGapCosts& gap, 
@@ -619,7 +908,7 @@ namespace cbrc{
 	if ( off0 > 0 && k - off0 > 0 ) {
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, off0 );
 	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - off0 );
-	  assert ( *s1 < MAT && *s2 < MAT );
+	  //assert ( *s1 < MAT && *s2 < MAT );
 	  S = match_score[ *s1 ][ *s2 ];
 	  c.emit[ *s1 ][ *s2 ] += ( *fM0 * *bM0 );
 	}
@@ -650,11 +939,11 @@ namespace cbrc{
       }
 
       if( loopBeg < loopEnd ){
-	assert( k > 1 );
+	//assert( k > 1 );
 	const double* const fM0end = fM0 + (loopEnd - loopBeg);
 	const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, loopBeg );
 	const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - loopBeg );
-	assert ( *s1 < MAT && *s2 < MAT );
+	//assert ( *s1 < MAT && *s2 < MAT );
 	const size_t horiBeg = loopBeg - 1 - off1;
 	const size_t diagBeg = loopBeg - 1 - xa.offsets[ k2 ];
 	const double* fM1 = &fM[ k1 ][ horiBeg ];
@@ -703,7 +992,7 @@ namespace cbrc{
       }
      
       if( end0 > end1 ){  // do last cell on boundary
-	assert ( end0 == end1 + 1 );
+	//assert ( end0 == end1 + 1 );
 	const double fM1 = fM[ k1 ].back();
 	const double fD1 = fD[ k1 ].back();
 	const double fP1 = fP[ k1 ].back();
@@ -716,7 +1005,7 @@ namespace cbrc{
 	if ( end0 > 1 && k - end0 + 1 > 0 ) {
 	  const uchar* s1 = XdropAligner::seqPtr( seq1, start1, dir, end0 - 1 );
 	  const uchar* s2 = XdropAligner::seqPtr( seq2, start2, dir, k - end0 + 1 );
-	  assert ( *s1 < MAT && *s2 < MAT );
+	  //assert ( *s1 < MAT && *s2 < MAT );
 	  S = match_score[ *s1 ][ *s2 ];
 	  c.emit[ *s1 ][ *s2 ] += ( *fM0 * *bM0 ) ;
 	}

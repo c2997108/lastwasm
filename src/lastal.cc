@@ -52,12 +52,14 @@ namespace {
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
   Xdrop3FrameAligner xdropAligner;
+  Centroid centroid( xdropAligner );
   LambdaCalculator lambdaCalculator;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   OneQualityScoreMatrix oneQualityScoreMatrix;
   OneQualityScoreMatrix oneQualityScoreMatrixMasked;
+  OneQualityExpMatrix oneQualityExpMatrix;
   QualityPssmMaker qualityPssmMaker;
   sequenceFormat::Enum referenceFormat;  // defaults to 0
   TwoQualityScoreMatrix twoQualityScoreMatrix;
@@ -109,6 +111,11 @@ void makeQualityScorers(){
         oneQualityScoreMatrix.init( m, alph.size, lambda,
                                     &lp2[0], isPhred2, offset2,
                                     alph.canonical, false );
+      if( args.outputType > 3 ){
+        const OneQualityScoreMatrix &m = (args.maskLowercase < 3) ?
+            oneQualityScoreMatrix : oneQualityScoreMatrixMasked;
+        oneQualityExpMatrix.init( m, args.temperature );
+      }
     }
     else if( args.inputFormat == sequenceFormat::prb ){
       bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
@@ -397,7 +404,7 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
 
 // Do gapped extensions of the gapless alignments
 void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
-                  Phase::Enum phase, Centroid& centroid ){
+                  Phase::Enum phase ){
   Dispatcher dis(phase);
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
@@ -467,9 +474,23 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( const AlignmentPot& gappedAlns,
-		  Centroid& centroid, char strand, std::ostream& out ){
+		  char strand, std::ostream& out ){
   Dispatcher dis( Phase::final );
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
+
+  if( args.outputType > 3 ){
+    if( dis.p ){
+      LOG( "exponentiating PSSM..." );
+      centroid.setPssm( dis.p, query.finishedSize(), args.temperature,
+                        oneQualityExpMatrix, dis.b, dis.j );
+    }
+    else{
+      centroid.setScoreMatrix( dis.m, args.temperature );
+    }
+    centroid.setOutputType( args.outputType );
+  }
+
+  LOG( "finishing..." );
 
   for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
@@ -529,20 +550,16 @@ void scan( char strand, std::ostream& out ){
 
   if( args.maskLowercase == 1 ) makeQualityPssm(false);
 
-  const ScoreMatrixRow* m = (args.maskLowercase > Phase::final) ?
-      scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive;
-  Centroid centroid( xdropAligner, m, args.temperature );  // slow?
-
   AlignmentPot gappedAlns;
 
   if( args.maskLowercase == 2 || args.maxDropFinal != args.maxDropGapped ){
-    alignGapped( gappedAlns, gaplessAlns, Phase::gapped, centroid );
+    alignGapped( gappedAlns, gaplessAlns, Phase::gapped );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
   if( args.maskLowercase == 2 ) makeQualityPssm(false);
 
-  alignGapped( gappedAlns, gaplessAlns, Phase::final, centroid );
+  alignGapped( gappedAlns, gaplessAlns, Phase::final );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
@@ -550,7 +567,7 @@ void scan( char strand, std::ostream& out ){
   }
 
   gappedAlns.sort();  // sort by score
-  alignFinish( gappedAlns, centroid, strand, out );
+  alignFinish( gappedAlns, strand, out );
 }
 
 // Scan one batch of query sequences against one database volume,

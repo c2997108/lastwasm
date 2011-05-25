@@ -97,7 +97,7 @@ Miscellaneous options (default settings):\n\
     + stringify(gamma) + ")\n\
 -G: genetic code file\n\
 -j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
-                 4=column ambiguity estimates, 5=gamma-centroid ("
+                 4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA ("
     + stringify(outputType) + ")\n\
 -Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina,\n\
                   4=prb, 5=PSSM ("
@@ -220,7 +220,7 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'j':
       unstringify( outputType, optarg );
-      if( outputType < 0 || outputType > 5 ) badopt( c, optarg );
+      if( outputType < 0 || outputType > 6 ) badopt( c, optarg );
       break;
     case '?':
       ERR( "bad option" );
@@ -232,9 +232,6 @@ LAST home page: http://last.cbrc.jp/\n\
 
   if( maskLowercase == 2 && inputFormat == 5 )
     ERR( "can't combine option -u 2 with option -Q 5" );
-
-  if( outputType > 3 && inputFormat > 0 )
-    ERR( "can't combine option -j > 3 with option -Q > 0" );
 
   if( isTranslated() && inputFormat > 0 )
     ERR( "can't combine option -F with option -Q > 0" );
