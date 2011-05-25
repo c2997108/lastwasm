@@ -11,6 +11,8 @@
 
 namespace cbrc{
 
+  typedef unsigned char uchar;
+
   struct ExpectedCount{
   public:
     enum { MAT = 64 };
@@ -48,7 +50,6 @@ namespace cbrc{
       bestPos1 =0;
     }
 
-    typedef unsigned char uchar;
     double forward( const uchar* seq1, const uchar* seq2, 
 		    size_t start1, size_t start2, XdropAligner::direction dir,
 		    const GeneralizedAffineGapCosts& gap );
