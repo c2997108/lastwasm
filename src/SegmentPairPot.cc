@@ -52,24 +52,34 @@ void SegmentPairPot::markTandemRepeats( const SegmentPair& sp,
 					indexT maxDistance ){
   assert( !items.empty() );
 
-  iterator i = std::lower_bound( items.begin(), items.end(), sp, itemLess );
-  if( i == items.end() )  i = items.begin();
+  // Careful: if we are self-comparing lots of short sequences, there
+  // may be many items on the same diagonal as sp.
 
-  iterator j = i;
+  SegmentPair nextDiagonal( sp.beg1() + 1, sp.beg2(), 0, 0 );
+  iterator n = std::lower_bound( items.begin(), items.end(),
+				 nextDiagonal, itemLess );
+  if( n == items.end() )  n = items.begin();
+
+  iterator j = n;
   do{  // funny loop to deal with wrap-around
     if( j->diagonal() - sp.diagonal() > maxDistance )  break;
     if( j->beg2() >= sp.beg2() && j->end1() <= sp.end1() )  mark( *j );
     ++j;
     if( j == items.end() )  j = items.begin();
-  }while( j != i );
+  }while( j != n );
 
-  iterator k = i;
+  SegmentPair prevDiagonal( sp.end1() - 1, sp.end2(), 0, 0 );
+  iterator p = std::lower_bound( items.begin(), items.end(),
+				 prevDiagonal, itemLess );
+  if( p == items.end() )  p = items.begin();
+
+  iterator k = p;
   do{  // funny loop to deal with wrap-around
     if( k == items.begin() )  k = items.end();
     --k;
     if( sp.diagonal() - k->diagonal() > maxDistance )  break;
     if( k->beg1() >= sp.beg1() && k->end2() <= sp.end2() )  mark( *k );
-  }while( k != i );
+  }while( k != p );
 }
 
 }
