@@ -67,9 +67,10 @@ namespace cbrc{
     double dp_ama( double gamma );
     void traceback_ama( std::vector< SegmentPair >& chunks, double gamma ) const;
 
-    // Added by MCF: get the probabilities of each match in each chunk:
-    void chunkProbabilities( std::vector< double >& probs,
-			     const std::vector< SegmentPair >& chunks );
+    // Added by MCF: get the probability of each column in the alignment:
+    void getColumnAmbiguities( std::vector< uchar >& ambiguityCodes,
+                               const std::vector< SegmentPair >& chunks,
+                               XdropAligner::direction dir );
 
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts ( const uchar* seq1, const uchar* seq2,

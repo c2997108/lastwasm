@@ -436,14 +436,12 @@ pre {font-family: "Courier New", monospace, serif; font-size: 0.8125em}
 '''
 
 def probabilityClass(probabilityColumn):
-    # here, imap seems to be a little bit faster than map:
-    try: p = reduce(operator.mul, imap(float, probabilityColumn))
-    except ValueError: return None
-    if   p > 0.999: return 'a'
-    elif p > 0.99: return 'b'
-    elif p > 0.95: return 'c'
-    elif p > 0.9: return 'd'
-    elif p > 0.5: return 'e'
+    p = ord(min(probabilityColumn)) - 33
+    if   p >= 30: return 'a'
+    elif p >= 20: return 'b'
+    elif p >= 13: return 'c'
+    elif p >= 10: return 'd'
+    elif p >=  3: return 'e'
     else: return 'f'
 
 def identicalRuns(s):
@@ -473,8 +471,8 @@ def writeHtml(maf, lineSize):
     print "<h3>%s:</h3>" % scoreLine
 
     if maf.pLines:
-        probCols = izip(*maf.pLines)
-        probCols = islice(probCols, 1, None)
+        probRows = [i[1] for i in maf.pLines]
+        probCols = izip(*probRows)
         classes = imap(probabilityClass, probCols)
     else:
         classes = repeat(None)

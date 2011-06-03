@@ -92,10 +92,10 @@ Miscellaneous options (default settings):\n\
     2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q<5, else 0)\n\
 -w: supress repeats inside exact matches, offset by this distance or less ("
     + stringify(maxRepeatDistance) + ")\n\
--t: 'temperature' for calculating probabilities (1/lambda)\n\
--g: 'gamma' parameter for gamma-centroid alignment ("
-    + stringify(gamma) + ")\n\
 -G: genetic code file\n\
+-t: 'temperature' for calculating probabilities (1/lambda)\n\
+-g: 'gamma' parameter for gamma-centroid and LAMA ("
+    + stringify(gamma) + ")\n\
 -j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
                  4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA ("
     + stringify(outputType) + ")\n\

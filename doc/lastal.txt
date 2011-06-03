@@ -41,8 +41,8 @@ Steps in lastal
 
   g) Estimate the ambiguity of each aligned column (OFF by default).
 
-  h) Redo the alignments using gamma-centroid alignment (OFF by
-     default).
+  h) Redo the alignments to minimize column ambiguity, using either
+     gamma-centroid or LAMA (OFF by default).
 
 Options
 -------
@@ -218,6 +218,13 @@ Miscellaneous Options
         this core
       Use -w0 to turn this off.
 
+  -G FILE
+      Use an alternative genetic code in the specified file.  For an
+      example of the format, see vertebrateMito.gc in the examples
+      directory.  By default, the standard genetic code is used.  This
+      option has no effect unless DNA-versus-protein alignment is
+      selected with option -F.
+
   -t TEMPERATURE
       Parameter for converting between scores and likelihood ratios.
       This affects the column ambiguity estimates.  A score is
@@ -228,30 +235,36 @@ Miscellaneous Options
       100(26):15688-93).
 
   -g GAMMA
-      This option allows use of "gamma-centroid alignment" (M Hamada
-      et al. 2009, Bioinformatics 25(4):465-73).  Such alignments only
-      include pairings with unambiguity > 1/(1+GAMMA).  When GAMMA=1,
-      this is the same as "centroid alignment" (LE Carvalho & CE
-      Lawrence 2008, PNAS 105(9):3209-14).  The reported alignment
-      score is that of the ordinary gapped alignment, not of the
-      gamma-centroid alignment.
+      This option affects gamma-centroid and LAMA alignment only.
 
-  -G FILE
-      Use an alternative genetic code in the specified file.  For an
-      example of the format, see vertebrateMito.gc in the examples
-      directory.  By default, the standard genetic code is used.  This
-      option has no effect unless DNA-versus-protein alignment is
-      selected with option -F.
+      Gamma-centroid alignments minimize the ambiguity of paired
+      letters.  In fact, this method aligns letters whose column error
+      probability is less than GAMMA/(GAMMA+1).  When GAMMA is low, it
+      aligns confidently-paired letters only, so there tend to be many
+      unaligned letters.  When GAMMA is high, it aligns letters more
+      liberally.
+
+      LAMA (Local Alignment Metric Accuracy) alignments minimize the
+      ambiguity of columns (both paired letters and gap columns).
+      When GAMMA is low, this method produces shorter alignments with
+      more-confident columns, and when GAMMA is high it produces
+      longer alignments including less-confident columns.
+
+      In summary: to get the most accurately paired letters, use
+      gamma-centroid.  To get accurately placed gaps, use LAMA.
+
+      Note that the reported alignment score is that of the ordinary
+      gapped alignment before realigning with gamma-centroid or LAMA.
 
   -j NUMBER
       Output type: 0 means counts of initial matches (of all lengths);
       1 means gapless alignments; 2 means gapped alignments before
       non-redundantization; 3 means gapped alignments after
       non-redundantization; 4 means alignments with ambiguity
-      estimates; 5 means centroid alignments.  Match counts (-j0)
-      respect the minimum length option but not the maximum
-      multiplicity option.  It's a bad idea to try -j0 when comparing
-      a large sequence to itself.
+      estimates; 5 means gamma-centroid alignments; 6 means LAMA
+      alignments.  Match counts (-j0) respect the minimum length
+      option but not the maximum multiplicity option.  It's a bad idea
+      to try -j0 when comparing a large sequence to itself.
 
   -Q NUMBER
       This option allows lastal to use sequence quality scores, or

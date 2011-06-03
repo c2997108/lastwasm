@@ -12,9 +12,7 @@ UCSC Genome FAQ (not "MIRA assembly format" or any other maf).
 
 For html: if the input includes probability lines starting with 'p',
 then the output will be coloured by column probability.  (To get lines
-starting with 'p', run lastal with option -j4 or -j5.)  If an
-alignment has multiple 'p' lines (e.g. after using maf-join.py), then
-the column-wise products are used.
+starting with 'p', run lastal with option -j set to 4 or higher.)
 
 Options
 -------

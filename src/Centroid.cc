@@ -847,17 +847,57 @@ namespace cbrc{
     }
   }
 
+  // Return an ASCII code representing an error probability.  The
+  // printable codes are 33--126, but here we use a maximum of 125, so
+  // that 126 is reserved for special cases.
+  static uchar asciiProbability( double probCorrect ){
+    assert( probCorrect >= 0 );
+    assert( probCorrect <= 1 );
+    double e = 1 - probCorrect;
+    double f = std::max( e, 1e-10 );  // avoid overflow errors
+    double g = -10 * std::log10(f);
+    int i = static_cast<int>(g);  // round fractions down
+    int j = i + 33;
+    int k = std::min( j, 125 );
+    return static_cast<uchar>(k);
+  }
+
+  static void getGapAmbiguities( std::vector<uchar>& ambiguityCodes,
+                                    const std::vector<double>& probs,
+                                    size_t rbeg, size_t rend ){
+    for( size_t i = rbeg; i > rend; --i ){
+      ambiguityCodes.push_back( asciiProbability( probs[ i ] ) );
+    }
+  }
+
   // Added by MCF:
-  void Centroid::chunkProbabilities( std::vector<double>& probs,
-				     const std::vector<SegmentPair>& chunks ){
+  void Centroid::getColumnAmbiguities( std::vector<uchar>& ambiguityCodes,
+                                       const std::vector<SegmentPair>& chunks,
+                                       XdropAligner::direction dir ){
     for( CI(SegmentPair) i = chunks.begin(); i < chunks.end(); ++i ){
       size_t seq1pos = i->end1();
       size_t seq2pos = i->end2();
 
       for( size_t j = 0; j < i->size; ++j ){
-	probs.push_back( xa.cell( pp, seq1pos + seq2pos, seq1pos ) );
+        double p = xa.cell( pp, seq1pos + seq2pos, seq1pos );
+	ambiguityCodes.push_back( asciiProbability(p) );
 	--seq1pos;
 	--seq2pos;
+      }
+
+      CI(SegmentPair) j = i + 1;
+      size_t end1 = (j < chunks.end()) ? j->end1() : 0;
+      size_t end2 = (j < chunks.end()) ? j->end2() : 0;
+
+      // ASSUMPTION: if there is an insertion adjacent to a deletion,
+      // the deletion will get printed first.
+      if( dir == XdropAligner::FORWARD ){
+        getGapAmbiguities( ambiguityCodes, mI, seq2pos, end2 );
+        getGapAmbiguities( ambiguityCodes, mD, seq1pos, end1 );
+      }
+      else{
+        getGapAmbiguities( ambiguityCodes, mD, seq1pos, end1 );
+        getGapAmbiguities( ambiguityCodes, mI, seq2pos, end2 );
       }
     }
   }

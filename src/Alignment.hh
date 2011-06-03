@@ -56,7 +56,7 @@ struct Alignment{
   std::vector<SegmentPair> blocks;  // the gapless blocks of the alignment
   int score;
   SegmentPair seed;  // the alignment remembers its seed
-  std::vector<double> matchProbabilities;
+  std::vector<uchar> columnAmbiguityCodes;  // char or uchar?
 
   indexT beg1() const{ return blocks.front().beg1(); }
   indexT beg2() const{ return blocks.front().beg2(); }
@@ -64,7 +64,7 @@ struct Alignment{
   indexT end2() const{ return blocks.back().end2(); }
 
   void extend( std::vector< SegmentPair >& chunks,
-	       std::vector< double >& probs,
+	       std::vector< uchar >& ambiguityCodes,
 	       Xdrop3FrameAligner& aligner, Centroid& centroid,
 	       const uchar* seq1, const uchar* seq2,
 	       indexT start1, indexT start2,

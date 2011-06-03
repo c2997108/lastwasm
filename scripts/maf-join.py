@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Copyright 2009, 2010 Martin C. Frith
+# Copyright 2009, 2010, 2011 Martin C. Frith
 
 # Join two or more sets of MAF-format multiple alignments into bigger
 # multiple alignments.  The 'join field' is the top genome, which
@@ -62,7 +62,7 @@ class MafBlock:
             self.chrSize.append(words[5])
             self.seq.append(list(words[6]))
         elif line.startswith('p'):
-            self.prob.append(words[1:])
+            self.prob.append(words[1])
 
     def write(self):
         beg = map(str, self.beg)
@@ -76,8 +76,9 @@ class MafBlock:
             field0 = "%-*s" % widthsAndFields[0]  # left-justify
             fields = ["%*s" % i for i in widthsAndFields[1:]]  # right-justify
             print 's', field0, ' '.join(fields)
+        pad = ' '.join(' ' * i for i in widths[:-1])
         for i in self.prob:
-            print 'p', ' '.join(i)
+            print 'p', pad, i
         print  # blank line afterwards
 
 def topSeqBeg(maf): return maf.beg[0]
@@ -145,24 +146,26 @@ def gapsToAdd(sequences):
             maxGapSize = max(gapSize)
             for s, e, i in zip(gapSize, gapEnd, gapInfo):
                 if s < maxGapSize:
-                    newGap = ['-'] * (maxGapSize - s)
+                    newGap = maxGapSize - s
                     i.append((newGap, e))
             gapBeg = [e+1 for e in gapEnd]
     except IndexError: return gapInfo
 
-def chunksAndGaps(s, gapsAndPositions):
+def chunksAndGaps(s, gapsAndPositions, oneGap):
     '''Yield chunks of "s" interspersed with gaps at given positions.'''
     oldPosition = 0
-    for gap, position in gapsAndPositions:
+    for gapLen, position in gapsAndPositions:
         yield s[oldPosition:position]
-        yield gap
+        yield oneGap * gapLen
         oldPosition = position
     yield s[oldPosition:]
 
 def mafAddGaps(maf, gapsAndPositions):
     '''Add the given gaps at the given positions to a MAF block.'''
-    maf.seq = [sum(chunksAndGaps(i, gapsAndPositions), []) for i in maf.seq]
-    maf.prob = [sum(chunksAndGaps(i, gapsAndPositions), []) for i in maf.prob]
+    maf.seq = [sum(chunksAndGaps(i, gapsAndPositions, ['-']), [])
+               for i in maf.seq]
+    maf.prob = [''.join(chunksAndGaps(i, gapsAndPositions, '~'))
+                for i in maf.prob]
 
 def mafJoin(mafs):
     '''Intersect and join overlapping MAF blocks.'''

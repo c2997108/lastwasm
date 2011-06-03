@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <cassert>
+#include <iterator>  // ostream_iterator
 
 // make C++ tolerable:
 #define CI(type) std::vector<type>::const_iterator
@@ -136,17 +137,11 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
        << botQualString( seq2.qualityReader(), seq2.qualsPerLetter() ) << '\n';
   }
 
-  if( matchProbabilities.size() > 0 ){
-    os << 'p';
-    CI(double) p = matchProbabilities.begin();
-    for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-      if( i > blocks.begin() ){  // between each pair of aligned blocks:
-	// assume we're not doing translated alignment
-	for( indexT j = (i-1)->end1(); j < i->beg1(); ++j ) os << " -";
-	for( indexT j = (i-1)->end2(); j < i->beg2(); ++j ) os << " -";
-      }
-      for( indexT j = 0; j < i->size; ++j ) os << ' ' << *p++;
-    }
+  if( columnAmbiguityCodes.size() > 0 ){
+    os << "p "
+       << std::setw( nw + bw + rw + sw + 6 ) << "";
+    std::copy( columnAmbiguityCodes.begin(), columnAmbiguityCodes.end(),
+               std::ostream_iterator<uchar>(os) );
     os << '\n';
   }
 

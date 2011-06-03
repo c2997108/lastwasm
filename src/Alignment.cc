@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2011 Martin C. Frith
 
 #include "Alignment.hh"
 #include "Centroid.hh"
@@ -32,7 +32,7 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
   score = seed.score;
 
   // extend a gapped alignment in the left/reverse direction from the seed:
-  extend( blocks, matchProbabilities, aligner, centroid, seq1, seq2,
+  extend( blocks, columnAmbiguityCodes, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), XdropAligner::REVERSE,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, gamma, outputType );
@@ -47,8 +47,8 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
 
   // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
-  std::vector<double> forwardProbs;
-  extend( forwardBlocks, forwardProbs, aligner, centroid, seq1, seq2,
+  std::vector<uchar> forwardAmbiguities;
+  extend( forwardBlocks, forwardAmbiguities, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), XdropAligner::FORWARD,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, gamma, outputType );
@@ -81,12 +81,13 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
 
   blocks.insert( blocks.end(), forwardBlocks.rbegin(), forwardBlocks.rend() );
 
-  if( outputType > 3 ){  // set match probabilities in the seed to 1.0 (?)
-    matchProbabilities.insert( matchProbabilities.end(), seed.size, 1.0 );
+  if( outputType > 3 ){  // set the un-ambiguity of the core to a max value:
+    columnAmbiguityCodes.insert( columnAmbiguityCodes.end(), seed.size, 126 );
   }
 
-  matchProbabilities.insert( matchProbabilities.end(),
-			     forwardProbs.rbegin(), forwardProbs.rend() );
+  columnAmbiguityCodes.insert( columnAmbiguityCodes.end(),
+                               forwardAmbiguities.rbegin(),
+                               forwardAmbiguities.rend() );
 }
 
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
@@ -137,7 +138,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 }
 
 void Alignment::extend( std::vector< SegmentPair >& chunks,
-			std::vector< double >& probs,
+			std::vector< uchar >& ambiguityCodes,
 			Xdrop3FrameAligner& aligner, Centroid& centroid,
 			const uchar* seq1, const uchar* seq2,
 			indexT start1, indexT start2,
@@ -175,6 +176,6 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       centroid.traceback( chunks, gamma );
     }
 
-    centroid.chunkProbabilities( probs, chunks );
+    centroid.getColumnAmbiguities( ambiguityCodes, chunks, dir );
   }
 }

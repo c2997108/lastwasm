@@ -57,7 +57,8 @@ def flippedMafS(words):
     return map(str, out)
 
 def flippedMafP(words):
-    return words[:1] + words[:0:-1]
+    flippedString = words[1][::-1]
+    return words[:1] + [flippedString]
 
 def flippedMafQ(words):
     qualityString = words[2]
@@ -88,6 +89,9 @@ def joinedMafLine(words, fieldWidths):
         return joinedMafS(words, fieldWidths)
     elif words[0] == "q":
         words = words[:2] + [""] * 4 + words[2:]
+        return joinedMafS(words, fieldWidths)
+    elif words[0] == "p":
+        words = words[:1] + [""] * 5 + words[1:]
         return joinedMafS(words, fieldWidths)
     else:
         return " ".join(words) + "\n"
