@@ -141,7 +141,9 @@ BEGIN_SCOPE(Njn)
 
       double getA () const {return getMuAssoc () == 0 ? HUGE_VAL : 1.0 / getMuAssoc ();} // expected [length / y] for achieving y
 
-      double getAlpha () const {return getSigmaAssoc () * getSigmaAssoc () * getA () * getA () * getA ();} // var [length] / y for achieving y
+      // MCF: Avoid wrongly returning NaN, with g++ 4.3.2 (???)
+      //double getAlpha () const {return getSigmaAssoc () * getSigmaAssoc () * getA () * getA () * getA ();} // var [length] / y for achieving y
+      double getAlpha () const {double a = getA (); return getSigmaAssoc () * getSigmaAssoc () * a * a * a;} // var [length] / y for achieving y
 
       inline size_t getDimension () const {return d_dimension;} // #(distinct values) of scores & probabilities (which are paired)         
       inline const Int4 *getScore () const {return d_score_p;} // scores in increasing order

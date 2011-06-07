@@ -35,6 +35,8 @@ Contents: Calculation of P-values using precalculated Gumbel parameters
 
 #include <ncbi_pch.hpp>
 
+#include <cassert>
+
 #include "sls_pvalues.hpp"
 #include "sls_alp_data.hpp"
 
@@ -241,6 +243,7 @@ double eps_)
 
         Int4 x_n=(Int4)floor((x_-a_)/h_);
         x_n=alp_data::Tmin(N_-1,x_n);
+        assert(x_n >= 0);
         return p_[x_n]+(p_[x_n+1]-p_[x_n])*(x_-(h_*x_n+a_))/h_;
 };
 
