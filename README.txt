@@ -48,7 +48,7 @@ of them.
 
 The main algorithms used by LAST:
   Adaptive seeds tame genomic sequence comparison
-  SM Kielbasa, R Wan, K Sato, P Horton, MC Frith: Genome Research (in press).
+  SM Kielbasa, R Wan, K Sato, P Horton, MC Frith: Genome Research 2011 21:487.
 
 How LAST uses sequence quality data:
   Incorporating sequence quality data into alignment improves DNA read mapping
