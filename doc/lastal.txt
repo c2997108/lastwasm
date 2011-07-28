@@ -92,8 +92,8 @@ Score Options
 
   -p FILE
       Obtain match and mismatch scores from the specified file.
-      Options -r and -q will be ignored.  For examples of the format,
-      see HOXD70 and TiTv212 in the examples directory.  Any letters
+      Options -r and -q will be ignored.  For an example of the
+      format, see hoxd70.mat in the examples directory.  Any letters
       that aren't in the file will get the lowest score in the file
       when aligned to anything.  Asymmetric scores are allowed: query
       letters correspond to columns and reference letters correspond
