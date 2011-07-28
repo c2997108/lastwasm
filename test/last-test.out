@@ -480,3 +480,101 @@ q 2                   C@JK?B?BBEJFA>==TXBSVSDAFF`hhD
 
 # CPU time: 0.02 seconds
 
+TEST 10
+#
+# a=9 b=9 c=100000 F=-1 e=90 d=54 x=189 y=44 z=189
+# u=0 s=2 m=10 l=1 n=4294967295 k=1 i=1048576 w=1000 t=4.36661 g=1 j=6
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+#
+#    A  C  G  T
+# A  6 -18 -18 -18
+# C -18  6 -18 -18
+# G -18 -18  6 -18
+# T -18 -18 -18  6
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+a score=102 LPF=108
+s chrM          973 19 + 16775 ttttttttattttttAA-AA
+s SRR001981.107   7 20 +    36 TTTTTTTTATTTTTTAATAA
+q SRR001981.107                IIIIIIIIGIIIIII:IIII
+p                              ~~~~~~~~~~~~~~~~~%$#
+
+a score=91 LPF=97.1
+s chrM         963 25 + 16775 ttttttaattttttttttatttttt
+s SRR001981.67   6 24 +    36 TTTTTTGGTTTTTTTTTT-TTTTTT
+q SRR001981.67                III-IG2*&-+IIIIIIF-7III=I
+p                             &*,-...0~~~~~~~~~~&%%%%%$
+
+a score=90 LPF=90.4
+s chrM          971 15 + 16775 ttttttttttatttt
+s SRR001981.805  21 15 +    36 TTTTTTTTTTATTTT
+q SRR001981.805                IIIIIIIIII;I0II
+p                              ~~~~~~~~~~~~~~~
+
+a score=119 LPF=127
+s chrM          952 33 + 16775 tttctttgttattttttaattttttttttattt
+s SRR001981.279   0 33 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTTTTTTT
+q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$
+p                              %')*~~~~~~--,++*)$$$$$$$$$$$$###"
+
+a score=104 LPF=109
+s chrM          949 33 + 16775 ttttttctttgttattttttaatttttttttta
+s SRR001981.279   1 33 -    36 TTTTTTGTTTTTTTTTTTTTTTTGTTTTTTTTA
+q SRR001981.279                (&%5.&%*$&-,7)+,*)-***2$I25D$37$I
+p                              #%&'''((((()))*******+./~~~~~~~~~
+
+a score=102 LPF=108
+s chrM          968 19 + 16775 taattttttttttattt-tt
+s SRR001981.346   1 20 -    36 TAATTTTTTTTTTATTTATT
+q SRR001981.346                BIIAIIEIIIIIIIIFIIII
+p                              ~~~~~~~~~~~~~~~~~%##
+
+a score=99 LPF=105
+s chrM          960 28 + 16775 ttattttttaattttttttttatttttt
+s SRR001981.279   0 28 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTT
+q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25
+p                              $%&()***,-0~~~~~~~~~~+))&&%$
+
+a score=96 LPF=103
+s chrM          950 36 + 16775 tttttctttgttattttttaattttttttttatttt
+s SRR001981.597   0 33 -    36 TTTTTTTTTCTCTTTTTTT--TTTTTTTTTT-TTTT
+q SRR001981.597                I@.9@$,%/*%3(CIIIII--IIIIIIIIII-IIII
+p                              %'()*+-..,+((+++,,,0/~~~~~~~~~~&%%$#
+
+a score=96 LPF=103
+s chrM          963 24 + 16775 ttttttaattttttttttattttt
+s SRR001981.279   0 24 -    36 TTTTTTTGTTTTTTTTTTTTTTTT
+q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2
+p                              %()*+,,/~~~~~~~~~~(''&&$
+
+a score=95 LPF=111
+s chrM          957 31 + 16775 ttg-ttattttttaattttttttttatttttt
+s SRR001981.279   1 30 -    36 TTTTTTGTTTTTT--TTTTTTTTTTGTTTTTT
+q SRR001981.279                (&%5.&%*$&-,7--)+,*)-***2$I25D$3
+p                              "##!##$%%%&&&((~~~~~~~~~~7,)'&$#
+
+a score=91 LPF=106
+s chrM          957 29 + 16775 ttgttattt-ttta--attttttttttatttt
+s SRR001981.202   0 31 -    36 TTGTTGTTTTTTTAACATTTTTTTTTT-TTTT
+q SRR001981.202                I),I2*8&IIIII3II@IIIIIIIIII-IIII
+p                              $&((((&$#!$%&&'6~~~~~~~~~~~'%%%$
+
+a score=91 LPF=97.4
+s chrM          960 26 + 16775 ttattttttaattttttttttatttt
+s SRR001981.815   2 24 -    36 TTTTTGTTT--TTTTTTTTTTATTTT
+q SRR001981.815                3+)03/+<I--G,I'9I/D3+IEII7
+p                              $$$$$$%&&&&~~~~~~~~~~~~~~~
+
+a score=90 LPF=106
+s chrM          954 37 + 16775 tctttgttattttttaattttttttttattttttAAA
+s SRR001981.279   2 33 -    36 TTTTTGT---TTTTT-TTTTTTTTTTGTTTTTTTTAA
+q SRR001981.279                &%5.&%*---$&-,7-)+,*)-***2$I25D$37$II
+p                              ""####"!"!"""""%"~~~~~~~~~&$%%%%%%%$#
+
+# CPU time: 0.23 seconds
+

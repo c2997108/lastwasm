@@ -57,6 +57,10 @@ db=/tmp/last-test
     echo TEST 9  # PRB-format quality data
     lastal -Q4 -e90 $db mouse_tss_prb.txt
     echo
+
+    echo TEST 10  # probabilistic alignment with quality scores
+    lastal -Q1 -j6 -e90 -a9 $db $fastq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
