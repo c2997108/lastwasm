@@ -223,7 +223,9 @@ def readAlignments(lines, chromSizes, params, circularChroms):
         score, rWords, qWords, text = i
         rName, rStart, rSpan, rStrand, rSize = infoFromAlignmentWords(rWords)
         qName, qStart, qSpan, qStrand, qSize = infoFromAlignmentWords(qWords)
-        pairName = qName[:-1]
+        index = qName.rfind("/")
+        if index < 0: pairName = qName
+        else:         pairName = qName[:index+1]
         if pairName < oldName:
             raise Exception("alignments not sorted properly")
         oldName = pairName

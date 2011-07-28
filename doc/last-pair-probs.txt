@@ -35,8 +35,9 @@ Details
   to the interior, in the 5' to 3' direction.  Thus, each pair is from
   opposite strands of the fragment.
 
-* It assumes that reads are paired if their names are identical,
-  ignoring the last character.  For example: myDNA/1, myDNA/2.
+* It assumes that reads are paired if their names are identical.
+  However, if the names contain "/", the parts after the final "/"
+  need not be identical (e.g. myDNA/1, myDNA/2).
 
 * The alignments may be in either format produced by lastal (maf or
   tabular).
