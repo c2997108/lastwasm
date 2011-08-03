@@ -1,0 +1,52 @@
+Aligning bisulfite-converted DNA reads to a genome
+==================================================
+
+Bisulfite is used to detect methylated cytosines.  It converts
+unmethylated Cs to Ts, but it leaves methylated Cs intact.  If we then
+sequence the DNA and align it to a reference genome, we can infer
+cytosine methylation.
+
+To align the DNA accurately, we should take the C->T conversion into
+account.  Here is how to do it with LAST.
+
+Let's assume we have bisulfite-converted DNA reads in a file called
+"reads.fastq" (in fastq-sanger format), and the genome is in
+"mygenome.fa" (in fasta format).  We will also assume that all the
+reads are from the converted strand, and not its reverse-complement
+(i.e. they have C->T conversions and not G->A conversions).
+
+First, we need to run lastdb twice, for forward-strand and
+reverse-strand alignments:
+  lastdb -u bisulfite_f.seed mygenome_f mygenome.fa
+  lastdb -u bisulfite_r.seed mygenome_r mygenome.fa
+
+Then find alignments, one strand at a time:
+  lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 mygenome_f reads.fastq > temp_f
+  lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 mygenome_r reads.fastq > temp_r
+
+Finally, merge the alignments and estimate which one represents the
+genomic source of each read:
+  last-merge-batches.py temp_f temp_r | last-map-probs.py -s150 > myalns.maf
+
+These commands refer to files (bisulfite_f.seed etc), which are in the
+examples directory.  You need to specify exactly where they are
+(e.g. "-u examples/bisulfite_f.seed").
+
+Explanation of the parameters
+-----------------------------
+
+The options "-u bisulfite_f.seed" and "-p bisulfite_f.mat" enable
+accurate forward-strand alignments.  Likewise, "-u bisulfite_r.seed"
+and "-p bisulfite_r.mat" enable accurate reverse-strand alignments.
+Option "-s1" means to find forward-strand alignments only, and "-s0"
+means reverse-strand alignments only.  The options -Q1 -d108 -e120 and
+-s150 are the same as in last-map-probs.txt: please see the
+explanation there.
+
+Aligning reads in chunks
+------------------------
+
+Rather than align 1 billion reads all at once, it's probably better to
+align them in chunks of, say, 1 million reads per chunk.  This has two
+advantages: it avoids huge temp files, and you can align the chunks in
+parallel.
