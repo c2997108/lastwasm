@@ -2,20 +2,53 @@
 
 // The algorithm is based on these recurrence formulas, for
 // generalized affine gap costs.  For standard affine gap costs, set
-// C=infinity.
+// gup=infinity.
 //
 // gop = gapExistenceCost
 // gep = gapExtensionCost
-// matchScore = the substitution score matrix
+// gup = gapUnalignedCost
 // F = frameshiftCost
 //
+// The 1st sequence: s(1), s(2), s(3), ...
+// The  0 frame of the 2nd sequence: t(0, 1), t(0, 2), t(0, 3), ...
+// The +1 frame of the 2nd sequence: t(1, 1), t(1, 2), t(1, 3), ...
+// The -1 frame of the 2nd sequence: t(2, 1), t(2, 2), t(2, 3), ...
+//
+// frame(j)  =  (j+1) % 3
+// index(j)  =  (j-1) / 3
+// matchScore(i, j)  =  the score for aligning s(i) with t(frame(j), index(j)).
+//
+// Initialization:
+// x(i, 0)  =  y(i, 0)  =  z(i, 0)  =  -INF  (for all i >= 0)
+// x(i, 1)  =  y(i, 1)  =  z(i, 1)  =  -INF  (for all i >= 0)
+// x(i, 2)  =  y(i, 2)  =  z(i, 2)  =  -INF  (for all i >= 0)
+// x(i, 3)  =  y(i, 3)  =  z(i, 3)  =  -INF  (for all i >= 0)
+// x(0, j)  =  y(0, j)  =  z(0, j)  =  -INF  (for all j >= 0)
+// x(0, 2)  =  0
+//
+// Recurrence (i > 0 and j > 3):
 // X(i, j)  =  max[ x(i-1, j-3), x(i-1, j-2) - F, x(i-1, j-4) - F ]
-// Y(i, j)  =  max[ y(i-1, j) - gep, y(i-1, j-3) - C ]
-// Z(i, j)  =  max[ z(i, j-3) - gep, z(i-1, j-3) - C ]
+// Y(i, j)  =  max[ y(i-1, j) - gep, y(i-1, j-3) - gup ]
+// Z(i, j)  =  max[ z(i, j-3) - gep, z(i-1, j-3) - gup ]
 // b(i, j)  =  max[ X(i, j), Y(i, j), Z(i, j) ]
 // x(i, j)  =  b(i, j) + matchScore(i, j)
 // y(i, j)  =  max[ b(i, j) - gop, Y(i, j) ]
 // z(i, j)  =  max[ b(i, j) - gop, Z(i, j) ]
+
+// The recurrences are calculated antidiagonal-by-antidiagonal, where:
+// antidiagonal  =  i*3 + j
+
+// We store x(i, j), y(i, j), and z(i, j) in the following way.
+// xScores: xxxxxoxxxxxxxxxx7xx8xx9xxAAxxBBxxCCxxDDDxxEEExxFFF...
+// yScores: xxxxxxxxxxxxxxxx7xx8xx9xxAAxxBBxxCCxxDDDxxEEExxFFF...
+// zScores: xxxxxxxxxxxxxxxx7xx8xx9xxAAxxBBxxCCxxDDDxxEEExxFFF...
+// "o" indicates a cell with score = 0.
+// "x" indicates a pad cell with score = -INF.
+// "7", "8", "9", "A", etc. indicate cells in antidiagonal 7, 8, 9, 10, etc.
+//
+// We put 2 pad cells between antidiagonals.  Actually, this is
+// necessary only between antidiagonals 3n and 3n+1.  It is necessary
+// for forward frame-shifts, when we look-back by 7 antidiagonals.
 
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"

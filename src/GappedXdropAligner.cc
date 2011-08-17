@@ -2,19 +2,49 @@
 
 // The algorithm is based on these recurrence formulas, for
 // generalized affine gap costs.  For standard affine gap costs, set
-// C=infinity.
+// gup=infinity.
 //
 // gop = gapExistenceCost
 // gep = gapExtensionCost
-// matchScore = the substitution score matrix
+// gup = gapUnalignedCost
 //
+// The 1st sequence: s(1), s(2), s(3), ...
+// The 2nd sequence: t(1), t(2), t(3), ...
+//
+// matchScore(i, j)  =  the score for aligning s(i) with t(j).
+//
+// Initialization:
+// x(i, 0)  =  y(i, 0)  =  z(i, 0)  =  -INF  (for all i >= 0)
+// x(0, j)  =  y(0, j)  =  z(0, j)  =  -INF  (for all j >= 0)
+// x(0, 0)  =  0
+//
+// Recurrence (i > 0 and j > 0):
 // X(i, j)  =  x(i-1, j-1)
-// Y(i, j)  =  max[ y(i-1, j) - gep, y(i-1, j-1) - C ]
-// Z(i, j)  =  max[ z(i, j-1) - gep, z(i-1, j-1) - C ]
+// Y(i, j)  =  max[ y(i-1, j) - gep, y(i-1, j-1) - gup ]
+// Z(i, j)  =  max[ z(i, j-1) - gep, z(i-1, j-1) - gup ]
 // b(i, j)  =  max[ X(i, j), Y(i, j), Z(i, j) ]
 // x(i, j)  =  b(i, j) + matchScore(i, j)
 // y(i, j)  =  max[ b(i, j) - gop, Y(i, j) ]
 // z(i, j)  =  max[ b(i, j) - gop, Z(i, j) ]
+//
+// Interpretations:
+// X(i, j)  =  the best score for any alignment ending with s(i-1)
+//             aligned to t(j-1).
+// b(i, j)  =  the best score for any alignment ending at s(i-1) and
+//             t(j-1).
+// x(i, j)  =  the best score for any alignment ending with s(i)
+//             aligned to t(j).
+
+// The recurrences are calculated antidiagonal-by-antidiagonal, where:
+// antidiagonal  =  i + j
+
+// We store x(i, j), y(i, j), and z(i, j) in the following way.
+// xScores: oxx2x33x444x5555x66666...
+// yScores: xxx2x33x444x5555x66666...
+// zScores: xxx2x33x444x5555x66666...
+// "o" indicates a cell with score = 0.
+// "x" indicates a pad cell with score = -INF.
+// "2", "3", etc. indicate cells in antidiagonal 2, 3, etc.
 
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
