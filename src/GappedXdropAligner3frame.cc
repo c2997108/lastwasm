@@ -46,9 +46,9 @@
 // "x" indicates a pad cell with score = -INF.
 // "7", "8", "9", "A", etc. indicate cells in antidiagonal 7, 8, 9, 10, etc.
 //
-// We put 2 pad cells between antidiagonals.  Actually, this is
-// necessary only between antidiagonals 3n and 3n+1.  It is necessary
-// for forward frame-shifts, when we look-back by 7 antidiagonals.
+// We put 2 pad cells between antidiagonals.  This is sometimes
+// necessary for forward frame-shifts, when we look-back by 7
+// antidiagonals.
 
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
