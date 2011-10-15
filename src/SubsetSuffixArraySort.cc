@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
 
 // Parts of this code are adapted from "Engineering Radix Sort" by PM
 // McIlroy, K Bostic, MD McIlroy.
@@ -63,6 +63,69 @@ static void radixSort1( const uchar* text, const uchar* subsetMap,
   }
 
   PUSH( beg, end, depth );   // the '0's
+}
+
+// Specialized sort for 2 symbols + 1 delimiter.
+// E.g. transition-constrained positions in subset seeds.
+static void radixSort2( const uchar* text, const uchar* subsetMap,
+                        indexT* beg, indexT* end, indexT depth ){
+  indexT* end0 = beg;  // end of '0's
+  indexT* end1 = beg;  // end of '1's
+
+  while( end1 < end ){
+    const indexT x = *end1;
+    switch( subsetMap[ text[x] ] ){
+      case 0:
+        *end1++ = *end0;
+        *end0++ = x;
+        break;
+      case 1:
+        end1++;
+        break;
+      default:  // the delimiter subset
+        *end1 = *--end;
+        *end = x;
+        break;
+    }
+  }
+
+  PUSH( beg, end0, depth );  // the '0's
+  PUSH( end0, end, depth );  // the '1's
+}
+
+// Specialized sort for 3 symbols + 1 delimiter.
+// E.g. subset seeds for bisulfite-converted DNA.
+static void radixSort3( const uchar* text, const uchar* subsetMap,
+                        indexT* beg, indexT* end, indexT depth ){
+  indexT* end0 = beg;  // end of '0's
+  indexT* end1 = beg;  // end of '1's
+  indexT* beg2 = end;  // beginning of '2's
+
+  while( end1 < beg2 ){
+    const indexT x = *end1;
+    switch( subsetMap[ text[x] ] ){
+      case 0:
+        *end1++ = *end0;
+        *end0++ = x;
+        break;
+      case 1:
+        end1++;
+        break;
+      case 2:
+        *end1 = *--beg2;
+        *beg2 = x;
+        break;
+      default:  // the delimiter subset
+        *end1 = *--beg2;
+        *beg2 = *--end;
+        *end = x;
+        break;
+    }
+  }
+
+  PUSH( beg, end0, depth );   // the '0's
+  PUSH( end0, beg2, depth );  // the '1's
+  PUSH( beg2, end, depth );   // the '2's
 }
 
 // Specialized sort for 4 symbols + 1 delimiter.  E.g. DNA.
@@ -171,11 +234,12 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 
     ++depth;
 
-    if( subsetCount == 1 )
-      radixSort1( textBase, subsetMap, beg, end, depth );
-    else if( subsetCount == 4 )
-      radixSort4( textBase, subsetMap, beg, end, depth );
-    else
-      radixSortN( textBase, subsetMap, beg, end, depth, subsetCount );
+    switch( subsetCount ){
+      case 1:  radixSort1( textBase, subsetMap, beg, end, depth );  break;
+      case 2:  radixSort2( textBase, subsetMap, beg, end, depth );  break;
+      case 3:  radixSort3( textBase, subsetMap, beg, end, depth );  break;
+      case 4:  radixSort4( textBase, subsetMap, beg, end, depth );  break;
+      default: radixSortN( textBase, subsetMap, beg, end, depth, subsetCount );
+    }
   }
 }
