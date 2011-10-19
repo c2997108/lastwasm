@@ -144,11 +144,8 @@ void makeQualityScorers(){
 // Calculate statistical parameters for the alignment scoring scheme
 // Meaningless for PSSMs, unless they have the same scale as the score matrix
 void calculateScoreStatistics(){
-  if( args.outputType == 0 ) return;
-
-  // the case-sensitivity of the matrix makes no difference here
-
   LOG( "calculating matrix probabilities..." );
+  // the case-sensitivity of the matrix makes no difference here
   lambdaCalculator.calculate( scoreMatrix.caseSensitive, alph.size );
   if( lambdaCalculator.isBad() ){
     if( isQuality( args.inputFormat ) ||
@@ -745,10 +742,9 @@ void lastal( int argc, char** argv ){
                                 isCaseSensitiveSeeds );
   makeScoreMatrix( matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost, args.gapPairCost );
-  calculateScoreStatistics();
+  if( args.outputType > 0 ) calculateScoreStatistics();
   args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
-
-  makeQualityScorers();
+  if( args.outputType > 0 ) makeQualityScorers();
 
   if( args.isTranslated() ){
     if( alph.letters == alph.dna )  // allow user-defined alphabet
