@@ -108,8 +108,8 @@ namespace cbrc{
                                      qualityBeg, &pssmExp[0] );
     }
     else{  // slow general case
-      for ( uint i=0; i<qsize; ++i ) {
-        for ( uint j=0; j<MAT; ++j ) {
+      for ( unsigned i=0; i<qsize; ++i ) {
+        for ( unsigned j=0; j<MAT; ++j ) {
           pssmExp2[ i ][ j ] = EXP ( pssm[ i ][ j ] / T );
         }
       }

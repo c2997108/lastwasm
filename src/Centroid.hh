@@ -125,8 +125,10 @@ namespace cbrc{
 
     void updateScore( double score, size_t antiDiagonal, size_t cur );
 
+    /*
     double cell( const dmatrix_t& matrix,
 		 size_t antiDiagonal, size_t seq1pos ) const;
+    */
     double diag( const dmatrix_t& matrix,
 		 size_t antiDiagonal, size_t seq1pos ) const;
   };

@@ -6,6 +6,7 @@
 #define ALIGNMENT_HH
 #include "Xdrop3FrameAligner.hh"
 #include "SegmentPair.hh"
+#include <cstddef>  // size_t
 #include <string>
 #include <vector>
 #include <iosfwd>

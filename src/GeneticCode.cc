@@ -3,6 +3,7 @@
 #include "GeneticCode.hh"
 #include "Alphabet.hh"
 #include <cctype>  // toupper, tolower, islower
+#include <cstddef>  // size_t
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
