@@ -6,6 +6,8 @@
 #include "GeneralizedAffineGapCosts.hh"
 #include "SegmentPair.hh"
 #include "OneQualityScoreMatrix.hh"
+#include <cassert>
+#include <stddef.h>  // size_t
 #include <vector>
 #include <iostream> // for debug
 
@@ -51,11 +53,11 @@ namespace cbrc{
     }
 
     double forward( const uchar* seq1, const uchar* seq2, 
-		    size_t start1, size_t start2, XdropAligner::direction dir,
+		    size_t start1, size_t start2, bool isForward,
 		    const GeneralizedAffineGapCosts& gap );
     
     double backward( const uchar* seq1, const uchar* seq2, 
-		     size_t start1, size_t start2, XdropAligner::direction dir,
+		     size_t start1, size_t start2, bool isForward,
 		     const GeneralizedAffineGapCosts& gap );
 
     double dp( double gamma );
@@ -70,11 +72,11 @@ namespace cbrc{
     // Added by MCF: get the probability of each column in the alignment:
     void getColumnAmbiguities( std::vector< uchar >& ambiguityCodes,
                                const std::vector< SegmentPair >& chunks,
-                               XdropAligner::direction dir );
+                               bool isForward );
 
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
-				 size_t start1, size_t start2, XdropAligner::direction dir,
+				 size_t start1, size_t start2, bool isForward,
 				 const GeneralizedAffineGapCosts& gap,
 				 ExpectedCount& count ) const;
 
@@ -125,12 +127,64 @@ namespace cbrc{
 
     void updateScore( double score, size_t antiDiagonal, size_t cur );
 
-    /*
-    double cell( const dmatrix_t& matrix,
-		 size_t antiDiagonal, size_t seq1pos ) const;
-    */
+    size_t seq1start( size_t antiDiagonal ) const{
+      return xa.offsets[ antiDiagonal ];
+    }
+
+    size_t numCells( size_t antiDiagonal ) const{
+      return xa.x[ antiDiagonal ].size();
+    }
+
+    size_t seq1end( size_t antiDiagonal ) const{
+      return seq1start( antiDiagonal ) + numCells( antiDiagonal );
+    }
+
+    // get DP matrix value at the given position
+    double cellx( const dmatrix_t& matrix,
+                  size_t antiDiagonal, size_t seq1pos ) const{
+      assert( seq1pos >= seq1start( antiDiagonal ) );
+      assert( seq1pos < seq1end( antiDiagonal ) );
+      return matrix[ antiDiagonal ][ seq1pos - seq1start( antiDiagonal ) ];
+    }
+
+    // get DP matrix value "left of" the given position
+    double horix( const dmatrix_t& matrix,
+                  size_t antiDiagonal, size_t seq1pos ) const{
+      assert( antiDiagonal > 0 );
+      if( seq1pos > seq1start( antiDiagonal-1 ) )
+        return cellx( matrix, antiDiagonal-1, seq1pos-1 );
+      else return -INF;
+    }
+
+    // get DP matrix value "above" the given position
+    double vertx( const dmatrix_t& matrix,
+                  size_t antiDiagonal, size_t seq1pos ) const{
+      assert( antiDiagonal > 0 );
+      if( seq1pos < seq1end( antiDiagonal-1 ) )
+        return cellx( matrix, antiDiagonal-1, seq1pos );
+      else return -INF;
+    }
+
+    // get DP matrix value "diagonal from" the given position
+    double diagx( const dmatrix_t& matrix,
+                  size_t antiDiagonal, size_t seq1pos ) const{
+      if( antiDiagonal > 1 &&
+          seq1pos > seq1start( antiDiagonal-2 ) &&
+          seq1pos <= seq1end( antiDiagonal-2 ) )
+        return cellx( matrix, antiDiagonal-2, seq1pos-1 );
+      else return -INF;
+    }
+
     double diag( const dmatrix_t& matrix,
 		 size_t antiDiagonal, size_t seq1pos ) const;
+
+    // get a pointer into a sequence, taking start and direction into account
+    template < typename T >
+    static const T* seqPtr( const T* seq, size_t start,
+                            bool isForward, size_t pos ){
+      if( isForward ) return &seq[ start + pos - 1 ];
+      else            return &seq[ start - pos ];
+    }
   };
 
 }  // end namespace cbrc

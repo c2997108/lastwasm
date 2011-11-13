@@ -4,6 +4,7 @@
 #include "Centroid.hh"
 #include "GeneticCode.hh"
 #include "GeneralizedAffineGapCosts.hh"
+#include "Xdrop3FrameAligner.hh"
 #include <cassert>
 
 // make C++ tolerable:
@@ -33,7 +34,7 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
 
   // extend a gapped alignment in the left/reverse direction from the seed:
   extend( blocks, columnAmbiguityCodes, aligner, centroid, seq1, seq2,
-	  seed.beg1(), seed.beg2(), XdropAligner::REVERSE,
+	  seed.beg1(), seed.beg2(), false,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, gamma, outputType );
 
@@ -49,7 +50,7 @@ void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
   std::vector<SegmentPair> forwardBlocks;
   std::vector<uchar> forwardAmbiguities;
   extend( forwardBlocks, forwardAmbiguities, aligner, centroid, seq1, seq2,
-	  seed.end1(), seed.end2(), XdropAligner::FORWARD,
+	  seed.end1(), seed.end2(), true,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, gamma, outputType );
 
@@ -141,13 +142,15 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< uchar >& ambiguityCodes,
 			Xdrop3FrameAligner& aligner, Centroid& centroid,
 			const uchar* seq1, const uchar* seq2,
-			indexT start1, indexT start2,
-			XdropAligner::direction dir,
+			indexT start1, indexT start2, bool isForward,
 			const int sm[MAT][MAT], int smMax, int maxDrop,
 			const GeneralizedAffineGapCosts& gap,
 			int frameshiftCost, indexT frameSize,
 			const int pssm2[][MAT],
 			double gamma, int outputType ){
+  XdropAligner::direction dir =
+      (isForward ? XdropAligner::FORWARD : XdropAligner::REVERSE);
+
   if( frameSize ){
     assert( outputType < 4 );
     assert( !pssm2 );
@@ -168,14 +171,14 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
   if( outputType > 3 ){  // calculate match probabilities
     centroid.reset();
-    centroid.forward( seq1, seq2, start1, start2, dir, gap );
-    centroid.backward( seq1, seq2, start1, start2, dir, gap );
+    centroid.forward( seq1, seq2, start1, start2, isForward, gap );
+    centroid.backward( seq1, seq2, start1, start2, isForward, gap );
 
     if( outputType > 4 ){  // do gamma-centroid alignment
       centroid.dp( gamma );
       centroid.traceback( chunks, gamma );
     }
 
-    centroid.getColumnAmbiguities( ambiguityCodes, chunks, dir );
+    centroid.getColumnAmbiguities( ambiguityCodes, chunks, isForward );
   }
 }

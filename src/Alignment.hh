@@ -4,7 +4,6 @@
 
 #ifndef ALIGNMENT_HH
 #define ALIGNMENT_HH
-#include "Xdrop3FrameAligner.hh"
 #include "SegmentPair.hh"
 #include <cstddef>  // size_t
 #include <string>
@@ -13,6 +12,7 @@
 
 namespace cbrc{
 
+class Xdrop3FrameAligner;
 class GeneralizedAffineGapCosts;
 class MultiSequence;
 class Alphabet;
@@ -68,8 +68,7 @@ struct Alignment{
 	       std::vector< uchar >& ambiguityCodes,
 	       Xdrop3FrameAligner& aligner, Centroid& centroid,
 	       const uchar* seq1, const uchar* seq2,
-	       indexT start1, indexT start2,
-	       XdropAligner::direction dir,
+	       indexT start1, indexT start2, bool isForward,
 	       const int sm[MAT][MAT], int smMax, int maxDrop,
 	       const GeneralizedAffineGapCosts& gap,
 	       int frameshiftCost, indexT frameSize,
