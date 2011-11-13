@@ -11,7 +11,7 @@
 #include "GeneticCode.hh"
 #include "SubsetSuffixArray.hh"
 #include "Centroid.hh"
-#include "Xdrop3FrameAligner.hh"
+#include "GappedXdropAligner.hh"
 #include "AlignmentPot.hh"
 #include "Alignment.hh"
 #include "SegmentPairPot.hh"
@@ -51,8 +51,8 @@ namespace {
   SubsetSuffixArray suffixArray;
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
-  Xdrop3FrameAligner xdropAligner;
-  Centroid centroid( xdropAligner );
+  GappedXdropAligner gappedXdropAligner;
+  Centroid centroid( gappedXdropAligner );
   LambdaCalculator lambdaCalculator;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
@@ -441,7 +441,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( xdropAligner, centroid, dis.a, dis.b, dis.m,
+    aln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, dis.m,
 		   scoreMatrix.maxScore, gapCosts, dis.d,
 		   args.frameshiftCost, frameSize, dis.p );
     ++gappedExtensionCount;
@@ -498,7 +498,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
     else{  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( xdropAligner, centroid, dis.a, dis.b, dis.m,
+      probAln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, dis.m,
                          scoreMatrix.maxScore, gapCosts, dis.d,
                          args.frameshiftCost, frameSize, dis.p,
                          args.gamma, args.outputType );

@@ -86,7 +86,7 @@ s chrM  6566 86 + 16775 CAGAGTCGATAAGAAGAGGAATTGAACCTCTGTAAAAAGGACTACAGCCTAACGCT
 s chrM 12729 89 - 16775 CGGGGTAGCTAGGGAGAGGATTTGAACCTCTGGATAAAGGGCTTAAGCCTTTTGC------ATTTGCCGAGCTCTGCCACGCTAGCTGGATCCTT
 p                       %&'()**,,/12458:<=>=<~~~~~~~~~~~55344565220../0/-*(''&&!!!!!!""""#""##%)*++,--,+**++***)%%%%%$$
 
-# CPU time: 0.87 seconds
+# CPU time: 0.78 seconds
 
 TEST 2
 #
@@ -121,7 +121,7 @@ TEST 2
 44	chr32	51	158	+	1028	chr32	3	158	+	1028	158
 42	chr32	3	138	+	1028	chr32	69	138	+	1028	138
 42	chr32	69	138	+	1028	chr32	3	138	+	1028	138
-# CPU time: 0.15 seconds
+# CPU time: 0.11 seconds
 
 TEST 3
 #
@@ -253,7 +253,7 @@ s chrM          956 35 + 16775 tttgttattttttaattttttttttattttttAAA
 s SRR001981.279   0 35 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTTTTTTTAA
 q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$II
 
-# CPU time: 0.17 seconds
+# CPU time: 0.15 seconds
 
 TEST 5
 #
@@ -354,7 +354,7 @@ a score=40
 s Q2LCP8  138 23 +   491 ISSICFYILALNKNSRKGIEGGL
 s chrM   7839 69 - 16775 VSSADFWALSVKHSWSSGDEGGL
 
-# CPU time: 0.83 seconds
+# CPU time: 0.38 seconds
 
 TEST 6
 #
@@ -378,7 +378,7 @@ TEST 6
 26	chrM	6570	46	+	16775	chrM	12733	46	-	16775	46
 19	chrM	4168	33	+	16775	chrM	12574	33	-	16775	33
 18	chrM	31	34	+	16775	chrM	16710	34	-	16775	34
-# CPU time: 0.09 seconds
+# CPU time: 0.07 seconds
 
 TEST 7
 #
@@ -403,7 +403,7 @@ TEST 7
 2102	chr32	665	274	+	1028	chrM	7941	268	-	16775	117,5:0,72,1:0,79
 2089	chr32	690	217	+	1028	chrM	6958	219	-	16775	43,0:4,138,2:0,34
 2060	chr32	721	195	+	1028	chrM	7144	192	-	16775	91,3:0,101
-# CPU time: 0.08 seconds
+# CPU time: 0.05 seconds
 
 TEST 8
 #
@@ -433,7 +433,7 @@ s chr32                  97 40 + 1028 ccctaagcttaagcctaaccctaagccaaaccctagccct
 s HWW-E2:1:1:10:1477#0/1 10 40 +   50 CCCTAACCCTAANCCTAACCCTAACCCTAACCCTAACCCT
 q HWW-E2:1:1:10:1477#0/1              aaaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^aaS\RMX]\
 
-# CPU time: 0.01 seconds
+# CPU time: 0.02 seconds
 
 TEST 9
 #
@@ -520,7 +520,7 @@ a score=119
 s chrM          952 33 + 16775 tttctttgttattttttaattttttttttattt
 s SRR001981.279   0 33 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTTTTTTT
 q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$
-p                              %')*~~~~~~--,++*)$$$$$$$$$$$$###"
+p                              %(*,~~~~~~--,++*)$$$$$$$$$$$$###"
 
 a score=104
 s chrM          949 33 + 16775 ttttttctttgttattttttaatttttttttta
@@ -538,13 +538,13 @@ a score=99
 s chrM          960 28 + 16775 ttattttttaattttttttttatttttt
 s SRR001981.279   0 28 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTT
 q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25
-p                              $%&()***,-0~~~~~~~~~~+))&&%$
+p                              $%&()***,-0~~~~~~~~~~+*)&&%$
 
 a score=96
 s chrM          950 36 + 16775 tttttctttgttattttttaattttttttttatttt
 s SRR001981.597   0 33 -    36 TTTTTTTTTCTCTTTTTTT--TTTTTTTTTT-TTTT
 q SRR001981.597                I@.9@$,%/*%3(CIIIII--IIIIIIIIII-IIII
-p                              %'()*+-..,+((+++,,,0/~~~~~~~~~~&%%$#
+p                              &)+--.///-+((++,,,,0/~~~~~~~~~~&%%$#
 
 a score=96
 s chrM          963 24 + 16775 ttttttaattttttttttattttt
@@ -553,16 +553,16 @@ q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2
 p                              %()*+,,/~~~~~~~~~~(''&&$
 
 a score=95
-s chrM          957 31 + 16775 ttg-ttattttttaattttttttttatttttt
+s chrM          957 31 + 16775 ttgt-tattttttaattttttttttatttttt
 s SRR001981.279   1 30 -    36 TTTTTTGTTTTTT--TTTTTTTTTTGTTTTTT
 q SRR001981.279                (&%5.&%*$&-,7--)+,*)-***2$I25D$3
-p                              "##!##$%%%&&&((~~~~~~~~~~7,)'&$#
+p                              ####!#$%%%%&&((~~~~~~~~~~7,)'&$#
 
 a score=91
 s chrM          957 29 + 16775 ttgttattt-ttta--attttttttttatttt
 s SRR001981.202   0 31 -    36 TTGTTGTTTTTTTAACATTTTTTTTTT-TTTT
 q SRR001981.202                I),I2*8&IIIII3II@IIIIIIIIII-IIII
-p                              $&((((&$#!$%&&'6~~~~~~~~~~~'%%%$
+p                              $'((((&$#!$%&&'6~~~~~~~~~~~'%%%$
 
 a score=91
 s chrM          960 26 + 16775 ttattttttaattttttttttatttt
@@ -571,10 +571,10 @@ q SRR001981.815                3+)03/+<I--G,I'9I/D3+IEII7
 p                              $$$$$$%&&&&~~~~~~~~~~~~~~~
 
 a score=90
-s chrM          954 37 + 16775 tctttgttattttttaattttttttttattttttAAA
-s SRR001981.279   2 33 -    36 TTTTTGT---TTTTT-TTTTTTTTTTGTTTTTTTTAA
-q SRR001981.279                &%5.&%*---$&-,7-)+,*)-***2$I25D$37$II
-p                              ""####"!"!"""""%"~~~~~~~~~&$%%%%%%%$#
+s chrM          957 34 + 16775 ttgtt-attttttaattttttttttattttttAAA
+s SRR001981.279   1 34 -    36 TTTTTTGTTTTTT-TTTTTTTTTTGTTTTTTTTAA
+q SRR001981.279                (&%5.&%*$&-,7-)+,*)-***2$I25D$37$II
+p                              """""!#######$$~~~~~~~~~&$%%%%%%%$#
 
-# CPU time: 0.23 seconds
+# CPU time: 0.2 seconds
 

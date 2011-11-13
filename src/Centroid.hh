@@ -2,7 +2,7 @@
 
 #ifndef CENTROID_HH
 #define CENTROID_HH
-#include "XdropAligner.hh"
+#include "GappedXdropAligner.hh"
 #include "GeneralizedAffineGapCosts.hh"
 #include "SegmentPair.hh"
 #include "OneQualityScoreMatrix.hh"
@@ -36,7 +36,7 @@ namespace cbrc{
   public:
     enum { MAT = 64 };
 
-    Centroid( const XdropAligner& xa_ );
+    Centroid( const GappedXdropAligner& xa_ );
 
     // Setters
     void setScoreMatrix( const int sm[MAT][MAT], double T );
@@ -46,7 +46,7 @@ namespace cbrc{
     void setOutputType( int m ) { outputType = m; }
 
     void reset( ) { 
-      lastAntiDiagonal = xa.offsets.size () - 1;
+      lastAntiDiagonal = xa.numAntidiagonals () - 3;
       bestScore = 0;
       bestAntiDiagonal = 0;
       bestPos1 =0;
@@ -81,7 +81,7 @@ namespace cbrc{
 				 ExpectedCount& count ) const;
 
   private:
-    const XdropAligner& xa;
+    const GappedXdropAligner& xa;
     double T; // temperature
     size_t lastAntiDiagonal;
     double match_score[ MAT ][ MAT ]; // pre-computed match score
@@ -127,12 +127,23 @@ namespace cbrc{
 
     void updateScore( double score, size_t antiDiagonal, size_t cur );
 
+    // The next two functions use "antidiagonal + 2".  This is because
+    // GappedXdropAligner uses 2 extra padding antidiagonals at the
+    // beginning, whereas Centroid does not.  (Centroid should probably
+    // be changed so that it does: that makes it easier to look-back by
+    // up to 2 antidiagonals.)
+
     size_t seq1start( size_t antiDiagonal ) const{
-      return xa.offsets[ antiDiagonal ];
+      return xa.seq1start( antiDiagonal + 2 );
     }
 
+    // The next function has "- 1", because GappedXdropAligner uses one
+    // padding cell per antidiagonal, whereas Centroid does not.
+    // (Centroid should probably be changed so that it does: then we
+    // would not need special code for boundary cases.)
+
     size_t numCells( size_t antiDiagonal ) const{
-      return xa.x[ antiDiagonal ].size();
+      return xa.numCellsAndPads( antiDiagonal + 2 ) - 1;
     }
 
     size_t seq1end( size_t antiDiagonal ) const{

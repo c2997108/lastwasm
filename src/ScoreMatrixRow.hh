@@ -1,4 +1,4 @@
-// Copyright 2010 Martin C. Frith
+// Copyright 2010, 2011 Martin C. Frith
 
 // These definitions are for manipulating a score matrix, or a PSSM,
 // as a 2-dimensional array.  The hope is that 2D arrays are extremely
@@ -22,7 +22,7 @@ typedef int ScoreMatrixRow[scoreMatrixRowSize];
 // An "infinite" score.  Delimiters at the ends of sequences get a
 // score of -INF.  We want it high enough to terminate alignments
 // immediately, but not so high that it causes overflow errors.
-enum { INF = INT_MAX / 3 };
+enum { INF = INT_MAX / 2 };
 
 }
 

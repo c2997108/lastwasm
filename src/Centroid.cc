@@ -1,6 +1,7 @@
 // Copyright 2008, 2009, 2010, 2011 Michiaki Hamada
 
 #include "Centroid.hh"
+#include "GappedXdropAlignerInl.hh"
 #include <algorithm>
 #include <cassert>
 #include <cmath> // for exp
@@ -15,14 +16,6 @@
 namespace{
   double EXP ( double x ) {
     return std::exp (x);
-  }
-
-  int maxIndex( double a, double b ){
-    return b > a ? 1 : 0;
-  }
-
-  int maxIndex( double a, double b, double c ){
-    return c > a ? maxIndex( b, c ) + 1 : maxIndex( a, b );
   }
 }
 
@@ -91,8 +84,8 @@ namespace cbrc{
     }
   }
 
-  Centroid::Centroid( const XdropAligner& xa_ ) 
-    : xa( xa_ ), lastAntiDiagonal ( xa_.offsets.size () - 1 ), bestScore ( 0 ), bestAntiDiagonal (0), bestPos1 (0)  {
+  Centroid::Centroid( const GappedXdropAligner& xa_ ) 
+    : xa( xa_ ), lastAntiDiagonal ( xa_.numAntidiagonals () - 3 ), bestScore ( 0 ), bestAntiDiagonal (0), bestPos1 (0)  {
   }
 
   void Centroid::setScoreMatrix( const int sm[MAT][MAT], double T ) {

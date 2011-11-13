@@ -12,7 +12,7 @@
 
 namespace cbrc{
 
-class Xdrop3FrameAligner;
+class GappedXdropAligner;
 class GeneralizedAffineGapCosts;
 class MultiSequence;
 class Alphabet;
@@ -32,7 +32,7 @@ struct Alignment{
   // Alignment might not be "optimal" (see below).
   // If outputType > 3: calculates match probabilities.
   // If outputType > 4: does gamma-centroid alignment.
-  void makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
+  void makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 		  const uchar* seq1, const uchar* seq2,
 		  const int scoreMatrix[MAT][MAT], int smMax,
 		  const GeneralizedAffineGapCosts& gap, int maxDrop,
@@ -66,7 +66,7 @@ struct Alignment{
 
   void extend( std::vector< SegmentPair >& chunks,
 	       std::vector< uchar >& ambiguityCodes,
-	       Xdrop3FrameAligner& aligner, Centroid& centroid,
+	       GappedXdropAligner& aligner, Centroid& centroid,
 	       const uchar* seq1, const uchar* seq2,
 	       indexT start1, indexT start2, bool isForward,
 	       const int sm[MAT][MAT], int smMax, int maxDrop,

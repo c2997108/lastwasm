@@ -1,4 +1,4 @@
-// Copyright 2008, 2009 Martin C. Frith
+// Copyright 2008, 2009, 2011 Martin C. Frith
 
 // This struct holds a score matrix for aligning pairs of residues,
 // e.g. blosum62.  The delimiter symbol (space) aligned to anything
@@ -18,7 +18,7 @@ namespace cbrc{
 struct ScoreMatrix{
   typedef unsigned char uchar;
 
-  enum { INF = INT_MAX / 3 };  // big, but try to avoid overflow
+  enum { INF = INT_MAX / 2 };  // big, but try to avoid overflow
   enum { MAT = 64 };           // matrix size = MAT x MAT
   enum { OUTPAD = 2 };         // cell-padding for output
 

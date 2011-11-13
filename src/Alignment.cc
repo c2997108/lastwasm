@@ -2,9 +2,9 @@
 
 #include "Alignment.hh"
 #include "Centroid.hh"
+#include "GappedXdropAligner.hh"
 #include "GeneticCode.hh"
 #include "GeneralizedAffineGapCosts.hh"
-#include "Xdrop3FrameAligner.hh"
 #include <cassert>
 
 // make C++ tolerable:
@@ -23,7 +23,7 @@ static bool isNext( const SegmentPair& x, const SegmentPair& y ){
   return x.end1() == y.beg1() && x.end2() == y.beg2();
 }
 
-void Alignment::makeXdrop( Xdrop3FrameAligner& aligner, Centroid& centroid,
+void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int smMax,
 			   const GeneralizedAffineGapCosts& gap, int maxDrop,
@@ -140,7 +140,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< uchar >& ambiguityCodes,
-			Xdrop3FrameAligner& aligner, Centroid& centroid,
+			GappedXdropAligner& aligner, Centroid& centroid,
 			const uchar* seq1, const uchar* seq2,
 			indexT start1, indexT start2, bool isForward,
 			const int sm[MAT][MAT], int smMax, int maxDrop,
@@ -148,25 +148,44 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			int frameshiftCost, indexT frameSize,
 			const int pssm2[][MAT],
 			double gamma, int outputType ){
-  XdropAligner::direction dir =
-      (isForward ? XdropAligner::FORWARD : XdropAligner::REVERSE);
-
   if( frameSize ){
     assert( outputType < 4 );
     assert( !pssm2 );
-    score += aligner.fillThreeFrame( seq1, seq2, start1, start2, dir, sm,
-				     maxDrop, gap, frameshiftCost, frameSize );
-    aligner.traceThreeFrame( chunks, seq1, seq2, start1, start2, dir,
-			     sm, gap, frameshiftCost, frameSize );
+
+    indexT f = aaToDna( start2, frameSize ) + 1;
+    indexT r = aaToDna( start2, frameSize ) - 1;
+
+    const uchar* frame0 = seq2 + start2;
+    const uchar* frame1 = seq2 + dnaToAa( isForward ? f : r, frameSize );
+    const uchar* frame2 = seq2 + dnaToAa( isForward ? r : f, frameSize );
+
+    score += aligner.align3( seq1 + start1, frame0, frame1, frame2, isForward,
+                             sm, gap.exist, gap.extend, gap.extendPair,
+                             frameshiftCost, maxDrop, smMax );
+
+    std::size_t end1, end2, size;
+    // This should be OK even if end2 < size * 3:
+    while( aligner.getNextChunk3( end1, end2, size,
+                                  gap.exist, gap.extend, gap.extendPair,
+                                  frameshiftCost ) )
+      chunks.push_back( SegmentPair( end1 - size, end2 - size * 3, size ) );
+
     return;
   }
 
-  score += aligner.fill( seq1, seq2, start1, start2, dir,
-			 sm, smMax, maxDrop, gap, pssm2 );
+  score +=
+      pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2, isForward,
+                                 gap.exist, gap.extend, gap.extendPair,
+                                 maxDrop, smMax )
+      :       aligner.align( seq1 + start1, seq2 + start2, isForward,
+                             sm, gap.exist, gap.extend, gap.extendPair,
+                             maxDrop, smMax );
 
   if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
-    aligner.traceback( chunks, seq1, seq2, start1, start2, dir,
-		       sm, pssm2, gap );
+    std::size_t end1, end2, size;
+    while( aligner.getNextChunk( end1, end2, size,
+                                 gap.exist, gap.extend, gap.extendPair ) )
+      chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
   }
 
   if( outputType > 3 ){  // calculate match probabilities
