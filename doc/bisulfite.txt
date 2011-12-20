@@ -17,12 +17,12 @@ reads are from the converted strand, and not its reverse-complement
 
 First, we need to run lastdb twice, for forward-strand and
 reverse-strand alignments:
-  lastdb -u bisulfite_f.seed mygenome_f mygenome.fa
-  lastdb -u bisulfite_r.seed mygenome_r mygenome.fa
+  lastdb -u bisulfite_f.seed my_f mygenome.fa
+  lastdb -u bisulfite_r.seed my_r mygenome.fa
 
 Then find alignments, one strand at a time:
-  lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 mygenome_f reads.fastq > temp_f
-  lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 mygenome_r reads.fastq > temp_r
+  lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 my_f reads.fastq > temp_f
+  lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 my_r reads.fastq > temp_r
 
 Finally, merge the alignments and estimate which one represents the
 genomic source of each read:
@@ -42,6 +42,25 @@ Option "-s1" means to find forward-strand alignments only, and "-s0"
 means reverse-strand alignments only.  The options -Q1 -d108 -e120 and
 -s150 are the same as in last-map-probs.txt: please see the
 explanation there.
+
+Avoiding biased methylation estimates
+-------------------------------------
+
+Imagine that one genomic cytosine is methylated in 50% of cells in
+your sample, so that 50% of reads covering it have C and 50% have T.
+It is possible that the reads with C are easier to align, so we align
+more of them.  The methylation rate would then look higher than 50%.
+
+We can avoid this bias by converting all Cs in the reads to Ts, before
+aligning, like this:
+
+  perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_f - > temp_f
+  perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_r - > temp_r
+
+These perl commands assume that the fastq files have no line-wrapping
+or blank lines.  Also, they convert Cs to lowercase Ts: lowercase has
+no effect on the alignment, but it lets you see where the Cs were in
+the output (assuming the reads were all uppercase to start with).
 
 Aligning reads in chunks
 ------------------------
