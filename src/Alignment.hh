@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
 
 // This struct holds a gapped, pair-wise alignment.
 
@@ -17,6 +17,7 @@ class GeneralizedAffineGapCosts;
 class MultiSequence;
 class Alphabet;
 class Centroid;
+class TwoQualityScoreMatrix;
 
 struct Alignment{
   typedef SegmentPair::indexT indexT;
@@ -37,7 +38,9 @@ struct Alignment{
 		  const int scoreMatrix[MAT][MAT], int smMax,
 		  const GeneralizedAffineGapCosts& gap, int maxDrop,
 		  int frameshiftCost, indexT frameSize,
-		  const int pssm2[][MAT] = 0,
+		  const int pssm2[][MAT],
+                  const TwoQualityScoreMatrix& sm2qual,
+                  const uchar* qual1, const uchar* qual2,
 		  double gamma = 0, int outputType = 0 );
 
   // Check that the Alignment has no prefix with score <= 0, no suffix
@@ -47,7 +50,9 @@ struct Alignment{
                   const int scoreMatrix[MAT][MAT], int maxDrop,
                   const GeneralizedAffineGapCosts& gap,
 		  int frameshiftCost, indexT frameSize,
-		  const int pssm2[][MAT] = 0 );
+		  const int pssm2[][MAT],
+                  const TwoQualityScoreMatrix& sm2qual,
+                  const uchar* qual1, const uchar* qual2 );
 
   void write( const MultiSequence& seq1, const MultiSequence& seq2,
 	      char strand, bool isTranslated, const Alphabet& alph,
@@ -73,6 +78,8 @@ struct Alignment{
 	       const GeneralizedAffineGapCosts& gap,
 	       int frameshiftCost, indexT frameSize,
 	       const int pssm2[][MAT],
+               const TwoQualityScoreMatrix& sm2qual,
+               const uchar* qual1, const uchar* qual2,
 	       double gamma, int outputType );
 
   void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,

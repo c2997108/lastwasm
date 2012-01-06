@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
 
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
@@ -32,7 +32,6 @@
 #include <stdexcept>
 #include <ctime>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
-#include <cassert>
 
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
@@ -134,6 +133,9 @@ void makeQualityScorers(){
         twoQualityScoreMatrix.init( m, lambda, &lp1[0], &lp2[0],
                                     isPhred1, offset1, isPhred2, offset2,
                                     alph.canonical, false );
+      if( args.outputType > 3 ){
+        ERR( "fastq-versus-fastq column probabilities not implemented" );
+      }
     }
     else{
       ERR( "when the reference is fastq, the query must also be fastq" );
@@ -443,13 +445,15 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     // do gapped extension from each end of the seed:
     aln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, dis.m,
 		   scoreMatrix.maxScore, gapCosts, dis.d,
-		   args.frameshiftCost, frameSize, dis.p );
+                   args.frameshiftCost, frameSize, dis.p,
+                   dis.t, dis.i, dis.j );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
 
     if( !aln.isOptimal( dis.a, dis.b, dis.m, dis.d, gapCosts,
-			args.frameshiftCost, frameSize, dis.p ) ){
+			args.frameshiftCost, frameSize, dis.p,
+                        dis.t, dis.i, dis.j ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-redundantization.
       continue;
@@ -501,7 +505,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
       probAln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, dis.m,
                          scoreMatrix.maxScore, gapCosts, dis.d,
                          args.frameshiftCost, frameSize, dis.p,
-                         args.gamma, args.outputType );
+                         dis.t, dis.i, dis.j, args.gamma, args.outputType );
       probAln.write( text, query, strand, args.isTranslated(),
 		     alph, args.outputFormat, out );
     }

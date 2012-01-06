@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
 
 #include "LastdbArguments.hh"
 #include "stringify.hh"
@@ -38,10 +38,11 @@ Main Options:\n\
 -p: interpret the sequences as proteins\n\
 -c: soft-mask lowercase letters";
 
-  // Keep option -Q secret, because it's not yet useful:
   std::string help = usage + "\n\
 \n\
 Advanced Options (default settings):\n\
+-Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina ("
+      + stringify(inputFormat) + ")\n\
 -s: volume size (unlimited)\n\
 -m: spaced seed pattern\n\
 -u: subset seed file (yass.seed)\n\

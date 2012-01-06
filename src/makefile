@@ -27,7 +27,8 @@ GeneralizedAffineGapCosts.cc Centroid.cc LambdaCalculator.cc		\
 TwoQualityScoreMatrix.cc OneQualityScoreMatrix.cc QualityPssmMaker.cc	\
 GeneticCode.cc gaplessXdrop.cc gaplessPssmXdrop.cc			\
 gaplessTwoQualityXdrop.cc AlignmentWrite.cc MultiSequenceQual.cc	\
-GappedXdropAlignerPssm.cc GappedXdropAligner3frame.cc lastal.cc
+GappedXdropAlignerPssm.cc GappedXdropAligner2qual.cc			\
+GappedXdropAligner3frame.cc lastal.cc
 
 ALINC = Alphabet.hh MultiSequence.hh CyclicSubsetSeed.hh		\
 SubsetSuffixArray.hh LastalArguments.hh io.hh fileMap.hh		\

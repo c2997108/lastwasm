@@ -43,6 +43,13 @@ Main Options
 Advanced Options
 ~~~~~~~~~~~~~~~~
 
+  -Q NUMBER
+      Specify the input format.  0 means fasta, 1 means fastq-sanger,
+      2 means fastq-solexa, and 3 means fastq-illumina.  The fastq
+      formats provide sequence quality data, which will be stored by
+      lastdb and then used by lastal.  These formats are described in
+      lastal.txt.
+
   -s BYTES      
       Limit memory usage, by splitting the output files into smaller
       "volumes" if necessary.  This will limit the memory usage of

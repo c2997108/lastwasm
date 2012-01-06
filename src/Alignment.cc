@@ -1,10 +1,11 @@
-// Copyright 2008, 2009, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2011, 2012 Martin C. Frith
 
 #include "Alignment.hh"
 #include "Centroid.hh"
 #include "GappedXdropAligner.hh"
 #include "GeneticCode.hh"
 #include "GeneralizedAffineGapCosts.hh"
+#include "TwoQualityScoreMatrix.hh"
 #include <cassert>
 
 // make C++ tolerable:
@@ -29,6 +30,8 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 			   const GeneralizedAffineGapCosts& gap, int maxDrop,
 			   int frameshiftCost, indexT frameSize,
 			   const int pssm2[][MAT],
+                           const TwoQualityScoreMatrix& sm2qual,
+                           const uchar* qual1, const uchar* qual2,
 			   double gamma, int outputType ){
   score = seed.score;
 
@@ -36,7 +39,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
   extend( blocks, columnAmbiguityCodes, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), false,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
-	  frameSize, pssm2, gamma, outputType );
+	  frameSize, pssm2, sm2qual, qual1, qual2, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
   indexT seedBeg1 = seed.beg1();
@@ -52,7 +55,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
   extend( forwardBlocks, forwardAmbiguities, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), true,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
-	  frameSize, pssm2, gamma, outputType );
+	  frameSize, pssm2, sm2qual, qual1, qual2, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
   indexT seedEnd1 = seed.end1();
@@ -95,7 +98,9 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
 			   const int scoreMatrix[MAT][MAT], int maxDrop,
 			   const GeneralizedAffineGapCosts& gap,
 			   int frameshiftCost, indexT frameSize,
-			   const int pssm2[][MAT] ){
+			   const int pssm2[][MAT],
+                           const TwoQualityScoreMatrix& sm2qual,
+                           const uchar* qual1, const uchar* qual2 ){
   int maxScore = 0;
   int runningScore = 0;
 
@@ -121,10 +126,13 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
     const uchar* s2 = seq2 + i->beg2();
     const uchar* e1 = seq1 + i->end1();
     const int (*p2)[MAT] = pssm2 ? pssm2 + i->beg2() : 0;
+    const uchar* q1 = qual1 ? qual1 + i->beg1() : 0;
+    const uchar* q2 = qual2 ? qual2 + i->beg2() : 0;
 
     while( s1 < e1 ){
-      if( pssm2 ) runningScore += ( *p2++ )[ *s1++ ];
-      else runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
+      /**/ if( sm2qual ) runningScore += sm2qual( *s1++, *s2++, *q1++, *q2++ );
+      else if( pssm2 )   runningScore += ( *p2++ )[ *s1++ ];
+      else               runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
 
       if( runningScore > maxScore ) maxScore = runningScore;
       else if( runningScore <= 0 ||                  // non-optimal prefix
@@ -147,10 +155,13 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			const GeneralizedAffineGapCosts& gap,
 			int frameshiftCost, indexT frameSize,
 			const int pssm2[][MAT],
+                        const TwoQualityScoreMatrix& sm2qual,
+                        const uchar* qual1, const uchar* qual2,
 			double gamma, int outputType ){
   if( frameSize ){
     assert( outputType < 4 );
     assert( !pssm2 );
+    assert( !sm2qual );
 
     indexT f = aaToDna( start2, frameSize ) + 1;
     indexT r = aaToDna( start2, frameSize ) - 1;
@@ -174,12 +185,17 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   }
 
   score +=
-      pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2, isForward,
-                                 gap.exist, gap.extend, gap.extendPair,
-                                 maxDrop, smMax )
-      :       aligner.align( seq1 + start1, seq2 + start2, isForward,
-                             sm, gap.exist, gap.extend, gap.extendPair,
-                             maxDrop, smMax );
+      sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
+                                    seq2 + start2, qual2 + start2,
+                                    isForward, sm2qual,
+                                    gap.exist, gap.extend, gap.extendPair,
+                                    maxDrop, smMax )
+      : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2, isForward,
+                                   gap.exist, gap.extend, gap.extendPair,
+                                   maxDrop, smMax )
+      :         aligner.align( seq1 + start1, seq2 + start2, isForward,
+                               sm, gap.exist, gap.extend, gap.extendPair,
+                               maxDrop, smMax );
 
   if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
     std::size_t end1, end2, size;
@@ -189,6 +205,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   }
 
   if( outputType > 3 ){  // calculate match probabilities
+    assert( !sm2qual );
     centroid.reset();
     centroid.forward( seq1, seq2, start1, start2, isForward, gap );
     centroid.backward( seq1, seq2, start1, start2, isForward, gap );
