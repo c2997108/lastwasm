@@ -62,3 +62,15 @@ lastex: $(EXSRC) $(EXINC) makefile
 
 $(OBJ): CA_code/*.c CA_code/*.h makefile
 	$(CC) $(CFLAGS) -c CA_code/lambda_calculator.c
+
+clean:
+	rm -f lastdb lastal lastex $(OBJ)
+
+VERSION = \"`svnversion ..`\"
+
+version.hh: FORCE
+	if test -e ../.svn ; \
+	then echo $(VERSION) | cmp -s $@ - || echo $(VERSION) > $@ ; \
+	fi
+
+FORCE:

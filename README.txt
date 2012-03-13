@@ -10,17 +10,33 @@ Requirements
 ------------
 
 To handle mammalian genomes, it's best if you have at least 10-20
-gigabytes of real memory, but you can get by with 2 gigabytes.  To
-install the software, you need a C++ compiler.
+gigabytes of real memory, but you can get by with 2 gigabytes.
+
+To install the software, you need a C++ compiler.  On Linux, you might
+need to install a package called "g++".  On Mac, you might need to
+install command-line developer tools.  On Windows, you might need to
+install Cygwin.
 
 Setup
 -----
 
-Using the command line, go into the src directory and type 'make'.
-(If you checked it out using subversion, then type 'make' in the
-top-level directory, not the src directory.)  This should make three
-programs: lastdb, lastal, and lastex.  If you like, you can copy these
-programs to some location in your search path.
+Using the command line, go into the top-level LAST directory.  To
+install the programs into your personal "bin" directory, use this
+command:
+
+  make install bindir=~/bin
+
+You might have to log out and back in before your computer recognizes
+the newly-installed programs.  To install them in
+some/other/directory, do this:
+
+  make install bindir=some/other/directory
+
+If you have administrator permissions, you can install them in the
+standard /usr/local/bin directory, like this:
+
+  make
+  sudo make install
 
 Miscellaneous
 -------------

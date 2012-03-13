@@ -5,8 +5,8 @@
 
 cd $(dirname $0)
 
-alias lastdb=../src/lastdb
-alias lastal=../src/lastal
+# Make sure we use this version of LAST:
+PATH=../src:../scripts:$PATH
 
 dnaSeq=galGal3-M-32.fa
 protSeq=Q2LCP8.fa

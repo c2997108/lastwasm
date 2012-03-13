@@ -1,14 +1,22 @@
-all: version log
+all:
 	@cd src && $(MAKE)
 
-dist: version log
-	rsync -rC --exclude 'last??' doc examples s* *.txt last-`svnversion .`
-	zip -qrm archive/last-`svnversion .` last-`svnversion .`
+prefix = /usr/local
+exec_prefix = $(prefix)
+bindir = $(exec_prefix)/bin
+install: all
+	mkdir -p $(bindir)
+	cp src/last?? scripts/*.?? $(bindir)
 
-version: FORCE
-	echo \"`svnversion .`\" > src/version.hh
+clean:
+	@cd src && $(MAKE) clean
 
-log: FORCE
+VERSION = `svnversion .`
+
+dist: log
+	@cd src && $(MAKE) version.hh
+	rsync -rC --exclude 'last??' d* e* makefile s* *.txt last-$(VERSION)
+	zip -qrm archive/last-$(VERSION) last-$(VERSION)
+
+log:
 	svn log > ChangeLog.txt
-
-FORCE:
