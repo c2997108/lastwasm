@@ -38,6 +38,7 @@ Contents:
 
 #include <corelib/ncbistl.hpp>
 #include <float.h>
+#include <math.h>
 
 BEGIN_NCBI_SCOPE
 BEGIN_SCOPE(blast)
