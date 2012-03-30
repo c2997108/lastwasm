@@ -1,14 +1,12 @@
 CXX = g++
 CC  = gcc
 
-CXXFLAGS = -O3
-# -fomit-frame-pointer ?
-CFLAGS = -Wall
-
-STRICT = -Wall -W -Wcast-qual -Wswitch-enum -Wundef	\
+CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 -Wcast-align -Wno-long-long -ansi -pedantic
 # -Wconversion
-# use -W instead of -Wextra, so that it works with old versions of g++
+# -fomit-frame-pointer ?
+
+CFLAGS = -Wall
 
 DBSRC = Alphabet.cc MultiSequence.cc CyclicSubsetSeed.cc	\
 SubsetSuffixArray.cc LastdbArguments.cc io.cc fileMap.cc	\
@@ -52,10 +50,10 @@ OBJ = lambda_calculator.o
 all: lastdb lastal lastex
 
 lastdb: $(DBSRC) $(DBINC) makefile
-	$(CXX) $(STRICT) $(CXXFLAGS) -o $@ $(DBSRC)
+	$(CXX) $(CXXFLAGS) -o $@ $(DBSRC)
 
 lastal: $(ALSRC) $(ALINC) makefile $(OBJ)
-	$(CXX) $(STRICT) $(CXXFLAGS) -o $@ $(ALSRC) $(OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $(ALSRC) $(OBJ)
 
 lastex: $(EXSRC) $(EXINC) makefile
 	$(CXX) -Igumbel_params $(CXXFLAGS) -o $@ $(EXSRC)

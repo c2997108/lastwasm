@@ -32,10 +32,13 @@ some/other/directory, do this:
 
   make install bindir=some/other/directory
 
+To compile the programs in-place (without installing them elsewhere):
+
+  make
+
 If you have administrator permissions, you can install them in the
 standard /usr/local/bin directory, like this:
 
-  make
   sudo make install
 
 Miscellaneous

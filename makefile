@@ -1,5 +1,6 @@
+CXXFLAGS = -O3
 all:
-	@cd src && $(MAKE)
+	@cd src && $(MAKE) CXXFLAGS="$(CXXFLAGS)"
 
 prefix = /usr/local
 exec_prefix = $(prefix)
