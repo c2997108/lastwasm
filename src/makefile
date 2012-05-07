@@ -50,16 +50,16 @@ OBJ = lambda_calculator.o
 all: lastdb lastal lastex
 
 lastdb: $(DBSRC) $(DBINC) makefile
-	$(CXX) $(CXXFLAGS) -o $@ $(DBSRC)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $(DBSRC)
 
 lastal: $(ALSRC) $(ALINC) makefile $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $(ALSRC) $(OBJ)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $(ALSRC) $(OBJ)
 
 lastex: $(EXSRC) $(EXINC) makefile
-	$(CXX) -Igumbel_params $(CXXFLAGS) -o $@ $(EXSRC)
+	$(CXX) -Igumbel_params $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $(EXSRC)
 
 $(OBJ): CA_code/*.c CA_code/*.h makefile
-	$(CC) $(CFLAGS) -c CA_code/lambda_calculator.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c CA_code/lambda_calculator.c
 
 clean:
 	rm -f lastdb lastal lastex $(OBJ)
