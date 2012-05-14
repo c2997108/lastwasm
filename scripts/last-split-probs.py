@@ -494,11 +494,14 @@ if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
 
     usage = "%prog [options] LAST-alignments.maf"
-    op = optparse.OptionParser(usage=usage)
+
+    description = "Read alignments of query sequences to a genome, and estimate the genomic source of each part of each query, allowing different parts of one query to come from different parts of the genome."
+
+    op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-m", "--mismap", type="float", default=0.01, metavar="M",
                   help="don't write alignments with mismap probability > M "
                   "(default: %default)")
-    op.add_option("-s", "--score", type="float", default=0, metavar="S", help=
+    op.add_option("-s", "--score", type="int", default=0, metavar="S", help=
                   "don't write alignments with score < S (default: %default)")
     op.add_option("-b", "--break-prob", type="float", default=1e-5,
                   metavar="P",
