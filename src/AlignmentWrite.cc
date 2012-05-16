@@ -1,13 +1,13 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
 
 #include "Alignment.hh"
 #include "GeneticCode.hh"
 #include "MultiSequence.hh"
 #include "Alphabet.hh"
-#include "stringify.hh"
 #include <iomanip>
 #include <algorithm>
 #include <cassert>
+#include <cstdio>  // sprintf
 #include <iterator>  // ostream_iterator
 
 // make C++ tolerable:
@@ -76,6 +76,10 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   os << '\n';
 }
 
+static int mySprintf( char* buffer, unsigned x ){
+  return std::sprintf( buffer, "%u", x );
+}
+
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated, const Alphabet& alph,
 			  std::ostream& os ) const{
@@ -93,17 +97,20 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 
   const std::string n1 = seq1.seqName(w1);
   const std::string n2 = seq2.seqName(w2);
-  const std::string b1 = stringify( alnBeg1 - seqStart1 );
-  const std::string b2 = stringify( alnBeg2 - seqStart2 );
-  const std::string r1 = stringify( alnEnd1 - alnBeg1 );
-  const std::string r2 = stringify( alnEnd2 - alnBeg2 );
-  const std::string s1 = stringify( seq1.seqLen(w1) );
-  const std::string s2 = stringify( seq2.seqLen(w2) );
 
-  const std::size_t nw = std::max( n1.size(), n2.size() );
-  const std::size_t bw = std::max( b1.size(), b2.size() );
-  const std::size_t rw = std::max( r1.size(), r2.size() );
-  const std::size_t sw = std::max( s1.size(), s2.size() );
+  char b1[32], b2[32], r1[32], r2[32], s1[32], s2[32];
+  // sprintf is faster than ostringstream
+  const int b1size = mySprintf( b1, alnBeg1 - seqStart1 );
+  const int b2size = mySprintf( b2, alnBeg2 - seqStart2 );
+  const int r1size = mySprintf( r1, alnEnd1 - alnBeg1 );
+  const int r2size = mySprintf( r2, alnEnd2 - alnBeg2 );
+  const int s1size = mySprintf( s1, seq1.seqLen(w1) );
+  const int s2size = mySprintf( s2, seq2.seqLen(w1) );
+
+  const int nw = std::max( n1.size(), n2.size() );
+  const int bw = std::max( b1size, b2size );
+  const int rw = std::max( r1size, r2size );
+  const int sw = std::max( s1size, s2size );
 
   os << "a";
   os << " score=" << score;
