@@ -113,36 +113,44 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   const int rw = std::max( r1size, r2size );
   const int sw = std::max( s1size, s2size );
 
+  std::size_t numCols = numColumns( frameSize2 );
+  std::vector<char> bufferVector( numCols + 1 );  // include a final NUL
+  char* buffer = &bufferVector[0];
+
   os << "a";
   os << " score=" << score;
   os << '\n';
 
+  writeTopSeq( seq1.seqReader(), alph, frameSize2, buffer );
   os << "s "
      << std::setw( nw ) << std::left << n1 << std::right << ' '
      << std::setw( bw ) << b1 << ' '
      << std::setw( rw ) << r1 << ' ' << '+' << ' '
      << std::setw( sw ) << s1 << ' '
-     << topString( seq1.seqReader(), alph, frameSize2 ) << '\n';
+     << buffer << '\n';
 
   if( seq1.qualsPerLetter() > 0 ){
+    writeTopQual( seq1.qualityReader(), seq1.qualsPerLetter(), buffer );
     os << "q "
        << std::setw( nw ) << std::left << n1 << std::right << ' '
        << std::setw( bw + rw + sw + 5 ) << ""
-       << topQualString( seq1.qualityReader(), seq1.qualsPerLetter() ) << '\n';
+       << buffer << '\n';
   }
 
+  writeBotSeq( seq2.seqReader(), alph, frameSize2, buffer );
   os << "s "
      << std::setw( nw ) << std::left << n2 << std::right << ' '
      << std::setw( bw ) << b2 << ' '
      << std::setw( rw ) << r2 << ' ' << strand << ' '
      << std::setw( sw ) << s2 << ' '
-     << botString( seq2.seqReader(), alph, frameSize2 ) << '\n';
+     << buffer << '\n';
 
   if( seq2.qualsPerLetter() > 0 ){
+    writeBotQual( seq2.qualityReader(), seq2.qualsPerLetter(), buffer );
     os << "q "
        << std::setw( nw ) << std::left << n2 << std::right << ' '
        << std::setw( bw + rw + sw + 5 ) << ""
-       << botQualString( seq2.qualityReader(), seq2.qualsPerLetter() ) << '\n';
+       << buffer << '\n';
   }
 
   if( columnAmbiguityCodes.size() > 0 ){
@@ -156,61 +164,96 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   os << '\n';  // blank line afterwards
 }
 
-std::string Alignment::topString( const uchar* seq, const Alphabet& alph,
-				  indexT frameSize ) const{
-  std::string s;
+std::size_t Alignment::numColumns( indexT frameSize ) const{
+  std::size_t num = 0;
 
+  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
+    if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      CI(SegmentPair) j = i - 1;
+
+      // length of unaligned chunk of top sequence (gaps in bottom sequence):
+      num += i->beg1() - j->end1();
+
+      // length of unaligned chunk of bottom sequence (gaps in top sequence):
+      indexT gap2, frameshift2;
+      sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
+      if( frameshift2 ) ++num;
+      num += gap2;
+    }
+
+    num += i->size;  // length of aligned chunk
+  }
+
+  return num;
+}
+
+static char* writeGaps( char* dest, Alignment::indexT num ){
+  char* end = dest + num;
+  while( dest < end ){
+    *dest++ = '-';
+  }
+  return dest;
+}
+
+char* Alignment::writeTopSeq( const uchar* seq, const Alphabet& alph,
+			      indexT frameSize, char* dest ) const{
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
 
       // append unaligned chunk of top sequence:
-      s.append( alph.rtString( seq + j->end1(), seq + i->beg1() ) );
+      dest = alph.rtCopy( seq + j->end1(), seq + i->beg1(), dest );
 
       // append gaps for unaligned chunk of bottom sequence:
       indexT gap2, frameshift2;
       sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
-      if( frameshift2 ) s.push_back( '-' );
-      s.append( gap2, '-' );
+      if( frameshift2 ) *dest++ = '-';
+      dest = writeGaps( dest, gap2 );
     }
 
     // append aligned chunk of top sequence:
-    s.append( alph.rtString( seq + i->beg1(), seq + i->end1() ) );
+    dest = alph.rtCopy( seq + i->beg1(), seq + i->end1(), dest );
   }
 
-  return s;
+  return dest;
 }
 
-std::string Alignment::botString( const uchar* seq, const Alphabet& alph,
-				  indexT frameSize ) const{
-  std::string s;
-
+char* Alignment::writeBotSeq( const uchar* seq, const Alphabet& alph,
+			      indexT frameSize, char* dest ) const{
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
 
       // append gaps for unaligned chunk of top sequence:
-      s.append( i->beg1() - j->end1(), '-' );
+      dest = writeGaps( dest, i->beg1() - j->end1() );
 
       //append unaligned chunk of bottom sequence:
       indexT gap2, frameshift2;
       sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
-      if( frameshift2 == 1 ) s.push_back( '\\' );
-      if( frameshift2 == 2 ) s.push_back( '/' );
-      s.append( alph.rtString( seq + i->beg2() - gap2, seq + i->beg2() ) );
+      if( frameshift2 == 1 ) *dest++ = '\\';
+      if( frameshift2 == 2 ) *dest++ = '/';
+      dest = alph.rtCopy( seq + i->beg2() - gap2, seq + i->beg2(), dest );
     }
 
     // append aligned chunk of bottom sequence:
-    s.append( alph.rtString( seq + i->beg2(), seq + i->end2() ) );
+    dest = alph.rtCopy( seq + i->beg2(), seq + i->end2(), dest );
   }
 
-  return s;
+  return dest;
 }
 
-std::string Alignment::topQualString( const uchar* qualities,
-                                      std::size_t qualsPerBase ) const{
-  std::string s;
+static char* writeQuals( const uchar* qualities,
+			 Alignment::indexT beg, Alignment::indexT end,
+			 std::size_t qualsPerBase, char* dest ){
+  for( Alignment::indexT i = beg; i < end; ++i ){
+    const uchar* q = qualities + i * qualsPerBase;
+    *dest++ = *std::max_element( q, q + qualsPerBase );
+  }
+  return dest;
+}
 
+char* Alignment::writeTopQual( const uchar* qualities,
+			       std::size_t qualsPerBase, char* dest ) const{
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
@@ -218,24 +261,21 @@ std::string Alignment::topQualString( const uchar* qualities,
       // assume we're not doing translated alignment
 
       // append qualities for unaligned chunk of top sequence:
-      s.append( qualityBlock( qualities, j->end1(), i->beg1(),
-                              qualsPerBase ) );
+      dest = writeQuals( qualities, j->end1(), i->beg1(), qualsPerBase, dest );
 
       // append gaps for unaligned chunk of bottom sequence:
-      s.append( i->beg2() - j->end2(), '-' );
+      dest = writeGaps( dest, i->beg2() - j->end2() );
     }
 
     // append qualities for aligned chunk of top sequence:
-    s.append( qualityBlock( qualities, i->beg1(), i->end1(), qualsPerBase ) );
+    dest = writeQuals( qualities, i->beg1(), i->end1(), qualsPerBase, dest );
   }
 
-  return s;
+  return dest;
 }
 
-std::string Alignment::botQualString( const uchar* qualities,
-				      std::size_t qualsPerBase ) const{
-  std::string s;
-
+char* Alignment::writeBotQual( const uchar* qualities,
+			       std::size_t qualsPerBase, char* dest ) const{
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
@@ -243,27 +283,15 @@ std::string Alignment::botQualString( const uchar* qualities,
       // assume we're not doing translated alignment
 
       // append gaps for unaligned chunk of top sequence:
-      s.append( i->beg1() - j->end1(), '-' );
+      dest = writeGaps( dest, i->beg1() - j->end1() );
 
       // append qualities for unaligned chunk of bottom sequence:
-      s.append( qualityBlock( qualities, j->end2(), i->beg2(),
-			      qualsPerBase ) );
+      dest = writeQuals( qualities, j->end2(), i->beg2(), qualsPerBase, dest );
     }
 
     // append qualities for aligned chunk of bottom sequence:
-    s.append( qualityBlock( qualities, i->beg2(), i->end2(), qualsPerBase ) );
+    dest = writeQuals( qualities, i->beg2(), i->end2(), qualsPerBase, dest );
   }
 
-  return s;
-}
-
-std::string Alignment::qualityBlock( const uchar* qualities,
-				     indexT beg, indexT end,
-				     std::size_t qualsPerBase ){
-  std::string s;
-  for( indexT i = beg; i < end; ++i ){
-    const uchar* q = qualities + i * qualsPerBase;
-    s += *std::max_element( q, q + qualsPerBase );
-  }
-  return s;
+  return dest;
 }

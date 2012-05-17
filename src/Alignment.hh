@@ -12,6 +12,8 @@
 
 namespace cbrc{
 
+typedef unsigned char uchar;
+
 class GappedXdropAligner;
 class GeneralizedAffineGapCosts;
 class MultiSequence;
@@ -21,7 +23,6 @@ class TwoQualityScoreMatrix;
 
 struct Alignment{
   typedef SegmentPair::indexT indexT;
-  typedef unsigned char uchar;
 
   enum { MAT = 64 };
 
@@ -89,21 +90,19 @@ struct Alignment{
 		 char strand, bool isTranslated, const Alphabet& alph,
 		 std::ostream& os ) const;
 
-  std::string topString( const uchar* seq, const Alphabet& alph,
-                         indexT frameSize ) const;
+  std::size_t numColumns( indexT frameSize ) const;
 
-  std::string botString( const uchar* seq, const Alphabet& alph,
-                         indexT frameSize ) const;
+  char* writeTopSeq( const uchar* seq, const Alphabet& alph,
+		     indexT frameSize, char* dest ) const;
 
-  std::string topQualString( const uchar* qualities,
-			     std::size_t qualsPerBase ) const;
+  char* writeBotSeq( const uchar* seq, const Alphabet& alph,
+		     indexT frameSize, char* dest ) const;
 
-  std::string botQualString( const uchar* qualities,
-			     std::size_t qualsPerBase ) const;
+  char* writeTopQual( const uchar* qualities,
+		      std::size_t qualsPerBase, char* dest ) const;
 
-  static std::string qualityBlock( const uchar* qualities,
-				   indexT beg, indexT end,
-				   std::size_t qualsPerBase );
+  char* writeBotQual( const uchar* qualities,
+		      std::size_t qualsPerBase, char* dest ) const;
 };
 
 }  // end namespace cbrc

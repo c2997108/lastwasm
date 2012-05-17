@@ -39,12 +39,11 @@ void Alphabet::tr( uchar* beg, uchar* end ) const{
   }
 }
 
-std::string Alphabet::rtString( const uchar* beg, const uchar* end ) const{
-  std::string s;
-  for( /* noop */; beg < end; ++beg ){
-    s += decode[ *beg ];
+char* Alphabet::rtCopy( const uchar* beg, const uchar* end, char* dest ) const{
+  while( beg < end ){
+    *dest++ = decode[ *beg++ ];
   }
-  return s;
+  return dest;
 }
 
 void Alphabet::rc( uchar* beg, uchar* end ) const{

@@ -35,7 +35,8 @@ struct Alphabet{
   void tr( uchar* beg, uchar* end ) const;
 
   // reverse-translate (decode) a sequence of numbers to letters
-  std::string rtString( const uchar* beg, const uchar* end ) const;
+  // return the position after the last written position in dest
+  char* rtCopy( const uchar* beg, const uchar* end, char* dest ) const;
 
   // reverse and complement a sequence of numbers, in place
   void rc( uchar* beg, uchar* end ) const;
