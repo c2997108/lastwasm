@@ -165,17 +165,13 @@ std::string Alignment::topString( const uchar* seq, const Alphabet& alph,
       CI(SegmentPair) j = i - 1;
 
       // append unaligned chunk of top sequence:
-      indexT gapBeg1 = j->end1();
-      indexT gapEnd1 = i->beg1();
-      s.append( alph.rtString( seq + gapBeg1, seq + gapEnd1 ) );
+      s.append( alph.rtString( seq + j->end1(), seq + i->beg1() ) );
 
       // append gaps for unaligned chunk of bottom sequence:
-      indexT gapBeg2 = j->end2();
-      indexT gapEnd2 = i->beg2();
-      indexT gapSize, frameshift;
-      sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize, frameshift );
-      if( frameshift ) s.push_back( '-' );
-      s.append( gapSize, '-' );
+      indexT gap2, frameshift2;
+      sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
+      if( frameshift2 ) s.push_back( '-' );
+      s.append( gap2, '-' );
     }
 
     // append aligned chunk of top sequence:
@@ -194,18 +190,14 @@ std::string Alignment::botString( const uchar* seq, const Alphabet& alph,
       CI(SegmentPair) j = i - 1;
 
       // append gaps for unaligned chunk of top sequence:
-      indexT gapBeg1 = j->end1();
-      indexT gapEnd1 = i->beg1();
-      s.append( gapEnd1 - gapBeg1, '-' );
+      s.append( i->beg1() - j->end1(), '-' );
 
       //append unaligned chunk of bottom sequence:
-      indexT gapBeg2 = j->end2();
-      indexT gapEnd2 = i->beg2();
-      indexT gapSize, frameshift;
-      sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize, frameshift );
-      if( frameshift == 1 ) s.push_back( '\\' );
-      if( frameshift == 2 ) s.push_back( '/' );
-      s.append( alph.rtString( seq + gapEnd2 - gapSize, seq + gapEnd2 ) );
+      indexT gap2, frameshift2;
+      sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
+      if( frameshift2 == 1 ) s.push_back( '\\' );
+      if( frameshift2 == 2 ) s.push_back( '/' );
+      s.append( alph.rtString( seq + i->beg2() - gap2, seq + i->beg2() ) );
     }
 
     // append aligned chunk of bottom sequence:
@@ -221,14 +213,16 @@ std::string Alignment::topQualString( const uchar* qualities,
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      CI(SegmentPair) j = i - 1;
+
       // assume we're not doing translated alignment
 
       // append qualities for unaligned chunk of top sequence:
-      s.append( qualityBlock( qualities, (i-1)->end1(), i->beg1(),
+      s.append( qualityBlock( qualities, j->end1(), i->beg1(),
                               qualsPerBase ) );
 
       // append gaps for unaligned chunk of bottom sequence:
-      s.append( i->beg2() - (i-1)->end2(), '-' );
+      s.append( i->beg2() - j->end2(), '-' );
     }
 
     // append qualities for aligned chunk of top sequence:
