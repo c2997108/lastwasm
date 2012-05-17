@@ -58,19 +58,20 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
      << strand << '\t'
      << seq2.seqLen(w2) << '\t';
 
-  for( unsigned i = 0; i < blocks.size(); ++i ){
-    if( i > 0 ){  // between each pair of aligned blocks:
+  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
+    if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      CI(SegmentPair) j = i - 1;
       os << ',';
-      indexT gapBeg1 = blocks[i-1].end1();
-      indexT gapEnd1 = blocks[i].beg1();
+      indexT gapBeg1 = j->end1();
+      indexT gapEnd1 = i->beg1();
       writeSignedDifference( gapEnd1, gapBeg1, os );  // allow -1 frameshift
       os << ':';
-      indexT gapBeg2 = aaToDna( blocks[i-1].end2(), frameSize2 );
-      indexT gapEnd2 = aaToDna( blocks[i].beg2(), frameSize2 );
+      indexT gapBeg2 = aaToDna( j->end2(), frameSize2 );
+      indexT gapEnd2 = aaToDna( i->beg2(), frameSize2 );
       writeSignedDifference( gapEnd2, gapBeg2, os );  // allow -1 frameshift
       os << ',';
     }
-    os << blocks[i].size;
+    os << i->size;
   }
 
   os << '\n';
@@ -159,26 +160,26 @@ std::string Alignment::topString( const uchar* seq, const Alphabet& alph,
 				  indexT frameSize ) const{
   std::string s;
 
-  for( unsigned i = 0; i < blocks.size(); ++i ){
-    if( i > 0 ){  // between each pair of aligned blocks:
-      indexT gapSize, frameshift;
+  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
+    if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      CI(SegmentPair) j = i - 1;
 
       // append unaligned chunk of top sequence:
-      indexT gapBeg1 = blocks[i-1].end1();
-      indexT gapEnd1 = blocks[i].beg1();
+      indexT gapBeg1 = j->end1();
+      indexT gapEnd1 = i->beg1();
       s.append( alph.rtString( seq + gapBeg1, seq + gapEnd1 ) );
 
       // append gaps for unaligned chunk of bottom sequence:
-      indexT gapBeg2 = blocks[i-1].end2();
-      indexT gapEnd2 = blocks[i].beg2();
+      indexT gapBeg2 = j->end2();
+      indexT gapEnd2 = i->beg2();
+      indexT gapSize, frameshift;
       sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize, frameshift );
       if( frameshift ) s.push_back( '-' );
       s.append( gapSize, '-' );
     }
 
     // append aligned chunk of top sequence:
-    s.append( alph.rtString( seq + blocks[i].beg1(),
-			     seq + blocks[i].end1() ) );
+    s.append( alph.rtString( seq + i->beg1(), seq + i->end1() ) );
   }
 
   return s;
@@ -188,18 +189,19 @@ std::string Alignment::botString( const uchar* seq, const Alphabet& alph,
 				  indexT frameSize ) const{
   std::string s;
 
-  for( unsigned i = 0; i < blocks.size(); ++i ){
-    if( i > 0 ){  // between each pair of aligned blocks:
-      indexT gapSize, frameshift;
+  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
+    if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      CI(SegmentPair) j = i - 1;
 
       // append gaps for unaligned chunk of top sequence:
-      indexT gapBeg1 = blocks[i-1].end1();
-      indexT gapEnd1 = blocks[i].beg1();
+      indexT gapBeg1 = j->end1();
+      indexT gapEnd1 = i->beg1();
       s.append( gapEnd1 - gapBeg1, '-' );
 
       //append unaligned chunk of bottom sequence:
-      indexT gapBeg2 = blocks[i-1].end2();
-      indexT gapEnd2 = blocks[i].beg2();
+      indexT gapBeg2 = j->end2();
+      indexT gapEnd2 = i->beg2();
+      indexT gapSize, frameshift;
       sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize, frameshift );
       if( frameshift == 1 ) s.push_back( '\\' );
       if( frameshift == 2 ) s.push_back( '/' );
@@ -207,8 +209,7 @@ std::string Alignment::botString( const uchar* seq, const Alphabet& alph,
     }
 
     // append aligned chunk of bottom sequence:
-    s.append( alph.rtString( seq + blocks[i].beg2(),
-			     seq + blocks[i].end2() ) );
+    s.append( alph.rtString( seq + i->beg2(), seq + i->end2() ) );
   }
 
   return s;
@@ -243,13 +244,15 @@ std::string Alignment::botQualString( const uchar* qualities,
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
+      CI(SegmentPair) j = i - 1;
+
       // assume we're not doing translated alignment
 
       // append gaps for unaligned chunk of top sequence:
-      s.append( i->beg1() - (i-1)->end1(), '-' );
+      s.append( i->beg1() - j->end1(), '-' );
 
       // append qualities for unaligned chunk of bottom sequence:
-      s.append( qualityBlock( qualities, (i-1)->end2(), i->beg2(),
+      s.append( qualityBlock( qualities, j->end2(), i->beg2(),
 			      qualsPerBase ) );
     }
 
