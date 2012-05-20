@@ -32,6 +32,9 @@ Q: Why is LAST so slow at reading/writing files?
 A: Probably because the files are huge and your disk is slow (or lots
    of people are using it).  Try to use a reasonably fast disk.
 
+   Typically, after reading a large file once, subsequent reads of the
+   same file are much faster, because the operating system caches it.
+
 
 Q: How does LAST get the sequence names?  How can I get nice, short,
    unique names?

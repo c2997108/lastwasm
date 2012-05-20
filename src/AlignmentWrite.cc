@@ -81,6 +81,29 @@ static int mySprintf( char* buffer, unsigned x ){
   return std::sprintf( buffer, "%u", x );
 }
 
+// Printing with either C++ streams or sprintf can be noticeably slow.
+// So the next 3 functions are used instead.
+
+static char* sprintLeft( char* dest, const char* src, int srcLen, int width ){
+  while( *src ) *dest++ = *src++;
+  while( srcLen++ < width ) *dest++ = ' ';
+  *dest++ = ' ';
+  return dest;
+}
+
+static char* sprintRight( char* dest, const char* src, int srcLen, int width ){
+  while( srcLen++ < width ) *dest++ = ' ';
+  while( *src ) *dest++ = *src++;
+  *dest++ = ' ';
+  return dest;
+}
+
+static char* sprintChar( char* dest, char c ){
+  *dest++ = c;
+  *dest++ = ' ';
+  return dest;
+}
+
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated, const Alphabet& alph,
 			  std::ostream& os ) const{
@@ -113,44 +136,49 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   const int rw = std::max( r1size, r2size );
   const int sw = std::max( s1size, s2size );
 
-  std::size_t numCols = numColumns( frameSize2 );
-  std::vector<char> bufferVector( numCols + 1 );  // include a final NUL
-  char* buffer = &bufferVector[0];
+  std::size_t headLen = 2 + nw + 1 + bw + 1 + rw + 3 + sw + 1;
+  std::size_t lineLen = headLen + numColumns( frameSize2 ) + 1;
+  std::vector<char> lineVector( lineLen );
+  char* line = &lineVector[0];
+  line[ lineLen - 1 ] = '\n';
+  char* dest;
 
   os << "a";
   os << " score=" << score;
   os << '\n';
 
-  writeTopSeq( seq1.seqReader(), alph, frameSize2, buffer );
-  os << "s "
-     << std::setw( nw ) << std::left << n1 << std::right << ' '
-     << std::setw( bw ) << b1 << ' '
-     << std::setw( rw ) << r1 << ' ' << '+' << ' '
-     << std::setw( sw ) << s1 << ' '
-     << buffer << '\n';
+  dest = sprintChar( line, 's' );
+  dest = sprintLeft( dest, n1.c_str(), n1.size(), nw );
+  dest = sprintRight( dest, b1, b1size, bw );
+  dest = sprintRight( dest, r1, r1size, rw );
+  dest = sprintChar( dest, '+' );
+  dest = sprintRight( dest, s1, s1size, sw );
+  writeTopSeq( seq1.seqReader(), alph, frameSize2, dest );
+  os.write( line, lineLen );
 
   if( seq1.qualsPerLetter() > 0 ){
-    writeTopQual( seq1.qualityReader(), seq1.qualsPerLetter(), buffer );
-    os << "q "
-       << std::setw( nw ) << std::left << n1 << std::right << ' '
-       << std::setw( bw + rw + sw + 5 ) << ""
-       << buffer << '\n';
+    dest = sprintChar( line, 'q' );
+    dest += nw + 1;
+    dest = sprintRight( dest, "", 0, bw + 1 + rw + 3 + sw );
+    writeTopQual( seq1.qualityReader(), seq1.qualsPerLetter(), dest );
+    os.write( line, lineLen );
   }
 
-  writeBotSeq( seq2.seqReader(), alph, frameSize2, buffer );
-  os << "s "
-     << std::setw( nw ) << std::left << n2 << std::right << ' '
-     << std::setw( bw ) << b2 << ' '
-     << std::setw( rw ) << r2 << ' ' << strand << ' '
-     << std::setw( sw ) << s2 << ' '
-     << buffer << '\n';
+  dest = sprintChar( line, 's' );
+  dest = sprintLeft( dest, n2.c_str(), n2.size(), nw );
+  dest = sprintRight( dest, b2, b2size, bw );
+  dest = sprintRight( dest, r2, r2size, rw );
+  dest = sprintChar( dest, strand );
+  dest = sprintRight( dest, s2, s2size, sw );
+  writeBotSeq( seq2.seqReader(), alph, frameSize2, dest );
+  os.write( line, lineLen );
 
   if( seq2.qualsPerLetter() > 0 ){
-    writeBotQual( seq2.qualityReader(), seq2.qualsPerLetter(), buffer );
-    os << "q "
-       << std::setw( nw ) << std::left << n2 << std::right << ' '
-       << std::setw( bw + rw + sw + 5 ) << ""
-       << buffer << '\n';
+    dest = sprintChar( line, 'q' );
+    dest += nw + 1;
+    dest = sprintRight( dest, "", 0, bw + 1 + rw + 3 + sw );
+    writeBotQual( seq2.qualityReader(), seq2.qualsPerLetter(), dest );
+    os.write( line, lineLen );
   }
 
   if( columnAmbiguityCodes.size() > 0 ){
