@@ -129,7 +129,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   const int r1size = mySprintf( r1, alnEnd1 - alnBeg1 );
   const int r2size = mySprintf( r2, alnEnd2 - alnBeg2 );
   const int s1size = mySprintf( s1, seq1.seqLen(w1) );
-  const int s2size = mySprintf( s2, seq2.seqLen(w1) );
+  const int s2size = mySprintf( s2, seq2.seqLen(w2) );
 
   const int nw = std::max( n1.size(), n2.size() );
   const int bw = std::max( b1size, b2size );
