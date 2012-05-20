@@ -148,7 +148,9 @@ Score Options
       Minimum score for gapless alignments.
 
   -e SCORE
-      Minimum score for gapped alignments.
+      Minimum alignment score.  (If you do gapless alignment with
+      option -j1, then -d and -e mean the same thing.  If you set
+      both, -e will prevail.)
 
 Miscellaneous Options
 ~~~~~~~~~~~~~~~~~~~~~

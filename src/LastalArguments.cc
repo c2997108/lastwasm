@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
 
 #include "LastalArguments.hh"
 #include "stringify.hh"
@@ -26,7 +26,7 @@ LastalArguments::LastalArguments() :
   strand(-1),  // depends on the alphabet
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
   minScoreGapped(-1),  // depends on the alphabet
-  minScoreGapless(-1),  // depends on minScoreGapped
+  minScoreGapless(-1),  // depends on minScoreGapped and the outputType
   matchScore(-1),  // depends on the alphabet
   mismatchCost(-1),  // depends on the alphabet
   gapExistCost(-1),  // depends on the alphabet
@@ -68,7 +68,7 @@ Score options (default settings):\n\
 -x: maximum score drop for gapped alignments (max[y, a+b*20])\n\
 -y: maximum score drop for gapless alignments (t*10)\n\
 -z: maximum score drop for final gapped alignments (x)\n\
--d: minimum score for gapless alignments (e*3/5)\n\
+-d: minimum score for gapless alignments (e if j<2, else e*3/5)\n\
 -e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<5: 180)\n\
 \n\
 Cosmetic options (default settings):\n\
@@ -278,6 +278,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
                                                bool isCaseSensitiveSeeds ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
+  if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
+
   if( isProtein ){
     // default match & mismatch scores: Blosum62 matrix
     if( matchScore < 0 && mismatchCost >= 0 ) matchScore   = 1;  // idiot-proof
@@ -306,6 +308,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // quality scores are unlikely to be perfect, it may be best to
     // use a lower target %identity than we otherwise would.
   }
+
+  if( outputType < 2 ) minScoreGapless = minScoreGapped;
 
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
 

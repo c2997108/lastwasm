@@ -125,7 +125,7 @@ TEST 2
 
 TEST 3
 #
-# a=7 b=1 c=100000 F=-1 e=40 d=24 x=27 y=0 z=27
+# a=7 b=1 c=100000 F=-1 e=40 d=40 x=27 y=0 z=27
 # u=0 s=0 m=10 l=1 n=4294967295 k=1 i=1 w=1000 t=-1 g=1 j=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
