@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Copyright 2011 Martin C. Frith
+# Copyright 2011, 2012 Martin C. Frith
 
 # This script reads alignments of DNA reads to a genome, and estimates
 # the probability that each alignment represents the genomic source of
@@ -44,11 +44,9 @@ def warn(*things):
 # Kludge: using "~" to indicate "finished".
 
 def safeNext(groupedby):
-    try:
-        k, g = groupedby.next()
+    for k, g in groupedby:
         return k, list(g)
-    except StopIteration:
-        return "~", []
+    return "~", []
 
 def joinby(iterable1, iterable2, keyfunc):
     """Yields groups from iterable1 and iterable2 that share the same key."""
@@ -159,8 +157,8 @@ def unambiguousFragmentLength(alignments1, alignments2):
     return old
 
 def unambiguousFragmentLengths(queryPairs):
-    for i in queryPairs:
-        length = unambiguousFragmentLength(*i)
+    for i, j in queryPairs:
+        length = unambiguousFragmentLength(i, j)
         if length is not None: yield length
 
 def checkChromSize(chromSizes, rName, rSize):
@@ -311,7 +309,6 @@ def lastPairProbs(opts, args):
 
     if opts.fraglen is None or opts.sdev is None:
         estimateFragmentLengthDistribution(lengths, opts)
-    if opts.sdev < 0: raise Exception("standard deviation < 0")
 
     if opts.genome is None:
         opts.genome = sum(chromSizes.values())
@@ -346,9 +343,9 @@ if __name__ == "__main__":
 
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-r", "--rna", action="store_true", help=
-                  "specifies that the reads are from potentially-spliced RNA")
+                  "assume the reads are from potentially-spliced RNA")
     op.add_option("-m", "--mismap", type="float", default=0.01, metavar="M",
-                  help="don't write alignment pairs with mismap probability > M (default: %default)")
+                  help="don't write alignments with mismap probability > M (default: %default)")
     op.add_option("-f", "--fraglen", type="float", metavar="BP",
                   help="mean fragment length in bp")
     op.add_option("-s", "--sdev", type="float", metavar="BP",
@@ -366,6 +363,7 @@ if __name__ == "__main__":
         else:        opts.disjoint = 0.01
     if opts.disjoint < 0: op.error("option -d: should be >= 0")
     if opts.disjoint > 1: op.error("option -d: should be <= 1")
+    if opts.sdev and opts.sdev < 0: op.error("option -s: should be >= 0")
     if len(args) != 2: op.error("please give me two file names")
     if opts.circular is None: opts.circular = ["chrM"]
 
