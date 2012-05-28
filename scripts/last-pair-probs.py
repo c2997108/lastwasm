@@ -249,13 +249,13 @@ def estimateFragmentLengthDistribution(lengths, opts):
     if opts.fraglen is None:
         if opts.rna: opts.fraglen = math.log(quartile2)
         else:        opts.fraglen = quartile2
-        warn("estimated mean fragment length:", opts.fraglen)
 
     if opts.sdev is None:
         if opts.rna: iqr = math.log(quartile3) - math.log(quartile1)
         else:        iqr = quartile3 - quartile1
-        opts.sdev = iqr / 1.35  # Normal Distribution
-        warn("estimated standard deviation:", "%g" % opts.sdev)
+        # Normal Distribution: sdev = iqr / (2 * qnorm(0.75))
+        # Approximate this as iqr * 0.75, so that sdev prints nicely
+        opts.sdev = iqr * 0.75
 
     if quartile1 <= 0:
         raise Exception("too many fragment lengths <= 0")
@@ -309,6 +309,9 @@ def lastPairProbs(opts, args):
         estimateFragmentLengthDistribution(lengths, opts)
 
     calculateScorePieces(opts, params1, params2)
+
+    printme = opts.fraglen, opts.sdev, opts.disjoint, params1.g
+    print "# fraglen=%r sdev=%r disjoint=%r genome=%.17g" % printme
 
     in1 = open(fileName1)
     in2 = open(fileName2)
