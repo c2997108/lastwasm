@@ -98,6 +98,7 @@ def printAlignmentWithMismapProb(lines, prob):
     else:  # we have MAF format
         print lines[0].rstrip() + " mismap=" + p
         for i in lines[1:]: print i,
+        print  # each MAF block should end with a blank line
 
 def fragmentLength(alignment1, alignment2):
     length = alignment1[2] + alignment2[2]
@@ -180,7 +181,6 @@ def readAlignmentData(lines, params):
             yield parseTab(line)
         elif line.isspace():
             if mafLines:
-                mafLines.append(line)
                 yield parseMaf(mafLines)
                 mafLines = []
         else:
@@ -243,6 +243,9 @@ def estimateFragmentLengthDistribution(lengths, opts):
     warn("fragment length sample size:", sampleSize)
     warn("fragment length quartiles:", quartile1, quartile2, quartile3)
 
+    if quartile1 <= 0:
+        raise Exception("too many fragment lengths <= 0")
+
     if opts.fraglen is None:
         if opts.rna: opts.fraglen = math.log(quartile2)
         else:        opts.fraglen = quartile2
@@ -253,9 +256,6 @@ def estimateFragmentLengthDistribution(lengths, opts):
         # Normal Distribution: sdev = iqr / (2 * qnorm(0.75))
         # Approximate this as iqr * 0.75, so that sdev prints nicely
         opts.sdev = iqr * 0.75
-
-    if quartile1 <= 0:
-        raise Exception("too many fragment lengths <= 0")
 
 def safeLog(x):
     if x == 0: return -1e99
