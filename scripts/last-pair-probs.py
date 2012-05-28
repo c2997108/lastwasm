@@ -106,7 +106,6 @@ def fragmentLength(alignment1, alignment2):
 
 def conjointScores(aln1, alns2, opts):  # maybe slow
     for i in alns2:
-        if i[1] != aln1[1]: continue
         length = fragmentLength(aln1, i)
         if length <= 0: continue
         if opts.rna:  # use a log-normal distribution
@@ -118,9 +117,10 @@ def conjointScores(aln1, alns2, opts):  # maybe slow
 def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
     if alignments2:
         x = opts.disjointScore + logSumExp(i[4] for i in alignments2)
-        for i in alignments1:
-            y = opts.outer + logSumExp(conjointScores(i, alignments2, opts))
-            i.append(i[4] + logSumExp((x, y)))
+        for i, j in joinby(alignments1, alignments2, operator.itemgetter(1)):
+            for k in i:
+                y = opts.outer + logSumExp(conjointScores(k, j, opts))
+                k.append(k[4] + logSumExp((x, y)))
         w = maxMissingScore + max(i[4] for i in alignments2)
     else:
         for i in alignments1:
@@ -134,12 +134,13 @@ def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
         prob = 1 - math.exp(i[6] - zw)
         if prob <= opts.mismap: printAlignmentWithMismapProb(i[5], prob)
 
-def measurablePairs(alignments1, alignments2):  # maybe slow
+def measurablePairs(alignments1, alignments2):
     """Yields alignment pairs on opposite strands of the same chromosome."""
-    for i in alignments1:
-        for j in alignments2:
-            if i[1] == j[1]:
-                yield i, j
+    for i, j in joinby(alignments1, alignments2, operator.itemgetter(1)):
+        # this joinby may be no faster than the naive double loop
+        for x in i:
+            for y in j:
+                yield x, y
 
 def unambiguousFragmentLength(alignments1, alignments2):
     """Returns the fragment length implied by alignments of a pair of reads."""
@@ -223,8 +224,10 @@ def readAlignments(fileName, params, strand, circularChroms):
 def readQueryPairs(fileName1, fileName2, params1, params2, circular):
     alns1 = readAlignments(fileName1, params1, "+", circular)
     alns2 = readAlignments(fileName2, params2, "-", circular)
-    for i in joinby(alns1, alns2, operator.itemgetter(0)):
-        yield i
+    for i, j in joinby(alns1, alns2, operator.itemgetter(0)):
+        i.sort()
+        j.sort()
+        yield i, j
 
 def estimateFragmentLengthDistribution(lengths, opts):
     if not lengths:
