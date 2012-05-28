@@ -67,11 +67,10 @@ def joinby(iterable1, iterable2, keyfunc):
             k2, v2 = safeNext(groups2)
 
 class Alignment:
-    def __init__(self, pairName, chromName, strand, endpoint, chromSize,
+    def __init__(self, pairName, genomeStrand, endpoint, chromSize,
                  score, lines):
         self.pairName = pairName
-        self.chromName = chromName
-        self.strand = strand
+        self.genomeStrand = genomeStrand
         self.endpoint = endpoint
         self.chromSize = chromSize
         self.score = score
@@ -117,7 +116,7 @@ def fragmentLength(alignment1, alignment2):
 
 def conjointScores(aln1, alns2, opts):  # maybe slow
     for i in alns2:
-        if i.chromName != aln1.chromName or i.strand == aln1.strand: continue
+        if i.genomeStrand != aln1.genomeStrand: continue
         length = fragmentLength(aln1, i)
         if length <= 0: continue
         if opts.rna:  # use a log-normal distribution
@@ -149,7 +148,7 @@ def measurablePairs(alignments1, alignments2):  # maybe slow
     """Yields alignment pairs on opposite strands of the same chromosome."""
     for i in alignments1:
         for j in alignments2:
-            if i.chromName == j.chromName and i.strand != j.strand:
+            if i.genomeStrand == j.genomeStrand:
                 yield i, j
 
 def unambiguousFragmentLength(alignments1, alignments2):
@@ -214,23 +213,31 @@ def infoFromAlignmentWords(words):
     seqName, alnStart, alnSize, strand, seqSize = words
     return seqName, int(alnStart), int(alnSize), strand, int(seqSize)
 
-def readAlignments(lines, params, circularChroms):
+def readAlignments(lines, params, strand, circularChroms):
     """Yields alignments, checks their order, updates params."""
     oldName = ""
     for i in readAlignmentData(lines, params):
         score, rWords, qWords, text = i
         rName, rStart, rSpan, rStrand, rSize = infoFromAlignmentWords(rWords)
         qName, qStart, qSpan, qStrand, qSize = infoFromAlignmentWords(qWords)
+
         index = qName.rfind("/")
         if index < 0: pairName = qName
         else:         pairName = qName[:index+1]
+
         if pairName < oldName:
             raise Exception("alignments not sorted properly")
         oldName = pairName
+
+        if qStrand == strand: genomeStrand = rName + "+"
+        else:                 genomeStrand = rName + "-"
+
         isCircular = rName in circularChroms or "." in circularChroms
         c = cunningCoordinate(qStrand, rStart, rSpan, rSize, isCircular)
+
         scaledScore = float(score) / params.t  # needed in 2nd pass
-        yield Alignment(pairName, rName, qStrand, c, rSize, scaledScore, text)
+
+        yield Alignment(pairName, genomeStrand, c, rSize, scaledScore, text)
 
 def estimateFragmentLengthDistribution(lengths, opts):
     if not lengths:
@@ -293,8 +300,8 @@ def lastPairProbs(opts, args):
     in1 = open(fileName1)
     in2 = open(fileName2)
 
-    alns1 = readAlignments(in1, params1, opts.circular)
-    alns2 = readAlignments(in2, params2, opts.circular)
+    alns1 = readAlignments(in1, params1, "+", opts.circular)
+    alns2 = readAlignments(in2, params2, "-", opts.circular)
 
     queryPairs = joinby(alns1, alns2, operator.attrgetter("pairName"))
     lengths = list(unambiguousFragmentLengths(queryPairs))
@@ -316,8 +323,8 @@ def lastPairProbs(opts, args):
     in1 = open(fileName1)
     in2 = open(fileName2)
 
-    alns1 = readAlignments(in1, params1, opts.circular)
-    alns2 = readAlignments(in2, params2, opts.circular)
+    alns1 = readAlignments(in1, params1, "+", opts.circular)
+    alns2 = readAlignments(in2, params2, "-", opts.circular)
 
     queryPairs = joinby(alns1, alns2, operator.attrgetter("pairName"))
 
