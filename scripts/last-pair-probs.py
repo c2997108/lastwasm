@@ -211,31 +211,29 @@ def parseTab(line, strand, scale, circularChroms):
 
 def readAlignmentData(lines, strand, scale, circularChroms):
     """Yields alignment data from MAF or tabular format."""
-    mafLines = []
+    maf = []
     for line in lines:
         if line[0].isdigit():
             yield parseTab(line, strand, scale, circularChroms)
         elif line[0].isalpha():
-            mafLines.append(line)
+            maf.append(line)
         elif line.isspace():
-            if mafLines:
-                yield parseMaf(mafLines, strand, scale, circularChroms)
-                mafLines = []
-    if mafLines:
-        yield parseMaf(mafLines, strand, scale, circularChroms)
+            if maf: yield parseMaf(maf, strand, scale, circularChroms)
+            maf = []
+    if maf: yield parseMaf(maf, strand, scale, circularChroms)
 
-def readAlignments(lines, strand, scoreScale, circularChroms):
+def readAlignments(lines, strand, scale, circularChroms):
     """Yields alignments, checking their order."""
     oldName = ""
-    for i in readAlignmentData(lines, strand, scoreScale, circularChroms):
+    for i in readAlignmentData(lines, strand, scale, circularChroms):
         if i[0] < oldName:
             raise Exception("alignments not sorted properly")
         oldName = i[0]
         yield i
 
-def readQueryPairs(in1, in2, scoreScale1, scoreScale2, circularChroms):
-    alns1 = readAlignments(in1, "+", scoreScale1, circularChroms)
-    alns2 = readAlignments(in2, "-", scoreScale2, circularChroms)
+def readQueryPairs(in1, in2, scale1, scale2, circularChroms):
+    alns1 = readAlignments(in1, "+", scale1, circularChroms)
+    alns2 = readAlignments(in2, "-", scale2, circularChroms)
     for i, j in joinby(alns1, alns2, operator.itemgetter(0)):
         i.sort()
         j.sort()
