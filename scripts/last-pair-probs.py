@@ -161,19 +161,13 @@ def parseMafScore(aLine):
     raise Exception("missing score")
 
 def parseMaf(lines):
-    aLines = [i for i in lines if i[0] == "a"]
-    sLines = [i for i in lines if i[0] == "s"]
-    score = parseMafScore(aLines[0])
-    rWords = sLines[0].split()[1:6]
-    qWords = sLines[1].split()[1:6]
-    return score, rWords, qWords, lines
+    score = parseMafScore(lines[0])
+    r, q = [i.split() for i in lines if i[0] == "s"]
+    return score, r[1], r[2], r[3], r[5], q[1], q[4], lines
 
 def parseTab(line):
-    words = line.split()
-    score = words[0]
-    rWords = words[1:6]
-    qWords = words[6:11]
-    return score, rWords, qWords, [line]
+    w = line.split()
+    return w[0], w[1], w[2], w[3], w[5], w[6], w[9], [line]
 
 def readAlignmentData(lines, params):
     """Yields alignment data from MAF or tabular format, and updates params."""
@@ -193,24 +187,12 @@ def readAlignmentData(lines, params):
     if mafLines:
         yield parseMaf(mafLines)
 
-def cunningCoordinate(strand, rStart, rSpan, rSize, isCircular):
-    """Returns a coordinate, that allows fast calculation of frag lengths."""
-    if strand == "+": return -rStart
-    elif isCircular:  return rStart + rSpan + rSize
-    else:             return rStart + rSpan
-
-def infoFromAlignmentWords(words):
-    seqName, alnStart, alnSize, strand, seqSize = words
-    return seqName, int(alnStart), int(alnSize), strand, int(seqSize)
-
 def readAlignments(fileName, params, strand, circularChroms):
     """Yields alignments, checks their order, updates params."""
     lines = open(fileName)  # noticeably faster than fileinput!
     oldName = ""
     for i in readAlignmentData(lines, params):
-        score, rWords, qWords, text = i
-        rName, rStart, rSpan, rStrand, rSize = infoFromAlignmentWords(rWords)
-        qName, qStart, qSpan, qStrand, qSize = infoFromAlignmentWords(qWords)
+        score, rName, rStart, rSpan, rSize, qName, qStrand, text = i
 
         index = qName.rfind("/")
         if index < 0: pairName = qName
@@ -223,8 +205,14 @@ def readAlignments(fileName, params, strand, circularChroms):
         if qStrand == strand: genomeStrand = rName + "+"
         else:                 genomeStrand = rName + "-"
 
-        isCircular = rName in circularChroms or "." in circularChroms
-        c = cunningCoordinate(qStrand, rStart, rSpan, rSize, isCircular)
+        rStart = int(rStart)
+        rSize = int(rSize)
+
+        if qStrand == "+":
+            c = -rStart
+        else:
+            c = rStart + int(rSpan)
+            if rName in circularChroms or "." in circularChroms: c += rSize
 
         scaledScore = float(score) / params.t  # needed in 2nd pass
 
