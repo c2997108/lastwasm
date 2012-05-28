@@ -66,16 +66,6 @@ def joinby(iterable1, iterable2, keyfunc):
             k1, v1 = safeNext(groups1)
             k2, v2 = safeNext(groups2)
 
-class Alignment:
-    def __init__(self, pairName, genomeStrand, endpoint, chromSize,
-                 score, lines):
-        self.pairName = pairName
-        self.genomeStrand = genomeStrand
-        self.endpoint = endpoint
-        self.chromSize = chromSize
-        self.score = score
-        self.lines = lines
-
 class AlignmentParameters:
     """Parses the score scale factor, minimum score, and genome size."""
 
@@ -110,45 +100,45 @@ def printAlignmentWithMismapProb(lines, prob):
         for i in lines[1:]: print i,
 
 def fragmentLength(alignment1, alignment2):
-    length = alignment1.endpoint + alignment2.endpoint
-    if length > alignment1.chromSize: length -= alignment1.chromSize
+    length = alignment1[2] + alignment2[2]
+    if length > alignment1[3]: length -= alignment1[3]  # for circular chroms
     return length
 
 def conjointScores(aln1, alns2, opts):  # maybe slow
     for i in alns2:
-        if i.genomeStrand != aln1.genomeStrand: continue
+        if i[1] != aln1[1]: continue
         length = fragmentLength(aln1, i)
         if length <= 0: continue
         if opts.rna:  # use a log-normal distribution
             loglen = math.log(length)
-            yield i.score + opts.inner * (loglen - opts.fraglen) ** 2 - loglen
+            yield i[4] + opts.inner * (loglen - opts.fraglen) ** 2 - loglen
         else:         # use a normal distribution
-            yield i.score + opts.inner * (length - opts.fraglen) ** 2
+            yield i[4] + opts.inner * (length - opts.fraglen) ** 2
 
 def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
     if alignments2:
-        x = opts.disjointScore + logSumExp(i.score for i in alignments2)
+        x = opts.disjointScore + logSumExp(i[4] for i in alignments2)
         for i in alignments1:
             y = opts.outer + logSumExp(conjointScores(i, alignments2, opts))
-            i.z = i.score + logSumExp((x, y))
-        w = maxMissingScore + max(i.score for i in alignments2)
+            i.append(i[4] + logSumExp((x, y)))
+        w = maxMissingScore + max(i[4] for i in alignments2)
     else:
         for i in alignments1:
-            i.z = i.score + opts.disjointScore
+            i.append(i[4] + opts.disjointScore)
         w = maxMissingScore
 
-    z = logSumExp(i.z for i in alignments1)
+    z = logSumExp(i[6] for i in alignments1)
     zw = logSumExp((z, w))
 
     for i in alignments1:
-        prob = 1 - math.exp(i.z - zw)
-        if prob <= opts.mismap: printAlignmentWithMismapProb(i.lines, prob)
+        prob = 1 - math.exp(i[6] - zw)
+        if prob <= opts.mismap: printAlignmentWithMismapProb(i[5], prob)
 
 def measurablePairs(alignments1, alignments2):  # maybe slow
     """Yields alignment pairs on opposite strands of the same chromosome."""
     for i in alignments1:
         for j in alignments2:
-            if i.genomeStrand == j.genomeStrand:
+            if i[1] == j[1]:
                 yield i, j
 
 def unambiguousFragmentLength(alignments1, alignments2):
@@ -237,7 +227,7 @@ def readAlignments(lines, params, strand, circularChroms):
 
         scaledScore = float(score) / params.t  # needed in 2nd pass
 
-        yield Alignment(pairName, genomeStrand, c, rSize, scaledScore, text)
+        yield [pairName, genomeStrand, c, rSize, scaledScore, text]
 
 def estimateFragmentLengthDistribution(lengths, opts):
     if not lengths:
@@ -303,7 +293,7 @@ def lastPairProbs(opts, args):
     alns1 = readAlignments(in1, params1, "+", opts.circular)
     alns2 = readAlignments(in2, params2, "-", opts.circular)
 
-    queryPairs = joinby(alns1, alns2, operator.attrgetter("pairName"))
+    queryPairs = joinby(alns1, alns2, operator.itemgetter(0))
     lengths = list(unambiguousFragmentLengths(queryPairs))
 
     in1.close()
@@ -326,7 +316,7 @@ def lastPairProbs(opts, args):
     alns1 = readAlignments(in1, params1, "+", opts.circular)
     alns2 = readAlignments(in2, params2, "-", opts.circular)
 
-    queryPairs = joinby(alns1, alns2, operator.attrgetter("pairName"))
+    queryPairs = joinby(alns1, alns2, operator.itemgetter(0))
 
     for i, j in queryPairs:
         printAlignmentsForOneRead(i, j, opts, opts.maxMissingScore1)
