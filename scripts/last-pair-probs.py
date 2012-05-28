@@ -160,13 +160,16 @@ def unambiguousFragmentLengths(queryPairs):
         length = unambiguousFragmentLength(i, j)
         if length is not None: yield length
 
-def readHeader(lines, params):
+def readHeaderOrDie(lines):
+    params = AlignmentParameters()
     for line in lines:
         if line[0] == "#":
             params.update(line)
-            if params.isValid(): break
+            if params.isValid():
+                return params
         elif not line.isspace():
-            params.validate()  # die
+            break
+    params.validate()  # die
 
 def parseMafScore(aLine):
     for i in aLine.split():
@@ -197,12 +200,8 @@ def readAlignmentData(lines):
     if mafLines:
         yield parseMaf(mafLines)
 
-def readAlignments(fileName, params, strand, circularChroms):
-    """Yields alignments, checks their order, updates params."""
-    lines = open(fileName)  # noticeably faster than fileinput!
-
-    readHeader(lines, params)
-    scoreScale = params.t
+def readAlignments(lines, strand, scoreScale, circularChroms):
+    """Yields alignments, checking their order."""
 
     oldName = ""
     for i in readAlignmentData(lines):
@@ -232,11 +231,9 @@ def readAlignments(fileName, params, strand, circularChroms):
 
         yield [pairName, genomeStrand, c, rSize, scaledScore, text]
 
-    lines.close()
-
-def readQueryPairs(fileName1, fileName2, params1, params2, circular):
-    alns1 = readAlignments(fileName1, params1, "+", circular)
-    alns2 = readAlignments(fileName2, params2, "-", circular)
+def readQueryPairs(in1, in2, scoreScale1, scoreScale2, circularChroms):
+    alns1 = readAlignments(in1, "+", scoreScale1, circularChroms)
+    alns2 = readAlignments(in2, "-", scoreScale2, circularChroms)
     for i, j in joinby(alns1, alns2, operator.itemgetter(0)):
         i.sort()
         j.sort()
@@ -297,24 +294,29 @@ def calculateScorePieces(opts, params1, params2):
 
 def lastPairProbs(opts, args):
     fileName1, fileName2 = args
-    params1 = AlignmentParameters()
-    params2 = AlignmentParameters()
-
-    qp = readQueryPairs(fileName1, fileName2, params1, params2, opts.circular)
-    lengths = list(unambiguousFragmentLengths(qp))
 
     if opts.fraglen is None or opts.sdev is None:
+        in1 = open(fileName1)
+        in2 = open(fileName2)
+        qp = readQueryPairs(in1, in2, 1, 1, opts.circular)
+        lengths = list(unambiguousFragmentLengths(qp))
         estimateFragmentLengthDistribution(lengths, opts)
+        in1.close()
+        in2.close()
 
+    in1 = open(fileName1)
+    in2 = open(fileName2)
+    params1 = readHeaderOrDie(in1)
+    params2 = readHeaderOrDie(in2)
     calculateScorePieces(opts, params1, params2)
-
     printme = opts.fraglen, opts.sdev, opts.disjoint, params1.g
     print "# fraglen=%r sdev=%r disjoint=%r genome=%.17g" % printme
-
-    qp = readQueryPairs(fileName1, fileName2, params1, params2, opts.circular)
+    qp = readQueryPairs(in1, in2, params1.t, params2.t, opts.circular)
     for i, j in qp:
         printAlignmentsForOneRead(i, j, opts, opts.maxMissingScore1)
         printAlignmentsForOneRead(j, i, opts, opts.maxMissingScore2)
+    in1.close()
+    in2.close()
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
