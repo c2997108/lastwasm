@@ -72,10 +72,6 @@ Options
          the standard deviation of ln[length].)  If this is not
          specified, the script will estimate it from the alignments.
 
-  -g BP, --genome=BP
-         The haploid genome size in bp.  If this is not specified, the
-         script infers it from the alignments.
-
   -d PROB, --disjoint=PROB
          The prior probability that a pair of reads comes from
          disjoint locations (e.g., different chromosomes).  This may

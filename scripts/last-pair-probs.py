@@ -78,11 +78,12 @@ class Alignment:
         self.lines = lines
 
 class AlignmentParameters:
-    """Parses the t (temperature) and e (minimum score) parameters."""
+    """Parses the score scale factor, minimum score, and genome size."""
 
     def __init__(self):  # dummy values:
-        self.t = -1
-        self.e = -1
+        self.t = -1  # score scale factor
+        self.e = -1  # minimum score
+        self.g = -1  # genome size
 
     def update(self, line):
         for i in line.split():
@@ -92,10 +93,14 @@ class AlignmentParameters:
             if self.e == -1 and i.startswith("e="):
                 self.e = float(i[2:])
                 if self.e <= 0: raise Exception("e must be positive")
+            if self.g == -1 and i.startswith("letters="):
+                self.g = float(i[8:])
+                if self.g <= 0: raise Exception("letters must be positive")
 
     def validate(self):
         if self.t == -1: raise Exception("I need a header line with t=")
         if self.e == -1: raise Exception("I need a header line with e=")
+        if self.g == -1: raise Exception("I need a header line with letters=")
 
 def printAlignmentWithMismapProb(lines, prob):
     p = "%.3g" % prob
@@ -161,11 +166,6 @@ def unambiguousFragmentLengths(queryPairs):
         length = unambiguousFragmentLength(i, j)
         if length is not None: yield length
 
-def checkChromSize(chromSizes, rName, rSize):
-    if rName in chromSizes and chromSizes[rName] != rSize:
-        raise Exception("inconsistent lengths for: " + rName)
-    chromSizes[rName] = rSize
-
 def parseMafScore(aLine):
     for i in aLine.split():
         if i.startswith("score="): return i[6:]
@@ -214,8 +214,8 @@ def infoFromAlignmentWords(words):
     seqName, alnStart, alnSize, strand, seqSize = words
     return seqName, int(alnStart), int(alnSize), strand, int(seqSize)
 
-def readAlignments(lines, chromSizes, params, circularChroms):
-    """Yields alignments, checks their order, updates chromSizes and params."""
+def readAlignments(lines, params, circularChroms):
+    """Yields alignments, checks their order, updates params."""
     oldName = ""
     for i in readAlignmentData(lines, params):
         score, rWords, qWords, text = i
@@ -229,7 +229,6 @@ def readAlignments(lines, chromSizes, params, circularChroms):
         oldName = pairName
         isCircular = rName in circularChroms or "." in circularChroms
         c = cunningCoordinate(qStrand, rStart, rSpan, rSize, isCircular)
-        checkChromSize(chromSizes, rName, rSize)  # needed in 1st pass
         scaledScore = float(score) / params.t  # needed in 2nd pass
         yield Alignment(pairName, rName, qStrand, c, rSize, scaledScore, text)
 
@@ -276,9 +275,9 @@ def calculateScorePieces(opts, params1, params2):
 
     opts.outer += safeLog(1 - opts.disjoint)
 
+    if params1.g != params2.g: raise Exception("unequal genome sizes")
     # Multiply genome size by 2, because it has 2 strands:
-    opts.disjointScore = safeLog(opts.disjoint) - math.log(opts.genome * 2)
-    #opts.disjointScore = math.log(opts.disjoint / (opts.genome * 2.0))
+    opts.disjointScore = safeLog(opts.disjoint) - math.log(params1.g * 2)
 
     # Max possible influence of an alignment just below the score threshold:
     maxLogPrior = opts.outer
@@ -290,13 +289,12 @@ def lastPairProbs(opts, args):
     fileName1, fileName2 = args
     params1 = AlignmentParameters()
     params2 = AlignmentParameters()
-    chromSizes = {}
 
     in1 = open(fileName1)
     in2 = open(fileName2)
 
-    alns1 = readAlignments(in1, chromSizes, params1, opts.circular)
-    alns2 = readAlignments(in2, chromSizes, params2, opts.circular)
+    alns1 = readAlignments(in1, params1, opts.circular)
+    alns2 = readAlignments(in2, params2, opts.circular)
 
     queryPairs = joinby(alns1, alns2, operator.attrgetter("pairName"))
     lengths = list(unambiguousFragmentLengths(queryPairs))
@@ -310,18 +308,13 @@ def lastPairProbs(opts, args):
     if opts.fraglen is None or opts.sdev is None:
         estimateFragmentLengthDistribution(lengths, opts)
 
-    if opts.genome is None:
-        opts.genome = sum(chromSizes.values())
-        warn("genome size:", opts.genome)
-    if opts.genome <= 0: raise Exception("genome size <= 0")
-
     calculateScorePieces(opts, params1, params2)
 
     in1 = open(fileName1)
     in2 = open(fileName2)
 
-    alns1 = readAlignments(in1, chromSizes, params1, opts.circular)
-    alns2 = readAlignments(in2, chromSizes, params2, opts.circular)
+    alns1 = readAlignments(in1, params1, opts.circular)
+    alns2 = readAlignments(in2, params2, opts.circular)
 
     queryPairs = joinby(alns1, alns2, operator.attrgetter("pairName"))
 
@@ -350,8 +343,6 @@ if __name__ == "__main__":
                   help="mean fragment length in bp")
     op.add_option("-s", "--sdev", type="float", metavar="BP",
                   help="standard deviation of fragment length")
-    op.add_option("-g", "--genome", type="float", metavar="BP",
-                  help="haploid genome size in bp")
     op.add_option("-d", "--disjoint", type="float",
                   metavar="PROB", help=
                   "prior probability of disjoint mapping (default: 0.02 if -r, else 0.01)")
