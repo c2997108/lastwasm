@@ -171,65 +171,67 @@ def readHeaderOrDie(lines):
             break
     params.validate()  # die
 
+def parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand, text,
+                   strand, scale, circularChroms):
+    index = qName.rfind("/")
+    if index < 0: pairName = qName
+    else:         pairName = qName[:index+1]
+
+    if qStrand == strand: genomeStrand = rName + "+"
+    else:                 genomeStrand = rName + "-"
+
+    rStart = int(rStart)
+    rSize = int(rSize)
+
+    if qStrand == "+":
+        c = -rStart
+    else:
+        c = rStart + int(rSpan)
+        if rName in circularChroms or "." in circularChroms: c += rSize
+
+    scaledScore = float(score) / scale  # needed in 2nd pass
+
+    return [pairName, genomeStrand, c, rSize, scaledScore, text]
+
 def parseMafScore(aLine):
     for i in aLine.split():
         if i.startswith("score="): return i[6:]
     raise Exception("missing score")
 
-def parseMaf(lines):
+def parseMaf(lines, strand, scale, circularChroms):
     score = parseMafScore(lines[0])
     r, q = [i.split() for i in lines if i[0] == "s"]
-    return score, r[1], r[2], r[3], r[5], q[1], q[4], lines
+    return parseAlignment(score, r[1], r[2], r[3], r[5], q[1], q[4], lines,
+                          strand, scale, circularChroms)
 
-def parseTab(line):
+def parseTab(line, strand, scale, circularChroms):
     w = line.split()
-    return w[0], w[1], w[2], w[3], w[5], w[6], w[9], [line]
+    return parseAlignment(w[0], w[1], w[2], w[3], w[5], w[6], w[9], [line],
+                          strand, scale, circularChroms)
 
-def readAlignmentData(lines):
+def readAlignmentData(lines, strand, scale, circularChroms):
     """Yields alignment data from MAF or tabular format."""
     mafLines = []
     for line in lines:
         if line[0].isdigit():
-            yield parseTab(line)
+            yield parseTab(line, strand, scale, circularChroms)
         elif line[0].isalpha():
             mafLines.append(line)
         elif line.isspace():
             if mafLines:
-                yield parseMaf(mafLines)
+                yield parseMaf(mafLines, strand, scale, circularChroms)
                 mafLines = []
     if mafLines:
-        yield parseMaf(mafLines)
+        yield parseMaf(mafLines, strand, scale, circularChroms)
 
 def readAlignments(lines, strand, scoreScale, circularChroms):
     """Yields alignments, checking their order."""
-
     oldName = ""
-    for i in readAlignmentData(lines):
-        score, rName, rStart, rSpan, rSize, qName, qStrand, text = i
-
-        index = qName.rfind("/")
-        if index < 0: pairName = qName
-        else:         pairName = qName[:index+1]
-
-        if pairName < oldName:
+    for i in readAlignmentData(lines, strand, scoreScale, circularChroms):
+        if i[0] < oldName:
             raise Exception("alignments not sorted properly")
-        oldName = pairName
-
-        if qStrand == strand: genomeStrand = rName + "+"
-        else:                 genomeStrand = rName + "-"
-
-        rStart = int(rStart)
-        rSize = int(rSize)
-
-        if qStrand == "+":
-            c = -rStart
-        else:
-            c = rStart + int(rSpan)
-            if rName in circularChroms or "." in circularChroms: c += rSize
-
-        scaledScore = float(score) / scoreScale  # needed in 2nd pass
-
-        yield [pairName, genomeStrand, c, rSize, scaledScore, text]
+        oldName = i[0]
+        yield i
 
 def readQueryPairs(in1, in2, scoreScale1, scoreScale2, circularChroms):
     alns1 = readAlignments(in1, "+", scoreScale1, circularChroms)
