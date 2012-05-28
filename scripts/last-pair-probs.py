@@ -203,8 +203,9 @@ def infoFromAlignmentWords(words):
     seqName, alnStart, alnSize, strand, seqSize = words
     return seqName, int(alnStart), int(alnSize), strand, int(seqSize)
 
-def readAlignments(lines, params, strand, circularChroms):
+def readAlignments(fileName, params, strand, circularChroms):
     """Yields alignments, checks their order, updates params."""
+    lines = open(fileName)  # noticeably faster than fileinput!
     oldName = ""
     for i in readAlignmentData(lines, params):
         score, rWords, qWords, text = i
@@ -228,6 +229,14 @@ def readAlignments(lines, params, strand, circularChroms):
         scaledScore = float(score) / params.t  # needed in 2nd pass
 
         yield [pairName, genomeStrand, c, rSize, scaledScore, text]
+
+    lines.close()
+
+def readQueryPairs(fileName1, fileName2, params1, params2, circular):
+    alns1 = readAlignments(fileName1, params1, "+", circular)
+    alns2 = readAlignments(fileName2, params2, "-", circular)
+    for i in joinby(alns1, alns2, operator.itemgetter(0)):
+        yield i
 
 def estimateFragmentLengthDistribution(lengths, opts):
     if not lengths:
@@ -287,17 +296,8 @@ def lastPairProbs(opts, args):
     params1 = AlignmentParameters()
     params2 = AlignmentParameters()
 
-    in1 = open(fileName1)
-    in2 = open(fileName2)
-
-    alns1 = readAlignments(in1, params1, "+", opts.circular)
-    alns2 = readAlignments(in2, params2, "-", opts.circular)
-
-    queryPairs = joinby(alns1, alns2, operator.itemgetter(0))
-    lengths = list(unambiguousFragmentLengths(queryPairs))
-
-    in1.close()
-    in2.close()
+    qp = readQueryPairs(fileName1, fileName2, params1, params2, opts.circular)
+    lengths = list(unambiguousFragmentLengths(qp))
 
     params1.validate()
     params2.validate()
@@ -310,20 +310,10 @@ def lastPairProbs(opts, args):
     printme = opts.fraglen, opts.sdev, opts.disjoint, params1.g
     print "# fraglen=%r sdev=%r disjoint=%r genome=%.17g" % printme
 
-    in1 = open(fileName1)
-    in2 = open(fileName2)
-
-    alns1 = readAlignments(in1, params1, "+", opts.circular)
-    alns2 = readAlignments(in2, params2, "-", opts.circular)
-
-    queryPairs = joinby(alns1, alns2, operator.itemgetter(0))
-
-    for i, j in queryPairs:
+    qp = readQueryPairs(fileName1, fileName2, params1, params2, opts.circular)
+    for i, j in qp:
         printAlignmentsForOneRead(i, j, opts, opts.maxMissingScore1)
         printAlignmentsForOneRead(j, i, opts, opts.maxMissingScore2)
-
-    in1.close()
-    in2.close()
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
