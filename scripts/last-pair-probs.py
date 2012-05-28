@@ -86,6 +86,9 @@ class AlignmentParameters:
                 self.g = float(i[8:])
                 if self.g <= 0: raise Exception("letters must be positive")
 
+    def isValid(self):
+        return self.t != -1 and self.e != -1 and self.g != -1
+
     def validate(self):
         if self.t == -1: raise Exception("I need a header line with t=")
         if self.e == -1: raise Exception("I need a header line with e=")
@@ -157,6 +160,14 @@ def unambiguousFragmentLengths(queryPairs):
         length = unambiguousFragmentLength(i, j)
         if length is not None: yield length
 
+def readHeader(lines, params):
+    for line in lines:
+        if line[0] == "#":
+            params.update(line)
+            if params.isValid(): break
+        elif not line.isspace():
+            params.validate()  # die
+
 def parseMafScore(aLine):
     for i in aLine.split():
         if i.startswith("score="): return i[6:]
@@ -171,28 +182,30 @@ def parseTab(line):
     w = line.split()
     return w[0], w[1], w[2], w[3], w[5], w[6], w[9], [line]
 
-def readAlignmentData(lines, params):
-    """Yields alignment data from MAF or tabular format, and updates params."""
+def readAlignmentData(lines):
+    """Yields alignment data from MAF or tabular format."""
     mafLines = []
     for line in lines:
-        if line[0] == "#":
-            params.update(line)
-        elif line[0].isdigit():
+        if line[0].isdigit():
             yield parseTab(line)
+        elif line[0].isalpha():
+            mafLines.append(line)
         elif line.isspace():
             if mafLines:
                 yield parseMaf(mafLines)
                 mafLines = []
-        else:
-            mafLines.append(line)
     if mafLines:
         yield parseMaf(mafLines)
 
 def readAlignments(fileName, params, strand, circularChroms):
     """Yields alignments, checks their order, updates params."""
     lines = open(fileName)  # noticeably faster than fileinput!
+
+    readHeader(lines, params)
+    scoreScale = params.t
+
     oldName = ""
-    for i in readAlignmentData(lines, params):
+    for i in readAlignmentData(lines):
         score, rName, rStart, rSpan, rSize, qName, qStrand, text = i
 
         index = qName.rfind("/")
@@ -215,7 +228,7 @@ def readAlignments(fileName, params, strand, circularChroms):
             c = rStart + int(rSpan)
             if rName in circularChroms or "." in circularChroms: c += rSize
 
-        scaledScore = float(score) / params.t  # needed in 2nd pass
+        scaledScore = float(score) / scoreScale  # needed in 2nd pass
 
         yield [pairName, genomeStrand, c, rSize, scaledScore, text]
 
@@ -289,9 +302,6 @@ def lastPairProbs(opts, args):
 
     qp = readQueryPairs(fileName1, fileName2, params1, params2, opts.circular)
     lengths = list(unambiguousFragmentLengths(qp))
-
-    params1.validate()
-    params2.validate()
 
     if opts.fraglen is None or opts.sdev is None:
         estimateFragmentLengthDistribution(lengths, opts)
