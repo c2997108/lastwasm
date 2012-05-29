@@ -104,8 +104,8 @@ def printAlignmentWithMismapProb(lines, prob):
         print  # each MAF block should end with a blank line
 
 def fragmentLength(alignment1, alignment2):
-    length = alignment1[2] + alignment2[2]
-    if length > alignment1[3]: length -= alignment1[3]  # for circular chroms
+    length = alignment1[1] + alignment2[1]
+    if length > alignment1[2]: length -= alignment1[2]  # for circular chroms
     return length
 
 def conjointScores(aln1, alns2, opts):  # maybe slow
@@ -114,33 +114,33 @@ def conjointScores(aln1, alns2, opts):  # maybe slow
         if length <= 0: continue
         if opts.rna:  # use a log-normal distribution
             loglen = math.log(length)
-            yield i[4] + opts.inner * (loglen - opts.fraglen) ** 2 - loglen
+            yield i[3] + opts.inner * (loglen - opts.fraglen) ** 2 - loglen
         else:         # use a normal distribution
-            yield i[4] + opts.inner * (length - opts.fraglen) ** 2
+            yield i[3] + opts.inner * (length - opts.fraglen) ** 2
 
 def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
     if alignments2:
-        x = opts.disjointScore + logSumExp(i[4] for i in alignments2)
-        for i, j in joinby(alignments1, alignments2, operator.itemgetter(1)):
+        x = opts.disjointScore + logSumExp(i[3] for i in alignments2)
+        for i, j in joinby(alignments1, alignments2, operator.itemgetter(0)):
             for k in i:
                 y = opts.outer + logSumExp(conjointScores(k, j, opts))
-                k.append(k[4] + logSumExp((x, y)))
-        w = maxMissingScore + max(i[4] for i in alignments2)
+                k.append(k[3] + logSumExp((x, y)))
+        w = maxMissingScore + max(i[3] for i in alignments2)
     else:
         for i in alignments1:
-            i.append(i[4] + opts.disjointScore)
+            i.append(i[3] + opts.disjointScore)
         w = maxMissingScore
 
-    z = logSumExp(i[6] for i in alignments1)
+    z = logSumExp(i[5] for i in alignments1)
     zw = logSumExp((z, w))
 
     for i in alignments1:
-        prob = 1 - math.exp(i[6] - zw)
-        if prob <= opts.mismap: printAlignmentWithMismapProb(i[5], prob)
+        prob = 1 - math.exp(i[5] - zw)
+        if prob <= opts.mismap: printAlignmentWithMismapProb(i[4], prob)
 
 def measurablePairs(alignments1, alignments2):
     """Yields alignment pairs on opposite strands of the same chromosome."""
-    for i, j in joinby(alignments1, alignments2, operator.itemgetter(1)):
+    for i, j in joinby(alignments1, alignments2, operator.itemgetter(0)):
         # this joinby may be no faster than the naive double loop
         for x in i:
             for y in j:
@@ -171,12 +171,8 @@ def readHeaderOrDie(lines):
             break
     params.validate()  # die
 
-def parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand, text,
+def parseAlignment(score, rName, rStart, rSpan, rSize, qStrand, text,
                    strand, scale, circularChroms):
-    index = qName.rfind("/")
-    if index < 0: pairName = qName
-    else:         pairName = qName[:index+1]
-
     if qStrand == strand: genomeStrand = rName + "+"
     else:                 genomeStrand = rName + "-"
 
@@ -191,7 +187,7 @@ def parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand, text,
 
     scaledScore = float(score) / scale  # needed in 2nd pass
 
-    return [pairName, genomeStrand, c, rSize, scaledScore, text]
+    return [genomeStrand, c, rSize, scaledScore, text]
 
 def parseMafScore(aLine):
     for i in aLine.split():
@@ -201,12 +197,12 @@ def parseMafScore(aLine):
 def parseMaf(lines, strand, scale, circularChroms):
     score = parseMafScore(lines[0])
     r, q = [i.split() for i in lines if i[0] == "s"]
-    return parseAlignment(score, r[1], r[2], r[3], r[5], q[1], q[4], lines,
+    return parseAlignment(score, r[1], r[2], r[3], r[5], q[4], lines,
                           strand, scale, circularChroms)
 
 def parseTab(line, strand, scale, circularChroms):
     w = line.split()
-    return parseAlignment(w[0], w[1], w[2], w[3], w[5], w[6], w[9], [line],
+    return parseAlignment(w[0], w[1], w[2], w[3], w[5], w[9], [line],
                           strand, scale, circularChroms)
 
 def readBatches(lines, strand, scale, circularChroms):
