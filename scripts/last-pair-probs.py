@@ -209,32 +209,30 @@ def parseTab(line, strand, scale, circularChroms):
     return parseAlignment(w[0], w[1], w[2], w[3], w[5], w[6], w[9], [line],
                           strand, scale, circularChroms)
 
-def readAlignmentData(lines, strand, scale, circularChroms):
+def readBatches(lines, strand, scale, circularChroms):
     """Yields alignment data from MAF or tabular format."""
+    alns = []
     maf = []
     for line in lines:
         if line[0].isdigit():
-            yield parseTab(line, strand, scale, circularChroms)
+            alns.append(parseTab(line, strand, scale, circularChroms))
         elif line[0].isalpha():
             maf.append(line)
         elif line.isspace():
-            if maf: yield parseMaf(maf, strand, scale, circularChroms)
+            if maf: alns.append(parseMaf(maf, strand, scale, circularChroms))
             maf = []
-    if maf: yield parseMaf(maf, strand, scale, circularChroms)
-
-def readAlignments(lines, strand, scale, circularChroms):
-    """Yields alignments, checking their order."""
-    oldName = ""
-    for i in readAlignmentData(lines, strand, scale, circularChroms):
-        if i[0] < oldName:
-            raise Exception("alignments not sorted properly")
-        oldName = i[0]
-        yield i
+        elif line.startswith("# batch "):
+            if maf: alns.append(parseMaf(maf, strand, scale, circularChroms))
+            maf = []
+            yield alns  # might be empty
+            alns = []
+    if maf: alns.append(parseMaf(maf, strand, scale, circularChroms))
+    yield alns  # might be empty
 
 def readQueryPairs(in1, in2, scale1, scale2, circularChroms):
-    alns1 = readAlignments(in1, "+", scale1, circularChroms)
-    alns2 = readAlignments(in2, "-", scale2, circularChroms)
-    for i, j in joinby(alns1, alns2, operator.itemgetter(0)):
+    batches1 = readBatches(in1, "+", scale1, circularChroms)
+    batches2 = readBatches(in2, "-", scale2, circularChroms)
+    for i, j in itertools.izip(batches1, batches2):
         i.sort()
         j.sort()
         yield i, j
