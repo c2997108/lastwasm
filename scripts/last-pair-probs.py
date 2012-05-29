@@ -235,7 +235,7 @@ def readQueryPairs(in1, in2, scale1, scale2, circularChroms):
 
 def estimateFragmentLengthDistribution(lengths, opts):
     if not lengths:
-        raise Exception("can't estimate fragment length distribution")
+        raise Exception("can't estimate the distribution of distances")
 
     # Define quartiles in the most naive way possible:
     lengths.sort()
@@ -244,11 +244,11 @@ def estimateFragmentLengthDistribution(lengths, opts):
     quartile2 = lengths[sampleSize // 2]
     quartile3 = lengths[sampleSize * 3 // 4]
 
-    warn("fragment length sample size:", sampleSize)
-    warn("fragment length quartiles:", quartile1, quartile2, quartile3)
+    warn("distance sample size:", sampleSize)
+    warn("distance quartiles:", quartile1, quartile2, quartile3)
 
     if quartile1 <= 0:
-        raise Exception("too many fragment lengths <= 0")
+        raise Exception("too many distances <= 0")
 
     if opts.fraglen is None:
         if opts.rna: opts.fraglen = math.log(quartile2)
@@ -319,7 +319,7 @@ if __name__ == "__main__":
   %prog --help
   %prog [options] alignments1 alignments2"""
 
-    description = "Read alignments of paired DNA reads to a genome, and estimate the probability that each alignment represents the genomic source of the read."
+    description = "Read alignments of paired DNA reads to a genome, and: (1) estimate the distribution of distances between paired reads, (2) estimate the probability that each alignment represents the genomic source of the read."
 
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-r", "--rna", action="store_true", help=
@@ -327,9 +327,9 @@ if __name__ == "__main__":
     op.add_option("-m", "--mismap", type="float", default=0.01, metavar="M",
                   help="don't write alignments with mismap probability > M (default: %default)")
     op.add_option("-f", "--fraglen", type="float", metavar="BP",
-                  help="mean fragment length in bp")
+                  help="mean distance in bp")
     op.add_option("-s", "--sdev", type="float", metavar="BP",
-                  help="standard deviation of fragment length")
+                  help="standard deviation of distance")
     op.add_option("-d", "--disjoint", type="float",
                   metavar="PROB", help=
                   "prior probability of disjoint mapping (default: 0.02 if -r, else 0.01)")
