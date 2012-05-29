@@ -103,14 +103,15 @@ def printAlignmentWithMismapProb(lines, prob):
         for i in lines[1:]: print i,
         print  # each MAF block should end with a blank line
 
-def fragmentLength(alignment1, alignment2):
+def headToHeadDistance(alignment1, alignment2):
+    """The 5'-to-5' distance between 2 alignments on opposite strands."""
     length = alignment1[1] + alignment2[1]
     if length > alignment1[2]: length -= alignment1[2]  # for circular chroms
     return length
 
-def conjointScores(aln1, alns2, opts):  # maybe slow
+def conjointScores(aln1, alns2, opts):
     for i in alns2:
-        length = fragmentLength(aln1, i)
+        length = headToHeadDistance(aln1, i)
         if length <= 0: continue
         if opts.rna:  # use a log-normal distribution
             loglen = math.log(length)
@@ -150,7 +151,7 @@ def unambiguousFragmentLength(alignments1, alignments2):
     """Returns the fragment length implied by alignments of a pair of reads."""
     old = None
     for i, j in measurablePairs(alignments1, alignments2):
-        new = fragmentLength(i, j)
+        new = headToHeadDistance(i, j)
         if old is None: old = new
         elif new != old: return None  # the fragment length is ambiguous
     return old
@@ -306,19 +307,20 @@ def lastPairProbs(opts, args):
         in1.close()
         in2.close()
 
-    in1 = open(fileName1)
-    in2 = open(fileName2)
-    params1 = readHeaderOrDie(in1)
-    params2 = readHeaderOrDie(in2)
-    calculateScorePieces(opts, params1, params2)
-    printme = opts.fraglen, opts.sdev, opts.disjoint, params1.g
-    print "# fraglen=%s sdev=%s disjoint=%s genome=%.17g" % printme
-    qp = readQueryPairs(in1, in2, params1.t, params2.t, opts.circular)
-    for i, j in qp:
-        printAlignmentsForOneRead(i, j, opts, opts.maxMissingScore1)
-        printAlignmentsForOneRead(j, i, opts, opts.maxMissingScore2)
-    in1.close()
-    in2.close()
+    if not opts.estdist:
+        in1 = open(fileName1)
+        in2 = open(fileName2)
+        params1 = readHeaderOrDie(in1)
+        params2 = readHeaderOrDie(in2)
+        calculateScorePieces(opts, params1, params2)
+        printme = opts.fraglen, opts.sdev, opts.disjoint, params1.g
+        print "# fraglen=%s sdev=%s disjoint=%s genome=%.17g" % printme
+        qp = readQueryPairs(in1, in2, params1.t, params2.t, opts.circular)
+        for i, j in qp:
+            printAlignmentsForOneRead(i, j, opts, opts.maxMissingScore1)
+            printAlignmentsForOneRead(j, i, opts, opts.maxMissingScore2)
+        in1.close()
+        in2.close()
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
@@ -332,6 +334,8 @@ if __name__ == "__main__":
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-r", "--rna", action="store_true", help=
                   "assume the reads are from potentially-spliced RNA")
+    op.add_option("-e", "--estdist", action="store_true",
+                  help="just estimate the distribution of distances")
     op.add_option("-m", "--mismap", type="float", default=0.01, metavar="M",
                   help="don't write alignments with mismap probability > M (default: %default)")
     op.add_option("-f", "--fraglen", type="float", metavar="BP",
