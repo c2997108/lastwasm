@@ -41,30 +41,24 @@ def warn(*things):
     text = " ".join(map(str, things))
     sys.stderr.write(prog + ": " + text + "\n")
 
-# Kludge: using "~" to indicate "finished".
-
-def safeNext(groupedby):
-    for k, g in groupedby:
-        return k, list(g)
-    return "~", []
-
 def joinby(iterable1, iterable2, keyfunc):
-    """Yields groups from iterable1 and iterable2 that share the same key."""
+    """Yields pairs from iterable1 and iterable2 that share the same key."""
     groups1 = itertools.groupby(iterable1, keyfunc)
     groups2 = itertools.groupby(iterable2, keyfunc)
-    k1, v1 = safeNext(groups1)
-    k2, v2 = safeNext(groups2)
-    while k1 != "~" or k2 != "~":
+    k1, v1 = groups1.next()
+    k2, v2 = groups2.next()
+    while 1:
         if k1 < k2:
-            yield v1, []
-            k1, v1 = safeNext(groups1)
+            k1, v1 = groups1.next()
         elif k1 > k2:
-            yield [], v2
-            k2, v2 = safeNext(groups2)
+            k2, v2 = groups2.next()
         else:
-            yield v1, v2
-            k1, v1 = safeNext(groups1)
-            k2, v2 = safeNext(groups2)
+            v2 = list(v2)
+            for i1 in v1:
+                for i2 in v2:
+                    yield i1, i2
+            k1, v1 = groups1.next()
+            k2, v2 = groups2.next()
 
 class AlignmentParameters:
     """Parses the score scale factor, minimum score, and genome size."""
@@ -122,10 +116,26 @@ def conjointScores(aln1, alns2, opts):
 def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
     if alignments2:
         x = opts.disjointScore + logSumExp(i[3] for i in alignments2)
-        for i, j in joinby(alignments1, alignments2, operator.itemgetter(0)):
-            for k in i:
-                y = opts.outer + logSumExp(conjointScores(k, j, opts))
-                k.append(k[3] + logSumExp((x, y)))
+
+        # ugly but fast:
+        groups2 = itertools.groupby(alignments2, operator.itemgetter(0))
+        genomeStrand2 = " "  # assume this is < any genomeStrand1
+        for aln1 in alignments1:
+            genomeStrand1 = aln1[0]
+            # get the items in alignments2 that have the same genomeStrand:
+            if genomeStrand2 < genomeStrand1:
+                for genomeStrand2, alns2 in groups2:
+                    if genomeStrand2 >= genomeStrand1:
+                        alns2 = list(alns2)
+                        break
+                else:
+                    genomeStrand2 = "~"  # assume this is > any genomeStrand1
+            if genomeStrand1 == genomeStrand2:
+                y = opts.outer + logSumExp(conjointScores(aln1, alns2, opts))
+                aln1.append(aln1[3] + logSumExp((x, y)))
+            else:  # no items in alignments2 have the same genomeStrand
+                aln1.append(aln1[3] + x)
+
         w = maxMissingScore + max(i[3] for i in alignments2)
     else:
         for i in alignments1:
@@ -139,18 +149,10 @@ def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
         prob = 1 - math.exp(i[5] - zw)
         if prob <= opts.mismap: printAlignmentWithMismapProb(i[4], prob)
 
-def measurablePairs(alignments1, alignments2):
-    """Yields alignment pairs on opposite strands of the same chromosome."""
-    for i, j in joinby(alignments1, alignments2, operator.itemgetter(0)):
-        # this joinby may be no faster than the naive double loop
-        for x in i:
-            for y in j:
-                yield x, y
-
 def unambiguousFragmentLength(alignments1, alignments2):
     """Returns the fragment length implied by alignments of a pair of reads."""
     old = None
-    for i, j in measurablePairs(alignments1, alignments2):
+    for i, j in joinby(alignments1, alignments2, operator.itemgetter(0)):
         new = headToHeadDistance(i, j)
         if old is None: old = new
         elif new != old: return None  # the fragment length is ambiguous
