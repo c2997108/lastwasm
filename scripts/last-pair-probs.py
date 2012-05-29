@@ -233,6 +233,10 @@ def readQueryPairs(in1, in2, scale1, scale2, circularChroms):
         j.sort()
         yield i, j
 
+def myRound(myFloat):
+    """Round a real number to a moderate amount of significant figures."""
+    return float("%g" % myFloat)
+
 def estimateFragmentLengthDistribution(lengths, opts):
     if not lengths:
         raise Exception("can't estimate the distribution of distances")
@@ -250,16 +254,20 @@ def estimateFragmentLengthDistribution(lengths, opts):
     if quartile1 <= 0:
         raise Exception("too many distances <= 0")
 
+    if opts.rna: thing = "ln[distance]"
+    else:        thing = "distance"
+
     if opts.fraglen is None:
-        if opts.rna: opts.fraglen = math.log(quartile2)
-        else:        opts.fraglen = quartile2
+        if opts.rna: opts.fraglen = myRound(math.log(quartile2))
+        else:        opts.fraglen = float(quartile2)
+        warn("estimated mean %s: %s" % (thing, opts.fraglen))
 
     if opts.sdev is None:
         if opts.rna: iqr = math.log(quartile3) - math.log(quartile1)
         else:        iqr = quartile3 - quartile1
         # Normal Distribution: sdev = iqr / (2 * qnorm(0.75))
-        # Approximate this as iqr * 0.75, so that sdev prints nicely
-        opts.sdev = iqr * 0.75
+        opts.sdev = myRound(iqr / 1.34898)
+        warn("estimated standard deviation of %s: %s" % (thing, opts.sdev))
 
 def safeLog(x):
     if x == 0: return -1e99
@@ -268,7 +276,7 @@ def safeLog(x):
 def calculateScorePieces(opts, params1, params2):
     if opts.sdev == 0:
         if opts.rna: opts.outer = opts.fraglen
-        else:        opts.outer = 0
+        else:        opts.outer = 0.0
         opts.inner = -1e99
     else:  # parameters for a Normal Distribution (of fragment lengths):
         opts.outer = -math.log(opts.sdev * math.sqrt(2 * math.pi))
@@ -304,7 +312,7 @@ def lastPairProbs(opts, args):
     params2 = readHeaderOrDie(in2)
     calculateScorePieces(opts, params1, params2)
     printme = opts.fraglen, opts.sdev, opts.disjoint, params1.g
-    print "# fraglen=%r sdev=%r disjoint=%r genome=%.17g" % printme
+    print "# fraglen=%s sdev=%s disjoint=%s genome=%.17g" % printme
     qp = readQueryPairs(in1, in2, params1.t, params2.t, opts.circular)
     for i, j in qp:
         printAlignmentsForOneRead(i, j, opts, opts.maxMissingScore1)
