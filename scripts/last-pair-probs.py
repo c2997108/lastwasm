@@ -106,11 +106,12 @@ def headToHeadDistance(alignment1, alignment2):
 def conjointScores(aln1, alns2, opts):
     for i in alns2:
         length = headToHeadDistance(aln1, i)
-        if length <= 0: continue
         if opts.rna:  # use a log-normal distribution
+            if length <= 0: continue
             loglen = math.log(length)
             yield i[3] + opts.inner * (loglen - opts.fraglen) ** 2 - loglen
         else:         # use a normal distribution
+            if (length > 0) != (opts.fraglen > 0): continue  # ?
             yield i[3] + opts.inner * (length - opts.fraglen) ** 2
 
 def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
@@ -254,7 +255,7 @@ def estimateFragmentLengthDistribution(lengths, opts):
     warn("distance sample size:", sampleSize)
     warn("distance quartiles:", quartile1, quartile2, quartile3)
 
-    if quartile1 <= 0:
+    if opts.rna and quartile1 <= 0:
         raise Exception("too many distances <= 0")
 
     if opts.rna: thing = "ln[distance]"
