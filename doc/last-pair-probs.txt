@@ -101,16 +101,9 @@ Options
 Tips
 ----
 
-* Align your reads in moderately-sized chunks (e.g. 1 million reads
-  per chunk), to avoid huge temp files.
-
-* To go faster, try a fast version of Python such as pypy.
-
-* To go really fast, try gapless alignment (add -j1 to the lastal
-  options).  Often, this is only minusculely less accurate than gapped
-  alignment.
-
-* Tabular output (lastal option -f0) is smaller and faster.
+* For greater speed and convenience, first estimate the distance
+  distribution from a sample of your data (using -e), then analyze all
+  your data with this estimate (using -f and -s).
 
 * You can avoid temp files by using named pipes:
 
@@ -119,4 +112,12 @@ Tips
     lastal -Q1 -d108 -e120 -i1 humandb reads2.fastq > pipe2 &
     last-pair-probs.py -f250 -s30 pipe1 pipe2 > results.maf
 
-  This streams the alignments from lastal directly to last-pair-probs.
+  This streams the alignments from lastal to last-pair-probs.
+
+* To go faster, try a fast version of Python such as PyPy.
+
+* To go really fast, try gapless alignment (add -j1 to the lastal
+  options).  Often, this is only minusculely less accurate than gapped
+  alignment.
+
+* Tabular output (lastal option -f0) is smaller and faster.
