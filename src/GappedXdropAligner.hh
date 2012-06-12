@@ -177,13 +177,15 @@ class GappedXdropAligner {
   std::size_t diag3(std::size_t antidiagonal, std::size_t seq1coordinate) const
   { return scoreBase(antidiagonal - 6) + seq1coordinate + 1; }
 
+  std::vector<std::size_t> scoreEnds;  // score end pos for each antidiagonal
+
  private:
   std::vector<int> xScores;  // best score ending with aligned letters
   std::vector<int> yScores;  // best score ending with insertion in seq1
   std::vector<int> zScores;  // best score ending with insertion in seq2
 
   std::vector<std::size_t> seq1starts;  // seq1 start pos for each antidiagonal
-  std::vector<std::size_t> scoreEnds;  // score end pos for each antidiagonal
+  //std::vector<std::size_t> scoreEnds;  // score end pos for each antidiagonal
 
   // Our position during the trace-back:
   std::size_t bestAntidiagonal;
