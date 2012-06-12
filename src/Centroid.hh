@@ -130,7 +130,7 @@ namespace cbrc{
     // get DP matrix value at the given position
     double cellx( const dvec_t& matrix,
                   size_t antiDiagonal, size_t seq1pos ) const{
-      return matrix[ xa.scoreEnds[ antiDiagonal ] + seq1pos - xa.seq1start( antiDiagonal ) ];
+      return matrix[ xa.scoreEndIndex( antiDiagonal ) + seq1pos - xa.seq1start( antiDiagonal ) ];
     }
 
     // get DP matrix value "left of" the given position

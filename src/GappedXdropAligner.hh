@@ -1,4 +1,4 @@
-// Copyright 2011 Martin C. Frith
+// Copyright 2011, 2012 Martin C. Frith
 
 // These routines extend an alignment in a given direction (forward or
 // reverse) from given start points in two sequences.
@@ -140,7 +140,7 @@ class GappedXdropAligner {
                      int gapUnalignedCost,
                      int frameshiftCost);
 
-  // The next 3 functions are for use by Centroid.  If the Centroid
+  // The next 4 functions are for use by Centroid.  If the Centroid
   // code gets updated, it might make sense to change these functions too.
 
   // The number of antidiagonals, including dummy ones at the beginning.
@@ -152,6 +152,9 @@ class GappedXdropAligner {
 
   std::size_t numCellsAndPads(std::size_t antidiagonal) const
   { return scoreEnds[antidiagonal + 1] - scoreEnds[antidiagonal]; }
+
+  std::size_t scoreEndIndex(std::size_t antidiagonal) const
+  { return scoreEnds[antidiagonal]; }
 
   // The index in the score vectors, of the previous "horizontal" cell.
   std::size_t hori(std::size_t antidiagonal, std::size_t seq1coordinate) const
@@ -177,15 +180,13 @@ class GappedXdropAligner {
   std::size_t diag3(std::size_t antidiagonal, std::size_t seq1coordinate) const
   { return scoreBase(antidiagonal - 6) + seq1coordinate + 1; }
 
-  std::vector<std::size_t> scoreEnds;  // score end pos for each antidiagonal
-
  private:
   std::vector<int> xScores;  // best score ending with aligned letters
   std::vector<int> yScores;  // best score ending with insertion in seq1
   std::vector<int> zScores;  // best score ending with insertion in seq2
 
   std::vector<std::size_t> seq1starts;  // seq1 start pos for each antidiagonal
-  //std::vector<std::size_t> scoreEnds;  // score end pos for each antidiagonal
+  std::vector<std::size_t> scoreEnds;  // score end pos for each antidiagonal
 
   // Our position during the trace-back:
   std::size_t bestAntidiagonal;

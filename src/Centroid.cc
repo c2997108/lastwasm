@@ -106,7 +106,7 @@ namespace cbrc{
 
   void Centroid::initForwardMatrix(){
     scale.assign ( numAntidiagonals, 1.0 ); // scaling
-    std::size_t n = xa.scoreEnds.back();
+    std::size_t n = xa.scoreEndIndex( numAntidiagonals );
 
     if ( fM.size() < n ) {
       fM.resize( n );
@@ -131,12 +131,14 @@ namespace cbrc{
     for( size_t k = numAntidiagonals - 1; k != 1; --k ){
       d1 /= scale[k];
 
-      for( size_t i = xa.scoreEnds[ k ] + 1; i < xa.scoreEnds[ k + 1 ]; ++i ){
+      size_t iBeg = xa.scoreEndIndex( k ) + 1;
+      size_t iEnd = xa.scoreEndIndex( k + 1 );
+      for( size_t i = iBeg; i < iEnd; ++i ){
 	bM[ i ] = d1;
       }
     }
 
-    std::size_t n = xa.scoreEnds.back();
+    std::size_t n = xa.scoreEndIndex( numAntidiagonals );
     bD.assign( n, 0.0 );
     bI.assign( n, 0.0 );
     bP.assign( n, 0.0 );
@@ -186,7 +188,7 @@ namespace cbrc{
       const double seQ = eQ * scale12;
       const double seP = eP * scale12;
 
-      const std::size_t scoreEnd = xa.scoreEnds[ k ];
+      const std::size_t scoreEnd = xa.scoreEndIndex( k );
       double* fM0 = &fM[ scoreEnd ];
       double* fD0 = &fD[ scoreEnd ];
       double* fI0 = &fI[ scoreEnd ];
@@ -306,7 +308,7 @@ namespace cbrc{
       const double seQ = eQ * scale12;
       const double seP = eP * scale12;
 
-      const std::size_t scoreEnd = xa.scoreEnds[ k ];
+      const std::size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + 1 ];
       const double* bD0 = &bD[ scoreEnd + 1 ];
       const double* bI0 = &bI[ scoreEnd + 1 ];
@@ -481,16 +483,14 @@ namespace cbrc{
     initDecodingMatrix();
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const size_t loopBeg = xa.seq1start( k );
-
-      const std::size_t scoreEnd = xa.scoreEnds[ k ];
+      const std::size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
       size_t cur = xa.seq1start( k );
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
-      const double* X1 = &X[xa.hori(k, loopBeg)];
-      const double* X2 = &X[xa.diag(k, loopBeg)];
+      const double* X1 = &X[xa.hori(k, cur)];
+      const double* X2 = &X[xa.diag(k, cur)];
 
       *X0++ = -DINF;		// add one pad cell
 
@@ -540,29 +540,28 @@ namespace cbrc{
     initDecodingMatrix();
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const size_t k2 = k - 2;
-      const size_t loopBeg = xa.seq1start( k );
-
-      const std::size_t scoreEnd = xa.scoreEnds[ k ];
+      const std::size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
       size_t cur = xa.seq1start( k );
+      size_t seq2pos = k - 2 - cur;
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
-      const double* X1 = &X[ xa.hori(k, loopBeg) ];
-      const double* X2 = &X[ xa.diag(k, loopBeg) ];
+      const double* X1 = &X[ xa.hori(k, cur) ];
+      const double* X2 = &X[ xa.diag(k, cur) ];
 
       *X0++ = -DINF;		// add one pad cell
 
       do{
-	const double s = 2 * gamma * *P0++ - ( mX1[ cur ] + mX2[ k2 - cur ] );
+	const double s = 2 * gamma * *P0++ - ( mX1[ cur ] + mX2[ seq2pos ] );
 	const double oldX1 = *X1++;  // Added by MCF
 	const double u = gamma * mD[ cur ] - mX1[ cur ];
-	const double t = gamma * mI[ k2 - cur ] - mX2[ k2 - cur ];
+	const double t = gamma * mI[ seq2pos ] - mX2[ seq2pos ];
 	const double score = std::max( std::max( oldX1 + u, *X1 + t), *X2++ + s );
 	updateScore ( score, k, cur );
 	*X0++ = score;
 	cur++;
+	seq2pos--;
       }while( X0 != x0end );
     }
 
@@ -578,8 +577,9 @@ namespace cbrc{
     size_t oldPos1 = i;
 
     while( k > 2 ){
-      const double s = 2 * gamma * cellx( pp, k, i ) - ( mX1[ i ] + mX2[ k - i - 2 ] );
-      const double t = gamma * mI[ k - i - 2 ] - mX2[ k - i - 2 ];
+      const size_t j = k - i - 2;
+      const double s = 2 * gamma * cellx( pp, k, i ) - ( mX1[ i ] + mX2[ j ] );
+      const double t = gamma * mI[ j ] - mX2[ j ];
       const double u = gamma * mD[ i ] - mX1[ i ];
       const int m =
 	maxIndex( diagx( X, k, i ) + s,
@@ -679,7 +679,7 @@ namespace cbrc{
       const size_t loopBeg = xa.seq1start( k );
       const std::size_t seq2pos = k2 - loopBeg;
 
-      const std::size_t scoreEnd = xa.scoreEnds[ k ];
+      const std::size_t scoreEnd = xa.scoreEndIndex( k );
       const double* fM0 = &fM[ scoreEnd + 1 ];
       const double* fD0 = &fD[ scoreEnd + 1 ];
       const double* fI0 = &fI[ scoreEnd + 1 ];
@@ -777,7 +777,7 @@ namespace cbrc{
 	    bM0++; bD0++; bI0++;
 	    
 	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
+	    s2 -= seqIncrement;  // xxx p2 ???
 	  } while( fM0 != fM0end ); // inner most loop end;
 	}else{
 	  do{ // inner most loop
@@ -813,7 +813,7 @@ namespace cbrc{
 	    bM0++; bD0++; bI0++; bP0++;
 	    
 	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
+	    s2 -= seqIncrement;  // xxx p2 ???
 	  } while( fM0 != fM0end ); // inner most loop end;
 	}
       }
