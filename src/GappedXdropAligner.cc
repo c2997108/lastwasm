@@ -1,4 +1,4 @@
-// Copyright 2011 Martin C. Frith
+// Copyright 2011, 2012 Martin C. Frith
 
 // The algorithm is based on these recurrence formulas, for
 // generalized affine gap costs.  For standard affine gap costs, set
@@ -48,6 +48,7 @@
 
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
+//#include <iostream>  // for debugging
 
 namespace cbrc {
 
@@ -238,12 +239,12 @@ bool GappedXdropAligner::getNextChunk(std::size_t &end1,
     int a = yScores[d] - gapUnalignedCost;
     int b = zScores[d] - gapUnalignedCost;
 
-    if (state == 1) {
+    if (state == 1 || state == 3) {
       y += gapExistenceCost;
       a += gapExistenceCost;
     }
 
-    if (state == 2) {
+    if (state == 2 || state == 4) {
       z += gapExistenceCost;
       b += gapExistenceCost;
     }

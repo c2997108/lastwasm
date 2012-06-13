@@ -61,6 +61,16 @@ db=/tmp/last-test
     echo TEST 10  # probabilistic alignment with quality scores
     lastal -Q1 -j6 -e90 -a9 $db $fastq
     echo
+
+    echo TEST 11  # sparse index, generalized affine gap costs
+    lastdb -w2 -c $db $dnaSeq
+    lastal -r3 -q3 -a21 -c2 -e60 -f0 $db $dnaSeq
+    echo
+
+    echo TEST 12  # generalized affine gaps, frameshifts, tabular output
+    lastdb -p -c $db $protSeq
+    lastal -F12 -c2 -e40 -f0 $db $dnaSeq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
