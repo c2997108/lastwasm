@@ -165,6 +165,7 @@ namespace cbrc{
 
     initForwardMatrix();
 
+    const bool isAffine = gap.isAffine();
     const int E = gap.extend;
     const int F = gap.first;
     const int P = gap.extendPair;
@@ -232,8 +233,7 @@ namespace cbrc{
       else { // when pssm2 is given
 	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, seq2pos );
 	  
-	double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
-	if (gap.isAffine() ){
+	if (isAffine) {
 	  while (1) { // start: inner most loop
 	    const double S = (*p2)[ *s1 ]  * scale12;
 	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2;
@@ -286,6 +286,7 @@ namespace cbrc{
 
     initBackwardMatrix();
 
+    const bool isAffine = gap.isAffine();
     const int E = gap.extend;
     const int F = gap.first;
     const int P = gap.extendPair;
@@ -382,7 +383,7 @@ namespace cbrc{
       else {
 	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, seq2pos );
 	  
-	if( gap.isAffine () ) {
+	if (isAffine) {
 	  do{ // inner most loop
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
@@ -662,6 +663,7 @@ namespace cbrc{
 
     const int seqIncrement = isForward ? 1 : -1;
 
+    const bool isAffine = gap.isAffine();
     const int E = gap.extend;
     const int F = gap.first;
     const int P = gap.extendPair;
@@ -749,7 +751,7 @@ namespace cbrc{
       else {
 	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, seq2pos );
 
-	if (gap.isAffine() ){
+	if (isAffine) {
 	  do{ // inner most loop
 	    const double S = ( *p2 )[ *s1 ];
 	    c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
