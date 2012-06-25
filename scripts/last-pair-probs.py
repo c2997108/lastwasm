@@ -103,51 +103,56 @@ def headToHeadDistance(alignment1, alignment2):
     if length > alignment1[2]: length -= alignment1[2]  # for circular chroms
     return length
 
-def conjointScores(aln1, alns2, opts):
+def conjointScores(aln1, alns2, fraglen, inner, isRna):
     for i in alns2:
         length = headToHeadDistance(aln1, i)
-        if opts.rna:  # use a log-normal distribution
+        if isRna:  # use a log-normal distribution
             if length <= 0: continue
             loglen = math.log(length)
-            yield i[3] + opts.inner * (loglen - opts.fraglen) ** 2 - loglen
-        else:         # use a normal distribution
-            if (length > 0) != (opts.fraglen > 0): continue  # ?
-            yield i[3] + opts.inner * (length - opts.fraglen) ** 2
+            yield i[3] + inner * (loglen - fraglen) ** 2 - loglen
+        else:      # use a normal distribution
+            if (length > 0) != (fraglen > 0): continue  # ?
+            yield i[3] + inner * (length - fraglen) ** 2
+
+def probForEachAlignment(alignments1, alignments2, opts):
+    x = opts.disjointScore + logSumExp(i[3] for i in alignments2)
+
+    fraglen = opts.fraglen
+    outer = opts.outer
+    inner = opts.inner
+    isRna = opts.rna
+
+    groups2 = itertools.groupby(alignments2, operator.itemgetter(0))
+    genomeStrand2 = " "  # assume this is < any genomeStrand1
+    for aln1 in alignments1:
+        genomeStrand1 = aln1[0]
+        # get the items in alignments2 that have the same genomeStrand:
+        if genomeStrand2 < genomeStrand1:
+            for genomeStrand2, alns2 in groups2:
+                if genomeStrand2 >= genomeStrand1:
+                    alns2 = list(alns2)
+                    break
+            else:
+                genomeStrand2 = "~"  # assume this is > any genomeStrand1
+        if genomeStrand1 == genomeStrand2:
+            y = outer + logSumExp(conjointScores(aln1, alns2, fraglen, inner, isRna))
+            yield aln1[3] + logSumExp((x, y))
+        else:  # no items in alignments2 have the same genomeStrand
+            yield aln1[3] + x
 
 def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
     if alignments2:
-        x = opts.disjointScore + logSumExp(i[3] for i in alignments2)
-
-        # ugly but fast:
-        groups2 = itertools.groupby(alignments2, operator.itemgetter(0))
-        genomeStrand2 = " "  # assume this is < any genomeStrand1
-        for aln1 in alignments1:
-            genomeStrand1 = aln1[0]
-            # get the items in alignments2 that have the same genomeStrand:
-            if genomeStrand2 < genomeStrand1:
-                for genomeStrand2, alns2 in groups2:
-                    if genomeStrand2 >= genomeStrand1:
-                        alns2 = list(alns2)
-                        break
-                else:
-                    genomeStrand2 = "~"  # assume this is > any genomeStrand1
-            if genomeStrand1 == genomeStrand2:
-                y = opts.outer + logSumExp(conjointScores(aln1, alns2, opts))
-                aln1.append(aln1[3] + logSumExp((x, y)))
-            else:  # no items in alignments2 have the same genomeStrand
-                aln1.append(aln1[3] + x)
-
+        zs = list(probForEachAlignment(alignments1, alignments2, opts))
         w = maxMissingScore + max(i[3] for i in alignments2)
     else:
-        for i in alignments1:
-            i.append(i[3] + opts.disjointScore)
+        zs = [i[3] + opts.disjointScore for i in alignments1]
         w = maxMissingScore
 
-    z = logSumExp(i[5] for i in alignments1)
+    z = logSumExp(zs)
     zw = logSumExp((z, w))
 
-    for i in alignments1:
-        prob = 1 - math.exp(i[5] - zw)
+    for i, j in itertools.izip(alignments1, zs):
+        prob = 1 - math.exp(j - zw)
         if prob <= opts.mismap: printAlignmentWithMismapProb(i[4], prob)
 
 def unambiguousFragmentLength(alignments1, alignments2):
@@ -191,7 +196,7 @@ def parseAlignment(score, rName, rStart, rSpan, rSize, qStrand, text,
 
     scaledScore = float(score) / scale  # needed in 2nd pass
 
-    return [genomeStrand, c, rSize, scaledScore, text]
+    return genomeStrand, c, rSize, scaledScore, text
 
 def parseMafScore(aLine):
     for i in aLine.split():
