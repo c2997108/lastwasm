@@ -166,10 +166,10 @@ namespace cbrc{
     initForwardMatrix();
 
     const bool isAffine = gap.isAffine();
-    const int E = gap.extend;
-    const int F = gap.first;
-    const int P = gap.extendPair;
-    const int Q = gap.firstPair;
+    const int E = gap.delExtend;
+    const int F = gap.delExist + gap.delExtend;
+    const int P = gap.pairExtend;
+    const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
     const double eP = EXP ( - P / T );
@@ -287,10 +287,10 @@ namespace cbrc{
     initBackwardMatrix();
 
     const bool isAffine = gap.isAffine();
-    const int E = gap.extend;
-    const int F = gap.first;
-    const int P = gap.extendPair;
-    const int Q = gap.firstPair;
+    const int E = gap.delExtend;
+    const int F = gap.delExist + gap.delExtend;
+    const int P = gap.pairExtend;
+    const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
     const double eP = EXP ( - P / T );
@@ -664,10 +664,10 @@ namespace cbrc{
     const int seqIncrement = isForward ? 1 : -1;
 
     const bool isAffine = gap.isAffine();
-    const int E = gap.extend;
-    const int F = gap.first;
-    const int P = gap.extendPair;
-    const int Q = gap.firstPair;
+    const int E = gap.delExtend;
+    const int F = gap.delExist + gap.delExtend;
+    const int P = gap.pairExtend;
+    const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
     const double eP = EXP ( - P / T );

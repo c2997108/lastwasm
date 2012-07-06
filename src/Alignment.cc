@@ -162,6 +162,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     assert( outputType < 4 );
     assert( !pssm2 );
     assert( !sm2qual );
+    assert( gap.isSymmetric() );
 
     indexT f = aaToDna( start2, frameSize ) + 1;
     indexT r = aaToDna( start2, frameSize ) - 1;
@@ -171,14 +172,14 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     const uchar* frame2 = seq2 + dnaToAa( isForward ? r : f, frameSize );
 
     score += aligner.align3( seq1 + start1, frame0, frame1, frame2, isForward,
-                             sm, gap.exist, gap.extend, gap.extendPair,
-                             frameshiftCost, maxDrop, smMax );
+                             sm, gap.delExist, gap.delExtend, gap.pairExtend,
+			     frameshiftCost, maxDrop, smMax );
 
     std::size_t end1, end2, size;
     // This should be OK even if end2 < size * 3:
     while( aligner.getNextChunk3( end1, end2, size,
-                                  gap.exist, gap.extend, gap.extendPair,
-                                  frameshiftCost ) )
+				  gap.delExist, gap.delExtend, gap.pairExtend,
+				  frameshiftCost ) )
       chunks.push_back( SegmentPair( end1 - size, end2 - size * 3, size ) );
 
     return;
@@ -188,29 +189,30 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
                                     seq2 + start2, qual2 + start2,
                                     isForward, sm2qual,
-                                    gap.exist, gap.extend,
-				    gap.exist, gap.extend,
-				    gap.extendPair, maxDrop, smMax )
+                                    gap.delExist, gap.delExtend,
+				    gap.insExist, gap.insExtend,
+				    gap.pairExtend, maxDrop, smMax )
       : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2, isForward,
-                                   gap.exist, gap.extend,
-				   gap.exist, gap.extend,
-				   gap.extendPair, maxDrop, smMax )
+                                   gap.delExist, gap.delExtend,
+				   gap.insExist, gap.insExtend,
+				   gap.pairExtend, maxDrop, smMax )
       :         aligner.align( seq1 + start1, seq2 + start2, isForward, sm,
-			       gap.exist, gap.extend,
-			       gap.exist, gap.extend,
-			       gap.extendPair, maxDrop, smMax );
+			       gap.delExist, gap.delExtend,
+			       gap.insExist, gap.insExtend,
+			       gap.pairExtend, maxDrop, smMax );
 
   if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
     std::size_t end1, end2, size;
     while( aligner.getNextChunk( end1, end2, size,
-                                 gap.exist, gap.extend,
-				 gap.exist, gap.extend,
-				 gap.extendPair ) )
+				 gap.delExist, gap.delExtend,
+				 gap.insExist, gap.insExtend,
+				 gap.pairExtend ) )
       chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
   }
 
   if( outputType > 3 ){  // calculate match probabilities
     assert( !sm2qual );
+    assert( gap.isSymmetric() );
     centroid.reset();
     centroid.forward( seq1, seq2, start1, start2, isForward, gap );
     centroid.backward( seq1, seq2, start1, start2, isForward, gap );
