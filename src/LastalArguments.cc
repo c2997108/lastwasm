@@ -31,6 +31,8 @@ LastalArguments::LastalArguments() :
   mismatchCost(-1),  // depends on the alphabet
   gapExistCost(-1),  // depends on the alphabet
   gapExtendCost(-1),  // depends on the alphabet
+  insExistCost(-1),  // depends on gapExistCost
+  insExtendCost(-1),  // depends on gapExtendCost
   gapPairCost(100000),  // I want it to be infinity, but avoid overflow
   frameshiftCost(-1),  // this means: ordinary, non-translated alignment
   matrixFile(""),
@@ -62,6 +64,8 @@ Score options (default settings):\n\
 -p: file for residue pair scores\n\
 -a: gap existence cost (DNA: 7, protein: 11, 0<Q<5: 21)\n\
 -b: gap extension cost (DNA: 1, protein:  2, 0<Q<5:  9)\n\
+-A: insertion existence cost (a)\n\
+-B: insertion extension cost (b)\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
 -F: frameshift cost (off)\n\
@@ -110,7 +114,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-      "ho:u:s:f:r:q:p:a:b:c:F:x:y:z:d:e:Q:m:l:n:k:i:w:t:g:G:vj:";
+      "ho:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:m:l:n:k:i:w:t:g:G:vj:";
   while( (c = getopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -150,6 +154,14 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'b':
       unstringify( gapExtendCost, optarg );
       if( gapExtendCost <= 0 ) badopt( c, optarg );
+      break;
+    case 'A':
+      unstringify( insExistCost, optarg );
+      if( insExistCost < 0 ) badopt( c, optarg );
+      break;
+    case 'B':
+      unstringify( insExtendCost, optarg );
+      if( insExtendCost <= 0 ) badopt( c, optarg );
       break;
     case 'c':
       unstringify( gapPairCost, optarg );
@@ -309,6 +321,9 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // use a lower target %identity than we otherwise would.
   }
 
+  if( insExistCost < 0 ) insExistCost = gapExistCost;
+  if( insExtendCost < 0 ) insExtendCost = gapExtendCost;
+
   if( outputType < 2 ) minScoreGapless = minScoreGapped;
 
   if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
@@ -332,6 +347,13 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 
   if( isTranslated() && frameshiftCost < gapExtendCost )
     ERR( "the frameshift cost must not be less than the gap extension cost" );
+
+  if( insExistCost != gapExistCost || insExtendCost != gapExtendCost ){
+    if( isTranslated() )
+      ERR( "can't combine option -F with option -A or -B" );
+    if( outputType > 3 )
+      ERR( "can't combine option -j > 3 with option -A or -B" );
+  }
 }
 
 void LastalArguments::setDefaultsFromMatrix( double lambda ){
@@ -354,6 +376,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << "# "
 	 << "a=" << gapExistCost << ' '
 	 << "b=" << gapExtendCost << ' '
+	 << "A=" << insExistCost << ' '
+	 << "B=" << insExtendCost << ' '
 	 << "c=" << gapPairCost << ' '
 	 << "F=" << frameshiftCost << ' '
 	 << "e=" << minScoreGapped << ' '

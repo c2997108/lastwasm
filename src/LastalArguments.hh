@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
 
 // This struct holds the command line arguments for lastal.
 
@@ -53,6 +53,8 @@ struct LastalArguments{
   int mismatchCost;
   int gapExistCost;
   int gapExtendCost;
+  int insExistCost;
+  int insExtendCost;
   int gapPairCost;
   int frameshiftCost;
   std::string matrixFile;
