@@ -90,12 +90,17 @@ int GappedXdropAligner::align(const uchar *seq1,
                               const uchar *seq2,
                               bool isForward,
                               const ScoreMatrixRow *scorer,
-                              int gapExistenceCost,
-                              int gapExtensionCost,
+                              int delExistenceCost,
+                              int delExtensionCost,
+                              int insExistenceCost,
+                              int insExtensionCost,
                               int gapUnalignedCost,
                               int maxScoreDrop,
                               int maxMatchScore) {
-  bool isAffine = gapUnalignedCost >= gapExistenceCost + 2 * gapExtensionCost;
+  bool isAffine =
+    insExistenceCost == delExistenceCost &&
+    insExtensionCost == delExtensionCost &&
+    gapUnalignedCost >= delExistenceCost + 2 * delExtensionCost;
 
   std::size_t maxSeq1begs[] = { 0, 9 };
   std::size_t minSeq1ends[] = { 1, 0 };
@@ -143,13 +148,13 @@ int GappedXdropAligner::align(const uchar *seq1,
       if (isForward)
         while (1) {
           int x = *x2;
-          int y = *y1 - gapExtensionCost;
-          int z = *z1 - gapExtensionCost;
+          int y = *y1 - delExtensionCost;
+          int z = *z1 - delExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
             updateBest(bestScore, b, antidiagonal, x0, x0base);
             *x0 = b + scorer[*s1][*s2];
-            int g = b - gapExistenceCost;
+            int g = b - delExistenceCost;
             *y0 = maxValue(g, y);
             *z0 = maxValue(g, z);
           }
@@ -160,13 +165,13 @@ int GappedXdropAligner::align(const uchar *seq1,
       else
         while (1) {
           int x = *x2;
-          int y = *y1 - gapExtensionCost;
-          int z = *z1 - gapExtensionCost;
+          int y = *y1 - delExtensionCost;
+          int z = *z1 - delExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
             updateBest(bestScore, b, antidiagonal, x0, x0base);
             *x0 = b + scorer[*s1][*s2];
-            int g = b - gapExistenceCost;
+            int g = b - delExistenceCost;
             *y0 = maxValue(g, y);
             *z0 = maxValue(g, z);
           }
@@ -179,15 +184,14 @@ int GappedXdropAligner::align(const uchar *seq1,
       const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
       while (1) {
         int x = *x2;
-        int y = maxValue(*y1 - gapExtensionCost, *y2 - gapUnalignedCost);
-        int z = maxValue(*z1 - gapExtensionCost, *z2 - gapUnalignedCost);
+        int y = maxValue(*y1 - delExtensionCost, *y2 - gapUnalignedCost);
+        int z = maxValue(*z1 - insExtensionCost, *z2 - gapUnalignedCost);
         int b = maxValue(x, y, z);
         if (b >= minScore) {
           updateBest(bestScore, b, antidiagonal, x0, x0base);
           *x0 = b + scorer[*s1][*s2];
-          int g = b - gapExistenceCost;
-          *y0 = maxValue(g, y);
-          *z0 = maxValue(g, z);
+          *y0 = maxValue(b - delExistenceCost, y);
+          *z0 = maxValue(b - insExistenceCost, z);
         }
         else *x0 = *y0 = *z0 = -INF;
         if (x0 == x0last) break;
@@ -209,8 +213,10 @@ int GappedXdropAligner::align(const uchar *seq1,
 bool GappedXdropAligner::getNextChunk(std::size_t &end1,
                                       std::size_t &end2,
                                       std::size_t &length,
-                                      int gapExistenceCost,
-                                      int gapExtensionCost,
+				      int delExistenceCost,
+				      int delExtensionCost,
+				      int insExistenceCost,
+				      int insExtensionCost,
                                       int gapUnalignedCost) {
   if (bestAntidiagonal == 2) return false;
 
@@ -234,19 +240,19 @@ bool GappedXdropAligner::getNextChunk(std::size_t &end1,
     std::size_t d = diag(bestAntidiagonal, bestSeq1position);
 
     int x = xScores[d];
-    int y = yScores[h] - gapExtensionCost;
-    int z = zScores[v] - gapExtensionCost;
+    int y = yScores[h] - delExtensionCost;
+    int z = zScores[v] - insExtensionCost;
     int a = yScores[d] - gapUnalignedCost;
     int b = zScores[d] - gapUnalignedCost;
 
     if (state == 1 || state == 3) {
-      y += gapExistenceCost;
-      a += gapExistenceCost;
+      y += delExistenceCost;
+      a += delExistenceCost;
     }
 
     if (state == 2 || state == 4) {
-      z += gapExistenceCost;
-      b += gapExistenceCost;
+      z += insExistenceCost;
+      b += insExistenceCost;
     }
 
     state = maxIndex(x, y, z, a, b);

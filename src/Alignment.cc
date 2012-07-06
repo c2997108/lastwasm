@@ -188,19 +188,24 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
                                     seq2 + start2, qual2 + start2,
                                     isForward, sm2qual,
-                                    gap.exist, gap.extend, gap.extendPair,
-                                    maxDrop, smMax )
+                                    gap.exist, gap.extend,
+				    gap.exist, gap.extend,
+				    gap.extendPair, maxDrop, smMax )
       : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2, isForward,
-                                   gap.exist, gap.extend, gap.extendPair,
-                                   maxDrop, smMax )
-      :         aligner.align( seq1 + start1, seq2 + start2, isForward,
-                               sm, gap.exist, gap.extend, gap.extendPair,
-                               maxDrop, smMax );
+                                   gap.exist, gap.extend,
+				   gap.exist, gap.extend,
+				   gap.extendPair, maxDrop, smMax )
+      :         aligner.align( seq1 + start1, seq2 + start2, isForward, sm,
+			       gap.exist, gap.extend,
+			       gap.exist, gap.extend,
+			       gap.extendPair, maxDrop, smMax );
 
   if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
     std::size_t end1, end2, size;
     while( aligner.getNextChunk( end1, end2, size,
-                                 gap.exist, gap.extend, gap.extendPair ) )
+                                 gap.exist, gap.extend,
+				 gap.exist, gap.extend,
+				 gap.extendPair ) )
       chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
   }
 

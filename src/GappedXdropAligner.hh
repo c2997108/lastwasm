@@ -21,6 +21,10 @@
 // When c >= a + 2b, it reduces to standard affine gap costs:
 // gap cost = gapExistenceCost + gapExtensionCost * (gap length).
 
+// The insertion and deletion costs may differ.  Typically:
+// delExistenceCost = insExistenceCost, and
+// delExtensionCost = insExtensionCost.
+
 // The algorithm proceeds antidiagonal-by-antidiagonal, similarly to
 // Section 2 in J Comput Biol. 2000 7(1-2):203-14.  It does not allow
 // the score to drop by more than maxScoreDrop below the highest score
@@ -52,8 +56,10 @@ class GappedXdropAligner {
             const uchar *seq2,  // start point in the 2nd sequence
             bool isForward,  // forward or reverse extension?
             const ScoreMatrixRow *scorer,  // the substitution score matrix
-            int gapExistenceCost,
-            int gapExtensionCost,
+	    int delExistenceCost,
+	    int delExtensionCost,
+	    int insExistenceCost,
+	    int insExtensionCost,
             int gapUnalignedCost,
             int maxScoreDrop,
             int maxMatchScore);
@@ -62,8 +68,10 @@ class GappedXdropAligner {
   int alignPssm(const uchar *seq,
                 const ScoreMatrixRow *pssm,
                 bool isForward,
-                int gapExistenceCost,
-                int gapExtensionCost,
+		int delExistenceCost,
+		int delExtensionCost,
+		int insExistenceCost,
+		int insExtensionCost,
                 int gapUnalignedCost,
                 int maxScoreDrop,
                 int maxMatchScore);
@@ -75,8 +83,10 @@ class GappedXdropAligner {
                  const uchar *qual2,
                  bool isForward,
                  const TwoQualityScoreMatrix &scorer,
-                 int gapExistenceCost,
-                 int gapExtensionCost,
+		 int delExistenceCost,
+		 int delExtensionCost,
+		 int insExistenceCost,
+		 int insExtensionCost,
                  int gapUnalignedCost,
                  int maxScoreDrop,
                  int maxMatchScore);
@@ -90,8 +100,10 @@ class GappedXdropAligner {
   bool getNextChunk(std::size_t &end1,
                     std::size_t &end2,
                     std::size_t &length,
-                    int gapExistenceCost,
-                    int gapExtensionCost,
+		    int delExistenceCost,
+		    int delExtensionCost,
+		    int insExistenceCost,
+		    int insExtensionCost,
                     int gapUnalignedCost);
 
   // Like "align", but it aligns a protein sequence to a DNA sequence.

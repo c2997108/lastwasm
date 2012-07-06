@@ -1,4 +1,4 @@
-// Copyright 2011 Martin C. Frith
+// Copyright 2011, 2012 Martin C. Frith
 
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
@@ -8,12 +8,17 @@ namespace cbrc {
 int GappedXdropAligner::alignPssm(const uchar *seq,
                                   const ScoreMatrixRow *pssm,
                                   bool isForward,
-                                  int gapExistenceCost,
-                                  int gapExtensionCost,
+				  int delExistenceCost,
+				  int delExtensionCost,
+				  int insExistenceCost,
+				  int insExtensionCost,
                                   int gapUnalignedCost,
                                   int maxScoreDrop,
                                   int maxMatchScore) {
-  bool isAffine = gapUnalignedCost >= gapExistenceCost + 2 * gapExtensionCost;
+  bool isAffine =
+    insExistenceCost == delExistenceCost &&
+    insExtensionCost == delExtensionCost &&
+    gapUnalignedCost >= delExistenceCost + 2 * delExtensionCost;
 
   std::size_t maxSeq1begs[] = { 0, 9 };
   std::size_t minSeq1ends[] = { 1, 0 };
@@ -60,13 +65,13 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       if (isForward)
         while (1) {
           int x = *x2;
-          int y = *y1 - gapExtensionCost;
-          int z = *z1 - gapExtensionCost;
+          int y = *y1 - delExtensionCost;
+          int z = *z1 - delExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
             updateBest(bestScore, b, antidiagonal, x0, x0base);
             *x0 = b + (*s2)[*s1];
-            int g = b - gapExistenceCost;
+            int g = b - delExistenceCost;
             *y0 = maxValue(g, y);
             *z0 = maxValue(g, z);
           }
@@ -77,13 +82,13 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       else
         while (1) {
           int x = *x2;
-          int y = *y1 - gapExtensionCost;
-          int z = *z1 - gapExtensionCost;
+          int y = *y1 - delExtensionCost;
+          int z = *z1 - delExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
             updateBest(bestScore, b, antidiagonal, x0, x0base);
             *x0 = b + (*s2)[*s1];
-            int g = b - gapExistenceCost;
+            int g = b - delExistenceCost;
             *y0 = maxValue(g, y);
             *z0 = maxValue(g, z);
           }
@@ -96,15 +101,14 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
       while (1) {
         int x = *x2;
-        int y = maxValue(*y1 - gapExtensionCost, *y2 - gapUnalignedCost);
-        int z = maxValue(*z1 - gapExtensionCost, *z2 - gapUnalignedCost);
+        int y = maxValue(*y1 - delExtensionCost, *y2 - gapUnalignedCost);
+        int z = maxValue(*z1 - insExtensionCost, *z2 - gapUnalignedCost);
         int b = maxValue(x, y, z);
         if (b >= minScore) {
           updateBest(bestScore, b, antidiagonal, x0, x0base);
           *x0 = b + (*s2)[*s1];
-          int g = b - gapExistenceCost;
-          *y0 = maxValue(g, y);
-          *z0 = maxValue(g, z);
+          *y0 = maxValue(b - delExistenceCost, y);
+          *z0 = maxValue(b - insExistenceCost, z);
         }
         else *x0 = *y0 = *z0 = -INF;
         if (x0 == x0last) break;

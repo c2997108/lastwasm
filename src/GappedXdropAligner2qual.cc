@@ -1,4 +1,4 @@
-// Copyright 2011 Martin C. Frith
+// Copyright 2011, 2012 Martin C. Frith
 
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
@@ -16,12 +16,17 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
                                    const uchar *qual2,
                                    bool isForward,
                                    const TwoQualityScoreMatrix &scorer,
-                                   int gapExistenceCost,
-                                   int gapExtensionCost,
+				   int delExistenceCost,
+				   int delExtensionCost,
+				   int insExistenceCost,
+				   int insExtensionCost,
                                    int gapUnalignedCost,
                                    int maxScoreDrop,
                                    int maxMatchScore) {
-  bool isAffine = gapUnalignedCost >= gapExistenceCost + 2 * gapExtensionCost;
+  bool isAffine =
+    insExistenceCost == delExistenceCost &&
+    insExtensionCost == delExtensionCost &&
+    gapUnalignedCost >= delExistenceCost + 2 * delExtensionCost;
 
   std::size_t maxSeq1begs[] = { 0, 9 };
   std::size_t minSeq1ends[] = { 1, 0 };
@@ -70,13 +75,13 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
       if (isForward)
         while (1) {
           int x = *x2;
-          int y = *y1 - gapExtensionCost;
-          int z = *z1 - gapExtensionCost;
+          int y = *y1 - delExtensionCost;
+          int z = *z1 - delExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
             updateBest(bestScore, b, antidiagonal, x0, x0base);
             *x0 = b + scorer(*s1, *s2, *q1, *q2);
-            int g = b - gapExistenceCost;
+            int g = b - delExistenceCost;
             *y0 = maxValue(g, y);
             *z0 = maxValue(g, z);
           }
@@ -87,13 +92,13 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
       else
         while (1) {
           int x = *x2;
-          int y = *y1 - gapExtensionCost;
-          int z = *z1 - gapExtensionCost;
+          int y = *y1 - delExtensionCost;
+          int z = *z1 - delExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
             updateBest(bestScore, b, antidiagonal, x0, x0base);
             *x0 = b + scorer(*s1, *s2, *q1, *q2);
-            int g = b - gapExistenceCost;
+            int g = b - delExistenceCost;
             *y0 = maxValue(g, y);
             *z0 = maxValue(g, z);
           }
@@ -106,15 +111,14 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
       const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
       while (1) {
         int x = *x2;
-        int y = maxValue(*y1 - gapExtensionCost, *y2 - gapUnalignedCost);
-        int z = maxValue(*z1 - gapExtensionCost, *z2 - gapUnalignedCost);
+        int y = maxValue(*y1 - delExtensionCost, *y2 - gapUnalignedCost);
+        int z = maxValue(*z1 - insExtensionCost, *z2 - gapUnalignedCost);
         int b = maxValue(x, y, z);
         if (b >= minScore) {
           updateBest(bestScore, b, antidiagonal, x0, x0base);
           *x0 = b + scorer(*s1, *s2, *q1, *q2);
-          int g = b - gapExistenceCost;
-          *y0 = maxValue(g, y);
-          *z0 = maxValue(g, z);
+          *y0 = maxValue(b - delExistenceCost, y);
+          *z0 = maxValue(b - insExistenceCost, z);
         }
         else *x0 = *y0 = *z0 = -INF;
         if (x0 == x0last) break;
