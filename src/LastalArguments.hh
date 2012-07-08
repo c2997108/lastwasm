@@ -32,7 +32,7 @@ struct LastalArguments{
 
   // set default option values that depend on input files:
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
-                                bool isCaseSensitiveSeeds );
+                                bool isCaseSensitiveSeeds, bool isVolumes );
   void setDefaultsFromMatrix( double lambda );
 
   // write the parameter settings, starting each line with "#":

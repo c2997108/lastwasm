@@ -44,7 +44,7 @@ LastalArguments::LastalArguments() :
   oneHitMultiplicity(10),
   maxGaplessAlignmentsPerQueryPosition(indexT(-1)),  // effectively infinity
   queryStep(1),
-  batchSize(0),  // depends on the outputType
+  batchSize(0),  // depends on the outputType, and voluming
   maxRepeatDistance(1000),  // sufficiently conservative?
   temperature(-1),  // depends on the score matrix
   gamma(1),
@@ -91,7 +91,7 @@ Miscellaneous options (default settings):\n\
 -n: maximum number of gapless alignments per query position (infinity)\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
--i: query batch size (1 MiB if Q>0, else 16 MiB if j=0, else 128 MiB)\n\
+-i: query batch size (8 KiB, unless there are multiple lastdb volumes)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
     2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q<5, else 0)\n\
 -w: supress repeats inside exact matches, offset by this distance or less ("
@@ -287,7 +287,8 @@ void LastalArguments::fromString( const std::string& s, bool optionsOnly ){
 }
 
 void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
-                                               bool isCaseSensitiveSeeds ){
+                                               bool isCaseSensitiveSeeds,
+					       bool isVolumes ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
   if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
@@ -336,7 +337,14 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   }
 
   if( batchSize == 0 ){
-    if( inputFormat != sequenceFormat::fasta )
+    // Without lastdb voluming, smaller batches can be faster,
+    // probably because of the sorts done for gapped alignment.  With
+    // voluming, we want the batches to be as large as will
+    // comfortably fit into memory, because each volume gets read from
+    // disk once per batch.
+    if( !isVolumes )
+      batchSize = 0x2000;  // 8 Kbytes (?)
+    else if( inputFormat != sequenceFormat::fasta )
       batchSize = 0x100000;   // 1 Mbyte
     else if( outputType == 0 )
       batchSize = 0x1000000;  // 16 Mbytes

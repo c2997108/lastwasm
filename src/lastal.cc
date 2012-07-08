@@ -743,7 +743,7 @@ void lastal( int argc, char** argv ){
 
   args.setDefaultsFromAlphabet( alph.letters == alph.dna,
 				alph.letters == alph.protein,
-                                isCaseSensitiveSeeds );
+                                isCaseSensitiveSeeds, volumes > 1 );
   makeScoreMatrix( matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost,
 		   args.insExistCost, args.insExtendCost, args.gapPairCost );
