@@ -17,31 +17,23 @@ reads are from the converted strand, and not its reverse-complement
 
 First, we need to run lastdb twice, for forward-strand and
 reverse-strand alignments:
+
   lastdb -u bisulfite_f.seed my_f mygenome.fa
   lastdb -u bisulfite_r.seed my_r mygenome.fa
 
 Then find alignments, one strand at a time:
+
   lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 my_f reads.fastq > temp_f
   lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 my_r reads.fastq > temp_r
 
 Finally, merge the alignments and estimate which one represents the
 genomic source of each read:
+
   last-merge-batches.py temp_f temp_r | last-map-probs.py -s150 > myalns.maf
 
 These commands refer to files (bisulfite_f.seed etc), which are in the
 examples directory.  You need to specify exactly where they are
 (e.g. "-u examples/bisulfite_f.seed").
-
-Explanation of the parameters
------------------------------
-
-The options "-u bisulfite_f.seed" and "-p bisulfite_f.mat" enable
-accurate forward-strand alignments.  Likewise, "-u bisulfite_r.seed"
-and "-p bisulfite_r.mat" enable accurate reverse-strand alignments.
-Option "-s1" means to find forward-strand alignments only, and "-s0"
-means reverse-strand alignments only.  The options -Q1 -d108 -e120 and
--s150 are the same as in last-map-probs.txt: please see the
-explanation there.
 
 Avoiding biased methylation estimates
 -------------------------------------
@@ -62,10 +54,37 @@ and no line-wrapping or blank lines.  It converts Cs to lowercase Ts:
 lowercase has no effect on the alignment, but it lets you see where
 the Cs were in the output.
 
-Aligning reads in chunks
-------------------------
+Tips
+----
 
-Rather than align 1 billion reads all at once, it's probably better to
-align them in chunks of, say, 1 million reads per chunk.  This has two
-advantages: it avoids huge temp files, and you can align the chunks in
-parallel.
+* To go faster, try gapless alignment (add -j1 to the lastal options).
+  Often, this is only minusculely less accurate than gapped alignment.
+
+* The standard recipe discards alignments that have less than 99%
+  confidence (including multi-mappers).  If you wish to keep these,
+  increase the last-map-probs -m parameter:
+
+    ... | last-map-probs.py -s150 -m0.9 > myalns.maf
+
+* You can avoid temp files by using named pipes:
+
+    mkfifo pipe1 pipe2
+    lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 my_f reads.fastq > pipe1 &
+    lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 my_r reads.fastq > pipe2 &
+    last-merge-batches.py pipe1 pipe2 | last-map-probs.py -s150 > myalns.maf
+
+  This probably works best if you have enough memory for both my_f and
+  my_r (~30 GB for the human genome).
+
+* To reduce the memory requirement, use lastdb's -w option:
+
+    lastdb -w2 -u bisulfite_f.seed my_f mygenome.fa
+    lastdb -w2 -u bisulfite_r.seed my_r mygenome.fa
+
+  This makes the named pipe recipe use under 20 GB for the human
+  genome, and the accuracy was not harmed in our tests.
+
+* The .tis files created by lastdb (e.g. my_f.tis, my_r.tis) are
+  identical.  So you can shave a few GB by linking them:
+
+    ln -f my_f.tis my_r.tis

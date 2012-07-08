@@ -61,7 +61,7 @@ same way as the mitochondrial genomes:
   lastal -v mousedb cat/chr*.fa > myalns.maf
 
 This might take half a day, and use perhaps 9 gigabytes of memory.  If
-you do not have enough memory, then investigate lastdb's -s option.
+you do not have enough memory, investigate lastdb's -w and -s options.
 The -v (verbose) option just makes it write progress messages on the
 screen.
 

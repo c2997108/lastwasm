@@ -50,6 +50,13 @@ Advanced Options
       lastdb and then used by lastal.  These formats are described in
       lastal.txt.
 
+  -w STEP
+      Allow initial matches to start only at every STEP-th position in
+      each of the sequences given to lastdb.  This reduces the memory
+      usage of lastdb and lastal, and it makes lastdb faster.  Its
+      effect on the speed and sensitivity of lastal is not entirely
+      clear.  To emulate BLAT, use "-w 11".
+
   -s BYTES      
       Limit memory usage, by splitting the output files into smaller
       "volumes" if necessary.  This will limit the memory usage of
@@ -62,9 +69,9 @@ Advanced Options
       worked well with 6G, and "-s 1280M" has worked well with 2G.
 
       However, the output for one sequence is never split.  Since the
-      output files are several-fold bigger than the input, this means
-      that mammalian chromosomes cannot be processed using much less
-      than 2G.
+      output files are several-fold bigger than the input (unless you
+      use -w), this means that mammalian chromosomes cannot be
+      processed using much less than 2G (unless you use -w).
 
       There is a hard upper limit of about 4 billion sequence letters
       per volume.  Together with the previous point, this means that
@@ -89,13 +96,6 @@ Advanced Options
       For an example of the format, see yass.seed in the examples
       directory.
 
-  -w STEP
-      Allow initial matches to start only at every STEP-th position in
-      each of the sequences given to lastdb.  This reduces the memory
-      usage of lastdb and lastal, and it makes lastdb faster.  Its
-      effect on the speed and sensitivity of lastal is not entirely
-      clear.  To emulate BLAT, use "-w 11".
-
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)
       alphabet is equivalent to "-a ACGT".  The protein alphabet (-p)
@@ -116,6 +116,17 @@ Advanced Options
       case-sensitive.
 
   -v  Be verbose: write messages about what lastdb is doing.
+
+Running lastdb on more than 4 billion letters
+---------------------------------------------
+
+We recommend that you manually split such datasets into chunks of size
+~4 billion, and run lastdb separately on each chunk.  Suppose you have
+8 chunks, and 8 computers that each have 4 CPUs and ~24 GB of memory.
+It is convenient to dedicate one computer to each chunk.  You can then
+run 4 lastal processes in parallel against each chunk: they will share
+memory, and the operating system should cache the chunks for fast
+startup.
 
 Limitations
 -----------
