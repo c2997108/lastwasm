@@ -15,8 +15,8 @@ def logsum(x, y):
     b = min(x, y)
     return a + math.log(1 + math.exp(b-a))
 
-def mafScore(words):
-    for word in words:
+def mafScore(aLine):
+    for word in aLine.split():
         if word.startswith("score="):
             return float(word[6:])
     raise Exception("found an alignment without a score")
@@ -26,7 +26,7 @@ def namesAndScores(lines):
     scores = []
     for line in lines:
         if line[0] == "a":  # faster than line.startswith("a")
-            s = mafScore(line.split())
+            s = mafScore(line)
             scores.append(s)
             sLineCount = 0
         elif line[0] == "s":
@@ -68,7 +68,7 @@ def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
         if isWanted: print line,
         if line.isspace(): isWanted = True  # reset at end of maf paragraph
 
-def processOneBatch(lines, opts, temperature):
+def doOneBatch(lines, opts, temperature):
     queryNames, scores = namesAndScores(lines)
     denominators = scoreTotals(queryNames, scores, temperature)
     writeOneBatch(lines, queryNames, scores, denominators, opts, temperature)
@@ -90,10 +90,10 @@ def lastMapProbs(opts, args):
 
     for line in f:
         if line.startswith("# batch"):
-            processOneBatch(lines, opts, temperature)
+            doOneBatch(lines, opts, temperature)
             lines = []
         lines.append(line)
-    processOneBatch(lines, opts, temperature)
+    doOneBatch(lines, opts, temperature)
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
