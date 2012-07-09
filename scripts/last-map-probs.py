@@ -25,11 +25,11 @@ def namesAndScores(lines):
     queryNames = []
     scores = []
     for line in lines:
-        if line.startswith("a"):
+        if line[0] == "a":  # faster than line.startswith("a")
             s = mafScore(line.split())
             scores.append(s)
             sLineCount = 0
-        elif line.startswith("s"):
+        elif line[0] == "s":
             sLineCount += 1
             if sLineCount == 2: queryNames.append(line.split()[1])
             # maxsplit doesn't seem to make it faster
@@ -50,7 +50,7 @@ def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
     isWanted = True
     i = 0
     for line in lines:
-        if line.startswith("a"):
+        if line[0] == "a":
             s = scores[i]
             p = 1.0 - math.exp(s / temperature - denominators[queryNames[i]])
             i += 1
@@ -83,7 +83,7 @@ def lastMapProbs(opts, args):
     lines = []
 
     for line in fileinput.input(args):
-        if line.startswith("#"):
+        if line[0] == "#":
             for i in line.split():
                 if i.startswith("t="): temperature = float(i[2:])
         if line.startswith("# batch"):
