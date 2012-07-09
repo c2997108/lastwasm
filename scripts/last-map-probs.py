@@ -31,10 +31,9 @@ def namesAndScores(lines):
             sLineCount = 0
         elif line[0] == "s":
             sLineCount += 1
-            if sLineCount == 2: queryNames.append(line.split()[1])
-            # maxsplit doesn't seem to make it faster
+            if sLineCount == 2: queryNames.append(line.split(None, 2)[1])
         elif line[0].isdigit():  # we have an alignment in tabular format
-            w = line.split()
+            w = line.split(None, 7)
             scores.append(float(w[0]))
             queryNames.append(w[6])
     return queryNames, scores
