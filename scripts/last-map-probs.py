@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Copyright 2010, 2011 Martin C. Frith
+# Copyright 2010, 2011, 2012 Martin C. Frith
 
 # Read query-genome alignments: write them along with the probability
 # that each alignment is not the true mapping of its query.  These
@@ -14,14 +14,6 @@ def logsum(x, y):
     a = max(x, y)
     b = min(x, y)
     return a + math.log(1 + math.exp(b-a))
-
-def mismapProb(score, temperature, queryName, denominators):
-    x = score / temperature
-    y = denominators[queryName]
-    assert x <= y
-    prob = 1 - math.exp(x - y)
-    assert prob >= 0
-    return prob
 
 def mafScore(words):
     for word in words:
@@ -50,9 +42,8 @@ def namesAndScores(lines):
 def scoreTotals(queryNames, scores, temperature):
     denominators = {}
     for n, s in zip(queryNames, scores):
-        r = s / temperature
         d = denominators.get(n, -1e9)
-        denominators[n] = logsum(d, r)
+        denominators[n] = logsum(d, s / temperature)
     return denominators
 
 def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
@@ -61,7 +52,7 @@ def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
     for line in lines:
         if line.startswith("a"):
             s = scores[i]
-            p = mismapProb(s, temperature, queryNames[i], denominators)
+            p = 1.0 - math.exp(s / temperature - denominators[queryNames[i]])
             i += 1
             if s < opts.score or p > opts.mismap:
                 isWanted = False
@@ -70,7 +61,7 @@ def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
                 line = line.rstrip() + newLineEnd
         elif line[0].isdigit():  # we have an alignment in tabular format
             s = scores[i]
-            p = mismapProb(s, temperature, queryNames[i], denominators)
+            p = 1.0 - math.exp(s / temperature - denominators[queryNames[i]])
             i += 1
             if s < opts.score or p > opts.mismap: continue
             newLineEnd = "\t%g\n" % p
