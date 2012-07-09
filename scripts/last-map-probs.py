@@ -70,22 +70,26 @@ def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
         if line.isspace(): isWanted = True  # reset at end of maf paragraph
 
 def processOneBatch(lines, opts, temperature):
-    if not lines: return
-    if temperature < 0:
-        raise Exception("I need a header line with: t=(a positive value)")
-
     queryNames, scores = namesAndScores(lines)
     denominators = scoreTotals(queryNames, scores, temperature)
     writeOneBatch(lines, queryNames, scores, denominators, opts, temperature)
 
+def readHeaderOrDie(lines):
+    for line in lines:
+        if line.startswith("#") or line.isspace():
+            print line,
+            for i in line.split():
+                if i.startswith("t="):
+                    return float(i[2:])
+        else:
+            raise Exception("I need a header line with: t=(a positive value)")
+
 def lastMapProbs(opts, args):
-    temperature = -1
+    f = fileinput.input(args)
+    temperature = readHeaderOrDie(f)
     lines = []
 
-    for line in fileinput.input(args):
-        if line[0] == "#":
-            for i in line.split():
-                if i.startswith("t="): temperature = float(i[2:])
+    for line in f:
         if line.startswith("# batch"):
             processOneBatch(lines, opts, temperature)
             lines = []
