@@ -9,11 +9,11 @@
 
 import sys, os, fileinput, math, optparse, signal
 
-def logsum(x, y):
-    """log(exp(x) + exp(y))."""
-    a = max(x, y)
-    b = min(x, y)
-    return a + math.log(1 + math.exp(b-a))
+def logsum(numbers):
+    """Adds numbers, in log space, to avoid overflow."""
+    m = max(numbers)
+    s = sum(math.exp(i - m) for i in numbers)
+    return m + math.log(s)
 
 def mafScore(aLine):
     for word in aLine.split():
@@ -39,11 +39,10 @@ def namesAndScores(lines):
     return queryNames, scores
 
 def scoreTotals(queryNames, scores, temperature):
-    denominators = {}
+    queryLists = {}
     for n, s in zip(queryNames, scores):
-        d = denominators.get(n, -1e9)
-        denominators[n] = logsum(d, s / temperature)
-    return denominators
+        queryLists.setdefault(n, []).append(s / temperature)
+    return dict((k, logsum(v)) for k, v in queryLists.iteritems())
 
 def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
     isWanted = True
@@ -56,14 +55,14 @@ def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
             if s < opts.score or p > opts.mismap:
                 isWanted = False
             else:
-                newLineEnd = " mismap=%g\n" % p
+                newLineEnd = " mismap=%.3g\n" % p
                 line = line.rstrip() + newLineEnd
         elif line[0].isdigit():  # we have an alignment in tabular format
             s = scores[i]
             p = 1.0 - math.exp(s / temperature - denominators[queryNames[i]])
             i += 1
             if s < opts.score or p > opts.mismap: continue
-            newLineEnd = "\t%g\n" % p
+            newLineEnd = "\t%.3g\n" % p
             line = line.rstrip() + newLineEnd
         if isWanted: print line,
         if line.isspace(): isWanted = True  # reset at end of maf paragraph
