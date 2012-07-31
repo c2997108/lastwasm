@@ -26,6 +26,7 @@ Then find alignments, one strand at a time:
   lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 my_f reads.fastq > temp_f
   lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 my_r reads.fastq > temp_r
 
+Take care not to mistype these commands, especially f/r and s1/s0.
 Finally, merge the alignments and estimate which one represents the
 genomic source of each read:
 
@@ -88,3 +89,26 @@ Tips
   identical.  So you can shave a few GB by linking them:
 
     ln -f my_f.tis my_r.tis
+
+Paired-end DNA reads
+--------------------
+
+To align paired-end bisulfite-converted DNA reads to a genome, we need
+to combine the preceding recipe with the one in last-pair-probs.txt.
+It gets a bit complicated:
+
+  lastdb -u bisulfite_f.seed my_f mygenome.fa
+  lastdb -u bisulfite_r.seed my_r mygenome.fa
+
+  lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 -i1 my_f reads1.fastq > t1f
+  lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 -i1 my_r reads1.fastq > t1r
+  last-merge-batches.py t1f t1r > t1
+
+  lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 -i1 my_f reads2.fastq > t2f
+  lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 -i1 my_r reads2.fastq > t2r
+  last-merge-batches.py t2f t2r > t2
+
+  last-pair-probs.py t1 t2 > results.maf
+
+Alternatively, you can ignore the pairing and align all the reads as
+if they were unpaired.

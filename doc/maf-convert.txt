@@ -27,8 +27,9 @@ Options
 
   -d, --dictionary
          Include a dictionary of sequence lengths in the sam header
-         section.  This requires reading the input twice, so it must
-         be a real file (not a pipe).  This affects sam format only.
+         section (lines starting with @SQ).  This requires reading the
+         input twice, so it must be a real file (not a pipe).  This
+         affects sam format only.
 
   -l CHARS, --linesize=CHARS
          Write CHARS characters per line.  This affects blast and html
