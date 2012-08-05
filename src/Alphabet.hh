@@ -25,6 +25,9 @@ struct Alphabet{
 
   static const unsigned capacity = 256;
 
+  // does this alphabet start with the standard protein alphabet?
+  bool isProtein() const{ return letters.find( protein ) == 0; }
+
   // make an Alphabet from a string containing the "proper" letters
   void fromString( const std::string& alphString );
 

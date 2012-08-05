@@ -70,8 +70,7 @@ void makeScoreMatrix( const std::string& matrixFile ){
   if( !matrixFile.empty() ){
     scoreMatrix.fromString( matrixFile );
   }
-  else if( args.matchScore < 0 && args.mismatchCost < 0 &&
-	   alph.letters == alph.protein ){
+  else if( args.matchScore < 0 && args.mismatchCost < 0 && alph.isProtein() ){
     scoreMatrix.fromString( scoreMatrix.blosum62 );
   }
   else{
@@ -741,8 +740,7 @@ void lastal( int argc, char** argv ){
   readOuterPrj( args.lastdbName + ".prj",
                 volumes, isCaseSensitiveSeeds, refSequences, refLetters );
 
-  args.setDefaultsFromAlphabet( alph.letters == alph.dna,
-				alph.letters == alph.protein,
+  args.setDefaultsFromAlphabet( alph.letters == alph.dna, alph.isProtein(),
                                 isCaseSensitiveSeeds, volumes > 1 );
   makeScoreMatrix( matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost,

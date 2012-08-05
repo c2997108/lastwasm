@@ -100,8 +100,7 @@ void makeScoreMatrix( const std::string& matrixFile ){
   if( !matrixFile.empty() ){
     scoreMatrix.fromString( matrixFile );
   }
-  else if( args.matchScore < 0 && args.mismatchCost < 0 &&
-           alph.letters == alph.protein ){
+  else if( args.matchScore < 0 && args.mismatchCost < 0 && alph.isProtein() ){
     scoreMatrix.fromString( scoreMatrix.blosum62 );
   }
   else{
@@ -206,8 +205,7 @@ void writeScoreAndEvalue( int score ){
 }
 
 void writeEvalues( const std::string& matrixString ){
-  args.setDefaultsFromAlphabet( alph.letters == alph.dna,
-                                alph.letters == alph.protein );
+  args.setDefaultsFromAlphabet( alph.letters == alph.dna, alph.isProtein() );
   makeScoreMatrix( matrixString );
   makeStrandStats();
   makeEvaluer();
@@ -335,8 +333,7 @@ void parseHeader( const std::vector<std::string>& lines,
   if( headerMatrix.empty() || a < 0 || b < 0 || j < 0 || s < 0 ){
     if( !isDefinedScoringScheme() )
       ERR( "please define all match, mismatch, and gap scores" );
-    args.setDefaultsFromAlphabet( alph.letters == alph.dna,
-                                  alph.letters == alph.protein );
+    args.setDefaultsFromAlphabet( alph.letters == alph.dna, alph.isProtein() );
     makeScoreMatrix( matrixString );
     makeStrandStats();
   }
