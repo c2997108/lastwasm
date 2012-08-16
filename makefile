@@ -12,12 +12,12 @@ install: all
 clean:
 	@cd src && $(MAKE) clean
 
-VERSION = `svnversion .`
+distdir = last-`svnversion .`
 
 dist: log
 	@cd src && $(MAKE) version.hh
-	rsync -rC --exclude 'last??' d* e* makefile s* *.txt last-$(VERSION)
-	zip -qrm archive/last-$(VERSION) last-$(VERSION)
+	rsync -rC --exclude 'last??' doc examples makefile s* *.txt $(distdir)
+	zip -qrm archive/$(distdir) $(distdir)
 
 log:
 	svn log > ChangeLog.txt
