@@ -138,14 +138,14 @@ for line in fileinput.input(args):
     if line.startswith('#'):
         body = line[1:].strip()
         words = body.split()
-        m1 = re.search(r'a=(\d+) b=(\d+) c=(\d+)', body)
-        m2 = re.search(r'u=(\d+)', body)
         m3 = re.match(r'\S(\s+\S)*$', body)
         m4 = re.match(r'\S(\s+-?\d+)+$', body)
-        if m1:
-            gap_open, gap_extend, gap_pair = map(int, m1.groups())
-        elif m2:
-            mask_lowercase = (m2.group(1) == "3")
+        if '=' in line:
+            for i in words:
+                if i.startswith("a="): gap_open = int(i[2:])
+                if i.startswith("b="): gap_extend = int(i[2:])
+                if i.startswith("c="): gap_pair = int(i[2:])
+                if i == "u=3": mask_lowercase = True
         elif m3 and not columns:
             columns = words
         elif m4 and len(words) == len(columns) + 1:
