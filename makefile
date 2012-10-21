@@ -12,9 +12,12 @@ install: all
 clean:
 	@cd src && $(MAKE) clean
 
+html:
+	@cd doc && $(MAKE)
+
 distdir = last-`svnversion .`
 
-dist: log
+dist: log html
 	@cd src && $(MAKE) version.hh
 	rsync -rC --exclude 'last??' doc examples makefile s* *.txt $(distdir)
 	zip -qrm archive/$(distdir) $(distdir)
