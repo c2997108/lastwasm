@@ -13,6 +13,10 @@ writes several files whose names begin with humanDb.  The lastal
 command reads files called dna*.fasta, compares them to humanDb, and
 writes alignments to a file called myalns.maf.
 
+The special file name "-" reads standard input.  For example:
+
+  zcat seqs.fasta.gz | lastal humanDb - > myalns.maf
+
 Steps in lastal
 ---------------
 

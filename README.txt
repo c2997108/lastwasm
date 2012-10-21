@@ -21,25 +21,21 @@ Setup
 -----
 
 Using the command line, go into the top-level LAST directory.  To
-install the programs into your personal "bin" directory, use this
-command:
-
-  make install bindir=~/bin
-
-You might have to log out and back in before your computer recognizes
-the newly-installed programs.  To install them in
-some/other/directory, do this:
-
-  make install bindir=some/other/directory
-
-To compile the programs in-place (without installing them elsewhere):
+compile the programs, type:
 
   make
 
-If you have administrator permissions, you can install them in the
-standard /usr/local/bin directory, like this:
+Optionally, copy the programs and scripts to a standard "bin"
+directory (using "sudo" to request administrator permissions):
 
   sudo make install
+
+Or copy them to your personal bin directory:
+
+  make install prefix=~
+
+You might have to log out and back in before your computer recognizes
+the new programs.
 
 Miscellaneous
 -------------
