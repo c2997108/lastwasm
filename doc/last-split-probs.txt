@@ -9,18 +9,18 @@ genome (e.g. if the query crosses a rearrangement breakpoint).
 Typical usage
 -------------
 
-These commands align the queries in "q.fastq" to "genome.fasta":
+These commands align the queries in "q.fastq" to "genome.fasta"::
 
   lastdb -m1111110 myDB genome.fasta
   lastal -Q1 -d108 -e120 myDB q.fastq | last-split-probs.py -s150 > out.maf
 
-(The purpose of -d108, -e120, and -s150 is explained in
-last-map-probs.txt.)
+(The purpose of -d108, -e120, and -s150 is explained in the
+last-map-probs document.)
 
 Output
 ------
 
-The output is in MAF(-like) format:
+The output is in MAF(-like) format::
 
   a score=150 mismap=0.000413
   s chr21  15963638 25 + 48129895 TCAGATGAGGACCTAATTTATTACT
@@ -36,27 +36,27 @@ part of the genome.  It uses a compact code:
   ======  =================   ======  =================
   Symbol  Error probability   Symbol  Error probability
   ------  -----------------   ------  -----------------
-    !     0.79 -- 1             0     0.025 -- 0.032
-    "     0.63 -- 0.79          1     0.02  -- 0.025
-    #     0.5  -- 0.63          2     0.016 -- 0.02
-    $     0.4  -- 0.5           3     0.013 -- 0.016
-    %     0.32 -- 0.4           4     0.01  -- 0.013
-    &     0.25 -- 0.32          5     0.0079 -- 0.01
-    '     0.2  -- 0.25          6     0.0063 -- 0.0079
-    (     0.16 -- 0.2           7     0.005  -- 0.0063
-    )     0.13 -- 0.16          8     0.004  -- 0.005
-    *     0.1  -- 0.13          9     0.0032 -- 0.004
-    +     0.079 -- 0.1          :     0.0025 -- 0.0032
-    ,     0.063 -- 0.079        ;     0.002  -- 0.0025
-    -     0.05  -- 0.063        <     0.0016 -- 0.002
-    .     0.04  -- 0.05         =     0.0013 -- 0.0016
-    /     0.032 -- 0.04         >     0.001  -- 0.0013
+  ``!``   0.79 -- 1           ``0``   0.025 -- 0.032
+  ``"``   0.63 -- 0.79        ``1``   0.02  -- 0.025
+  ``#``   0.5  -- 0.63        ``2``   0.016 -- 0.02
+  ``$``   0.4  -- 0.5         ``3``   0.013 -- 0.016
+  ``%``   0.32 -- 0.4         ``4``   0.01  -- 0.013
+  ``&``   0.25 -- 0.32        ``5``   0.0079 -- 0.01
+  ``'``   0.2  -- 0.25        ``6``   0.0063 -- 0.0079
+  ``(``   0.16 -- 0.2         ``7``   0.005  -- 0.0063
+  ``)``   0.13 -- 0.16        ``8``   0.004  -- 0.005
+  ``*``   0.1  -- 0.13        ``9``   0.0032 -- 0.004
+  ``+``   0.079 -- 0.1        ``:``   0.0025 -- 0.0032
+  ``,``   0.063 -- 0.079      ``;``   0.002  -- 0.0025
+  ``-``   0.05  -- 0.063      ``<``   0.0016 -- 0.002
+  ``.``   0.04  -- 0.05       ``=``   0.0013 -- 0.0016
+  ``/``   0.032 -- 0.04       ``>``   0.001  -- 0.0013
   ======  =================   ======  =================
 
 Other symbols indicate lower error probabilities, and "~" is the
-lowest possible.  In general:
+lowest possible.  In general::
 
-  Error probability <= 10 ^ -((ASCII value - 33) / 10).
+  Error probability <= 10 ^ -((ASCII value - 33) / 10)
 
 The "mismap" is simply the lowest probability from the "p" line.
 
@@ -76,7 +76,7 @@ Alternative usage
 
 The "typical usage" discards alignment parts that are unreliable (low
 score or high mismap probability).  To see a complete split-alignment
-for each query, do this:
+for each query, do this::
 
   lastal -Q1 -d108 -e120 myDB q.fastq | last-split-probs.py -m1 > out.maf
 
@@ -90,9 +90,9 @@ Details
   parameters.
 
 * The script reads one batch of alignments at a time (by looking for
-  lines starting with "# batch").  If the batches are huge, it might
-  need too much memory.  You can make the batches smaller using
-  lastal's -i option.
+  lines starting with "# batch").  If the batches are huge
+  (e.g. because there are no lines starting with "# batch"), it might
+  need too much memory.
 
 * lastal can optionally write "p" lines, indicating the probability
   that each base is misaligned due to wrong gap placement.
@@ -102,7 +102,8 @@ Details
   maximum of the two error probabilities for each base.
 
 * The script assumes that the same score parameters were used for all
-  alignments.  So it is incompatible with the recipe in bisulfite.txt.
+  alignments.  So it is incompatible with the recipe in the bisulfite
+  document.
 
 Limitations
 -----------

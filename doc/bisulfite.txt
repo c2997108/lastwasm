@@ -16,19 +16,19 @@ reads are from the converted strand, and not its reverse-complement
 (i.e. they have C->T conversions and not G->A conversions).
 
 First, we need to run lastdb twice, for forward-strand and
-reverse-strand alignments:
+reverse-strand alignments::
 
   lastdb -u bisulfite_f.seed my_f mygenome.fa
   lastdb -u bisulfite_r.seed my_r mygenome.fa
 
-Then find alignments, one strand at a time:
+Then find alignments, one strand at a time::
 
   lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 my_f reads.fastq > temp_f
   lastal -p bisulfite_r.mat -s0 -Q1 -d108 -e120 my_r reads.fastq > temp_r
 
 Take care not to mistype these commands, especially f/r and s1/s0.
 Finally, merge the alignments and estimate which one represents the
-genomic source of each read:
+genomic source of each read::
 
   last-merge-batches.py temp_f temp_r | last-map-probs.py -s150 > myalns.maf
 
@@ -45,7 +45,7 @@ It is possible that the reads with C are easier to align, so we align
 more of them.  The methylation rate would then look higher than 50%.
 
 We can avoid this bias by converting all Cs in the reads to Ts, before
-aligning them:
+aligning them::
 
   perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_f - > temp_f
   perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_r - > temp_r
@@ -63,11 +63,11 @@ Tips
 
 * The standard recipe discards alignments that have less than 99%
   confidence (including multi-mappers).  If you wish to keep these,
-  increase the last-map-probs -m parameter:
+  increase the last-map-probs -m parameter::
 
     ... | last-map-probs.py -s150 -m0.9 > myalns.maf
 
-* You can avoid temp files by using named pipes:
+* You can avoid temp files by using named pipes::
 
     mkfifo pipe1 pipe2
     lastal -p bisulfite_f.mat -s1 -Q1 -d108 -e120 my_f reads.fastq > pipe1 &
@@ -77,7 +77,7 @@ Tips
   This probably works best if you have enough memory for both my_f and
   my_r (~30 GB for the human genome).
 
-* To reduce the memory requirement, use lastdb's -w option:
+* To reduce the memory requirement, use lastdb's -w option::
 
     lastdb -w2 -u bisulfite_f.seed my_f mygenome.fa
     lastdb -w2 -u bisulfite_r.seed my_r mygenome.fa
@@ -86,7 +86,7 @@ Tips
   genome, and the accuracy was not harmed in our tests.
 
 * The .tis files created by lastdb (e.g. my_f.tis, my_r.tis) are
-  identical.  So you can shave a few GB by linking them:
+  identical.  So you can shave a few GB by linking them::
 
     ln -f my_f.tis my_r.tis
 
@@ -94,8 +94,8 @@ Paired-end DNA reads
 --------------------
 
 To align paired-end bisulfite-converted DNA reads to a genome, we need
-to combine the preceding recipe with the one in last-pair-probs.txt.
-It gets a bit complicated:
+to combine the preceding recipe with the one in the last-pair-probs
+document.  It gets a bit complicated::
 
   lastdb -u bisulfite_f.seed my_f mygenome.fa
   lastdb -u bisulfite_r.seed my_r mygenome.fa
