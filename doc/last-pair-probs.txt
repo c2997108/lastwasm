@@ -1,16 +1,16 @@
-last-pair-probs.py
-==================
+last-pair-probs
+===============
 
 This script reads alignments of paired DNA reads to a genome, and:
-(1) estimates the distribution of distances between paired reads,
-(2) estimates the probability that each alignment represents the
-genomic source of the read.
+
+1. estimates the distribution of distances between paired reads,
+2. estimates the probability that each alignment represents the
+   genomic source of the read.
 
 The script takes as input two files of alignments, where one read from
 each pair is in one file, and the other read is in the other file.
 
-Typical usage
--------------
+Typical usage::
 
   lastdb -m1111110 humandb human/chr*.fa
   lastal -Q1 -d108 -e120 -i1 humandb reads1.fastq > temp1.maf
@@ -18,7 +18,7 @@ Typical usage
   last-pair-probs.py temp1.maf temp2.maf > results.maf
 
 If your reads come from potentially-spliced RNA molecules, use the -r
-option:
+option::
 
   last-pair-probs.py -r temp1.maf temp2.maf > results.maf
 
@@ -105,7 +105,7 @@ Tips
   distribution from a sample of your data (using -e), then analyze all
   your data with this estimate (using -f and -s).
 
-* You can avoid temp files by using named pipes:
+* You can avoid temp files by using named pipes::
 
     mkfifo pipe1 pipe2
     lastal -Q1 -d108 -e120 -i1 humandb reads1.fastq > pipe1 &
@@ -121,3 +121,43 @@ Tips
   alignment.
 
 * Tabular output (lastal option -f0) is smaller and faster.
+
+Using multiple CPUs
+-------------------
+
+With large datasets, it's important to go faster by using multiple
+CPUs.  One way to do that is by using GNU parallel
+(http://www.gnu.org/software/parallel/), as follows.
+
+* Split reads1.fastq into multiple files, with (say) 100000 reads per
+  file::
+
+    split -l400000 -a5 reads1.fastq 1
+
+  This assumes that a new fastq record begins every 4th line, i.e. no
+  line wrapping.  The created files will be called 1aaaaa, 1aaaab,
+  etc.
+
+* Split reads2.fastq::
+
+    split -l400000 -a5 reads2.fastq 2
+
+* Make a file called (say) last-pair.sh, with the following content
+  (or similar - you might want to use -r, -j1, etc)::
+
+    #! /bin/sh
+    lastal -Q1 -d108 -e120 -i1 "$3" "$4" > /tmp/$$.1
+    lastal -Q1 -d108 -e120 -i1 "$3" "$5" > /tmp/$$.2
+    last-pair-probs.py -f "$1" -s "$2" /tmp/$$.1 /tmp/$$.2
+    rm /tmp/$$.*
+
+* Set execute permission::
+
+    chmod +x last-pair.sh
+
+* Run it in parallel on all your CPU cores::
+
+    parallel --xapply ./last-pair.sh 250 30 humandb ::: 1* ::: 2* > results.maf
+
+  Here we have specified a mean distance of 250 and a standard
+  deviation of 30.
