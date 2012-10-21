@@ -9,7 +9,7 @@ Example 1: Compare the human and fugu mitochondrial genomes
 For our first example, we wish to find and align similar regions
 between the human and fugu mitochondrial genomes.  You can find these
 sequences in the examples directory: humanMito.fa and fuguMito.fa.  We
-can compare them like this:
+can compare them like this::
 
   lastdb -c humdb humanMito.fa
   lastal humdb fuguMito.fa > myalns.maf
@@ -27,11 +27,11 @@ Understanding the output
 
 The output has very long lines, so you need to view it without
 line-wrapping.  For example, with a Unix/Linux/MacOsX command line,
-you can use:
+you can use::
 
   less -S myalns.maf
 
-Each alignment looks like this:
+Each alignment looks like this::
 
   a score=85
   s humanMito 1742 289 + 16571 AGTATAGGCGATAGAAATTGAAACCTGGCGCAAT...
@@ -49,13 +49,13 @@ strand.
 
 This alignment format is called MAF (multiple alignment format), and
 it is described in the UCSC Genome FAQ.  You can convert it to several
-other formats using maf-convert.py, which accompanies LAST.
+other formats using maf-convert, which accompanies LAST.
 
 Example 2: Compare the cat and mouse genomes
 --------------------------------------------
 
 Although these sequences are much larger, we can compare them in the
-same way as the mitochondrial genomes:
+same way as the mitochondrial genomes::
 
   lastdb -v -c mousedb mouse/chr*.fa
   lastal -v mousedb cat/chr*.fa > myalns.maf
@@ -68,7 +68,7 @@ screen.
 Example 3: Compare vertebrate proteins to invertebrate proteins
 ---------------------------------------------------------------
 
-Use the lastdb -p option to indicate that the sequences are proteins:
+Use the lastdb -p option to indicate that the sequences are proteins::
 
   lastdb -p -c invdb invertebrate.fa
   lastal invdb vertebrate.fa
@@ -76,11 +76,11 @@ Use the lastdb -p option to indicate that the sequences are proteins:
 Example 4: Compare DNA sequences to protein sequences
 -----------------------------------------------------
 
+Here we use the -F15 option, to specify translated alignment with a
+score penalty of 15 for frameshifts::
+
   lastdb -p -c protdb proteins.fa
   lastal -F15 protdb dnas.fa
-
-The -F15 option specifies translated alignment, with a score penalty
-of 15 for frameshifts.
 
 Example 5: Calculate E-values of alignment scores
 -------------------------------------------------
@@ -93,7 +93,7 @@ To solve this dilemma, it is useful to know what alignment scores are
 likely between completely random sequences.  For example, let us find
 what alignment scores are likely between two random sequences with the
 same lengths and base frequencies as the human and fugu mitochondrial
-genomes:
+genomes::
 
   lastdb -x humdb humanMito.fa
   lastdb -x fugdb fuguMito.fa
@@ -103,7 +103,7 @@ The lastdb commands count bases, and write them in files called
 humdb.prj and fugdb.prj.  The -x option tells it to only count bases
 and skip its usual preparation steps.  The lastex command prints a
 table of scores and expected numbers of alignments.  Here is an
-abbreviated version:
+abbreviated version::
 
   Score	     Expected number of alignments
   39	     8.44e-11
@@ -116,7 +116,7 @@ alignments of score 12 or more between random sequences with these
 lengths and base frequencies.  Also, 22 is the minimum score such that
 the average number of alignments is no more than 0.01.
 
-Finally, we can find alignments with score at least 22 like this:
+Finally, we can find alignments with score at least 22 like this::
 
   lastdb -c humdb humanMito.fa
   lastal -e22 humdb fuguMito.fa > myalns.maf
@@ -125,7 +125,8 @@ Example 6: Align human DNA reads to the human genome
 ----------------------------------------------------
 
 Let's assume we have DNA reads in a file called reads.fastq, in
-fastq-sanger format.  We can align them to the human genome like this:
+fastq-sanger format.  We can align them to the human genome like
+this::
 
   lastdb -m1111110 humandb human/chr*.fa
   lastal -Q1 humandb reads.fastq > myalns.maf
@@ -136,12 +137,12 @@ alignments.)  The -Q1 option indicates that the reads are in
 fastq-sanger format.
 
 Often, one read will align to more than one genome location.  You can
-use last-map-probs.py to help judge which location reflects the origin
-of the read.  Please see the "typical usage" recipe in
-last-map-probs.txt.
+use last-map-probs to help judge which location reflects the origin of
+the read.  Please see the "typical usage" recipe in the last-map-probs
+document.
 
-If you have paired end reads, then last-pair-probs.py may be useful
-(see last-pair-probs.txt).
+If you have paired end reads, then last-pair-probs may be useful (see
+its document).
 
 Fastq format confusion
 ----------------------
@@ -155,13 +156,13 @@ Alignment scoring schemes
 -------------------------
 
 The default DNA scoring scheme used by lastal is tuned for finding
-long, weak alignments.  It is:
+long, weak alignments.  It is::
 
   match score = 1,  mismatch cost = 1,  gap cost = 7 + 1 * (gap length),
   minimum alignment score = 40
 
 However, if you use option -Q1 (or -Q3), it uses a different scoring
-scheme tuned for finding short, strong alignments:
+scheme tuned for finding short, strong alignments::
 
   match score = 6,  mismatch cost = 18,  gap cost = 21 + 9 * (gap length),
   minimum alignment score = 180
@@ -173,7 +174,7 @@ Example 7: Align human fasta reads to the human genome
 
 Suppose we have DNA reads in fasta format (without quality data)
 instead of fastq.  We need to omit the -Q option, but we wish to use
-the same scoring scheme as -Q1:
+the same scoring scheme as -Q1::
 
   lastdb -m1111110 humandb human/chr*.fa
   lastal -r6 -q18 -a21 -b9 -e180 genomedb reads.fa
@@ -211,7 +212,7 @@ to e*3/5: if it is too low, lastal becomes slow.
 Example 9: Ambiguity of alignment columns
 -----------------------------------------
 
-Consider this alignment:
+Consider this alignment::
 
   TGAAGTTAAAGGTATATGAATTCCAATTCTTAACCCCCCTATTAAACGAATATCTTG
   |||||||| ||||||  |  ||  | |  |    || ||||||   |||||||||||
@@ -221,12 +222,12 @@ The middle section has such weak similarity that its precise alignment
 cannot be confidently inferred.
 
 It is sometimes useful to estimate the ambiguity of each column in an
-alignment.  We can do that using lastal option -j4:
+alignment.  We can do that using lastal option -j4::
 
   lastdb -c humdb humanMito.fa
   lastal -j4 humdb fuguMito.fa > myalns.maf
 
-The output looks like this:
+The output looks like this::
 
   a score=17
   s seqX 0 57 + 57 TGAAGTTAAAGGTATATGAATTCCAATTCTTAACCCCCCTATTAAACGAATATCTTG
@@ -239,21 +240,21 @@ aligned, using a compact code (the same as fastq-sanger format):
   ======  =================   ======  =================
   Symbol  Error probability   Symbol  Error probability
   ------  -----------------   ------  -----------------
-    !     0.79 -- 1             0     0.025 -- 0.032
-    "     0.63 -- 0.79          1     0.02  -- 0.025
-    #     0.5  -- 0.63          2     0.016 -- 0.02
-    $     0.4  -- 0.5           3     0.013 -- 0.016
-    %     0.32 -- 0.4           4     0.01  -- 0.013
-    &     0.25 -- 0.32          5     0.0079 -- 0.01
-    '     0.2  -- 0.25          6     0.0063 -- 0.0079
-    (     0.16 -- 0.2           7     0.005  -- 0.0063
-    )     0.13 -- 0.16          8     0.004  -- 0.005
-    *     0.1  -- 0.13          9     0.0032 -- 0.004
-    +     0.079 -- 0.1          :     0.0025 -- 0.0032
-    ,     0.063 -- 0.079        ;     0.002  -- 0.0025
-    -     0.05  -- 0.063        <     0.0016 -- 0.002
-    .     0.04  -- 0.05         =     0.0013 -- 0.0016
-    /     0.032 -- 0.04         >     0.001  -- 0.0013
+  ``!``   0.79 -- 1           ``0``   0.025 -- 0.032
+  ``"``   0.63 -- 0.79        ``1``   0.02  -- 0.025
+  ``#``   0.5  -- 0.63        ``2``   0.016 -- 0.02
+  ``$``   0.4  -- 0.5         ``3``   0.013 -- 0.016
+  ``%``   0.32 -- 0.4         ``4``   0.01  -- 0.013
+  ``&``   0.25 -- 0.32        ``5``   0.0079 -- 0.01
+  ``'``   0.2  -- 0.25        ``6``   0.0063 -- 0.0079
+  ``(``   0.16 -- 0.2         ``7``   0.005  -- 0.0063
+  ``)``   0.13 -- 0.16        ``8``   0.004  -- 0.005
+  ``*``   0.1  -- 0.13        ``9``   0.0032 -- 0.004
+  ``+``   0.079 -- 0.1        ``:``   0.0025 -- 0.0032
+  ``,``   0.063 -- 0.079      ``;``   0.002  -- 0.0025
+  ``-``   0.05  -- 0.063      ``<``   0.0016 -- 0.002
+  ``.``   0.04  -- 0.05       ``=``   0.0013 -- 0.0016
+  ``/``   0.032 -- 0.04       ``>``   0.001  -- 0.0013
   ======  =================   ======  =================
 
 Note that each alignment is grown from a "core" region, and the
@@ -261,4 +262,4 @@ ambiguity estimates assume that the core is correctly aligned.  The
 core is indicated by "~" symbols, and it contains exact matches only.
 
 LAST has options to find alignments with optimal column probabilities,
-instead of optimal score: see lastal.txt.
+instead of optimal score: see the lastal document.
