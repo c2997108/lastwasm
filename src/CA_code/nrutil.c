@@ -199,7 +199,7 @@ int nrl,nrh,ncl,nch;
 }
 
 void free_darray3(m,n1l,n1h,n2l,n2h,n3l,n3h)
-int ***m;
+double ***m;
 int n1l,n1h,n2l,n2h,n3l,n3h;
 {
 	int i;
