@@ -9,8 +9,12 @@ ${DOCS}: last-doc.css Makefile
 
 .SUFFIXES: .html .txt
 
-RST_CSS = `locate html4css1.css | head -n1`
+# Below, we face 2 problems:
+# 1. Figure out where html4css1.css is.
+# 2. Work with rst2html version 0.4.1, which only allows one stylesheet-path.
+
 # Ugh!  Is there a better way?
+RST_CSS = `locate html4css1.css | head -n1`
 
 .txt.html:
-	rst2html --stylesheet-path ${RST_CSS},last-doc.css --initial-header-level=2 $< $@
+	cat ${RST_CSS} last-doc.css | rst2html --stylesheet-path=/dev/stdin --initial-header-level=2 $< $@
