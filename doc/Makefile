@@ -9,7 +9,8 @@ ${DOCS}: last-doc.css Makefile
 
 .SUFFIXES: .html .txt
 
-RST_CSS = /usr/share/docutils/writers/html4css1/html4css1.css
+RST_CSS = `locate html4css1.css | head -n1`
+# Ugh!  Is there a better way?
 
 .txt.html:
 	rst2html --stylesheet-path ${RST_CSS},last-doc.css --initial-header-level=2 $< $@
