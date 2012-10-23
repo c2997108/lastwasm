@@ -138,11 +138,11 @@ fastq-sanger format.
 
 Often, one read will align to more than one genome location.  You can
 use last-map-probs to help judge which location reflects the origin of
-the read.  Please see the "typical usage" recipe in the last-map-probs
-document.
+the read.  Please see the "typical usage" recipe in
+`<last-map-probs.html>`_.
 
 If you have paired end reads, then last-pair-probs may be useful (see
-its document).
+`<last-pair-probs.html>`_).
 
 Fastq format confusion
 ----------------------
@@ -262,4 +262,4 @@ ambiguity estimates assume that the core is correctly aligned.  The
 core is indicated by "~" symbols, and it contains exact matches only.
 
 LAST has options to find alignments with optimal column probabilities,
-instead of optimal score: see the lastal document.
+instead of optimal score: see `<lastal.txt>`_.
