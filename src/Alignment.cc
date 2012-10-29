@@ -1,6 +1,7 @@
 // Copyright 2008, 2009, 2011, 2012 Martin C. Frith
 
 #include "Alignment.hh"
+#include "Alphabet.hh"
 #include "Centroid.hh"
 #include "GappedXdropAligner.hh"
 #include "GeneticCode.hh"
@@ -19,6 +20,51 @@ void Alignment::fromSegmentPair( const SegmentPair& sp ){
   score = sp.score;
 }
 
+static void addExpectedCounts( double* expectedCounts,
+			       const ExpectedCount& ec,
+			       const Alphabet& alph ){
+  for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
+    unsigned x = alph.canonical[i];
+    if( x >= alph.size ) continue;
+    for( unsigned j = 0; j < scoreMatrixRowSize; ++j ){
+      unsigned y = alph.canonical[j];
+      if( y >= alph.size ) continue;
+      expectedCounts[ x * alph.size + y ] += ec.emit[i][j];
+    }
+  }
+
+  const int numEmissionCounts = alph.size * alph.size;
+  double* transitionCounts = &expectedCounts[ numEmissionCounts ];
+
+  transitionCounts[0] += ec.MM + ec.DM + ec.IM + ec.PM;  // match count
+  transitionCounts[1] += ec.DD + ec.DM + ec.DI;  // deleted letter count
+  transitionCounts[2] += ec.II + ec.IM;  // inserted letter count
+  transitionCounts[3] += ec.DM + ec.DI;  // deletion open/close count
+  transitionCounts[4] += ec.IM;  // insertion open/close count
+  transitionCounts[5] += ec.DI;  // adjacent insertion & deletion count
+  transitionCounts[7] += ec.PP + ec.MP;  // unaligned letter pair count
+  transitionCounts[6] += ec.MP;  // pair-gap open/close count
+  transitionCounts[8] += ec.PD;
+  transitionCounts[9] += ec.PI;
+  // MD = DM + DI - PD
+  // MI = IM - DI - PI
+  // PM = MP - PD - PI
+  // DM + IM + PM = MD + MI + MP
+  // SM, SD, SP, SI seem to be always zero.
+  // MQ, SQ ?
+}
+
+static void countSeedMatches( double* expectedCounts,
+			      const uchar* seq1beg, const uchar* seq1end,
+			      const uchar* seq2beg, const Alphabet& alph ){
+  while( seq1beg < seq1end ){
+    unsigned x1 = alph.canonical[ *seq1beg++ ];
+    unsigned x2 = alph.canonical[ *seq2beg++ ];
+    if( x1 < alph.size && x2 < alph.size )
+      ++expectedCounts[ x1 * alph.size + x2 ];
+  }
+}
+
 // Does x precede and touch y in both sequences?
 static bool isNext( const SegmentPair& x, const SegmentPair& y ){
   return x.end1() == y.beg1() && x.end2() == y.beg2();
@@ -32,14 +78,26 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 			   const int pssm2[][MAT],
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2,
+			   const Alphabet& alph,
 			   double gamma, int outputType ){
   score = seed.score;
+
+  if( outputType == 7 ){
+    assert( seed.size > 0 );  // makes things easier to understand
+    const int numEmissionCounts = alph.size * alph.size;
+    const int numTransitionCounts = 10;
+    expectedCounts.resize( numEmissionCounts + numTransitionCounts );
+    countSeedMatches( &expectedCounts[0],
+		      seq1 + seed.beg1(), seq1 + seed.end1(),
+		      seq2 + seed.beg2(), alph );
+    expectedCounts[ numEmissionCounts ] += seed.size;  // match count
+  }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
   extend( blocks, columnAmbiguityCodes, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), false,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
-	  frameSize, pssm2, sm2qual, qual1, qual2, gamma, outputType );
+	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
   indexT seedBeg1 = seed.beg1();
@@ -55,7 +113,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
   extend( forwardBlocks, forwardAmbiguities, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), true,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
-	  frameSize, pssm2, sm2qual, qual1, qual2, gamma, outputType );
+	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
   indexT seedEnd1 = seed.end1();
@@ -157,7 +215,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			const int pssm2[][MAT],
                         const TwoQualityScoreMatrix& sm2qual,
                         const uchar* qual1, const uchar* qual2,
-			double gamma, int outputType ){
+			const Alphabet& alph, double gamma, int outputType ){
   if( frameSize ){
     assert( outputType < 4 );
     assert( !pssm2 );
@@ -201,7 +259,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			       gap.insExist, gap.insExtend,
 			       gap.pairExtend, maxDrop, smMax );
 
-  if( outputType < 5 ){  // ordinary alignment, not gamma-centroid
+  if( outputType < 5 || outputType == 7 ){  // ordinary max-score alignment
     std::size_t end1, end2, size;
     while( aligner.getNextChunk( end1, end2, size,
 				 gap.delExist, gap.delExtend,
@@ -217,11 +275,18 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     centroid.forward( seq1, seq2, start1, start2, isForward, gap );
     centroid.backward( seq1, seq2, start1, start2, isForward, gap );
 
-    if( outputType > 4 ){  // do gamma-centroid alignment
+    if( outputType > 4 && outputType < 7 ){  // gamma-centroid / LAMA alignment
       centroid.dp( gamma );
       centroid.traceback( chunks, gamma );
     }
 
     centroid.getColumnAmbiguities( ambiguityCodes, chunks, isForward );
+
+    if( outputType == 7 ){
+      ExpectedCount ec;
+      centroid.computeExpectedCounts( seq1, seq2, start1, start2,
+				      isForward, gap, ec );
+      addExpectedCounts( &expectedCounts[0], ec, alph );
+    }
   }
 }

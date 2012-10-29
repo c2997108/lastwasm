@@ -189,6 +189,13 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
     os << '\n';
   }
 
+  if( expectedCounts.size() > 0 ){
+    os << 'c';
+    for( unsigned i = 0; i < expectedCounts.size(); ++i )
+      os << ' ' << expectedCounts[i];
+    os << '\n';
+  }
+
   os << '\n';  // blank line afterwards
 }
 

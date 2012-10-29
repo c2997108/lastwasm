@@ -232,7 +232,7 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'j':
       unstringify( outputType, optarg );
-      if( outputType < 0 || outputType > 6 ) badopt( c, optarg );
+      if( outputType < 0 || outputType > 7 ) badopt( c, optarg );
       break;
     case '?':
       ERR( "bad option" );

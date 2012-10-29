@@ -42,7 +42,7 @@ struct Alignment{
 		  const int pssm2[][MAT],
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2,
-		  double gamma = 0, int outputType = 0 );
+		  const Alphabet& alph, double gamma = 0, int outputType = 0 );
 
   // Check that the Alignment has no prefix with score <= 0, no suffix
   // with score <= 0, and no sub-segment with score < -maxDrop.
@@ -64,6 +64,7 @@ struct Alignment{
   int score;
   SegmentPair seed;  // the alignment remembers its seed
   std::vector<uchar> columnAmbiguityCodes;  // char or uchar?
+  std::vector<double> expectedCounts;  // expected emission & transition counts
 
   indexT beg1() const{ return blocks.front().beg1(); }
   indexT beg2() const{ return blocks.front().beg2(); }
@@ -81,7 +82,7 @@ struct Alignment{
 	       const int pssm2[][MAT],
                const TwoQualityScoreMatrix& sm2qual,
                const uchar* qual1, const uchar* qual2,
-	       double gamma, int outputType );
+	       const Alphabet& alph, double gamma, int outputType );
 
   void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 		 char strand, bool isTranslated, std::ostream& os ) const;

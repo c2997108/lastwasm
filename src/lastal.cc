@@ -445,7 +445,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     aln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, dis.m,
 		   scoreMatrix.maxScore, gapCosts, dis.d,
                    args.frameshiftCost, frameSize, dis.p,
-                   dis.t, dis.i, dis.j );
+                   dis.t, dis.i, dis.j, alph );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
@@ -503,8 +503,8 @@ void alignFinish( const AlignmentPot& gappedAlns,
       probAln.seed = aln.seed;
       probAln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, dis.m,
                          scoreMatrix.maxScore, gapCosts, dis.d,
-                         args.frameshiftCost, frameSize, dis.p,
-                         dis.t, dis.i, dis.j, args.gamma, args.outputType );
+                         args.frameshiftCost, frameSize, dis.p, dis.t,
+			 dis.i, dis.j, alph, args.gamma, args.outputType );
       probAln.write( text, query, strand, args.isTranslated(),
 		     alph, args.outputFormat, out );
     }
