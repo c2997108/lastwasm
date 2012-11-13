@@ -74,6 +74,8 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
     os << i->size;
   }
 
+  if( fullScore > 0 ) os << "\tfullScore=" << fullScore;
+
   os << '\n';
 }
 
@@ -145,6 +147,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 
   os << "a";
   os << " score=" << score;
+  if( fullScore > 0 ) os << " fullScore=" << fullScore;
   os << '\n';
 
   dest = sprintChar( line, 's' );

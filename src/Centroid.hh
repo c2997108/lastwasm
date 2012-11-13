@@ -75,6 +75,8 @@ namespace cbrc{
                                const std::vector< SegmentPair >& chunks,
                                bool isForward );
 
+    double logPartitionFunction() const;  // a.k.a. full score, forward score
+
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 				 size_t start1, size_t start2, bool isForward,

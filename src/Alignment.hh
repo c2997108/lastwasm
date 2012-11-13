@@ -65,6 +65,7 @@ struct Alignment{
   SegmentPair seed;  // the alignment remembers its seed
   std::vector<uchar> columnAmbiguityCodes;  // char or uchar?
   std::vector<double> expectedCounts;  // expected emission & transition counts
+  double fullScore;  // a.k.a. forward score, sum-of-paths score
 
   indexT beg1() const{ return blocks.front().beg1(); }
   indexT beg2() const{ return blocks.front().beg2(); }

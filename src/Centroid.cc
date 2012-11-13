@@ -656,6 +656,15 @@ namespace cbrc{
     }
   }
 
+  double Centroid::logPartitionFunction() const{
+    assert( Z > 0 );
+    double x = std::log(Z);
+    for( std::size_t k = 3; k < numAntidiagonals; ++k ){
+      x += std::log( scale[k] );
+    }
+    return T * x;
+  }
+
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 					 size_t start1, size_t start2, bool isForward,
 					 const GeneralizedAffineGapCosts& gap, 

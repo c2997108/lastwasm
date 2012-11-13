@@ -18,6 +18,7 @@ using namespace cbrc;
 void Alignment::fromSegmentPair( const SegmentPair& sp ){
   blocks.assign( 1, sp );
   score = sp.score;
+  fullScore = 0;
 }
 
 static void addExpectedCounts( double* expectedCounts,
@@ -81,6 +82,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 			   const Alphabet& alph,
 			   double gamma, int outputType ){
   score = seed.score;
+  fullScore = (outputType > 3) ? seed.score : 0;
 
   if( outputType == 7 ){
     assert( seed.size > 0 );  // makes things easier to understand
@@ -281,6 +283,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     }
 
     centroid.getColumnAmbiguities( ambiguityCodes, chunks, isForward );
+    fullScore += centroid.logPartitionFunction();
 
     if( outputType == 7 ){
       ExpectedCount ec;

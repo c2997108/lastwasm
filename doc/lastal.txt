@@ -280,6 +280,10 @@ Miscellaneous Options
       option but not the maximum multiplicity option.  It's a bad idea
       to try -j0 when comparing a large sequence to itself.
 
+      If you use j>3, each alignment will get a "fullScore" (also
+      known as "forward score" or "sum-of-paths score").  This is like
+      the score, but it takes into account alternative alignments.
+
   -Q NUMBER
       This option allows lastal to use sequence quality scores, or
       PSSMs, for the queries.  0 means read queries in fasta format
