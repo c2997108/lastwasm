@@ -71,6 +71,10 @@ db=/tmp/last-test
     lastdb -p -c $db $protSeq
     lastal -F12 -c2 -e40 -f0 $db $dnaSeq
     echo
+
+    echo TEST 13  # gapless alignment, protein-protein alignment, seed freq
+    lastal -j1 -f0 -e37 -m100 $db $protSeq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
