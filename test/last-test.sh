@@ -75,6 +75,11 @@ db=/tmp/last-test
     echo TEST 13  # gapless alignment, protein-protein alignment, seed freq
     lastal -j1 -f0 -e37 -m100 $db $protSeq
     echo
+
+    echo TEST 14  # fastq-versus-fastq, seed freq
+    lastdb -Q1 $db sd-ccs-100.fq
+    lastal -Q1 -r1 -q2 -a1 -b1 -e44 -m100 -s0 $db sd-ccs-100.fq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
