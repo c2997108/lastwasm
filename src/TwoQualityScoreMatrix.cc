@@ -1,7 +1,5 @@
 // Copyright 2011 Martin C. Frith
 
-// XXX untested XXX
-
 #include "TwoQualityScoreMatrix.hh"
 
 #include "qualityScoreUtil.hh"

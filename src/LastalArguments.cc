@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
 
 #include "LastalArguments.hh"
 #include "stringify.hh"
@@ -42,7 +42,7 @@ LastalArguments::LastalArguments() :
   inputFormat(sequenceFormat::fasta),
   minHitDepth(1),
   oneHitMultiplicity(10),
-  maxGaplessAlignmentsPerQueryPosition(indexT(-1)),  // effectively infinity
+  maxGaplessAlignmentsPerQueryPosition(0),  // depends on oneHitMultiplicity
   queryStep(1),
   batchSize(0),  // depends on the outputType, and voluming
   maxRepeatDistance(1000),  // sufficiently conservative?
@@ -88,7 +88,7 @@ Miscellaneous options (default settings):\n\
     + stringify(oneHitMultiplicity) + ")\n\
 -l: minimum length for initial matches ("
     + stringify(minHitDepth) + ")\n\
--n: maximum number of gapless alignments per query position (infinity)\n\
+-n: maximum number of gapless alignments per query position (m)\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
 -i: query batch size (8 KiB, unless there are multiple lastdb volumes)\n\
@@ -204,6 +204,7 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'n':
       unstringify( maxGaplessAlignmentsPerQueryPosition, optarg );
+      if( maxGaplessAlignmentsPerQueryPosition <= 0 ) badopt( c, optarg );
       break;
     case 'k':
       unstringify( queryStep, optarg );
@@ -352,6 +353,9 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
       batchSize = 0x8000000;  // 128 Mbytes
     // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
   }
+
+  if( maxGaplessAlignmentsPerQueryPosition == 0 )
+    maxGaplessAlignmentsPerQueryPosition = oneHitMultiplicity;
 
   if( isTranslated() && frameshiftCost < gapExtendCost )
     ERR( "the frameshift cost must not be less than the gap extension cost" );

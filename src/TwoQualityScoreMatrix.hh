@@ -1,7 +1,5 @@
 // Copyright 2011 Martin C. Frith
 
-// XXX untested XXX
-
 // Score matrix for aligning letter1 to letter2, where both letters
 // have quality codes.
 
