@@ -10,13 +10,14 @@ limited number of mismatches or gaps.
 
 The first step of lastal is to find initial matches:
 
-  * For each possible start position in the query, find the shortest
-    match with length >= l that occurs <= m times in the reference.
+  * For each possible start position in the query: find the shortest
+    match that EITHER occurs <= m times in the reference, OR has
+    length l.
 
-By default, l=1 and m=10.  This typically works well, but it does not
-guarantee to find alignments.  For example, if a short query sequence
-perfectly matches more than ten locations in the reference, no
-alignments will be found.
+By default, m=10 and l=infinity.  This typically works well, but it
+does not guarantee to find alignments.  For example, if a short query
+sequence perfectly matches more than ten locations in the reference,
+no alignments will be found.
 
 1. Counting exact matches
 -------------------------
@@ -49,16 +50,16 @@ Since this seed has 18 matched positions (18 "1"s), we will get far
 fewer unproductive matches.  With LAST, we can do this as follows:
 
   lastdb -m11111011000 mydb genome.fa
-  lastal -l26 -m4000000000 -j1 -q0 -d34 -n100 mydb reads.fa
+  lastal -l26 -m0 -j1 -q0 -d34 -n100 mydb reads.fa
 
 In the lastdb command, the seed pattern gets cyclically repeated, so
 we only need to specify the repeating unit of the pattern.  In the
-lastal command, we used -l26 to get length-26 initial matches, and
--m4000000000 to accept hugely repeated initial matches.  We also used
--j1 to request gapless alignments, -q0 to set the mismatch cost to 0,
-and -d34 to request alignments with score >= 34.  Finally, -n100
-limits the output: if one read has many matches, an arbitrary sample
-(at least 100) of them will be returned.
+lastal command, we used -l26 to get length-26 initial matches, and -m0
+to suppress shorter initial matches.  We also used -j1 to request
+gapless alignments, -q0 to set the mismatch cost to 0, and -d34 to
+request alignments with score >= 34.  Finally, -n100 limits the
+output: if one read has many matches, an arbitrary sample (at least
+100) of them will be returned.
 
 The following table shows optimal spaced seed patterns for various
 read sizes and numbers of mismatches.  Each entry shows the match
@@ -128,11 +129,11 @@ there must be an exact match of length 24.  We can find the alignments
 like this:
 
   lastdb -m1 genomedb genome.fa
-  lastal -l24 -m4000000000 -d0 -y0 -a0 -x2 -e68 genomedb reads.fa
+  lastal -l24 -m0 -d0 -y0 -a0 -x2 -e68 genomedb reads.fa
 
 The lastdb -m1 option requests exact initial matches, the -l24 sets
-their length to 24, and -m4000000000 accepts hugely repeated initial
-matches.  The -e68 sets the alignment score threshold to 68, which is
-the minimum score for a size-72 read with 2 differences.  The -x2 just
-makes it faster, by quitting alignments early if it finds more than 2
+their length to 24, and -m0 suppresses shorter initial matches.  The
+-e68 sets the alignment score threshold to 68, which is the minimum
+score for a size-72 read with 2 differences.  The -x2 just makes it
+faster, by quitting alignments early if it finds more than 2
 differences.

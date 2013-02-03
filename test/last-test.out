@@ -1,7 +1,7 @@
 TEST 1
 #
 # a=400 b=30 A=400 B=30 c=100000 F=-1 e=2500 d=1500 x=3400 y=962 z=3400
-# u=1 s=2 m=10 l=1 n=10 k=1 i=8192 w=1000 t=96.1735 g=1 j=5
+# u=1 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=96.1735 g=1 j=5
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -92,7 +92,7 @@ p                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TEST 2
 #
 # a=7 b=1 A=7 B=1 c=100000 F=-1 e=40 d=24 x=27 y=9 z=27
-# u=0 s=2 m=10 l=1 n=10 k=1 i=1 w=0 t=0.910239 g=1 j=3
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=1 w=0 t=0.910239 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -169,7 +169,7 @@ chr32
 TEST 4
 #
 # a=9 b=9 A=9 B=9 c=100000 F=-1 e=90 d=54 x=189 y=44 z=189
-# u=0 s=2 m=10 l=1 n=10 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -259,7 +259,7 @@ q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$II
 TEST 5
 #
 # a=11 b=2 A=11 B=2 c=100000 F=12 e=40 d=24 x=51 y=31 z=51
-# u=0 s=2 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=3
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=3
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 #
@@ -361,7 +361,7 @@ s chrM   7839 69 - 16775 VSSADFWALSVKHSWSSGDEGGL
 TEST 6
 #
 # a=7 b=1 A=7 B=1 c=100000 F=-1 e=18 d=10 x=27 y=9 z=27
-# u=2 s=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3
+# u=2 s=0 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -386,7 +386,7 @@ TEST 6
 TEST 7
 #
 # a=500 b=50 A=500 B=50 c=100000 F=-1 e=2000 d=1200 x=1500 y=992 z=1500
-# u=2 s=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=99.2157 g=1 j=3
+# u=2 s=0 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=99.2157 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -412,7 +412,7 @@ TEST 7
 TEST 8
 #
 # a=21 b=9 A=21 B=9 c=100000 F=-1 e=110 d=66 x=201 y=44 z=201
-# u=0 s=2 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -442,7 +442,7 @@ q HWW-E2:1:1:10:1477#0/1              aaaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^aaS\RMX]\
 TEST 9
 #
 # a=21 b=9 A=21 B=9 c=100000 F=-1 e=90 d=54 x=201 y=44 z=201
-# u=0 s=2 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -487,7 +487,7 @@ q 2                   C@JK?B?BBEJFA>==TXBSVSDAFF`hhD
 TEST 10
 #
 # a=9 b=9 A=9 B=9 c=100000 F=-1 e=90 d=54 x=189 y=44 z=189
-# u=0 s=2 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=6
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=6
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -589,7 +589,7 @@ p                              $$$$$$%&&&&~~~~~~~~~~~~~~~
 TEST 11
 #
 # a=21 b=1 A=21 B=1 c=2 F=-1 e=60 d=36 x=41 y=27 z=41
-# u=2 s=2 m=10 l=1 n=10 k=1 i=8192 w=1000 t=2.73072 g=1 j=3
+# u=2 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=2.73072 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -618,7 +618,7 @@ TEST 11
 TEST 12
 #
 # a=11 b=2 A=11 B=2 c=2 F=12 e=40 d=24 x=51 y=31 z=51
-# u=2 s=2 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=3
+# u=2 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=3
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 #
@@ -676,7 +676,7 @@ TEST 12
 TEST 13
 #
 # a=11 b=2 A=11 B=2 c=100000 F=-1 e=37 d=37 x=51 y=31 z=51
-# u=2 s=1 m=100 l=1 n=100 k=1 i=8192 w=1000 t=3.08611 g=1 j=1
+# u=2 s=1 m=100 l=4294967295 n=100 k=1 i=8192 w=1000 t=3.08611 g=1 j=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 #
@@ -732,7 +732,7 @@ TEST 13
 TEST 14
 #
 # a=1 b=1 A=1 B=1 c=100000 F=-1 e=44 d=26 x=21 y=8 z=21
-# u=0 s=0 m=100 l=1 n=100 k=1 i=8192 w=1000 t=0.750353 g=1 j=3
+# u=0 s=0 m=100 l=4294967295 n=100 k=1 i=8192 w=1000 t=0.750353 g=1 j=3
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
 #

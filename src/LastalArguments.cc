@@ -40,7 +40,7 @@ LastalArguments::LastalArguments() :
   maxDropGapless(-1),  // depends on the score matrix
   maxDropFinal(-1),  // depends on maxDropGapped
   inputFormat(sequenceFormat::fasta),
-  minHitDepth(1),
+  minHitDepth(0),  // depends on the outputType
   oneHitMultiplicity(10),
   maxGaplessAlignmentsPerQueryPosition(0),  // depends on oneHitMultiplicity
   queryStep(1),
@@ -86,9 +86,8 @@ Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -m: maximum multiplicity for initial matches ("
     + stringify(oneHitMultiplicity) + ")\n\
--l: minimum length for initial matches ("
-    + stringify(minHitDepth) + ")\n\
--n: maximum number of gapless alignments per query position (m)\n\
+-l: length threshold for initial matches (1 if -j0, else infinity)\n\
+-n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
 -i: query batch size (8 KiB, unless there are multiple lastdb volumes)\n\
@@ -354,8 +353,12 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
   }
 
+  if( minHitDepth == 0 )
+    minHitDepth = (outputType == 0) ? 1 : -1;
+
   if( maxGaplessAlignmentsPerQueryPosition == 0 )
-    maxGaplessAlignmentsPerQueryPosition = oneHitMultiplicity;
+    maxGaplessAlignmentsPerQueryPosition =
+      (oneHitMultiplicity > 0) ? oneHitMultiplicity : -1;
 
   if( isTranslated() && frameshiftCost < gapExtendCost )
     ERR( "the frameshift cost must not be less than the gap extension cost" );

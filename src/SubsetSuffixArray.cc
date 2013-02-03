@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2013 Martin C. Frith
 
 #include "SubsetSuffixArray.hh"
 #include "CyclicSubsetSeed.hh"
@@ -65,7 +65,7 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   indexT bucketEnd = index.size();
 
   while( depth < bucketDepth ){
-    if( bucketEnd - bucketBeg <= maxHits && depth >= minDepth ){
+    if( bucketEnd - bucketBeg <= maxHits || depth >= minDepth ){
       beg = &index[0] + bucketBeg;
       end = &index[0] + bucketEnd;
       return;
@@ -80,7 +80,6 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
       subsetMap = seed.nextMap( subsetMap );
     }else{  // we hit a delimiter in the query, so finish without any matches:
       bucketBeg = bucketEnd;
-      minDepth = 0;
     }
   }
 
@@ -89,7 +88,7 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   end = &index[0] + bucketEnd;
 
   while( true ){
-    if( indexT(end - beg) <= maxHits && depth >= minDepth ) return;
+    if( indexT(end - beg) <= maxHits || depth >= minDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset < CyclicSubsetSeed::DELIMITER ){
       equalRange( beg, end, text+depth, subsetMap, subset );
@@ -97,7 +96,6 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
       subsetMap = seed.nextMap( subsetMap );
     }else{  // we hit a delimiter in the query, so finish without any matches:
       beg = end;
-      minDepth = 0;
     }
   }
 }

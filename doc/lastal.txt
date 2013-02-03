@@ -21,9 +21,9 @@ Steps in lastal
 ---------------
 
 1) Find similar regions
-  a) Find initial matches: For each possible start position in the
-     query, find the shortest match with length >= l that occurs <= m
-     times in the reference.
+  a) Find initial matches.  For each possible start position in the
+     query: find the shortest match that EITHER occurs <= m times in
+     the reference, OR has length l.
 
   b) Extend a gapless alignment from each initial match, and keep
      those with score >= d.
@@ -182,7 +182,7 @@ Miscellaneous Options
       voluming changes the results.
 
   -l LENGTH
-      Minimum length for initial matches.  Length means the number of
+      Length limit for initial matches.  Length means the number of
       letters spanned by the match.
 
   -n COUNT
@@ -190,8 +190,7 @@ Miscellaneous Options
       lastal extends gapless alignments from initial matches that
       start at one query position, if it gets COUNT successful
       extensions, it skips any remaining initial matches starting at
-      that position. This option has no effect unless COUNT is less
-      than MULTIPLICITY.
+      that position.
 
   -k STEP
       Look for initial matches starting only at every STEP-th position
@@ -276,9 +275,12 @@ Miscellaneous Options
       non-redundantization; 3 means gapped alignments after
       non-redundantization; 4 means alignments with ambiguity
       estimates; 5 means gamma-centroid alignments; 6 means LAMA
-      alignments.  Match counts (-j0) respect the minimum length
-      option but not the maximum multiplicity option.  It's a bad idea
-      to try -j0 when comparing a large sequence to itself.
+      alignments.
+
+      If you use -j0, lastal will count the number of initial matches,
+      per length, per query sequence.  Option -m will be ignored, and
+      option -l will set the minimum length to consider.  It's a bad
+      idea to try -j0 when comparing a large sequence to itself.
 
       If you use j>3, each alignment will get a "fullScore" (also
       known as "forward score" or "sum-of-paths score").  This is like
