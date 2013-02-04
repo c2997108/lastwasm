@@ -1,7 +1,7 @@
 # Rules for converting the txt documents to html.
 
 DOCS = bisulfite.html last-map-probs.html last-pair-probs.html	\
-last-split-probs.html last-tutorial.html last.html
+last-split-probs.html last-tutorial.html last.html maf-cull.html
 
 all: ${DOCS}
 

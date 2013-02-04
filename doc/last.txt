@@ -58,18 +58,18 @@ of them.
 
 The main algorithms used by LAST:
 
-  Adaptive seeds tame genomic sequence comparison
+  Adaptive seeds tame genomic sequence comparison.
   SM Kielbasa, R Wan, K Sato, P Horton, MC Frith: Genome Research 2011 21:487.
 
 How LAST uses sequence quality data:
 
-  Incorporating sequence quality data into alignment improves DNA read mapping
+  Incorporating sequence quality data into alignment improves DNA read mapping.
   MC Frith, R Wan, P Horton: Nucleic Acids Research 2010 38(7):e100.
 
 Choice of score parameters, ambiguity of alignment columns, and
 gamma-centroid alignment:
 
-  Parameters for Accurate Genome Alignment
+  Parameters for Accurate Genome Alignment.
   MC Frith, M Hamada, P Horton: BMC Bioinformatics 2010 11:80.
 
 Other credits
@@ -89,7 +89,7 @@ Other credits
 
     S Sheetlin, Y Park, JL Spouge "The Gumbel pre-factor k for gapped
     local alignment can be estimated from simulations of global
-    alignment" (2005) Nucl Acids Res 33: 4987-4994
+    alignment" (2005) Nucl Acids Res 33: 4987-4994.
 
 License
 -------

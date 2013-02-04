@@ -1,5 +1,5 @@
-maf-cull.py
-===========
+maf-cull
+========
 
 This script aims to "cull" redundant alignments.  It removes
 alignments whose coordinates in the top-most sequence are contained in
@@ -8,22 +8,23 @@ LIMIT or more higher-scoring alignments.
 Alignments using opposite strands of the top-most sequence are not
 considered to contain each other.
 
-The alignments must have been sorted beforehand by maf-sort.sh.  If
-not, maf-cull.py will quit with an error message.
+The alignments must have been sorted beforehand by maf-sort.  If not,
+maf-cull will quit with an error message.
 
-You can use it like this:
+You can use it like this::
 
   maf-cull.py --limit=3 sorted-alignments.maf > culled.maf
   maf-cull.py -l3 sorted-alignments.maf > culled.maf
 
 If you want to cull based on a sequence other than the top one, use
-maf-swap.py to bring that sequence to the top.
+maf-swap to bring that sequence to the top.
 
 This type of culling can also be done by NCBI BLAST, and it is
 described in this article:
-  Winnowing sequences from a database search
-  Berman P, Zhang Z, Wolf YI, Koonin EV, Miller W
-  J Comput Biol. 2000 7:293-302
+
+  Winnowing sequences from a database search.
+  Berman P, Zhang Z, Wolf YI, Koonin EV, Miller W.
+  J Comput Biol. 2000 7:293-302.
 
 Options
 -------
