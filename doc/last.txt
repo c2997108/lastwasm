@@ -106,8 +106,20 @@ LAST's website is: http://last.cbrc.jp/
 Contact
 -------
 
-If you have any questions, comments, or problems, please email:
+Email: last (ATmark) cbrc (dot) jp
 
-  last (ATmark) cbrc (dot) jp
+Please let us know about any problems, rather than giving up in
+disgust.  Feedback is essential for scientific software like this: we
+cannot solve problems that we are unaware of, and we cannot make it
+useful and convenient without learning how various people actually
+(try to) use it.  It is also valuable to hear success stories, so we
+know what we are doing right.
 
-If reporting a problem, please describe exactly how to trigger it.
+Having said that, we cannot promise to always help, and please
+describe problems precisely, in particular how to trigger them.
+Unlike some other software projects, we will never send rude or
+mocking replies.
+
+If you do a benchmarking test of LAST, we recommend you contact us to
+check you are using it in a suitable way.  The history of
+bioinformatics benchmarks shows it is all too easy to get this wrong.

@@ -147,10 +147,10 @@ If you have paired end reads, then last-pair-probs may be useful (see
 Fastq format confusion
 ----------------------
 
-Unfortunately, there is more than one fastq format, and you have to
-know which one your data is in.  Recently (2010) we usually see either
-fastq-sanger or fastq-illumina.  If you have fastq-illumina format,
-use option -Q3 instead of -Q1.
+Unfortunately, there is more than one fastq format (see
+http://nar.oxfordjournals.org/content/38/6/1767.long).  Recently
+(2013) fastq-sanger seems to be dominant, but if you have another
+variant you need to change the -Q option (see `<lastal.txt>`_).
 
 Alignment scoring schemes
 -------------------------
@@ -161,8 +161,8 @@ long, weak alignments.  It is::
   match score = 1,  mismatch cost = 1,  gap cost = 7 + 1 * (gap length),
   minimum alignment score = 40
 
-However, if you use option -Q1 (or -Q3), it uses a different scoring
-scheme tuned for finding short, strong alignments::
+However, if you use option -Q1, it uses a different scoring scheme
+tuned for finding short, strong alignments::
 
   match score = 6,  mismatch cost = 18,  gap cost = 21 + 9 * (gap length),
   minimum alignment score = 180
