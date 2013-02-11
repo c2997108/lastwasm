@@ -180,26 +180,28 @@ for aln in alignments:
     last2 = seq_size_dic2[seq2] - 1
     seq_start1 = seq_start_dic1[seq1]
     seq_start2 = seq_start_dic2[seq2]
-    block_list = map(int, re.split(r'\W', blocks))
+    my_start = seq_start2 * width + seq_start1
     if strand1 == strand2: store_value = 1
     else:                  store_value = 2
-    for i, b in enumerate(block_list):
-        state = i % 3
-        if state == 0:
-            for j in range(b):
-                if strand1 == '+': real_pos1 = pos1
-                else:              real_pos1 = last1 - pos1
-                if strand2 == '+': real_pos2 = pos2
-                else:              real_pos2 = last2 - pos2
-                pix1 = seq_start1 + real_pos1 // bp_per_pix
-                pix2 = seq_start2 + real_pos2 // bp_per_pix
-                hits[pix2 * width + pix1] |= store_value
-                pos1 += 1
-                pos2 += 1
-        elif state == 1:
-            pos1 += b
-        else:
-            pos2 += b
+    for i in blocks.split(","):
+        if ":" in i:  # it's a gap region: skip over it
+            insertLength1, insertLength2 = i.split(":")
+            pos1 += int(insertLength1)
+            pos2 += int(insertLength2)
+        else:  # it's a match region: draw pixels for it
+            matchLength = int(i)
+            end1 = pos1 + matchLength
+            end2 = pos2 + matchLength
+            if strand1 == '+': j = xrange(pos1, end1)
+            else:              j = xrange(last1 - pos1, last1 - end1, -1)
+            if strand2 == '+': k = xrange(pos2, end2)
+            else:              k = xrange(last2 - pos2, last2 - end2, -1)
+            for real_pos1, real_pos2 in itertools.izip(j, k):
+                pix1 = real_pos1 // bp_per_pix
+                pix2 = real_pos2 // bp_per_pix
+                hits[my_start + pix2 * width + pix1] |= store_value
+            pos1 = end1
+            pos2 = end2
 sys.stderr.write(my_name + ": done\n")
 
 def make_label(text, text_size, range_start, range_size):
