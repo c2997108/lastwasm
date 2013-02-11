@@ -4,9 +4,9 @@ Description of scripts that accompany LAST
 last-dotplot.py
 ---------------
 
-This script makes a dotplot, a.k.a. Oxford Grid, of alignments in LAST
-tabular format.  It requires the Python Imaging Library to be
-installed.  To get a usage message::
+This script makes a dotplot, a.k.a. Oxford Grid, of pair-wise
+alignments in MAF or LAST tabular format.  It requires the Python
+Imaging Library to be installed.  To get a usage message::
 
   last-dotplot.py --help
 

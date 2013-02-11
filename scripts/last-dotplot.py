@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
-# Read LAST tabular output: write an "Oxford grid", a.k.a. dotplot.
+# Read pair-wise alignments in MAF or LAST tabular format: write an
+# "Oxford grid", a.k.a. dotplot.
 
 # TODO: Currently, pixels with zero aligned nt-pairs are white, and
 # pixels with one or more aligned nt-pairs are black.  This can look
@@ -49,15 +50,41 @@ forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
 reverse_color = ImageColor.getcolor(opts.reversecolor, image_mode)
 overlap_color = tuple([(i+j)//2 for i, j in zip(forward_color, reverse_color)])
 
+def isGapless(alignmentColumn):
+    return "-" not in alignmentColumn
+
+def matchAndInsertLengths(alignmentColumns):
+    for k, v in itertools.groupby(alignmentColumns, isGapless):
+        if k:
+            matchLength = sum(1 for i in v)
+            yield str(matchLength)
+        else:
+            blockRows = itertools.izip(*v)
+            insertLengths = (len(i) - i.count("-") for i in blockRows)
+            yield ":".join(map(str, insertLengths))
+
+def alignmentInput(lines):  # read alignments in either tabular or MAF format
+    for line in lines:
+        w = line.split()
+        if line[0].isdigit():  # tabular format
+            yield w
+        elif line[0] == "a":  # MAF format
+            sLines = []
+        elif line[0] == "s":  # MAF format
+            sLines.append(w)
+            if len(sLines) == 2:
+                alignmentRows = (i[6] for i in sLines)
+                alignmentColumns = itertools.izip(*alignmentRows)
+                blocks = ",".join(matchAndInsertLengths(alignmentColumns))
+                yield sLines[0][0:6] + sLines[1][1:6] + [blocks]
+
 seq_size_dic1 = {}  # sizes of the first set of sequences
 seq_size_dic2 = {}  # sizes of the second set of sequences
 alignments = []
 
 f = open(args[0])
 sys.stderr.write(my_name + ": reading alignments...\n")
-for line in f:
-    w = line.split()
-    if line.startswith('#') or not w: continue
+for w in alignmentInput(f):
     seq1, pos1, strand1, size1 = w[1], int(w[2]), w[4], int(w[5])
     seq2, pos2, strand2, size2 = w[6], int(w[7]), w[9], int(w[10])
     blocks = w[11]
