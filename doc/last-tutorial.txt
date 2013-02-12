@@ -209,6 +209,14 @@ If the score threshold is too low, you will get meaningless, random
 alignments.  You might also need to adjust lastal -d, which defaults
 to e*3/5: if it is too low, lastal becomes slow.
 
+Trading speed for sensitivity
+-----------------------------
+
+You can make LAST more sensitive, at the expense of speed, by
+increasing lastal's m parameter.  The default value is 10.  So -m100
+makes it more slow and sensitive, and -m1000 makes it much more slow
+and sensitive.
+
 Example 9: Ambiguity of alignment columns
 -----------------------------------------
 
