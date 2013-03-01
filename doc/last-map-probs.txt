@@ -16,7 +16,7 @@ Typical usage
 These commands map DNA reads to the human genome::
 
   lastdb -m1111110 hu human/chr*.fa
-  lastal -Q1 -d108 -e120 hu reads.fastq | last-map-probs.py -s150 > myalns.maf
+  lastal -Q1 -e120 hu reads.fastq | last-map-probs.py -s150 > myalns.maf
 
 Explanation of typical usage
 ----------------------------
@@ -33,9 +33,7 @@ is because the mismap probability of an alignment with score 150 may
 depend on alignments with score < 150.  Setting e = s-30 seems to work
 well.
 
-Finally, the -d108 option makes lastal use a score threshold of 108 in
-its gapless alignment phase.  This is needed because the default (d =
-e*3/5) is too low and would make lastal too slow.
+(We used to recommend option -d108, but this is no longer necessary.)
 
 Options
 -------
@@ -62,7 +60,7 @@ With large datasets, it's important to go faster by using multiple
 CPUs.  One way to do that is by using GNU parallel
 (http://www.gnu.org/software/parallel/)::
 
-  parallel --pipe -L4 "lastal -Q1 -d108 -e120 hu - | last-map-probs.py -s150" < reads.fastq > myalns.maf
+  parallel --pipe -L4 "lastal -Q1 -e120 hu - | last-map-probs.py -s150" < reads.fastq > myalns.maf
 
 The "-L4" tells it that each fastq record is 4 lines, so there should
 be no line wrapping or blank lines.  Beware that older versions of GNU

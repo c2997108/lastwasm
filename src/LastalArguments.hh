@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
 
 // This struct holds the command line arguments for lastal.
 
@@ -33,7 +33,7 @@ struct LastalArguments{
   // set default option values that depend on input files:
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
                                 bool isCaseSensitiveSeeds, bool isVolumes );
-  void setDefaultsFromMatrix( double lambda );
+  void setDefaultsFromMatrix( double lambda, double numLettersInReference );
 
   // write the parameter settings, starting each line with "#":
   void writeCommented( std::ostream& stream ) const;

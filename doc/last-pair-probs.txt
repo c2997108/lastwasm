@@ -13,8 +13,8 @@ each pair is in one file, and the other read is in the other file.
 Typical usage::
 
   lastdb -m1111110 humandb human/chr*.fa
-  lastal -Q1 -d108 -e120 -i1 humandb reads1.fastq > temp1.maf
-  lastal -Q1 -d108 -e120 -i1 humandb reads2.fastq > temp2.maf
+  lastal -Q1 -e120 -i1 humandb reads1.fastq > temp1.maf
+  lastal -Q1 -e120 -i1 humandb reads2.fastq > temp2.maf
   last-pair-probs.py temp1.maf temp2.maf > results.maf
 
 If your reads come from potentially-spliced RNA molecules, use the -r
@@ -108,8 +108,8 @@ Tips
 * You can avoid temp files by using named pipes::
 
     mkfifo pipe1 pipe2
-    lastal -Q1 -d108 -e120 -i1 humandb reads1.fastq > pipe1 &
-    lastal -Q1 -d108 -e120 -i1 humandb reads2.fastq > pipe2 &
+    lastal -Q1 -e120 -i1 humandb reads1.fastq > pipe1 &
+    lastal -Q1 -e120 -i1 humandb reads2.fastq > pipe2 &
     last-pair-probs.py -f250 -s30 pipe1 pipe2 > results.maf
 
   This streams the alignments from lastal to last-pair-probs.
@@ -146,8 +146,8 @@ CPUs.  One way to do that is by using GNU parallel
   (or similar - you might want to use -r, -j1, etc)::
 
     #! /bin/sh
-    lastal -Q1 -d108 -e120 -i1 "$3" "$4" > /tmp/$$.1
-    lastal -Q1 -d108 -e120 -i1 "$3" "$5" > /tmp/$$.2
+    lastal -Q1 -e120 -i1 "$3" "$4" > /tmp/$$.1
+    lastal -Q1 -e120 -i1 "$3" "$5" > /tmp/$$.2
     last-pair-probs.py -f "$1" -s "$2" /tmp/$$.1 /tmp/$$.2
     rm /tmp/$$.*
 

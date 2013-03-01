@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
 
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
@@ -746,7 +746,7 @@ void lastal( int argc, char** argv ){
   gapCosts.assign( args.gapExistCost, args.gapExtendCost,
 		   args.insExistCost, args.insExtendCost, args.gapPairCost );
   if( args.outputType > 0 ) calculateScoreStatistics();
-  args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
+  args.setDefaultsFromMatrix( lambdaCalculator.lambda(), refLetters );
   if( args.outputType > 0 ) makeQualityScorers();
 
   if( args.isTranslated() ){

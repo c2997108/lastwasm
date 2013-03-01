@@ -8,6 +8,7 @@
 #include <sstream>
 #include <vector>
 #include <stdexcept>
+#include <cmath>  // log
 #include <cstring>  // strtok
 #include <cstdlib>  // EXIT_SUCCESS
 
@@ -72,7 +73,7 @@ Score options (default settings):\n\
 -x: maximum score drop for gapped alignments (max[y, a+b*20])\n\
 -y: maximum score drop for gapless alignments (t*10)\n\
 -z: maximum score drop for final gapped alignments (x)\n\
--d: minimum score for gapless alignments (e if j<2, else e*3/5)\n\
+-d: minimum score for gapless alignments (min[e, t*ln(1000*refSize/n)])\n\
 -e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<5: 180)\n\
 \n\
 Cosmetic options (default settings):\n\
@@ -327,8 +328,6 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 
   if( outputType < 2 ) minScoreGapless = minScoreGapped;
 
-  if( minScoreGapless < 0 ) minScoreGapless = minScoreGapped * 3 / 5;  // ?
-
   if( maskLowercase < 0 ){
     if( isCaseSensitiveSeeds && inputFormat != sequenceFormat::pssm )
       maskLowercase = 2;
@@ -371,7 +370,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   }
 }
 
-void LastalArguments::setDefaultsFromMatrix( double lambda ){
+void LastalArguments::setDefaultsFromMatrix( double lambda,
+					     double numLettersInReference ){
   if( temperature < 0 ) temperature = 1 / lambda;
 
   if( maxDropGapless < 0 ){  // should it depend on temperature or lambda?
@@ -385,6 +385,39 @@ void LastalArguments::setDefaultsFromMatrix( double lambda ){
   }
 
   if( maxDropFinal < 0 ) maxDropFinal = maxDropGapped;
+
+  // ***** Default setting for minScoreGapless *****
+
+  // This attempts to ensure that the gapped alignment phase will be
+  // reasonably fast relative to the gapless alignment phase.
+
+  // The expected number of gapped extensions per query position is:
+  // kGapless * referenceSize * exp(-lambdaGapless * minScoreGapless).
+
+  // The number of gapless extensions per query position is
+  // proportional to: n = maxGaplessAlignmentsPerQueryPosition.
+
+  // So we want exp(lambdaGapless * minScoreGapless) to be
+  // proportional to: kGapless * referenceSize / n.
+
+  // But we crudely ignore kGapless.
+
+  // The proportionality constant was guesstimated by some limited
+  // trial-and-error.  It should depend on the relative speeds of
+  // gapless and gapped extensions.
+
+  if( minScoreGapless < 0 ){
+    if( temperature < 0 ){  // shouldn't happen
+      minScoreGapless = minScoreGapped;
+    }else{
+      double n = maxGaplessAlignmentsPerQueryPosition;
+      if( maxGaplessAlignmentsPerQueryPosition + 1 == 0 ) n = 10;  // ?
+      double x = 1000.0 * numLettersInReference / n;
+      if( x < 1 ) x = 1;
+      minScoreGapless = int( temperature * std::log(x) + 0.5 );
+      minScoreGapless = std::min( minScoreGapless, minScoreGapped );
+    }
+  }
 }
 
 void LastalArguments::writeCommented( std::ostream& stream ) const{

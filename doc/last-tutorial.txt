@@ -206,8 +206,7 @@ of low-quality matches).  To align very short reads, reduce the score
 threshold (lastal -e).
 
 If the score threshold is too low, you will get meaningless, random
-alignments.  You might also need to adjust lastal -d, which defaults
-to e*3/5: if it is too low, lastal becomes slow.
+alignments.
 
 Trading speed for sensitivity
 -----------------------------

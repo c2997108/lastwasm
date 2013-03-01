@@ -12,10 +12,10 @@ Typical usage
 These commands align the queries in "q.fastq" to "genome.fasta"::
 
   lastdb -m1111110 myDB genome.fasta
-  lastal -Q1 -d108 -e120 myDB q.fastq | last-split-probs.py -s150 > out.maf
+  lastal -Q1 -e120 myDB q.fastq | last-split-probs.py -s150 > out.maf
 
-(The purpose of -d108, -e120, and -s150 is explained in the
-last-map-probs document.)
+(The purpose of -e120 and -s150 is explained in the last-map-probs
+document.)
 
 Output
 ------
@@ -78,7 +78,7 @@ The "typical usage" discards alignment parts that are unreliable (low
 score or high mismap probability).  To see a complete split-alignment
 for each query, do this::
 
-  lastal -Q1 -d108 -e120 myDB q.fastq | last-split-probs.py -m1 > out.maf
+  lastal -Q1 -e120 myDB q.fastq | last-split-probs.py -m1 > out.maf
 
 Details
 -------
