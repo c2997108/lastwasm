@@ -783,15 +783,16 @@ void lastal( int argc, char** argv ){
 
     while( appendFromFasta( in ) ){
       if( !query.isFinished() ){
+        // this enables downstream parsers to read one batch at a time:
+        out << "# batch " << queryBatchCount++ << "\n";
 	scanAllVolumes( volumes, out );
 	query.reinitForAppending();
-        // this enables downstream parsers to read one batch at a time:
-        out << "# batch " << ++queryBatchCount << "\n";
       }
     }
   }
 
   if( query.finishedSequences() > 0 ){
+    out << "# batch " << queryBatchCount << "\n";
     scanAllVolumes( volumes, out );
   }
 
