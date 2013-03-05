@@ -164,6 +164,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
                    int& isCaseSensitiveSeeds,
                    countT& refSequences, countT& refLetters ){
   std::ifstream f( fileName.c_str() );
+  if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
 
   std::string line, word;
@@ -186,7 +187,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( !subsetSeed.span() || volumes+1 == 0 ||
+  if( !subsetSeed.span() || volumes+1 == 0 || refLetters+1 == 0 ||
       referenceFormat >= sequenceFormat::prb ){
     f.setstate( std::ios::failbit );
   }
@@ -198,6 +199,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
 void readInnerPrj( const std::string& fileName, indexT& seqCount,
 		   indexT& delimiterNum, indexT& bucketDepth ){
   std::ifstream f( fileName.c_str() );
+  if( !f ) ERR( "can't open file: " + fileName );
 
   std::string line, word;
   while( getline( f, line ) ){
