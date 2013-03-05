@@ -183,7 +183,7 @@ Example 8: Align aardvark fastq reads to the human genome
 ---------------------------------------------------------
 
 In this case we need to use the -Q option, but we wish to find weak
-alignments:
+alignments::
 
   lastdb -c humandb human/chr*.fa
   lastal -Q1 -r5 -q5 -a35 -b5 humandb reads.fastq > myalns.maf
@@ -215,6 +215,43 @@ You can make LAST more sensitive, at the expense of speed, by
 increasing lastal's m parameter.  The default value is 10.  So -m100
 makes it more slow and sensitive, and -m1000 makes it much more slow
 and sensitive.
+
+Going faster by using multiple CPUs
+-----------------------------------
+
+If you have more than one query sequence, you can go faster by
+aligning them in parallel.  One way to do that is by using GNU
+parallel (http://www.gnu.org/software/parallel/).  (Beware that GNU
+parallel had some efficiency bugs that were fixed in late 2012 / early
+2013, so be sure to use a recent version.)
+
+If you have fasta queries in separate files (e.g. chr*.fa), then
+instead of this::
+
+  lastal mydb chr*.fa > myalns.maf
+
+Try this::
+
+  parallel lastal mydb ::: chr*.fa > myalns.maf
+
+If you have fasta queries in one file, then instead of this::
+
+  lastal mydb queries.fa > myalns.maf
+
+Try this::
+
+  parallel --pipe --recstart '>' lastal mydb - < queries.fa > myalns.maf
+
+If you have fastq queries in one file, then instead of this::
+
+  lastal -Q1 mydb reads.fastq > myalns.maf
+
+Try this::
+
+  parallel --pipe -L4 lastal -Q1 mydb - < reads.fastq > myalns.maf
+
+(The "-L4" tells it that each fastq record is 4 lines, so there should
+be no line wrapping or blank lines.)
 
 Example 9: Ambiguity of alignment columns
 -----------------------------------------
