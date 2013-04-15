@@ -1,45 +1,68 @@
-Q: Does it matter which sequence is used as the "reference" (given to
-   lastdb) and which is used as the "query" (given to lastal)?
+LAST FAQ
+========
 
-A: It may do.  In short, LAST tries hard to find alignments for every
-   position in the query.  When mapping reads to a genome, you
-   probably want the genome to be the reference, and the reads to be
-   the query.  That way, for each read, it will search for several
-   most-similar locations in the genome.  The other way, for each
-   location in the genome, it will search for several most-similar
-   reads.  As another example, if you compare a genome to a library of
-   repeat sequences, you probably want the genome to be the query and
-   the repeat library to be the reference.
+:Q: Does it matter which sequence is used as the "reference" (given to
+    lastdb) and which is used as the "query" (given to lastal)?
 
+:A: It may do.  In short, LAST tries hard to find alignments for every
+    position in the query.  When mapping reads to a genome, you
+    probably want the genome to be the reference, and the reads to be
+    the query.  That way, for each read, it will search for several
+    most-similar locations in the genome.  The other way, for each
+    location in the genome, it will search for several most-similar
+    reads.  As another example, if you compare a genome to a library
+    of repeat sequences, you probably want the genome to be the query
+    and the repeat library to be the reference.
 
-Q: Why is LAST so slow at reading/writing files?
+----
 
-A: Probably because the files are huge and your disk is slow (or lots
-   of people are using it).  Try to use a reasonably fast disk.
+:Q: Why is LAST so slow at reading/writing files?
 
-   Typically, after reading a large file once, subsequent reads of the
-   same file are much faster, because the operating system caches it.
+:A: Probably because the files are huge and your disk is slow (or lots
+    of people are using it).  Try to use a reasonably fast disk.
 
+    Typically, after reading a large file once, subsequent reads of
+    the same file are much faster, because the operating system caches
+    it.
 
-Q: How does LAST get the sequence names?  How can I get nice, short,
-   unique names?
+    lastal reads files into shared memory using "mmap", and this
+    occasionally seems to have trouble, notably on "advanced" file
+    systems (Lustre and GlusterFS).
 
-A: The first whitespace-delimited word in the sequence header line is
-   used as the name.  You can arbitrarily customise the names using
-   standard Unix tools.  For example, this will replace each name with
-   a unique serial number:
+    On one Linux system, the above-mentioned cache occasionally got
+    into some kind of bad state, making lastal very slow.  This was
+    solved by running the following command (as root)::
 
-     awk '/>/ {$0 = ">" ++n} {print}' queries.fa | lastal myDb -
+      echo 1 > /proc/sys/vm/drop_caches
 
-   Sometimes you can make LAST's output significantly smaller by
-   shortening the names.
+----
 
+:Q: How does LAST get the sequence names?  How can I get nice, short,
+    unique names?
 
-Q: How can I find alignments with > 95% identity?
+:A: The first whitespace-delimited word in the sequence header line is
+    used as the name.  You can arbitrarily customise the names using
+    standard Unix tools.  For example, this will replace each FASTA
+    name with a unique serial number::
 
-A: One way is to use a scoring scheme like this: +5 for a match, and
-   -95 for a mismatch or a gap.  You'll also need to set the alignment
-   score threshold to a reasonable value.  In this example we set it
-   to 150, which means that we require at least 30 matches:
+      awk '/>/ {$0 = ">" ++n} {print}' queries.fasta | lastal myDb -
 
-     lastal -r5 -q95 -a0 -b95 -e150
+    This will do the same for FASTQ (assuming 4 lines per record,
+    i.e. no line wrapping)::
+
+      awk 'NR % 4 == 1 {$0 = "@" ++n} {print}' queries.fastq | lastal myDb -
+
+    Sometimes you can make LAST's output significantly smaller by
+    shortening the names.
+
+----
+
+:Q: How can I find alignments with > 95% identity?
+
+:A: One way is to use a scoring scheme like this: +5 for a match, and
+    -95 for a mismatch or a gap.  You'll also need to set the
+    alignment score threshold to a reasonable value.  In this example
+    we set it to 150, which means that we require at least 30
+    matches::
+
+      lastal -r5 -q95 -a0 -b95 -e150

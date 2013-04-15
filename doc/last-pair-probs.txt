@@ -161,3 +161,12 @@ CPUs.  One way to do that is by using GNU parallel
 
   Here we have specified a mean distance of 250 and a standard
   deviation of 30.
+
+Reference
+---------
+
+For more information, please see this article:
+
+  An approximate Bayesian approach for mapping paired-end DNA reads to
+  a reference genome.  Shrestha AM, Frith MC.  Bioinformatics 2013
+  29(8):965-972.

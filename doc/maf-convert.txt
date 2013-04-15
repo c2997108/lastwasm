@@ -1,9 +1,9 @@
-maf-convert.py
-==============
+maf-convert
+===========
 
 This script reads alignments in maf format, and writes them in another
 format.  It can write them in these formats: axt, blast, html, psl,
-sam, tab.  You can use it like this:
+sam, tab.  You can use it like this::
 
   maf-convert.py psl my-alignments.maf > my-alignments.psl
 

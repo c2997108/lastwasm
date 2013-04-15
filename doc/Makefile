@@ -1,7 +1,8 @@
 # Rules for converting the txt documents to html.
 
-DOCS = bisulfite.html last-map-probs.html last-pair-probs.html	\
-last-split-probs.html last-tutorial.html last.html maf-cull.html
+DOCS = FAQ.html bisulfite.html last-map-probs.html		\
+last-pair-probs.html last-split-probs.html last-tutorial.html	\
+last.html maf-convert.html maf-cull.html
 
 all: ${DOCS}
 
@@ -17,4 +18,4 @@ ${DOCS}: last-doc.css Makefile
 RST_CSS = `locate html4css1.css | head -n1`
 
 .txt.html:
-	cat ${RST_CSS} last-doc.css | rst2html --stylesheet-path=/dev/stdin --initial-header-level=2 $< $@
+	cat ${RST_CSS} last-doc.css | rst2html --stylesheet-path=/dev/stdin --initial-header-level=2 --no-doc-info $< $@
