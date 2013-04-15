@@ -297,7 +297,7 @@ def doOneQueryWithOneAlignment(maf, opts):  # modifies "maf"
     if score < opts.score: return
     aLine.append("mismap=1e-10")
     qSeqLine = queryLine(maf)
-    q = "~" * len(qSeqLine[6])
+    q = "~" * len(qSeqLine[6])  # not quite correct: neglects self-jumps
     maf.append(["p", q])
     if qSeqLine[4] == "-": flipMafStrands(maf)
     printMaf(maf)
