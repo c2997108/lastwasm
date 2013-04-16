@@ -296,9 +296,6 @@ def writeSam(maf):
     for qName, qStart, qAlnSize, qStrand, qSeqSize, qAlnString in tail:
         alignmentColumns = zip(rAlnString.upper(), qAlnString.upper())
 
-        flag = 0
-        if qStrand == "-": flag = 16
-
         cigar = []
         if qStart:
             pair = qStart, "H"
@@ -320,6 +317,21 @@ def writeSam(maf):
                 raise Exception("can't interpret the quality data")
             qual = ''.join(j for i, j in zip(qAlnString, qualityString)
                            if i != "-")
+
+        # It's hard to get all the pair info, so this is very
+        # incomplete, but hopefully good enough.
+        # I'm not sure whether to add 2 and/or 8 to flag.
+        if qName.endswith("/1"):
+            qName = qName[:-2]
+            if qStrand == "+": flag = 99  # 1 + 2 + 32 + 64
+            else:              flag = 83  # 1 + 2 + 16 + 64
+        elif qName.endswith("/2"):
+            qName = qName[:-2]
+            if qStrand == "+": flag = 163  # 1 + 2 + 32 + 128
+            else:              flag = 147  # 1 + 2 + 16 + 128
+        else:
+            if qStrand == "+": flag = 0
+            else:              flag = 16
 
         editDistance = sum(1 for x, y in alignmentColumns if x != y)
         # no special treatment of ambiguous bases: might be a minor bug
