@@ -1,14 +1,11 @@
 #! /usr/bin/env python
 
-# Copyright 2011, 2012 Martin C. Frith
+# Copyright 2011, 2012, 2013 Martin C. Frith
 
 # This script reads alignments of DNA reads to a genome, and estimates
 # the probability that each alignment represents the genomic source of
 # the read.  It assumes that the reads come in pairs, where each pair
 # is from either end of a DNA fragment.
-
-# A write-up of the method is available from the author (and should be
-# published somewhere).
 
 # Seems to work with Python 2.x, x>=4.
 
@@ -88,13 +85,29 @@ class AlignmentParameters:
         if self.e == -1: raise Exception("I need a header line with e=")
         if self.g == -1: raise Exception("I need a header line with letters=")
 
-def printAlignmentWithMismapProb(lines, prob):
+def printAlignmentWithMismapProb(alignment, prob, suf):
+    lines = alignment[4]
+    qName = alignment[5]
+    if qName.endswith("/1") or qName.endswith("/2"): suf = ""
     p = "%.3g" % prob
     if len(lines) == 1:  # we have tabular format
-        print lines[0].rstrip() + "\t" + p
+        w = lines[0].split()
+        w[6] += suf
+        w.append(p)
+        print "\t".join(w)
     else:  # we have MAF format
         print lines[0].rstrip() + " mismap=" + p
-        for i in lines[1:]: print i,
+        pad = " " * len(suf)  # spacer to keep the alignment of MAF lines
+        rNameEnd = len(alignment[0]) + 1  # where to insert the spacer
+        qNameEnd = len(qName) + 2  # where to insert the suffix
+        s = 0
+        for i in lines[1:]:
+            if i[0] in "sq":
+                if i[0] == "s": s += 1
+                if s == 1:    print i[:rNameEnd] + pad + i[rNameEnd:],
+                else:         print i[:qNameEnd] + suf + i[qNameEnd:],
+            elif i[0] == "p": print i[:1] + pad + i[1:]
+            else:             print i,
         print  # each MAF block should end with a blank line
 
 def headToHeadDistance(alignment1, alignment2):
@@ -140,7 +153,7 @@ def probForEachAlignment(alignments1, alignments2, opts):
         else:  # no items in alignments2 have the same genomeStrand
             yield aln1[3] + x
 
-def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
+def printAlnsForOneRead(alignments1, alignments2, opts, maxMissingScore, suf):
     if alignments2:
         zs = list(probForEachAlignment(alignments1, alignments2, opts))
         w = maxMissingScore + max(i[3] for i in alignments2)
@@ -153,7 +166,7 @@ def printAlignmentsForOneRead(alignments1, alignments2, opts, maxMissingScore):
 
     for i, j in itertools.izip(alignments1, zs):
         prob = 1 - math.exp(j - zw)
-        if prob <= opts.mismap: printAlignmentWithMismapProb(i[4], prob)
+        if prob <= opts.mismap: printAlignmentWithMismapProb(i, prob, suf)
 
 def unambiguousFragmentLength(alignments1, alignments2):
     """Returns the fragment length implied by alignments of a pair of reads."""
@@ -180,7 +193,7 @@ def readHeaderOrDie(lines):
             break
     params.validate()  # die
 
-def parseAlignment(score, rName, rStart, rSpan, rSize, qStrand, text,
+def parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand, text,
                    strand, scale, circularChroms):
     if qStrand == strand: genomeStrand = rName + "+"
     else:                 genomeStrand = rName + "-"
@@ -196,7 +209,7 @@ def parseAlignment(score, rName, rStart, rSpan, rSize, qStrand, text,
 
     scaledScore = float(score) / scale  # needed in 2nd pass
 
-    return genomeStrand, c, rSize, scaledScore, text
+    return genomeStrand, c, rSize, scaledScore, text, qName
 
 def parseMafScore(aLine):
     for i in aLine.split():
@@ -206,12 +219,12 @@ def parseMafScore(aLine):
 def parseMaf(lines, strand, scale, circularChroms):
     score = parseMafScore(lines[0])
     r, q = [i.split() for i in lines if i[0] == "s"]
-    return parseAlignment(score, r[1], r[2], r[3], r[5], q[4], lines,
+    return parseAlignment(score, r[1], r[2], r[3], r[5], q[1], q[4], lines,
                           strand, scale, circularChroms)
 
 def parseTab(line, strand, scale, circularChroms):
     w = line.split()
-    return parseAlignment(w[0], w[1], w[2], w[3], w[5], w[9], [line],
+    return parseAlignment(w[0], w[1], w[2], w[3], w[5], w[6], w[9], [line],
                           strand, scale, circularChroms)
 
 def readBatches(lines, strand, scale, circularChroms):
@@ -325,8 +338,8 @@ def lastPairProbs(opts, args):
         print "# fraglen=%s sdev=%s disjoint=%s genome=%.17g" % printme
         qp = readQueryPairs(in1, in2, params1.t, params2.t, opts.circular)
         for i, j in qp:
-            printAlignmentsForOneRead(i, j, opts, opts.maxMissingScore1)
-            printAlignmentsForOneRead(j, i, opts, opts.maxMissingScore2)
+            printAlnsForOneRead(i, j, opts, opts.maxMissingScore1, "/1")
+            printAlnsForOneRead(j, i, opts, opts.maxMissingScore2, "/2")
         in1.close()
         in2.close()
 

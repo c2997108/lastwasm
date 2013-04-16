@@ -58,6 +58,10 @@ Details
   must be real files (not pipes).  However, if you use option -e, or
   both -f and -s, it makes just one pass over each file.
 
+* If a read name ends in neither "/1" nor "/2", the script appends
+  "/1" if it comes from the first file or "/2" if it comes from the
+  second.
+
 Options
 -------
 
