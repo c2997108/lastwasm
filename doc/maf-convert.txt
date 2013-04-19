@@ -7,8 +7,15 @@ sam, tab.  You can use it like this::
 
   maf-convert.py psl my-alignments.maf > my-alignments.psl
 
+It's often convenient to pipe in the input, like this::
+
+  ... | maf-convert.py psl - > my-alignments.psl
+
 The input should be "multiple alignment format" as described in the
 UCSC Genome FAQ (not "MIRA assembly format" or any other maf).
+
+This script takes the first (topmost) MAF sequence as the "reference"
+/ "subject" / "target", and the second sequence as the "query".
 
 For html: if the input includes probability lines starting with 'p',
 then the output will be coloured by column probability.  (To get lines
@@ -34,6 +41,39 @@ Options
   -l CHARS, --linesize=CHARS
          Write CHARS characters per line.  This affects blast and html
          formats only.
+
+
+Hints for sam/bam
+-----------------
+
+* Instead of option -d, you can add a sequence dictionary afterwards.
+
+  Add a sequence dictionary to x.sam, putting the output in y.sam.
+  Assume the reference sequences are in ref.fa.  Using picard
+  (http://picard.sourceforge.net/)::
+
+    java -jar CreateSequenceDictionary.jar R=ref.fa O=ref.dict
+    java -jar ReplaceSamHeader.jar HEADER=ref.dict I=x.sam O=y.sam
+
+  Alternatively, using samtools (http://samtools.sourceforge.net/)::
+
+    samtools faidx ref.fa
+    samtools view -bt ref.fa.fai x.sam > y.bam
+
+* If a query name ends in "/1" or "/2", maf-convert interprets it as a
+  paired sequence.  (This affects sam format only.)  However, it does
+  not calculate all of the sam pairing information (because it's hard
+  and better done by specialized sam manipulators).
+
+  Fix the pair information in y.sam, putting the output in z.bam.
+  Using picard::
+
+    java -jar FixMateInformation.jar I=y.sam O=z.bam VALIDATION_STRINGENCY=SILENT
+
+  Using samtools::
+
+    samtools sort -n y.bam ysorted
+    samtools fixmate ysorted.bam z.bam
 
 "Bugs"
 ------

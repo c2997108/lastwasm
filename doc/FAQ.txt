@@ -37,6 +37,15 @@ LAST FAQ
 
 ----
 
+:Q: I'd like to compare my queries to a database of known proteins.
+    Where can I get a database of known proteins?
+
+:A: You could try UniRef90 or UniRef50
+    (http://www.uniprot.org/help/uniref), which have reduced
+    redundancy.
+
+----
+
 :Q: How does LAST get the sequence names?  How can I get nice, short,
     unique names?
 

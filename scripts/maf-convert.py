@@ -240,10 +240,20 @@ def readSequenceLengths(lines):
                 isSearching = False
     return sequenceLengths
 
+def naturalSortKey(s):
+    """Return a key that sorts strings in "natural" order."""
+    return [(str, int)[k]("".join(v)) for k, v in groupby(s, str.isdigit)]
+
+def karyotypicSortKey(s):
+    """Attempt to sort chromosomes in GATK's ridiculous order."""
+    if s == "chrM": return []
+    if s == "MT": return ["~"]
+    return naturalSortKey(s)
+
 def writeSamHeader(sequenceLengths):
-    print "@HD\tVN:1.3\tSO:unknown"
-    for nameAndLength in sequenceLengths.items():
-        print "@SQ\tSN:%s\tLN:%s" % nameAndLength
+    print "@HD\tVN:1.3\tSO:unsorted"
+    for k in sorted(sequenceLengths, key=karyotypicSortKey):
+        print "@SQ\tSN:%s\tLN:%s" % (k, sequenceLengths[k])
 
 mapqMissing = 255
 mapqMaximum = 254
