@@ -226,6 +226,12 @@ def writePsl(maf, isProtein):
 
 ##### Routines for converting to SAM format: #####
 
+def readGroupId(readGroupItems):
+    for i in readGroupItems:
+        if i.startswith("ID:"):
+            return i[3:]
+    raise Exception("readgroup must include ID")
+
 def readSequenceLengths(lines):
     """Read name & length of topmost sequence in each maf block."""
     sequenceLengths = {}  # an OrderedDict might be nice
@@ -250,10 +256,12 @@ def karyotypicSortKey(s):
     if s == "MT": return ["~"]
     return naturalSortKey(s)
 
-def writeSamHeader(sequenceLengths):
+def writeSamHeader(sequenceLengths, readGroupItems):
     print "@HD\tVN:1.3\tSO:unsorted"
     for k in sorted(sequenceLengths, key=karyotypicSortKey):
         print "@SQ\tSN:%s\tLN:%s" % (k, sequenceLengths[k])
+    if readGroupItems:
+        print "@RG\t" + "\t".join(readGroupItems)
 
 mapqMissing = 255
 mapqMaximum = 254
@@ -281,7 +289,7 @@ def cigarParts(alignmentColumns):
     for k, v in groupby(alignmentColumns, cigarCategory):
         yield len(list(v)), k
 
-def writeSam(maf):
+def writeSam(maf, rg):
     if 3 in mafLetterSizes(maf):
         raise Exception("this looks like translated DNA - can't convert to SAM format")
 
@@ -351,6 +359,7 @@ def writeSam(maf):
         outWords.append(editDistance)
         if score: outWords.append(score)
         if evalue: outWords.append(evalue)
+        if rg: outWords.append(rg)
         print joined(outWords, "\t")
 
 ##### Routines for converting to BLAST-like format: #####
@@ -540,7 +549,13 @@ def mafConvert(opts, args):
     if isFormat(format, "sam"):
         if opts.dictionary: d = readSequenceLengths(fileinput.input(args[1]))
         else: d = {}
-        writeSamHeader(d)
+        if opts.readgroup:
+            readGroupItems = opts.readgroup.split()
+            rg = "RG:Z:" + readGroupId(readGroupItems)
+        else:
+            readGroupItems = []
+            rg = ""
+        writeSamHeader(d, readGroupItems)
     inputLines = fileinput.input(args[1])
     if isFormat(format, "html"): writeHtmlHeader()
     isKeepCommentLines = isFormat(format, "tabular")
@@ -549,7 +564,7 @@ def mafConvert(opts, args):
         elif isFormat(format, "blast"): writeBlast(maf, opts.linesize)
         elif isFormat(format, "html"): writeHtml(maf, opts.linesize)
         elif isFormat(format, "psl"): writePsl(maf, opts.protein)
-        elif isFormat(format, "sam"): writeSam(maf)
+        elif isFormat(format, "sam"): writeSam(maf, rg)
         elif isFormat(format, "tabular"): writeTab(maf)
         else: raise Exception("unknown format: " + format)
     if isFormat(format, "html"): print "</body></html>"
@@ -573,6 +588,8 @@ if __name__ == "__main__":
                   help="assume protein alignments, for psl match counts")
     op.add_option("-d", "--dictionary", action="store_true",
                   help="include dictionary of sequence lengths in sam format")
+    op.add_option("-r", "--readgroup",
+                  help="read group info for sam format")
     op.add_option("-l", "--linesize", type="int", default=60, #metavar="CHARS",
                   help="line length for blast and html formats (default: %default)")
     (opts, args) = op.parse_args()

@@ -38,6 +38,10 @@ Options
          input twice, so it must be a real file (not a pipe).  This
          affects sam format only.
 
+  -r READGROUP, --readgroup=READGROUP
+         Specify read group information.  This affects sam format
+         only.  Example: -r 'ID:1 PL:ILLUMINA SM:mysample'
+
   -l CHARS, --linesize=CHARS
          Write CHARS characters per line.  This affects blast and html
          formats only.
