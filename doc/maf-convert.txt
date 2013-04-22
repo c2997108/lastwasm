@@ -38,6 +38,11 @@ Options
          input twice, so it must be a real file (not a pipe).  This
          affects sam format only.
 
+  -f DICTFILE, --dictfile=DICTFILE
+         Get a sequence dictionary from DICTFILE.  This affects sam
+         format only.  You can create a dict file using
+         CreateSequenceDictionary (http://picard.sourceforge.net/).
+
   -r READGROUP, --readgroup=READGROUP
          Specify read group information.  This affects sam format
          only.  Example: -r 'ID:1 PL:ILLUMINA SM:mysample'
@@ -46,20 +51,13 @@ Options
          Write CHARS characters per line.  This affects blast and html
          formats only.
 
-
 Hints for sam/bam
 -----------------
 
-* Instead of option -d, you can add a sequence dictionary afterwards.
-
-  Add a sequence dictionary to x.sam, putting the output in y.sam.
-  Assume the reference sequences are in ref.fa.  Using picard
-  (http://picard.sourceforge.net/)::
-
-    java -jar CreateSequenceDictionary.jar R=ref.fa O=ref.dict
-    java -jar ReplaceSamHeader.jar HEADER=ref.dict I=x.sam O=y.sam
-
-  Alternatively, using samtools (http://samtools.sourceforge.net/)::
+* Here is yet another way to get a sequence dictionary, using samtools
+  (http://samtools.sourceforge.net/).  Assume the reference sequences
+  are in ref.fa.  These commands convert x.sam to y.bam while adding a
+  sequence dictionary::
 
     samtools faidx ref.fa
     samtools view -bt ref.fa.fai x.sam > y.bam

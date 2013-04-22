@@ -256,10 +256,14 @@ def karyotypicSortKey(s):
     if s == "MT": return ["~"]
     return naturalSortKey(s)
 
-def writeSamHeader(sequenceLengths, readGroupItems):
+def writeSamHeader(sequenceLengths, dictFile, readGroupItems):
     print "@HD\tVN:1.3\tSO:unsorted"
     for k in sorted(sequenceLengths, key=karyotypicSortKey):
         print "@SQ\tSN:%s\tLN:%s" % (k, sequenceLengths[k])
+    if dictFile:
+        for i in fileinput.input(dictFile):
+            if i.startswith("@SQ"): print i,
+            elif not i.startswith("@"): break
     if readGroupItems:
         print "@RG\t" + "\t".join(readGroupItems)
 
@@ -555,7 +559,7 @@ def mafConvert(opts, args):
         else:
             readGroupItems = []
             rg = ""
-        writeSamHeader(d, readGroupItems)
+        writeSamHeader(d, opts.dictfile, readGroupItems)
     inputLines = fileinput.input(args[1])
     if isFormat(format, "html"): writeHtmlHeader()
     isKeepCommentLines = isFormat(format, "tabular")
@@ -588,12 +592,15 @@ if __name__ == "__main__":
                   help="assume protein alignments, for psl match counts")
     op.add_option("-d", "--dictionary", action="store_true",
                   help="include dictionary of sequence lengths in sam format")
+    op.add_option("-f", "--dictfile",
+                  help="get sequence dictionary from DICTFILE")
     op.add_option("-r", "--readgroup",
                   help="read group info for sam format")
     op.add_option("-l", "--linesize", type="int", default=60, #metavar="CHARS",
                   help="line length for blast and html formats (default: %default)")
     (opts, args) = op.parse_args()
     if opts.linesize <= 0: op.error("option -l: should be >= 1")
+    if opts.dictionary and opts.dictfile: op.error("can't use both -d and -f")
     if len(args) != 2: op.error("I need a format-name and a file-name")
     if opts.dictionary and args[1] == "-":
         op.error("can't use '-' (standard input) with option -d")
