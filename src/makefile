@@ -64,10 +64,10 @@ $(OBJ): CA_code/*.c CA_code/*.h makefile
 clean:
 	rm -f lastdb lastal lastex $(OBJ)
 
-VERSION = \"`svnversion ..`\"
+VERSION = \"`hg id -n`\"
 
 version.hh: FORCE
-	if test -e ../.svn ; \
+	if test -e ../.hg ; \
 	then echo $(VERSION) | cmp -s $@ - || echo $(VERSION) > $@ ; \
 	fi
 

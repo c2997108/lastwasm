@@ -15,12 +15,12 @@ clean:
 html:
 	@cd doc && $(MAKE)
 
-distdir = last-`svnversion .`
+distdir = last-`hg id -n`
 
 dist: log html
 	@cd src && $(MAKE) version.hh
 	rsync -rC --exclude 'last??' doc examples makefile s* *.txt $(distdir)
-	zip -qrm archive/$(distdir) $(distdir)
+	zip -qrm $(distdir) $(distdir)
 
 log:
-	svn log > ChangeLog.txt
+	hg log --style changelog > ChangeLog.txt
