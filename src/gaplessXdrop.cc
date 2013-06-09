@@ -1,4 +1,4 @@
-// Copyright 2010 Martin C. Frith
+// Copyright 2010, 2013 Martin C. Frith
 
 #include "gaplessXdrop.hh"
 #include <stdexcept>
@@ -12,16 +12,14 @@ int forwardGaplessXdropScore(const uchar *seq1,
                              const ScoreMatrixRow *scorer,
                              int maxScoreDrop) {
   int score = 0;
-  int scoreDrop = 0;
+  int s = 0;
   while (true) {
-    scoreDrop -= scorer[*seq1++][*seq2++];
-    if (scoreDrop < 0) {
-      score -= scoreDrop;  // overflow risk
-      scoreDrop = 0;
-    }
-    else if (scoreDrop > maxScoreDrop) break;
+    s += scorer[*seq1++][*seq2++];  // overflow risk
+    if (s < score - maxScoreDrop) break;
+    if (s > score) score = s;
   }
-  if (score < 0) err("score overflow in forward gapless extension");
+  if (score - s < 0)
+    err("score overflow in forward gapless extension");
   return score;
 }
 
@@ -30,16 +28,14 @@ int reverseGaplessXdropScore(const uchar *seq1,
                              const ScoreMatrixRow *scorer,
                              int maxScoreDrop) {
   int score = 0;
-  int scoreDrop = 0;
+  int s = 0;
   while (true) {
-    scoreDrop -= scorer[*--seq1][*--seq2];
-    if (scoreDrop < 0) {
-      score -= scoreDrop;  // overflow risk
-      scoreDrop = 0;
-    }
-    else if (scoreDrop > maxScoreDrop) break;
+    s += scorer[*--seq1][*--seq2];  // overflow risk
+    if (s < score - maxScoreDrop) break;
+    if (s > score) score = s;
   }
-  if (score < 0) err("score overflow in reverse gapless extension");
+  if (score - s < 0)
+    err("score overflow in reverse gapless extension");
   return score;
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2011 Martin C. Frith
+// Copyright 2011, 2013 Martin C. Frith
 
 #include "gaplessTwoQualityXdrop.hh"
 #include "TwoQualityScoreMatrix.hh"
@@ -15,16 +15,13 @@ int forwardGaplessTwoQualityXdropScore(const uchar *seq1,
                                        const TwoQualityScoreMatrix &m,
                                        int maxScoreDrop) {
   int score = 0;
-  int scoreDrop = 0;
+  int s = 0;
   while (true) {
-    scoreDrop -= m(*seq1++, *seq2++, *qual1++, *qual2++);
-    if (scoreDrop < 0) {
-      score -= scoreDrop;  // overflow risk
-      scoreDrop = 0;
-    }
-    else if (scoreDrop > maxScoreDrop) break;
+    s += m(*seq1++, *seq2++, *qual1++, *qual2++);  // overflow risk
+    if (s < score - maxScoreDrop) break;
+    if (s > score) score = s;
   }
-  if (score < 0)
+  if (score - s < 0)
     err("score overflow in forward gapless extension with qualities");
   return score;
 }
@@ -36,16 +33,13 @@ int reverseGaplessTwoQualityXdropScore(const uchar *seq1,
                                        const TwoQualityScoreMatrix &m,
                                        int maxScoreDrop) {
   int score = 0;
-  int scoreDrop = 0;
+  int s = 0;
   while (true) {
-    scoreDrop -= m(*--seq1, *--seq2, *--qual1, *--qual2);
-    if (scoreDrop < 0) {
-      score -= scoreDrop;  // overflow risk
-      scoreDrop = 0;
-    }
-    else if (scoreDrop > maxScoreDrop) break;
+    s += m(*--seq1, *--seq2, *--qual1, *--qual2);  // overflow risk
+    if (s < score - maxScoreDrop) break;
+    if (s > score) score = s;
   }
-  if (score < 0)
+  if (score - s < 0)
     err("score overflow in reverse gapless extension with qualities");
   return score;
 }

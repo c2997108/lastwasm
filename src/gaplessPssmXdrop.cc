@@ -1,4 +1,4 @@
-// Copyright 2010 Martin C. Frith
+// Copyright 2010, 2013 Martin C. Frith
 
 #include "gaplessPssmXdrop.hh"
 #include <stdexcept>
@@ -11,16 +11,14 @@ int forwardGaplessPssmXdropScore(const uchar *seq,
                                  const ScoreMatrixRow *pssm,
                                  int maxScoreDrop) {
   int score = 0;
-  int scoreDrop = 0;
+  int s = 0;
   while (true) {
-    scoreDrop -= (*pssm++)[*seq++];
-    if (scoreDrop < 0) {
-      score -= scoreDrop;  // overflow risk
-      scoreDrop = 0;
-    }
-    else if (scoreDrop > maxScoreDrop) break;
+    s += (*pssm++)[*seq++];  // overflow risk
+    if (s < score - maxScoreDrop) break;
+    if (s > score) score = s;
   }
-  if (score < 0) err("score overflow in forward gapless extension with PSSM");
+  if (score - s < 0)
+    err("score overflow in forward gapless extension with PSSM");
   return score;
 }
 
@@ -28,16 +26,14 @@ int reverseGaplessPssmXdropScore(const uchar *seq,
                                  const ScoreMatrixRow *pssm,
                                  int maxScoreDrop) {
   int score = 0;
-  int scoreDrop = 0;
+  int s = 0;
   while (true) {
-    scoreDrop -= (*--pssm)[*--seq];
-    if (scoreDrop < 0) {
-      score -= scoreDrop;  // overflow risk
-      scoreDrop = 0;
-    }
-    else if (scoreDrop > maxScoreDrop) break;
+    s += (*--pssm)[*--seq];  // overflow risk
+    if (s < score - maxScoreDrop) break;
+    if (s > score) score = s;
   }
-  if (score < 0) err("score overflow in reverse gapless extension with PSSM");
+  if (score - s < 0)
+    err("score overflow in reverse gapless extension with PSSM");
   return score;
 }
 
