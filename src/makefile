@@ -65,10 +65,15 @@ clean:
 	rm -f lastdb lastal lastex $(OBJ)
 
 VERSION = \"`hg id -n`\"
+VERSION2 = \"`grep latesttagdistance ../.hg_archival.txt | cut -d' ' -f2`\"
+VERSION3 = \"UNKNOWN\"
 
 version.hh: FORCE
 	if test -e ../.hg ; \
 	then echo $(VERSION) | cmp -s $@ - || echo $(VERSION) > $@ ; \
+	elif test -e ../.hg_archival.txt ; \
+	then echo $(VERSION2) | cmp -s $@ - || echo $(VERSION2) > $@ ; \
+	else test -e $@ || echo $(VERSION3) > $@ ; \
 	fi
 
 FORCE:
