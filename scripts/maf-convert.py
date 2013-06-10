@@ -551,7 +551,7 @@ def isFormat(myString, myFormat):
 def mafConvert(opts, args):
     format = args[0].lower()
     if isFormat(format, "sam"):
-        if opts.dictionary: d = readSequenceLengths(fileinput.input(args[1]))
+        if opts.dictionary: d = readSequenceLengths(fileinput.input(args[1:]))
         else: d = {}
         if opts.readgroup:
             readGroupItems = opts.readgroup.split()
@@ -560,7 +560,7 @@ def mafConvert(opts, args):
             readGroupItems = []
             rg = ""
         writeSamHeader(d, opts.dictfile, readGroupItems)
-    inputLines = fileinput.input(args[1])
+    inputLines = fileinput.input(args[1:])
     if isFormat(format, "html"): writeHtmlHeader()
     isKeepCommentLines = isFormat(format, "tabular")
     for maf in mafInput(filterComments(inputLines, isKeepCommentLines)):
@@ -578,12 +578,12 @@ if __name__ == "__main__":
 
     usage = """
   %prog --help
-  %prog axt my-alignments.maf
-  %prog blast my-alignments.maf
-  %prog html my-alignments.maf
-  %prog psl my-alignments.maf
-  %prog sam my-alignments.maf
-  %prog tab my-alignments.maf"""
+  %prog axt mafFile(s)
+  %prog blast mafFile(s)
+  %prog html mafFile(s)
+  %prog psl mafFile(s)
+  %prog sam mafFile(s)
+  %prog tab mafFile(s)"""
 
     description = "Read MAF-format alignments & write them in another format."
 
@@ -601,9 +601,9 @@ if __name__ == "__main__":
     (opts, args) = op.parse_args()
     if opts.linesize <= 0: op.error("option -l: should be >= 1")
     if opts.dictionary and opts.dictfile: op.error("can't use both -d and -f")
-    if len(args) != 2: op.error("I need a format-name and a file-name")
-    if opts.dictionary and args[1] == "-":
-        op.error("can't use '-' (standard input) with option -d")
+    if len(args) < 1: op.error("I need a format-name and some MAF alignments")
+    if opts.dictionary and (len(args) == 1 or "-" in args[1:]):
+        op.error("need file (not pipe) with option -d")
 
     try: mafConvert(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message

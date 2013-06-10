@@ -9,7 +9,7 @@ sam, tab.  You can use it like this::
 
 It's often convenient to pipe in the input, like this::
 
-  ... | maf-convert.py psl - > my-alignments.psl
+  ... | maf-convert.py psl > my-alignments.psl
 
 The input should be "multiple alignment format" as described in the
 UCSC Genome FAQ (not "MIRA assembly format" or any other maf).
