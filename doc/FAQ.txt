@@ -16,6 +16,12 @@ LAST FAQ
 
 ----
 
+:Q: How can I get the percent-identity of each alignment?
+
+:A: Use maf-convert to convert them to blast or psl format.
+
+----
+
 :Q: Why is LAST so slow at reading/writing files?
 
 :A: Probably because the files are huge and your disk is slow (or lots
