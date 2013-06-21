@@ -85,7 +85,7 @@ Cosmetic options (default settings):\n\
 \n\
 Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
--m: maximum multiplicity for initial matches ("
+-m: maximum initial matches per query position ("
     + stringify(oneHitMultiplicity) + ")\n\
 -l: length threshold for initial matches (1 if -j0, else infinity)\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
