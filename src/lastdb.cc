@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2013 Martin C. Frith
 
 // Read fasta-format sequences; construct a suffix array of them; and
 // write the results to files.
@@ -93,6 +93,7 @@ void writeOuterPrj( const std::string& fileName, const LastdbArguments& args,
   f << '\n';
 
   if( !args.isCountsOnly ){
+    f << "maxunsortedinterval=" << args.minSeedLimit << '\n';
     f << "masklowercase=" << args.isCaseSensitive << '\n';
     if( args.inputFormat != sequenceFormat::fasta ){
       f << "sequenceformat=" << args.inputFormat << '\n';
@@ -126,7 +127,7 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
   std::string baseName = args.lastdbName + stringify(volumeNumber);
 
   LOG( "sorting..." );
-  sa.sortIndex( multi.seqReader(), seed );
+  sa.sortIndex( multi.seqReader(), seed, args.minSeedLimit );
 
   LOG( "bucketing..." );
   sa.makeBuckets( multi.seqReader(), seed, args.bucketDepth );

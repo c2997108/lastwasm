@@ -161,7 +161,7 @@ void calculateScoreStatistics(){
 
 // Read the .prj file for the whole database
 void readOuterPrj( const std::string& fileName, unsigned& volumes,
-                   int& isCaseSensitiveSeeds,
+                   indexT& minSeedLimit, int& isCaseSensitiveSeeds,
                    countT& refSequences, countT& refLetters ){
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
@@ -175,6 +175,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "alphabet" ) iss >> alph;
     if( word == "numofsequences" ) iss >> refSequences;
     if( word == "numofletters" ) iss >> refLetters;
+    if( word == "maxunsortedinterval" ) iss >> minSeedLimit;
     if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "volumes" ) iss >> volumes;
@@ -736,11 +737,21 @@ void lastal( int argc, char** argv ){
   }
 
   unsigned volumes = unsigned(-1);  // initialize it to an "error" value
+  indexT minSeedLimit = 0;
   int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
   countT refSequences = -1;
   countT refLetters = -1;
-  readOuterPrj( args.lastdbName + ".prj",
-                volumes, isCaseSensitiveSeeds, refSequences, refLetters );
+  readOuterPrj( args.lastdbName + ".prj", volumes, minSeedLimit,
+		isCaseSensitiveSeeds, refSequences, refLetters );
+
+  if( minSeedLimit > 1 ){
+    if( args.outputType == 0 )
+      ERR( "can't use option -j 0: need to re-run lastdb with i <= 1" );
+    if( minSeedLimit > args.oneHitMultiplicity )
+      ERR( "can't use option -m < " + stringify(minSeedLimit) +
+	   ": need to re-run lastdb with i <= " +
+	   stringify(args.oneHitMultiplicity) );
+  }
 
   args.setDefaultsFromAlphabet( alph.letters == alph.dna, alph.isProtein(),
                                 isCaseSensitiveSeeds, volumes > 1 );

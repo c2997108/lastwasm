@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
 
 #include "LastdbArguments.hh"
 #include "stringify.hh"
@@ -23,6 +23,7 @@ LastdbArguments::LastdbArguments() :
   indexStep(1),
   subsetSeedFile(""),
   userAlphabet(""),
+  minSeedLimit(0),
   bucketDepth(indexT(-1)),  // means: use the default (adapts to the data)
   isCountsOnly(false),
   verbosity(0),
@@ -48,6 +49,8 @@ Advanced Options (default settings):\n\
 -u: subset seed file (yass.seed)\n\
 -w: index step (" + stringify(indexStep) + ")\n\
 -a: user-defined alphabet\n\
+-i: minimum limit on initial matches per query position ("
+    + stringify(minSeedLimit) + ")\n\
 -b: bucket depth\n\
 -x: just count sequences and letters\n\
 -v: be verbose: write messages about what lastdb is doing\n\
@@ -57,7 +60,7 @@ LAST home page: http://last.cbrc.jp/\n\
 ";
 
   int c;
-  while( (c = getopt(argc, argv, "hpcm:s:w:u:a:b:xvQ:")) != -1 ) {
+  while( (c = getopt(argc, argv, "hpcm:s:w:u:a:i:b:xvQ:")) != -1 ) {
     switch(c){
     case 'h':
       std::cout << help;
@@ -83,6 +86,9 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'a':
       userAlphabet = optarg;
+      break;
+    case 'i':
+      unstringify( minSeedLimit, optarg );
       break;
     case 'b':
       unstringify( bucketDepth, optarg );

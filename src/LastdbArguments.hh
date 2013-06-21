@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2013 Martin C. Frith
 
 // This struct holds the command line arguments for lastdb.
 
@@ -29,6 +29,7 @@ struct LastdbArguments{
   indexT indexStep;
   std::string subsetSeedFile;
   std::string userAlphabet;
+  indexT minSeedLimit;
   indexT bucketDepth;
   bool isCountsOnly;
   int verbosity;

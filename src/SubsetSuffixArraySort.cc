@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2013 Martin C. Frith
 
 // Parts of this code are adapted from "Engineering Radix Sort" by PM
 // McIlroy, K Bostic, MD McIlroy.
@@ -214,7 +214,8 @@ static void radixSortN( const uchar* text, const uchar* subsetMap,
 }
 
 void SubsetSuffixArray::sortIndex( const uchar* text,
-                                   const CyclicSubsetSeed& seed ){
+                                   const CyclicSubsetSeed& seed,
+				   indexT maxUnsortedInterval ){
   PUSH( &index.v.front(), &index.v.back() + 1, 0 );
 
   while( sp > stack ){
@@ -222,6 +223,8 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
     indexT* end;
     indexT depth;
     POP( beg, end, depth );
+
+    if( end - beg <= maxUnsortedInterval ) continue;
 
     if( end - beg < 10 ){  // ???
       insertionSort( text, seed, beg, end, depth );

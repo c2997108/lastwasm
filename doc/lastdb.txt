@@ -104,6 +104,11 @@ Advanced Options
       excluded from initial matches and get the mismatch score when
       aligned to anything.  If -a is specified, -p is ignored.
 
+  -i MATCHES
+      This option makes lastdb faster, at the expense of limiting your
+      options with lastal.  If you use (say) "-i 10", then you cannot
+      use lastal with option m < 10.
+
   -b DEPTH
       Specify the depth of "buckets" used to accelerate initial match
       finding.  Larger values increase the memory usage of lastdb and

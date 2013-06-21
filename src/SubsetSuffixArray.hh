@@ -46,7 +46,8 @@ public:
   std::size_t indexBytes() const{ return index.v.size() * sizeof(indexT); }
 
   // Sort the suffix array (but don't make the buckets).
-  void sortIndex( const uchar* text, const CyclicSubsetSeed& seed );
+  void sortIndex( const uchar* text, const CyclicSubsetSeed& seed,
+		  indexT maxUnsortedInterval );
 
   // Make the buckets.  If bucketDepth+1 == 0, then a default
   // bucketDepth is used.  The default is: the maximum possible
