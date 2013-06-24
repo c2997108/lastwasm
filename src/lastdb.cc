@@ -70,11 +70,11 @@ void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
   }
 }
 
-// Write the .prj file for the whole database
-void writeOuterPrj( const std::string& fileName, const LastdbArguments& args,
-                    const Alphabet& alph, countT sequenceCount,
-                    const std::vector<countT>& letterCounts,
-		    const CyclicSubsetSeed& seed, unsigned volumes ){
+void writePrjFile( const std::string& fileName, const LastdbArguments& args,
+		   const Alphabet& alph, countT sequenceCount,
+		   const std::vector<countT>& letterCounts,
+		   const CyclicSubsetSeed& seed, unsigned volumes,
+		   const MultiSequence& multi, const SubsetSuffixArray& sa ){
   countT letterTotal = std::accumulate( letterCounts.begin(),
                                         letterCounts.end(), countT(0) );
 
@@ -98,7 +98,14 @@ void writeOuterPrj( const std::string& fileName, const LastdbArguments& args,
     if( args.inputFormat != sequenceFormat::fasta ){
       f << "sequenceformat=" << args.inputFormat << '\n';
     }
-    f << "volumes=" << volumes << '\n';
+    if( volumes+1 > 0 ){
+      f << "volumes=" << volumes << '\n';
+    }else{
+      indexT totalLength = multi.finishedSize();
+      f << "totallength=" << totalLength << '\n';
+      f << "specialcharacters=" << totalLength - sa.indexSize() << '\n';
+      f << "prefixlength=" << sa.maxBucketPrefix() << '\n';
+    }
     for( unsigned i = 0; i < seed.span(); ++i ){
       f << "subsetseed=";
       seed.writePosition( f, i );
@@ -109,20 +116,10 @@ void writeOuterPrj( const std::string& fileName, const LastdbArguments& args,
   if( !f ) ERR( "can't write file: " + fileName );
 }
 
-// Write a per-volume .prj file, with info about a database volume
-void writeInnerPrj( const std::string& fileName,
-		    const MultiSequence& multi, const SubsetSuffixArray& sa ){
-  std::ofstream f( fileName.c_str() );
-  f << "totallength=" << multi.finishedSize() << '\n';
-  f << "specialcharacters=" << multi.finishedSize() - sa.indexSize() << '\n';
-  f << "numofsequences=" << multi.finishedSequences() << '\n';
-  f << "prefixlength=" << sa.maxBucketPrefix() << '\n';
-  if( !f ) ERR( "can't write file: " + fileName );
-}
-
 // Make one database volume, from one batch of sequences
 void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
 		 const LastdbArguments& args, const CyclicSubsetSeed& seed,
+		 const Alphabet& alph, const std::vector<countT>& letterCounts,
 		 unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
 
@@ -133,7 +130,8 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
   sa.makeBuckets( multi.seqReader(), seed, args.bucketDepth );
 
   LOG( "writing..." );
-  writeInnerPrj( baseName + ".prj", multi, sa );
+  writePrjFile( baseName + ".prj", args, alph, multi.finishedSequences(),
+		letterCounts, seed, -1, multi, sa );
   multi.toFiles( baseName );
   sa.toFiles( baseName );
 
@@ -206,6 +204,7 @@ void lastdb( int argc, char** argv ){
   unsigned volumeNumber = 0;
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
+  std::vector<countT> letterTotals( alph.size );
 
   for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
     std::ifstream inFileStream;
@@ -228,7 +227,11 @@ void lastdb( int argc, char** argv ){
         if( args.isCountsOnly ) multi.reinitForAppending();
       }
       else{
-	makeVolume( sa, multi, args, seed, volumeNumber++ );
+	makeVolume( sa, multi, args, seed, alph, letterCounts,
+		    volumeNumber++ );
+	for( unsigned c = 0; c < alph.size; ++c )
+	  letterTotals[c] += letterCounts[c];
+	letterCounts.assign( alph.size, 0 );
 	sa.clear();
 	multi.reinitForAppending();
       }
@@ -236,11 +239,13 @@ void lastdb( int argc, char** argv ){
   }
 
   if( multi.finishedSequences() > 0 ){
-    makeVolume( sa, multi, args, seed, volumeNumber++ );
+    makeVolume( sa, multi, args, seed, alph, letterCounts, volumeNumber++ );
   }
 
-  writeOuterPrj( args.lastdbName + ".prj", args, alph,
-                 sequenceCount, letterCounts, seed, volumeNumber );
+  for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
+
+  writePrjFile( args.lastdbName + ".prj", args, alph,
+		sequenceCount, letterTotals, seed, volumeNumber, multi, sa );
 }
 
 int main( int argc, char** argv )
