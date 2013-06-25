@@ -188,8 +188,8 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( !subsetSeed.span() || volumes+1 == 0 || refLetters+1 == 0 ||
-      referenceFormat >= sequenceFormat::prb ){
+  if( !subsetSeed.span() || refSequences+1 == 0 || refLetters+1 == 0 ||
+      volumes+1 == 0 || referenceFormat >= sequenceFormat::prb ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
@@ -659,10 +659,8 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
       << "\n";
   out << "#\n";
   args.writeCommented( out );
-  if( refSequences + 1 > 0 && refLetters + 1 > 0 ){
-    out << "# Reference sequences=" << refSequences
-        << " normal letters=" << refLetters << "\n";
-  }
+  out << "# Reference sequences=" << refSequences
+      << " normal letters=" << refLetters << "\n";
   out << "#\n";
 
   if( args.outputType == 0 ){  // we just want hit counts
