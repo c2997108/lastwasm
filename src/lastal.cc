@@ -63,6 +63,7 @@ namespace {
   sequenceFormat::Enum referenceFormat;  // defaults to 0
   TwoQualityScoreMatrix twoQualityScoreMatrix;
   TwoQualityScoreMatrix twoQualityScoreMatrixMasked;
+  int minScoreGapless;
 }
 
 // Set up a scoring matrix, based on the user options
@@ -202,7 +203,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
 
 // Read a per-volume .prj file, with info about a database volume
 void readInnerPrj( const std::string& fileName, indexT& seqCount,
-		   indexT& delimiterNum, indexT& bucketDepth ){
+		   indexT& seqLen, indexT& delimiterNum, indexT& bucketDepth ){
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
 
@@ -211,6 +212,7 @@ void readInnerPrj( const std::string& fileName, indexT& seqCount,
     std::istringstream iss(line);
     getline( iss, word, '=' );
     if( word == "numofsequences" ) iss >> seqCount;
+    if( word == "numofletters" ) iss >> seqLen;
     if( word == "specialcharacters" ) iss >> delimiterNum;
     if( word == "prefixlength" ) iss >> bucketDepth;
   }
@@ -369,7 +371,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
       // Tried checking the score after isOptimal & addEndpoint, but
       // the number of extensions decreased by < 10%, and it was
       // slower overall.
-      if( score < args.minScoreGapless ) continue;
+      if( score < minScoreGapless ) continue;
 
       indexT tEnd = dis.forwardGaplessEnd( j, i, fs );
       indexT tBeg = dis.reverseGaplessEnd( j, i, rs );
@@ -605,9 +607,12 @@ void readIndex( const std::string& baseName, indexT seqCount,
 void readVolume( unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
   indexT seqCount = indexT(-1);
+  indexT seqLen = indexT(-1);
   indexT delimiterNum = indexT(-1);
   indexT bucketDepth = indexT(-1);
-  readInnerPrj( baseName + ".prj", seqCount, delimiterNum, bucketDepth );
+  readInnerPrj( baseName + ".prj",
+		seqCount, seqLen, delimiterNum, bucketDepth );
+  if( seqLen+1 > 0 ) minScoreGapless = args.calcMinScoreGapless( seqLen );
   readIndex( baseName, seqCount, delimiterNum, bucketDepth );
 }
 
@@ -772,7 +777,9 @@ void lastal( int argc, char** argv ){
   gapCosts.assign( args.gapExistCost, args.gapExtendCost,
 		   args.insExistCost, args.insExtendCost, args.gapPairCost );
   if( args.outputType > 0 ) calculateScoreStatistics();
-  args.setDefaultsFromMatrix( lambdaCalculator.lambda(), refLetters );
+  args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
+  minScoreGapless = args.calcMinScoreGapless( refLetters );
+  if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
   if( args.outputType > 0 ) makeQualityScorers();
 
   if( args.isTranslated() ){

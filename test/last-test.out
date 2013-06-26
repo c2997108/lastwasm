@@ -92,7 +92,7 @@ p                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TEST 2
 #
-# a=7 b=1 A=7 B=1 c=100000 F=-1 e=40 d=13 x=27 y=9 z=27
+# a=7 b=1 A=7 B=1 c=100000 F=-1 e=40 d=-1 x=27 y=9 z=27
 # u=0 s=2 m=10 l=4294967295 n=10 k=1 i=1 w=0 t=0.910239 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -171,7 +171,7 @@ chr32
 
 TEST 4
 #
-# a=9 b=9 A=9 B=9 c=100000 F=-1 e=90 d=63 x=189 y=44 z=189
+# a=9 b=9 A=9 B=9 c=100000 F=-1 e=90 d=-1 x=189 y=44 z=189
 # u=0 s=2 m=10 l=4294967295 n=10 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803

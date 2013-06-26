@@ -370,8 +370,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   }
 }
 
-void LastalArguments::setDefaultsFromMatrix( double lambda,
-					     double numLettersInReference ){
+void LastalArguments::setDefaultsFromMatrix( double lambda ){
   if( temperature < 0 ) temperature = 1 / lambda;
 
   if( maxDropGapless < 0 ){  // should it depend on temperature or lambda?
@@ -385,6 +384,10 @@ void LastalArguments::setDefaultsFromMatrix( double lambda,
   }
 
   if( maxDropFinal < 0 ) maxDropFinal = maxDropGapped;
+}
+
+int LastalArguments::calcMinScoreGapless( double numLettersInReference ) const{
+  if( minScoreGapless >= 0 ) return minScoreGapless;
 
   // ***** Default setting for minScoreGapless *****
 
@@ -406,18 +409,14 @@ void LastalArguments::setDefaultsFromMatrix( double lambda,
   // trial-and-error.  It should depend on the relative speeds of
   // gapless and gapped extensions.
 
-  if( minScoreGapless < 0 ){
-    if( temperature < 0 ){  // shouldn't happen
-      minScoreGapless = minScoreGapped;
-    }else{
-      double n = maxGaplessAlignmentsPerQueryPosition;
-      if( maxGaplessAlignmentsPerQueryPosition + 1 == 0 ) n = 10;  // ?
-      double x = 1000.0 * numLettersInReference / n;
-      if( x < 1 ) x = 1;
-      minScoreGapless = int( temperature * std::log(x) + 0.5 );
-      minScoreGapless = std::min( minScoreGapless, minScoreGapped );
-    }
-  }
+  if( temperature < 0 ) return minScoreGapped;  // shouldn't happen
+
+  double n = maxGaplessAlignmentsPerQueryPosition;
+  if( maxGaplessAlignmentsPerQueryPosition + 1 == 0 ) n = 10;  // ?
+  double x = 1000.0 * numLettersInReference / n;
+  if( x < 1 ) x = 1;
+  int s = int( temperature * std::log(x) + 0.5 );
+  return std::min( s, minScoreGapped );
 }
 
 void LastalArguments::writeCommented( std::ostream& stream ) const{

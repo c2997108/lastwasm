@@ -33,7 +33,10 @@ struct LastalArguments{
   // set default option values that depend on input files:
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
                                 bool isCaseSensitiveSeeds, bool isVolumes );
-  void setDefaultsFromMatrix( double lambda, double numLettersInReference );
+  void setDefaultsFromMatrix( double lambda );
+
+  // get minScoreGapless, or calculate a default value if it is unspecified:
+  int calcMinScoreGapless( double numLettersInReference ) const;
 
   // write the parameter settings, starting each line with "#":
   void writeCommented( std::ostream& stream ) const;
