@@ -122,21 +122,11 @@ Advanced Options
 
   -v  Be verbose: write messages about what lastdb is doing.
 
-Running lastdb on more than 4 billion letters
----------------------------------------------
-
-We recommend that you manually split such datasets into chunks of size
-~4 billion, and run lastdb separately on each chunk.  Suppose you have
-8 chunks, and 8 computers that each have 4 CPUs and ~24 GB of memory.
-It is convenient to dedicate one computer to each chunk.  You can then
-run 4 lastal processes in parallel against each chunk: they will share
-memory, and the operating system should cache the chunks for fast
-startup.
-
 Limitations
 -----------
 
-lastdb can become catastrophically slow for sequences with large
-repeats.  It copes fine with all biological data that we have tried,
-including a version of the human genome where large parts of the X and
-Y chromosomes are identical.
+lastdb can become catastrophically slow for highly redundant
+sequences, e.g. two almost-identical genomes.  It usually processes
+several GB per hour, but if it becomes much slower, try option "-i
+10", which is likely to solve the problem.  (If even that is too slow,
+try "-i 100" or so.)

@@ -80,6 +80,11 @@ db=/tmp/last-test
     lastdb -Q1 $db sd-ccs-100.fq
     lastal -Q1 -r1 -q2 -a1 -b1 -e44 -m100 -s0 $db sd-ccs-100.fq
     echo
+
+    echo TEST 15  # incomplete sorting, lastal on one volume
+    lastdb -i10 -s1 $db $dnaSeq
+    lastal -Q1 -e90 -a9 -f0 ${db}0 $fastq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -

@@ -759,3 +759,41 @@ q S1_100              <i~'a;><q<f*`kduZ-LNlIBn@-2KH*~aLG44oC+H9]-A@9;WJ7.P~L?1h~
 
 # CPU time: 0.62 seconds
 
+TEST 15
+#
+# a=9 b=9 A=9 B=9 c=100000 F=-1 e=90 d=63 x=189 y=44 z=189
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3
+# /tmp/last-test0
+# Reference sequences=1 normal letters=16775
+#
+#    A  C  G  T
+# A  6 -18 -18 -18
+# C -18  6 -18 -18
+# G -18 -18  6 -18
+# T -18 -18 -18  6
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+#
+# batch 0
+102	chrM	973	17	+	16775	SRR001981.107	7	17	+	36	17
+91	chrM	963	25	+	16775	SRR001981.67	6	24	+	36	18,1:0,6
+91	chrM	957	29	+	16775	SRR001981.202	0	31	-	36	7,0:1,6,0:2,11,1:0,4
+# batch 1
+119	chrM	952	33	+	16775	SRR001981.279	0	33	-	36	33
+104	chrM	949	33	+	16775	SRR001981.279	1	33	-	36	33
+102	chrM	968	17	+	16775	SRR001981.346	1	17	-	36	17
+99	chrM	960	28	+	16775	SRR001981.279	0	28	-	36	28
+96	chrM	963	24	+	16775	SRR001981.279	0	24	-	36	24
+95	chrM	960	28	+	16775	SRR001981.279	5	26	-	36	9,2:0,17
+91	chrM	949	32	+	16775	SRR001981.279	0	32	-	36	32
+90	chrM	956	35	+	16775	SRR001981.279	0	35	-	36	35
+# batch 2
+# batch 3
+90	chrM	971	15	+	16775	SRR001981.805	21	15	+	36	15
+91	chrM	959	27	+	16775	SRR001981.815	1	25	-	36	10,2:0,15
+# batch 4
+# CPU time: 0.02 seconds
+

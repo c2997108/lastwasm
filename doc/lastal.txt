@@ -347,6 +347,28 @@ If you run several lastal jobs at the same time on the same computer,
 using the same set of reference files prepared by lastdb, then they
 will share memory for the reference files.
 
-If the reference was split into volumes by lastdb, each lastal job
-uses one volume at a time.  Then, the jobs will share memory only when
-they happen to be using the same volume.
+Multiple volumes
+----------------
+
+If lastdb creates multiple volumes::
+
+  lastdb hugeDb huge.fasta
+
+You can either run lastal on the whole thing::
+
+  lastal hugeDb queries.fasta > myalns.maf
+
+Or on one volume at a time::
+
+  lastal hugeDb0 queries.fasta > myalns0.maf
+  lastal hugeDb1 queries.fasta > myalns1.maf
+  lastal hugeDb2 queries.fasta > myalns2.maf
+
+The former method reads the queries in large batches, and aligns each
+batch to one volume at a time.  If you run several jobs in parallel,
+they will not necessarily use the same volume at the same time.
+
+Therefore, for parallelization, you should either ensure you have
+enough memory to hold several volumes simultaneously, or run lastal on
+one volume at a time.  An efficient scheme is to use a different
+computer for each volume.
