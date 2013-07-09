@@ -4,7 +4,6 @@
 // McIlroy, K Bostic, MD McIlroy.
 
 #include "SubsetSuffixArray.hh"
-#include "CyclicSubsetSeed.hh"
 #include <algorithm>  // iter_swap, min
 
 using namespace cbrc;
@@ -214,7 +213,6 @@ static void radixSortN( const uchar* text, const uchar* subsetMap,
 }
 
 void SubsetSuffixArray::sortIndex( const uchar* text,
-                                   const CyclicSubsetSeed& seed,
 				   indexT maxUnsortedInterval ){
   PUSH( &index.v.front(), &index.v.back() + 1, 0 );
 

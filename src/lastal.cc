@@ -19,7 +19,6 @@
 #include "ScoreMatrix.hh"
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
-#include "CyclicSubsetSeed.hh"
 #include "DiagonalTable.hh"
 #include "GeneralizedAffineGapCosts.hh"
 #include "gaplessXdrop.hh"
@@ -46,7 +45,6 @@ namespace {
   Alphabet alph;
   Alphabet queryAlph;  // for translated alignment
   GeneticCode geneticCode;
-  CyclicSubsetSeed subsetSeed;
   SubsetSuffixArray suffixArray;
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
@@ -168,6 +166,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
+  CyclicSubsetSeed& subsetSeed = suffixArray.getSeed();
 
   std::string line, word;
   while( getline( f, line ) ){
@@ -266,7 +265,7 @@ void countMatches( char strand ){
     }
 
     suffixArray.countMatches( matchCounts[seqNum], query.seqReader() + i,
-			      text.seqReader(), subsetSeed );
+			      text.seqReader() );
   }
 }
 
@@ -345,7 +344,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
   for( indexT i = 0; i < query.finishedSize(); i += args.queryStep ){
     const indexT* beg;
     const indexT* end;
-    suffixArray.match( beg, end, dis.b + i, dis.a, subsetSeed,
+    suffixArray.match( beg, end, dis.b + i, dis.a,
 		       args.oneHitMultiplicity, args.minHitDepth );
     matchCount += end - beg;
 
@@ -600,7 +599,7 @@ void readIndex( const std::string& baseName, indexT seqCount,
   LOG( "reading " << baseName << "..." );
   text.fromFiles( baseName, seqCount, isFastq( referenceFormat ) );
   suffixArray.fromFiles( baseName, text.finishedSize() - delimiterNum,
-                         bucketDepth, subsetSeed );
+                         bucketDepth );
 }
 
 // Read one database volume

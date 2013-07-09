@@ -1,7 +1,6 @@
 // Copyright 2008, 2009, 2010, 2013 Martin C. Frith
 
 #include "SubsetSuffixArray.hh"
-#include "CyclicSubsetSeed.hh"
 #include "io.hh"
 #include <cassert>
 //#include <iostream>  // for debugging
@@ -10,7 +9,6 @@ using namespace cbrc;
 
 int SubsetSuffixArray::addIndices( const uchar* text,
 				   indexT beg, indexT end, indexT step,
-				   const CyclicSubsetSeed& seed,
 				   std::size_t maxBytes ){
   assert( step > 0 );
   indexT oldSize = index.v.size();
@@ -37,10 +35,9 @@ void SubsetSuffixArray::clear(){
 }
 
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
-				   indexT indexNum, indexT bucketDepth,
-				   const CyclicSubsetSeed& seed ){
+				   indexT indexNum, indexT bucketDepth ){
   index.m.open( baseName + ".suf", indexNum );
-  makeBucketSteps( seed, bucketDepth );
+  makeBucketSteps( bucketDepth );
   buckets.m.open( baseName + ".bck", bucketSteps[0] );
 }
 
@@ -53,7 +50,6 @@ void SubsetSuffixArray::toFiles( const std::string& baseName ) const{
 // could & probably should return the match depth
 void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
                                const uchar* queryPtr, const uchar* text,
-                               const CyclicSubsetSeed& seed,
                                indexT maxHits, indexT minDepth ) const{
   indexT depth = 0;
   const uchar* subsetMap = seed.firstMap();
@@ -101,8 +97,8 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
 }
 
 void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
-				      const uchar* queryPtr, const uchar* text,
-				      const CyclicSubsetSeed& seed ) const{
+				      const uchar* queryPtr,
+				      const uchar* text ) const{
   indexT depth = 0;
   const uchar* subsetMap = seed.firstMap();
 
@@ -201,12 +197,10 @@ SubsetSuffixArray::upperBound( const indexT* beg, const indexT* end,
   return end;
 }
 
-void SubsetSuffixArray::makeBuckets( const uchar* text,
-				     const CyclicSubsetSeed& seed,
-				     indexT bucketDepth ){
-  if( bucketDepth+1 == 0 ) bucketDepth = defaultBucketDepth(seed);
+void SubsetSuffixArray::makeBuckets( const uchar* text, indexT bucketDepth ){
+  if( bucketDepth+1 == 0 ) bucketDepth = defaultBucketDepth();
 
-  makeBucketSteps( seed, bucketDepth );
+  makeBucketSteps( bucketDepth );
 
   for( indexT i = 0; i < index.size(); ++i ){
     const uchar* textPtr = text + index[i];
@@ -233,8 +227,7 @@ void SubsetSuffixArray::makeBuckets( const uchar* text,
   buckets.v.resize( bucketSteps[0], index.size() );
 }
 
-void SubsetSuffixArray::makeBucketSteps( const CyclicSubsetSeed& seed,
-					 indexT bucketDepth ){
+void SubsetSuffixArray::makeBucketSteps( indexT bucketDepth ){
   indexT step = 0;
   indexT depth = bucketDepth + 1;
   bucketSteps.resize( depth );
@@ -246,8 +239,7 @@ void SubsetSuffixArray::makeBucketSteps( const CyclicSubsetSeed& seed,
   }
 }
 
-SubsetSuffixArray::indexT
-SubsetSuffixArray::defaultBucketDepth( const CyclicSubsetSeed& seed ){
+SubsetSuffixArray::indexT SubsetSuffixArray::defaultBucketDepth(){
   indexT maxBucketEntries = index.size() / 4;
   indexT bucketDepth = 0;
   indexT kmerEntries = 1;

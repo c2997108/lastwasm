@@ -22,39 +22,37 @@
 #ifndef SUBSET_SUFFIX_ARRAY_HH
 #define SUBSET_SUFFIX_ARRAY_HH
 
+#include "CyclicSubsetSeed.hh"
 #include "VectorOrMmap.hh"
 
-#include <string>
-
 namespace cbrc{
-
-class CyclicSubsetSeed;
 
 class SubsetSuffixArray{
 public:
   typedef unsigned indexT;
   typedef unsigned char uchar;
 
+  CyclicSubsetSeed& getSeed() { return seed; }
+  const CyclicSubsetSeed& getSeed() const { return seed; }
+
   // Add (unsorted) indices for text positions between beg and end,
   // and return 1.  Positions starting with delimiters aren't added.
   // If the index size would exceed maxBytes, don't add anything, and
   // return 0.
   int addIndices( const uchar* text, indexT beg, indexT end, indexT step,
-		  const CyclicSubsetSeed& seed, std::size_t maxBytes );
+		  std::size_t maxBytes );
 
   indexT indexSize() const{ return index.size(); }
   std::size_t indexBytes() const{ return index.v.size() * sizeof(indexT); }
 
   // Sort the suffix array (but don't make the buckets).
-  void sortIndex( const uchar* text, const CyclicSubsetSeed& seed,
-		  indexT maxUnsortedInterval );
+  void sortIndex( const uchar* text, indexT maxUnsortedInterval );
 
   // Make the buckets.  If bucketDepth+1 == 0, then a default
   // bucketDepth is used.  The default is: the maximum possible
   // bucketDepth such that the number of bucket entries is at most 1/4
   // the number of suffix array entries.
-  void makeBuckets( const uchar* text, const CyclicSubsetSeed& seed,
-		    indexT bucketDepth );
+  void makeBuckets( const uchar* text, indexT bucketDepth );
 
   // Return the maximum prefix size covered by the buckets.
   indexT maxBucketPrefix() const { return bucketSteps.size() - 1; }
@@ -62,7 +60,7 @@ public:
   void clear();
 
   void fromFiles( const std::string& baseName, indexT indexNum,
-		  indexT bucketDepth, const CyclicSubsetSeed& seed );
+		  indexT bucketDepth );
 
   void toFiles( const std::string& baseName ) const;
 
@@ -72,16 +70,15 @@ public:
   // range of matching indices via beg and end.
   void match( const indexT*& beg, const indexT*& end,
               const uchar* queryPtr, const uchar* text,
-              const CyclicSubsetSeed& seed,
               indexT maxHits, indexT minDepth ) const;
 
   // Count matches of all sizes, starting at the given position in the
   // query.  Don't try this for large self-comparisons!
   void countMatches( std::vector<unsigned long long>& counts,
-		     const uchar* queryPtr, const uchar* text,
-		     const CyclicSubsetSeed& seed ) const;
+		     const uchar* queryPtr, const uchar* text ) const;
 
 private:
+  CyclicSubsetSeed seed;
   VectorOrMmap<indexT> index;  // sorted indices
   VectorOrMmap<indexT> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
@@ -96,9 +93,9 @@ private:
 				   const uchar* textBase,
 				   const uchar* subsetMap, uchar subset );
 
-  indexT defaultBucketDepth( const CyclicSubsetSeed& seed );
+  indexT defaultBucketDepth();
 
-  void makeBucketSteps( const CyclicSubsetSeed& seed, indexT bucketDepth );
+  void makeBucketSteps( indexT bucketDepth );
 };
 
 }  // end namespace

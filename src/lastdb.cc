@@ -7,7 +7,6 @@
 #include "SubsetSuffixArray.hh"
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
-#include "CyclicSubsetSeed.hh"
 #include "io.hh"
 #include "qualityScoreUtil.hh"
 #include "stringify.hh"
@@ -72,8 +71,7 @@ void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
 
 void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const Alphabet& alph, countT sequenceCount,
-		   const std::vector<countT>& letterCounts,
-		   const CyclicSubsetSeed& seed, unsigned volumes,
+		   const std::vector<countT>& letterCounts, unsigned volumes,
 		   const MultiSequence& multi, const SubsetSuffixArray& sa ){
   countT letterTotal = std::accumulate( letterCounts.begin(),
                                         letterCounts.end(), countT(0) );
@@ -106,6 +104,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
       f << "specialcharacters=" << totalLength - sa.indexSize() << '\n';
       f << "prefixlength=" << sa.maxBucketPrefix() << '\n';
     }
+    const CyclicSubsetSeed& seed = sa.getSeed();
     for( unsigned i = 0; i < seed.span(); ++i ){
       f << "subsetseed=";
       seed.writePosition( f, i );
@@ -118,18 +117,18 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 
 // Make one database volume, from one batch of sequences
 void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
-		 const LastdbArguments& args, const CyclicSubsetSeed& seed,
+		 const LastdbArguments& args,
 		 const Alphabet& alph, const std::vector<countT>& letterCounts,
 		 const std::string& baseName ){
   LOG( "sorting..." );
-  sa.sortIndex( multi.seqReader(), seed, args.minSeedLimit );
+  sa.sortIndex( multi.seqReader(), args.minSeedLimit );
 
   LOG( "bucketing..." );
-  sa.makeBuckets( multi.seqReader(), seed, args.bucketDepth );
+  sa.makeBuckets( multi.seqReader(), args.bucketDepth );
 
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, multi.finishedSequences(),
-		letterCounts, seed, -1, multi, sa );
+		letterCounts, -1, multi, sa );
   multi.toFiles( baseName );
   sa.toFiles( baseName );
 
@@ -145,7 +144,7 @@ static std::size_t spareBytes( std::size_t maxBytes, std::size_t usedBytes ){
 std::istream&
 appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
 		 const LastdbArguments& args, const Alphabet& alph,
-		 const CyclicSubsetSeed& seed, std::istream& in ){
+		 std::istream& in ){
   std::size_t maxSeqBytes = spareBytes( args.volumeSize, sa.indexBytes() );
   if( isFastq( args.inputFormat ) ) maxSeqBytes /= 2;
   indexT maxSeqLen = maxSeqBytes;
@@ -180,7 +179,7 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
 
     if( !sa.addIndices( multi.seqReader(),
                         oldFinishedSize, multi.finishedSize(),
-                        args.indexStep, seed, maxIndexBytes ) ){
+                        args.indexStep, maxIndexBytes ) ){
       multi.unfinish();
     }
   }
@@ -192,11 +191,10 @@ void lastdb( int argc, char** argv ){
   LastdbArguments args;
   args.fromArgs( argc, argv );
   Alphabet alph;
-  CyclicSubsetSeed seed;
   MultiSequence multi;
   SubsetSuffixArray sa;
   makeAlphabet( alph, args );
-  makeSubsetSeed( seed, args, alph );
+  makeSubsetSeed( sa.getSeed(), args, alph );
   multi.initForAppending(1);
   alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
   unsigned volumeNumber = 0;
@@ -209,7 +207,7 @@ void lastdb( int argc, char** argv ){
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
-    while( appendFromFasta( multi, sa, args, alph, seed, in ) ){
+    while( appendFromFasta( multi, sa, args, alph, in ) ){
       if( !args.isProtein && args.userAlphabet.empty() &&
           sequenceCount == 0 && isDubiousDna( alph, multi ) ){
         std::cerr << "lastdb: that's some funny-lookin DNA\n";
@@ -226,7 +224,7 @@ void lastdb( int argc, char** argv ){
       }
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
-	makeVolume( sa, multi, args, seed, alph, letterCounts, baseName );
+	makeVolume( sa, multi, args, alph, letterCounts, baseName );
 	for( unsigned c = 0; c < alph.size; ++c )
 	  letterTotals[c] += letterCounts[c];
 	letterCounts.assign( alph.size, 0 );
@@ -238,17 +236,17 @@ void lastdb( int argc, char** argv ){
 
   if( multi.finishedSequences() > 0 ){
     if( volumeNumber == 0 ){
-      makeVolume( sa, multi, args, seed, alph, letterCounts, args.lastdbName );
+      makeVolume( sa, multi, args, alph, letterCounts, args.lastdbName );
       return;
     }
     std::string baseName = args.lastdbName + stringify(volumeNumber++);
-    makeVolume( sa, multi, args, seed, alph, letterCounts, baseName );
+    makeVolume( sa, multi, args, alph, letterCounts, baseName );
   }
 
   for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
 
   writePrjFile( args.lastdbName + ".prj", args, alph,
-		sequenceCount, letterTotals, seed, volumeNumber, multi, sa );
+		sequenceCount, letterTotals, volumeNumber, multi, sa );
 }
 
 int main( int argc, char** argv )
