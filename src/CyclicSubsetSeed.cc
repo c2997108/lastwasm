@@ -1,4 +1,4 @@
-// Copyright 2009, 2010 Martin C. Frith
+// Copyright 2009, 2010, 2013 Martin C. Frith
 
 #include "CyclicSubsetSeed.hh"
 #include "stringify.hh"
@@ -62,6 +62,7 @@ static bool isBlankOrComment( std::string line ){
 void CyclicSubsetSeed::fromStream( std::istream& stream,
 				   bool isMaskLowercase,
 				   const uchar letterCode[] ){
+  clear();
   std::string line;
   while( std::getline( stream, line ) ){
     if( isBlankOrComment(line) ) continue;
@@ -83,6 +84,8 @@ void CyclicSubsetSeed::fromSpacedSeed( const std::string& spacedSeed,
 				       const std::string& letters,
 				       bool isMaskLowercase,
 				       const uchar letterCode[] ){
+  clear();
+
   std::string es = exactSeed(letters);
 
   for( unsigned i = 0; i < spacedSeed.size(); ++i ){

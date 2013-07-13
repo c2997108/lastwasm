@@ -44,6 +44,8 @@ public:
   static const char* proteinSeed;
   static const char* yassSeed;  // A DNA seed pattern, used by YASS
 
+  void clear() { subsetLists.clear(); subsetMaps.clear(); }
+
   void fromFile( const std::string& fileName,
 		 bool isMaskLowercase, const uchar letterCode[] );
 
