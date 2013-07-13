@@ -30,7 +30,6 @@ namespace cbrc{
 class SubsetSuffixArray{
 public:
   typedef unsigned indexT;
-  typedef unsigned char uchar;
 
   CyclicSubsetSeed& getSeed() { return seed; }
   const CyclicSubsetSeed& getSeed() const { return seed; }

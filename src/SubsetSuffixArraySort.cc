@@ -10,7 +10,6 @@ using namespace cbrc;
 
 namespace{
   typedef SubsetSuffixArray::indexT indexT;
-  typedef unsigned char uchar;
   struct Stack{ indexT* beg; indexT* end; indexT depth; };
   Stack stack[1048576];  // big enough???
   Stack* sp = stack;

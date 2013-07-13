@@ -33,7 +33,6 @@ void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
 
 // Does the first sequence look like it isn't really DNA?
 bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
-  typedef unsigned char uchar;
   const uchar* seq = multi.seqReader() + multi.seqBeg(0);
   unsigned dnaCount = 0;
 

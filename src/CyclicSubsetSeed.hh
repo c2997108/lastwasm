@@ -1,4 +1,4 @@
-// Copyright 2009, 2010 Martin C. Frith
+// Copyright 2009, 2010, 2013 Martin C. Frith
 
 // A "subset seed" covers a range of sequence.  The size of this range
 // is called its span.  At each position, it maps letters (encoded as
@@ -34,10 +34,10 @@
 
 namespace cbrc{
 
+typedef unsigned char uchar;
+
 class CyclicSubsetSeed{
 public:
-  typedef unsigned char uchar;
-
   enum { MAX_LETTERS = 64 };
   enum { DELIMITER = 255 };
 
