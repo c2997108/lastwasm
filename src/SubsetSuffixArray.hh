@@ -41,7 +41,6 @@ public:
   int addIndices( const uchar* text, indexT beg, indexT end, indexT step,
 		  std::size_t maxBytes );
 
-  indexT indexSize() const{ return index.size(); }
   std::size_t indexBytes() const{ return index.v.size() * sizeof(indexT); }
 
   // Sort the suffix array (but don't make the buckets).
@@ -53,15 +52,12 @@ public:
   // the number of suffix array entries.
   void makeBuckets( const uchar* text, indexT bucketDepth );
 
-  // Return the maximum prefix size covered by the buckets.
-  indexT maxBucketPrefix() const { return bucketSteps.size() - 1; }
-
   void clear();
 
   void fromFiles( const std::string& baseName, indexT indexNum,
 		  indexT bucketDepth );
 
-  void toFiles( const std::string& baseName ) const;
+  void toFiles( const std::string& baseName, indexT textLength ) const;
 
   // Find the smallest match to the text, starting at the given
   // position in the query, such that there are at most maxHits
@@ -91,6 +87,9 @@ private:
   static const indexT* upperBound( const indexT* beg, const indexT* end,
 				   const uchar* textBase,
 				   const uchar* subsetMap, uchar subset );
+
+  // Return the maximum prefix size covered by the buckets.
+  indexT maxBucketPrefix() const { return bucketSteps.size() - 1; }
 
   indexT defaultBucketDepth();
 

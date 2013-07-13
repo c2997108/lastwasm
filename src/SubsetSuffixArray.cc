@@ -41,7 +41,17 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   buckets.m.open( baseName + ".bck", bucketSteps[0] );
 }
 
-void SubsetSuffixArray::toFiles( const std::string& baseName ) const{
+void SubsetSuffixArray::toFiles( const std::string& baseName,
+				 indexT textLength ) const{
+  std::string fileName = baseName + ".prj";
+  std::ofstream f( fileName.c_str(), std::ios::app );
+
+  f << "totallength=" << textLength << '\n';
+  f << "specialcharacters=" << textLength - index.size() << '\n';
+  f << "prefixlength=" << maxBucketPrefix() << '\n';
+
+  if( !f ) throw std::runtime_error( "can't write file: " + fileName );
+
   memoryToBinaryFile( index.begin(), index.end(), baseName + ".suf" );
   memoryToBinaryFile( buckets.begin(), buckets.end(), baseName + ".bck" );
 }
