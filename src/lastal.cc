@@ -161,8 +161,7 @@ void calculateScoreStatistics(){
 // Read the .prj file for the whole database
 void readOuterPrj( const std::string& fileName, unsigned& volumes,
                    indexT& minSeedLimit, int& isCaseSensitiveSeeds,
-                   countT& refSequences, countT& refLetters,
-		   indexT& delimiterNum, indexT& bucketDepth ){
+                   countT& refSequences, countT& refLetters ){
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
@@ -180,8 +179,6 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "volumes" ) iss >> volumes;
-    if( word == "specialcharacters" ) iss >> delimiterNum;
-    if( word == "prefixlength" ) iss >> bucketDepth;
     if( word == "subsetseed" ){
       if( alph.letters.empty() || isCaseSensitiveSeeds < 0 )
 	f.setstate( std::ios::failbit );
@@ -192,7 +189,6 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
 
   if( f.eof() && !f.bad() ) f.clear();
   if( !subsetSeed.span() || refSequences+1 == 0 || refLetters+1 == 0 ||
-      (volumes+1 == 0 && (delimiterNum+1 == 0 || bucketDepth+1 == 0)) ||
       referenceFormat >= sequenceFormat::prb ){
     f.setstate( std::ios::failbit );
   }
@@ -202,7 +198,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
 
 // Read a per-volume .prj file, with info about a database volume
 void readInnerPrj( const std::string& fileName, indexT& seqCount,
-		   indexT& seqLen, indexT& delimiterNum, indexT& bucketDepth ){
+		   indexT& seqLen ){
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
 
@@ -212,12 +208,10 @@ void readInnerPrj( const std::string& fileName, indexT& seqCount,
     getline( iss, word, '=' );
     if( word == "numofsequences" ) iss >> seqCount;
     if( word == "numofletters" ) iss >> seqLen;
-    if( word == "specialcharacters" ) iss >> delimiterNum;
-    if( word == "prefixlength" ) iss >> bucketDepth;
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( seqCount+1 == 0 || delimiterNum+1 == 0 || bucketDepth+1 == 0 ){
+  if( seqCount+1 == 0 ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
@@ -594,12 +588,10 @@ void translateAndScan( char strand, std::ostream& out ){
   else scan( strand, out );
 }
 
-void readIndex( const std::string& baseName, indexT seqCount,
-		indexT delimiterNum, indexT bucketDepth ) {
+void readIndex( const std::string& baseName, indexT seqCount ) {
   LOG( "reading " << baseName << "..." );
   text.fromFiles( baseName, seqCount, isFastq( referenceFormat ) );
-  suffixArray.fromFiles( baseName, text.finishedSize() - delimiterNum,
-                         bucketDepth );
+  suffixArray.fromFiles( baseName );
 }
 
 // Read one database volume
@@ -607,12 +599,9 @@ void readVolume( unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
   indexT seqCount = indexT(-1);
   indexT seqLen = indexT(-1);
-  indexT delimiterNum = indexT(-1);
-  indexT bucketDepth = indexT(-1);
-  readInnerPrj( baseName + ".prj",
-		seqCount, seqLen, delimiterNum, bucketDepth );
+  readInnerPrj( baseName + ".prj", seqCount, seqLen );
   if( seqLen+1 > 0 ) minScoreGapless = args.calcMinScoreGapless( seqLen );
-  readIndex( baseName, seqCount, delimiterNum, bucketDepth );
+  readIndex( baseName, seqCount );
 }
 
 void reverseComplementPssm(){
@@ -754,11 +743,8 @@ void lastal( int argc, char** argv ){
   int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
   countT refSequences = -1;
   countT refLetters = -1;
-  indexT delimiterNum = indexT(-1);
-  indexT bucketDepth = indexT(-1);
   readOuterPrj( args.lastdbName + ".prj", volumes, minSeedLimit,
-		isCaseSensitiveSeeds, refSequences, refLetters,
-		delimiterNum, bucketDepth );
+		isCaseSensitiveSeeds, refSequences, refLetters );
 
   if( minSeedLimit > 1 ){
     if( args.outputType == 0 )
@@ -800,8 +786,7 @@ void lastal( int argc, char** argv ){
   queryAlph.tr( query.seqWriter(),
                 query.seqWriter() + query.unfinishedSize() );
 
-  if( volumes+1 == 0 )
-    readIndex( args.lastdbName, refSequences, delimiterNum, bucketDepth );
+  if( volumes+1 == 0 ) readIndex( args.lastdbName, refSequences );
 
   std::ofstream outFileStream;
   std::ostream& out = openOut( args.outFile, outFileStream );

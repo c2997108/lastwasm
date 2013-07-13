@@ -54,8 +54,7 @@ public:
 
   void clear();
 
-  void fromFiles( const std::string& baseName, indexT indexNum,
-		  indexT bucketDepth );
+  void fromFiles( const std::string& baseName );
 
   void toFiles( const std::string& baseName, indexT textLength ) const;
 

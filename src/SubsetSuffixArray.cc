@@ -3,6 +3,7 @@
 #include "SubsetSuffixArray.hh"
 #include "io.hh"
 #include <cassert>
+#include <sstream>
 //#include <iostream>  // for debugging
 
 using namespace cbrc;
@@ -34,9 +35,29 @@ void SubsetSuffixArray::clear(){
   bucketSteps.clear();
 }
 
-void SubsetSuffixArray::fromFiles( const std::string& baseName,
-				   indexT indexNum, indexT bucketDepth ){
-  index.m.open( baseName + ".suf", indexNum );
+void SubsetSuffixArray::fromFiles( const std::string& baseName ){
+  indexT textLength = -1;
+  indexT unindexedPositions = -1;
+  indexT bucketDepth = -1;
+
+  std::string fileName = baseName + ".prj";
+  std::ifstream f( fileName.c_str() );
+  if( !f ) throw std::runtime_error( "can't open file: " + fileName );
+
+  std::string line, word;
+  while( getline( f, line ) ){
+    std::istringstream iss(line);
+    getline( iss, word, '=' );
+    if( word == "totallength" ) iss >> textLength;
+    if( word == "specialcharacters" ) iss >> unindexedPositions;
+    if( word == "prefixlength" ) iss >> bucketDepth;
+  }
+
+  if( textLength+1 == 0 || unindexedPositions+1 == 0 || bucketDepth+1 == 0 ){
+    throw std::runtime_error( "can't read file: " + fileName );
+  }
+
+  index.m.open( baseName + ".suf", textLength - unindexedPositions );
   makeBucketSteps( bucketDepth );
   buckets.m.open( baseName + ".bck", bucketSteps[0] );
 }
