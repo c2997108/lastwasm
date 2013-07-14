@@ -35,10 +35,13 @@ void SubsetSuffixArray::clear(){
   bucketSteps.clear();
 }
 
-void SubsetSuffixArray::fromFiles( const std::string& baseName ){
+void SubsetSuffixArray::fromFiles( const std::string& baseName,
+				   bool isMaskLowercase,
+				   const uchar letterCode[] ){
   indexT textLength = -1;
   indexT unindexedPositions = -1;
   indexT bucketDepth = -1;
+  seed.clear();
 
   std::string fileName = baseName + ".prj";
   std::ifstream f( fileName.c_str() );
@@ -51,9 +54,13 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName ){
     if( word == "totallength" ) iss >> textLength;
     if( word == "specialcharacters" ) iss >> unindexedPositions;
     if( word == "prefixlength" ) iss >> bucketDepth;
+    if( word == "subsetseed" ){
+      seed.appendPosition( iss, isMaskLowercase, letterCode );
+    }
   }
 
-  if( textLength+1 == 0 || unindexedPositions+1 == 0 || bucketDepth+1 == 0 ){
+  if( textLength+1 == 0 || unindexedPositions+1 == 0 || bucketDepth+1 == 0 ||
+      !seed.span() ){
     throw std::runtime_error( "can't read file: " + fileName );
   }
 
@@ -70,6 +77,12 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   f << "totallength=" << textLength << '\n';
   f << "specialcharacters=" << textLength - index.size() << '\n';
   f << "prefixlength=" << maxBucketPrefix() << '\n';
+
+  for( unsigned i = 0; i < seed.span(); ++i ){
+    f << "subsetseed=";
+    seed.writePosition( f, i );
+    f << '\n';
+  }
 
   if( !f ) throw std::runtime_error( "can't write file: " + fileName );
 

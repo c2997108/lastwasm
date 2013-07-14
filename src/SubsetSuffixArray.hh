@@ -54,7 +54,8 @@ public:
 
   void clear();
 
-  void fromFiles( const std::string& baseName );
+  void fromFiles( const std::string& baseName,
+		  bool isMaskLowercase, const uchar letterCode[] );
 
   void toFiles( const std::string& baseName, indexT textLength ) const;
 

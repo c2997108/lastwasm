@@ -62,6 +62,7 @@ namespace {
   TwoQualityScoreMatrix twoQualityScoreMatrix;
   TwoQualityScoreMatrix twoQualityScoreMatrixMasked;
   int minScoreGapless;
+  int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
 }
 
 // Set up a scoring matrix, based on the user options
@@ -160,12 +161,11 @@ void calculateScoreStatistics(){
 
 // Read the .prj file for the whole database
 void readOuterPrj( const std::string& fileName, unsigned& volumes,
-                   indexT& minSeedLimit, int& isCaseSensitiveSeeds,
+                   indexT& minSeedLimit,
                    countT& refSequences, countT& refLetters ){
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
-  CyclicSubsetSeed& subsetSeed = suffixArray.getSeed();
 
   std::string line, word;
   while( getline( f, line ) ){
@@ -179,21 +179,15 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "volumes" ) iss >> volumes;
-    if( word == "subsetseed" ){
-      if( alph.letters.empty() || isCaseSensitiveSeeds < 0 )
-	f.setstate( std::ios::failbit );
-      else
-	subsetSeed.appendPosition( iss, isCaseSensitiveSeeds, alph.encode );
-    }
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( !subsetSeed.span() || refSequences+1 == 0 || refLetters+1 == 0 ||
-      referenceFormat >= sequenceFormat::prb ){
+  if( alph.letters.empty() || refSequences+1 == 0 || refLetters+1 == 0 ||
+      isCaseSensitiveSeeds < 0 || referenceFormat >= sequenceFormat::prb ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
-  if( version < 63 ) ERR( "the database format is old: please re-run lastdb" );
+  if( version < 294 ) ERR( "the lastdb files are old: please re-run lastdb" );
 }
 
 // Read a per-volume .prj file, with info about a database volume
@@ -591,7 +585,7 @@ void translateAndScan( char strand, std::ostream& out ){
 void readIndex( const std::string& baseName, indexT seqCount ) {
   LOG( "reading " << baseName << "..." );
   text.fromFiles( baseName, seqCount, isFastq( referenceFormat ) );
-  suffixArray.fromFiles( baseName );
+  suffixArray.fromFiles( baseName, isCaseSensitiveSeeds, alph.encode );
 }
 
 // Read one database volume
@@ -740,11 +734,10 @@ void lastal( int argc, char** argv ){
 
   unsigned volumes = unsigned(-1);
   indexT minSeedLimit = 0;
-  int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
   countT refSequences = -1;
   countT refLetters = -1;
   readOuterPrj( args.lastdbName + ".prj", volumes, minSeedLimit,
-		isCaseSensitiveSeeds, refSequences, refLetters );
+		refSequences, refLetters );
 
   if( minSeedLimit > 1 ){
     if( args.outputType == 0 )

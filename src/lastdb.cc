@@ -70,8 +70,7 @@ void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
 
 void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const Alphabet& alph, countT sequenceCount,
-		   const std::vector<countT>& letterCounts, unsigned volumes,
-		   const SubsetSuffixArray& sa ){
+		   const std::vector<countT>& letterCounts, unsigned volumes ){
   countT letterTotal = std::accumulate( letterCounts.begin(),
                                         letterCounts.end(), countT(0) );
 
@@ -98,12 +97,6 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     if( volumes+1 > 0 ){
       f << "volumes=" << volumes << '\n';
     }
-    const CyclicSubsetSeed& seed = sa.getSeed();
-    for( unsigned i = 0; i < seed.span(); ++i ){
-      f << "subsetseed=";
-      seed.writePosition( f, i );
-      f << '\n';
-    }
   }
 
   if( !f ) ERR( "can't write file: " + fileName );
@@ -122,7 +115,7 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
 
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, multi.finishedSequences(),
-		letterCounts, -1, sa );
+		letterCounts, -1 );
   multi.toFiles( baseName );
   sa.toFiles( baseName, multi.finishedSize() );
 
@@ -240,7 +233,7 @@ void lastdb( int argc, char** argv ){
   for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
 
   writePrjFile( args.lastdbName + ".prj", args, alph,
-		sequenceCount, letterTotals, volumeNumber, sa );
+		sequenceCount, letterTotals, volumeNumber );
 }
 
 int main( int argc, char** argv )
