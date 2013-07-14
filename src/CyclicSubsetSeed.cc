@@ -40,6 +40,7 @@ void CyclicSubsetSeed::fromFile( const std::string& fileName,
 				 bool isMaskLowercase,
 				 const uchar letterCode[] ){
   std::ifstream f( fileName.c_str() );
+  if( !f ) ERR( "can't open file: " + fileName );
   fromStream( f, isMaskLowercase, letterCode );
   if( f.bad() || !f.eof() ) ERR( "can't read file: " + fileName );
 }

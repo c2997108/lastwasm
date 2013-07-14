@@ -60,7 +60,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   }
 
   if( textLength+1 == 0 || unindexedPositions+1 == 0 || bucketDepth+1 == 0 ||
-      !seed.span() ){
+      !seed.span() || !f.eof() ){
     throw std::runtime_error( "can't read file: " + fileName );
   }
 

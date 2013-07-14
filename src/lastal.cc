@@ -191,8 +191,8 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
 }
 
 // Read a per-volume .prj file, with info about a database volume
-void readInnerPrj( const std::string& fileName, indexT& seqCount,
-		   indexT& seqLen ){
+void readInnerPrj( const std::string& fileName,
+		   indexT& seqCount, indexT& seqLen ){
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
 
