@@ -49,11 +49,12 @@ bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
 // Set up a subset seed, based on the user options
 void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
 		     const Alphabet& alph ){
-  if( !args.subsetSeedFile.empty() ){
-    seed.fromFile( args.subsetSeedFile, args.isCaseSensitive, alph.encode );
+  if( !args.subsetSeedFiles.empty() ){
+    seed.fromFile( args.subsetSeedFiles[0],
+		   args.isCaseSensitive, alph.encode );
   }
-  else if( !args.spacedSeed.empty() ){
-    seed.fromSpacedSeed( args.spacedSeed, alph.letters,
+  else if( !args.spacedSeeds.empty() ){
+    seed.fromSpacedSeed( args.spacedSeeds[0], alph.letters,
 			 args.isCaseSensitive, alph.encode );
   }
   else if( alph.letters == alph.dna ){

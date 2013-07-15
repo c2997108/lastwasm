@@ -9,8 +9,11 @@
 #include "SequenceFormat.hh"
 
 #include <string>
+#include <vector>
 
 namespace cbrc{
+
+const unsigned maxNumOfIndexes = 16;
 
 struct LastdbArguments{
   typedef unsigned indexT;
@@ -24,10 +27,10 @@ struct LastdbArguments{
   // options:
   bool isProtein;
   bool isCaseSensitive;
-  std::string spacedSeed;
+  std::vector< std::string > spacedSeeds;
   std::size_t volumeSize;  // type?
   indexT indexStep;
-  std::string subsetSeedFile;
+  std::vector< std::string > subsetSeedFiles;
   std::string userAlphabet;
   indexT minSeedLimit;
   indexT bucketDepth;

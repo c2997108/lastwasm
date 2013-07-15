@@ -18,10 +18,10 @@ using namespace cbrc;
 LastdbArguments::LastdbArguments() :
   isProtein(false),
   isCaseSensitive(false),
-  spacedSeed(""),
+  spacedSeeds(0),
   volumeSize(-1),
   indexStep(1),
-  subsetSeedFile(""),
+  subsetSeedFiles(0),
   userAlphabet(""),
   minSeedLimit(0),
   bucketDepth(indexT(-1)),  // means: use the default (adapts to the data)
@@ -72,7 +72,7 @@ LAST home page: http://last.cbrc.jp/\n\
       isCaseSensitive = true;
       break;
     case 'm':
-      spacedSeed = optarg;
+      spacedSeeds.push_back(optarg);
       break;
     case 's':
       unstringifySize( volumeSize, optarg );
@@ -82,7 +82,7 @@ LAST home page: http://last.cbrc.jp/\n\
       if( indexStep < 1 ) badopt( c, optarg );
       break;
     case 'u':
-      subsetSeedFile = optarg;
+      subsetSeedFiles.push_back(optarg);
       break;
     case 'a':
       userAlphabet = optarg;
@@ -107,6 +107,9 @@ LAST home page: http://last.cbrc.jp/\n\
       ERR( "bad option" );
     }
   }
+
+  if( spacedSeeds.size() + subsetSeedFiles.size() > maxNumOfIndexes )
+    ERR( "too many seed patterns" );
 
   if( optind + 1 >= argc )
     ERR( "please give me an output name and sequence file(s)\n\n" + usage );
