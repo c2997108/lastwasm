@@ -17,13 +17,12 @@ void SubsetSuffixArray::addPositions( const uchar* text,
     if( subsetMap[ text[i] ] < CyclicSubsetSeed::DELIMITER ){
       index.v.push_back(i);
     }
+    if( i + step < i ) break;  // avoid overflow
   }
 }
 
-void SubsetSuffixArray::clear(){
+void SubsetSuffixArray::clearPositions(){
   index.v.clear();
-  buckets.v.clear();
-  bucketSteps.clear();
 }
 
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
@@ -236,6 +235,8 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, indexT bucketDepth ){
   if( bucketDepth+1 == 0 ) bucketDepth = defaultBucketDepth();
 
   makeBucketSteps( bucketDepth );
+
+  buckets.v.clear();
 
   for( indexT i = 0; i < index.size(); ++i ){
     const uchar* textPtr = text + index[i];

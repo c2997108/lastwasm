@@ -120,6 +120,7 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
   sa.toFiles( baseName, multi.finishedSize() );
 
   LOG( "done!" );
+  sa.clearPositions();
 }
 
 // The max number of sequence letters, such that the total volume size
@@ -213,7 +214,6 @@ void lastdb( int argc, char** argv ){
 	for( unsigned c = 0; c < alph.size; ++c )
 	  letterTotals[c] += letterCounts[c];
 	letterCounts.assign( alph.size, 0 );
-	sa.clear();
 	multi.reinitForAppending();
       }
     }
