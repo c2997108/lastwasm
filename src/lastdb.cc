@@ -82,7 +82,8 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 
 void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const Alphabet& alph, countT sequenceCount,
-		   const std::vector<countT>& letterCounts, unsigned volumes ){
+		   const std::vector<countT>& letterCounts,
+		   unsigned volumes, unsigned numOfIndexes ){
   countT letterTotal = std::accumulate( letterCounts.begin(),
                                         letterCounts.end(), countT(0) );
 
@@ -109,6 +110,9 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     if( volumes+1 > 0 ){
       f << "volumes=" << volumes << '\n';
     }
+    else{
+      f << "numofindexes=" << numOfIndexes << '\n';
+    }
   }
 
   if( !f ) ERR( "can't write file: " + fileName );
@@ -119,29 +123,42 @@ void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
 		 const MultiSequence& multi, const LastdbArguments& args,
 		 const Alphabet& alph, const std::vector<countT>& letterCounts,
 		 const std::string& baseName ){
-  LOG( "sorting..." );
-  indexes[0].sortIndex( multi.seqReader(), args.minSeedLimit );
-
-  LOG( "bucketing..." );
-  indexes[0].makeBuckets( multi.seqReader(), args.bucketDepth );
-
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, multi.finishedSequences(),
-		letterCounts, -1 );
+		letterCounts, -1, numOfIndexes );
   multi.toFiles( baseName );
-  indexes[0].toFiles( baseName, true, multi.finishedSize() );
+
+  for( unsigned x = 0; x < numOfIndexes; ++x ){
+    LOG( "sorting..." );
+    indexes[x].sortIndex( multi.seqReader(), args.minSeedLimit );
+
+    LOG( "bucketing..." );
+    indexes[x].makeBuckets( multi.seqReader(), args.bucketDepth );
+
+    LOG( "writing..." );
+    indexT textLength = multi.finishedSize();
+    if( numOfIndexes > 1 ){
+      indexes[x].toFiles( baseName + char('a' + x), false, textLength );
+    }
+    else{
+      indexes[x].toFiles( baseName, true, textLength );
+    }
+
+    indexes[x].clearPositions();
+  }
 
   LOG( "done!" );
-  indexes[0].clearPositions();
 }
 
 // The max number of sequence letters, such that the total volume size
 // is likely to be less than volumeSize bytes.  (This is crude, it
 // neglects memory for the sequence names, and the fact that
 // lowercase-masked letters and DNA "N"s aren't indexed.)
-static indexT maxLettersPerVolume( const LastdbArguments& args ){
+static indexT maxLettersPerVolume( const LastdbArguments& args,
+				   unsigned numOfIndexes ){
   std::size_t bytesPerLetter = isFastq( args.inputFormat ) ? 2 : 1;
   std::size_t maxIndexBytesPerPosition = sizeof(indexT) + 1;
+  maxIndexBytesPerPosition *= numOfIndexes;
   std::size_t x = bytesPerLetter * args.indexStep + maxIndexBytesPerPosition;
   std::size_t y = args.volumeSize / x * args.indexStep;
   indexT z = y;
@@ -155,7 +172,7 @@ appendFromFasta( MultiSequence& multi,
 		 SubsetSuffixArray indexes[], unsigned numOfIndexes,
 		 const LastdbArguments& args, const Alphabet& alph,
 		 std::istream& in ){
-  indexT maxSeqLen = maxLettersPerVolume( args );
+  indexT maxSeqLen = maxLettersPerVolume( args, numOfIndexes );
   if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
   indexT oldUnfinishedSize = multi.unfinishedSize();
@@ -179,8 +196,10 @@ appendFromFasta( MultiSequence& multi,
                        qualityOffset( args.inputFormat ) );
 
   if( in && multi.isFinished() && !args.isCountsOnly ){
-    indexes[0].addPositions( multi.seqReader(), oldFinishedSize,
-			     multi.finishedSize(), args.indexStep );
+    for( unsigned x = 0; x < numOfIndexes; ++x ){
+      indexes[x].addPositions( multi.seqReader(), oldFinishedSize,
+			       multi.finishedSize(), args.indexStep );
+    }
   }
 
   return in;
@@ -247,7 +266,7 @@ void lastdb( int argc, char** argv ){
   for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
 
   writePrjFile( args.lastdbName + ".prj", args, alph,
-		sequenceCount, letterTotals, volumeNumber );
+		sequenceCount, letterTotals, volumeNumber, numOfIndexes );
 }
 
 int main( int argc, char** argv )
