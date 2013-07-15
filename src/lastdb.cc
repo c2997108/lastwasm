@@ -129,7 +129,7 @@ void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
   writePrjFile( baseName + ".prj", args, alph, multi.finishedSequences(),
 		letterCounts, -1 );
   multi.toFiles( baseName );
-  indexes[0].toFiles( baseName, multi.finishedSize() );
+  indexes[0].toFiles( baseName, true, multi.finishedSize() );
 
   LOG( "done!" );
   indexes[0].clearPositions();

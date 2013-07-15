@@ -60,9 +60,10 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 }
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
-				 indexT textLength ) const{
+				 bool isAppendPrj, indexT textLength ) const{
   std::string fileName = baseName + ".prj";
-  std::ofstream f( fileName.c_str(), std::ios::app );
+  std::ofstream f( fileName.c_str(),
+		   isAppendPrj ? std::ios::app : std::ios::out );
 
   f << "totallength=" << textLength << '\n';
   f << "specialcharacters=" << textLength - index.size() << '\n';

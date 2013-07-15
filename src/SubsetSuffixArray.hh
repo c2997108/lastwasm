@@ -54,7 +54,8 @@ public:
   void fromFiles( const std::string& baseName,
 		  bool isMaskLowercase, const uchar letterCode[] );
 
-  void toFiles( const std::string& baseName, indexT textLength ) const;
+  void toFiles( const std::string& baseName,
+		bool isAppendPrj, indexT textLength ) const;
 
   // Find the smallest match to the text, starting at the given
   // position in the query, such that there are at most maxHits
