@@ -46,27 +46,38 @@ bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
   else return false;
 }
 
-// Set up a subset seed, based on the user options
-void makeSubsetSeed( CyclicSubsetSeed& seed, const LastdbArguments& args,
-		     const Alphabet& alph ){
-  if( !args.subsetSeedFiles.empty() ){
-    seed.fromFile( args.subsetSeedFiles[0],
+// Set up the seed pattern(s), and return how many of them there are
+unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
+			  const LastdbArguments& args, const Alphabet& alph ){
+  unsigned numOfIndexes = 0;
+
+  for( unsigned x = 0; x < args.subsetSeedFiles.size(); ++x ){
+    CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
+    seed.fromFile( args.subsetSeedFiles[x],
 		   args.isCaseSensitive, alph.encode );
   }
-  else if( !args.spacedSeeds.empty() ){
-    seed.fromSpacedSeed( args.spacedSeeds[0], alph.letters,
+
+  for( unsigned x = 0; x < args.spacedSeeds.size(); ++x ){
+    CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
+    seed.fromSpacedSeed( args.spacedSeeds[x], alph.letters,
 			 args.isCaseSensitive, alph.encode );
   }
-  else if( alph.letters == alph.dna ){
-    seed.fromString( seed.yassSeed, args.isCaseSensitive, alph.encode );
+
+  if( numOfIndexes == 0 ){
+    CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
+    if( alph.letters == alph.dna ){
+      seed.fromString( seed.yassSeed, args.isCaseSensitive, alph.encode );
+    }
+    else if( alph.letters == alph.protein ){
+      seed.fromString( seed.proteinSeed, args.isCaseSensitive, alph.encode );
+    }
+    else{
+      seed.fromSpacedSeed( "1", alph.letters,
+			   args.isCaseSensitive, alph.encode );
+    }
   }
-  else if( alph.letters == alph.protein ){
-    seed.fromString( seed.proteinSeed, args.isCaseSensitive, alph.encode );
-  }
-  else{
-    seed.fromSpacedSeed( "1", alph.letters,
-                         args.isCaseSensitive, alph.encode );
-  }
+
+  return numOfIndexes;
 }
 
 void writePrjFile( const std::string& fileName, const LastdbArguments& args,
@@ -179,9 +190,9 @@ void lastdb( int argc, char** argv ){
   args.fromArgs( argc, argv );
   Alphabet alph;
   MultiSequence multi;
-  SubsetSuffixArray sa;
+  SubsetSuffixArray indexes[maxNumOfIndexes];
   makeAlphabet( alph, args );
-  makeSubsetSeed( sa.getSeed(), args, alph );
+  unsigned numOfIndexes = makeSubsetSeeds( indexes, args, alph );
   multi.initForAppending(1);
   alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
   unsigned volumeNumber = 0;
@@ -194,7 +205,7 @@ void lastdb( int argc, char** argv ){
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
-    while( appendFromFasta( multi, sa, args, alph, in ) ){
+    while( appendFromFasta( multi, indexes[0], args, alph, in ) ){
       if( !args.isProtein && args.userAlphabet.empty() &&
           sequenceCount == 0 && isDubiousDna( alph, multi ) ){
         std::cerr << "lastdb: that's some funny-lookin DNA\n";
@@ -211,7 +222,7 @@ void lastdb( int argc, char** argv ){
       }
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
-	makeVolume( sa, multi, args, alph, letterCounts, baseName );
+	makeVolume( indexes[0], multi, args, alph, letterCounts, baseName );
 	for( unsigned c = 0; c < alph.size; ++c )
 	  letterTotals[c] += letterCounts[c];
 	letterCounts.assign( alph.size, 0 );
@@ -222,11 +233,12 @@ void lastdb( int argc, char** argv ){
 
   if( multi.finishedSequences() > 0 ){
     if( volumeNumber == 0 ){
-      makeVolume( sa, multi, args, alph, letterCounts, args.lastdbName );
+      makeVolume( indexes[0],
+		  multi, args, alph, letterCounts, args.lastdbName );
       return;
     }
     std::string baseName = args.lastdbName + stringify(volumeNumber++);
-    makeVolume( sa, multi, args, alph, letterCounts, baseName );
+    makeVolume( indexes[0], multi, args, alph, letterCounts, baseName );
   }
 
   for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
