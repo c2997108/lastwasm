@@ -34,14 +34,10 @@ public:
   CyclicSubsetSeed& getSeed() { return seed; }
   const CyclicSubsetSeed& getSeed() const { return seed; }
 
-  // Add (unsorted) indices for text positions between beg and end,
-  // and return 1.  Positions starting with delimiters aren't added.
-  // If the index size would exceed maxBytes, don't add anything, and
-  // return 0.
-  int addIndices( const uchar* text, indexT beg, indexT end, indexT step,
-		  std::size_t maxBytes );
-
-  std::size_t indexBytes() const{ return index.v.size() * sizeof(indexT); }
+  // Add every step-th text position in the range [beg,end).
+  // Positions starting with delimiters aren't added.
+  // The positions aren't sorted.
+  void addPositions( const uchar* text, indexT beg, indexT end, indexT step );
 
   // Sort the suffix array (but don't make the buckets).
   void sortIndex( const uchar* text, indexT maxUnsortedInterval );

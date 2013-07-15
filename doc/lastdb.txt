@@ -63,10 +63,10 @@ Advanced Options
       both lastdb and lastal, but it will make lastal slower.  It is
       also likely to change the exact results found by lastal.
 
-      BYTES should be slightly less than the amount of real memory on
-      your computer.  You can use suffixes K, M, and G to specify
-      KibiBytes, MebiBytes, and GibiBytes.  For example, "-s 5G" has
-      worked well with 6G, and "-s 1280M" has worked well with 2G.
+      Each volume will have at most BYTES bytes.  (Roughly.  The more
+      masked letters or DNA "N"s, the more it will undershoot.)  You
+      can use suffixes K, M, and G to specify KibiBytes, MebiBytes,
+      and GibiBytes (e.g. "-s 5G").
 
       However, the output for one sequence is never split.  Since the
       output files are several-fold bigger than the input (unless you

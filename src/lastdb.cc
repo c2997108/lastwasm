@@ -122,9 +122,18 @@ void makeVolume( SubsetSuffixArray& sa, const MultiSequence& multi,
   LOG( "done!" );
 }
 
-static std::size_t spareBytes( std::size_t maxBytes, std::size_t usedBytes ){
-  if( usedBytes > maxBytes ) return 0;
-  return maxBytes - usedBytes;
+// The max number of sequence letters, such that the total volume size
+// is likely to be less than volumeSize bytes.  (This is crude, it
+// neglects memory for the sequence names, and the fact that
+// lowercase-masked letters and DNA "N"s aren't indexed.)
+static indexT maxLettersPerVolume( const LastdbArguments& args ){
+  std::size_t bytesPerLetter = isFastq( args.inputFormat ) ? 2 : 1;
+  std::size_t maxIndexBytesPerPosition = sizeof(indexT) + 1;
+  std::size_t x = bytesPerLetter * args.indexStep + maxIndexBytesPerPosition;
+  std::size_t y = args.volumeSize / x * args.indexStep;
+  indexT z = y;
+  if( z < y ) z = indexT(-1);
+  return z;
 }
 
 // Read the next sequence, adding it to the MultiSequence and the SuffixArray
@@ -132,10 +141,7 @@ std::istream&
 appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
 		 const LastdbArguments& args, const Alphabet& alph,
 		 std::istream& in ){
-  std::size_t maxSeqBytes = spareBytes( args.volumeSize, sa.indexBytes() );
-  if( isFastq( args.inputFormat ) ) maxSeqBytes /= 2;
-  indexT maxSeqLen = maxSeqBytes;
-  if( maxSeqLen < maxSeqBytes ) maxSeqLen = indexT(-1);
+  indexT maxSeqLen = maxLettersPerVolume( args );
   if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
   indexT oldUnfinishedSize = multi.unfinishedSize();
@@ -159,16 +165,8 @@ appendFromFasta( MultiSequence& multi, SubsetSuffixArray& sa,
                        qualityOffset( args.inputFormat ) );
 
   if( in && multi.isFinished() && !args.isCountsOnly ){
-    std::size_t seqBytes = multi.unfinishedSize();
-    if( isFastq( args.inputFormat ) ) seqBytes *= 2;
-    std::size_t maxIndexBytes = spareBytes( args.volumeSize, seqBytes );
-    if( multi.finishedSequences() == 1 ) maxIndexBytes = std::size_t(-1);
-
-    if( !sa.addIndices( multi.seqReader(),
-                        oldFinishedSize, multi.finishedSize(),
-                        args.indexStep, maxIndexBytes ) ){
-      multi.unfinish();
-    }
+    sa.addPositions( multi.seqReader(),
+		     oldFinishedSize, multi.finishedSize(), args.indexStep );
   }
 
   return in;

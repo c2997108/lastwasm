@@ -8,25 +8,16 @@
 
 using namespace cbrc;
 
-int SubsetSuffixArray::addIndices( const uchar* text,
-				   indexT beg, indexT end, indexT step,
-				   std::size_t maxBytes ){
+void SubsetSuffixArray::addPositions( const uchar* text,
+				      indexT beg, indexT end, indexT step ){
   assert( step > 0 );
-  indexT oldSize = index.v.size();
   const uchar* subsetMap = seed.firstMap();
 
   for( indexT i = beg; i < end; i += step ){
     if( subsetMap[ text[i] ] < CyclicSubsetSeed::DELIMITER ){
       index.v.push_back(i);
-
-      if( indexBytes() > maxBytes ){
-	index.v.erase( index.v.begin() + oldSize, index.v.end() );
-	return 0;
-      }
     }
   }
-
-  return 1;
 }
 
 void SubsetSuffixArray::clear(){
