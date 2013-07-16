@@ -45,7 +45,8 @@ namespace {
   Alphabet alph;
   Alphabet queryAlph;  // for translated alignment
   GeneticCode geneticCode;
-  SubsetSuffixArray suffixArray;
+  const unsigned maxNumOfIndexes = 16;
+  SubsetSuffixArray suffixArrays[maxNumOfIndexes];
   ScoreMatrix scoreMatrix;
   GeneralizedAffineGapCosts gapCosts;
   GappedXdropAligner gappedXdropAligner;
@@ -63,6 +64,7 @@ namespace {
   TwoQualityScoreMatrix twoQualityScoreMatrixMasked;
   int minScoreGapless;
   int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
+  unsigned numOfIndexes = 1;  // assume this value, if unspecified
 }
 
 // Set up a scoring matrix, based on the user options
@@ -179,11 +181,13 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "volumes" ) iss >> volumes;
+    if( word == "numofindexes" ) iss >> numOfIndexes;
   }
 
   if( f.eof() && !f.bad() ) f.clear();
   if( alph.letters.empty() || refSequences+1 == 0 || refLetters+1 == 0 ||
-      isCaseSensitiveSeeds < 0 || referenceFormat >= sequenceFormat::prb ){
+      isCaseSensitiveSeeds < 0 || referenceFormat >= sequenceFormat::prb ||
+      numOfIndexes > maxNumOfIndexes ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
@@ -202,10 +206,11 @@ void readInnerPrj( const std::string& fileName,
     getline( iss, word, '=' );
     if( word == "numofsequences" ) iss >> seqCount;
     if( word == "numofletters" ) iss >> seqLen;
+    if( word == "numofindexes" ) iss >> numOfIndexes;
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( seqCount+1 == 0 ){
+  if( seqCount+1 == 0 || numOfIndexes > maxNumOfIndexes ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
@@ -252,8 +257,9 @@ void countMatches( char strand ){
       if( args.minHitDepth > j - query.seqBeg(seqNum) ) continue;
     }
 
-    suffixArray.countMatches( matchCounts[seqNum], query.seqReader() + i,
-			      text.seqReader() );
+    for( unsigned x = 0; x < numOfIndexes; ++x )
+      suffixArrays[x].countMatches( matchCounts[seqNum], query.seqReader() + i,
+				    text.seqReader() );
   }
 }
 
@@ -330,55 +336,57 @@ void alignGapless( SegmentPairPot& gaplessAlns,
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
   for( indexT i = 0; i < query.finishedSize(); i += args.queryStep ){
-    const indexT* beg;
-    const indexT* end;
-    suffixArray.match( beg, end, dis.b + i, dis.a,
-		       args.oneHitMultiplicity, args.minHitDepth );
-    matchCount += end - beg;
+    for( unsigned x = 0; x < numOfIndexes; ++x ){
+      const indexT* beg;
+      const indexT* end;
+      suffixArrays[x].match( beg, end, dis.b + i, dis.a,
+			     args.oneHitMultiplicity, args.minHitDepth );
+      matchCount += end - beg;
 
-    // Tried: if we hit a delimiter when using contiguous seeds, then
-    // increase "i" to the delimiter position.  This gave a speed-up
-    // of only 3%, with 34-nt tags.
+      // Tried: if we hit a delimiter when using contiguous seeds, then
+      // increase "i" to the delimiter position.  This gave a speed-up
+      // of only 3%, with 34-nt tags.
 
-    indexT gaplessAlignmentsPerQueryPosition = 0;
+      indexT gaplessAlignmentsPerQueryPosition = 0;
 
-    for( /* noop */; beg < end; ++beg ){  // loop over suffix-array matches
-      if( gaplessAlignmentsPerQueryPosition ==
-          args.maxGaplessAlignmentsPerQueryPosition ) break;
+      for( /* noop */; beg < end; ++beg ){  // loop over suffix-array matches
+	if( gaplessAlignmentsPerQueryPosition ==
+	    args.maxGaplessAlignmentsPerQueryPosition ) break;
 
-      indexT j = *beg;  // coordinate in the reference sequence
+	indexT j = *beg;  // coordinate in the reference sequence
 
-      if( dt.isCovered( i, j ) ) continue;
+	if( dt.isCovered( i, j ) ) continue;
 
-      int fs = dis.forwardGaplessScore( j, i );
-      int rs = dis.reverseGaplessScore( j, i );
-      int score = fs + rs;
-      ++gaplessExtensionCount;
+	int fs = dis.forwardGaplessScore( j, i );
+	int rs = dis.reverseGaplessScore( j, i );
+	int score = fs + rs;
+	++gaplessExtensionCount;
 
-      // Tried checking the score after isOptimal & addEndpoint, but
-      // the number of extensions decreased by < 10%, and it was
-      // slower overall.
-      if( score < minScoreGapless ) continue;
+	// Tried checking the score after isOptimal & addEndpoint, but
+	// the number of extensions decreased by < 10%, and it was
+	// slower overall.
+	if( score < minScoreGapless ) continue;
 
-      indexT tEnd = dis.forwardGaplessEnd( j, i, fs );
-      indexT tBeg = dis.reverseGaplessEnd( j, i, rs );
-      indexT qBeg = i - (j - tBeg);
-      if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ) continue;
-      SegmentPair sp( tBeg, qBeg, tEnd - tBeg, score );
+	indexT tEnd = dis.forwardGaplessEnd( j, i, fs );
+	indexT tBeg = dis.reverseGaplessEnd( j, i, rs );
+	indexT qBeg = i - (j - tBeg);
+	if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ) continue;
+	SegmentPair sp( tBeg, qBeg, tEnd - tBeg, score );
 
-      if( args.outputType == 1 ){  // we just want gapless alignments
-	Alignment aln;
-	aln.fromSegmentPair(sp);
-	aln.write( text, query, strand, args.isTranslated(),
-		   alph, args.outputFormat, out );
+	if( args.outputType == 1 ){  // we just want gapless alignments
+	  Alignment aln;
+	  aln.fromSegmentPair(sp);
+	  aln.write( text, query, strand, args.isTranslated(),
+		     alph, args.outputFormat, out );
+	}
+	else{
+	  gaplessAlns.add(sp);  // add the gapless alignment to the pot
+	}
+
+	++gaplessAlignmentsPerQueryPosition;
+	++gaplessAlignmentCount;
+	dt.addEndpoint( sp.end2(), sp.end1() );
       }
-      else{
-	gaplessAlns.add(sp);  // add the gapless alignment to the pot
-      }
-
-      ++gaplessAlignmentsPerQueryPosition;
-      ++gaplessAlignmentCount;
-      dt.addEndpoint( sp.end2(), sp.end1() );
     }
   }
 
@@ -585,7 +593,14 @@ void translateAndScan( char strand, std::ostream& out ){
 void readIndex( const std::string& baseName, indexT seqCount ) {
   LOG( "reading " << baseName << "..." );
   text.fromFiles( baseName, seqCount, isFastq( referenceFormat ) );
-  suffixArray.fromFiles( baseName, isCaseSensitiveSeeds, alph.encode );
+  for( unsigned x = 0; x < numOfIndexes; ++x ){
+    if( numOfIndexes > 1 ){
+      suffixArrays[x].fromFiles( baseName + char('a' + x),
+				 isCaseSensitiveSeeds, alph.encode );
+    }else{
+      suffixArrays[x].fromFiles( baseName, isCaseSensitiveSeeds, alph.encode );
+    }
+  }
 }
 
 // Read one database volume
@@ -594,7 +609,8 @@ void readVolume( unsigned volumeNumber ){
   indexT seqCount = indexT(-1);
   indexT seqLen = indexT(-1);
   readInnerPrj( baseName + ".prj", seqCount, seqLen );
-  if( seqLen+1 > 0 ) minScoreGapless = args.calcMinScoreGapless( seqLen );
+  if( seqLen+1 > 0 )
+    minScoreGapless = args.calcMinScoreGapless( seqLen, numOfIndexes );
   readIndex( baseName, seqCount );
 }
 
@@ -756,7 +772,7 @@ void lastal( int argc, char** argv ){
 		   args.insExistCost, args.insExtendCost, args.gapPairCost );
   if( args.outputType > 0 ) calculateScoreStatistics();
   args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
-  minScoreGapless = args.calcMinScoreGapless( refLetters );
+  minScoreGapless = args.calcMinScoreGapless( refLetters, numOfIndexes );
   if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
   if( args.outputType > 0 ) makeQualityScorers();
 

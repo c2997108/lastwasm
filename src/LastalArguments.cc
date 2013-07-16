@@ -386,7 +386,8 @@ void LastalArguments::setDefaultsFromMatrix( double lambda ){
   if( maxDropFinal < 0 ) maxDropFinal = maxDropGapped;
 }
 
-int LastalArguments::calcMinScoreGapless( double numLettersInReference ) const{
+int LastalArguments::calcMinScoreGapless( double numLettersInReference,
+					  double numOfIndexes ) const{
   if( minScoreGapless >= 0 ) return minScoreGapless;
 
   // ***** Default setting for minScoreGapless *****
@@ -398,10 +399,10 @@ int LastalArguments::calcMinScoreGapless( double numLettersInReference ) const{
   // kGapless * referenceSize * exp(-lambdaGapless * minScoreGapless).
 
   // The number of gapless extensions per query position is
-  // proportional to: n = maxGaplessAlignmentsPerQueryPosition.
+  // proportional to: maxGaplessAlignmentsPerQueryPosition * numOfIndexes.
 
   // So we want exp(lambdaGapless * minScoreGapless) to be
-  // proportional to: kGapless * referenceSize / n.
+  // proportional to: kGapless * referenceSize / (n * numOfIndexes).
 
   // But we crudely ignore kGapless.
 
@@ -413,7 +414,7 @@ int LastalArguments::calcMinScoreGapless( double numLettersInReference ) const{
 
   double n = maxGaplessAlignmentsPerQueryPosition;
   if( maxGaplessAlignmentsPerQueryPosition + 1 == 0 ) n = 10;  // ?
-  double x = 1000.0 * numLettersInReference / n;
+  double x = 1000.0 * numLettersInReference / (n * numOfIndexes);
   if( x < 1 ) x = 1;
   int s = int( temperature * std::log(x) + 0.5 );
   return std::min( s, minScoreGapped );

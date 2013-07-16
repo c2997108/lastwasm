@@ -36,7 +36,8 @@ struct LastalArguments{
   void setDefaultsFromMatrix( double lambda );
 
   // get minScoreGapless, or calculate a default value if it is unspecified:
-  int calcMinScoreGapless( double numLettersInReference ) const;
+  int calcMinScoreGapless( double numLettersInReference,
+			   double numOfIndexes ) const;
 
   // write the parameter settings, starting each line with "#":
   void writeCommented( std::ostream& stream ) const;
