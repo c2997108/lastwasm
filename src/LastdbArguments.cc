@@ -72,7 +72,14 @@ LAST home page: http://last.cbrc.jp/\n\
       isCaseSensitive = true;
       break;
     case 'm':
-      seedPatterns.push_back(optarg);
+      {
+	std::string s;
+	std::istringstream iss(optarg);
+	while( getline( iss, s, ',' ) ){
+	  if( s.empty() ) badopt( c, optarg );
+	  seedPatterns.push_back(s);
+	}
+      }
       break;
     case 's':
       unstringifySize( volumeSize, optarg );

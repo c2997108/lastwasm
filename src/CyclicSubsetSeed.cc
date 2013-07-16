@@ -42,7 +42,7 @@ void CyclicSubsetSeed::fromFile( const std::string& fileName,
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   fromStream( f, isMaskLowercase, letterCode );
-  if( f.bad() || !f.eof() ) ERR( "can't read file: " + fileName );
+  if( !f ) ERR( "can't read file: " + fileName );
 }
 
 void CyclicSubsetSeed::fromString( const std::string& s,
@@ -70,6 +70,7 @@ void CyclicSubsetSeed::fromStream( std::istream& stream,
     std::istringstream iss(line);
     appendPosition( iss, isMaskLowercase, letterCode );
   }
+  if( span() && stream.eof() ) stream.clear( std::ios::eofbit );
 }
 
 static std::string exactSeed( const std::string& letters ){
