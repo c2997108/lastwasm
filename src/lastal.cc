@@ -210,7 +210,7 @@ void readInnerPrj( const std::string& fileName,
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( seqCount+1 == 0 || numOfIndexes > maxNumOfIndexes ){
+  if( seqCount+1 == 0 || seqLen+1 == 0 || numOfIndexes > maxNumOfIndexes ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
@@ -609,8 +609,7 @@ void readVolume( unsigned volumeNumber ){
   indexT seqCount = indexT(-1);
   indexT seqLen = indexT(-1);
   readInnerPrj( baseName + ".prj", seqCount, seqLen );
-  if( seqLen+1 > 0 )
-    minScoreGapless = args.calcMinScoreGapless( seqLen, numOfIndexes );
+  minScoreGapless = args.calcMinScoreGapless( seqLen, numOfIndexes );
   readIndex( baseName, seqCount );
 }
 
