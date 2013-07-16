@@ -91,10 +91,20 @@ Advanced Options
       non-standard letters (e.g. non-ACGT for DNA).  If option -c is
       used, they also exclude lowercase letters.
 
+      You can also specify transition constraints, e.g "-m 100TT1".
+      In this example, transitions (but not transversions) will be
+      allowed at every fourth and fifth position out of six.
+      Alternatively, you can use Iedera's notation, for example
+      "-m '#@#--##--#-#'" ('#' for match, '@' for transition, '-' or
+      '_' for mismatch).
+
+      You can specify multiple patterns by separating them with commas
+      and/or using "-m" multiple times.
+
   -u FILE
-      Specify a subset seed file.  The -m option will then be ignored.
-      For an example of the format, see yass.seed in the examples
-      directory.
+      Specify a subset seed file. For an example of the format, see
+      yass.seed in the examples directory.  You can specify multiple
+      files by using "-u" multiple times.
 
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)

@@ -85,6 +85,16 @@ db=/tmp/last-test
     lastdb -i10 -s1 $db $dnaSeq
     lastal -Q1 -e90 -a9 -f0 ${db}0 $fastq
     echo
+
+    echo TEST 16  # multiple seeds, transition constraints
+    lastdb -c -m 11101T011T11,111001010010111 $db $dnaSeq
+    lastal -s0 -f0 -e18 $db $dnaSeq
+    echo
+
+    echo TEST 17  # Iedera notation
+    lastdb -c -m '#@#--##--#-#' $db $dnaSeq
+    lastal -s0 -f0 -e18 $db $dnaSeq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
