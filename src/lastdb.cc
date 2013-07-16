@@ -57,9 +57,9 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 		   args.isCaseSensitive, alph.encode );
   }
 
-  for( unsigned x = 0; x < args.spacedSeeds.size(); ++x ){
+  for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
     CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
-    seed.fromSpacedSeed( args.spacedSeeds[x], alph.letters,
+    seed.fromCodeString( args.seedPatterns[x], alph.letters,
 			 args.isCaseSensitive, alph.encode );
   }
 
@@ -72,7 +72,7 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
       seed.fromString( seed.proteinSeed, args.isCaseSensitive, alph.encode );
     }
     else{
-      seed.fromSpacedSeed( "1", alph.letters,
+      seed.fromCodeString( "1", alph.letters,
 			   args.isCaseSensitive, alph.encode );
     }
   }

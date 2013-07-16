@@ -18,7 +18,7 @@ using namespace cbrc;
 LastdbArguments::LastdbArguments() :
   isProtein(false),
   isCaseSensitive(false),
-  spacedSeeds(0),
+  seedPatterns(0),
   volumeSize(-1),
   indexStep(1),
   subsetSeedFiles(0),
@@ -45,7 +45,7 @@ Advanced Options (default settings):\n\
 -Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina ("
       + stringify(inputFormat) + ")\n\
 -s: volume size (unlimited)\n\
--m: spaced seed pattern\n\
+-m: seed pattern\n\
 -u: subset seed file (yass.seed)\n\
 -w: index step (" + stringify(indexStep) + ")\n\
 -a: user-defined alphabet\n\
@@ -72,7 +72,7 @@ LAST home page: http://last.cbrc.jp/\n\
       isCaseSensitive = true;
       break;
     case 'm':
-      spacedSeeds.push_back(optarg);
+      seedPatterns.push_back(optarg);
       break;
     case 's':
       unstringifySize( volumeSize, optarg );
@@ -108,7 +108,7 @@ LAST home page: http://last.cbrc.jp/\n\
     }
   }
 
-  if( spacedSeeds.size() + subsetSeedFiles.size() > maxNumOfIndexes )
+  if( seedPatterns.size() + subsetSeedFiles.size() > maxNumOfIndexes )
     ERR( "too many seed patterns" );
 
   if( optind + 1 >= argc )

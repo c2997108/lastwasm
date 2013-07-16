@@ -27,7 +27,7 @@ struct LastdbArguments{
   // options:
   bool isProtein;
   bool isCaseSensitive;
-  std::vector< std::string > spacedSeeds;
+  std::vector< std::string > seedPatterns;
   std::size_t volumeSize;  // type?
   indexT indexStep;
   std::vector< std::string > subsetSeedFiles;

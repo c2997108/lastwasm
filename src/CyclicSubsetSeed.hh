@@ -55,9 +55,12 @@ public:
   void fromStream( std::istream& stream,
 		   bool isMaskLowercase, const uchar letterCode[] );
 
-  // Every "1" in the spaced seed is a must-match position.  Every "0"
-  // (actually, every non-1) is a don't care position.
-  void fromSpacedSeed( const std::string& spacedSeed,
+  // The codeString is something like: "1110TT1001T1".  The "1"s are
+  // must-match positions, the "0"s are don't care positions, and "T"
+  // or "t" allows transitions but not transversions.  For consistency
+  // with YASS/Iedera, you can also use "#" for match, "@" for
+  // transition, and "_" or "-" for don't care.
+  void fromCodeString( const std::string& codeString,
 		       const std::string& letters,
 		       bool isMaskLowercase, const uchar letterCode[] );
 
