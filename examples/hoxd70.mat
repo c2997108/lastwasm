@@ -10,8 +10,9 @@
 # mammalian genomes.  In any case, you can override these parameters
 # by setting options when running LAST.  Finally, here is the matrix:
 
-     A    C    G    T
-A   91 -114  -31 -123
-C -114  100 -125  -31
-G  -31 -125  100 -114
-T -123  -31 -114   91
+     A    C    G    T    N
+A   91 -114  -31 -123 -100
+C -114  100 -125  -31 -100
+G  -31 -125  100 -114 -100
+T -123  -31 -114   91 -100
+N -100 -100 -100 -100 -100
