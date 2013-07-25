@@ -37,7 +37,7 @@ LastalArguments::LastalArguments() :
   gapPairCost(100000),  // I want it to be infinity, but avoid overflow
   frameshiftCost(-1),  // this means: ordinary, non-translated alignment
   matrixFile(""),
-  maxDropGapped(-1),  // depends on gap costs & maxDropGapless
+  maxDropGapped(-1),  // depends on minScoreGapped & maxDropGapless
   maxDropGapless(-1),  // depends on the score matrix
   maxDropFinal(-1),  // depends on maxDropGapped
   inputFormat(sequenceFormat::fasta),
@@ -70,7 +70,7 @@ Score options (default settings):\n\
 -c: unaligned residue pair cost ("
     + stringify(gapPairCost) + ")\n\
 -F: frameshift cost (off)\n\
--x: maximum score drop for gapped alignments (max[y, a+b*20])\n\
+-x: maximum score drop for gapped alignments (max[y, e-1])\n\
 -y: maximum score drop for gapless alignments (t*10)\n\
 -z: maximum score drop for final gapped alignments (x)\n\
 -d: minimum score for gapless alignments (min[e, t*ln(1000*refSize/n)])\n\
@@ -379,8 +379,7 @@ void LastalArguments::setDefaultsFromMatrix( double lambda ){
   }
 
   if( maxDropGapped < 0 ){
-    maxDropGapped = std::max( gapExistCost + gapExtendCost * 20,
-			      maxDropGapless );
+    maxDropGapped = std::max( minScoreGapped - 1, maxDropGapless );
   }
 
   if( maxDropFinal < 0 ) maxDropFinal = maxDropGapped;
