@@ -365,8 +365,6 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   if( insExistCost != gapExistCost || insExtendCost != gapExtendCost ){
     if( isTranslated() )
       ERR( "can't combine option -F with option -A or -B" );
-    if( outputType > 3 )
-      ERR( "can't combine option -j > 3 with option -A or -B" );
   }
 }
 

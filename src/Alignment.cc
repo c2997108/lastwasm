@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2011, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2011, 2012, 2013 Martin C. Frith
 
 #include "Alignment.hh"
 #include "Alphabet.hh"
@@ -272,7 +272,6 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
   if( outputType > 3 ){  // calculate match probabilities
     assert( !sm2qual );
-    assert( gap.isSymmetric() );
     centroid.reset();
     centroid.forward( seq1, seq2, start1, start2, isForward, gap );
     centroid.backward( seq1, seq2, start1, start2, isForward, gap );

@@ -1,5 +1,5 @@
 // Copyright 2008, 2009, 2010, 2011 Michiaki Hamada
-// Copyright 2012 Toshiyuki Sato
+// Copyright 2012, 2013 Toshiyuki Sato
 
 #include "Centroid.hh"
 #include "GappedXdropAlignerInl.hh"
@@ -168,12 +168,18 @@ namespace cbrc{
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
     const int F = gap.delExist + gap.delExtend;
+    const int EI = gap.insExtend;
+    const int FI = gap.insExist + gap.insExtend;
     const int P = gap.pairExtend;
     const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
+    const double eEI = EXP ( - EI / T );
+    const double eFI = EXP ( - FI / T );
     const double eP = EXP ( - P / T );
     const double eQ = EXP ( - Q / T );
+
+    assert( gap.insExist == gap.delExist || eQ <= 0.0 );
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       double sum_f = 0.0; // sum of forward values
@@ -186,6 +192,8 @@ namespace cbrc{
 
       const double seF = eF * scale1;
       const double seE = eE * scale1;
+      const double seFI = eFI * scale1;
+      const double seEI = eEI * scale1;
       const double seQ = eQ * scale12;
       const double seP = eP * scale12;
 
@@ -219,7 +227,7 @@ namespace cbrc{
 	  const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
 	  *fD0 = ( xM1 ) * seF + ( xD1 + xP1 ) * seE;
 	  xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
-	  *fI0 = ( xM1 + xD1 ) * seF + ( xI1 + xP1 ) * seE;
+	  *fI0 = ( xM1 + xD1 ) * seFI + ( xI1 + xP1 ) * seEI;
 	  *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
 	  *fP0 = xM2 * seQ + xP2 * seP;
 	  fM2++; fD2++; fI2++; fP2++;
@@ -254,7 +262,7 @@ namespace cbrc{
 	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
 	    *fD0 = ( xM1 ) * seF + ( xD1 + xP1 ) * seE;
 	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
-	    *fI0 = ( xM1 + xD1 ) * seF + ( xI1 + xP1 ) * seE;
+	    *fI0 = ( xM1 + xD1 ) * seFI + ( xI1 + xP1 ) * seEI;
 	    *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
 	    *fP0 = xM2 * seQ + xP2 * seP;
 	    fM2++; fD2++; fI2++; fP2++;
@@ -289,12 +297,18 @@ namespace cbrc{
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
     const int F = gap.delExist + gap.delExtend;
+    const int EI = gap.insExtend;
+    const int FI = gap.insExist + gap.insExtend;
     const int P = gap.pairExtend;
     const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
+    const double eEI = EXP ( - EI / T );
+    const double eFI = EXP ( - FI / T );
     const double eP = EXP ( - P / T );
     const double eQ = EXP ( - Q / T );
+
+    assert( gap.insExist == gap.delExist || eQ <= 0.0 );
 
     for( size_t k = numAntidiagonals-1; k > 2; --k ){  // loop over antidiagonals
       const size_t k1 = k - 1;  
@@ -306,6 +320,8 @@ namespace cbrc{
 
       const double seF = eF * scale1;
       const double seE = eE * scale1;
+      const double seFI = eFI * scale1;
+      const double seEI = eEI * scale1;
       const double seQ = eQ * scale12;
       const double seP = eP * scale12;
 
@@ -355,8 +371,8 @@ namespace cbrc{
 	  bI1++;
 	  *bP1++ += tmp3 * seE; 
 	  const double tmp4 = *bI0;
-	  const double tmp5 = tmp4 * seF; 
-	  const double tmp6 = tmp4 * seE;
+	  const double tmp5 = tmp4 * seFI; 
+	  const double tmp6 = tmp4 * seEI;
 	  *bM1 += tmp5; 
 	  *bD1 += tmp5; 
 	  *bI1 += tmp6; 
@@ -400,6 +416,7 @@ namespace cbrc{
 	    *bM1 += tmp5; 
 	    *bD1 += tmp5; 
 	    *bI1 += tmp6; 
+
 	    double prob = *fM0 * *bM0 / Z; 
 	    *pp0 = prob;
 	    double probd = *fD0 * *bD0 / Z;
@@ -432,12 +449,13 @@ namespace cbrc{
 	    bI1++;
 	    *bP1++ += tmp3 * seE; 
 	    const double tmp4 = *bI0;
-	    const double tmp5 = tmp4 * seF; 
-	    const double tmp6 = tmp4 * seE;
+	    const double tmp5 = tmp4 * seFI; 
+	    const double tmp6 = tmp4 * seEI;
 	    *bM1 += tmp5; 
 	    *bD1 += tmp5; 
 	    *bI1 += tmp6; 
 	    *bP1 += tmp6; 
+
 	    double prob = *fM0 * *bM0 / Z; 
 	    *pp0 = prob;
 	    double probd = *fD0 * *bD0 / Z;
@@ -675,12 +693,18 @@ namespace cbrc{
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
     const int F = gap.delExist + gap.delExtend;
+    const int EI = gap.insExtend;
+    const int FI = gap.insExist + gap.insExtend;
     const int P = gap.pairExtend;
     const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
+    const double eEI = EXP ( - EI / T );
+    const double eFI = EXP ( - FI / T );
     const double eP = EXP ( - P / T );
     const double eQ = EXP ( - Q / T );
+
+    assert( gap.insExist == gap.delExist || eQ <= 0.0 );
 
     c.SQ = 1; 
 
@@ -744,10 +768,10 @@ namespace cbrc{
 	  fM1++; fD1++; fP1++; fI1++;
 
 	  const double tmp4 = *bI0 * scale1;
-	  c.MI += ( *fM1 * eF )  * tmp4;
-	  c.DI += ( *fD1 * eF )  * tmp4;
-	  c.PI += ( *fP1 * eE )  * tmp4;
-	  c.II += ( *fI1 * eE )  * tmp4;
+	  c.MI += ( *fM1 * eFI )  * tmp4;
+	  c.DI += ( *fD1 * eFI )  * tmp4;
+	  c.PI += ( *fP1 * eEI )  * tmp4;
+	  c.II += ( *fI1 * eEI )  * tmp4;
 
 	  fM2++; fD2++; fI2++; fP2++;
 	  fM0++; fD0++; fI0++; fP0++;
@@ -814,10 +838,10 @@ namespace cbrc{
 	    fM1++; fD1++; fP1++; fI1++;
 
 	    const double tmp4 = *bI0 * scale1;
-	    c.MI += ( *fM1 * eF )  * tmp4;
-	    c.DI += ( *fD1 * eF )  * tmp4;
-	    c.PI += ( *fP1 * eE )  * tmp4;
-	    c.II += ( *fI1 * eE )  * tmp4;
+	    c.MI += ( *fM1 * eFI )  * tmp4;
+	    c.DI += ( *fD1 * eFI )  * tmp4;
+	    c.PI += ( *fP1 * eEI )  * tmp4;
+	    c.II += ( *fI1 * eEI )  * tmp4;
 
 	    fM2++; fD2++; fI2++; fP2++;
 	    fM0++; fD0++; fI0++; fP0++;
