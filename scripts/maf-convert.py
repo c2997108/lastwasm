@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# Copyright 2010, 2011 Martin C. Frith
+# Copyright 2010, 2011, 2013 Martin C. Frith
 # Read MAF-format alignments: write them in other formats.
 # Seems to work with Python 2.x, x>=4
 
@@ -398,12 +398,14 @@ def blastChunker(maf, lineSize, alignmentColumns):
         ends = map(blastCoordinate, coords, maf.strands, maf.seqSizes)
         yield chunkCols, chunkRows, starts, ends
 
-def writeBlast(maf, lineSize):
+def writeBlast(maf, lineSize, oldQueryName):
     dieUnlessPairwise(maf)
 
-    print "Query= %s" % maf.seqNames[1]
-    print "         (%s letters)" % maf.seqSizes[1]
-    print
+    if maf.seqNames[1] != oldQueryName:
+        print "Query= %s" % maf.seqNames[1]
+        print "         (%s letters)" % maf.seqSizes[1]
+        print
+
     print ">%s" % maf.seqNames[0]
     print "          Length = %s" % maf.seqSizes[0]
     print
@@ -563,9 +565,12 @@ def mafConvert(opts, args):
     inputLines = fileinput.input(args[1:])
     if isFormat(format, "html"): writeHtmlHeader()
     isKeepCommentLines = isFormat(format, "tabular")
+    oldQueryName = ""
     for maf in mafInput(filterComments(inputLines, isKeepCommentLines)):
         if   isFormat(format, "axt"): writeAxt(maf)
-        elif isFormat(format, "blast"): writeBlast(maf, opts.linesize)
+        elif isFormat(format, "blast"):
+            writeBlast(maf, opts.linesize, oldQueryName)
+            oldQueryName = maf.seqNames[1]
         elif isFormat(format, "html"): writeHtml(maf, opts.linesize)
         elif isFormat(format, "psl"): writePsl(maf, opts.protein)
         elif isFormat(format, "sam"): writeSam(maf, rg)
