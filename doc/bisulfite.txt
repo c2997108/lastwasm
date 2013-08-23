@@ -93,23 +93,19 @@ Tips
 Paired-end DNA reads
 --------------------
 
-Let us assume that reads1.fastq are all from the converted strand
+You can align paired-end reads by combining the recipe in this
+document with the one in `<last-pair-probs.html>`_.  For large
+datasets, you would want to go faster by using multiple CPUs.  This
+gets a bit complicated, so we provide a lastal-bisulfite-paired script
+in the examples directory.  Typical usage::
+
+  lastdb -w2 -u bisulfite_f.seed my_f mygenome.fa
+  lastdb -w2 -u bisulfite_r.seed my_r mygenome.fa
+
+  lastal-bisulfite-paired.sh my_f my_r reads1.fastq reads2.fastq > results.maf
+
+This assumes that reads1.fastq are all from the converted strand
 (i.e. they have C->T conversions) and reads2.fastq are all from the
-reverse-complement (i.e. they have G->A conversions).  It gets a bit
-complicated::
-
-  lastdb -u bisulfite_f.seed my_f mygenome.fa
-  lastdb -u bisulfite_r.seed my_r mygenome.fa
-
-  lastal -p bisulfite_f.mat -s1 -Q1 -e120 -i1 my_f reads1.fastq > t1f
-  lastal -p bisulfite_r.mat -s0 -Q1 -e120 -i1 my_r reads1.fastq > t1r
-  last-merge-batches.py t1f t1r > t1
-
-  lastal -p bisulfite_f.mat -s0 -Q1 -e120 -i1 my_f reads2.fastq > t2f
-  lastal -p bisulfite_r.mat -s1 -Q1 -e120 -i1 my_r reads2.fastq > t2r
-  last-merge-batches.py t2f t2r > t2
-
-  last-pair-probs.py t1 t2 > results.maf
-
-Alternatively, you can ignore the pairing and align all the reads as
-if they were unpaired.
+reverse-complement (i.e. they have G->A conversions).  It requires GNU
+parallel to be installed.  You are encouraged to customize this
+script.
