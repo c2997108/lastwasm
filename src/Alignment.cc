@@ -245,21 +245,23 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     return;
   }
 
-  score +=
-      sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
-                                    seq2 + start2, qual2 + start2,
-                                    isForward, sm2qual,
-                                    gap.delExist, gap.delExtend,
-				    gap.insExist, gap.insExtend,
-				    gap.pairExtend, maxDrop, smMax )
-      : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2, isForward,
-                                   gap.delExist, gap.delExtend,
-				   gap.insExist, gap.insExtend,
-				   gap.pairExtend, maxDrop, smMax )
-      :         aligner.align( seq1 + start1, seq2 + start2, isForward, sm,
-			       gap.delExist, gap.delExtend,
-			       gap.insExist, gap.insExtend,
-			       gap.pairExtend, maxDrop, smMax );
+  int extensionScore =
+    sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
+				  seq2 + start2, qual2 + start2,
+				  isForward, sm2qual,
+				  gap.delExist, gap.delExtend,
+				  gap.insExist, gap.insExtend,
+				  gap.pairExtend, maxDrop, smMax )
+    : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2, isForward,
+				 gap.delExist, gap.delExtend,
+				 gap.insExist, gap.insExtend,
+				 gap.pairExtend, maxDrop, smMax )
+    :         aligner.align( seq1 + start1, seq2 + start2, isForward, sm,
+			     gap.delExist, gap.delExtend,
+			     gap.insExist, gap.insExtend,
+			     gap.pairExtend, maxDrop, smMax );
+
+  score += extensionScore;
 
   if( outputType < 5 || outputType == 7 ){  // ordinary max-score alignment
     std::size_t end1, end2, size;
