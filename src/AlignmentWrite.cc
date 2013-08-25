@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
 
 #include "Alignment.hh"
 #include "GeneticCode.hh"
@@ -61,7 +61,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
-      os << ',';
+      if( j->size ) os << ',';
       indexT gapBeg1 = j->end1();
       indexT gapEnd1 = i->beg1();
       writeSignedDifference( gapEnd1, gapBeg1, os );  // allow -1 frameshift
@@ -69,9 +69,9 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
       indexT gapBeg2 = aaToDna( j->end2(), frameSize2 );
       indexT gapEnd2 = aaToDna( i->beg2(), frameSize2 );
       writeSignedDifference( gapEnd2, gapBeg2, os );  // allow -1 frameshift
-      os << ',';
+      if( i->size ) os << ',';
     }
-    os << i->size;
+    if( i->size ) os << i->size;
   }
 
   if( fullScore > 0 ) os << "\tfullScore=" << fullScore;
