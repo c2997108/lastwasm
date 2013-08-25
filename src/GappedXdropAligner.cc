@@ -1,4 +1,4 @@
-// Copyright 2011, 2012 Martin C. Frith
+// Copyright 2011, 2012, 2013 Martin C. Frith
 
 // The algorithm is based on these recurrence formulas, for
 // generalized affine gap costs.  For standard affine gap costs, set
@@ -222,16 +222,12 @@ bool GappedXdropAligner::getNextChunk(std::size_t &end1,
 
   end1 = bestSeq1position;
   end2 = bestAntidiagonal - 2 - bestSeq1position;
-  length = 0;
+  const std::size_t undefined = -1;
+  length = undefined;
 
   int state = 0;
 
   while (1) {
-    if (state < 1 || state > 2) bestAntidiagonal -= 2;
-    else                        bestAntidiagonal -= 1;
-
-    if (state != 2) bestSeq1position -= 1;
-
     assert(bestAntidiagonal >= 2);
     assert(bestSeq1position <= bestAntidiagonal - 2);
 
@@ -257,10 +253,17 @@ bool GappedXdropAligner::getNextChunk(std::size_t &end1,
 
     state = maxIndex(x, y, z, a, b);
 
-    if (length == 0 && (state > 0 || bestAntidiagonal == 2))
+    if (length == undefined && (state > 0 || bestAntidiagonal == 2)) {
       length = end1 - bestSeq1position;
+      assert(length != undefined);
+    }
 
-    if (length > 0 && state == 0) return true;
+    if (length != undefined && state == 0) return true;
+
+    if (state < 1 || state > 2) bestAntidiagonal -= 2;
+    else                        bestAntidiagonal -= 1;
+
+    if (state != 2) bestSeq1position -= 1;
   }
 }
 
