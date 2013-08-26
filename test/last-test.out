@@ -855,3 +855,32 @@ TEST 17
 # batch 1
 # CPU time: 0 seconds
 
+TEST 18
+#
+# a=9 b=9 A=9 B=9 c=100000 F=-1 e=60 d=60 x=59 y=44 z=59
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+#
+#    A  C  G  T
+# A  6 -18 -18 -18
+# C -18  6 -18 -18
+# G -18 -18  6 -18
+# T -18 -18 -18  6
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+#
+# batch 0
+# batch 1
+98	chrM	952	34	+	16775	SRR001981.279	0	36	-	36	33,0:2,1
+77	chrM	948	35	+	16775	SRR001981.279	0	36	-	36	34,0:1,1
+72	chrM	956	35	+	16775	SRR001981.279	0	36	-	36	35,0:1
+# batch 2
+60	chrM	950	36	+	16775	SRR001981.597	0	36	-	36	19,2:0,10,1:0,4,0:3
+# batch 3
+# batch 4
+# CPU time: 0.02 seconds
+

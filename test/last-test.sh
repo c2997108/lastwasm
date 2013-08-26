@@ -95,6 +95,11 @@ db=/tmp/last-test
     lastdb -c -m '#@#--##--#-#' $db $dnaSeq
     lastal -s0 -f0 -e18 $db $dnaSeq
     echo
+
+    echo TEST 18  # overlap alignment, tabular output ending in gaps
+    lastdb -m1111110 $db $dnaSeq
+    lastal -T1 -Q1 -e60 -a9 -f0 $db $fastq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -

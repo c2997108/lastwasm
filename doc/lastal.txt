@@ -171,6 +171,12 @@ Miscellaneous Options
       Specify which query strand should be used: 0 means reverse only,
       1 means forward only, and 2 means both.
 
+  -T NUMBER
+      Type of alignment: 0 means "local alignment" and 1 means
+      "overlap alignment".  Local alignments can end anywhere in the
+      middle or at the ends of the sequences.  Overlap alignments must
+      extend until they hit the end of one sequence.
+
   -m MULTIPLICITY
       Maximum multiplicity for initial matches.  Each initial match is
       lengthened until it occurs at most this many times in the
