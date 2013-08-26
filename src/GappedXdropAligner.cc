@@ -89,6 +89,7 @@ void GappedXdropAligner::initAntidiagonal(std::size_t seq1beg,
 int GappedXdropAligner::align(const uchar *seq1,
                               const uchar *seq2,
                               bool isForward,
+			      int globality,
                               const ScoreMatrixRow *scorer,
                               int delExistenceCost,
                               int delExtensionCost,
@@ -106,6 +107,9 @@ int GappedXdropAligner::align(const uchar *seq1,
   std::size_t minSeq1ends[] = { 1, 0 };
 
   int bestScore = 0;
+  int bestEdgeScore = -INF;
+  std::size_t bestEdgeAntidiagonal = 2;
+  std::size_t bestEdgeSeq1position = 0;
 
   init();
 
@@ -125,7 +129,7 @@ int GappedXdropAligner::align(const uchar *seq1,
     const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg - 1;
     const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos - 1;
 
-    if (isDelimiter(*s2, *scorer))
+    if (!globality && isDelimiter(*s2, *scorer))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     int minScore = bestScore - maxScoreDrop;
@@ -142,6 +146,14 @@ int GappedXdropAligner::align(const uchar *seq1,
     *x0++ = *y0++ = *z0++ = -INF;  // add one pad cell
 
     const int *x0base = x0 - seq1beg;
+
+    if (globality && isDelimiter(*s2, *scorer)) {
+      const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
+      int b = maxValue(*x2, *z1 - insExtensionCost, *z2 - gapUnalignedCost);
+      if (b >= minScore)
+	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestEdgeSeq1position,
+		    b, antidiagonal, seq1beg);
+    }
 
     if (isAffine) {
       // We could avoid this code duplication, by using: transposed(scorer).
@@ -201,12 +213,25 @@ int GappedXdropAligner::align(const uchar *seq1,
       }
     }
 
-    if (isDelimiter(*s1, *scorer))
+    if (globality && isDelimiter(*s1, *scorer)) {
+      const int *y2 = &yScores[diag(antidiagonal, seq1end-1)];
+      int b = maxValue(*x2, *y1 - delExtensionCost, *y2 - gapUnalignedCost);
+      if (b >= minScore)
+	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestEdgeSeq1position,
+		    b, antidiagonal, seq1end-1);
+    }
+
+    if (!globality && isDelimiter(*s1, *scorer))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     updateFiniteEdges(maxSeq1begs, minSeq1ends, x0base, x0 + 1, numCells);
   }
 
+  if (globality) {
+    bestAntidiagonal = bestEdgeAntidiagonal;
+    bestSeq1position = bestEdgeSeq1position;
+    bestScore = bestEdgeScore;
+  }
   return bestScore;
 }
 

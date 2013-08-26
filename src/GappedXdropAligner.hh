@@ -1,4 +1,4 @@
-// Copyright 2011, 2012 Martin C. Frith
+// Copyright 2011, 2012, 2013 Martin C. Frith
 
 // These routines extend an alignment in a given direction (forward or
 // reverse) from given start points in two sequences.
@@ -30,6 +30,13 @@
 // the score to drop by more than maxScoreDrop below the highest score
 // in any previous antidiagonal.
 
+// If "globality" is 0, local alignment is performed: this finds the
+// highest-scoring alignment ending anywhere.  Otherwise, overlap
+// alignment is performed: this seeks the highest-scoring alignment
+// ending at the end of either sequence.  If overlap alignment reaches
+// the end of neither sequence (due to maxScoreDrop), -INF is
+// returned.
+
 // The parameter maxMatchScore should be the highest possible score
 // for matching 2 letters.  This parameter is not actually necessary,
 // but it provides some optimization opportunities.  If you give it a
@@ -55,6 +62,7 @@ class GappedXdropAligner {
   int align(const uchar *seq1,  // start point in the 1st sequence
             const uchar *seq2,  // start point in the 2nd sequence
             bool isForward,  // forward or reverse extension?
+	    int globality,
             const ScoreMatrixRow *scorer,  // the substitution score matrix
 	    int delExistenceCost,
 	    int delExtensionCost,
@@ -68,6 +76,7 @@ class GappedXdropAligner {
   int alignPssm(const uchar *seq,
                 const ScoreMatrixRow *pssm,
                 bool isForward,
+		int globality,
 		int delExistenceCost,
 		int delExtensionCost,
 		int insExistenceCost,
@@ -82,6 +91,7 @@ class GappedXdropAligner {
                  const uchar *seq2,
                  const uchar *qual2,
                  bool isForward,
+		 int globality,
                  const TwoQualityScoreMatrix &scorer,
 		 int delExistenceCost,
 		 int delExtensionCost,

@@ -1,4 +1,4 @@
-// Copyright 2011 Martin C. Frith
+// Copyright 2011, 2013 Martin C. Frith
 
 #ifndef GAPPED_XDROP_ALIGHER_INL_HH
 #define GAPPED_XDROP_ALIGNER_INL_HH
@@ -86,6 +86,19 @@ inline void checkGappedXdropScore(int bestScore) {
     throw std::overflow_error("score got too high in gapped extension");
 }
 */
+
+inline void updateBest1(int &bestScore,
+			std::size_t &bestAntidiagonal,
+			std::size_t &bestSeq1position,
+			int score,
+			std::size_t antidiagonal,
+			std::size_t seq1position) {
+  if (score > bestScore) {
+    bestScore = score;
+    bestAntidiagonal = antidiagonal;
+    bestSeq1position = seq1position;
+  }
+}
 
 inline void GappedXdropAligner::updateBest(int &bestScore, int score,
                                            std::size_t antidiagonal,

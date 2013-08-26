@@ -1,4 +1,4 @@
-// Copyright 2011, 2012 Martin C. Frith
+// Copyright 2011, 2012, 2013 Martin C. Frith
 
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
@@ -15,6 +15,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
                                    const uchar *seq2,
                                    const uchar *qual2,
                                    bool isForward,
+				   int globality,
                                    const TwoQualityScoreMatrix &scorer,
 				   int delExistenceCost,
 				   int delExtensionCost,
@@ -32,6 +33,9 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
   std::size_t minSeq1ends[] = { 1, 0 };
 
   int bestScore = 0;
+  int bestEdgeScore = -INF;
+  std::size_t bestEdgeAntidiagonal = 2;
+  std::size_t bestEdgeSeq1position = 0;
 
   init();
 
@@ -53,7 +57,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos - 1;
     const uchar *q2 = isForward ? qual2 + seq2pos : qual2 - seq2pos - 1;
 
-    if (isDelimiter2qual(*s2))
+    if (!globality && isDelimiter2qual(*s2))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     int minScore = bestScore - maxScoreDrop;
@@ -70,6 +74,14 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     *x0++ = *y0++ = *z0++ = -INF;  // add one pad cell
 
     const int *x0base = x0 - seq1beg;
+
+    if (globality && isDelimiter2qual(*s2)) {
+      const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
+      int b = maxValue(*x2, *z1 - insExtensionCost, *z2 - gapUnalignedCost);
+      if (b >= minScore)
+	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestEdgeSeq1position,
+		    b, antidiagonal, seq1beg);
+    }
 
     if (isAffine) {
       if (isForward)
@@ -128,12 +140,25 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
       }
     }
 
-    if (isDelimiter2qual(*s1))
+    if (globality && isDelimiter2qual(*s1)) {
+      const int *y2 = &yScores[diag(antidiagonal, seq1end-1)];
+      int b = maxValue(*x2, *y1 - delExtensionCost, *y2 - gapUnalignedCost);
+      if (b >= minScore)
+	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestEdgeSeq1position,
+		    b, antidiagonal, seq1end-1);
+    }
+
+    if (!globality && isDelimiter2qual(*s1))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     updateFiniteEdges(maxSeq1begs, minSeq1ends, x0base, x0 + 1, numCells);
   }
 
+  if (globality) {
+    bestAntidiagonal = bestEdgeAntidiagonal;
+    bestSeq1position = bestEdgeSeq1position;
+    bestScore = bestEdgeScore;
+  }
   return bestScore;
 }
 

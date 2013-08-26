@@ -248,15 +248,17 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   int extensionScore =
     sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
 				  seq2 + start2, qual2 + start2,
-				  isForward, sm2qual,
+				  isForward, 0, sm2qual,
 				  gap.delExist, gap.delExtend,
 				  gap.insExist, gap.insExtend,
 				  gap.pairExtend, maxDrop, smMax )
-    : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2, isForward,
+    : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2,
+				 isForward, 0,
 				 gap.delExist, gap.delExtend,
 				 gap.insExist, gap.insExtend,
 				 gap.pairExtend, maxDrop, smMax )
-    :         aligner.align( seq1 + start1, seq2 + start2, isForward, sm,
+    :         aligner.align( seq1 + start1, seq2 + start2,
+			     isForward, 0, sm,
 			     gap.delExist, gap.delExtend,
 			     gap.insExist, gap.insExtend,
 			     gap.pairExtend, maxDrop, smMax );
