@@ -50,6 +50,7 @@ struct LastalArguments{
   int outputFormat;
   int outputType;
   int strand;
+  int globality;  // type of alignment: local, semi-global, etc.
   int maskLowercase;
   int minScoreGapped;
   int minScoreGapless;

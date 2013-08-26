@@ -446,15 +446,15 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, dis.m,
-		   scoreMatrix.maxScore, gapCosts, dis.d,
+    aln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, args.globality,
+		   dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
                    args.frameshiftCost, frameSize, dis.p,
                    dis.t, dis.i, dis.j, alph );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
 
-    if( !aln.isOptimal( dis.a, dis.b, dis.m, dis.d, gapCosts,
+    if( !aln.isOptimal( dis.a, dis.b, args.globality, dis.m, dis.d, gapCosts,
 			args.frameshiftCost, frameSize, dis.p,
                         dis.t, dis.i, dis.j ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
@@ -505,8 +505,9 @@ void alignFinish( const AlignmentPot& gappedAlns,
     else{  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, dis.m,
-                         scoreMatrix.maxScore, gapCosts, dis.d,
+      probAln.makeXdrop( gappedXdropAligner, centroid,
+			 dis.a, dis.b, args.globality,
+			 dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
                          args.frameshiftCost, frameSize, dis.p, dis.t,
 			 dis.i, dis.j, alph, args.gamma, args.outputType );
       probAln.write( text, query, strand, args.isTranslated(),

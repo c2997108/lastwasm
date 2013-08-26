@@ -25,6 +25,7 @@ LastalArguments::LastalArguments() :
   outputFormat(1),
   outputType(3),
   strand(-1),  // depends on the alphabet
+  globality(0),
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
   minScoreGapped(-1),  // depends on the alphabet
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
@@ -85,6 +86,8 @@ Cosmetic options (default settings):\n\
 \n\
 Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
+-T: type of alignment: 0=local, 1=overlap ("
+    + stringify(globality) + ")\n\
 -m: maximum initial matches per query position ("
     + stringify(oneHitMultiplicity) + ")\n\
 -l: length threshold for initial matches (1 if -j0, else infinity)\n\
@@ -114,7 +117,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-      "ho:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:m:l:n:k:i:w:t:g:G:vj:";
+      "ho:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:n:k:i:w:t:g:G:vj:";
   while( (c = getopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -195,6 +198,10 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'Q':
       unstringify( inputFormat, optarg );
       break;
+    case 'T':
+      unstringify( globality, optarg );
+      if( globality < 0 || globality > 1 ) badopt( c, optarg );
+      break;
     case 'm':
       unstringify( oneHitMultiplicity, optarg );
       break;
@@ -254,6 +261,12 @@ LAST home page: http://last.cbrc.jp/\n\
 
   if( isTranslated() && outputType == 0 )
     ERR( "can't combine option -F with option -j 0" );
+
+  if( isTranslated() && globality == 1 )
+    ERR( "can't combine option -F with option -T 1" );
+
+  if( globality == 1 && outputType == 1 )
+    ERR( "can't combine option -T 1 with option -j 1" );
 
   if( optionsOnly ) return;
   if( optind + 1 >= argc )

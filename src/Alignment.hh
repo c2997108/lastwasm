@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
 
 // This struct holds a gapped, pair-wise alignment.
 
@@ -35,7 +35,7 @@ struct Alignment{
   // If outputType > 3: calculates match probabilities.
   // If outputType > 4: does gamma-centroid alignment.
   void makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
-		  const uchar* seq1, const uchar* seq2,
+		  const uchar* seq1, const uchar* seq2, int globality,
 		  const int scoreMatrix[MAT][MAT], int smMax,
 		  const GeneralizedAffineGapCosts& gap, int maxDrop,
 		  int frameshiftCost, indexT frameSize,
@@ -47,7 +47,8 @@ struct Alignment{
   // Check that the Alignment has no prefix with score <= 0, no suffix
   // with score <= 0, and no sub-segment with score < -maxDrop.
   // Alignments that pass this test may be non-optimal in other ways.
-  bool isOptimal( const uchar* seq1, const uchar* seq2,
+  // If "globality" is non-zero, skip the prefix and suffix checks.
+  bool isOptimal( const uchar* seq1, const uchar* seq2, int globality,
                   const int scoreMatrix[MAT][MAT], int maxDrop,
                   const GeneralizedAffineGapCosts& gap,
 		  int frameshiftCost, indexT frameSize,
@@ -76,7 +77,8 @@ struct Alignment{
 	       std::vector< uchar >& ambiguityCodes,
 	       GappedXdropAligner& aligner, Centroid& centroid,
 	       const uchar* seq1, const uchar* seq2,
-	       indexT start1, indexT start2, bool isForward,
+	       indexT start1, indexT start2,
+	       bool isForward, int globality,
 	       const int sm[MAT][MAT], int smMax, int maxDrop,
 	       const GeneralizedAffineGapCosts& gap,
 	       int frameshiftCost, indexT frameSize,

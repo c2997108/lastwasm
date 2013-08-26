@@ -72,7 +72,7 @@ static bool isNext( const SegmentPair& x, const SegmentPair& y ){
 }
 
 void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
-			   const uchar* seq1, const uchar* seq2,
+			   const uchar* seq1, const uchar* seq2, int globality,
 			   const int scoreMatrix[MAT][MAT], int smMax,
 			   const GeneralizedAffineGapCosts& gap, int maxDrop,
 			   int frameshiftCost, indexT frameSize,
@@ -97,7 +97,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 
   // extend a gapped alignment in the left/reverse direction from the seed:
   extend( blocks, columnAmbiguityCodes, aligner, centroid, seq1, seq2,
-	  seed.beg1(), seed.beg2(), false,
+	  seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
@@ -113,7 +113,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
   std::vector<SegmentPair> forwardBlocks;
   std::vector<uchar> forwardAmbiguities;
   extend( forwardBlocks, forwardAmbiguities, aligner, centroid, seq1, seq2,
-	  seed.end1(), seed.end2(), true,
+	  seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
@@ -154,7 +154,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
                                forwardAmbiguities.rend() );
 }
 
-bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
+bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 			   const int scoreMatrix[MAT][MAT], int maxDrop,
 			   const GeneralizedAffineGapCosts& gap,
 			   int frameshiftCost, indexT frameSize,
@@ -177,9 +177,8 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
       if( frameshift2 ) runningScore -= frameshiftCost;
 
       runningScore -= gap.cost( gapSize1, gapSize2 );
-      if( runningScore <= 0 || runningScore < maxScore - maxDrop ){
-	return false;
-      }
+      if( !globality && runningScore <= 0 ) return false;
+      if( runningScore < maxScore - maxDrop ) return false;
     }
 
     const uchar* s1 = seq1 + i->beg1();
@@ -195,11 +194,9 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2,
       else               runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
 
       if( runningScore > maxScore ) maxScore = runningScore;
-      else if( runningScore <= 0 ||                  // non-optimal prefix
-	       (s1 == e1 && i+1 == blocks.end()) ||  // non-optimal suffix
-	       runningScore < maxScore - maxDrop ){  // excessive score drop
-	return false;
-      }
+      else if( !globality && runningScore <= 0 ) return false;
+      else if( !globality && (s1 == e1 && i+1 == blocks.end()) ) return false;
+      else if( runningScore < maxScore - maxDrop ) return false;
     }
   }
 
@@ -210,7 +207,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< uchar >& ambiguityCodes,
 			GappedXdropAligner& aligner, Centroid& centroid,
 			const uchar* seq1, const uchar* seq2,
-			indexT start1, indexT start2, bool isForward,
+			indexT start1, indexT start2,
+			bool isForward, int globality,
 			const int sm[MAT][MAT], int smMax, int maxDrop,
 			const GeneralizedAffineGapCosts& gap,
 			int frameshiftCost, indexT frameSize,
@@ -220,6 +218,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			const Alphabet& alph, double gamma, int outputType ){
   if( frameSize ){
     assert( outputType < 4 );
+    assert( !globality );
     assert( !pssm2 );
     assert( !sm2qual );
     assert( gap.isSymmetric() );
@@ -248,20 +247,25 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   int extensionScore =
     sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
 				  seq2 + start2, qual2 + start2,
-				  isForward, 0, sm2qual,
+				  isForward, globality, sm2qual,
 				  gap.delExist, gap.delExtend,
 				  gap.insExist, gap.insExtend,
 				  gap.pairExtend, maxDrop, smMax )
     : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2,
-				 isForward, 0,
+				 isForward, globality,
 				 gap.delExist, gap.delExtend,
 				 gap.insExist, gap.insExtend,
 				 gap.pairExtend, maxDrop, smMax )
     :         aligner.align( seq1 + start1, seq2 + start2,
-			     isForward, 0, sm,
+			     isForward, globality, sm,
 			     gap.delExist, gap.delExtend,
 			     gap.insExist, gap.insExtend,
 			     gap.pairExtend, maxDrop, smMax );
+
+  if( extensionScore == -INF ){
+    score = -INF;  // avoid score overflow
+    return;  // avoid ill-defined probabilistic alignment
+  }
 
   score += extensionScore;
 
