@@ -320,19 +320,6 @@ namespace cbrc{
 
     initBackwardMatrix();
 
-    if ( !globality ){
-      double d1 = 1.0;
-      for( size_t k = numAntidiagonals - 1; k != 1; --k ){
-	d1 /= scale[k];
-
-	size_t iBeg = xa.scoreEndIndex( k ) + 1;
-	size_t iEnd = xa.scoreEndIndex( k + 1 );
-	for( size_t i = iBeg; i < iEnd; ++i ){
-	  bM[ i ] = d1;
-	}
-      }
-    }
-
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
     const int F = gap.delExist + gap.delExtend;
@@ -406,6 +393,8 @@ namespace cbrc{
 		isDelimiter(*(s1+seqIncrement), *match_score) ){
 	      *bM0 += d1;  *bD0 += d1;  *bI0 += d1;  *bP0 += d1;
 	    }
+	  }else{
+	    *bM0 += d1;
 	  }
 	  const double S = match_score[ *s1 ][ *s2 ];
 	  const double tmp1 = *bM0 * S * scale12;
@@ -455,6 +444,8 @@ namespace cbrc{
 		  isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2)) ){
 		*bM0 += d1;  *bD0 += d1;  *bI0 += d1;
 	      }
+	    }else{
+	      *bM0 += d1;
 	    }
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
@@ -496,6 +487,8 @@ namespace cbrc{
 		  isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2)) ){
 		*bM0 += d1;  *bD0 += d1;  *bI0 += d1;  *bP0 += d1;
 	      }
+	    }else{
+	      *bM0 += d1;
 	    }
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
@@ -538,6 +531,14 @@ namespace cbrc{
 	}
       }
     }
+
+    d1 /= scale[2];
+    if( globality ){
+      // something is missing (but I think it doesn't matter)
+    }else{
+      bM[3] += d1;
+    }
+
     // Modify for test start
     //ExpectedCount ec;
     //computeExpectedCounts ( seq1, seq2, start1, start2, isForward, gap, ec );
