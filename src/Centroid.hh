@@ -55,11 +55,11 @@ namespace cbrc{
 
     double forward( const uchar* seq1, const uchar* seq2, 
 		    size_t start1, size_t start2, bool isForward,
-		    const GeneralizedAffineGapCosts& gap );
+		    int globality, const GeneralizedAffineGapCosts& gap );
     
     double backward( const uchar* seq1, const uchar* seq2, 
 		     size_t start1, size_t start2, bool isForward,
-		     const GeneralizedAffineGapCosts& gap );
+		     int globality, const GeneralizedAffineGapCosts& gap );
 
     double dp( double gamma );
     void traceback( std::vector< SegmentPair >& chunks, double gamma ) const;

@@ -119,7 +119,6 @@ namespace cbrc{
   }
   
   void Centroid::initBackwardMatrix(){
-    bM.resize( fM.size() );
     pp.resize( fM.size() );
     mD.assign( numAntidiagonals, 0.0 );
     mI.assign( numAntidiagonals, 0.0 );
@@ -127,6 +126,7 @@ namespace cbrc{
     mX2.assign ( numAntidiagonals, 1.0 );
 
     std::size_t n = xa.scoreEndIndex( numAntidiagonals );
+    bM.assign( n, 0.0 );
     bD.assign( n, 0.0 );
     bI.assign( n, 0.0 );
     bP.assign( n, 0.0 );
@@ -144,8 +144,14 @@ namespace cbrc{
     }
   }
 
+  // xxx this will go wrong for non-delimiters with severe mismatch scores
+  static bool isDelimiter(uchar c, const double *expScores) {
+    return expScores[c] <= 0.0;
+  }
+
   double Centroid::forward( const uchar* seq1, const uchar* seq2,
-			    size_t start1, size_t start2, bool isForward,
+			    size_t start1, size_t start2,
+			    bool isForward, int globality,
 			    const GeneralizedAffineGapCosts& gap ){
 
     //std::cout << "[forward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
@@ -153,7 +159,23 @@ namespace cbrc{
 
     initForwardMatrix();
 
-    Z = fM[3];
+    if( globality ) {
+      Z = 0.0;
+      const uchar* s1 = seqPtr( seq1, start1, isForward, 1 );
+      if (! isPssm) {
+	const uchar* s2 = seqPtr( seq2, start2, isForward, 1 );
+	if( isDelimiter(*s1, *match_score) || isDelimiter(*s2, *match_score) ){
+	  Z = fM[3];
+	}
+      }else{
+	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, 1 );
+	if( isDelimiter(*s1, *(pssmExp2+start2)) || isDelimiter(0, *p2) ){
+	  Z = fM[3];
+	}
+      }
+    }else{
+      Z = fM[3];
+    }
 
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
@@ -222,6 +244,10 @@ namespace cbrc{
 	  *fP0 = xM2 * seQ + xP2 * seP;
 	  fM2++; fD2++; fI2++; fP2++;
 	  sum_f += *fM0;
+	  if( globality && (isDelimiter(*(s2+seqIncrement), *match_score) ||
+			    isDelimiter(*(s1+seqIncrement), *match_score)) ){
+	    Z += *fM0 + *fD0 + *fI0 + *fP0;
+	  }
 	  fM0++; fD0++; fI0++; fP0++;
 	  if (fM0 == fM0end) break;
 	  s1 += seqIncrement;
@@ -241,6 +267,10 @@ namespace cbrc{
 	    *fM0 = ( xM2 + xD2 + xI2 ) * S;
 	    fM2++; fD2++; fI2++; 
 	    sum_f += *fM0;
+	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
+			       isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2))) ){
+	      Z += *fM0 + *fD0 + *fI0;
+	    }
 	    fM0++; fD0++; fI0++; 
 	    if (fM0 == fM0end) break;
 	    s1 += seqIncrement;
@@ -257,6 +287,10 @@ namespace cbrc{
 	    *fP0 = xM2 * seQ + xP2 * seP;
 	    fM2++; fD2++; fI2++; fP2++;
 	    sum_f += *fM0;
+	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
+			       isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2))) ){
+	      Z += *fM0 + *fD0 + *fI0 + *fP0;
+	    }
 	    fM0++; fD0++; fI0++; fP0++;
 	    if (fM0 == fM0end) break;
 	    s1 += seqIncrement;
@@ -264,11 +298,12 @@ namespace cbrc{
 	  }	// end: inner most loop
 	}
       }
-      Z += sum_f;
+      if( !globality ) Z += sum_f;
       scale[k] = sum_f + 1.0;  // seems ugly
       Z /= scale[k]; // scaling
     } // k
     //std::cout << "Z=" << Z << std::endl;
+    assert( Z > 0.0 );
     return log(Z);
   }
 
@@ -276,7 +311,8 @@ namespace cbrc{
   // compute posterior probabilities while executing backward algorithm 
   // posterior probabilities are stored in pp
   double Centroid::backward( const uchar* seq1, const uchar* seq2,
-			     size_t start1, size_t start2, bool isForward,
+			     size_t start1, size_t start2,
+			     bool isForward, int globality,
 			     const GeneralizedAffineGapCosts& gap ){
 
     //std::cout << "[backward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
@@ -284,14 +320,16 @@ namespace cbrc{
 
     initBackwardMatrix();
 
-    double d1 = 1.0;
-    for( size_t k = numAntidiagonals - 1; k != 1; --k ){
-      d1 /= scale[k];
+    if ( !globality ){
+      double d1 = 1.0;
+      for( size_t k = numAntidiagonals - 1; k != 1; --k ){
+	d1 /= scale[k];
 
-      size_t iBeg = xa.scoreEndIndex( k ) + 1;
-      size_t iEnd = xa.scoreEndIndex( k + 1 );
-      for( size_t i = iBeg; i < iEnd; ++i ){
-	bM[ i ] = d1;
+	size_t iBeg = xa.scoreEndIndex( k ) + 1;
+	size_t iEnd = xa.scoreEndIndex( k + 1 );
+	for( size_t i = iBeg; i < iEnd; ++i ){
+	  bM[ i ] = d1;
+	}
       }
     }
 
@@ -311,6 +349,8 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eQ <= 0.0 );
 
+    double d1 = 1.0;
+
     for( size_t k = numAntidiagonals-1; k > 2; --k ){  // loop over antidiagonals
       const size_t k1 = k - 1;  
       const size_t k2 = k - 2;
@@ -327,10 +367,10 @@ namespace cbrc{
       const double seP = eP * scale12;
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
-      const double* bM0 = &bM[ scoreEnd + 1 ];
-      const double* bD0 = &bD[ scoreEnd + 1 ];
-      const double* bI0 = &bI[ scoreEnd + 1 ];
-      const double* bP0 = &bP[ scoreEnd + 1 ];
+      double* bM0 = &bM[ scoreEnd + 1 ];
+      double* bD0 = &bD[ scoreEnd + 1 ];
+      double* bI0 = &bI[ scoreEnd + 1 ];
+      double* bP0 = &bP[ scoreEnd + 1 ];
 
       double* pp0 = &pp[ scoreEnd ];
 
@@ -353,12 +393,20 @@ namespace cbrc{
 
       int i = loopBeg; int j = seq2pos;
 
+      d1 /= scale[k];
+
       const uchar* s1 = seqPtr( seq1, start1, isForward, loopBeg );
 
       if (! isPssm ) {
 	const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
 
 	do{ // inner most loop
+	  if( globality ){
+	    if( isDelimiter(*(s2+seqIncrement), *match_score) ||
+		isDelimiter(*(s1+seqIncrement), *match_score) ){
+	      *bM0 += d1;  *bD0 += d1;  *bI0 += d1;  *bP0 += d1;
+	    }
+	  }
 	  const double S = match_score[ *s1 ][ *s2 ];
 	  const double tmp1 = *bM0 * S * scale12;
 	  const double tmp2 = *bP0;
@@ -402,6 +450,12 @@ namespace cbrc{
 	  
 	if (isAffine) {
 	  do{ // inner most loop
+	    if( globality ){
+	      if( isDelimiter(0, *(p2+seqIncrement)) ||
+		  isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2)) ){
+		*bM0 += d1;  *bD0 += d1;  *bI0 += d1;
+	      }
+	    }
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
 	    *bM2 += tmp1; 
@@ -437,6 +491,12 @@ namespace cbrc{
 	  }while( fM0 != fM0end ); // inner most loop end;
 	}else{
 	  do{
+	    if( globality ){
+	      if( isDelimiter(0, *(p2+seqIncrement)) ||
+		  isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2)) ){
+		*bM0 += d1;  *bD0 += d1;  *bI0 += d1;  *bP0 += d1;
+	      }
+	    }
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
 	    const double tmp2 = *bP0;

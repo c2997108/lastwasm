@@ -281,8 +281,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if( outputType > 3 ){  // calculate match probabilities
     assert( !sm2qual );
     centroid.reset();
-    centroid.forward( seq1, seq2, start1, start2, isForward, gap );
-    centroid.backward( seq1, seq2, start1, start2, isForward, gap );
+    centroid.forward( seq1, seq2, start1, start2, isForward, globality, gap );
+    centroid.backward( seq1, seq2, start1, start2, isForward, globality, gap );
 
     if( outputType > 4 && outputType < 7 ){  // gamma-centroid / LAMA alignment
       centroid.dp( gamma );
