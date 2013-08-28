@@ -747,9 +747,9 @@ namespace cbrc{
 
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
-    const int F = gap.delExist + gap.delExtend;
+    const int F = gap.delExist;
     const int EI = gap.insExtend;
-    const int FI = gap.insExist + gap.insExtend;
+    const int FI = gap.insExist;
     const int P = gap.pairExtend;
     const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
@@ -815,18 +815,18 @@ namespace cbrc{
 	  c.PP += *fP2 * eP * tmp2;
 	  c.MQ += *fM0;
 
-	  const double tmp3 = *bD0 * scale1;
+	  const double tmp3 = *bD0 * scale1 * eE;
 	  c.MD += ( *fM1 * eF ) * tmp3;
-	  c.DD += ( *fD1 * eE ) * tmp3;
-	  c.PD += ( *fP1 * eE ) * tmp3;
+	  c.DD += ( *fD1 ) * tmp3;
+	  c.PD += ( *fP1 ) * tmp3;
 
 	  fM1++; fD1++; fP1++; fI1++;
 
-	  const double tmp4 = *bI0 * scale1;
+	  const double tmp4 = *bI0 * scale1 * eEI;
 	  c.MI += ( *fM1 * eFI )  * tmp4;
 	  c.DI += ( *fD1 * eFI )  * tmp4;
-	  c.PI += ( *fP1 * eEI )  * tmp4;
-	  c.II += ( *fI1 * eEI )  * tmp4;
+	  c.PI += ( *fP1 )  * tmp4;
+	  c.II += ( *fI1 )  * tmp4;
 
 	  fM2++; fD2++; fI2++; fP2++;
 	  fM0++; fD0++; fI0++; fP0++;
@@ -851,16 +851,16 @@ namespace cbrc{
 	    c.IM += *fI2 * tmp1;
 	    c.MQ += *fM0;
 
-	    const double tmp3 = *bD0 * scale1;
+	    const double tmp3 = *bD0 * scale1 * eE;
 	    c.MD += ( *fM1 * eF ) * tmp3;
-	    c.DD += ( *fD1 * eE ) * tmp3;
+	    c.DD += ( *fD1 ) * tmp3;
 
 	    fM1++; fD1++; fI1++;
 
-	    const double tmp4 = *bI0 * scale1;
+	    const double tmp4 = *bI0 * scale1 * eE;
 	    c.MI += ( *fM1 * eF )  * tmp4;
 	    c.DI += ( *fD1 * eF )  * tmp4;
-	    c.II += ( *fI1 * eE )  * tmp4;
+	    c.II += ( *fI1 )  * tmp4;
 
 	    fM2++; fD2++; fI2++;
 	    fM0++; fD0++; fI0++;
@@ -885,18 +885,18 @@ namespace cbrc{
 	    c.PP += *fP2 * eP * tmp2;
 	    c.MQ += *fM0;
 
-	    const double tmp3 = *bD0 * scale1;
+	    const double tmp3 = *bD0 * scale1 * eE;
 	    c.MD += ( *fM1 * eF ) * tmp3;
-	    c.DD += ( *fD1 * eE ) * tmp3;
-	    c.PD += ( *fP1 * eE ) * tmp3;
+	    c.DD += ( *fD1 ) * tmp3;
+	    c.PD += ( *fP1 ) * tmp3;
 
 	    fM1++; fD1++; fP1++; fI1++;
 
-	    const double tmp4 = *bI0 * scale1;
+	    const double tmp4 = *bI0 * scale1 * eEI;
 	    c.MI += ( *fM1 * eFI )  * tmp4;
 	    c.DI += ( *fD1 * eFI )  * tmp4;
-	    c.PI += ( *fP1 * eEI )  * tmp4;
-	    c.II += ( *fI1 * eEI )  * tmp4;
+	    c.PI += ( *fP1 )  * tmp4;
+	    c.II += ( *fI1 )  * tmp4;
 
 	    fM2++; fD2++; fI2++; fP2++;
 	    fM0++; fD0++; fI0++; fP0++;
