@@ -183,15 +183,13 @@ namespace cbrc{
     const int EI = gap.insExtend;
     const int FI = gap.insExist;
     const int P = gap.pairExtend;
-    const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
     const double eEI = EXP ( - EI / T );
     const double eFI = EXP ( - FI / T );
     const double eP = EXP ( - P / T );
-    const double eQ = EXP ( - Q / T );
 
-    assert( gap.insExist == gap.delExist || eQ <= 0.0 );
+    assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       double sum_f = 0.0; // sum of forward values
@@ -204,7 +202,6 @@ namespace cbrc{
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
-      const double seQ = eQ * scale12;
       const double seP = eP * scale12;
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
@@ -239,7 +236,7 @@ namespace cbrc{
 	  xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
 	  *fI0 = ( ( xM1 + xD1 ) * eFI + xI1 + xP1 ) * seEI;
 	  *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
-	  *fP0 = xM2 * seQ + xP2 * seP;
+	  *fP0 = ( xM2 * eF + xP2 ) * seP;
 	  fM2++; fD2++; fI2++; fP2++;
 	  sum_f += *fM0;
 	  if( globality && (isDelimiter(*(s2+seqIncrement), *match_score) ||
@@ -282,7 +279,7 @@ namespace cbrc{
 	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
 	    *fI0 = ( ( xM1 + xD1 ) * eFI + xI1 + xP1 ) * seEI;
 	    *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
-	    *fP0 = xM2 * seQ + xP2 * seP;
+	    *fP0 = ( xM2 * eF + xP2 ) * seP;
 	    fM2++; fD2++; fI2++; fP2++;
 	    sum_f += *fM0;
 	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
@@ -324,16 +321,14 @@ namespace cbrc{
     const int EI = gap.insExtend;
     const int FI = gap.insExist;
     const int P = gap.pairExtend;
-    const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
     const double eEI = EXP ( - EI / T );
     const double eFI = EXP ( - FI / T );
     const double eP = EXP ( - P / T );
-    const double eQ = EXP ( - Q / T );
     double scaledUnit = 1.0;
 
-    assert( gap.insExist == gap.delExist || eQ <= 0.0 );
+    assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
     for( size_t k = numAntidiagonals-1; k > 2; --k ){  // loop over antidiagonals
       const size_t k1 = k - 1;
@@ -346,7 +341,6 @@ namespace cbrc{
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
-      const double seQ = eQ * scale12;
       const double seP = eP * scale12;
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
@@ -393,11 +387,11 @@ namespace cbrc{
 	  }
 	  const double S = match_score[ *s1 ][ *s2 ];
 	  const double tmp1 = *bM0 * S * scale12;
-	  const double tmp2 = *bP0;
-	  *bM2 += tmp1 + tmp2 * seQ;
+	  const double tmp2 = *bP0 * seP;
+	  *bM2 += tmp1 + tmp2 * eF;
 	  *bD2 += tmp1;
 	  *bI2 += tmp1;
-	  *bP2 += tmp1 + tmp2 * seP;
+	  *bP2 += tmp1 + tmp2;
 	  const double tmp3 = *bD0 * seE;
 	  *bM1++ += tmp3 * eF;
 	  *bD1++ += tmp3;
@@ -486,11 +480,11 @@ namespace cbrc{
 	    }
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
-	    const double tmp2 = *bP0;
-	    *bM2 += tmp1 + tmp2 * seQ;
+	    const double tmp2 = *bP0 * seP;
+	    *bM2 += tmp1 + tmp2 * eF;
 	    *bD2 += tmp1;
 	    *bI2 += tmp1;
-	    *bP2 += tmp1 + tmp2 * seP;
+	    *bP2 += tmp1 + tmp2;
 	    const double tmp3 = *bD0 * seE;
 	    *bM1++ += tmp3 * eF;
 	    *bD1++ += tmp3;
@@ -751,15 +745,13 @@ namespace cbrc{
     const int EI = gap.insExtend;
     const int FI = gap.insExist;
     const int P = gap.pairExtend;
-    const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
     const double eF = EXP ( - F / T );
     const double eEI = EXP ( - EI / T );
     const double eFI = EXP ( - FI / T );
     const double eP = EXP ( - P / T );
-    const double eQ = EXP ( - Q / T );
 
-    assert( gap.insExist == gap.delExist || eQ <= 0.0 );
+    assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
     c.SQ = 1;
 
@@ -805,14 +797,14 @@ namespace cbrc{
 	  c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
 
 	  const double tmp1 = S * *bM0 * scale12;
-	  const double tmp2 = *bP0 * scale12;
+	  const double tmp2 = *bP0 * scale12 * eP;
 
 	  c.MM += *fM2 * tmp1;
 	  c.PM += *fP2 * tmp1;
 	  c.DM += *fD2 * tmp1;
 	  c.IM += *fI2 * tmp1;
-	  c.MP += *fM2 * eQ * tmp2;
-	  c.PP += *fP2 * eP * tmp2;
+	  c.MP += *fM2 * eF * tmp2;
+	  c.PP += *fP2 * tmp2;
 	  c.MQ += *fM0;
 
 	  const double tmp3 = *bD0 * scale1 * eE;
@@ -875,14 +867,14 @@ namespace cbrc{
 	    c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
 
 	    const double tmp1 = S * *bM0 * scale12;
-	    const double tmp2 = *bP0 * scale12;
+	    const double tmp2 = *bP0 * scale12 * eP;
 
 	    c.MM += *fM2 * tmp1;
 	    c.PM += *fP2 * tmp1;
 	    c.DM += *fD2 * tmp1;
 	    c.IM += *fI2 * tmp1;
-	    c.MP += *fM2 * eQ * tmp2;
-	    c.PP += *fP2 * eP * tmp2;
+	    c.MP += *fM2 * eF * tmp2;
+	    c.PP += *fP2 * tmp2;
 	    c.MQ += *fM0;
 
 	    const double tmp3 = *bD0 * scale1 * eE;
