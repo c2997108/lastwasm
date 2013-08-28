@@ -333,10 +333,9 @@ namespace cbrc{
     const double eFI = EXP ( - FI / T );
     const double eP = EXP ( - P / T );
     const double eQ = EXP ( - Q / T );
+    double scaledUnit = 1.0;
 
     assert( gap.insExist == gap.delExist || eQ <= 0.0 );
-
-    double d1 = 1.0;
 
     for( size_t k = numAntidiagonals-1; k > 2; --k ){  // loop over antidiagonals
       const size_t k1 = k - 1;  
@@ -345,6 +344,7 @@ namespace cbrc{
       const std::size_t seq2pos = k2 - loopBeg;
       const double scale12 = 1.0 / ( scale[k1] * scale[k2] ); // scaling factor
       const double scale1  = 1.0 / scale[k1];
+      scaledUnit /= scale[k];
 
       const double seF = eF * scale1;
       const double seE = eE * scale1;
@@ -380,8 +380,6 @@ namespace cbrc{
 
       int i = loopBeg; int j = seq2pos;
 
-      d1 /= scale[k];
-
       const uchar* s1 = seqPtr( seq1, start1, isForward, loopBeg );
 
       if (! isPssm ) {
@@ -391,10 +389,11 @@ namespace cbrc{
 	  if( globality ){
 	    if( isDelimiter(*(s2+seqIncrement), *match_score) ||
 		isDelimiter(*(s1+seqIncrement), *match_score) ){
-	      *bM0 += d1;  *bD0 += d1;  *bI0 += d1;  *bP0 += d1;
+	      *bM0 += scaledUnit;  *bD0 += scaledUnit;  *bI0 += scaledUnit;
+	      *bP0 += scaledUnit;
 	    }
 	  }else{
-	    *bM0 += d1;
+	    *bM0 += scaledUnit;
 	  }
 	  const double S = match_score[ *s1 ][ *s2 ];
 	  const double tmp1 = *bM0 * S * scale12;
@@ -442,10 +441,10 @@ namespace cbrc{
 	    if( globality ){
 	      if( isDelimiter(0, *(p2+seqIncrement)) ||
 		  isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2)) ){
-		*bM0 += d1;  *bD0 += d1;  *bI0 += d1;
+		*bM0 += scaledUnit;  *bD0 += scaledUnit;  *bI0 += scaledUnit;
 	      }
 	    }else{
-	      *bM0 += d1;
+	      *bM0 += scaledUnit;
 	    }
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
@@ -485,10 +484,11 @@ namespace cbrc{
 	    if( globality ){
 	      if( isDelimiter(0, *(p2+seqIncrement)) ||
 		  isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2)) ){
-		*bM0 += d1;  *bD0 += d1;  *bI0 += d1;  *bP0 += d1;
+		*bM0 += scaledUnit;  *bD0 += scaledUnit;  *bI0 += scaledUnit;
+		*bP0 += scaledUnit;
 	      }
 	    }else{
-	      *bM0 += d1;
+	      *bM0 += scaledUnit;
 	    }
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
@@ -532,11 +532,11 @@ namespace cbrc{
       }
     }
 
-    d1 /= scale[2];
+    scaledUnit /= scale[2];
     if( globality ){
       // something is missing (but I think it doesn't matter)
     }else{
-      bM[3] += d1;
+      bM[3] += scaledUnit;
     }
 
     // Modify for test start
