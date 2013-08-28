@@ -116,7 +116,6 @@ namespace cbrc{
     }
 
     fM[3] = 1;
-    Z = fM[3];
   }
   
   void Centroid::initBackwardMatrix(){
@@ -126,17 +125,6 @@ namespace cbrc{
     mI.assign( numAntidiagonals, 0.0 );
     mX1.assign ( numAntidiagonals, 1.0 );
     mX2.assign ( numAntidiagonals, 1.0 );
-
-    double d1 = 1.0;
-    for( size_t k = numAntidiagonals - 1; k != 1; --k ){
-      d1 /= scale[k];
-
-      size_t iBeg = xa.scoreEndIndex( k ) + 1;
-      size_t iEnd = xa.scoreEndIndex( k + 1 );
-      for( size_t i = iBeg; i < iEnd; ++i ){
-	bM[ i ] = d1;
-      }
-    }
 
     std::size_t n = xa.scoreEndIndex( numAntidiagonals );
     bD.assign( n, 0.0 );
@@ -164,6 +152,8 @@ namespace cbrc{
     const int seqIncrement = isForward ? 1 : -1;
 
     initForwardMatrix();
+
+    Z = fM[3];
 
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
@@ -293,6 +283,17 @@ namespace cbrc{
     const int seqIncrement = isForward ? 1 : -1;
 
     initBackwardMatrix();
+
+    double d1 = 1.0;
+    for( size_t k = numAntidiagonals - 1; k != 1; --k ){
+      d1 /= scale[k];
+
+      size_t iBeg = xa.scoreEndIndex( k ) + 1;
+      size_t iEnd = xa.scoreEndIndex( k + 1 );
+      for( size_t i = iBeg; i < iEnd; ++i ){
+	bM[ i ] = d1;
+      }
+    }
 
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
