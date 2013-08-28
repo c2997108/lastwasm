@@ -179,9 +179,9 @@ namespace cbrc{
 
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
-    const int F = gap.delExist + gap.delExtend;
+    const int F = gap.delExist;
     const int EI = gap.insExtend;
-    const int FI = gap.insExist + gap.insExtend;
+    const int FI = gap.insExist;
     const int P = gap.pairExtend;
     const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
@@ -202,9 +202,7 @@ namespace cbrc{
       const double scale12 = 1.0 / ( scale[k1] * scale[k2] ); // scaling factor
       const double scale1  = 1.0 / scale[k1];
 
-      const double seF = eF * scale1;
       const double seE = eE * scale1;
-      const double seFI = eFI * scale1;
       const double seEI = eEI * scale1;
       const double seQ = eQ * scale12;
       const double seP = eP * scale12;
@@ -237,9 +235,9 @@ namespace cbrc{
 	while (1) {	// start: inner most loop
 	  const double S = match_score[ *s1 ][ *s2 ] * scale12; // (loopBeg, k - loopBeg)
 	  const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
-	  *fD0 = ( xM1 ) * seF + ( xD1 + xP1 ) * seE;
+	  *fD0 = ( xM1 * eF + xD1 + xP1 ) * seE;
 	  xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
-	  *fI0 = ( xM1 + xD1 ) * seFI + ( xI1 + xP1 ) * seEI;
+	  *fI0 = ( ( xM1 + xD1 ) * eFI + xI1 + xP1 ) * seEI;
 	  *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
 	  *fP0 = xM2 * seQ + xP2 * seP;
 	  fM2++; fD2++; fI2++; fP2++;
@@ -261,9 +259,9 @@ namespace cbrc{
 	  while (1) { // start: inner most loop
 	    const double S = (*p2)[ *s1 ]  * scale12;
 	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2;
-	    *fD0 = ( xM1 ) * seF + ( xD1 ) * seE;
+	    *fD0 = ( xM1 * eF + xD1 ) * seE;
 	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1;
-	    *fI0 = ( xM1 + xD1 ) * seF + ( xI1 ) * seE;
+	    *fI0 = ( ( xM1 + xD1 ) * eF + xI1 ) * seE;
 	    *fM0 = ( xM2 + xD2 + xI2 ) * S;
 	    fM2++; fD2++; fI2++;
 	    sum_f += *fM0;
@@ -280,9 +278,9 @@ namespace cbrc{
 	  while (1) { // start: inner most loop
 	    const double S = (*p2)[ *s1 ]  * scale12;
 	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
-	    *fD0 = ( xM1 ) * seF + ( xD1 + xP1 ) * seE;
+	    *fD0 = ( xM1 * eF + xD1 + xP1 ) * seE;
 	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
-	    *fI0 = ( xM1 + xD1 ) * seFI + ( xI1 + xP1 ) * seEI;
+	    *fI0 = ( ( xM1 + xD1 ) * eFI + xI1 + xP1 ) * seEI;
 	    *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
 	    *fP0 = xM2 * seQ + xP2 * seP;
 	    fM2++; fD2++; fI2++; fP2++;
