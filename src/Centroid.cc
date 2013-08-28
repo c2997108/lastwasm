@@ -320,9 +320,9 @@ namespace cbrc{
 
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
-    const int F = gap.delExist + gap.delExtend;
+    const int F = gap.delExist;
     const int EI = gap.insExtend;
-    const int FI = gap.insExist + gap.insExtend;
+    const int FI = gap.insExist;
     const int P = gap.pairExtend;
     const int Q = gap.delExist + gap.pairExtend;
     const double eE = EXP ( - E / T );
@@ -344,9 +344,7 @@ namespace cbrc{
       const double scale1  = 1.0 / scale[k1];
       scaledUnit /= scale[k];
 
-      const double seF = eF * scale1;
       const double seE = eE * scale1;
-      const double seFI = eFI * scale1;
       const double seEI = eEI * scale1;
       const double seQ = eQ * scale12;
       const double seP = eP * scale12;
@@ -400,18 +398,17 @@ namespace cbrc{
 	  *bD2 += tmp1;
 	  *bI2 += tmp1;
 	  *bP2 += tmp1 + tmp2 * seP;
-	  const double tmp3 = *bD0;
-	  *bM1++ += tmp3 * seF;
-	  *bD1++ += tmp3 * seE;
+	  const double tmp3 = *bD0 * seE;
+	  *bM1++ += tmp3 * eF;
+	  *bD1++ += tmp3;
 	  bI1++;
-	  *bP1++ += tmp3 * seE;
-	  const double tmp4 = *bI0;
-	  const double tmp5 = tmp4 * seFI;
-	  const double tmp6 = tmp4 * seEI;
+	  *bP1++ += tmp3;
+	  const double tmp4 = *bI0 * seEI;
+	  const double tmp5 = tmp4 * eFI;
 	  *bM1 += tmp5;
 	  *bD1 += tmp5;
-	  *bI1 += tmp6;
-	  *bP1 += tmp6;
+	  *bI1 += tmp4;
+	  *bP1 += tmp4;
 
 	  *pp0 = *fM0 * *bM0 / Z;
 	  double probd = *fD0 * *bD0 / Z;
@@ -449,16 +446,15 @@ namespace cbrc{
 	    *bM2 += tmp1;
 	    *bD2 += tmp1;
 	    *bI2 += tmp1;
-	    const double tmp3 = *bD0;
-	    *bM1++ += tmp3 * seF;
-	    *bD1++ += tmp3 * seE;
+	    const double tmp3 = *bD0 * seE;
+	    *bM1++ += tmp3 * eF;
+	    *bD1++ += tmp3;
 	    bI1++;
-	    const double tmp4 = *bI0;
-	    const double tmp5 = tmp4 * seF;
-	    const double tmp6 = tmp4 * seE;
+	    const double tmp4 = *bI0 * seE;
+	    const double tmp5 = tmp4 * eF;
 	    *bM1 += tmp5;
 	    *bD1 += tmp5;
-	    *bI1 += tmp6;
+	    *bI1 += tmp4;
 
 	    double prob = *fM0 * *bM0 / Z;
 	    *pp0 = prob;
@@ -495,18 +491,17 @@ namespace cbrc{
 	    *bD2 += tmp1;
 	    *bI2 += tmp1;
 	    *bP2 += tmp1 + tmp2 * seP;
-	    const double tmp3 = *bD0;
-	    *bM1++ += tmp3 * seF;
-	    *bD1++ += tmp3 * seE;
+	    const double tmp3 = *bD0 * seE;
+	    *bM1++ += tmp3 * eF;
+	    *bD1++ += tmp3;
 	    bI1++;
-	    *bP1++ += tmp3 * seE;
-	    const double tmp4 = *bI0;
-	    const double tmp5 = tmp4 * seFI;
-	    const double tmp6 = tmp4 * seEI;
+	    *bP1++ += tmp3;
+	    const double tmp4 = *bI0 * seEI;
+	    const double tmp5 = tmp4 * eFI;
 	    *bM1 += tmp5;
 	    *bD1 += tmp5;
-	    *bI1 += tmp6;
-	    *bP1 += tmp6;
+	    *bI1 += tmp4;
+	    *bP1 += tmp4;
 
 	    double prob = *fM0 * *bM0 / Z;
 	    *pp0 = prob;
