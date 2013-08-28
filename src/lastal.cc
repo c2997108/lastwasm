@@ -463,7 +463,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     }
 
     gaplessAlns.markAllOverlaps( aln.blocks );
-    gaplessAlns.markTandemRepeats( aln.seed, args.maxRepeatDistance ); 
+    gaplessAlns.markTandemRepeats( aln.seed, args.maxRepeatDistance );
 
     if( phase == Phase::final ) gappedAlns.add(aln);
     else SegmentPairPot::markAsGood(sp);

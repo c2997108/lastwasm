@@ -8,7 +8,7 @@
 #include <cmath> // for exp
 #include <cfloat>   // for DBL_MAX
 #include <cstdlib>  // for abs
-#include <iomanip> 
+#include <iomanip>
 
 #define CI(type) std::vector<type>::const_iterator  // added by MCF
 
@@ -25,7 +25,7 @@ namespace cbrc{
 
   typedef double ScoreMatrixRowDouble[scoreMatrixRowSize];
 
-  ExpectedCount::ExpectedCount () 
+  ExpectedCount::ExpectedCount ()
   {
     double d0 = 0;
     MM = d0; MD = d0; MP = d0; MI = d0; MQ = d0;
@@ -37,13 +37,13 @@ namespace cbrc{
     for (int n=0; n<MAT; n++)
       for (int m=0; m<MAT; m++) emit[n][m] = d0;
   }
-  
+
   std::ostream& ExpectedCount::write (std::ostream& os, double Z) const
   {
     for (int n=0; n<MAT; ++n) {
       for (int m=0; m<MAT; ++m) {
 	double prob = emit[n][m] / Z;
-	if (prob > 0) 
+	if (prob > 0)
 	  os << "emit[" << n << "][" << m << "]=" << emit[n][m] / Z << std::endl;
       }
     }
@@ -61,7 +61,7 @@ namespace cbrc{
     os << "P->M=" << PM / Z << std::endl;
     os << "P->D=" << PD / Z << std::endl;
     os << "P->I=" << PI / Z << std::endl;
-  
+
     os << "I->I=" << II / Z << std::endl;
     os << "I->M=" << IM / Z << std::endl;
 
@@ -72,7 +72,7 @@ namespace cbrc{
     return os;
   }
 
-  Centroid::Centroid( const GappedXdropAligner& xa_ ) 
+  Centroid::Centroid( const GappedXdropAligner& xa_ )
     : xa( xa_ ), numAntidiagonals ( xa_.numAntidiagonals () ), bestScore ( 0 ), bestAntiDiagonal (0), bestPos1 (0)  {
   }
 
@@ -117,7 +117,7 @@ namespace cbrc{
 
     fM[3] = 1;
   }
-  
+
   void Centroid::initBackwardMatrix(){
     pp.resize( fM.size() );
     mD.assign( numAntidiagonals, 0.0 );
@@ -232,7 +232,7 @@ namespace cbrc{
 
       *fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;  // add one pad cell
 
-      if (! isPssm) {	  
+      if (! isPssm) {
 	const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
 	while (1) {	// start: inner most loop
 	  const double S = match_score[ *s1 ][ *s2 ] * scale12; // (loopBeg, k - loopBeg)
@@ -256,22 +256,22 @@ namespace cbrc{
       } // end: if (! isPssm)
       else { // when pssm2 is given
 	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, seq2pos );
-	  
+
 	if (isAffine) {
 	  while (1) { // start: inner most loop
 	    const double S = (*p2)[ *s1 ]  * scale12;
 	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2;
 	    *fD0 = ( xM1 ) * seF + ( xD1 ) * seE;
-	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; 
+	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1;
 	    *fI0 = ( xM1 + xD1 ) * seF + ( xI1 ) * seE;
 	    *fM0 = ( xM2 + xD2 + xI2 ) * S;
-	    fM2++; fD2++; fI2++; 
+	    fM2++; fD2++; fI2++;
 	    sum_f += *fM0;
 	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
 			       isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2))) ){
 	      Z += *fM0 + *fD0 + *fI0;
 	    }
-	    fM0++; fD0++; fI0++; 
+	    fM0++; fD0++; fI0++;
 	    if (fM0 == fM0end) break;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
@@ -308,7 +308,7 @@ namespace cbrc{
   }
 
   // added by M. Hamada
-  // compute posterior probabilities while executing backward algorithm 
+  // compute posterior probabilities while executing backward algorithm
   // posterior probabilities are stored in pp
   double Centroid::backward( const uchar* seq1, const uchar* seq2,
 			     size_t start1, size_t start2,
@@ -338,7 +338,7 @@ namespace cbrc{
     assert( gap.insExist == gap.delExist || eQ <= 0.0 );
 
     for( size_t k = numAntidiagonals-1; k > 2; --k ){  // loop over antidiagonals
-      const size_t k1 = k - 1;  
+      const size_t k1 = k - 1;
       const size_t k2 = k - 2;
       const size_t loopBeg = xa.seq1start( k );
       const std::size_t seq2pos = k2 - loopBeg;
@@ -398,44 +398,44 @@ namespace cbrc{
 	  const double S = match_score[ *s1 ][ *s2 ];
 	  const double tmp1 = *bM0 * S * scale12;
 	  const double tmp2 = *bP0;
-	  *bM2 += tmp1 + tmp2 * seQ; 
-	  *bD2 += tmp1; 
-	  *bI2 += tmp1; 
-	  *bP2 += tmp1 + tmp2 * seP; 
+	  *bM2 += tmp1 + tmp2 * seQ;
+	  *bD2 += tmp1;
+	  *bI2 += tmp1;
+	  *bP2 += tmp1 + tmp2 * seP;
 	  const double tmp3 = *bD0;
-	  *bM1++ += tmp3 * seF; 
-	  *bD1++ += tmp3 * seE; 
+	  *bM1++ += tmp3 * seF;
+	  *bD1++ += tmp3 * seE;
 	  bI1++;
-	  *bP1++ += tmp3 * seE; 
+	  *bP1++ += tmp3 * seE;
 	  const double tmp4 = *bI0;
-	  const double tmp5 = tmp4 * seFI; 
+	  const double tmp5 = tmp4 * seFI;
 	  const double tmp6 = tmp4 * seEI;
-	  *bM1 += tmp5; 
-	  *bD1 += tmp5; 
-	  *bI1 += tmp6; 
-	  *bP1 += tmp6; 
+	  *bM1 += tmp5;
+	  *bD1 += tmp5;
+	  *bI1 += tmp6;
+	  *bP1 += tmp6;
 
-	  *pp0 = *fM0 * *bM0 / Z; 
+	  *pp0 = *fM0 * *bM0 / Z;
 	  double probd = *fD0 * *bD0 / Z;
 	  double probi = *fI0 * *bI0 / Z;
 	  double probp = *fP0 * *bP0 / Z;
-	  mD[ i ] += probd + probp; 
-	  mI[ j ] += probi + probp; 
+	  mD[ i ] += probd + probp;
+	  mI[ j ] += probi + probp;
 	  mX1 [ i ] -= ( *pp0 + probd + probp );
 	  mX2 [ j ] -= ( *pp0 + probi + probp );
 	  i++; j--;
 	  // iteration
 	  bM2++; bD2++; bI2++; bP2++;
 	  bM0++; bD0++; bI0++; bP0++;
-	  fM0++; fD0++; fI0++; fP0++; 
-	  pp0++; 
+	  fM0++; fD0++; fI0++; fP0++;
+	  pp0++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}while( fM0 != fM0end ); // inner most loop end;
       } // if (!ppsm2)
       else {
 	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, seq2pos );
-	  
+
 	if (isAffine) {
 	  do{ // inner most loop
 	    if( globality ){
@@ -448,33 +448,33 @@ namespace cbrc{
 	    }
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
-	    *bM2 += tmp1; 
-	    *bD2 += tmp1; 
-	    *bI2 += tmp1; 
+	    *bM2 += tmp1;
+	    *bD2 += tmp1;
+	    *bI2 += tmp1;
 	    const double tmp3 = *bD0;
-	    *bM1++ += tmp3 * seF; 
-	    *bD1++ += tmp3 * seE; 
+	    *bM1++ += tmp3 * seF;
+	    *bD1++ += tmp3 * seE;
 	    bI1++;
 	    const double tmp4 = *bI0;
-	    const double tmp5 = tmp4 * seF; 
+	    const double tmp5 = tmp4 * seF;
 	    const double tmp6 = tmp4 * seE;
-	    *bM1 += tmp5; 
-	    *bD1 += tmp5; 
-	    *bI1 += tmp6; 
+	    *bM1 += tmp5;
+	    *bD1 += tmp5;
+	    *bI1 += tmp6;
 
-	    double prob = *fM0 * *bM0 / Z; 
+	    double prob = *fM0 * *bM0 / Z;
 	    *pp0 = prob;
 	    double probd = *fD0 * *bD0 / Z;
 	    double probi = *fI0 * *bI0 / Z;
-	    mD[ i ] += probd; 
-	    mI[ j ] += probi; 
+	    mD[ i ] += probd;
+	    mI[ j ] += probi;
 	    mX1 [ i ] -= ( prob + probd );
 	    mX2 [ j ] -= ( prob + probi );
 	    i++; j--;
 	    // iteration
 	    bM2++; bD2++; bI2++;
 	    bM0++; bD0++; bI0++;
-	    fM0++; fD0++; fI0++; 
+	    fM0++; fD0++; fI0++;
 	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
@@ -493,37 +493,37 @@ namespace cbrc{
 	    const double S = ( *p2 )[ *s1 ];
 	    const double tmp1 = *bM0 * S * scale12;
 	    const double tmp2 = *bP0;
-	    *bM2 += tmp1 + tmp2 * seQ; 
-	    *bD2 += tmp1; 
-	    *bI2 += tmp1; 
-	    *bP2 += tmp1 + tmp2 * seP; 
+	    *bM2 += tmp1 + tmp2 * seQ;
+	    *bD2 += tmp1;
+	    *bI2 += tmp1;
+	    *bP2 += tmp1 + tmp2 * seP;
 	    const double tmp3 = *bD0;
-	    *bM1++ += tmp3 * seF; 
-	    *bD1++ += tmp3 * seE; 
+	    *bM1++ += tmp3 * seF;
+	    *bD1++ += tmp3 * seE;
 	    bI1++;
-	    *bP1++ += tmp3 * seE; 
+	    *bP1++ += tmp3 * seE;
 	    const double tmp4 = *bI0;
-	    const double tmp5 = tmp4 * seFI; 
+	    const double tmp5 = tmp4 * seFI;
 	    const double tmp6 = tmp4 * seEI;
-	    *bM1 += tmp5; 
-	    *bD1 += tmp5; 
-	    *bI1 += tmp6; 
-	    *bP1 += tmp6; 
+	    *bM1 += tmp5;
+	    *bD1 += tmp5;
+	    *bI1 += tmp6;
+	    *bP1 += tmp6;
 
-	    double prob = *fM0 * *bM0 / Z; 
+	    double prob = *fM0 * *bM0 / Z;
 	    *pp0 = prob;
 	    double probd = *fD0 * *bD0 / Z;
 	    double probi = *fI0 * *bI0 / Z;
 	    double probp = *fP0 * *bP0 / Z;
-	    mD[ i ] += probd + probp; 
-	    mI[ j ] += probi + probp; 
+	    mD[ i ] += probd + probp;
+	    mI[ j ] += probi + probp;
 	    mX1 [ i ] -= ( prob + probd + probp );
 	    mX2 [ j ] -= ( prob + probi + probp );
 	    i++; j--;
 	    // iteration
 	    bM2++; bD2++; bI2++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
-	    fM0++; fD0++; fI0++; fP0++; 
+	    fM0++; fD0++; fI0++; fP0++;
 	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
@@ -747,7 +747,7 @@ namespace cbrc{
 
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 					 size_t start1, size_t start2, bool isForward,
-					 const GeneralizedAffineGapCosts& gap, 
+					 const GeneralizedAffineGapCosts& gap,
 					 ExpectedCount& c ) const{
 
     const int seqIncrement = isForward ? 1 : -1;
@@ -768,7 +768,7 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eQ <= 0.0 );
 
-    c.SQ = 1; 
+    c.SQ = 1;
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t k1 = k - 1;
@@ -814,11 +814,11 @@ namespace cbrc{
 	  const double tmp1 = S * *bM0 * scale12;
 	  const double tmp2 = *bP0 * scale12;
 
-	  c.MM += *fM2 * tmp1; 
-	  c.PM += *fP2 * tmp1; 
-	  c.DM += *fD2 * tmp1; 
-	  c.IM += *fI2 * tmp1; 
-	  c.MP += *fM2 * eQ * tmp2; 
+	  c.MM += *fM2 * tmp1;
+	  c.PM += *fP2 * tmp1;
+	  c.DM += *fD2 * tmp1;
+	  c.IM += *fI2 * tmp1;
+	  c.MP += *fM2 * eQ * tmp2;
 	  c.PP += *fP2 * eP * tmp2;
 	  c.MQ += *fM0;
 
@@ -838,7 +838,7 @@ namespace cbrc{
 	  fM2++; fD2++; fI2++; fP2++;
 	  fM0++; fD0++; fI0++; fP0++;
 	  bM0++; bD0++; bI0++; bP0++;
-	    
+
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	} while( fM0 != fM0end ); // inner most loop end;
@@ -853,9 +853,9 @@ namespace cbrc{
 
 	    const double tmp1 = S * *bM0 * scale12;
 
-	    c.MM += *fM2 * tmp1; 
-	    c.DM += *fD2 * tmp1; 
-	    c.IM += *fI2 * tmp1; 
+	    c.MM += *fM2 * tmp1;
+	    c.DM += *fD2 * tmp1;
+	    c.IM += *fI2 * tmp1;
 	    c.MQ += *fM0;
 
 	    const double tmp3 = *bD0 * scale1;
@@ -872,7 +872,7 @@ namespace cbrc{
 	    fM2++; fD2++; fI2++;
 	    fM0++; fD0++; fI0++;
 	    bM0++; bD0++; bI0++;
-	    
+
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;  // xxx p2 ???
 	  } while( fM0 != fM0end ); // inner most loop end;
@@ -884,11 +884,11 @@ namespace cbrc{
 	    const double tmp1 = S * *bM0 * scale12;
 	    const double tmp2 = *bP0 * scale12;
 
-	    c.MM += *fM2 * tmp1; 
-	    c.PM += *fP2 * tmp1; 
-	    c.DM += *fD2 * tmp1; 
-	    c.IM += *fI2 * tmp1; 
-	    c.MP += *fM2 * eQ * tmp2; 
+	    c.MM += *fM2 * tmp1;
+	    c.PM += *fP2 * tmp1;
+	    c.DM += *fD2 * tmp1;
+	    c.IM += *fI2 * tmp1;
+	    c.MP += *fM2 * eQ * tmp2;
 	    c.PP += *fP2 * eP * tmp2;
 	    c.MQ += *fM0;
 
@@ -908,7 +908,7 @@ namespace cbrc{
 	    fM2++; fD2++; fI2++; fP2++;
 	    fM0++; fD0++; fI0++; fP0++;
 	    bM0++; bD0++; bI0++; bP0++;
-	    
+
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;  // xxx p2 ???
 	  } while( fM0 != fM0end ); // inner most loop end;

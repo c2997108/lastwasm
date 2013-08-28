@@ -46,18 +46,18 @@ namespace cbrc{
                    const uchar* sequenceBeg, const uchar* qualityBeg );
     void setOutputType( int m ) { outputType = m; }
 
-    void reset( ) { 
+    void reset( ) {
       numAntidiagonals = xa.numAntidiagonals();
       bestScore = 0;
       bestAntiDiagonal = 0;
       bestPos1 =0;
     }
 
-    double forward( const uchar* seq1, const uchar* seq2, 
+    double forward( const uchar* seq1, const uchar* seq2,
 		    size_t start1, size_t start2, bool isForward,
 		    int globality, const GeneralizedAffineGapCosts& gap );
-    
-    double backward( const uchar* seq1, const uchar* seq2, 
+
+    double backward( const uchar* seq1, const uchar* seq2,
 		     size_t start1, size_t start2, bool isForward,
 		     int globality, const GeneralizedAffineGapCosts& gap );
 
@@ -112,7 +112,7 @@ namespace cbrc{
 
     dvec_t mD;
     dvec_t mI;
-    dvec_t mX1; 
+    dvec_t mX1;
     dvec_t mX2;
 
     dvec_t X; // DP tables for $gamma$-decoding
