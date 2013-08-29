@@ -211,7 +211,7 @@ namespace cbrc{
       double* fI0 = &fI[ scoreEnd ];
       double* fP0 = &fP[ scoreEnd ];
 
-      const double* const fM0end = fM0 + xa.numCellsAndPads( k );
+      const double* const fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
       const std::size_t horiBeg = xa.hori( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
       const double* fM1 = &fM[ horiBeg ];
@@ -238,14 +238,14 @@ namespace cbrc{
 	  *fI0 = ( ( xM1 + xD1 ) * eFI + xI1 + xP1 ) * seEI;
 	  *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
 	  *fP0 = ( xM2 * eF + xP2 ) * seP;
-	  fM2++; fD2++; fI2++; fP2++;
 	  sum_f += *fM0;
 	  if( globality && (isDelimiter(*(s2+seqIncrement), *match_score) ||
 			    isDelimiter(*(s1+seqIncrement), *match_score)) ){
 	    Z += *fM0 + *fD0 + *fI0 + *fP0;
 	  }
+	  if (fM0 == fM0last) break;
 	  fM0++; fD0++; fI0++; fP0++;
-	  if (fM0 == fM0end) break;
+	  fM2++; fD2++; fI2++; fP2++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}	// end: inner most loop
@@ -261,14 +261,14 @@ namespace cbrc{
 	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1;
 	    *fI0 = ( ( xM1 + xD1 ) * eF + xI1 ) * seE;
 	    *fM0 = ( xM2 + xD2 + xI2 ) * S;
-	    fM2++; fD2++; fI2++;
 	    sum_f += *fM0;
 	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
 			       isDelimiter(*(s1+seqIncrement), *pssm)) ){
 	      Z += *fM0 + *fD0 + *fI0;
 	    }
+	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++;
-	    if (fM0 == fM0end) break;
+	    fM2++; fD2++; fI2++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }	// end: inner most loop
@@ -281,14 +281,14 @@ namespace cbrc{
 	    *fI0 = ( ( xM1 + xD1 ) * eFI + xI1 + xP1 ) * seEI;
 	    *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
 	    *fP0 = ( xM2 * eF + xP2 ) * seP;
-	    fM2++; fD2++; fI2++; fP2++;
 	    sum_f += *fM0;
 	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
 			       isDelimiter(*(s1+seqIncrement), *pssm)) ){
 	      Z += *fM0 + *fD0 + *fI0 + *fP0;
 	    }
+	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++; fP0++;
-	    if (fM0 == fM0end) break;
+	    fM2++; fD2++; fI2++; fP2++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }	// end: inner most loop
@@ -358,7 +358,7 @@ namespace cbrc{
       const double* fI0 = &fI[ scoreEnd + 1 ];
       const double* fP0 = &fP[ scoreEnd + 1 ];
 
-      const double* const fM0end = fM0 + xa.numCellsAndPads( k ) - 1;
+      const double* const fM0last = fM0 + xa.numCellsAndPads( k ) - 2;
       const std::size_t horiBeg = xa.hori( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
       double* bM1 = &bM[ horiBeg ];
@@ -414,12 +414,12 @@ namespace cbrc{
 	  mI[ j ] += probi + probp;
 	  mX1 [ i ] -= ( *pp0 + probd + probp );
 	  mX2 [ j ] -= ( *pp0 + probi + probp );
+
+	  if (fM0 == fM0last) break;
 	  i++; j--;
-	  // iteration
 	  bM2++; bD2++; bI2++; bP2++;
 	  bM0++; bD0++; bI0++; bP0++;
 	  fM0++; fD0++; fI0++; fP0++;
-	  if (fM0 == fM0end) break;
 	  pp0++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
@@ -461,12 +461,12 @@ namespace cbrc{
 	    mI[ j ] += probi;
 	    mX1 [ i ] -= ( prob + probd );
 	    mX2 [ j ] -= ( prob + probi );
+
+	    if (fM0 == fM0last) break;
 	    i++; j--;
-	    // iteration
 	    bM2++; bD2++; bI2++;
 	    bM0++; bD0++; bI0++;
 	    fM0++; fD0++; fI0++;
-	    if (fM0 == fM0end) break;
 	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
@@ -510,12 +510,12 @@ namespace cbrc{
 	    mI[ j ] += probi + probp;
 	    mX1 [ i ] -= ( prob + probd + probp );
 	    mX2 [ j ] -= ( prob + probi + probp );
+
+	    if (fM0 == fM0last) break;
 	    i++; j--;
-	    // iteration
 	    bM2++; bD2++; bI2++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    fM0++; fD0++; fI0++; fP0++;
-	    if (fM0 == fM0end) break;
 	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
@@ -784,7 +784,7 @@ namespace cbrc{
       const double seEI = eEI * scale1;
       const double seP = eP * scale12;
 
-      const double* const fM0end = fM0 + xa.numCellsAndPads( k ) - 1;
+      const double* const fM0last = fM0 + xa.numCellsAndPads( k ) - 2;
       const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
       const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
       const std::size_t horiBeg = xa.hori( k, seq1beg );
@@ -828,10 +828,10 @@ namespace cbrc{
 	  c.PI += ( *fP1 )  * tmp4;
 	  c.II += ( *fI1 )  * tmp4;
 
+	  if (fM0 == fM0last) break;
 	  fM2++; fD2++; fI2++; fP2++;
 	  fM0++; fD0++; fI0++; fP0++;
 	  bM0++; bD0++; bI0++; bP0++;
-	  if (fM0 == fM0end) break;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
@@ -862,10 +862,10 @@ namespace cbrc{
 	    c.DI += ( *fD1 * eF )  * tmp4;
 	    c.II += ( *fI1 )  * tmp4;
 
+	    if (fM0 == fM0last) break;
 	    fM2++; fD2++; fI2++;
 	    fM0++; fD0++; fI0++;
 	    bM0++; bD0++; bI0++;
-	    if (fM0 == fM0end) break;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;  // xxx p2 ???
 	  }
@@ -898,10 +898,10 @@ namespace cbrc{
 	    c.PI += ( *fP1 )  * tmp4;
 	    c.II += ( *fI1 )  * tmp4;
 
+	    if (fM0 == fM0last) break;
 	    fM2++; fD2++; fI2++; fP2++;
 	    fM0++; fD0++; fI0++; fP0++;
 	    bM0++; bD0++; bI0++; bP0++;
-	    if (fM0 == fM0end) break;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;  // xxx p2 ???
 	  }
