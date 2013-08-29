@@ -155,6 +155,7 @@ namespace cbrc{
 			    const GeneralizedAffineGapCosts& gap ){
 
     //std::cout << "[forward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
+    const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isForward ? 1 : -1;
 
     initForwardMatrix();
@@ -169,7 +170,7 @@ namespace cbrc{
 	}
       }else{
 	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, 1 );
-	if( isDelimiter(*s1, *(pssmExp2+start2)) || isDelimiter(0, *p2) ){
+	if( isDelimiter(*s1, *pssm) || isDelimiter(0, *p2) ){
 	  Z = fM[3];
 	}
       }
@@ -261,7 +262,7 @@ namespace cbrc{
 	    fM2++; fD2++; fI2++;
 	    sum_f += *fM0;
 	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
-			       isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2))) ){
+			       isDelimiter(*(s1+seqIncrement), *pssm)) ){
 	      Z += *fM0 + *fD0 + *fI0;
 	    }
 	    fM0++; fD0++; fI0++;
@@ -281,7 +282,7 @@ namespace cbrc{
 	    fM2++; fD2++; fI2++; fP2++;
 	    sum_f += *fM0;
 	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
-			       isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2))) ){
+			       isDelimiter(*(s1+seqIncrement), *pssm)) ){
 	      Z += *fM0 + *fD0 + *fI0 + *fP0;
 	    }
 	    fM0++; fD0++; fI0++; fP0++;
@@ -309,6 +310,7 @@ namespace cbrc{
 			     const GeneralizedAffineGapCosts& gap ){
 
     //std::cout << "[backward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
+    const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isForward ? 1 : -1;
 
     initBackwardMatrix();
@@ -425,7 +427,7 @@ namespace cbrc{
 	  do{ // inner most loop
 	    if( globality ){
 	      if( isDelimiter(0, *(p2+seqIncrement)) ||
-		  isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2)) ){
+		  isDelimiter(*(s1+seqIncrement), *pssm) ){
 		*bM0 += scaledUnit;  *bD0 += scaledUnit;  *bI0 += scaledUnit;
 	      }
 	    }else{
@@ -467,7 +469,7 @@ namespace cbrc{
 	  do{
 	    if( globality ){
 	      if( isDelimiter(0, *(p2+seqIncrement)) ||
-		  isDelimiter(*(s1+seqIncrement), *(pssmExp2+start2)) ){
+		  isDelimiter(*(s1+seqIncrement), *pssm) ){
 		*bM0 += scaledUnit;  *bD0 += scaledUnit;  *bI0 += scaledUnit;
 		*bP0 += scaledUnit;
 	      }
