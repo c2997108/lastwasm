@@ -38,7 +38,7 @@ namespace cbrc{
 
     // Setters
     void setScoreMatrix( const ScoreMatrixRow* sm, double T );
-    void setPssm ( const ScoreMatrixRow* pssm, unsigned qsize, double T,
+    void setPssm ( const ScoreMatrixRow* pssm, size_t qsize, double T,
                    const OneQualityExpMatrix& oqem,
                    const uchar* sequenceBeg, const uchar* qualityBeg );
     void setOutputType( int m ) { outputType = m; }

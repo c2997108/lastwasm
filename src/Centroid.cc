@@ -83,7 +83,9 @@ namespace cbrc{
       }
   }
 
-  void Centroid::setPssm( const ScoreMatrixRow* pssm, unsigned qsize, double T, const OneQualityExpMatrix& oqem, const uchar* sequenceBeg, const uchar* qualityBeg ) {
+  void Centroid::setPssm( const ScoreMatrixRow* pssm, size_t qsize, double T,
+			  const OneQualityExpMatrix& oqem,
+			  const uchar* sequenceBeg, const uchar* qualityBeg ) {
     this->T = T;
     this -> isPssm = true;
     pssmExp.resize( qsize * scoreMatrixRowSize );
@@ -94,7 +96,7 @@ namespace cbrc{
                                      qualityBeg, &pssmExp[0] );
     }
     else{  // slow general case
-      for ( unsigned i=0; i<qsize; ++i ) {
+      for ( size_t i=0; i<qsize; ++i ) {
         for ( unsigned j=0; j<scoreMatrixRowSize; ++j ) {
           pssmExp2[ i ][ j ] = EXP ( pssm[ i ][ j ] / T );
         }
