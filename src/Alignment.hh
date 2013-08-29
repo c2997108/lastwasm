@@ -4,6 +4,7 @@
 
 #ifndef ALIGNMENT_HH
 #define ALIGNMENT_HH
+#include "ScoreMatrixRow.hh"
 #include "SegmentPair.hh"
 #include <cstddef>  // size_t
 #include <string>
@@ -24,8 +25,6 @@ class TwoQualityScoreMatrix;
 struct Alignment{
   typedef SegmentPair::indexT indexT;
 
-  enum { MAT = 64 };
-
   // make a single-block alignment:
   void fromSegmentPair( const SegmentPair& sp );
 
@@ -36,10 +35,10 @@ struct Alignment{
   // If outputType > 4: does gamma-centroid alignment.
   void makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 		  const uchar* seq1, const uchar* seq2, int globality,
-		  const int scoreMatrix[MAT][MAT], int smMax,
+		  const ScoreMatrixRow* scoreMatrix, int smMax,
 		  const GeneralizedAffineGapCosts& gap, int maxDrop,
 		  int frameshiftCost, indexT frameSize,
-		  const int pssm2[][MAT],
+		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2,
 		  const Alphabet& alph, double gamma = 0, int outputType = 0 );
@@ -49,10 +48,10 @@ struct Alignment{
   // Alignments that pass this test may be non-optimal in other ways.
   // If "globality" is non-zero, skip the prefix and suffix checks.
   bool isOptimal( const uchar* seq1, const uchar* seq2, int globality,
-                  const int scoreMatrix[MAT][MAT], int maxDrop,
+                  const ScoreMatrixRow* scoreMatrix, int maxDrop,
                   const GeneralizedAffineGapCosts& gap,
 		  int frameshiftCost, indexT frameSize,
-		  const int pssm2[][MAT],
+		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2 );
 
@@ -79,10 +78,10 @@ struct Alignment{
 	       const uchar* seq1, const uchar* seq2,
 	       indexT start1, indexT start2,
 	       bool isForward, int globality,
-	       const int sm[MAT][MAT], int smMax, int maxDrop,
+	       const ScoreMatrixRow* sm, int smMax, int maxDrop,
 	       const GeneralizedAffineGapCosts& gap,
 	       int frameshiftCost, indexT frameSize,
-	       const int pssm2[][MAT],
+	       const ScoreMatrixRow* pssm2,
                const TwoQualityScoreMatrix& sm2qual,
                const uchar* qual1, const uchar* qual2,
 	       const Alphabet& alph, double gamma, int outputType );

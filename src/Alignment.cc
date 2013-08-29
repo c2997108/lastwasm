@@ -73,10 +73,10 @@ static bool isNext( const SegmentPair& x, const SegmentPair& y ){
 
 void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2, int globality,
-			   const int scoreMatrix[MAT][MAT], int smMax,
+			   const ScoreMatrixRow* scoreMatrix, int smMax,
 			   const GeneralizedAffineGapCosts& gap, int maxDrop,
 			   int frameshiftCost, indexT frameSize,
-			   const int pssm2[][MAT],
+			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2,
 			   const Alphabet& alph,
@@ -155,10 +155,10 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 }
 
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
-			   const int scoreMatrix[MAT][MAT], int maxDrop,
+			   const ScoreMatrixRow* scoreMatrix, int maxDrop,
 			   const GeneralizedAffineGapCosts& gap,
 			   int frameshiftCost, indexT frameSize,
-			   const int pssm2[][MAT],
+			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2 ){
   int maxScore = 0;
@@ -184,7 +184,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
     const uchar* s1 = seq1 + i->beg1();
     const uchar* s2 = seq2 + i->beg2();
     const uchar* e1 = seq1 + i->end1();
-    const int (*p2)[MAT] = pssm2 ? pssm2 + i->beg2() : 0;
+    const ScoreMatrixRow* p2 = pssm2 ? pssm2 + i->beg2() : 0;
     const uchar* q1 = qual1 ? qual1 + i->beg1() : 0;
     const uchar* q2 = qual2 ? qual2 + i->beg2() : 0;
 
@@ -209,10 +209,10 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			const uchar* seq1, const uchar* seq2,
 			indexT start1, indexT start2,
 			bool isForward, int globality,
-			const int sm[MAT][MAT], int smMax, int maxDrop,
+			const ScoreMatrixRow* sm, int smMax, int maxDrop,
 			const GeneralizedAffineGapCosts& gap,
 			int frameshiftCost, indexT frameSize,
-			const int pssm2[][MAT],
+			const ScoreMatrixRow* pssm2,
                         const TwoQualityScoreMatrix& sm2qual,
                         const uchar* qual1, const uchar* qual2,
 			const Alphabet& alph, double gamma, int outputType ){
