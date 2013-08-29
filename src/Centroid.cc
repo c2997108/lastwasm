@@ -193,12 +193,10 @@ namespace cbrc{
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       double sum_f = 0.0; // sum of forward values
-      const size_t k1 = k - 1;
-      const size_t k2 = k - 2;
       const size_t seq1beg = xa.seq1start( k );
-      const std::size_t seq2pos = k2 - seq1beg;
-      const double scale12 = 1.0 / ( scale[k1] * scale[k2] ); // scaling factor
-      const double scale1  = 1.0 / scale[k1];
+      const std::size_t seq2pos = k - 2 - seq1beg;
+      const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
+      const double scale1  = 1.0 / scale[k-1];
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
@@ -331,12 +329,10 @@ namespace cbrc{
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
     for( size_t k = numAntidiagonals-1; k > 2; --k ){  // loop over antidiagonals
-      const size_t k1 = k - 1;
-      const size_t k2 = k - 2;
       const size_t seq1beg = xa.seq1start( k );
-      const std::size_t seq2pos = k2 - seq1beg;
-      const double scale12 = 1.0 / ( scale[k1] * scale[k2] ); // scaling factor
-      const double scale1  = 1.0 / scale[k1];
+      const std::size_t seq2pos = k - 2 - seq1beg;
+      const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
+      const double scale1  = 1.0 / scale[k-1];
       scaledUnit /= scale[k];
 
       const double seE = eE * scale1;
@@ -756,10 +752,8 @@ namespace cbrc{
     c.SQ = 1;
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const size_t k1 = k - 1;
-      const size_t k2 = k - 2;
       const size_t seq1beg = xa.seq1start( k );
-      const std::size_t seq2pos = k2 - seq1beg;
+      const std::size_t seq2pos = k - 2 - seq1beg;
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
       const double* fM0 = &fM[ scoreEnd + 1 ];
@@ -771,8 +765,8 @@ namespace cbrc{
       const double* bI0 = &bI[ scoreEnd + 1 ];
       const double* bP0 = &bP[ scoreEnd + 1 ];
 
-      const double scale12 = 1.0 / ( scale[k1] * scale[k2] );
-      const double scale1  = 1.0 / scale[k1];
+      const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
+      const double scale1  = 1.0 / scale[k-1];
       const double scale0  = 1.0 / scale[k];
 
       const double seE = eE * scale1;
