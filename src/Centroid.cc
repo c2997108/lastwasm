@@ -775,6 +775,10 @@ namespace cbrc{
       const double scale1  = 1.0 / scale[k1];
       const double scale0  = 1.0 / scale[k];
 
+      const double seE = eE * scale1;
+      const double seEI = eEI * scale1;
+      const double seP = eP * scale12;
+
       const double* const fM0end = fM0 + xa.numCellsAndPads( k ) - 1;
       const uchar* s1 = seqPtr( seq1, start1, isForward, loopBeg );
       const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
@@ -797,7 +801,7 @@ namespace cbrc{
 	  c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
 
 	  const double tmp1 = S * *bM0 * scale12;
-	  const double tmp2 = *bP0 * scale12 * eP;
+	  const double tmp2 = *bP0 * seP;
 
 	  c.MM += *fM2 * tmp1;
 	  c.PM += *fP2 * tmp1;
@@ -807,14 +811,14 @@ namespace cbrc{
 	  c.PP += *fP2 * tmp2;
 	  c.MQ += *fM0;
 
-	  const double tmp3 = *bD0 * scale1 * eE;
+	  const double tmp3 = *bD0 * seE;
 	  c.MD += ( *fM1 * eF ) * tmp3;
 	  c.DD += ( *fD1 ) * tmp3;
 	  c.PD += ( *fP1 ) * tmp3;
 
 	  fM1++; fD1++; fP1++; fI1++;
 
-	  const double tmp4 = *bI0 * scale1 * eEI;
+	  const double tmp4 = *bI0 * seEI;
 	  c.MI += ( *fM1 * eFI )  * tmp4;
 	  c.DI += ( *fD1 * eFI )  * tmp4;
 	  c.PI += ( *fP1 )  * tmp4;
@@ -843,13 +847,13 @@ namespace cbrc{
 	    c.IM += *fI2 * tmp1;
 	    c.MQ += *fM0;
 
-	    const double tmp3 = *bD0 * scale1 * eE;
+	    const double tmp3 = *bD0 * seE;
 	    c.MD += ( *fM1 * eF ) * tmp3;
 	    c.DD += ( *fD1 ) * tmp3;
 
 	    fM1++; fD1++; fI1++;
 
-	    const double tmp4 = *bI0 * scale1 * eE;
+	    const double tmp4 = *bI0 * seE;
 	    c.MI += ( *fM1 * eF )  * tmp4;
 	    c.DI += ( *fD1 * eF )  * tmp4;
 	    c.II += ( *fI1 )  * tmp4;
@@ -867,7 +871,7 @@ namespace cbrc{
 	    c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
 
 	    const double tmp1 = S * *bM0 * scale12;
-	    const double tmp2 = *bP0 * scale12 * eP;
+	    const double tmp2 = *bP0 * seP;
 
 	    c.MM += *fM2 * tmp1;
 	    c.PM += *fP2 * tmp1;
@@ -877,14 +881,14 @@ namespace cbrc{
 	    c.PP += *fP2 * tmp2;
 	    c.MQ += *fM0;
 
-	    const double tmp3 = *bD0 * scale1 * eE;
+	    const double tmp3 = *bD0 * seE;
 	    c.MD += ( *fM1 * eF ) * tmp3;
 	    c.DD += ( *fD1 ) * tmp3;
 	    c.PD += ( *fP1 ) * tmp3;
 
 	    fM1++; fD1++; fP1++; fI1++;
 
-	    const double tmp4 = *bI0 * scale1 * eEI;
+	    const double tmp4 = *bI0 * seEI;
 	    c.MI += ( *fM1 * eFI )  * tmp4;
 	    c.DI += ( *fD1 * eFI )  * tmp4;
 	    c.PI += ( *fP1 )  * tmp4;
