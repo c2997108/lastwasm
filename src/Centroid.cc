@@ -211,7 +211,6 @@ namespace cbrc{
       double* fI0 = &fI[ scoreEnd ];
       double* fP0 = &fP[ scoreEnd ];
 
-      const double* const fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
       const std::size_t horiBeg = xa.hori( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
       const double* fM1 = &fM[ horiBeg ];
@@ -222,11 +221,14 @@ namespace cbrc{
       const double* fD2 = &fD[ diagBeg ];
       const double* fI2 = &fI[ diagBeg ];
       const double* fP2 = &fP[ diagBeg ];
-      double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
+
+      const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
 
       const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
 
       *fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;  // add one pad cell
+
+      double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
 
       if (! isPssm) {
 	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
@@ -359,7 +361,6 @@ namespace cbrc{
       const double* fI0 = &fI[ scoreEnd + 1 ];
       const double* fP0 = &fP[ scoreEnd + 1 ];
 
-      const double* const fM0last = fM0 + xa.numCellsAndPads( k ) - 2;
       const std::size_t horiBeg = xa.hori( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
       double* bM1 = &bM[ horiBeg ];
@@ -370,6 +371,8 @@ namespace cbrc{
       double* bD2 = &bD[ diagBeg ];
       double* bI2 = &bI[ diagBeg ];
       double* bP2 = &bP[ diagBeg ];
+
+      const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 2;
 
       int i = seq1beg; int j = seq2pos;
 
@@ -764,6 +767,16 @@ namespace cbrc{
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
+      const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
+      const double scale1  = 1.0 / scale[k-1];
+      const double scale0  = 1.0 / scale[k];
+
+      const double seE = eE * scale1;
+      const double seEI = eEI * scale1;
+      const double seP = eP * scale12;
+
+      const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
+      const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
       const double* fM0 = &fM[ scoreEnd + 1 ];
@@ -775,17 +788,6 @@ namespace cbrc{
       const double* bI0 = &bI[ scoreEnd + 1 ];
       const double* bP0 = &bP[ scoreEnd + 1 ];
 
-      const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
-      const double scale1  = 1.0 / scale[k-1];
-      const double scale0  = 1.0 / scale[k];
-
-      const double seE = eE * scale1;
-      const double seEI = eEI * scale1;
-      const double seP = eP * scale12;
-
-      const double* const fM0last = fM0 + xa.numCellsAndPads( k ) - 2;
-      const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
-      const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
       const std::size_t horiBeg = xa.hori( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
       const double* fM1 = &fM[ horiBeg ];
@@ -796,6 +798,8 @@ namespace cbrc{
       const double* fD2 = &fD[ diagBeg ];
       const double* fI2 = &fI[ diagBeg ];
       const double* fP2 = &fP[ diagBeg ];
+
+      const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 2;
 
       if (! isPssm ) {
 	while (1) { // inner most loop
