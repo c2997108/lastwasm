@@ -195,8 +195,8 @@ namespace cbrc{
       double sum_f = 0.0; // sum of forward values
       const size_t k1 = k - 1;
       const size_t k2 = k - 2;
-      const size_t loopBeg = xa.seq1start( k );
-      const std::size_t seq2pos = k2 - loopBeg;
+      const size_t seq1beg = xa.seq1start( k );
+      const std::size_t seq2pos = k2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k1] * scale[k2] ); // scaling factor
       const double scale1  = 1.0 / scale[k1];
 
@@ -211,8 +211,8 @@ namespace cbrc{
       double* fP0 = &fP[ scoreEnd ];
 
       const double* const fM0end = fM0 + xa.numCellsAndPads( k );
-      const std::size_t horiBeg = xa.hori( k, loopBeg );
-      const std::size_t diagBeg = xa.diag( k, loopBeg );
+      const std::size_t horiBeg = xa.hori( k, seq1beg );
+      const std::size_t diagBeg = xa.diag( k, seq1beg );
       const double* fM1 = &fM[ horiBeg ];
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ horiBeg ];
@@ -223,14 +223,14 @@ namespace cbrc{
       const double* fP2 = &fP[ diagBeg ];
       double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
 
-      const uchar* s1 = seqPtr( seq1, start1, isForward, loopBeg );
+      const uchar* s1 = seqPtr( seq1, start1, isForward, seq1beg );
 
       *fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;  // add one pad cell
 
       if (! isPssm) {
 	const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
 	while (1) {	// start: inner most loop
-	  const double S = match_score[ *s1 ][ *s2 ] * scale12; // (loopBeg, k - loopBeg)
+	  const double S = match_score[ *s1 ][ *s2 ] * scale12;
 	  const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
 	  *fD0 = ( xM1 * eF + xD1 + xP1 ) * seE;
 	  xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
@@ -333,8 +333,8 @@ namespace cbrc{
     for( size_t k = numAntidiagonals-1; k > 2; --k ){  // loop over antidiagonals
       const size_t k1 = k - 1;
       const size_t k2 = k - 2;
-      const size_t loopBeg = xa.seq1start( k );
-      const std::size_t seq2pos = k2 - loopBeg;
+      const size_t seq1beg = xa.seq1start( k );
+      const std::size_t seq2pos = k2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k1] * scale[k2] ); // scaling factor
       const double scale1  = 1.0 / scale[k1];
       scaledUnit /= scale[k];
@@ -357,8 +357,8 @@ namespace cbrc{
       const double* fP0 = &fP[ scoreEnd + 1 ];
 
       const double* const fM0end = fM0 + xa.numCellsAndPads( k ) - 1;
-      const std::size_t horiBeg = xa.hori( k, loopBeg );
-      const std::size_t diagBeg = xa.diag( k, loopBeg );
+      const std::size_t horiBeg = xa.hori( k, seq1beg );
+      const std::size_t diagBeg = xa.diag( k, seq1beg );
       double* bM1 = &bM[ horiBeg ];
       double* bD1 = &bD[ horiBeg ];
       double* bI1 = &bI[ horiBeg ];
@@ -368,9 +368,9 @@ namespace cbrc{
       double* bI2 = &bI[ diagBeg ];
       double* bP2 = &bP[ diagBeg ];
 
-      int i = loopBeg; int j = seq2pos;
+      int i = seq1beg; int j = seq2pos;
 
-      const uchar* s1 = seqPtr( seq1, start1, isForward, loopBeg );
+      const uchar* s1 = seqPtr( seq1, start1, isForward, seq1beg );
 
       if (! isPssm ) {
 	const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
@@ -758,8 +758,8 @@ namespace cbrc{
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t k1 = k - 1;
       const size_t k2 = k - 2;
-      const size_t loopBeg = xa.seq1start( k );
-      const std::size_t seq2pos = k2 - loopBeg;
+      const size_t seq1beg = xa.seq1start( k );
+      const std::size_t seq2pos = k2 - seq1beg;
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
       const double* fM0 = &fM[ scoreEnd + 1 ];
@@ -780,10 +780,10 @@ namespace cbrc{
       const double seP = eP * scale12;
 
       const double* const fM0end = fM0 + xa.numCellsAndPads( k ) - 1;
-      const uchar* s1 = seqPtr( seq1, start1, isForward, loopBeg );
+      const uchar* s1 = seqPtr( seq1, start1, isForward, seq1beg );
       const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
-      const std::size_t horiBeg = xa.hori( k, loopBeg );
-      const std::size_t diagBeg = xa.diag( k, loopBeg );
+      const std::size_t horiBeg = xa.hori( k, seq1beg );
+      const std::size_t diagBeg = xa.diag( k, seq1beg );
       const double* fM1 = &fM[ horiBeg ];
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ horiBeg ];
