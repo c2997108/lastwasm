@@ -377,7 +377,7 @@ namespace cbrc{
       if (! isPssm ) {
 	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
-	do{ // inner most loop
+	while (1) { // inner most loop
 	  if( globality ){
 	    if( isDelimiter(*(s2+seqIncrement), *match_score) ||
 		isDelimiter(*(s1+seqIncrement), *match_score) ){
@@ -419,16 +419,17 @@ namespace cbrc{
 	  bM2++; bD2++; bI2++; bP2++;
 	  bM0++; bD0++; bI0++; bP0++;
 	  fM0++; fD0++; fI0++; fP0++;
+	  if (fM0 == fM0end) break;
 	  pp0++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
-	}while( fM0 != fM0end ); // inner most loop end;
+	}
       } // if (!ppsm2)
       else {
 	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
 	if (isAffine) {
-	  do{ // inner most loop
+	  while (1) { // inner most loop
 	    if( globality ){
 	      if( isDelimiter(0, *(p2+seqIncrement)) ||
 		  isDelimiter(*(s1+seqIncrement), *pssm) ){
@@ -465,12 +466,13 @@ namespace cbrc{
 	    bM2++; bD2++; bI2++;
 	    bM0++; bD0++; bI0++;
 	    fM0++; fD0++; fI0++;
+	    if (fM0 == fM0end) break;
 	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
-	  }while( fM0 != fM0end ); // inner most loop end;
+	  }
 	}else{
-	  do{
+	  while (1) {
 	    if( globality ){
 	      if( isDelimiter(0, *(p2+seqIncrement)) ||
 		  isDelimiter(*(s1+seqIncrement), *pssm) ){
@@ -513,10 +515,11 @@ namespace cbrc{
 	    bM2++; bD2++; bI2++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    fM0++; fD0++; fI0++; fP0++;
+	    if (fM0 == fM0end) break;
 	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
-	  }while( fM0 != fM0end ); // inner most loop end;
+	  }
 	}
       }
     }
@@ -797,7 +800,7 @@ namespace cbrc{
 
       // Modify start for PSSM
       if (! isPssm ) {
-	do{ // inner most loop
+	while (1) { // inner most loop
 	  const double S = match_score[ *s1 ][ *s2 ];
 	  c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
 
@@ -828,16 +831,16 @@ namespace cbrc{
 	  fM2++; fD2++; fI2++; fP2++;
 	  fM0++; fD0++; fI0++; fP0++;
 	  bM0++; bD0++; bI0++; bP0++;
-
+	  if (fM0 == fM0end) break;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
-	} while( fM0 != fM0end ); // inner most loop end;
+	}
       } // if (!ppsm2)
       else {
 	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
 	if (isAffine) {
-	  do{ // inner most loop
+	  while (1) { // inner most loop
 	    const double S = ( *p2 )[ *s1 ];
 	    c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
 
@@ -862,12 +865,12 @@ namespace cbrc{
 	    fM2++; fD2++; fI2++;
 	    fM0++; fD0++; fI0++;
 	    bM0++; bD0++; bI0++;
-
+	    if (fM0 == fM0end) break;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;  // xxx p2 ???
-	  } while( fM0 != fM0end ); // inner most loop end;
+	  }
 	}else{
-	  do{ // inner most loop
+	  while (1) { // inner most loop
 	    const double S = ( *p2 )[ *s1 ];
 	    c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
 
@@ -898,10 +901,10 @@ namespace cbrc{
 	    fM2++; fD2++; fI2++; fP2++;
 	    fM0++; fD0++; fI0++; fP0++;
 	    bM0++; bD0++; bI0++; bP0++;
-
+	    if (fM0 == fM0end) break;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;  // xxx p2 ???
-	  } while( fM0 != fM0end ); // inner most loop end;
+	  }
 	}
       }
       // Modify end for PSSM
