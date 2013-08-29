@@ -155,10 +155,9 @@ namespace cbrc{
 
     // get a pointer into a sequence, taking start and direction into account
     template < typename T >
-    static const T* seqPtr( const T* seq, size_t start,
-                            bool isForward, size_t pos ){
-      if( isForward ) return &seq[ start + pos - 1 ];
-      else            return &seq[ start - pos ];
+    static const T* seqPtr( const T* seq, bool isForward, size_t pos ){
+      if( isForward ) return seq + pos - 1;
+      else            return seq - pos;
     }
   };
 

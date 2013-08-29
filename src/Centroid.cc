@@ -155,6 +155,8 @@ namespace cbrc{
 			    const GeneralizedAffineGapCosts& gap ){
 
     //std::cout << "[forward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
+    seq1 += start1;
+    seq2 += start2;
     const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isForward ? 1 : -1;
 
@@ -162,14 +164,14 @@ namespace cbrc{
 
     if( globality ) {
       Z = 0.0;
-      const uchar* s1 = seqPtr( seq1, start1, isForward, 1 );
+      const uchar* s1 = seqPtr( seq1, isForward, 1 );
       if (! isPssm) {
-	const uchar* s2 = seqPtr( seq2, start2, isForward, 1 );
+	const uchar* s2 = seqPtr( seq2, isForward, 1 );
 	if( isDelimiter(*s1, *match_score) || isDelimiter(*s2, *match_score) ){
 	  Z = fM[3];
 	}
       }else{
-	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, 1 );
+	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, 1 );
 	if( isDelimiter(*s1, *pssm) || isDelimiter(0, *p2) ){
 	  Z = fM[3];
 	}
@@ -222,12 +224,12 @@ namespace cbrc{
       const double* fP2 = &fP[ diagBeg ];
       double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
 
-      const uchar* s1 = seqPtr( seq1, start1, isForward, seq1beg );
+      const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
 
       *fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;  // add one pad cell
 
       if (! isPssm) {
-	const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
+	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 	while (1) {	// start: inner most loop
 	  const double S = match_score[ *s1 ][ *s2 ] * scale12;
 	  const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
@@ -249,7 +251,7 @@ namespace cbrc{
 	}	// end: inner most loop
       } // end: if (! isPssm)
       else { // when pssm2 is given
-	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, seq2pos );
+	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
 	if (isAffine) {
 	  while (1) { // start: inner most loop
@@ -310,6 +312,8 @@ namespace cbrc{
 			     const GeneralizedAffineGapCosts& gap ){
 
     //std::cout << "[backward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
+    seq1 += start1;
+    seq2 += start2;
     const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isForward ? 1 : -1;
 
@@ -368,10 +372,10 @@ namespace cbrc{
 
       int i = seq1beg; int j = seq2pos;
 
-      const uchar* s1 = seqPtr( seq1, start1, isForward, seq1beg );
+      const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
 
       if (! isPssm ) {
-	const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
+	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
 	do{ // inner most loop
 	  if( globality ){
@@ -421,7 +425,7 @@ namespace cbrc{
 	}while( fM0 != fM0end ); // inner most loop end;
       } // if (!ppsm2)
       else {
-	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, seq2pos );
+	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
 	if (isAffine) {
 	  do{ // inner most loop
@@ -734,7 +738,9 @@ namespace cbrc{
 					 size_t start1, size_t start2, bool isForward,
 					 const GeneralizedAffineGapCosts& gap,
 					 ExpectedCount& c ) const{
-
+    seq1 += start1;
+    seq2 += start2;
+    const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isForward ? 1 : -1;
 
     const bool isAffine = gap.isAffine();
@@ -776,8 +782,8 @@ namespace cbrc{
       const double seP = eP * scale12;
 
       const double* const fM0end = fM0 + xa.numCellsAndPads( k ) - 1;
-      const uchar* s1 = seqPtr( seq1, start1, isForward, seq1beg );
-      const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
+      const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
+      const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
       const std::size_t horiBeg = xa.hori( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
       const double* fM1 = &fM[ horiBeg ];
@@ -828,7 +834,7 @@ namespace cbrc{
 	} while( fM0 != fM0end ); // inner most loop end;
       } // if (!ppsm2)
       else {
-	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, seq2pos );
+	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
 	if (isAffine) {
 	  do{ // inner most loop
