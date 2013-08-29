@@ -23,8 +23,6 @@ namespace{
 
 namespace cbrc{
 
-  typedef double ScoreMatrixRowDouble[scoreMatrixRowSize];
-
   ExpectedCount::ExpectedCount ()
   {
     double d0 = 0;
@@ -89,7 +87,7 @@ namespace cbrc{
     this->T = T;
     this -> isPssm = true;
     pssmExp.resize( qsize * MAT );
-    pssmExp2 = reinterpret_cast<ScoreMatrixRowDouble*> ( &pssmExp[0] );
+    pssmExp2 = reinterpret_cast<ExpMatrixRow*> ( &pssmExp[0] );
 
     if( oqem ){  // fast special case
       makePositionSpecificExpMatrix( oqem, sequenceBeg, sequenceBeg + qsize,
@@ -168,7 +166,7 @@ namespace cbrc{
 	  Z = fM[3];
 	}
       }else{
-	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, 1 );
+	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, 1 );
 	if( isDelimiter(*s1, *(pssmExp2+start2)) || isDelimiter(0, *p2) ){
 	  Z = fM[3];
 	}
@@ -250,7 +248,7 @@ namespace cbrc{
 	}	// end: inner most loop
       } // end: if (! isPssm)
       else { // when pssm2 is given
-	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, seq2pos );
+	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, seq2pos );
 
 	if (isAffine) {
 	  while (1) { // start: inner most loop
@@ -423,7 +421,7 @@ namespace cbrc{
 	}while( fM0 != fM0end ); // inner most loop end;
       } // if (!ppsm2)
       else {
-	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, seq2pos );
+	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, seq2pos );
 
 	if (isAffine) {
 	  do{ // inner most loop
@@ -833,7 +831,7 @@ namespace cbrc{
 	} while( fM0 != fM0end ); // inner most loop end;
       } // if (!ppsm2)
       else {
-	const double (*p2)[MAT] = seqPtr( pssmExp2, start2, isForward, seq2pos );
+	const ExpMatrixRow* p2 = seqPtr( pssmExp2, start2, isForward, seq2pos );
 
 	if (isAffine) {
 	  do{ // inner most loop

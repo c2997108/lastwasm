@@ -1,5 +1,5 @@
 // Copyright 2008, 2009, 2011 Michiaki Hamada
-// Copyright 2012 Toshiyuki Sato
+// Copyright 2012, 2013 Toshiyuki Sato
 
 #ifndef CENTROID_HH
 #define CENTROID_HH
@@ -84,14 +84,15 @@ namespace cbrc{
 				 ExpectedCount& count ) const;
 
   private:
+    typedef double ExpMatrixRow[scoreMatrixRowSize];
+
     const GappedXdropAligner& xa;
     double T; // temperature
     size_t numAntidiagonals;
     double match_score[ MAT ][ MAT ]; // pre-computed match score
-    //const int (*pssm2)[MAT];
     bool isPssm;
     std::vector<double> pssmExp; //
-    /* const */ double (*pssmExp2)[MAT]; // pre-computed pssm for prob align
+    ExpMatrixRow* pssmExp2; // pre-computed pssm for prob align
     int outputType;
 
     typedef std::vector< double > dvec_t;
