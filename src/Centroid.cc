@@ -230,6 +230,7 @@ namespace cbrc{
 
       if (! isPssm) {
 	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
+
 	while (1) {	// start: inner most loop
 	  const double S = match_score[ *s1 ][ *s2 ] * scale12;
 	  const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
@@ -250,7 +251,7 @@ namespace cbrc{
 	  s2 -= seqIncrement;
 	}	// end: inner most loop
       } // end: if (! isPssm)
-      else { // when pssm2 is given
+      else {
 	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
 	if (isAffine) {
@@ -334,7 +335,7 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
-    for( size_t k = numAntidiagonals-1; k > 2; --k ){  // loop over antidiagonals
+    for( size_t k = numAntidiagonals-1; k > 2; --k ){
       const size_t seq1beg = xa.seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
@@ -424,7 +425,7 @@ namespace cbrc{
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
-      } // if (!ppsm2)
+      }
       else {
 	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
@@ -531,11 +532,9 @@ namespace cbrc{
       bM[3] += scaledUnit;
     }
 
-    // Modify for test start
     //ExpectedCount ec;
     //computeExpectedCounts ( seq1, seq2, start1, start2, isForward, gap, ec );
     //ec.write (std::cerr, Z);
-    // Modify for test end
     return log( bM[3] );
   }
 
@@ -798,7 +797,6 @@ namespace cbrc{
       const double* fI2 = &fI[ diagBeg ];
       const double* fP2 = &fP[ diagBeg ];
 
-      // Modify start for PSSM
       if (! isPssm ) {
 	while (1) { // inner most loop
 	  const double S = match_score[ *s1 ][ *s2 ];
@@ -835,7 +833,7 @@ namespace cbrc{
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
-      } // if (!ppsm2)
+      }
       else {
 	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
@@ -907,7 +905,6 @@ namespace cbrc{
 	  }
 	}
       }
-      // Modify end for PSSM
 
       c.MQ *= scale0;
       c.SQ *= scale0;
