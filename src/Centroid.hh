@@ -18,8 +18,7 @@ namespace cbrc{
 
   struct ExpectedCount{
   public:
-    enum { MAT = 64 };
-    double emit[MAT][MAT];
+    double emit[scoreMatrixRowSize][scoreMatrixRowSize];
     double MM, MD, MP, MI, MQ;
     double DD, DM, DI;
     double PP, PM, PD, PI;
@@ -35,13 +34,11 @@ namespace cbrc{
    */
   class Centroid{
   public:
-    enum { MAT = 64 };
-
     Centroid( const GappedXdropAligner& xa_ );
 
     // Setters
-    void setScoreMatrix( const int sm[MAT][MAT], double T );
-    void setPssm ( const int pssm[][MAT], const unsigned int qsize, double T,
+    void setScoreMatrix( const ScoreMatrixRow* sm, double T );
+    void setPssm ( const ScoreMatrixRow* pssm, unsigned qsize, double T,
                    const OneQualityExpMatrix& oqem,
                    const uchar* sequenceBeg, const uchar* qualityBeg );
     void setOutputType( int m ) { outputType = m; }
@@ -89,7 +86,7 @@ namespace cbrc{
     const GappedXdropAligner& xa;
     double T; // temperature
     size_t numAntidiagonals;
-    double match_score[ MAT ][ MAT ]; // pre-computed match score
+    double match_score[scoreMatrixRowSize][scoreMatrixRowSize];
     bool isPssm;
     std::vector<double> pssmExp; //
     ExpMatrixRow* pssmExp2; // pre-computed pssm for prob align

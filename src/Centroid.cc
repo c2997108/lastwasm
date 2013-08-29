@@ -32,14 +32,14 @@ namespace cbrc{
     II = d0; IM = d0;
     SM = d0; SD = d0; SP = d0; SI = d0; SQ = d0;
 
-    for (int n=0; n<MAT; n++)
-      for (int m=0; m<MAT; m++) emit[n][m] = d0;
+    for (int n=0; n<scoreMatrixRowSize; n++)
+      for (int m=0; m<scoreMatrixRowSize; m++) emit[n][m] = d0;
   }
 
   std::ostream& ExpectedCount::write (std::ostream& os, double Z) const
   {
-    for (int n=0; n<MAT; ++n) {
-      for (int m=0; m<MAT; ++m) {
+    for (int n=0; n<scoreMatrixRowSize; ++n) {
+      for (int m=0; m<scoreMatrixRowSize; ++m) {
 	double prob = emit[n][m] / Z;
 	if (prob > 0)
 	  os << "emit[" << n << "][" << m << "]=" << emit[n][m] / Z << std::endl;
@@ -74,19 +74,19 @@ namespace cbrc{
     : xa( xa_ ), numAntidiagonals ( xa_.numAntidiagonals () ), bestScore ( 0 ), bestAntiDiagonal (0), bestPos1 (0)  {
   }
 
-  void Centroid::setScoreMatrix( const int sm[MAT][MAT], double T ) {
+  void Centroid::setScoreMatrix( const ScoreMatrixRow* sm, double T ) {
     this -> T = T;
     this -> isPssm = false;
-    for ( int n=0; n<MAT; ++n )
-      for ( int m=0; m<MAT; ++m ) {
+    for ( int n=0; n<scoreMatrixRowSize; ++n )
+      for ( int m=0; m<scoreMatrixRowSize; ++m ) {
 	match_score[n][m] = EXP ( sm[ n ][ m ] / T );
       }
   }
 
-  void Centroid::setPssm( const int pssm[][MAT], const unsigned int qsize, double T, const OneQualityExpMatrix& oqem, const uchar* sequenceBeg, const uchar* qualityBeg ) {
+  void Centroid::setPssm( const ScoreMatrixRow* pssm, unsigned qsize, double T, const OneQualityExpMatrix& oqem, const uchar* sequenceBeg, const uchar* qualityBeg ) {
     this->T = T;
     this -> isPssm = true;
-    pssmExp.resize( qsize * MAT );
+    pssmExp.resize( qsize * scoreMatrixRowSize );
     pssmExp2 = reinterpret_cast<ExpMatrixRow*> ( &pssmExp[0] );
 
     if( oqem ){  // fast special case
@@ -95,7 +95,7 @@ namespace cbrc{
     }
     else{  // slow general case
       for ( unsigned i=0; i<qsize; ++i ) {
-        for ( unsigned j=0; j<MAT; ++j ) {
+        for ( unsigned j=0; j<scoreMatrixRowSize; ++j ) {
           pssmExp2[ i ][ j ] = EXP ( pssm[ i ][ j ] / T );
         }
       }
@@ -780,7 +780,6 @@ namespace cbrc{
       const double* const fM0end = fM0 + xa.numCellsAndPads( k ) - 1;
       const uchar* s1 = seqPtr( seq1, start1, isForward, loopBeg );
       const uchar* s2 = seqPtr( seq2, start2, isForward, seq2pos );
-      //assert ( *s1 < MAT && *s2 < MAT );
       const std::size_t horiBeg = xa.hori( k, loopBeg );
       const std::size_t diagBeg = xa.diag( k, loopBeg );
       const double* fM1 = &fM[ horiBeg ];
