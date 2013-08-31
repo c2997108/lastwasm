@@ -100,6 +100,10 @@ db=/tmp/last-test
     lastdb -m1111110 $db $dnaSeq
     lastal -T1 -Q1 -e60 -a9 -f0 $db $fastq
     echo
+
+    echo TEST 19  # probabilistic overlap alignment
+    lastal -T1 -Q1 -e60 -a9 -j4 $db $fastq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -

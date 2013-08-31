@@ -49,7 +49,6 @@ namespace cbrc{
     os << "M->D=" << MD / Z << std::endl;
     os << "M->P=" << MP / Z << std::endl;
     os << "M->I=" << MI / Z << std::endl;
-    os << "M->Q=" << MQ / Z << std::endl;
 
     os << "D->D=" << DD / Z << std::endl;
     os << "D->M=" << DM / Z << std::endl;
@@ -63,10 +62,6 @@ namespace cbrc{
     os << "I->I=" << II / Z << std::endl;
     os << "I->M=" << IM / Z << std::endl;
 
-    os << "S->Q=" << SQ / Z << std::endl;
-
-    //os << ( MQ + SQ ) / Z << std::endl; // must be equal to 1
-    assert ( std::abs ((MQ + SQ) / Z - 1) < 1e-10);
     return os;
   }
 
@@ -372,7 +367,7 @@ namespace cbrc{
       double* bI2 = &bI[ diagBeg ];
       double* bP2 = &bP[ diagBeg ];
 
-      const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 2;
+      const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
 
       int i = seq1beg; int j = seq2pos;
 
@@ -410,16 +405,17 @@ namespace cbrc{
 	  *bI1 += tmp4;
 	  *bP1 += tmp4;
 
-	  *pp0 = *fM0 * *bM0 / Z;
+	  double prob = *fM0 * *bM0 / Z;
+	  *pp0 = prob;
 	  double probd = *fD0 * *bD0 / Z;
 	  double probi = *fI0 * *bI0 / Z;
 	  double probp = *fP0 * *bP0 / Z;
 	  mD[ i ] += probd + probp;
 	  mI[ j ] += probi + probp;
-	  mX1 [ i ] -= ( *pp0 + probd + probp );
-	  mX2 [ j ] -= ( *pp0 + probi + probp );
+	  mX1 [ i ] -= ( prob + probd + probp );
+	  mX2 [ j ] -= ( prob + probi + probp );
 
-	  if (fM0 == fM0last) break;
+	  if (bM0 == bM0last) break;
 	  i++; j--;
 	  bM2++; bD2++; bI2++; bP2++;
 	  bM0++; bD0++; bI0++; bP0++;
@@ -466,7 +462,7 @@ namespace cbrc{
 	    mX1 [ i ] -= ( prob + probd );
 	    mX2 [ j ] -= ( prob + probi );
 
-	    if (fM0 == fM0last) break;
+	    if (bM0 == bM0last) break;
 	    i++; j--;
 	    bM2++; bD2++; bI2++;
 	    bM0++; bD0++; bI0++;
@@ -515,7 +511,7 @@ namespace cbrc{
 	    mX1 [ i ] -= ( prob + probd + probp );
 	    mX2 [ j ] -= ( prob + probi + probp );
 
-	    if (fM0 == fM0last) break;
+	    if (bM0 == bM0last) break;
 	    i++; j--;
 	    bM2++; bD2++; bI2++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
@@ -740,7 +736,8 @@ namespace cbrc{
   }
 
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
-					 size_t start1, size_t start2, bool isForward,
+					 size_t start1, size_t start2,
+					 bool isForward,
 					 const GeneralizedAffineGapCosts& gap,
 					 ExpectedCount& c ) const{
     seq1 += start1;
@@ -762,14 +759,11 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
-    c.SQ = 1;
-
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
       const double scale1  = 1.0 / scale[k-1];
-      const double scale0  = 1.0 / scale[k];
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
@@ -780,9 +774,6 @@ namespace cbrc{
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
       const double* fM0 = &fM[ scoreEnd + 1 ];
-      const double* fD0 = &fD[ scoreEnd + 1 ];
-      const double* fI0 = &fI[ scoreEnd + 1 ];
-      const double* fP0 = &fP[ scoreEnd + 1 ];
       const double* bM0 = &bM[ scoreEnd + 1 ];
       const double* bD0 = &bD[ scoreEnd + 1 ];
       const double* bI0 = &bI[ scoreEnd + 1 ];
@@ -799,7 +790,7 @@ namespace cbrc{
       const double* fI2 = &fI[ diagBeg ];
       const double* fP2 = &fP[ diagBeg ];
 
-      const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 2;
+      const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
 
       if (! isPssm ) {
 	while (1) { // inner most loop
@@ -815,7 +806,6 @@ namespace cbrc{
 	  c.IM += *fI2 * tmp1;
 	  c.MP += *fM2 * eF * tmp2;
 	  c.PP += *fP2 * tmp2;
-	  c.MQ += *fM0;
 
 	  const double tmp3 = *bD0 * seE;
 	  c.MD += ( *fM1 * eF ) * tmp3;
@@ -830,9 +820,9 @@ namespace cbrc{
 	  c.PI += ( *fP1 )  * tmp4;
 	  c.II += ( *fI1 )  * tmp4;
 
-	  if (fM0 == fM0last) break;
+	  if (bM0 == bM0last) break;
 	  fM2++; fD2++; fI2++; fP2++;
-	  fM0++; fD0++; fI0++; fP0++;
+	  fM0++;
 	  bM0++; bD0++; bI0++; bP0++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
@@ -851,7 +841,6 @@ namespace cbrc{
 	    c.MM += *fM2 * tmp1;
 	    c.DM += *fD2 * tmp1;
 	    c.IM += *fI2 * tmp1;
-	    c.MQ += *fM0;
 
 	    const double tmp3 = *bD0 * seE;
 	    c.MD += ( *fM1 * eF ) * tmp3;
@@ -864,9 +853,9 @@ namespace cbrc{
 	    c.DI += ( *fD1 * eF )  * tmp4;
 	    c.II += ( *fI1 )  * tmp4;
 
-	    if (fM0 == fM0last) break;
+	    if (bM0 == bM0last) break;
 	    fM2++; fD2++; fI2++;
-	    fM0++; fD0++; fI0++;
+	    fM0++;
 	    bM0++; bD0++; bI0++;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;  // xxx p2 ???
@@ -885,7 +874,6 @@ namespace cbrc{
 	    c.IM += *fI2 * tmp1;
 	    c.MP += *fM2 * eF * tmp2;
 	    c.PP += *fP2 * tmp2;
-	    c.MQ += *fM0;
 
 	    const double tmp3 = *bD0 * seE;
 	    c.MD += ( *fM1 * eF ) * tmp3;
@@ -900,18 +888,15 @@ namespace cbrc{
 	    c.PI += ( *fP1 )  * tmp4;
 	    c.II += ( *fI1 )  * tmp4;
 
-	    if (fM0 == fM0last) break;
+	    if (bM0 == bM0last) break;
 	    fM2++; fD2++; fI2++; fP2++;
-	    fM0++; fD0++; fI0++; fP0++;
+	    fM0++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;  // xxx p2 ???
 	  }
 	}
       }
-
-      c.MQ *= scale0;
-      c.SQ *= scale0;
     }
   }
 }  // end namespace cbrc

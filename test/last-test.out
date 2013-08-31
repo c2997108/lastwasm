@@ -884,3 +884,52 @@ TEST 18
 # batch 4
 # CPU time: 0.02 seconds
 
+TEST 19
+#
+# a=9 b=9 A=9 B=9 c=100000 F=-1 e=60 d=60 x=59 y=44 z=59
+# u=0 s=2 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=4
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+#
+#    A  C  G  T
+# A  6 -18 -18 -18
+# C -18  6 -18 -18
+# G -18 -18  6 -18
+# T -18 -18 -18  6
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+# batch 0
+# batch 1
+a score=98 fullScore=108
+s chrM          952 34 + 16775 tttctttgttattttttaattttttttttattt--t
+s SRR001981.279   0 36 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTTTTTTTAAT
+q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$III
+p                              ))*+~~~~~~,+**))(#""""""""""""""!""!
+
+a score=77 fullScore=91
+s chrM          948 35 + 16775 Attttttctttgttattttttaatttttttttta-t
+s SRR001981.279   0 36 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTTTTTTTAAT
+q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$III
+p                              !!""##$$%%%%&'((()))))*+,~~~~~~~~~$#
+
+a score=72 fullScore=86.5
+s chrM          956 35 + 16775 tttgttattttttaattttttttttattttttAAA-
+s SRR001981.279   0 36 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTTTTTTTAAT
+q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$III
+p                              """""""!!!!!!!"~~~~~~~~~&%%&&&&&&&&#
+
+# batch 2
+a score=60 fullScore=64.9
+s chrM          950 36 + 16775 tttttctttgttattttttaattttttttttatttt---
+s SRR001981.597   0 36 -    36 TTTTTTTTTCTCTTTTTTT--TTTTTTTTTT-TTTTGCC
+q SRR001981.597                I@.9@$,%/*%3(CIIIII--IIIIIIIIII-IIIIIII
+p                              ))*++,111.,()+,,,,,0/~~~~~~~~~~(&&&%).)
+
+# batch 3
+# batch 4
+# CPU time: 0.04 seconds
+
