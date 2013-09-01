@@ -36,31 +36,31 @@ namespace cbrc{
       for (int m=0; m<scoreMatrixRowSize; m++) emit[n][m] = d0;
   }
 
-  std::ostream& ExpectedCount::write (std::ostream& os, double Z) const
+  std::ostream& ExpectedCount::write (std::ostream& os) const
   {
     for (int n=0; n<scoreMatrixRowSize; ++n) {
       for (int m=0; m<scoreMatrixRowSize; ++m) {
-	double prob = emit[n][m] / Z;
+	double prob = emit[n][m];
 	if (prob > 0)
-	  os << "emit[" << n << "][" << m << "]=" << emit[n][m] / Z << std::endl;
+	  os << "emit[" << n << "][" << m << "]=" << emit[n][m] << std::endl;
       }
     }
-    os << "M->M=" << MM / Z << std::endl;
-    os << "M->D=" << MD / Z << std::endl;
-    os << "M->P=" << MP / Z << std::endl;
-    os << "M->I=" << MI / Z << std::endl;
+    os << "M->M=" << MM << std::endl;
+    os << "M->D=" << MD << std::endl;
+    os << "M->P=" << MP << std::endl;
+    os << "M->I=" << MI << std::endl;
 
-    os << "D->D=" << DD / Z << std::endl;
-    os << "D->M=" << DM / Z << std::endl;
-    os << "D->I=" << DI / Z << std::endl;
+    os << "D->D=" << DD << std::endl;
+    os << "D->M=" << DM << std::endl;
+    os << "D->I=" << DI << std::endl;
 
-    os << "P->P=" << PP / Z << std::endl;
-    os << "P->M=" << PM / Z << std::endl;
-    os << "P->D=" << PD / Z << std::endl;
-    os << "P->I=" << PI / Z << std::endl;
+    os << "P->P=" << PP << std::endl;
+    os << "P->M=" << PM << std::endl;
+    os << "P->D=" << PD << std::endl;
+    os << "P->I=" << PI << std::endl;
 
-    os << "I->I=" << II / Z << std::endl;
-    os << "I->M=" << IM / Z << std::endl;
+    os << "I->I=" << II << std::endl;
+    os << "I->M=" << IM << std::endl;
 
     return os;
   }
@@ -144,10 +144,10 @@ namespace cbrc{
     return expScores[c] <= 0.0;
   }
 
-  double Centroid::forward( const uchar* seq1, const uchar* seq2,
-			    size_t start1, size_t start2,
-			    bool isForward, int globality,
-			    const GeneralizedAffineGapCosts& gap ){
+  void Centroid::forward( const uchar* seq1, const uchar* seq2,
+			  size_t start1, size_t start2,
+			  bool isForward, int globality,
+			  const GeneralizedAffineGapCosts& gap ){
 
     //std::cout << "[forward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
     seq1 += start1;
@@ -157,8 +157,9 @@ namespace cbrc{
 
     initForwardMatrix();
 
+    double Z = 0.0;  // partion function of forward values
+
     if( globality ) {
-      Z = 0.0;
       const uchar* s1 = seqPtr( seq1, isForward, 1 );
       if (! isPssm) {
 	const uchar* s2 = seqPtr( seq2, isForward, 1 );
@@ -296,18 +297,18 @@ namespace cbrc{
       scale[k] = sum_f + 1.0;  // seems ugly
       Z /= scale[k]; // scaling
     } // k
-    //std::cout << "Z=" << Z << std::endl;
+    //std::cout << "# Z=" << Z << std::endl;
     assert( Z > 0.0 );
-    return log(Z);
+    scale[ numAntidiagonals - 1 ] *= Z;  // this causes scaled Z to equal 1
   }
 
   // added by M. Hamada
   // compute posterior probabilities while executing backward algorithm
   // posterior probabilities are stored in pp
-  double Centroid::backward( const uchar* seq1, const uchar* seq2,
-			     size_t start1, size_t start2,
-			     bool isForward, int globality,
-			     const GeneralizedAffineGapCosts& gap ){
+  void Centroid::backward( const uchar* seq1, const uchar* seq2,
+			   size_t start1, size_t start2,
+			   bool isForward, int globality,
+			   const GeneralizedAffineGapCosts& gap ){
 
     //std::cout << "[backward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
     seq1 += start1;
@@ -405,11 +406,11 @@ namespace cbrc{
 	  *bI1 += tmp4;
 	  *bP1 += tmp4;
 
-	  double prob = *fM0 * *bM0 / Z;
+	  double prob = *fM0 * *bM0;
 	  *pp0 = prob;
-	  double probd = *fD0 * *bD0 / Z;
-	  double probi = *fI0 * *bI0 / Z;
-	  double probp = *fP0 * *bP0 / Z;
+	  double probd = *fD0 * *bD0;
+	  double probi = *fI0 * *bI0;
+	  double probp = *fP0 * *bP0;
 	  mD[ i ] += probd + probp;
 	  mI[ j ] += probi + probp;
 	  mX1 [ i ] -= ( prob + probd + probp );
@@ -453,10 +454,10 @@ namespace cbrc{
 	    *bD1 += tmp5;
 	    *bI1 += tmp4;
 
-	    double prob = *fM0 * *bM0 / Z;
+	    double prob = *fM0 * *bM0;
 	    *pp0 = prob;
-	    double probd = *fD0 * *bD0 / Z;
-	    double probi = *fI0 * *bI0 / Z;
+	    double probd = *fD0 * *bD0;
+	    double probi = *fI0 * *bI0;
 	    mD[ i ] += probd;
 	    mI[ j ] += probi;
 	    mX1 [ i ] -= ( prob + probd );
@@ -501,11 +502,11 @@ namespace cbrc{
 	    *bI1 += tmp4;
 	    *bP1 += tmp4;
 
-	    double prob = *fM0 * *bM0 / Z;
+	    double prob = *fM0 * *bM0;
 	    *pp0 = prob;
-	    double probd = *fD0 * *bD0 / Z;
-	    double probi = *fI0 * *bI0 / Z;
-	    double probp = *fP0 * *bP0 / Z;
+	    double probd = *fD0 * *bD0;
+	    double probi = *fI0 * *bI0;
+	    double probp = *fP0 * *bP0;
 	    mD[ i ] += probd + probp;
 	    mI[ j ] += probi + probp;
 	    mX1 [ i ] -= ( prob + probd + probp );
@@ -531,10 +532,10 @@ namespace cbrc{
       bM[3] += scaledUnit;
     }
 
+    //std::cout << "# bM[0]=" << bM[0] << std::endl;
     //ExpectedCount ec;
     //computeExpectedCounts ( seq1, seq2, start1, start2, isForward, gap, ec );
-    //ec.write (std::cerr, Z);
-    return log( bM[3] );
+    //ec.write (std::cerr);
   }
 
   double Centroid::dp( double gamma ){
@@ -727,8 +728,7 @@ namespace cbrc{
   }
 
   double Centroid::logPartitionFunction() const{
-    assert( Z > 0 );
-    double x = std::log(Z);
+    double x = 0.0;
     for( std::size_t k = 3; k < numAntidiagonals; ++k ){
       x += std::log( scale[k] );
     }

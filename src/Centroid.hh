@@ -26,7 +26,7 @@ namespace cbrc{
     double SM, SD, SP, SI, SQ;
   public:
     ExpectedCount ();
-    std::ostream& write (std::ostream& os, double Z) const;
+    std::ostream& write (std::ostream& os) const;
   };
   /**
    * (1) Forward and backward algorithm on the DP region given by Xdrop algorithm
@@ -50,13 +50,13 @@ namespace cbrc{
       bestPos1 =0;
     }
 
-    double forward( const uchar* seq1, const uchar* seq2,
-		    size_t start1, size_t start2, bool isForward,
-		    int globality, const GeneralizedAffineGapCosts& gap );
+    void forward( const uchar* seq1, const uchar* seq2,
+		  size_t start1, size_t start2, bool isForward,
+		  int globality, const GeneralizedAffineGapCosts& gap );
 
-    double backward( const uchar* seq1, const uchar* seq2,
-		     size_t start1, size_t start2, bool isForward,
-		     int globality, const GeneralizedAffineGapCosts& gap );
+    void backward( const uchar* seq1, const uchar* seq2,
+		   size_t start1, size_t start2, bool isForward,
+		   int globality, const GeneralizedAffineGapCosts& gap );
 
     double dp( double gamma );
     void traceback( std::vector< SegmentPair >& chunks, double gamma ) const;
@@ -98,8 +98,6 @@ namespace cbrc{
     dvec_t fD; // f^D(i,j) Ix
     dvec_t fI; // f^I(i,j) Iy
     dvec_t fP; // f^P(i,j)
-
-    double    Z; // partion function of forward values
 
     dvec_t bM; // b^M(i,j)
     dvec_t bD; // b^D(i,j)
