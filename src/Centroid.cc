@@ -858,7 +858,8 @@ namespace cbrc{
 	    fM0++;
 	    bM0++; bD0++; bI0++;
 	    s1 += seqIncrement;
-	    s2 -= seqIncrement;  // xxx p2 ???
+	    s2 -= seqIncrement;
+	    p2 -= seqIncrement;
 	  }
 	}else{
 	  while (1) { // inner most loop
@@ -893,7 +894,8 @@ namespace cbrc{
 	    fM0++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    s1 += seqIncrement;
-	    s2 -= seqIncrement;  // xxx p2 ???
+	    s2 -= seqIncrement;
+	    p2 -= seqIncrement;
 	  }
 	}
       }
