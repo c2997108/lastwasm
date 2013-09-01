@@ -110,7 +110,7 @@ namespace cbrc{
       fP.resize( n );
     }
 
-    fM[3] = 1;
+    fM[0] = 1;
   }
 
   void Centroid::initBackwardMatrix(){
@@ -159,23 +159,6 @@ namespace cbrc{
 
     double Z = 0.0;  // partion function of forward values
 
-    if( globality ) {
-      const uchar* s1 = seqPtr( seq1, isForward, 1 );
-      if (! isPssm) {
-	const uchar* s2 = seqPtr( seq2, isForward, 1 );
-	if( isDelimiter(*s1, *match_score) || isDelimiter(*s2, *match_score) ){
-	  Z = fM[3];
-	}
-      }else{
-	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, 1 );
-	if( isDelimiter(*s1, *pssm) || isDelimiter(0, *p2) ){
-	  Z = fM[3];
-	}
-      }
-    }else{
-      Z = fM[3];
-    }
-
     const bool isAffine = gap.isAffine();
     const int E = gap.delExtend;
     const int F = gap.delExist;
@@ -190,7 +173,7 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
-    for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
+    for( size_t k = 2; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       double sum_f = 0.0; // sum of forward values
       const size_t seq1beg = xa.seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
@@ -208,14 +191,11 @@ namespace cbrc{
       double* fP0 = &fP[ scoreEnd ];
 
       const std::size_t horiBeg = xa.hori( k, seq1beg );
+      const std::size_t vertBeg = xa.vert( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
-      const double* fM1 = &fM[ horiBeg ];
       const double* fD1 = &fD[ horiBeg ];
-      const double* fI1 = &fI[ horiBeg ];
-      const double* fP1 = &fP[ horiBeg ];
+      const double* fI1 = &fI[ vertBeg ];
       const double* fM2 = &fM[ diagBeg ];
-      const double* fD2 = &fD[ diagBeg ];
-      const double* fI2 = &fI[ diagBeg ];
       const double* fP2 = &fP[ diagBeg ];
 
       const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
@@ -224,27 +204,26 @@ namespace cbrc{
 
       *fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;  // add one pad cell
 
-      double xM1 = *fM1, xD1 = *fD1, xI1 = *fI1, xP1 = *fP1;
-
       if (! isPssm) {
 	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
 	while (1) {	// start: inner most loop
-	  const double S = match_score[ *s1 ][ *s2 ] * scale12;
-	  const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
-	  *fD0 = ( xM1 * eF + xD1 + xP1 ) * seE;
-	  xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
-	  *fI0 = ( ( xM1 + xD1 ) * eFI + xI1 + xP1 ) * seEI;
-	  *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
-	  *fP0 = ( xM2 * eF + xP2 ) * seP;
-	  sum_f += *fM0;
-	  if( globality && (isDelimiter(*(s2+seqIncrement), *match_score) ||
-			    isDelimiter(*(s1+seqIncrement), *match_score)) ){
-	    Z += *fM0 + *fD0 + *fI0 + *fP0;
+	  const double xM = *fM2 * scale12;
+	  const double xD = *fD1 * seE;
+	  const double xI = *fI1 * seEI;
+	  const double xP = *fP2 * seP;
+	  *fD0 = xM * eF + xD + xP;
+	  *fI0 = (xM + xD) * eFI + xI + xP;
+	  *fM0 = (xM + xD + xI + xP) * match_score[ *s1 ][ *s2 ];
+	  *fP0 = xM * eF + xP;
+	  sum_f += xM;
+	  if( globality && (isDelimiter(*s2, *match_score) ||
+			    isDelimiter(*s1, *match_score)) ){
+	    Z += xM + xD + xI + xP;
 	  }
 	  if (fM0 == fM0last) break;
 	  fM0++; fD0++; fI0++; fP0++;
-	  fM2++; fD2++; fI2++; fP2++;
+	  fM2++; fD1++; fI1++; fP2++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}	// end: inner most loop
@@ -254,40 +233,41 @@ namespace cbrc{
 
 	if (isAffine) {
 	  while (1) { // start: inner most loop
-	    const double S = (*p2)[ *s1 ]  * scale12;
-	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2;
-	    *fD0 = ( xM1 * eF + xD1 ) * seE;
-	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1;
-	    *fI0 = ( ( xM1 + xD1 ) * eF + xI1 ) * seE;
-	    *fM0 = ( xM2 + xD2 + xI2 ) * S;
-	    sum_f += *fM0;
-	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
-			       isDelimiter(*(s1+seqIncrement), *pssm)) ){
-	      Z += *fM0 + *fD0 + *fI0;
+	    const double xM = *fM2 * scale12;
+	    const double xD = *fD1 * seE;
+	    const double xI = *fI1 * seE;
+	    *fD0 = xM * eF + xD;
+	    *fI0 = (xM + xD) * eF + xI;
+	    *fM0 = (xM + xD + xI) * (*p2)[ *s1 ];
+	    sum_f += xM;
+	    if ( globality && (isDelimiter(0, *p2) ||
+			       isDelimiter(*s1, *pssm)) ){
+	      Z += xM + xD + xI;
 	    }
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++;
-	    fM2++; fD2++; fI2++;
+	    fM2++; fD1++; fI1++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }	// end: inner most loop
 	}else{
 	  while (1) { // start: inner most loop
-	    const double S = (*p2)[ *s1 ]  * scale12;
-	    const double xM2 = *fM2, xD2 = *fD2, xI2 = *fI2, xP2 = *fP2;
-	    *fD0 = ( xM1 * eF + xD1 + xP1 ) * seE;
-	    xM1 = *++fM1; xD1 = *++fD1; xI1 = *++fI1; xP1 = *++fP1;
-	    *fI0 = ( ( xM1 + xD1 ) * eFI + xI1 + xP1 ) * seEI;
-	    *fM0 = ( xM2 + xD2 + xI2 + xP2 ) * S;
-	    *fP0 = ( xM2 * eF + xP2 ) * seP;
-	    sum_f += *fM0;
-	    if ( globality && (isDelimiter(0, *(p2+seqIncrement)) ||
-			       isDelimiter(*(s1+seqIncrement), *pssm)) ){
-	      Z += *fM0 + *fD0 + *fI0 + *fP0;
+	    const double xM = *fM2 * scale12;
+	    const double xD = *fD1 * seE;
+	    const double xI = *fI1 * seEI;
+	    const double xP = *fP2 * seP;
+	    *fD0 = xM * eF + xD + xP;
+	    *fI0 = (xM + xD) * eFI + xI + xP;
+	    *fM0 = (xM + xD + xI + xP) * (*p2)[ *s1 ];
+	    *fP0 = xM * eF + xP;
+	    sum_f += xM;
+	    if ( globality && (isDelimiter(0, *p2) ||
+			       isDelimiter(*s1, *pssm)) ){
+	      Z += xM + xD + xI + xP;
 	    }
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++; fP0++;
-	    fM2++; fD2++; fI2++; fP2++;
+	    fM2++; fD1++; fI1++; fP2++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }	// end: inner most loop
@@ -333,7 +313,7 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
-    for( size_t k = numAntidiagonals-1; k > 2; --k ){
+    for( size_t k = numAntidiagonals-1; k > 1; --k ){
       const size_t seq1beg = xa.seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
@@ -345,28 +325,25 @@ namespace cbrc{
       const double seP = eP * scale12;
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
-      double* bM0 = &bM[ scoreEnd + 1 ];
-      double* bD0 = &bD[ scoreEnd + 1 ];
-      double* bI0 = &bI[ scoreEnd + 1 ];
-      double* bP0 = &bP[ scoreEnd + 1 ];
+      const double* bM0 = &bM[ scoreEnd + 1 ];
+      const double* bD0 = &bD[ scoreEnd + 1 ];
+      const double* bI0 = &bI[ scoreEnd + 1 ];
+      const double* bP0 = &bP[ scoreEnd + 1 ];
 
       double* pp0 = &pp[ scoreEnd ];
 
-      const double* fM0 = &fM[ scoreEnd + 1 ];
-      const double* fD0 = &fD[ scoreEnd + 1 ];
-      const double* fI0 = &fI[ scoreEnd + 1 ];
-      const double* fP0 = &fP[ scoreEnd + 1 ];
-
       const std::size_t horiBeg = xa.hori( k, seq1beg );
+      const std::size_t vertBeg = xa.vert( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
-      double* bM1 = &bM[ horiBeg ];
       double* bD1 = &bD[ horiBeg ];
-      double* bI1 = &bI[ horiBeg ];
-      double* bP1 = &bP[ horiBeg ];
+      double* bI1 = &bI[ vertBeg ];
       double* bM2 = &bM[ diagBeg ];
-      double* bD2 = &bD[ diagBeg ];
-      double* bI2 = &bI[ diagBeg ];
       double* bP2 = &bP[ diagBeg ];
+
+      const double* fM2 = &fM[ diagBeg ];
+      const double* fD1 = &fD[ horiBeg ];
+      const double* fI1 = &fI[ vertBeg ];
+      const double* fP2 = &fP[ diagBeg ];
 
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
 
@@ -378,39 +355,33 @@ namespace cbrc{
 	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
 	while (1) { // inner most loop
+	  double yM = *bM0 * match_score[ *s1 ][ *s2 ];
+	  double yD = *bD0;
+	  double yI = *bI0;
+	  double yP = *bP0;
+	  double zM = yM + yD * eF + yI * eFI + yP * eF;
+	  double zD = yM + yD + yI * eFI;
+	  double zI = yM + yI;
+	  double zP = yM + yP + yD + yI;
 	  if( globality ){
-	    if( isDelimiter(*(s2+seqIncrement), *match_score) ||
-		isDelimiter(*(s1+seqIncrement), *match_score) ){
-	      *bM0 += scaledUnit;  *bD0 += scaledUnit;  *bI0 += scaledUnit;
-	      *bP0 += scaledUnit;
+	    if( isDelimiter(*s2, *match_score) ||
+		isDelimiter(*s1, *match_score) ){
+	      zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
+	      zP += scaledUnit;
 	    }
 	  }else{
-	    *bM0 += scaledUnit;
+	    zM += scaledUnit;
 	  }
-	  const double S = match_score[ *s1 ][ *s2 ];
-	  const double tmp1 = *bM0 * S * scale12;
-	  const double tmp2 = *bP0 * seP;
-	  *bM2 += tmp1 + tmp2 * eF;
-	  *bD2 += tmp1;
-	  *bI2 += tmp1;
-	  *bP2 += tmp1 + tmp2;
-	  const double tmp3 = *bD0 * seE;
-	  *bM1++ += tmp3 * eF;
-	  *bD1++ += tmp3;
-	  bI1++;
-	  *bP1++ += tmp3;
-	  const double tmp4 = *bI0 * seEI;
-	  const double tmp5 = tmp4 * eFI;
-	  *bM1 += tmp5;
-	  *bD1 += tmp5;
-	  *bI1 += tmp4;
-	  *bP1 += tmp4;
+	  *bM2 = zM * scale12;
+	  *bD1 = zD * seE;
+	  *bI1 = zI * seEI;
+	  *bP2 = zP * seP;
 
-	  double prob = *fM0 * *bM0;
+	  double prob = *fM2 * *bM2;
 	  *pp0 = prob;
-	  double probd = *fD0 * *bD0;
-	  double probi = *fI0 * *bI0;
-	  double probp = *fP0 * *bP0;
+	  double probd = *fD1 * *bD1;
+	  double probi = *fI1 * *bI1;
+	  double probp = *fP2 * *bP2;
 	  mD[ i ] += probd + probp;
 	  mI[ j ] += probi + probp;
 	  mX1 [ i ] -= ( prob + probd + probp );
@@ -418,9 +389,9 @@ namespace cbrc{
 
 	  if (bM0 == bM0last) break;
 	  i++; j--;
-	  bM2++; bD2++; bI2++; bP2++;
+	  bM2++; bD1++; bI1++; bP2++;
 	  bM0++; bD0++; bI0++; bP0++;
-	  fM0++; fD0++; fI0++; fP0++;
+	  fM2++; fD1++; fI1++; fP2++;
 	  pp0++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
@@ -431,33 +402,28 @@ namespace cbrc{
 
 	if (isAffine) {
 	  while (1) { // inner most loop
+	    double yM = *bM0 * ( *p2 )[ *s1 ];
+	    double yD = *bD0;
+	    double yI = *bI0;
+	    double zM = yM + yD * eF + yI * eF;
+	    double zD = yM + yD + yI * eF;
+	    double zI = yM + yI;
 	    if( globality ){
-	      if( isDelimiter(0, *(p2+seqIncrement)) ||
-		  isDelimiter(*(s1+seqIncrement), *pssm) ){
-		*bM0 += scaledUnit;  *bD0 += scaledUnit;  *bI0 += scaledUnit;
+	      if( isDelimiter(0, *p2) ||
+		  isDelimiter(*s1, *pssm) ){
+		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
 	      }
 	    }else{
-	      *bM0 += scaledUnit;
+	      zM += scaledUnit;
 	    }
-	    const double S = ( *p2 )[ *s1 ];
-	    const double tmp1 = *bM0 * S * scale12;
-	    *bM2 += tmp1;
-	    *bD2 += tmp1;
-	    *bI2 += tmp1;
-	    const double tmp3 = *bD0 * seE;
-	    *bM1++ += tmp3 * eF;
-	    *bD1++ += tmp3;
-	    bI1++;
-	    const double tmp4 = *bI0 * seE;
-	    const double tmp5 = tmp4 * eF;
-	    *bM1 += tmp5;
-	    *bD1 += tmp5;
-	    *bI1 += tmp4;
+	    *bM2 = zM * scale12;
+	    *bD1 = zD * seE;
+	    *bI1 = zI * seE;
 
-	    double prob = *fM0 * *bM0;
+	    double prob = *fM2 * *bM2;
 	    *pp0 = prob;
-	    double probd = *fD0 * *bD0;
-	    double probi = *fI0 * *bI0;
+	    double probd = *fD1 * *bD1;
+	    double probi = *fI1 * *bI1;
 	    mD[ i ] += probd;
 	    mI[ j ] += probi;
 	    mX1 [ i ] -= ( prob + probd );
@@ -465,48 +431,42 @@ namespace cbrc{
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
-	    bM2++; bD2++; bI2++;
+	    bM2++; bD1++; bI1++;
 	    bM0++; bD0++; bI0++;
-	    fM0++; fD0++; fI0++;
+	    fM2++; fD1++; fI1++;
 	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }
 	}else{
 	  while (1) {
+	    double yM = *bM0 * ( *p2 )[ *s1 ];
+	    double yD = *bD0;
+	    double yI = *bI0;
+	    double yP = *bP0;
+	    double zM = yM + yD * eF + yI * eFI + yP * eF;
+	    double zD = yM + yD + yI * eFI;
+	    double zI = yM + yI;
+	    double zP = yM + yP + yD + yI;
 	    if( globality ){
-	      if( isDelimiter(0, *(p2+seqIncrement)) ||
-		  isDelimiter(*(s1+seqIncrement), *pssm) ){
-		*bM0 += scaledUnit;  *bD0 += scaledUnit;  *bI0 += scaledUnit;
-		*bP0 += scaledUnit;
+	      if( isDelimiter(0, *p2) ||
+		  isDelimiter(*s1, *pssm) ){
+		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
+		zP += scaledUnit;
 	      }
 	    }else{
-	      *bM0 += scaledUnit;
+	      zM += scaledUnit;
 	    }
-	    const double S = ( *p2 )[ *s1 ];
-	    const double tmp1 = *bM0 * S * scale12;
-	    const double tmp2 = *bP0 * seP;
-	    *bM2 += tmp1 + tmp2 * eF;
-	    *bD2 += tmp1;
-	    *bI2 += tmp1;
-	    *bP2 += tmp1 + tmp2;
-	    const double tmp3 = *bD0 * seE;
-	    *bM1++ += tmp3 * eF;
-	    *bD1++ += tmp3;
-	    bI1++;
-	    *bP1++ += tmp3;
-	    const double tmp4 = *bI0 * seEI;
-	    const double tmp5 = tmp4 * eFI;
-	    *bM1 += tmp5;
-	    *bD1 += tmp5;
-	    *bI1 += tmp4;
-	    *bP1 += tmp4;
+	    *bM2 = zM * scale12;
+	    *bD1 = zD * seE;
+	    *bI1 = zI * seEI;
+	    *bP2 = zP * seP;
 
-	    double prob = *fM0 * *bM0;
+	    double prob = *fM2 * *bM2;
 	    *pp0 = prob;
-	    double probd = *fD0 * *bD0;
-	    double probi = *fI0 * *bI0;
-	    double probp = *fP0 * *bP0;
+	    double probd = *fD1 * *bD1;
+	    double probi = *fI1 * *bI1;
+	    double probp = *fP2 * *bP2;
 	    mD[ i ] += probd + probp;
 	    mI[ j ] += probi + probp;
 	    mX1 [ i ] -= ( prob + probd + probp );
@@ -514,22 +474,15 @@ namespace cbrc{
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
-	    bM2++; bD2++; bI2++; bP2++;
+	    bM2++; bD1++; bI1++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
-	    fM0++; fD0++; fI0++; fP0++;
+	    fM2++; fD1++; fI1++; fP2++;
 	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }
 	}
       }
-    }
-
-    scaledUnit /= scale[2];
-    if( globality ){
-      // something is missing (but I think it doesn't matter)
-    }else{
-      bM[3] += scaledUnit;
     }
 
     //std::cout << "# bM[0]=" << bM[0] << std::endl;
@@ -729,7 +682,7 @@ namespace cbrc{
 
   double Centroid::logPartitionFunction() const{
     double x = 0.0;
-    for( std::size_t k = 3; k < numAntidiagonals; ++k ){
+    for( std::size_t k = 2; k < numAntidiagonals; ++k ){
       x += std::log( scale[k] );
     }
     return T * x;
@@ -759,7 +712,7 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
-    for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
+    for( size_t k = 2; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
@@ -773,56 +726,47 @@ namespace cbrc{
       const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
-      const double* fM0 = &fM[ scoreEnd + 1 ];
       const double* bM0 = &bM[ scoreEnd + 1 ];
       const double* bD0 = &bD[ scoreEnd + 1 ];
       const double* bI0 = &bI[ scoreEnd + 1 ];
       const double* bP0 = &bP[ scoreEnd + 1 ];
 
       const std::size_t horiBeg = xa.hori( k, seq1beg );
+      const std::size_t vertBeg = xa.vert( k, seq1beg );
       const std::size_t diagBeg = xa.diag( k, seq1beg );
-      const double* fM1 = &fM[ horiBeg ];
       const double* fD1 = &fD[ horiBeg ];
-      const double* fI1 = &fI[ horiBeg ];
-      const double* fP1 = &fP[ horiBeg ];
+      const double* fI1 = &fI[ vertBeg ];
       const double* fM2 = &fM[ diagBeg ];
-      const double* fD2 = &fD[ diagBeg ];
-      const double* fI2 = &fI[ diagBeg ];
       const double* fP2 = &fP[ diagBeg ];
 
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
 
       if (! isPssm ) {
 	while (1) { // inner most loop
-	  const double S = match_score[ *s1 ][ *s2 ];
-	  c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
-
-	  const double tmp1 = S * *bM0 * scale12;
-	  const double tmp2 = *bP0 * seP;
-
-	  c.MM += *fM2 * tmp1;
-	  c.PM += *fP2 * tmp1;
-	  c.DM += *fD2 * tmp1;
-	  c.IM += *fI2 * tmp1;
-	  c.MP += *fM2 * eF * tmp2;
-	  c.PP += *fP2 * tmp2;
-
-	  const double tmp3 = *bD0 * seE;
-	  c.MD += ( *fM1 * eF ) * tmp3;
-	  c.DD += ( *fD1 ) * tmp3;
-	  c.PD += ( *fP1 ) * tmp3;
-
-	  fM1++; fD1++; fP1++; fI1++;
-
-	  const double tmp4 = *bI0 * seEI;
-	  c.MI += ( *fM1 * eFI )  * tmp4;
-	  c.DI += ( *fD1 * eFI )  * tmp4;
-	  c.PI += ( *fP1 )  * tmp4;
-	  c.II += ( *fI1 )  * tmp4;
-
+	  const double xM = *fM2 * scale12;
+	  const double xD = *fD1 * seE;
+	  const double xI = *fI1 * seEI;
+	  const double xP = *fP2 * seP;
+	  const double yM = *bM0 * match_score[ *s1 ][ *s2 ];
+	  const double yD = *bD0;
+	  const double yI = *bI0;
+	  const double yP = *bP0;
+	  c.emit[*s1][*s2] += (xM + xD + xI + xP) * yM;
+	  c.MM += xM * yM;
+	  c.DM += xD * yM;
+	  c.IM += xI * yM;
+	  c.PM += xP * yM;
+	  c.MD += xM * yD * eF;
+	  c.DD += xD * yD;
+	  c.PD += xP * yD;
+	  c.MI += xM * yI * eFI;
+	  c.DI += xD * yI * eFI;
+	  c.II += xI * yI;
+	  c.PI += xP * yI;
+	  c.MP += xM * yP * eF;
+	  c.PP += xP * yP;
 	  if (bM0 == bM0last) break;
-	  fM2++; fD2++; fI2++; fP2++;
-	  fM0++;
+	  fM2++; fD1++; fI1++; fP2++;
 	  bM0++; bD0++; bI0++; bP0++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
@@ -833,29 +777,23 @@ namespace cbrc{
 
 	if (isAffine) {
 	  while (1) { // inner most loop
-	    const double S = ( *p2 )[ *s1 ];
-	    c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
-
-	    const double tmp1 = S * *bM0 * scale12;
-
-	    c.MM += *fM2 * tmp1;
-	    c.DM += *fD2 * tmp1;
-	    c.IM += *fI2 * tmp1;
-
-	    const double tmp3 = *bD0 * seE;
-	    c.MD += ( *fM1 * eF ) * tmp3;
-	    c.DD += ( *fD1 ) * tmp3;
-
-	    fM1++; fD1++; fI1++;
-
-	    const double tmp4 = *bI0 * seE;
-	    c.MI += ( *fM1 * eF )  * tmp4;
-	    c.DI += ( *fD1 * eF )  * tmp4;
-	    c.II += ( *fI1 )  * tmp4;
-
+	    const double xM = *fM2 * scale12;
+	    const double xD = *fD1 * seE;
+	    const double xI = *fI1 * seE;
+	    const double yM = *bM0 * ( *p2 )[ *s1 ];
+	    const double yD = *bD0;
+	    const double yI = *bI0;
+	    c.emit[*s1][*s2] += (xM + xD + xI) * yM;  // xxx
+	    c.MM += xM * yM;
+	    c.DM += xD * yM;
+	    c.IM += xI * yM;
+	    c.MD += xM * yD * eF;
+	    c.DD += xD * yD;
+	    c.MI += xM * yI * eF;
+	    c.DI += xD * yI * eF;
+	    c.II += xI * yI;
 	    if (bM0 == bM0last) break;
-	    fM2++; fD2++; fI2++;
-	    fM0++;
+	    fM2++; fD1++; fI1++;
 	    bM0++; bD0++; bI0++;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;
@@ -863,35 +801,30 @@ namespace cbrc{
 	  }
 	}else{
 	  while (1) { // inner most loop
-	    const double S = ( *p2 )[ *s1 ];
-	    c.emit[*s1][*s2] += ( *fM0 * *bM0 ) ;
-
-	    const double tmp1 = S * *bM0 * scale12;
-	    const double tmp2 = *bP0 * seP;
-
-	    c.MM += *fM2 * tmp1;
-	    c.PM += *fP2 * tmp1;
-	    c.DM += *fD2 * tmp1;
-	    c.IM += *fI2 * tmp1;
-	    c.MP += *fM2 * eF * tmp2;
-	    c.PP += *fP2 * tmp2;
-
-	    const double tmp3 = *bD0 * seE;
-	    c.MD += ( *fM1 * eF ) * tmp3;
-	    c.DD += ( *fD1 ) * tmp3;
-	    c.PD += ( *fP1 ) * tmp3;
-
-	    fM1++; fD1++; fP1++; fI1++;
-
-	    const double tmp4 = *bI0 * seEI;
-	    c.MI += ( *fM1 * eFI )  * tmp4;
-	    c.DI += ( *fD1 * eFI )  * tmp4;
-	    c.PI += ( *fP1 )  * tmp4;
-	    c.II += ( *fI1 )  * tmp4;
-
+	    const double xM = *fM2 * scale12;
+	    const double xD = *fD1 * seE;
+	    const double xI = *fI1 * seEI;
+	    const double xP = *fP2 * seP;
+	    const double yM = *bM0 * ( *p2 )[ *s1 ];
+	    const double yD = *bD0;
+	    const double yI = *bI0;
+	    const double yP = *bP0;
+	    c.emit[*s1][*s2] += (xM + xD + xI + xP) * yM;  // xxx
+	    c.MM += xM * yM;
+	    c.DM += xD * yM;
+	    c.IM += xI * yM;
+	    c.PM += xP * yM;
+	    c.MD += xM * yD * eF;
+	    c.DD += xD * yD;
+	    c.PD += xP * yD;
+	    c.MI += xM * yI * eFI;
+	    c.DI += xD * yI * eFI;
+	    c.II += xI * yI;
+	    c.PI += xP * yI;
+	    c.MP += xM * yP * eF;
+	    c.PP += xP * yP;
 	    if (bM0 == bM0last) break;
-	    fM2++; fD2++; fI2++; fP2++;
-	    fM0++;
+	    fM2++; fD1++; fI1++; fP2++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;
