@@ -933,3 +933,55 @@ p                              ))*++,111.,()+,,,,,0/~~~~~~~~~~(&&&%).)
 # batch 4
 # CPU time: 0.04 seconds
 
+TEST 20
+#
+# a=7 b=1 A=7 B=1 c=100000 F=-1 e=18 d=13 x=17 y=9 z=17
+# u=0 s=0 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=7
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+#
+#    A  C  G  T
+# A  1 -1 -1 -1
+# C -1  1 -1 -1
+# G -1 -1  1 -1
+# T -1 -1 -1  1
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+# batch 0
+a score=26 fullScore=28.9
+s chrM  3996 46 + 16775 AGGCTTAAGCCCTTTATCCAGAGGTTCAAATCCTCTCCCTAGCTAC
+s chrM 10159 46 - 16775 AGGCTGTAGTCCTTTTTACAGAGGTTCAATTCCTCTTCTTATCGAC
+p                       (,./001467;@CFGHJL~~~~~~~~~~~JIGC?:610..,**(('
+c 7.98 0.000238 0.438 3.96 1.01 11.5 0.0931 4.04 0.0213 9.25e-05 6.65 1.16 0.213 0.0045 1.82 10.9 49.8 0.0216 0.00159 0.00874 0.000778 1.82e-06 0 0 0 0
+
+a score=26 fullScore=28.9
+s chrM  6570 46 + 16775 GTCGATAAGAAGAGGAATTGAACCTCTGTAAAAAGGACTACAGCCT
+s chrM 12733 46 - 16775 GTAGCTAGGGAGAGGATTTGAACCTCTGGATAAAGGGCTTAAGCCT
+p                       '((**,..016:?CGIJ~~~~~~~~~~~LJHGFC@;764100/.,(
+c 10.9 1.16 4.04 3.96 1.82 6.65 0.0931 0.438 0.0045 9.25e-05 11.5 0.000238 0.213 0.0213 1.01 7.98 49.8 0.00159 0.0216 0.000778 0.00874 1.82e-06 0 0 0 0
+
+a score=21 fullScore=23.9
+s chrM   977 35 + 16775 ttttattttttAAAAACATTTTTTAAAAAACTAAA
+s chrM 15763 35 - 16775 TTTAGTTTTTTAAAAAATGTTTTTaaaaaataaaa
+p                       ')**,~~~~~~~~~~~9888888876642.*))('
+c 15.7 0.000253 1.29 1.55 1.84 0.108 0.000284 1.24 0.107 3.71e-05 0.109 0.000182 4.86 0.108 1.85 15.9 44.7 0.114 0.111 0.0625 0.0581 8.72e-06 0 0 0 0
+
+a score=19 fullScore=21.4
+s chrM  4168 33 + 16775 CCGAAAGGGCCCAAACATTGTGGGCCCTTTTGG
+s chrM 12574 33 - 16775 CCAAAAGGGCCCACAATGTTTGGGCCCTTTCGG
+p                       '*+~~~~~~~~~~JIGGGGGGGFEC@<73.)('
+c 5 1 0.0029 1.09 1.51 8.06 0.0333 0.00288 1.05 0.000188 8.01 1 0.0011 1.01 1.49 4.94 34.2 0.00617 0.00621 0.00447 0.00446 1.26e-06 0 0 0 0
+
+a score=18 fullScore=20
+s chrM    31 34 + 16775 AGTGTACCCCCCCTTTCCCCAGGGGGGGTATACT
+s chrM 16710 34 - 16775 AGTATACCCCCCCTGGGGAAAGGGGGGGTACACT
+p                       (+./~~~~~~~~~~BA@@@@@@@@@?=:62-,*'
+c 4.89 0.00223 0.25 0.93 2.08 8.23 2 0.247 0.963 3.26e-07 8.23 0.00218 0.711 0.945 2.08 4.91 36.5 0.00253 0.00248 0.00149 0.00145 1.1e-06 0 0 0 0
+
+# batch 1
+# CPU time: 0 seconds
+
