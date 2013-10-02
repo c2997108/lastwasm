@@ -22,7 +22,7 @@ EOF
 }
 
 # Try to get the LAST programs into the PATH, if they aren't already:
-PATH=$PATH:$(dirname $0):$(dirname $0)/../src
+PATH=$PATH:$(dirname $0)/../src:$(dirname $0)/../scripts
 
 tmp=${TMPDIR-/tmp}/$$
 trap 'rm -f $tmp.*' EXIT

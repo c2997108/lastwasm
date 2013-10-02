@@ -14,8 +14,6 @@
 
 namespace cbrc{
 
-  typedef unsigned char uchar;
-
   struct ExpectedCount{
   public:
     double emit[scoreMatrixRowSize][scoreMatrixRowSize];

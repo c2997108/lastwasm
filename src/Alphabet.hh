@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2012, 2013 Martin C. Frith
 
 // This struct maps characters to codes (small integers) and back.
 
@@ -16,8 +16,9 @@
 
 namespace cbrc{
 
+typedef unsigned char uchar;
+
 struct Alphabet{
-  typedef unsigned char uchar;
   typedef unsigned long long countT;
 
   static const char* dna;
