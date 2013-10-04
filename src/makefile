@@ -45,9 +45,14 @@ gumbel_params/*.cpp
 EXINC = Alphabet.hh LastexArguments.hh io.hh ScoreMatrix.hh	\
 gumbel_params/*.hpp gumbel_params/*/*.h* version.hh
 
+SPSRC = split/*.cc Alphabet.cc MultiSequence.cc fileMap.cc
+
+SPINC = split/*.hh Alphabet.hh MultiSequence.hh fileMap.hh		\
+ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh stringify.hh version.hh
+
 OBJ = lambda_calculator.o
 
-all: lastdb lastal lastex
+all: lastdb lastal lastex last-split
 
 lastdb: $(DBSRC) $(DBINC) makefile
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $(DBSRC)
@@ -58,11 +63,14 @@ lastal: $(ALSRC) $(ALINC) makefile $(OBJ)
 lastex: $(EXSRC) $(EXINC) makefile
 	$(CXX) -Igumbel_params $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $(EXSRC)
 
+last-split: $(SPSRC) $(SPINC) makefile
+	$(CXX) -I. $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $(SPSRC)
+
 $(OBJ): CA_code/*.c CA_code/*.h makefile
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c CA_code/lambda_calculator.c
 
 clean:
-	rm -f lastdb lastal lastex $(OBJ)
+	rm -f lastdb lastal lastex last-split $(OBJ)
 
 VERSION = \"`hg id -n`\"
 VERSION2 = \"`grep latesttagdistance ../.hg_archival.txt | cut -d' ' -f2`\"

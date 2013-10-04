@@ -1,8 +1,8 @@
 # Rules for converting the txt documents to html.
 
-DOCS = FAQ.html bisulfite.html last-map-probs.html		\
-last-pair-probs.html last-split-probs.html last-tutorial.html	\
-last.html maf-convert.html maf-cull.html
+DOCS = FAQ.html bisulfite.html last-map-probs.html			\
+last-pair-probs.html last-split.html last-tutorial.html last.html	\
+maf-convert.html maf-cull.html
 
 all: ${DOCS}
 
