@@ -7,7 +7,7 @@ exec_prefix = $(prefix)
 bindir = $(exec_prefix)/bin
 install: all
 	mkdir -p $(bindir)
-	cp src/last?? scripts/*.?? $(bindir)
+	cp src/last?? src/last-split scripts/*.?? $(bindir)
 
 clean:
 	@cd src && $(MAKE) clean
