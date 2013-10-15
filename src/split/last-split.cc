@@ -105,7 +105,7 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     }
   } else {
     long viterbiScore = sa.viterbi();
-    if (opts.verbose) std::cerr << "\t" << viterbiScore << "\n";
+    if (opts.verbose) std::cerr << "\t" << viterbiScore;
     std::vector<unsigned> alnNums;
     std::vector<unsigned> queryBegs;
     std::vector<unsigned> queryEnds;
@@ -114,6 +114,7 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     std::reverse(queryBegs.begin(), queryBegs.end());
     std::reverse(queryEnds.begin(), queryEnds.end());
 
+    if (opts.verbose) std::cerr << "\n";
     for (unsigned k = 0; k < alnNums.size(); ++k) {
       unsigned i = alnNums[k];
       doOneAlignmentPart(sa, beg[i], i, queryBegs[k], queryEnds[k], opts);

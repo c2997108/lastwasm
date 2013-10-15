@@ -432,7 +432,6 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 }
 
 void SplitAligner::forward() {
-    initForwardBackward();
     resizeVector(rescales, 1);
     cell(rescales, minBeg) = 1.0;
 
@@ -441,7 +440,7 @@ void SplitAligner::forward() {
     double probFromRestart = 0.0;
     double probFromJump = 0.0;
     double begprob = 1.0;
-    zF = 0.0;
+    double zF = 0.0;  // sum of probabilities from the forward algorithm
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
 		QbegLess(&dpBegs[0], &rnameAndStrandIds[0]));
@@ -473,7 +472,8 @@ void SplitAligner::forward() {
 	probFromJump = pSum * jumpProb + probFromRestart;
     }
 
-    zF /= cell(rescales, maxEnd);
+    //zF /= cell(rescales, maxEnd);
+    cell(rescales, maxEnd) = zF;  // this causes scaled zF to equal 1
 }
 
 void SplitAligner::backward() {
@@ -482,7 +482,7 @@ void SplitAligner::backward() {
     double probFromRestart = 0.0;
     double probFromJump = 0.0;
     double endprob = 1.0;
-    zB = 0.0;
+    //double zB = 0.0;  // sum of probabilities from the backward algorithm
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
 		QendLess(&dpEnds[0], &rnameAndStrandIds[0]));
@@ -494,7 +494,7 @@ void SplitAligner::backward() {
 	updateInplayAlnIndicesB(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
 	double r = cell(rescales, j);
-	zB /= r;
+	//zB /= r;
 	double pSum = 0.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
@@ -503,7 +503,7 @@ void SplitAligner::backward() {
 			probFromJump * spliceBegProb(i, j) +
 			probFromSpliceB(i, j, oldNumInplay, oldInplayPos)) * cell(Aexp, i, j-1) / r;
 	    cell(Bmat, i, j-1) = p;
-	    zB += IB(i, j-1) * p;
+	    //zB += IB(i, j-1) * p;
 	    pSum += p * spliceEndProb(i, j-1);
         }
         endprob /= r;
@@ -511,7 +511,7 @@ void SplitAligner::backward() {
 	probFromJump = pSum * jumpProb + probFromRestart;
     }
 
-    zB /= cell(rescales, minBeg);
+    //zB /= cell(rescales, minBeg);
 }
 
 std::vector<double>
@@ -521,12 +521,11 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
     unsigned i = alnNum;
     unsigned j = queryBeg;
     for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
-	assert(zF > 0.0);
         if (alns[i].qalign[pos] == '-') {
-            double value = cell(Fmat, i, j) * cell(Bmat, i, j) * cell(Dexp, i, j) / cell(rescales, j) / zF;
+            double value = cell(Fmat, i, j) * cell(Bmat, i, j) * cell(Dexp, i, j) / cell(rescales, j);
             output.push_back(value);
         } else {
-            double value = cell(Fmat, i, j+1) * cell(Bmat, i, j) / cell(Aexp, i, j) / zF;
+            double value = cell(Fmat, i, j+1) * cell(Bmat, i, j) / cell(Aexp, i, j);
             if (value != value) value = 0.0;
             output.push_back(value);
             j++;
@@ -741,6 +740,8 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
 	//initRnameAndStrandIds();
     }
     initRnameAndStrandIds();
+
+    initForwardBackward();
 }
 
 // 1st 1 million reads from SRR359290.fastq:

@@ -109,8 +109,6 @@ private:
     MatrixDouble Fmat;  // DP matrix for Forward algorithm
     MatrixDouble Bmat;  // DP matrix for Backward algorithm
     std::vector<double> rescales;  // the usual scaling for numerical stability
-    double zF;  // sum of probabilities from the forward algorithm
-    double zB;  // sum of probabilities from the backward algorithm
 
     std::vector<unsigned> sortedAlnIndices;
     std::vector<unsigned> oldInplayAlnIndices;
