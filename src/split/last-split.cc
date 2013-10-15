@@ -191,7 +191,8 @@ static void printParameters(const LastSplitOptions& opts) {
 	    << " m=" << opts.mismap
 	    << " s=" << opts.score;
   if (opts.isSplicedAlignment) {
-    std::cout << " c=" << opts.cis
+    std::cout << " d=" << opts.direction
+	      << " c=" << opts.cis
 	      << " t=" << opts.trans
 	      << " M=" << opts.mean
 	      << " S=" << opts.sdev;

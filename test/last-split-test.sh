@@ -22,5 +22,9 @@ maf=SRR359290-1k.maf
     last-split -m0.001 -s180 $maf
 
     last-split -n $maf
+
+    last-split -d0 -m0.001 -s180 $maf
+    last-split -d1 -m0.001 -s180 $maf
+    last-split -d2 -m0.001 -s180 $maf
 } |
 diff last-split-test.out -
