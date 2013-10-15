@@ -18,6 +18,7 @@
 
 struct LastSplitOptions {
   std::string genome;
+  int direction;
   double cis;
   double trans;
   double mean;

@@ -18,6 +18,7 @@ static void err(const std::string& s) {
 static void run(int argc, char* argv[]) {
   LastSplitOptions opts;
 
+  opts.direction = 1;
   opts.cis = 0.004;
   opts.trans = 1e-05;
   opts.mean = 7.0;
@@ -47,6 +48,8 @@ come from different parts of the genome.\n\
 Options:\n\
  -h, --help         show this help message and exit\n\
  -g, --genome=NAME  lastdb genome name\n\
+ -d, --direction=D  RNA direction: 0=reverse, 1=forward, 2=mixed (default="
+    + cbrc::stringify(opts.direction) + ")\n\
  -c, --cis=PROB     cis-splice probability per base (default="
     + cbrc::stringify(opts.cis) + ")\n\
  -t, --trans=PROB   trans-splice probability per base (default="
@@ -63,11 +66,12 @@ Options:\n\
  -V, --version      show version information and exit\n\
 ";
 
-  const char sOpts[] = "hg:c:t:M:S:m:s:nvV";
+  const char sOpts[] = "hg:d:c:t:M:S:m:s:nvV";
 
   static struct option lOpts[] = {
     { "help",     no_argument,       0, 'h' },
     { "genome",   required_argument, 0, 'g' },
+    { "direction",required_argument, 0, 'd' },
     { "cis",      required_argument, 0, 'c' },
     { "trans",    required_argument, 0, 't' },
     { "mean",     required_argument, 0, 'M' },
@@ -89,6 +93,10 @@ Options:\n\
     case 'g':
       opts.isSplicedAlignment = true;
       opts.genome = optarg;
+      break;
+    case 'd':
+      opts.isSplicedAlignment = true;
+      cbrc::unstringify(opts.direction, optarg);
       break;
     case 'c':
       opts.isSplicedAlignment = true;

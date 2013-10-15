@@ -62,10 +62,11 @@ static bool less(const cbrc::UnsplitAlignment& a,
     a.rname < b.rname;
 }
 
-static void doOneAlignmentPart(const cbrc::SplitAligner& sa,
+static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       const cbrc::UnsplitAlignment& a,
 			       unsigned alnNum,
 			       unsigned qSliceBeg, unsigned qSliceEnd,
+			       double forwardDirectionProb,
 			       const LastSplitOptions& opts) {
   unsigned alnBeg, alnEnd;
   cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, alnBeg);
@@ -74,7 +75,24 @@ static void doOneAlignmentPart(const cbrc::SplitAligner& sa,
   int score = sa.segmentScore(alnNum, qSliceBeg, qSliceEnd);
   if (score < opts.score) return;
 
-  std::vector<double> p = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
+  std::vector<double> p;
+  if (opts.direction != 0) {
+    p = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
+  }
+  std::vector<double> pRev;
+  if (opts.direction != 1) {
+    sa.flipSpliceSignals();
+    pRev = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
+    sa.flipSpliceSignals();
+  }
+  if (opts.direction == 0) p.swap(pRev);
+  if (opts.direction == 2) {
+    double reverseDirectionProb = 1.0 - forwardDirectionProb;
+    for (unsigned i = 0; i < p.size(); ++i) {
+      p[i] = forwardDirectionProb * p[i] + reverseDirectionProb * pRev[i];
+    }
+  }
+
   assert(!p.empty());
   double mismap = 1.0 - *std::max_element(p.begin(), p.end());
   mismap = std::max(mismap, 1e-10);
@@ -95,21 +113,52 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
   if (opts.verbose) std::cerr << beg->qname;
   sa.initForOneQuery(beg, end);
 
-  sa.forward();
-  sa.backward();
+  if (opts.direction != 0) {
+    sa.forward();
+    sa.backward();
+  }
+  if (opts.direction != 1) {
+    sa.flipSpliceSignals();
+    sa.forward();
+    sa.backward();
+    sa.flipSpliceSignals();
+  }
+
+  double forwardDirectionProb = -1;
+  if (opts.direction == 2) {
+    forwardDirectionProb = sa.spliceSignalStrandProb();
+    if (opts.verbose) std::cerr << "\tforwardProb=" << forwardDirectionProb;
+  }
 
   if (opts.no_split) {
     if (opts.verbose) std::cerr << "\n";
     for (unsigned i = 0; i < end - beg; ++i) {
-      doOneAlignmentPart(sa, beg[i], i, 0, beg->qfullend, opts);
+      doOneAlignmentPart(sa, beg[i], i, 0, beg->qfullend,
+			 forwardDirectionProb, opts);
     }
   } else {
-    long viterbiScore = sa.viterbi();
-    if (opts.verbose) std::cerr << "\t" << viterbiScore;
+    long viterbiScore = LONG_MIN;
+    if (opts.direction != 0) {
+      viterbiScore = sa.viterbi();
+      if (opts.verbose) std::cerr << "\t" << viterbiScore;
+    }
+    long viterbiScoreRev = LONG_MIN;
+    if (opts.direction != 1) {
+      sa.flipSpliceSignals();
+      viterbiScoreRev = sa.viterbi();
+      sa.flipSpliceSignals();
+      if (opts.verbose) std::cerr << "\t" << viterbiScoreRev;
+    }
     std::vector<unsigned> alnNums;
     std::vector<unsigned> queryBegs;
     std::vector<unsigned> queryEnds;
-    sa.traceBack(viterbiScore, alnNums, queryBegs, queryEnds);
+    if (viterbiScore >= viterbiScoreRev) {
+      sa.traceBack(viterbiScore, alnNums, queryBegs, queryEnds);
+    } else {
+      sa.flipSpliceSignals();
+      sa.traceBack(viterbiScoreRev, alnNums, queryBegs, queryEnds);
+      sa.flipSpliceSignals();
+    }
     std::reverse(alnNums.begin(), alnNums.end());
     std::reverse(queryBegs.begin(), queryBegs.end());
     std::reverse(queryEnds.begin(), queryEnds.end());
@@ -117,7 +166,8 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     if (opts.verbose) std::cerr << "\n";
     for (unsigned k = 0; k < alnNums.size(); ++k) {
       unsigned i = alnNums[k];
-      doOneAlignmentPart(sa, beg[i], i, queryBegs[k], queryEnds[k], opts);
+      doOneAlignmentPart(sa, beg[i], i, queryBegs[k], queryEnds[k],
+			 forwardDirectionProb, opts);
     }
   }
 }

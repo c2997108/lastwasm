@@ -79,6 +79,13 @@ public:
     std::vector<double> marginalProbs(unsigned queryBeg, unsigned alnNum,
 				      unsigned alnBeg, unsigned alnEnd) const;
 
+    // Toggles between forward and reverse-complement splice signals
+    void flipSpliceSignals();
+
+    // The probability that the query uses splice signals in the
+    // orientation currently set by flipSpliceSignals()
+    double spliceSignalStrandProb() const;
+
 private:
     typedef std::vector< std::vector<int> > MatrixInt;
     typedef std::vector< std::vector<long> > MatrixLong;
@@ -109,6 +116,12 @@ private:
     MatrixDouble Fmat;  // DP matrix for Forward algorithm
     MatrixDouble Bmat;  // DP matrix for Backward algorithm
     std::vector<double> rescales;  // the usual scaling for numerical stability
+
+    MatrixLong VmatRev;
+    std::vector<long> VvecRev;
+    MatrixDouble FmatRev;
+    MatrixDouble BmatRev;
+    std::vector<double> rescalesRev;
 
     std::vector<unsigned> sortedAlnIndices;
     std::vector<unsigned> oldInplayAlnIndices;

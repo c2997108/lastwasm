@@ -7,6 +7,7 @@ come from different parts of the genome.
 Options:
  -h, --help         show this help message and exit
  -g, --genome=NAME  lastdb genome name
+ -d, --direction=D  RNA direction: 0=reverse, 1=forward, 2=mixed (default=1)
  -c, --cis=PROB     cis-splice probability per base (default=0.004)
  -t, --trans=PROB   trans-splice probability per base (default=1e-05)
  -M, --mean=MEAN    mean of ln[intron length] (default=7)

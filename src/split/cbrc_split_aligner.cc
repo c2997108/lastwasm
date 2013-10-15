@@ -744,6 +744,29 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
     initForwardBackward();
 }
 
+void SplitAligner::flipSpliceSignals() {
+  Vmat.swap(VmatRev);
+  Vvec.swap(VvecRev);
+  Fmat.swap(FmatRev);
+  Bmat.swap(BmatRev);
+  rescales.swap(rescalesRev);
+
+  for (int i = 0; i < 16; ++i) {
+    int j = 15 - ((i%4) * 4 + (i/4));  // reverse-complement
+    std::swap(spliceBegScores[i], spliceEndScores[j]);
+    std::swap(spliceBegProbs[i], spliceEndProbs[j]);
+  }
+}
+
+double SplitAligner::spliceSignalStrandProb() const {
+  assert(rescales.size() == rescalesRev.size());
+  double r = 1.0;
+  for (unsigned j = 0; j < rescales.size(); ++j) {
+    r *= rescalesRev[j] / rescales[j];
+  }  // r might overflow to inf, but that should be OK
+  return 1.0 / (1.0 + r);
+}
+
 // 1st 1 million reads from SRR359290.fastq:
 // lastal -Q1 -e120 hg19/last/female-1111110m
 // last-split-probs -s150 -b.01 splicePrior=0

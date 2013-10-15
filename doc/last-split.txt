@@ -26,9 +26,10 @@ can do the alignment like this::
 Spliced alignment of RNA reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This time, we provide the genome information to last-split, which
-causes it to do spliced instead of split alignment, and also tells it
-where the splice signals are (GT, AG, etc)::
+Now we assume that "q.fastq" has reads from RNA forward strands.  This
+time, we provide the genome information to last-split, which causes it
+to do spliced instead of split alignment, and also tells it where the
+splice signals are (GT, AG, etc)::
 
   lastdb -m1111110 db genome.fasta
   lastal -Q1 -e120 db q.fastq | last-split -g db > out.maf
@@ -147,6 +148,12 @@ Options
          Do spliced alignment, and read splice signals (GT, AG, etc)
          from the named genome.  NAME should be the name of a lastdb
          database.
+
+  -d, --direction=D
+         Do spliced alignment, and set the strandedness of the
+         queries: 0=reverse, 1=forward, 2=unknown/mixed.  This
+         determines whether forward and/or reverse-complement splice
+         signals are used.
 
   -c, --cis=PROB
          Do spliced alignment, and set the average probability per
