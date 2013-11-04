@@ -133,7 +133,7 @@ With large datasets, it's important to go faster by using multiple
 CPUs.  One way to do that is by using GNU parallel
 (http://www.gnu.org/software/parallel/)::
 
-  parallel --pipe -L4 "lastal -Q1 -e120 db - | last-split" < q.fastq > out.maf
+  parallel --pipe -L4 "lastal -Q1 -e120 db | last-split" < q.fastq > out.maf
 
 Beware that older versions of GNU parallel were slow when using --pipe
 -L, so be sure to use a recent version.

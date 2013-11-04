@@ -803,7 +803,11 @@ void lastal( int argc, char** argv ){
   out.precision(3);  // print non-integers more compactly
   countT queryBatchCount = 0;
 
-  for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
+  char defaultInputName[] = "-";
+  char* defaultInput[] = { defaultInputName, 0 };
+  char** inputBegin = argv + args.inputStart;
+
+  for( char** i = *inputBegin ? inputBegin : defaultInput; *i; ++i ){
     std::ifstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );

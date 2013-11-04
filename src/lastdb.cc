@@ -220,7 +220,11 @@ void lastdb( int argc, char** argv ){
   std::vector<countT> letterCounts( alph.size );
   std::vector<countT> letterTotals( alph.size );
 
-  for( char** i = argv + args.inputStart; i < argv + argc; ++i ){
+  char defaultInputName[] = "-";
+  char* defaultInput[] = { defaultInputName, 0 };
+  char** inputBegin = argv + args.inputStart;
+
+  for( char** i = *inputBegin ? inputBegin : defaultInput; *i; ++i ){
     std::ifstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );

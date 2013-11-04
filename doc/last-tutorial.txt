@@ -240,7 +240,7 @@ If you have fasta queries in one file, then instead of this::
 
 Try this::
 
-  parallel --pipe --recstart '>' lastal mydb - < queries.fa > myalns.maf
+  parallel --pipe --recstart '>' lastal mydb < queries.fa > myalns.maf
 
 If you have fastq queries in one file, then instead of this::
 
@@ -248,7 +248,7 @@ If you have fastq queries in one file, then instead of this::
 
 Try this::
 
-  parallel --pipe -L4 lastal -Q1 mydb - < reads.fastq > myalns.maf
+  parallel --pipe -L4 lastal -Q1 mydb < reads.fastq > myalns.maf
 
 (The "-L4" tells it that each fastq record is 4 lines, so there should
 be no line wrapping or blank lines.)

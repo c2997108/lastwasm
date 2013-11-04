@@ -47,8 +47,8 @@ more of them.  The methylation rate would then look higher than 50%.
 We can avoid this bias by converting all Cs in the reads to Ts, before
 aligning them::
 
-  perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_f - > temp_f
-  perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_r - > temp_r
+  perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_f > temp_f
+  perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_r > temp_r
 
 This perl command assumes that the fastq file has uppercase sequences,
 and no line-wrapping or blank lines.  It converts Cs to lowercase Ts:

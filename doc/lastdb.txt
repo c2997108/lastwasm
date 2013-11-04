@@ -21,8 +21,9 @@ like this:
   >My2ndSequence
   TTTAGAGGGTTCTTCGGGATT
 
-If you wish to read standard input (e.g. from a pipe), use the special
-file name "-".
+You can also pipe sequences into lastdb, for example:
+
+  zcat humanChromosome*.fasta.gz | lastdb humanDb
 
 Options
 -------

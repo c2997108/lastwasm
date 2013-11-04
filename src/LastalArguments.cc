@@ -269,7 +269,7 @@ LAST home page: http://last.cbrc.jp/\n\
     ERR( "can't combine option -T 1 with option -j 1" );
 
   if( optionsOnly ) return;
-  if( optind + 1 >= argc )
+  if( optind >= argc )
     ERR( "please give me a database name and sequence file(s)\n\n" + usage );
   lastdbName = argv[optind++];
   inputStart = optind;

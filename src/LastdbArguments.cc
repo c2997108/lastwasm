@@ -118,7 +118,7 @@ LAST home page: http://last.cbrc.jp/\n\
   if( seedPatterns.size() + subsetSeedFiles.size() > maxNumOfIndexes )
     ERR( "too many seed patterns" );
 
-  if( optind + 1 >= argc )
+  if( optind >= argc )
     ERR( "please give me an output name and sequence file(s)\n\n" + usage );
   lastdbName = argv[optind++];
   inputStart = optind;
