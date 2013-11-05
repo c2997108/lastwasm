@@ -49,7 +49,7 @@ strand.
 
 This alignment format is called MAF (multiple alignment format), and
 it is described in the UCSC Genome FAQ.  You can convert it to several
-other formats using maf-convert, which accompanies LAST.
+other formats using maf-convert (see `<maf-convert.html>`_).
 
 Example 2: Compare the cat and mouse genomes
 --------------------------------------------
@@ -124,25 +124,41 @@ Finally, we can find alignments with score at least 22 like this::
 Example 6: Align human DNA reads to the human genome
 ----------------------------------------------------
 
-Let's assume we have DNA reads in a file called reads.fastq, in
+Suppose we have DNA reads in a file called reads.fastq, in
 fastq-sanger format.  We can align them to the human genome like
 this::
 
   lastdb -m1111110 humandb human/chr*.fa
-  lastal -Q1 humandb reads.fastq > myalns.maf
+  lastal -Q1 -e120 humandb reads.fastq | last-split > myalns.maf
 
-The funny-looking -m1111110 option makes it better at finding short,
-strong alignments.  (The default settings are tuned for long, weak
-alignments.)  The -Q1 option indicates that the reads are in
-fastq-sanger format.
+This will use about 15 gigabytes of memory.
 
-Often, one read will align to more than one genome location.  You can
-use last-map-probs to help judge which location reflects the origin of
-the read.  Please see the "typical usage" recipe in
-`<last-map-probs.html>`_.
+* The funny-looking -m1111110 option makes it better at finding short,
+  strong alignments.  (The default settings are tuned for long, weak
+  alignments.)
 
-If you have paired end reads, then last-pair-probs may be useful (see
-`<last-pair-probs.html>`_).
+* The -Q1 option indicates that the reads are in fastq-sanger format.
+  (It also changes the scoring scheme: more on this below.)
+
+* The -e120 option requests alignments with score >= 120.  This is
+  intentionally a somewhat low score (high E-value): last-split then
+  discards alignments with score < 150 (120+30), but it uses them to
+  estimate the ambiguity of alignments with score >= 150.
+
+* last-split reads the alignments produced by lastal, and looks for a
+  unique best alignment for each part of each read.  It allows
+  different parts of one read to match different parts of the genome.
+  It has several useful options, please see `<last-split.html>`_.
+
+If you have paired reads, there are two options:
+
+1. Use last-pair-probs (see `<last-pair-probs.html>`_).
+
+2. Ignore the pairing information, and align the reads individually
+   (using last-split as above).  This may be useful because
+   last-pair-probs does not currently allow different parts of one
+   read to match different parts of the genome, though it does allow
+   the two reads in a pair to match (e.g.) different chromosomes.
 
 Fastq format confusion
 ----------------------
@@ -159,13 +175,11 @@ The default DNA scoring scheme used by lastal is tuned for finding
 long, weak alignments.  It is::
 
   match score = 1,  mismatch cost = 1,  gap cost = 7 + 1 * (gap length),
-  minimum alignment score = 40
 
 However, if you use option -Q1, it uses a different scoring scheme
 tuned for finding short, strong alignments::
 
   match score = 6,  mismatch cost = 18,  gap cost = 21 + 9 * (gap length),
-  minimum alignment score = 180
 
 In the next two examples, we set the scoring scheme by hand.
 
@@ -177,7 +191,7 @@ instead of fastq.  We need to omit the -Q option, but we wish to use
 the same scoring scheme as -Q1::
 
   lastdb -m1111110 humandb human/chr*.fa
-  lastal -r6 -q18 -a21 -b9 -e180 genomedb reads.fa
+  lastal -r6 -q18 -a21 -b9 -e120 humandb reads.fa | last-split > myalns.maf
 
 Example 8: Align aardvark fastq reads to the human genome
 ---------------------------------------------------------
@@ -199,11 +213,11 @@ alignment scores, we reduce the information loss caused by rounding.
 Very short reads
 ----------------
 
-WARNING!  The default score parameters do not align very short reads.
-This is because the match score is 6 and the score threshold is 180,
-so at least 30 high-quality matches are required (or a greater number
+WARNING!  The standard score parameters do not align very short reads.
+This is because the match score is 6 and the score threshold is 150,
+so at least 25 high-quality matches are required (or a greater number
 of low-quality matches).  To align very short reads, reduce the score
-threshold (lastal -e).
+threshold (lastal -e and/or last-split -s).
 
 If the score threshold is too low, you will get meaningless, random
 alignments.
@@ -244,11 +258,11 @@ Try this::
 
 If you have fastq queries in one file, then instead of this::
 
-  lastal -Q1 mydb reads.fastq > myalns.maf
+  lastal -Q1 -e120 db q.fastq | last-split > out.maf
 
 Try this::
 
-  parallel --pipe -L4 lastal -Q1 mydb < reads.fastq > myalns.maf
+  parallel --pipe -L4 "lastal -Q1 -e120 db | last-split" < q.fastq > out.maf
 
 (The "-L4" tells it that each fastq record is 4 lines, so there should
 be no line wrapping or blank lines.)
