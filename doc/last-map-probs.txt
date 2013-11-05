@@ -56,16 +56,12 @@ Details
 Using multiple CPUs
 -------------------
 
-With large datasets, it's important to go faster by using multiple
-CPUs.  One way to do that is by using GNU parallel
-(http://www.gnu.org/software/parallel/)::
+This will run the pipeline on all your CPU cores::
 
-  parallel --pipe -L4 "lastal -Q1 -e120 hu | last-map-probs.py -s150" < reads.fastq > myalns.maf
+  parallel-fastq "lastal -Q1 -e120 hu | last-map-probs.py -s150" < reads.fastq > myalns.maf
 
-The "-L4" tells it that each fastq record is 4 lines, so there should
-be no line wrapping or blank lines.  Beware that older versions of GNU
-parallel were slow when using --pipe -L, so be sure to use a recent
-version.
+It requires GNU parallel to be installed
+(http://www.gnu.org/software/parallel/).
 
 Limitations
 -----------

@@ -234,38 +234,40 @@ Going faster by using multiple CPUs
 -----------------------------------
 
 If you have more than one query sequence, you can go faster by
-aligning them in parallel.  One way to do that is by using GNU
-parallel (http://www.gnu.org/software/parallel/).  (Beware that GNU
-parallel had some efficiency bugs that were fixed in late 2012 / early
-2013, so be sure to use a recent version.)
-
-If you have fasta queries in separate files (e.g. chr*.fa), then
-instead of this::
-
-  lastal mydb chr*.fa > myalns.maf
-
-Try this::
-
-  parallel lastal mydb ::: chr*.fa > myalns.maf
-
-If you have fasta queries in one file, then instead of this::
+aligning them in parallel.  Instead of this::
 
   lastal mydb queries.fa > myalns.maf
 
-Try this::
+try this::
 
-  parallel --pipe --recstart '>' lastal mydb < queries.fa > myalns.maf
+  parallel-fasta "lastal mydb" < queries.fa > myalns.maf
 
-If you have fastq queries in one file, then instead of this::
+Instead of this::
 
   lastal -Q1 -e120 db q.fastq | last-split > out.maf
 
-Try this::
+try this::
 
-  parallel --pipe -L4 "lastal -Q1 -e120 db | last-split" < q.fastq > out.maf
+  parallel-fastq "lastal -Q1 -e120 db | last-split" < q.fastq > out.maf
 
-(The "-L4" tells it that each fastq record is 4 lines, so there should
-be no line wrapping or blank lines.)
+Instead of this::
+
+  zcat queries.fa.gz | lastal mydb > myalns.maf
+
+try this::
+
+  zcat queries.fa.gz | parallel-fasta "lastal mydb" > myalns.maf
+
+Notes:
+
+* These require GNU parallel to be installed
+  (http://www.gnu.org/software/parallel/).
+
+* You can use various GNU parallel options to control the number of
+  simultaneous jobs, use remote computers, etc.
+
+* parallel-fastq assumes that each fastq record is 4 lines, so there
+  should be no line wrapping or blank lines.
 
 Example 9: Ambiguity of alignment columns
 -----------------------------------------

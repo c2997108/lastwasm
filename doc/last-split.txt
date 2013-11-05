@@ -55,6 +55,16 @@ higher probability of trans-splicing::
   lastdb -m1111110 db genome.fasta
   lastal -Q1 -e120 db q.fastq | last-split -c0 -t0.004 -g db > out.maf
 
+Going faster by parallelization
+-------------------------------
+
+For example, split alignment of DNA reads to a genome::
+
+  parallel-fastq "lastal -Q1 -e120 db | last-split" < q.fastq > out.maf
+
+This requires GNU parallel to be installed
+(http://www.gnu.org/software/parallel/).
+
 Output
 ------
 
@@ -125,18 +135,6 @@ without considering splice signals::
 
   lastdb -m1111110 db genome.fasta
   lastal -Q1 -e120 db q.fastq | last-split -c0 > out.maf
-
-Going faster by parallelization
--------------------------------
-
-With large datasets, it's important to go faster by using multiple
-CPUs.  One way to do that is by using GNU parallel
-(http://www.gnu.org/software/parallel/)::
-
-  parallel --pipe -L4 "lastal -Q1 -e120 db | last-split" < q.fastq > out.maf
-
-Beware that older versions of GNU parallel were slow when using --pipe
--L, so be sure to use a recent version.
 
 Options
 -------
