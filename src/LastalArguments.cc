@@ -447,6 +447,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << "# "
 	 << "u=" << maskLowercase << ' '
 	 << "s=" << strand << ' '
+	 << "T=" << globality << ' '
 	 << "m=" << oneHitMultiplicity << ' '
 	 << "l=" << minHitDepth << ' '
          << "n=" << maxGaplessAlignmentsPerQueryPosition << ' '
@@ -455,7 +456,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
 	 << "w=" << maxRepeatDistance << ' '
 	 << "t=" << temperature << ' '
 	 << "g=" << gamma << ' '
-	 << "j=" << outputType << '\n';
+	 << "j=" << outputType << ' '
+	 << "Q=" << inputFormat << '\n';
 
   stream << "# " << lastdbName << '\n';
 }
