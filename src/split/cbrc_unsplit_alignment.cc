@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <climits>
 #include <cmath>
 #include <iostream>
 #include <numeric>  // accumulate
@@ -24,6 +25,23 @@ static const char *strEnd(const std::string& s) {
   return s.c_str() + s.size();
 }
 
+struct Complement {
+  unsigned char c[UCHAR_MAX+1];
+  Complement() {
+    static const char x[] = "ACGTRYSWKMBDHVN";
+    static const char y[] = "TGCAYRSWMKVHDBN";
+    for (unsigned i = 0; i < UCHAR_MAX+1; ++i) c[i] = i;
+    for (unsigned i = 0; x[i] && y[i]; ++i) {
+      c[std::toupper(x[i])] = std::toupper(y[i]);
+      c[std::tolower(x[i])] = std::tolower(y[i]);
+    }
+  }
+  unsigned char operator()(unsigned char x) {
+    return c[x];
+  }
+};
+static Complement complement;
+
 void flipMafStrands(std::vector<std::string>& maf) {
   std::string a, b, c, d;
   for (unsigned i = 0; i < maf.size(); ++i) {
@@ -35,6 +53,7 @@ void flipMafStrands(std::vector<std::string>& maf) {
       if (!iss) err("bad MAF line: " + line);
       x = z - x - y;
       reverse(d.begin(), d.end());
+      transform(d.begin(), d.end(), d.begin(), complement);
       std::ostringstream oss;
       oss << a << ' ' << b << ' ' << x << ' ' << y << ' '
 	  << c << ' ' << z << ' ' << d;

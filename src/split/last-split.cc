@@ -245,10 +245,8 @@ void lastSplit(LastSplitOptions& opts) {
 	  if (name.size() == 1) names.push_back(std::toupper(name[0]));
 	  else break;
 	}
-	if (word == "#" && !names.empty() && !ls) {
+	if (word == "#" && !names.empty() && !ls && scoreMatrix.empty()) {
 	  colNames = names;
-	  rowNames.clear();
-	  scoreMatrix.clear();
 	  state = -1;
 	} else if (startsWith(line, "#")) {
 	  std::istringstream ls(line);

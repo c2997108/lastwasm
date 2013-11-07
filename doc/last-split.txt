@@ -215,9 +215,22 @@ Details
   You can combine both sources of error (roughly) by taking the
   maximum of the two error probabilities for each base.
 
-* The program assumes that the same score parameters were used for all
-  alignments.  So it is incompatible with the recipe in the bisulfite
-  document.
+The following points matter only if you are doing something unusual
+(e.g. bisulfite alignment):
+
+* If the header has more than one score matrix, last-split will use
+  the first one.
+
+* It assumes this score matrix applies to all alignments, when the
+  alignments are oriented to use the forward strand of the query.
+
+Limitations
+-----------
+
+last-split does not support:
+
+* Different scores for insertions and deletions.
+* Generalized affine gap costs.
 
 To do
 -----
