@@ -212,6 +212,7 @@ void lastSplit(LastSplitOptions& opts) {
   std::string rowNames, colNames;
   std::string line, word, name, key;
   int state = 0;
+  int sequenceFormat = -1;
   int gapExistenceCost = -1;
   int gapExtensionCost = -1;
   int lastalScoreThreshold = -1;
@@ -257,6 +258,7 @@ void lastSplit(LastSplitOptions& opts) {
 	    if (key == "b") ws >> gapExtensionCost;
 	    if (key == "e") ws >> lastalScoreThreshold;
 	    if (key == "t") ws >> scale;
+	    if (key == "Q") ws >> sequenceFormat;
 	    if (key == "letters") ws >> genomeSize;
 	  }
 	} else if (!isSpace(line)) {
@@ -265,6 +267,8 @@ void lastSplit(LastSplitOptions& opts) {
 	  if (gapExistenceCost < 0 || gapExtensionCost < 0 ||
 	      lastalScoreThreshold < 0 || scale <= 0 || genomeSize <= 0)
 	    err("can't read the header");
+	  if (sequenceFormat == 2 || sequenceFormat >= 4)
+	    err("unsupported Q format");
 	  if (opts.score < 0)
 	    opts.score = lastalScoreThreshold + scoreFromProb(1000, scale);
 	  int restartCost =
@@ -274,9 +278,10 @@ void lastSplit(LastSplitOptions& opts) {
 	    : 0.0;
 	  int jumpCost =
 	    (jumpProb > 0.0) ? -scoreFromProb(jumpProb, scale) : -(INT_MIN/2);
+	  int qualityOffset = (sequenceFormat == 3) ? 64 : 33;
 	  printParameters(opts);
 	  sa.setParams(-gapExistenceCost, -gapExtensionCost,
-		       -jumpCost, -restartCost, scale);
+		       -jumpCost, -restartCost, scale, qualityOffset);
 	  double splicePrior = opts.isSplicedAlignment ? opts.cis : 0.0;
 	  sa.setSpliceParams(splicePrior, opts.mean, opts.sdev);
 	  sa.setScoreMat(scoreMatrix, rowNames, colNames);

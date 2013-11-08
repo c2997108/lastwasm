@@ -20,7 +20,7 @@ namespace cbrc {
 class SplitAligner {
 public:
     SplitAligner() {
-      setParams(-7, -1, -40, INT_MIN/2, 1.0);  // xxx ???
+      setParams(-7, -1, -40, INT_MIN/2, 1.0, 33);  // xxx ???
       setSpliceParams(0.0, 7.0, 1.7);
     }
 
@@ -32,8 +32,11 @@ public:
     // alignment, in the repeated matches algorithm from chapter 2 of
     // Durbin, Eddy, et al.  In that book, it is called "-T".
 
+    // "qualityOffset" is 33 for fastq-sanger or 64 for fastq-illumina
+
     void setParams(int gapExistenceScoreIn, int gapExtensionScoreIn,
-		   int jumpScoreIn, int restartScoreIn, double scaleIn);
+		   int jumpScoreIn, int restartScoreIn, double scaleIn,
+		   int qualityOffsetIn);
 
     void setSpliceParams(double splicePriorIn,
 			 double meanLogDistIn, double sdevLogDistIn);
@@ -94,6 +97,7 @@ private:
 
     static const int numQualCodes = 64;
     static int score_mat[64][64][numQualCodes];
+    int qualityOffset;
     int gapExistenceScore;
     int gapExtensionScore;
     int jumpScore;

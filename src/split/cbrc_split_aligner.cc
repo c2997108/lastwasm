@@ -552,10 +552,11 @@ void SplitAligner::calcBaseScores(unsigned i) {
   for (unsigned k = 0; j < a.qend; ++k) {
     char x = a.ralign[k];
     char y = a.qalign[k];
-    char q = a.qQual.empty() ? (33 + numQualCodes - 1) : a.qQual[k];
+    int q = a.qQual.empty() ? numQualCodes - 1 : a.qQual[k] - qualityOffset;
+    assert(q >= 0);
     if (y == '-') /* noop */;
     else if (x == '-') cell(Amat, i, j++) = firstGapScore;
-    else cell(Amat, i, j++) = score_mat[x % 64][y % 64][q - 33];
+    else cell(Amat, i, j++) = score_mat[x % 64][y % 64][q];
     // Amazingly, in ASCII, '.' equals 'n' mod 64.
     // So '.' will get the same scores as 'n'.
   }
@@ -799,12 +800,13 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
 
 void SplitAligner::setParams(int gapExistenceScoreIn, int gapExtensionScoreIn,
 			     int jumpScoreIn, int restartScoreIn,
-			     double scaleIn) {
+			     double scaleIn, int qualityOffsetIn) {
   gapExistenceScore = gapExistenceScoreIn;
   gapExtensionScore = gapExtensionScoreIn;
   jumpScore = jumpScoreIn;
   restartScore = restartScoreIn;
   scale = scaleIn;
+  qualityOffset = qualityOffsetIn;
   jumpProb = std::exp(jumpScore / scale);
   restartProb = std::exp(restartScore / scale);
 }
