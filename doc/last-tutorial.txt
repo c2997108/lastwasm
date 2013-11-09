@@ -51,21 +51,7 @@ This alignment format is called MAF (multiple alignment format), and
 it is described in the UCSC Genome FAQ.  You can convert it to several
 other formats using maf-convert (see `<maf-convert.html>`_).
 
-Example 2: Compare the cat and mouse genomes
---------------------------------------------
-
-Although these sequences are much larger, we can compare them in the
-same way as the mitochondrial genomes::
-
-  lastdb -v -c mousedb mouse/chr*.fa
-  lastal -v mousedb cat/chr*.fa > myalns.maf
-
-This might take half a day, and use perhaps 9 gigabytes of memory.  If
-you do not have enough memory, investigate lastdb's -w and -s options.
-The -v (verbose) option just makes it write progress messages on the
-screen.
-
-Example 3: Compare vertebrate proteins to invertebrate proteins
+Example 2: Compare vertebrate proteins to invertebrate proteins
 ---------------------------------------------------------------
 
 Use the lastdb -p option to indicate that the sequences are proteins::
@@ -73,7 +59,7 @@ Use the lastdb -p option to indicate that the sequences are proteins::
   lastdb -p -c invdb invertebrate.fa
   lastal invdb vertebrate.fa
 
-Example 4: Compare DNA sequences to protein sequences
+Example 3: Compare DNA sequences to protein sequences
 -----------------------------------------------------
 
 Here we use the -F15 option, to specify translated alignment with a
@@ -82,7 +68,7 @@ score penalty of 15 for frameshifts::
   lastdb -p -c protdb proteins.fa
   lastal -F15 protdb dnas.fa
 
-Example 5: Calculate E-values of alignment scores
+Example 4: Calculate E-values of alignment scores
 -------------------------------------------------
 
 lastal reports alignments whose score is at least some minimum value,
@@ -121,7 +107,7 @@ Finally, we can find alignments with score at least 22 like this::
   lastdb -c humdb humanMito.fa
   lastal -e22 humdb fuguMito.fa > myalns.maf
 
-Example 6: Align human DNA reads to the human genome
+Example 5: Align human DNA reads to the human genome
 ----------------------------------------------------
 
 Suppose we have DNA reads in a file called reads.fastq, in
@@ -183,7 +169,7 @@ tuned for finding short, strong alignments::
 
 In the next two examples, we set the scoring scheme by hand.
 
-Example 7: Align human fasta reads to the human genome
+Example 6: Align human fasta reads to the human genome
 ------------------------------------------------------
 
 Suppose we have DNA reads in fasta format (without quality data)
@@ -193,7 +179,7 @@ the same scoring scheme as -Q1::
   lastdb -m1111110 humandb human/chr*.fa
   lastal -r6 -q18 -a21 -b9 -e120 humandb reads.fa | last-split > myalns.maf
 
-Example 8: Align aardvark fastq reads to the human genome
+Example 7: Align aardvark fastq reads to the human genome
 ---------------------------------------------------------
 
 In this case we need to use the -Q option, but we wish to find weak
@@ -230,11 +216,31 @@ increasing lastal's m parameter.  The default value is 10.  So -m100
 makes it more slow and sensitive, and -m1000 makes it much more slow
 and sensitive.
 
+Example 8: Compare the cat and mouse genomes
+--------------------------------------------
+
+Here is one reasonable way to compare two such genomes::
+
+  lastdb -c mousedb mouse/chr*.fa
+  lastal -e34 -m100 mousedb cat/chr*.fa | last-split > myalns.maf
+
+This looks for a unique best alignment for each part of each cat
+chromosome.  It might use about 9 gigabytes of memory.  It also might
+take several days, unless we parallelize...
+
 Going faster by using multiple CPUs
 -----------------------------------
 
 If you have more than one query sequence, you can go faster by
-aligning them in parallel.  Instead of this::
+aligning them in parallel.  This can be done with parallel-fasta and
+parallel-fastq (which accompany LAST, but require GNU parallel to be
+installed: http://www.gnu.org/software/parallel/).  These commands
+read sequence data, split it into blocks (with a whole number of
+sequences per block), and run the blocks in parallel through any
+command or pipeline you specify, using all your CPU cores.  Here are
+some examples.
+
+Instead of this::
 
   lastal mydb queries.fa > myalns.maf
 
@@ -260,11 +266,10 @@ try this::
 
 Notes:
 
-* These require GNU parallel to be installed
-  (http://www.gnu.org/software/parallel/).
-
-* You can use various GNU parallel options to control the number of
-  simultaneous jobs, use remote computers, etc.
+* parallel-fasta and parallel-fastq simply execute GNU parallel with a
+  few options for fasta or fastq: you can specify other GNU parallel
+  options to control the number of simultaneous jobs, use remote
+  computers, get the output in the same order as the input, etc.
 
 * parallel-fastq assumes that each fastq record is 4 lines, so there
   should be no line wrapping or blank lines.
