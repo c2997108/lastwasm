@@ -18,72 +18,38 @@ reads are from the converted strand, and not its reverse-complement
 First, we need to run lastdb twice, for forward-strand and
 reverse-strand alignments::
 
-  lastdb -u bisulfite_f.seed my_f mygenome.fa
-  lastdb -u bisulfite_r.seed my_r mygenome.fa
+  lastdb -w2 -u bisulfite_f.seed my_f mygenome.fa
+  lastdb -w2 -u bisulfite_r.seed my_r mygenome.fa
 
-Then find alignments, one strand at a time::
+The .seed files are in the examples directory, and you need to specify
+where they are (e.g. "-u examples/bisulfite_f.seed").  Then, there are
+several steps:
 
-  lastal -p bisulfite_f.mat -s1 -Q1 -e120 my_f reads.fastq > temp_f
-  lastal -p bisulfite_r.mat -s0 -Q1 -e120 my_r reads.fastq > temp_r
+1. Convert all Cs in the reads to Ts.  (Debatable: this slightly
+   degrades LAST's ability to align the reads, but it avoids a bias,
+   due to unconverted DNA being easier to align than converted DNA.)
 
-Take care not to mistype these commands, especially f/r and s1/s0.
-Finally, merge the alignments and estimate which one represents the
-genomic source of each read::
+2. Align the reads, one strand at a time.
 
-  last-merge-batches.py temp_f temp_r | last-map-probs.py -s150 > myalns.maf
+3. Merge the alignments, and find a unique best alignment for each
+   part of each read.
 
-These commands refer to files (bisulfite_f.seed etc), which are in the
-examples directory.  You need to specify exactly where they are
-(e.g. "-u examples/bisulfite_f.seed").
+4. Undo the conversion from step 1.
 
-Avoiding biased methylation estimates
--------------------------------------
+The last-bisulfite script (in the examples directory) carries out
+steps 1-4.  Its usage is::
 
-Imagine that one genomic cytosine is methylated in 50% of cells in
-your sample, so that 50% of reads covering it have C and 50% have T.
-It is possible that the reads with C are easier to align, so we align
-more of them.  The methylation rate would then look higher than 50%.
+  last-bisulfite.sh my_f my_r reads.fastq > results.maf
 
-We can avoid this bias by converting all Cs in the reads to Ts, before
-aligning them::
+You can parallelize it like this::
 
-  perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_f > temp_f
-  perl -pe 'y/C/t/ if $. % 4 == 2' reads.fastq | lastal ... my_r > temp_r
-
-This perl command assumes that the fastq file has uppercase sequences,
-and no line-wrapping or blank lines.  It converts Cs to lowercase Ts:
-lowercase has no effect on the alignment, but it lets you see where
-the Cs were in the output.
+  parallel-fastq "last-bisulfite.sh my_f my_r" < reads.fastq > results.maf
 
 Tips
 ----
 
 * To go faster, try gapless alignment (add -j1 to the lastal options).
   Often, this is only minusculely less accurate than gapped alignment.
-
-* The standard recipe discards alignments that have less than 99%
-  confidence (including multi-mappers).  If you wish to keep these,
-  increase the last-map-probs -m parameter::
-
-    ... | last-map-probs.py -s150 -m0.9 > myalns.maf
-
-* You can avoid temp files by using named pipes::
-
-    mkfifo pipe1 pipe2
-    lastal -p bisulfite_f.mat -s1 -Q1 -e120 my_f reads.fastq > pipe1 &
-    lastal -p bisulfite_r.mat -s0 -Q1 -e120 my_r reads.fastq > pipe2 &
-    last-merge-batches.py pipe1 pipe2 | last-map-probs.py -s150 > myalns.maf
-
-  This probably works best if you have enough memory for both my_f and
-  my_r (~30 GB for the human genome).
-
-* To reduce the memory requirement, use lastdb's -w option::
-
-    lastdb -w2 -u bisulfite_f.seed my_f mygenome.fa
-    lastdb -w2 -u bisulfite_r.seed my_r mygenome.fa
-
-  This makes the named pipe recipe use under 20 GB for the human
-  genome, and the accuracy was not harmed in our tests.
 
 * The .tis files created by lastdb (e.g. my_f.tis, my_r.tis) are
   identical.  So you can shave a few GB by linking them::
@@ -93,16 +59,15 @@ Tips
 Paired-end DNA reads
 --------------------
 
-You can align paired-end reads by combining the recipe in this
-document with the one in `<last-pair-probs.html>`_.  For large
-datasets, you would want to go faster by using multiple CPUs.  This
-gets a bit complicated, so we provide a lastal-bisulfite-paired script
-in the examples directory.  Typical usage::
+You can align paired-end reads by combining the preceding recipe with
+the one in `<last-pair-probs.html>`_.  This gets a bit complicated, so
+we provide a last-bisulfite-paired script in the examples directory.
+Typical usage::
 
   lastdb -w2 -u bisulfite_f.seed my_f mygenome.fa
   lastdb -w2 -u bisulfite_r.seed my_r mygenome.fa
 
-  lastal-bisulfite-paired.sh my_f my_r reads1.fastq reads2.fastq > results.maf
+  last-bisulfite-paired.sh my_f my_r reads1.fastq reads2.fastq > results.maf
 
 This assumes that reads1.fastq are all from the converted strand
 (i.e. they have C->T conversions) and reads2.fastq are all from the
