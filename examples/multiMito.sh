@@ -14,24 +14,17 @@ PATH=$PATH:../src:../scripts
 lastdb -c humanMito humanMito.fa
 
 # Align the mouse sequence to the human sequence:
-# Let's use a score threshold of 25.  Lastex shows that this is a
-# reasonable threshold for sequences of this size.
-lastal -e25 -j4 humanMito mouseMito.fa > hm.maf
-
-# Remove paralogs (if any):
-# this also sorts the alignments into the right order for maf-join.py
-last-reduce-alignments.sh -d hm.maf > hm2.maf
+# (last-split will use a score threshold of 19+6=25)
+lastal -e19 -j4 humanMito mouseMito.fa | last-split | maf-sort.sh > hm.maf
 
 # Align the chicken sequence to the human sequence:
-lastal -e25 -j4 humanMito chickenMito.fa > hc.maf
-last-reduce-alignments.sh -d hc.maf > hc2.maf
+lastal -e19 -j4 humanMito chickenMito.fa | last-split | maf-sort.sh > hc.maf
 
 # Align the fugu sequence to the human sequence:
-lastal -e25 -j4 humanMito fuguMito.fa > hf.maf
-last-reduce-alignments.sh -d hf.maf > hf2.maf
+lastal -e19 -j4 humanMito fuguMito.fa | last-split | maf-sort.sh > hf.maf
 
 # Join the pairwise alignments into a multiple alignment:
-maf-join.py hm2.maf hc2.maf hf2.maf
+maf-join.py hm.maf hc.maf hf.maf
 
 # Clean up the intermediate files that we made:
-rm humanMito*.??? h*.maf
+rm humanMito.??? h?.maf

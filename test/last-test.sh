@@ -112,8 +112,7 @@ db=/tmp/last-test
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
 
-# Test: lastdb, lastal, last-reduce-alignments.sh (maf-sort.sh,
-# last-remove-dominated.py, maf-swap.py), maf-join.py
+# Test: lastdb, lastal, last-split, maf-sort, maf-join
 cd ../examples
 ./multiMito.sh | diff multiMito.maf -
 
