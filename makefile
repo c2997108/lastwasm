@@ -17,9 +17,11 @@ html:
 
 distdir = last-`hg id -n`
 
+RSYNCFLAGS = -rC --exclude 'last??' --exclude last-split
+
 dist: log html
 	@cd src && $(MAKE) version.hh
-	rsync -rC --exclude 'last??' doc examples makefile s* *.txt $(distdir)
+	rsync $(RSYNCFLAGS) doc examples makefile scripts src *.txt $(distdir)
 	zip -qrm $(distdir) $(distdir)
 
 log:
