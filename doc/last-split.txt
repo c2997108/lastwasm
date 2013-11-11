@@ -55,6 +55,16 @@ higher probability of trans-splicing::
   lastdb -m1111110 db genome.fasta
   lastal -Q1 -e120 db q.fastq | last-split -c0 -t0.004 -g db > out.maf
 
+FAQ
+---
+
+:Q: Before aligning RNA, should poly-A tails be trimmed?
+
+:A: It's not essential, but it might make things faster.  Poly-A
+    tracts tend to have many matches in the genome.  By trimming, you
+    can prevent lastal and last-split from wasting time on such
+    matches.
+
 Going faster by parallelization
 -------------------------------
 
