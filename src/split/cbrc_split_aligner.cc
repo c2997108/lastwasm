@@ -932,9 +932,13 @@ static int generalizedScore(double score, double scale, double phredScore,
 			    double letterProb) {
   double r = std::exp(score / scale);
   double p = probFromPhred(phredScore);
-  double u = p / (1 - letterProb);
-  double c = 1 - u;
-  return std::floor(scale * std::log(c * r + u) + 0.5);
+  if (p >= 1) p = 0.999999;  // kludge to avoid numerical instability
+  double otherProb = 1 - letterProb;
+  assert(otherProb > 0);
+  double u = p / otherProb;
+  double x = (1 - u) * r + u;
+  assert(x > 0);
+  return std::floor(scale * std::log(x) + 0.5);
 }
 
 static int min(const std::vector< std::vector<int> >& matrix) {

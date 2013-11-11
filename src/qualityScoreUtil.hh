@@ -31,6 +31,9 @@ inline double qualityUncertainty(int qualityCode, int qualityOffset,
                                  bool isPhred, double letterProb) {
   int q = qualityCode - qualityOffset;
   double errorProb = isPhred ? phredErrorProb(q) : solexaErrorProb(q);
+  // The next line of code is a kludge to avoid numerical instability.
+  // An error probability of 1 is bizarre and probably shouldn't occur anyway.
+  if (errorProb >= 1) errorProb = 0.999999;
   double otherProb = 1 - letterProb;
   assert(letterProb >= 0);
   assert(otherProb > 0);
@@ -39,8 +42,7 @@ inline double qualityUncertainty(int qualityCode, int qualityOffset,
 
 inline int qualityPairScore(double expScore, double uncertainty1,
                             double uncertainty2, double lambda) {
-  double x = (1 - uncertainty1) * (1 - uncertainty2) * expScore
-      + uncertainty1 + uncertainty2 - uncertainty1 * uncertainty2;
+  double x = (1 - uncertainty1) * (1 - uncertainty2) * (expScore - 1) + 1;
   assert(lambda > 0);
   assert(x > 0);
   return nearestInt(std::log(x) / lambda);
