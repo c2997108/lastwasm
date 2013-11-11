@@ -110,7 +110,7 @@ Miscellaneous options (default settings):\n\
                   4=prb, 5=PSSM ("
     + stringify(inputFormat) + ")\n\
 \n\
-Report bugs to: last (ATmark) cbrc (dot) jp\n\
+Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 

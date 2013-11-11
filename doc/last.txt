@@ -106,19 +106,23 @@ LAST's website is: http://last.cbrc.jp/
 Contact
 -------
 
-Email: last (ATmark) cbrc (dot) jp
+Questions and feedback are very welcome.  Please use the public
+mailing list:
+
+  last-align (ATmark) googlegroups (dot) com
 
 Please let us know about any problems, rather than giving up in
 disgust.  Feedback is essential for scientific software like this: we
 cannot solve problems that we are unaware of, and we cannot make it
 useful and convenient without learning how various people actually
 (try to) use it.  It is also valuable to hear success stories, so we
-know what we are doing right.
+know what we are doing right.  Unlike some other software projects, we
+will never send rude or mocking replies.
 
-Having said that, we cannot promise to always help, and please
-describe problems precisely, in particular how to trigger them.
-Unlike some other software projects, we will never send rude or
-mocking replies.
+Having said that, we cannot promise to always help.  If you find an
+error, please tell us the exact error message, the exact commands that
+trigger it, and any other potentially-relevant information (e.g. your
+operating system).
 
 If you do a benchmarking test of LAST, we recommend you contact us to
 check you are using it in a suitable way.  The history of

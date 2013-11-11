@@ -1,4 +1,4 @@
-// Copyright 2011 Martin C. Frith
+// Copyright 2011, 2013 Martin C. Frith
 
 #ifndef QUALITY_SCORE_UTIL_HH
 #define QUALITY_SCORE_UTIL_HH

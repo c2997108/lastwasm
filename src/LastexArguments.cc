@@ -57,7 +57,7 @@ Options (default settings):\n\
 
   std::string help = usage + "\n\
 \n\
-Report bugs to: last (ATmark) cbrc (dot) jp\n\
+Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 

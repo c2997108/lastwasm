@@ -55,7 +55,7 @@ Advanced Options (default settings):\n\
 -x: just count sequences and letters\n\
 -v: be verbose: write messages about what lastdb is doing\n\
 \n\
-Report bugs to: last (ATmark) cbrc (dot) jp\n\
+Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 
