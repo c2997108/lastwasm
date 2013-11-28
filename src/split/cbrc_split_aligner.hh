@@ -97,6 +97,7 @@ private:
 
     static const int numQualCodes = 64;
     static int score_mat[64][64][numQualCodes];
+    int maxMatchScore;
     int qualityOffset;
     int gapExistenceScore;
     int gapExtensionScore;
@@ -158,6 +159,8 @@ private:
     { return std::exp(spliceScore(dist) / scale); }
     void initSpliceCoords();
     void initRnameAndStrandIds();
+
+    int maxJumpScore() const;
 
     void updateInplayAlnIndicesF(unsigned& sortedAlnPos,
 				 unsigned& oldNumInplay,

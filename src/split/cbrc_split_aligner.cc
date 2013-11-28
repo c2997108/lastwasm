@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stddef.h>  // size_t
 #include <stdexcept>
 
 static void err(const std::string& s) {
@@ -21,6 +22,10 @@ static long max(long a, long b, long c, long d) {
 }
 
 namespace cbrc {
+
+template<typename T, int N> T arrayMax(T (&array)[N]) {
+  return *std::max_element(array, array + N);
+}
 
 // Orders candidate alignments by increasing DP start coordinate:
 struct QbegLess {
@@ -694,6 +699,23 @@ void SplitAligner::initForwardBackward() {
   // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
+int SplitAligner::maxJumpScore() const {
+  int m = jumpScore;
+  if (splicePrior > 0.0) {
+    double s = spliceTerm1 - meanLogDist + sdevLogDist * sdevLogDist / 2.0;
+    int maxSpliceScore = std::floor(scale * s + 0.5);
+    m = std::max(m, maxSpliceScore);
+  }
+  if (!chromosomeIndex.empty()) {
+    m += arrayMax(spliceBegScores) + arrayMax(spliceEndScores);
+  }
+  return m;
+}
+
+static size_t dpExtension(size_t maxScore, size_t minScore, size_t divisor) {
+  return (maxScore > minScore) ? (maxScore - minScore) / divisor : 0;
+}
+
 void SplitAligner::initDpBounds() {
   minBeg = -1;
   for (unsigned i = 0; i < numAlns; ++i)
@@ -706,19 +728,43 @@ void SplitAligner::initDpBounds() {
   dpBegs.resize(numAlns);
   dpEnds.resize(numAlns);
 
-  bool isExtend = (jumpProb > 0.0 || splicePrior > 0.0);
+  // We will do dynamic programming along the length of each candidate
+  // alignment.  But sometimes we need to consider "end gaps" and
+  // extend the DP beyond the ends of each candidate.  Here we define
+  // extensions, which aim to be as short as possible, but guarantee
+  // to find the optimal split alignment score.  (Currently, they are
+  // not as short as possible: this could be improved.)  We use these
+  // facts:
 
-  // If we are doing the repeated matches algorithm without any cis-
-  // or trans-splicing, then we only need to do dynamic programming
-  // along the length of each candidate alignment.  Otherwise, we need
-  // to consider "end gaps" and extend the DP beyond the ends of each
-  // candidate.  This extension is very inefficient for long query
-  // sequences with many short candidate alignments: this is a real
-  // problem, and there are probably ways to mitigate it...
+  // The highest possible score for a given length is
+  // length * maxMatchScore
+
+  // An extension of length x must have a (negative) score <=
+  // maxJumpScore + gapExistenceScore + gapExtensionScore * x
+
+  assert(gapExtensionScore < 0);
+  assert(maxMatchScore >= 0);
+
+  size_t oldDiv = -gapExtensionScore;
+  size_t newDiv = maxMatchScore - gapExtensionScore;
+
+  size_t minScore = -1;
+  if (jumpProb > 0.0 || splicePrior > 0.0) {
+    int m = maxJumpScore();
+    assert(m + gapExistenceScore <= 0);
+    minScore = 1 - (m + gapExistenceScore);
+  }
 
   for (unsigned i = 0; i < numAlns; ++i) {
-    dpBegs[i] = isExtend ? minBeg : alns[i].qstart;
-    dpEnds[i] = isExtend ? maxEnd : alns[i].qend;
+    size_t b = alns[i].qstart;
+    size_t bo = dpExtension(maxMatchScore * (maxEnd - b), minScore, oldDiv);
+    size_t bn = dpExtension(maxMatchScore * (b - minBeg), minScore, newDiv);
+    dpBegs[i] = b - std::min(bo, bn);
+
+    size_t e = alns[i].qend;
+    size_t eo = dpExtension(maxMatchScore * (e - minBeg), minScore, oldDiv);
+    size_t en = dpExtension(maxMatchScore * (maxEnd - e), minScore, newDiv);
+    dpEnds[i] = e + std::min(eo, en);
   }
 }
 
@@ -941,6 +987,14 @@ static int generalizedScore(double score, double scale, double phredScore,
   return std::floor(scale * std::log(x) + 0.5);
 }
 
+static int max(const std::vector< std::vector<int> >& matrix) {
+  int m = matrix.at(0).at(0);
+  for (unsigned i = 0; i < matrix.size(); ++i)
+    for (unsigned j = 0; j < matrix[i].size(); ++j)
+      m = std::max(m, matrix[i][j]);
+  return m;
+}
+
 static int min(const std::vector< std::vector<int> >& matrix) {
   int m = matrix.at(0).at(0);
   for (unsigned i = 0; i < matrix.size(); ++i)
@@ -994,6 +1048,8 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
       }
     }
   }
+
+  maxMatchScore = max(matrix);
 }
 
 }
