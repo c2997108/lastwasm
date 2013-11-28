@@ -219,6 +219,7 @@ long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
     if (rnameAndStrandIds[k] > iSeq) break;
     unsigned kBeg = cell(spliceBegCoords, k, j);
     if (iEnd <= kBeg) continue;
+    if (iEnd - kBeg > maxSpliceDist) continue;
     int s = iScore + spliceBegScore(k, j) + spliceScore(iEnd - kBeg);
     score = std::max(score, cell(Vmat, k, j) + s);
   }
@@ -403,6 +404,7 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
     if (rnameAndStrandIds[k] > iSeq) break;
     unsigned kBeg = cell(spliceBegCoords, k, j);
     if (iEnd <= kBeg) continue;
+    if (iEnd - kBeg > maxSpliceDist) continue;
     double p = iProb * spliceBegProb(k, j) * spliceProb(iEnd - kBeg);
     sum += cell(Fmat, k, j) * p;
   }
@@ -429,6 +431,7 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
     if (rnameAndStrandIds[k] > iSeq) break;
     unsigned kEnd = cell(spliceEndCoords, k, j);
     if (kEnd <= iBeg) continue;
+    if (kEnd - iBeg > maxSpliceDist) continue;
     double p = iProb * spliceEndProb(k, j) * spliceProb(kEnd - iBeg);
     sum += cell(Bmat, k, j) * p;
   }
@@ -842,6 +845,22 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
   const double rootTwoPi = std::sqrt(8.0 * std::atan(1.0));
   spliceTerm1 = -std::log(sdevLogDist * rootTwoPi / splicePrior);
   spliceTerm2 = -1.0 / (2.0 * sdevLogDist * sdevLogDist);
+
+  // Set maxSpliceDist so as to ignore splices whose score would be
+  // less than jumpScore.  By solving this quadratic equation:
+  // spliceTerm1 + spliceTerm2 * (logDist - meanLogDist)^2 - logDist =
+  // jumpScore / scale
+  double s2 = sdevLogDist * sdevLogDist;
+  double r = s2 + 2 * (spliceTerm1 - meanLogDist - jumpScore / scale);
+  if (r < 0) {
+    maxSpliceDist = 0;
+  } else {
+    double logMode = meanLogDist - s2;  // ln(mode of log-normal distribution)
+    double maxLogDist = logMode + sdevLogDist * std::sqrt(r);
+    double maxDist = std::exp(maxLogDist);
+    maxSpliceDist = -1;  // maximum possible unsigned value
+    if (maxDist < maxSpliceDist) maxSpliceDist = std::floor(maxDist);
+  }
 }
 
 void SplitAligner::setParams(int gapExistenceScoreIn, int gapExtensionScoreIn,
@@ -917,6 +936,10 @@ void SplitAligner::setSpliceSignals() {
 void SplitAligner::printParameters() const {
   if (jumpProb > 0.0) {
     std::cout << "# trans=" << jumpScore << "\n";
+  }
+
+  if (splicePrior > 0.0 && jumpProb > 0.0) {
+    std::cout << "# cismax=" << maxSpliceDist << "\n";
   }
 
   if (!chromosomeIndex.empty()) {

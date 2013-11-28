@@ -14646,6 +14646,7 @@ p                                        888888888888888888888888888888888888888
 # batch 0
 # m=0.01 s=150 d=1 c=0.004 t=1e-05 M=7.5 S=2
 # trans=-148
+# cismax=15271201
 #
 a score=221 mismap=1e-10
 s chr1           160106735 75 + 249250621 TTCTTTGCCAGCATCGTGGTGGTGCAGTGGGCTGACCTCATCATCTGCAAGACCCGCCGCAACTCAGTCTTCCAG
@@ -28888,6 +28889,7 @@ p                                        888888888888888888888888888888888888888
 # batch 0
 # m=0.001 s=180 d=0 c=0.004 t=1e-05 M=7 S=1.7
 # trans=-148
+# cismax=4086718
 #
 a score=221 mismap=1e-10
 s chr1           160106735 75 + 249250621 TTCTTTGCCAGCATCGTGGTGGTGCAGTGGGCTGACCTCATCATCTGCAAGACCCGCCGCAACTCAGTCTTCCAG
@@ -33468,6 +33470,7 @@ p                                }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 # batch 0
 # m=0.001 s=180 d=1 c=0.004 t=1e-05 M=7 S=1.7
 # trans=-148
+# cismax=4086718
 #
 a score=221 mismap=1e-10
 s chr1           160106735 75 + 249250621 TTCTTTGCCAGCATCGTGGTGGTGCAGTGGGCTGACCTCATCATCTGCAAGACCCGCCGCAACTCAGTCTTCCAG
@@ -38048,6 +38051,7 @@ p                                }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 # batch 0
 # m=0.001 s=180 d=2 c=0.004 t=1e-05 M=7 S=1.7
 # trans=-148
+# cismax=4086718
 #
 a score=221 mismap=1e-10
 s chr1           160106735 75 + 249250621 TTCTTTGCCAGCATCGTGGTGGTGCAGTGGGCTGACCTCATCATCTGCAAGACCCGCCGCAACTCAGTCTTCCAG

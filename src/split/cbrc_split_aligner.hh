@@ -137,6 +137,7 @@ private:
     double sdevLogDist;
     double spliceTerm1;
     double spliceTerm2;
+    unsigned maxSpliceDist;
     MatrixUnsigned spliceBegCoords;
     MatrixUnsigned spliceEndCoords;
     std::vector<unsigned> rnameAndStrandIds;
