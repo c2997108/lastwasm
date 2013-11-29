@@ -27,54 +27,86 @@ template<typename T, int N> T arrayMax(T (&array)[N]) {
   return *std::max_element(array, array + N);
 }
 
-// Orders candidate alignments by increasing DP start coordinate:
+// Orders candidate alignments by increasing DP start coordinate.
+// Breaks ties by chromosome & strand, then by increasing genomic
+// start coordinate.
 struct QbegLess {
-  QbegLess(const unsigned *b, const unsigned *r)
-    : dpBegs(b), rnameAndStrandIds(r) {}
+  QbegLess(const unsigned *b, const unsigned *r, const unsigned *rb)
+    : dpBegs(b), rnameAndStrandIds(r), rBegs(rb) {}
 
   bool operator()(unsigned a, unsigned b) const {
-    return
-      dpBegs[a] != dpBegs[b] ? dpBegs[a] < dpBegs[b] :
-      rnameAndStrandIds[a] < rnameAndStrandIds[b];
+    return dpBegs[a] != dpBegs[b]
+      ? dpBegs[a] < dpBegs[b]
+      : rnameAndStrandIds[a] != rnameAndStrandIds[b]
+      ? rnameAndStrandIds[a] < rnameAndStrandIds[b]
+      : rBegs[a] < rBegs[b];
   }
 
   const unsigned *dpBegs;
   const unsigned *rnameAndStrandIds;
+  const unsigned *rBegs;
 };
 
-// Orders candidate alignments by decreasing DP end coordinate:
+// Orders candidate alignments by decreasing DP end coordinate.
+// Breaks ties by chromosome & strand, then by decreasing genomic end
+// coordinate.
 struct QendLess {
-  QendLess(const unsigned *e, const unsigned *r)
-    : dpEnds(e), rnameAndStrandIds(r) {}
+  QendLess(const unsigned *e, const unsigned *r, const unsigned *re)
+    : dpEnds(e), rnameAndStrandIds(r), rEnds(re) {}
 
   bool operator()(unsigned a, unsigned b) const {
-    return
-      dpEnds[a] != dpEnds[b] ? dpEnds[a] > dpEnds[b] :
-      rnameAndStrandIds[a] < rnameAndStrandIds[b];
+    return dpEnds[a] != dpEnds[b]
+      ? dpEnds[a] > dpEnds[b]
+      : rnameAndStrandIds[a] != rnameAndStrandIds[b]
+      ? rnameAndStrandIds[a] < rnameAndStrandIds[b]
+      : rEnds[a] > rEnds[b];
   }
 
   const unsigned *dpEnds;
   const unsigned *rnameAndStrandIds;
+  const unsigned *rEnds;
 };
 
-// Orders candidate alignments by chromosome & strand:
+// Orders candidate alignments by: chromosome & strand, then
+// increasing genomic start coordinate.
 struct RbegLess {
-  RbegLess(const unsigned *r) : rnameAndStrandIds(r) {}
+  RbegLess(const unsigned *r, const unsigned *rb)
+    : rnameAndStrandIds(r), rBegs(rb) {}
 
   bool operator()(unsigned a, unsigned b) const {
-    return rnameAndStrandIds[a] < rnameAndStrandIds[b];
+    return rnameAndStrandIds[a] != rnameAndStrandIds[b]
+      ? rnameAndStrandIds[a] < rnameAndStrandIds[b]
+      : rBegs[a] < rBegs[b];
   }
 
   const unsigned *rnameAndStrandIds;
+  const unsigned *rBegs;
+};
+
+// Orders candidate alignments by: chromosome & strand, then
+// decreasing genomic end coordinate.
+struct RendLess {
+  RendLess(const unsigned *r, const unsigned *re)
+    : rnameAndStrandIds(r), rEnds(re) {}
+
+  bool operator()(unsigned a, unsigned b) const {
+    return rnameAndStrandIds[a] != rnameAndStrandIds[b]
+      ? rnameAndStrandIds[a] < rnameAndStrandIds[b]
+      : rEnds[a] > rEnds[b];
+  }
+
+  const unsigned *rnameAndStrandIds;
+  const unsigned *rEnds;
 };
 
 // Merges the elements of the sorted range [beg2,end2) into the sorted
 // range [beg1,end1).  Assumes it's OK to add elements past end1.
-static void mergeInto(unsigned* beg1,
-		      unsigned* end1,
-                      const unsigned* beg2,
-                      const unsigned* end2,
-                      const RbegLess& lessFunc) {
+template<typename T>
+void mergeInto(unsigned* beg1,
+	       unsigned* end1,
+	       const unsigned* beg2,
+	       const unsigned* end2,
+	       T lessFunc) {
   unsigned* end3 = end1 + (end2 - beg2);
   for (;;) {
     if (beg2 == end2)
@@ -217,6 +249,7 @@ long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
     if (rnameAndStrandIds[k] > iSeq) break;
+    if (rBegs[k] >= iEnd) break;
     unsigned kBeg = cell(spliceBegCoords, k, j);
     if (iEnd <= kBeg) continue;
     if (iEnd - kBeg > maxSpliceDist) continue;
@@ -253,7 +286,7 @@ void SplitAligner::updateInplayAlnIndicesF(unsigned& sortedAlnPos,
             &newInplayAlnIndices[0] + newNumInplay,
             &sortedAlnIndices[0] + sortedAlnOldPos,
             &sortedAlnIndices[0] + sortedAlnPos,
-            RbegLess(&rnameAndStrandIds[0]));
+            RbegLess(&rnameAndStrandIds[0], &rBegs[0]));
 
   newNumInplay += (sortedAlnPos - sortedAlnOldPos);
 }
@@ -284,7 +317,7 @@ void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
             &newInplayAlnIndices[0] + newNumInplay,
             &sortedAlnIndices[0] + sortedAlnOldPos,
             &sortedAlnIndices[0] + sortedAlnPos,
-            RbegLess(&rnameAndStrandIds[0]));
+            RendLess(&rnameAndStrandIds[0], &rEnds[0]));
 
   newNumInplay += (sortedAlnPos - sortedAlnOldPos);
 }
@@ -298,7 +331,7 @@ long SplitAligner::viterbi() {
     long scoreFromJump = INT_MIN/2;
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-		QbegLess(&dpBegs[0], &rnameAndStrandIds[0]));
+		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -402,6 +435,7 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
     if (rnameAndStrandIds[k] > iSeq) break;
+    if (rBegs[k] >= iEnd) break;
     unsigned kBeg = cell(spliceBegCoords, k, j);
     if (iEnd <= kBeg) continue;
     if (iEnd - kBeg > maxSpliceDist) continue;
@@ -429,6 +463,7 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
     if (rnameAndStrandIds[k] > iSeq) break;
+    if (rEnds[k] <= iBeg) break;
     unsigned kEnd = cell(spliceEndCoords, k, j);
     if (kEnd <= iBeg) continue;
     if (kEnd - iBeg > maxSpliceDist) continue;
@@ -451,7 +486,7 @@ void SplitAligner::forward() {
     double zF = 0.0;  // sum of probabilities from the forward algorithm
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-		QbegLess(&dpBegs[0], &rnameAndStrandIds[0]));
+		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -493,7 +528,7 @@ void SplitAligner::backward() {
     //double zB = 0.0;  // sum of probabilities from the backward algorithm
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-		QendLess(&dpEnds[0], &rnameAndStrandIds[0]));
+		QendLess(&dpEnds[0], &rnameAndStrandIds[0], &rEnds[0]));
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -642,6 +677,7 @@ void SplitAligner::initSpliceCoords() {
       else                  k += genome.finishedSize() - genome.seqEnd(c);
     }
 
+    rBegs[i] = k;
     cell(spliceBegCoords, i, j) = k;
     while (j < a.qstart) {
       cell(spliceEndCoords, i, j) = k;
@@ -660,6 +696,7 @@ void SplitAligner::initSpliceCoords() {
       cell(spliceBegCoords, i, j) = k;
     }
     cell(spliceEndCoords, i, j) = k;
+    rEnds[i] = k;
   }
 }
 
@@ -784,6 +821,9 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
     for (unsigned i = 0; i < numAlns; ++i) sortedAlnIndices[i] = i;
     oldInplayAlnIndices.resize(numAlns);
     newInplayAlnIndices.resize(numAlns);
+
+    rBegs.resize(numAlns);
+    rEnds.resize(numAlns);
 
     if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
         initSpliceCoords();

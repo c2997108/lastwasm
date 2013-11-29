@@ -140,6 +140,8 @@ private:
     unsigned maxSpliceDist;
     MatrixUnsigned spliceBegCoords;
     MatrixUnsigned spliceEndCoords;
+    std::vector<unsigned> rBegs;  // genomic beg coordinate of each candidate
+    std::vector<unsigned> rEnds;  // genomic end coordinate of each candidate
     std::vector<unsigned> rnameAndStrandIds;
     MultiSequence genome;
     Alphabet alphabet;
