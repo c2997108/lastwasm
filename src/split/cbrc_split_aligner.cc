@@ -595,11 +595,13 @@ void SplitAligner::calcBaseScores(unsigned i) {
   for (unsigned k = 0; j < a.qend; ++k) {
     char x = a.ralign[k];
     char y = a.qalign[k];
-    int q = a.qQual.empty() ? numQualCodes - 1 : a.qQual[k] - qualityOffset;
-    assert(q >= 0);
     if (y == '-') /* noop */;
     else if (x == '-') cell(Amat, i, j++) = firstGapScore;
-    else cell(Amat, i, j++) = score_mat[x % 64][y % 64][q];
+    else {
+      int q = a.qQual.empty() ? numQualCodes - 1 : a.qQual[k] - qualityOffset;
+      assert(q >= 0);
+      cell(Amat, i, j++) = score_mat[x % 64][y % 64][q];
+    }
     // Amazingly, in ASCII, '.' equals 'n' mod 64.
     // So '.' will get the same scores as 'n'.
   }
