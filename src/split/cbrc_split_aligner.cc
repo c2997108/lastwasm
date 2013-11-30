@@ -239,15 +239,17 @@ long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
   long score = LONG_MIN;
   unsigned iSeq = rnameAndStrandIds[i];
   unsigned iEnd = cell(spliceEndCoords, i, j);
-  int iScore = spliceEndScore(i, j);
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
     if (rnameAndStrandIds[k] < iSeq) continue;
-    if (rnameAndStrandIds[k] > iSeq) break;
+    if (rnameAndStrandIds[k] > iSeq) return score;
+    if (rBegs[k] >= iEnd) return score;
     unsigned kBeg = cell(spliceBegCoords, k, j);
     if (kBeg >= rBegs[i] || rBegs[i] - kBeg <= maxSpliceDist) break;
   }
+
+  int iScore = spliceEndScore(i, j);
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
@@ -428,15 +430,17 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
   double sum = 0.0;
   unsigned iSeq = rnameAndStrandIds[i];
   unsigned iEnd = cell(spliceEndCoords, i, j);
-  double iProb = spliceEndProb(i, j);
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
     if (rnameAndStrandIds[k] < iSeq) continue;
-    if (rnameAndStrandIds[k] > iSeq) break;
+    if (rnameAndStrandIds[k] > iSeq) return sum;
+    if (rBegs[k] >= iEnd) return sum;
     unsigned kBeg = cell(spliceBegCoords, k, j);
     if (kBeg >= rBegs[i] || rBegs[i] - kBeg <= maxSpliceDist) break;
   }
+
+  double iProb = spliceEndProb(i, j);
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
@@ -459,15 +463,17 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
   double sum = 0.0;
   unsigned iSeq = rnameAndStrandIds[i];
   unsigned iBeg = cell(spliceBegCoords, i, j);
-  double iProb = spliceBegProb(i, j);
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
     if (rnameAndStrandIds[k] < iSeq) continue;
-    if (rnameAndStrandIds[k] > iSeq) break;
+    if (rnameAndStrandIds[k] > iSeq) return sum;
+    if (rEnds[k] <= iBeg) return sum;
     unsigned kEnd = cell(spliceEndCoords, k, j);
     if (kEnd <= rEnds[i] || kEnd - rEnds[i] <= maxSpliceDist) break;
   }
+
+  double iProb = spliceBegProb(i, j);
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
