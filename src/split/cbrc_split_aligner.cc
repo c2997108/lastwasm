@@ -243,7 +243,10 @@ long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
-    if (rnameAndStrandIds[k] >= iSeq) break;
+    if (rnameAndStrandIds[k] < iSeq) continue;
+    if (rnameAndStrandIds[k] > iSeq) break;
+    unsigned kBeg = cell(spliceBegCoords, k, j);
+    if (kBeg >= rBegs[i] || rBegs[i] - kBeg <= maxSpliceDist) break;
   }
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
@@ -429,7 +432,10 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
-    if (rnameAndStrandIds[k] >= iSeq) break;
+    if (rnameAndStrandIds[k] < iSeq) continue;
+    if (rnameAndStrandIds[k] > iSeq) break;
+    unsigned kBeg = cell(spliceBegCoords, k, j);
+    if (kBeg >= rBegs[i] || rBegs[i] - kBeg <= maxSpliceDist) break;
   }
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
@@ -457,7 +463,10 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
-    if (rnameAndStrandIds[k] >= iSeq) break;
+    if (rnameAndStrandIds[k] < iSeq) continue;
+    if (rnameAndStrandIds[k] > iSeq) break;
+    unsigned kEnd = cell(spliceEndCoords, k, j);
+    if (kEnd <= rEnds[i] || kEnd - rEnds[i] <= maxSpliceDist) break;
   }
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
