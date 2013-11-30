@@ -143,6 +143,9 @@ private:
     std::vector<unsigned> rBegs;  // genomic beg coordinate of each candidate
     std::vector<unsigned> rEnds;  // genomic end coordinate of each candidate
     std::vector<unsigned> rnameAndStrandIds;
+    std::vector<int> spliceScoreTable;  // lookup table
+    std::vector<double> spliceProbTable;  // lookup table
+    unsigned spliceTableSize;
     MultiSequence genome;
     Alphabet alphabet;
     typedef std::map<std::string, unsigned> StringNumMap;
@@ -157,9 +160,13 @@ private:
     int spliceEndScore(unsigned i, unsigned j) const;
     double spliceBegProb(unsigned i, unsigned j) const;
     double spliceEndProb(unsigned i, unsigned j) const;
-    int spliceScore(double dist) const;
-    double spliceProb(double dist) const
-    { return std::exp(spliceScore(dist) / scale); }
+    int calcSpliceScore(double dist) const;
+    int spliceScore(unsigned d) const
+    { return d < spliceTableSize ? spliceScoreTable[d] : calcSpliceScore(d); }
+    double calcSpliceProb(double dist) const
+    { return std::exp(calcSpliceScore(dist) / scale); }
+    double spliceProb(unsigned d) const
+    { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
     void initSpliceCoords();
     void initRnameAndStrandIds();
 

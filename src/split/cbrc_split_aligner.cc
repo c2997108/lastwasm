@@ -126,7 +126,7 @@ void mergeInto(unsigned* beg1,
 int SplitAligner::score_mat[64][64][numQualCodes];
 
 // The score for a cis-splice with the given distance (i.e. intron length)
-int SplitAligner::spliceScore(double dist) const {
+int SplitAligner::calcSpliceScore(double dist) const {
     double logDist = std::log(dist);
     double d = logDist - meanLogDist;
     double s = spliceTerm1 + spliceTerm2 * d * d - logDist;
@@ -902,6 +902,15 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
     double maxDist = std::exp(maxLogDist);
     maxSpliceDist = -1;  // maximum possible unsigned value
     if (maxDist < maxSpliceDist) maxSpliceDist = std::floor(maxDist);
+  }
+
+  spliceTableSize = 256 * 256 * 64;
+  spliceTableSize = std::min(spliceTableSize, maxSpliceDist);
+  spliceScoreTable.resize(spliceTableSize);
+  spliceProbTable.resize(spliceTableSize);
+  for (unsigned i = 0; i < spliceTableSize; ++i) {
+    spliceScoreTable[i] = calcSpliceScore(i);
+    spliceProbTable[i] = calcSpliceProb(i);
   }
 }
 
