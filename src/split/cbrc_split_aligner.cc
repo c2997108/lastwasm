@@ -177,36 +177,6 @@ unsigned SplitAligner::spliceEndSignal(unsigned coordinate,
   }
 }
 
-// Score for starting a splice at position j in the i-th candidate alignment
-int SplitAligner::spliceBegScore(unsigned i, unsigned j) const {
-  if (chromosomeIndex.empty()) return 0;
-  unsigned coordinate = cell(spliceBegCoords, i, j);
-  char strand = alns[i].qstrand[0];
-  return spliceBegScores[spliceBegSignal(coordinate, strand)];
-}
-
-double SplitAligner::spliceBegProb(unsigned i, unsigned j) const {
-  if (chromosomeIndex.empty()) return 1;
-  unsigned coordinate = cell(spliceBegCoords, i, j);
-  char strand = alns[i].qstrand[0];
-  return spliceBegProbs[spliceBegSignal(coordinate, strand)];
-}
-
-// Score for ending a splice at position j in the i-th candidate alignment
-int SplitAligner::spliceEndScore(unsigned i, unsigned j) const {
-  if (chromosomeIndex.empty()) return 0;
-  unsigned coordinate = cell(spliceEndCoords, i, j);
-  char strand = alns[i].qstrand[0];
-  return spliceEndScores[spliceEndSignal(coordinate, strand)];
-}
-
-double SplitAligner::spliceEndProb(unsigned i, unsigned j) const {
-  if (chromosomeIndex.empty()) return 1;
-  unsigned coordinate = cell(spliceEndCoords, i, j);
-  char strand = alns[i].qstrand[0];
-  return spliceEndProbs[spliceEndSignal(coordinate, strand)];
-}
-
 unsigned SplitAligner::findScore(unsigned j, long score) const {
   for (unsigned i = 0; i < numAlns; ++i) {
     if (dpBeg(i) >= j || dpEnd(i) < j) continue;
@@ -717,6 +687,20 @@ void SplitAligner::initSpliceCoords() {
   }
 }
 
+void SplitAligner::initSpliceSignals() {
+  resizeMatrix(spliceBegSignals, 1);
+  resizeMatrix(spliceEndSignals, 1);
+
+  for (unsigned i = 0; i < numAlns; ++i) {
+    char strand = alns[i].qstrand[0];
+    unsigned len = dpEnd(i) - dpBeg(i);
+    for (unsigned j = 0; j <= len; ++j) {
+      spliceBegSignals[i][j] = spliceBegSignal(spliceBegCoords[i][j], strand);
+      spliceEndSignals[i][j] = spliceEndSignal(spliceEndCoords[i][j], strand);
+    }
+  }
+}
+
 struct RnameAndStrandLess {
   RnameAndStrandLess(const UnsplitAlignment *a) : alns(a) {}
 
@@ -844,6 +828,7 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
 
     if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
         initSpliceCoords();
+	if (!chromosomeIndex.empty()) initSpliceSignals();
 	//initRnameAndStrandIds();
     }
     initRnameAndStrandIds();

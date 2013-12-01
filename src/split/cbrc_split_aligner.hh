@@ -94,6 +94,7 @@ private:
     typedef std::vector< std::vector<long> > MatrixLong;
     typedef std::vector< std::vector<unsigned> > MatrixUnsigned;
     typedef std::vector< std::vector<double> > MatrixDouble;
+    typedef std::vector< std::vector<unsigned char> > MatrixUchar;
 
     static const int numQualCodes = 64;
     static int score_mat[64][64][numQualCodes];
@@ -140,6 +141,8 @@ private:
     unsigned maxSpliceDist;
     MatrixUnsigned spliceBegCoords;
     MatrixUnsigned spliceEndCoords;
+    MatrixUchar spliceBegSignals;
+    MatrixUchar spliceEndSignals;
     std::vector<unsigned> rBegs;  // genomic beg coordinate of each candidate
     std::vector<unsigned> rEnds;  // genomic end coordinate of each candidate
     std::vector<unsigned> rnameAndStrandIds;
@@ -156,10 +159,22 @@ private:
     double spliceEndProbs[4 * 4 + 1];
     unsigned spliceBegSignal(unsigned coordinate, char strand) const;
     unsigned spliceEndSignal(unsigned coordinate, char strand) const;
-    int spliceBegScore(unsigned i, unsigned j) const;
-    int spliceEndScore(unsigned i, unsigned j) const;
-    double spliceBegProb(unsigned i, unsigned j) const;
-    double spliceEndProb(unsigned i, unsigned j) const;
+    int spliceBegScore(unsigned i, unsigned j) const {
+      if (chromosomeIndex.empty()) return 0;
+      return spliceBegScores[cell(spliceBegSignals, i, j)];
+    }
+    int spliceEndScore(unsigned i, unsigned j) const {
+      if (chromosomeIndex.empty()) return 0;
+      return spliceEndScores[cell(spliceEndSignals, i, j)];
+    }
+    double spliceBegProb(unsigned i, unsigned j) const {
+      if (chromosomeIndex.empty()) return 1;
+      return spliceBegProbs[cell(spliceBegSignals, i, j)];
+    }
+    double spliceEndProb(unsigned i, unsigned j) const {
+      if (chromosomeIndex.empty()) return 1;
+      return spliceEndProbs[cell(spliceEndSignals, i, j)];
+    }
     int calcSpliceScore(double dist) const;
     int spliceScore(unsigned d) const
     { return d < spliceTableSize ? spliceScoreTable[d] : calcSpliceScore(d); }
@@ -168,6 +183,7 @@ private:
     double spliceProb(unsigned d) const
     { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
     void initSpliceCoords();
+    void initSpliceSignals();
     void initRnameAndStrandIds();
 
     int maxJumpScore() const;
