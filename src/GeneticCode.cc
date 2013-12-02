@@ -3,7 +3,6 @@
 #include "GeneticCode.hh"
 #include "Alphabet.hh"
 #include <cctype>  // toupper, tolower, islower
-#include <cstddef>  // size_t
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -43,7 +42,7 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
 
   genome2residue.assign( UNKNOWN, 'X' );
 
-  for( unsigned int i = 0 ; i < AAs.size() ; i++ ){
+  for( size_t i = 0 ; i < AAs.size() ; i++ ){
     char aminoAcid = std::toupper( AAs[i] );
 
     for( int x = 0; x < 2; ++x ){
@@ -93,10 +92,10 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
 
 //
 void GeneticCode::translate( const uchar* beg, const uchar* end, uchar* dest ){
-  std::size_t size = end - beg;
+  size_t size = end - beg;
 
-  for( unsigned int i = 0 ; i < 3 ; i++ ){
-    for( unsigned int j = i ; j+2 < size ; j+=3 ){
+  for( size_t i = 0 ; i < 3 ; i++ ){
+    for( size_t j = i ; j+2 < size ; j+=3 ){
       *dest++ = genome2residue[codon2number( &beg[j] )];
     }
 

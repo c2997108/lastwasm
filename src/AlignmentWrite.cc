@@ -32,17 +32,17 @@ void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated,
 			  std::ostream& os ) const{
-  indexT alnBeg1 = beg1();
-  indexT alnEnd1 = end1();
-  indexT w1 = seq1.whichSequence(alnBeg1);
-  indexT seqStart1 = seq1.seqBeg(w1);
+  size_t alnBeg1 = beg1();
+  size_t alnEnd1 = end1();
+  size_t w1 = seq1.whichSequence(alnBeg1);
+  size_t seqStart1 = seq1.seqBeg(w1);
 
-  indexT size2 = seq2.finishedSize();
-  indexT frameSize2 = isTranslated ? (size2 / 3) : 0;
-  indexT alnBeg2 = aaToDna( beg2(), frameSize2 );
-  indexT alnEnd2 = aaToDna( end2(), frameSize2 );
-  indexT w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
-  indexT seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
+  size_t size2 = seq2.finishedSize();
+  size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
+  size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
+  size_t alnEnd2 = aaToDna( end2(), frameSize2 );
+  size_t w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
+  size_t seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
   os << score << '\t';
 
@@ -109,17 +109,17 @@ static char* sprintChar( char* dest, char c ){
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated, const Alphabet& alph,
 			  std::ostream& os ) const{
-  indexT alnBeg1 = beg1();
-  indexT alnEnd1 = end1();
-  indexT w1 = seq1.whichSequence(alnBeg1);
-  indexT seqStart1 = seq1.seqBeg(w1);
+  size_t alnBeg1 = beg1();
+  size_t alnEnd1 = end1();
+  size_t w1 = seq1.whichSequence(alnBeg1);
+  size_t seqStart1 = seq1.seqBeg(w1);
 
-  indexT size2 = seq2.finishedSize();
-  indexT frameSize2 = isTranslated ? (size2 / 3) : 0;
-  indexT alnBeg2 = aaToDna( beg2(), frameSize2 );
-  indexT alnEnd2 = aaToDna( end2(), frameSize2 );
-  indexT w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
-  indexT seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
+  size_t size2 = seq2.finishedSize();
+  size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
+  size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
+  size_t alnEnd2 = aaToDna( end2(), frameSize2 );
+  size_t w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
+  size_t seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
   const std::string n1 = seq1.seqName(w1);
   const std::string n2 = seq2.seqName(w2);
@@ -202,7 +202,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   os << '\n';  // blank line afterwards
 }
 
-size_t Alignment::numColumns( indexT frameSize ) const{
+size_t Alignment::numColumns( size_t frameSize ) const{
   size_t num = 0;
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
@@ -213,7 +213,7 @@ size_t Alignment::numColumns( indexT frameSize ) const{
       num += i->beg1() - j->end1();
 
       // length of unaligned chunk of bottom sequence (gaps in top sequence):
-      indexT gap2, frameshift2;
+      size_t gap2, frameshift2;
       sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
       if( frameshift2 ) ++num;
       num += gap2;
@@ -234,7 +234,7 @@ static char* writeGaps( char* dest, size_t num ){
 }
 
 char* Alignment::writeTopSeq( const uchar* seq, const Alphabet& alph,
-			      indexT frameSize, char* dest ) const{
+			      size_t frameSize, char* dest ) const{
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
@@ -243,7 +243,7 @@ char* Alignment::writeTopSeq( const uchar* seq, const Alphabet& alph,
       dest = alph.rtCopy( seq + j->end1(), seq + i->beg1(), dest );
 
       // append gaps for unaligned chunk of bottom sequence:
-      indexT gap2, frameshift2;
+      size_t gap2, frameshift2;
       sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
       if( frameshift2 ) *dest++ = '-';
       dest = writeGaps( dest, gap2 );
@@ -257,7 +257,7 @@ char* Alignment::writeTopSeq( const uchar* seq, const Alphabet& alph,
 }
 
 char* Alignment::writeBotSeq( const uchar* seq, const Alphabet& alph,
-			      indexT frameSize, char* dest ) const{
+			      size_t frameSize, char* dest ) const{
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
@@ -266,7 +266,7 @@ char* Alignment::writeBotSeq( const uchar* seq, const Alphabet& alph,
       dest = writeGaps( dest, i->beg1() - j->end1() );
 
       //append unaligned chunk of bottom sequence:
-      indexT gap2, frameshift2;
+      size_t gap2, frameshift2;
       sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
       if( frameshift2 == 1 ) *dest++ = '\\';
       if( frameshift2 == 2 ) *dest++ = '/';

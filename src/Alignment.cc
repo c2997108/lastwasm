@@ -75,7 +75,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix, int smMax,
 			   const GeneralizedAffineGapCosts& gap, int maxDrop,
-			   int frameshiftCost, indexT frameSize,
+			   int frameshiftCost, size_t frameSize,
 			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2,
@@ -102,8 +102,8 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
-  indexT seedBeg1 = seed.beg1();
-  indexT seedBeg2 = aaToDna( seed.beg2(), frameSize );
+  size_t seedBeg1 = seed.beg1();
+  size_t seedBeg2 = aaToDna( seed.beg2(), frameSize );
   for( IT(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     i->start1 = seedBeg1 - i->start1 - i->size;
     i->start2 = dnaToAa( seedBeg2 - i->start2, frameSize ) - i->size;
@@ -118,8 +118,8 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
-  indexT seedEnd1 = seed.end1();
-  indexT seedEnd2 = aaToDna( seed.end2(), frameSize );
+  size_t seedEnd1 = seed.end1();
+  size_t seedEnd2 = aaToDna( seed.end2(), frameSize );
   for( IT(SegmentPair) i = forwardBlocks.begin(); i < forwardBlocks.end();
        ++i ){
     i->start1 = seedEnd1 + i->start1;
@@ -157,7 +157,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix, int maxDrop,
 			   const GeneralizedAffineGapCosts& gap,
-			   int frameshiftCost, indexT frameSize,
+			   int frameshiftCost, size_t frameSize,
 			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2 ){
@@ -166,13 +166,13 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
-      indexT gapBeg1 = (i-1)->end1();
-      indexT gapEnd1 = i->beg1();
-      indexT gapSize1 = gapEnd1 - gapBeg1;
+      size_t gapBeg1 = (i-1)->end1();
+      size_t gapEnd1 = i->beg1();
+      size_t gapSize1 = gapEnd1 - gapBeg1;
 
-      indexT gapBeg2 = (i-1)->end2();
-      indexT gapEnd2 = i->beg2();
-      indexT gapSize2, frameshift2;
+      size_t gapBeg2 = (i-1)->end2();
+      size_t gapEnd2 = i->beg2();
+      size_t gapSize2, frameshift2;
       sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize2, frameshift2 );
       if( frameshift2 ) runningScore -= frameshiftCost;
 
@@ -207,11 +207,11 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< uchar >& ambiguityCodes,
 			GappedXdropAligner& aligner, Centroid& centroid,
 			const uchar* seq1, const uchar* seq2,
-			indexT start1, indexT start2,
+			size_t start1, size_t start2,
 			bool isForward, int globality,
 			const ScoreMatrixRow* sm, int smMax, int maxDrop,
 			const GeneralizedAffineGapCosts& gap,
-			int frameshiftCost, indexT frameSize,
+			int frameshiftCost, size_t frameSize,
 			const ScoreMatrixRow* pssm2,
                         const TwoQualityScoreMatrix& sm2qual,
                         const uchar* qual1, const uchar* qual2,
@@ -223,8 +223,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     assert( !sm2qual );
     assert( gap.isSymmetric() );
 
-    indexT f = aaToDna( start2, frameSize ) + 1;
-    indexT r = aaToDna( start2, frameSize ) - 1;
+    size_t f = aaToDna( start2, frameSize ) + 1;
+    size_t r = aaToDna( start2, frameSize ) - 1;
 
     const uchar* frame0 = seq2 + start2;
     const uchar* frame1 = seq2 + dnaToAa( isForward ? f : r, frameSize );

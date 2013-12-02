@@ -23,8 +23,6 @@ class Centroid;
 class TwoQualityScoreMatrix;
 
 struct Alignment{
-  typedef SegmentPair::indexT indexT;
-
   // make a single-block alignment:
   void fromSegmentPair( const SegmentPair& sp );
 
@@ -37,7 +35,7 @@ struct Alignment{
 		  const uchar* seq1, const uchar* seq2, int globality,
 		  const ScoreMatrixRow* scoreMatrix, int smMax,
 		  const GeneralizedAffineGapCosts& gap, int maxDrop,
-		  int frameshiftCost, indexT frameSize,
+		  int frameshiftCost, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2,
@@ -50,7 +48,7 @@ struct Alignment{
   bool isOptimal( const uchar* seq1, const uchar* seq2, int globality,
                   const ScoreMatrixRow* scoreMatrix, int maxDrop,
                   const GeneralizedAffineGapCosts& gap,
-		  int frameshiftCost, indexT frameSize,
+		  int frameshiftCost, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2 );
@@ -67,20 +65,20 @@ struct Alignment{
   std::vector<double> expectedCounts;  // expected emission & transition counts
   double fullScore;  // a.k.a. forward score, sum-of-paths score
 
-  indexT beg1() const{ return blocks.front().beg1(); }
-  indexT beg2() const{ return blocks.front().beg2(); }
-  indexT end1() const{ return blocks.back().end1(); }
-  indexT end2() const{ return blocks.back().end2(); }
+  size_t beg1() const{ return blocks.front().beg1(); }
+  size_t beg2() const{ return blocks.front().beg2(); }
+  size_t end1() const{ return blocks.back().end1(); }
+  size_t end2() const{ return blocks.back().end2(); }
 
   void extend( std::vector< SegmentPair >& chunks,
 	       std::vector< uchar >& ambiguityCodes,
 	       GappedXdropAligner& aligner, Centroid& centroid,
 	       const uchar* seq1, const uchar* seq2,
-	       indexT start1, indexT start2,
+	       size_t start1, size_t start2,
 	       bool isForward, int globality,
 	       const ScoreMatrixRow* sm, int smMax, int maxDrop,
 	       const GeneralizedAffineGapCosts& gap,
-	       int frameshiftCost, indexT frameSize,
+	       int frameshiftCost, size_t frameSize,
 	       const ScoreMatrixRow* pssm2,
                const TwoQualityScoreMatrix& sm2qual,
                const uchar* qual1, const uchar* qual2,
@@ -93,13 +91,13 @@ struct Alignment{
 		 char strand, bool isTranslated, const Alphabet& alph,
 		 std::ostream& os ) const;
 
-  size_t numColumns( indexT frameSize ) const;
+  size_t numColumns( size_t frameSize ) const;
 
   char* writeTopSeq( const uchar* seq, const Alphabet& alph,
-		     indexT frameSize, char* dest ) const;
+		     size_t frameSize, char* dest ) const;
 
   char* writeBotSeq( const uchar* seq, const Alphabet& alph,
-		     indexT frameSize, char* dest ) const;
+		     size_t frameSize, char* dest ) const;
 
   char* writeTopQual( const uchar* qualities,
 		      size_t qualsPerBase, char* dest ) const;

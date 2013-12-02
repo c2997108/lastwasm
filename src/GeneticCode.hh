@@ -7,6 +7,7 @@
 #include <vector>
 #include <iosfwd>
 #include <cassert>
+#include <stddef.h>  // size_t
 
 namespace cbrc{
 
@@ -46,29 +47,29 @@ class GeneticCode
 };
 
 // Convert an amino-acid (translated) coordinate to a DNA coordinate
-inline unsigned aaToDna( unsigned aaCoordinate, unsigned frameSize ){
+inline size_t aaToDna( size_t aaCoordinate, size_t frameSize ){
   if( frameSize == 0 ) return aaCoordinate;  // for non-translated sequences
-  unsigned frame = aaCoordinate / frameSize;
-  unsigned offset = aaCoordinate % frameSize;
+  size_t frame = aaCoordinate / frameSize;
+  size_t offset = aaCoordinate % frameSize;
   return frame + offset * 3;
 }
 
 // Convert a DNA coordinate to an amino-acid (translated) coordinate
-inline unsigned dnaToAa( unsigned dnaCoordinate, unsigned frameSize ){
+inline size_t dnaToAa( size_t dnaCoordinate, size_t frameSize ){
   if( frameSize == 0 ) return dnaCoordinate;  // for non-translated sequences
-  unsigned frame = dnaCoordinate % 3;
-  unsigned offset = dnaCoordinate / 3;
+  size_t frame = dnaCoordinate % 3;
+  size_t offset = dnaCoordinate / 3;
   return frame * frameSize + offset;
 }
 
 // Convert begin and end coordinates to a size and a frameshift
-inline void sizeAndFrameshift( unsigned beg, unsigned end,
-			       unsigned frameSize,  // 0 means not translated
-			       unsigned& size, unsigned& frameshift ){
+inline void sizeAndFrameshift( size_t beg, size_t end,
+			       size_t frameSize,  // 0 means not translated
+			       size_t& size, size_t& frameshift ){
   if( frameSize ){  // if it's a translated sequence:
-    unsigned dnaBeg = aaToDna( beg, frameSize );
-    unsigned dnaEnd = aaToDna( end, frameSize );
-    unsigned dnaSize = dnaEnd - dnaBeg;
+    size_t dnaBeg = aaToDna( beg, frameSize );
+    size_t dnaEnd = aaToDna( end, frameSize );
+    size_t dnaSize = dnaEnd - dnaBeg;
     assert( dnaBeg <= dnaEnd + 1 );  // allow a -1 frameshift
     size = ( dnaSize + 1 ) / 3;
     frameshift = ( dnaSize + 3 ) % 3;
