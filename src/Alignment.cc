@@ -234,7 +234,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
                              sm, gap.delExist, gap.delExtend, gap.pairExtend,
 			     frameshiftCost, maxDrop, smMax );
 
-    std::size_t end1, end2, size;
+    size_t end1, end2, size;
     // This should be OK even if end2 < size * 3:
     while( aligner.getNextChunk3( end1, end2, size,
 				  gap.delExist, gap.delExtend, gap.pairExtend,
@@ -270,7 +270,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   score += extensionScore;
 
   if( outputType < 5 || outputType == 7 ){  // ordinary max-score alignment
-    std::size_t end1, end2, size;
+    size_t end1, end2, size;
     while( aligner.getNextChunk( end1, end2, size,
 				 gap.delExist, gap.delExtend,
 				 gap.insExist, gap.insExtend,

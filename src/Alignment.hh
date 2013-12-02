@@ -6,7 +6,7 @@
 #define ALIGNMENT_HH
 #include "ScoreMatrixRow.hh"
 #include "SegmentPair.hh"
-#include <cstddef>  // size_t
+#include <stddef.h>  // size_t
 #include <string>
 #include <vector>
 #include <iosfwd>
@@ -93,7 +93,7 @@ struct Alignment{
 		 char strand, bool isTranslated, const Alphabet& alph,
 		 std::ostream& os ) const;
 
-  std::size_t numColumns( indexT frameSize ) const;
+  size_t numColumns( indexT frameSize ) const;
 
   char* writeTopSeq( const uchar* seq, const Alphabet& alph,
 		     indexT frameSize, char* dest ) const;
@@ -102,10 +102,10 @@ struct Alignment{
 		     indexT frameSize, char* dest ) const;
 
   char* writeTopQual( const uchar* qualities,
-		      std::size_t qualsPerBase, char* dest ) const;
+		      size_t qualsPerBase, char* dest ) const;
 
   char* writeBotQual( const uchar* qualities,
-		      std::size_t qualsPerBase, char* dest ) const;
+		      size_t qualsPerBase, char* dest ) const;
 };
 
 }  // end namespace cbrc

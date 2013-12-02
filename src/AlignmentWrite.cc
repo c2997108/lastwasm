@@ -138,8 +138,8 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   const int rw = std::max( r1size, r2size );
   const int sw = std::max( s1size, s2size );
 
-  std::size_t headLen = 2 + nw + 1 + bw + 1 + rw + 3 + sw + 1;
-  std::size_t lineLen = headLen + numColumns( frameSize2 ) + 1;
+  size_t headLen = 2 + nw + 1 + bw + 1 + rw + 3 + sw + 1;
+  size_t lineLen = headLen + numColumns( frameSize2 ) + 1;
   std::vector<char> lineVector( lineLen );
   char* line = &lineVector[0];
   line[ lineLen - 1 ] = '\n';
@@ -202,8 +202,8 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   os << '\n';  // blank line afterwards
 }
 
-std::size_t Alignment::numColumns( indexT frameSize ) const{
-  std::size_t num = 0;
+size_t Alignment::numColumns( indexT frameSize ) const{
+  size_t num = 0;
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
@@ -282,7 +282,7 @@ char* Alignment::writeBotSeq( const uchar* seq, const Alphabet& alph,
 
 static char* writeQuals( const uchar* qualities,
 			 Alignment::indexT beg, Alignment::indexT end,
-			 std::size_t qualsPerBase, char* dest ){
+			 size_t qualsPerBase, char* dest ){
   for( Alignment::indexT i = beg; i < end; ++i ){
     const uchar* q = qualities + i * qualsPerBase;
     *dest++ = *std::max_element( q, q + qualsPerBase );
@@ -291,7 +291,7 @@ static char* writeQuals( const uchar* qualities,
 }
 
 char* Alignment::writeTopQual( const uchar* qualities,
-			       std::size_t qualsPerBase, char* dest ) const{
+			       size_t qualsPerBase, char* dest ) const{
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
@@ -313,7 +313,7 @@ char* Alignment::writeTopQual( const uchar* qualities,
 }
 
 char* Alignment::writeBotQual( const uchar* qualities,
-			       std::size_t qualsPerBase, char* dest ) const{
+			       size_t qualsPerBase, char* dest ) const{
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;

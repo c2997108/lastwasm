@@ -414,7 +414,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
   // Redo the gapless extensions, using gapped score parameters.
   // Without this, if we self-compare a huge sequence, we risk getting
   // huge gapped extensions.
-  for( std::size_t i = 0; i < gaplessAlns.size(); ++i ){
+  for( size_t i = 0; i < gaplessAlns.size(); ++i ){
     SegmentPair& sp = gaplessAlns.items[i];
 
     int fs = dis.forwardGaplessScore( sp.beg1(), sp.beg2() );
@@ -435,7 +435,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
   LOG( "redone gapless alignments=" << gaplessAlns.size() );
 
-  for( std::size_t i = 0; i < gaplessAlns.size(); ++i ){
+  for( size_t i = 0; i < gaplessAlns.size(); ++i ){
     SegmentPair& sp = gaplessAlns.get(i);
 
     if( SegmentPairPot::isMarked(sp) ) continue;
@@ -496,7 +496,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
 
   LOG( "finishing..." );
 
-  for( std::size_t i = 0; i < gappedAlns.size(); ++i ){
+  for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
       aln.write( text, query, strand, args.isTranslated(),
