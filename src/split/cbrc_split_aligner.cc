@@ -908,9 +908,10 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
   spliceTableSize = std::min(spliceTableSize, maxSpliceDist);
   spliceScoreTable.resize(spliceTableSize);
   spliceProbTable.resize(spliceTableSize);
-  for (unsigned i = 0; i < spliceTableSize; ++i) {
-    spliceScoreTable[i] = calcSpliceScore(i);
-    spliceProbTable[i] = calcSpliceProb(i);
+  for (unsigned i = 1; i < spliceTableSize; ++i) {
+    int s = calcSpliceScore(i);
+    spliceScoreTable[i] = s;
+    spliceProbTable[i] = std::exp(s / scale);
   }
 }
 
