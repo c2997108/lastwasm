@@ -16,7 +16,7 @@
 using namespace cbrc;
 
 // write x - y as a signed integer
-static void writeSignedDifference( unsigned x, unsigned y, std::ostream& os ){
+static void writeSignedDifference( size_t x, size_t y, std::ostream& os ){
   if( x >= y )  os << x - y;
   else          os << '-' << y - x;
 }
@@ -62,12 +62,12 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
       CI(SegmentPair) j = i - 1;
       if( j->size ) os << ',';
-      indexT gapBeg1 = j->end1();
-      indexT gapEnd1 = i->beg1();
+      size_t gapBeg1 = j->end1();
+      size_t gapEnd1 = i->beg1();
       writeSignedDifference( gapEnd1, gapBeg1, os );  // allow -1 frameshift
       os << ':';
-      indexT gapBeg2 = aaToDna( j->end2(), frameSize2 );
-      indexT gapEnd2 = aaToDna( i->beg2(), frameSize2 );
+      size_t gapBeg2 = aaToDna( j->end2(), frameSize2 );
+      size_t gapEnd2 = aaToDna( i->beg2(), frameSize2 );
       writeSignedDifference( gapEnd2, gapBeg2, os );  // allow -1 frameshift
       if( i->size ) os << ',';
     }
@@ -79,8 +79,8 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   os << '\n';
 }
 
-static int mySprintf( char* buffer, unsigned x ){
-  return std::sprintf( buffer, "%u", x );
+static int mySprintf( char* buffer, unsigned long x ){
+  return std::sprintf( buffer, "%lu", x );
 }
 
 // Printing with either C++ streams or sprintf can be noticeably slow.
@@ -225,7 +225,7 @@ size_t Alignment::numColumns( indexT frameSize ) const{
   return num;
 }
 
-static char* writeGaps( char* dest, Alignment::indexT num ){
+static char* writeGaps( char* dest, size_t num ){
   char* end = dest + num;
   while( dest < end ){
     *dest++ = '-';
@@ -280,10 +280,9 @@ char* Alignment::writeBotSeq( const uchar* seq, const Alphabet& alph,
   return dest;
 }
 
-static char* writeQuals( const uchar* qualities,
-			 Alignment::indexT beg, Alignment::indexT end,
+static char* writeQuals( const uchar* qualities, size_t beg, size_t end,
 			 size_t qualsPerBase, char* dest ){
-  for( Alignment::indexT i = beg; i < end; ++i ){
+  for( size_t i = beg; i < end; ++i ){
     const uchar* q = qualities + i * qualsPerBase;
     *dest++ = *std::max_element( q, q + qualsPerBase );
   }
