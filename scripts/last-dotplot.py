@@ -28,9 +28,9 @@ parser.add_option("-f", "--fontfile", dest="fontfile",
                   help="TrueType or OpenType font file")
 parser.add_option("-s", "--fontsize", type="int", dest="fontsize", default=11,
                   help="TrueType or OpenType font size (default: %default)")
-parser.add_option("-c", "--forwardcolor", dest="forwardcolor", default="black",
+parser.add_option("-c", "--forwardcolor", dest="forwardcolor", default="red",
                   help="Color for forward alignments (default: %default)")
-parser.add_option("-r", "--reversecolor", dest="reversecolor", default="black",
+parser.add_option("-r", "--reversecolor", dest="reversecolor", default="blue",
                   help="Color for reverse alignments (default: %default)")
 (opts, args) = parser.parse_args()
 if len(args) != 2: parser.error("2 arguments needed")
@@ -41,7 +41,7 @@ else:              font = ImageFont.load_default()
 # Make these options too?
 text_color = "black"
 background_color = "white"
-pix_tween_seqs = 3  # number of border pixels between sequences
+pix_tween_seqs = 2  # number of border pixels between sequences
 border_shade = 239, 239, 239  # the shade of grey to use for border pixels
 label_space = 5     # minimum number of pixels between axis labels
 
