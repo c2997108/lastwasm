@@ -1,4 +1,4 @@
-// Copyright 2009, 2010, 2011 Martin C. Frith
+// Copyright 2009, 2010, 2011, 2013 Martin C. Frith
 
 #include "MultiSequence.hh"
 #include "stringify.hh"
@@ -41,6 +41,7 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
     stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
     while( qualityScores.v.size() < seq.v.size() && stream >> c ){  // skips WS
+      if (c > 126) ERR( "non-printable-ASCII in FASTQ quality data" );
       qualityScores.v.push_back(c);
     }
 

@@ -585,6 +585,7 @@ void SplitAligner::calcBaseScores(unsigned i) {
     else {
       int q = a.qQual.empty() ? numQualCodes - 1 : a.qQual[k] - qualityOffset;
       assert(q >= 0);
+      assert(q < numQualCodes);
       cell(Amat, i, j++) = score_mat[x % 64][y % 64][q];
     }
     // Amazingly, in ASCII, '.' equals 'n' mod 64.
