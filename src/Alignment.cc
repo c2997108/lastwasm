@@ -102,10 +102,11 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
   // convert left-extension coordinates to sequence coordinates:
-  size_t seedBeg1 = seed.beg1();
-  size_t seedBeg2 = aaToDna( seed.beg2(), frameSize );
+  SegmentPair::indexT seedBeg1 = seed.beg1();
+  SegmentPair::indexT seedBeg2 = aaToDna( seed.beg2(), frameSize );
   for( IT(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     i->start1 = seedBeg1 - i->start1 - i->size;
+    // careful: i->start2 might be -1 (reverse frameshift)
     i->start2 = dnaToAa( seedBeg2 - i->start2, frameSize ) - i->size;
   }
 
@@ -118,11 +119,12 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
   // convert right-extension coordinates to sequence coordinates:
-  size_t seedEnd1 = seed.end1();
-  size_t seedEnd2 = aaToDna( seed.end2(), frameSize );
+  SegmentPair::indexT seedEnd1 = seed.end1();
+  SegmentPair::indexT seedEnd2 = aaToDna( seed.end2(), frameSize );
   for( IT(SegmentPair) i = forwardBlocks.begin(); i < forwardBlocks.end();
        ++i ){
     i->start1 = seedEnd1 + i->start1;
+    // careful: i->start2 might be -1 (reverse frameshift)
     i->start2 = dnaToAa( seedEnd2 + i->start2, frameSize );
   }
 
