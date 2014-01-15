@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2011, 2012, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2011, 2012, 2013, 2014 Martin C. Frith
 
 #include "Alignment.hh"
 #include "Alphabet.hh"
@@ -101,6 +101,8 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
 
+  if( score == -INF ) return;  // avoid the bizarre-seed assert
+
   // convert left-extension coordinates to sequence coordinates:
   SegmentPair::indexT seedBeg1 = seed.beg1();
   SegmentPair::indexT seedBeg2 = aaToDna( seed.beg2(), frameSize );
@@ -117,6 +119,8 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 	  seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
+
+  if( score == -INF ) return;  // avoid the bizarre-seed assert
 
   // convert right-extension coordinates to sequence coordinates:
   SegmentPair::indexT seedEnd1 = seed.end1();
