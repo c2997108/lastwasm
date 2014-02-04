@@ -43,6 +43,18 @@ public:
 
   static const char* yassSeed;  // A DNA seed pattern, used by YASS
 
+  // This converts a mask to a set of strings in the I/O format.
+  // The mask is something like: "1110TT,1001T1".  The "1"s are
+  // must-match positions, the "0"s are don't care positions, and "T"
+  // or "t" allows transitions but not transversions.  For consistency
+  // with YASS/Iedera, you can also use "#" for match, "@" for
+  // transition, and "_" or "-" for don't care.  You can have multiple
+  // seed patterns separated by commas, which get returned as separate
+  // strings.  The alph indicates the letters that can occur in "1"
+  // and "0" positions.
+  static std::vector<std::string> fromMask( const std::string& alph,
+					    const std::string& mask );
+
   void clear() { subsetLists.clear(); subsetMaps.clear(); }
 
   void fromFile( const std::string& fileName,
@@ -53,15 +65,6 @@ public:
 
   void fromStream( std::istream& stream,
 		   bool isMaskLowercase, const uchar letterCode[] );
-
-  // The mask is something like: "1110TT1001T1".  The "1"s are
-  // must-match positions, the "0"s are don't care positions, and "T"
-  // or "t" allows transitions but not transversions.  For consistency
-  // with YASS/Iedera, you can also use "#" for match, "@" for
-  // transition, and "_" or "-" for don't care.
-  void fromMask( const std::string& mask,
-		 const std::string& alph,
-		 bool isMaskLowercase, const uchar letterCode[] );
 
   void appendPosition( std::istream& inputLine,
 		       bool isMaskLowercase, const uchar letterCode[] );

@@ -48,6 +48,16 @@ bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
 
 const unsigned maxNumOfIndexes = 16;
 
+static void addSeeds( SubsetSuffixArray indexes[], unsigned& numOfIndexes,
+		      const std::vector<std::string>& seedStrings,
+		      const LastdbArguments& args, const Alphabet& alph ){
+  for( unsigned x = 0; x < seedStrings.size(); ++x ){
+    if( numOfIndexes >= maxNumOfIndexes ) ERR( "too many seed patterns" );
+    CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
+    seed.fromString( seedStrings[x], args.isCaseSensitive, alph.encode );
+  }
+}
+
 // Set up the seed pattern(s), and return how many of them there are
 unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 			  const LastdbArguments& args, const Alphabet& alph ){
@@ -63,18 +73,18 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 
   for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
     const std::string& mask = args.seedPatterns[x];
-    if( numOfIndexes >= maxNumOfIndexes ) ERR( "too many seed patterns" );
-    CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
-    seed.fromMask( mask, a, args.isCaseSensitive, alph.encode );
+    std::vector<std::string> s = CyclicSubsetSeed::fromMask( a, mask );
+    addSeeds( indexes, numOfIndexes, s, args, alph );
   }
 
   if( numOfIndexes == 0 ){
-    CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
     if( alph.letters == alph.dna ){
+      CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
       seed.fromString( seed.yassSeed, args.isCaseSensitive, alph.encode );
     }
     else{
-      seed.fromMask( "1", a, args.isCaseSensitive, alph.encode );
+      std::vector<std::string> s = CyclicSubsetSeed::fromMask( a, "1" );
+      addSeeds( indexes, numOfIndexes, s, args, alph );
     }
   }
 

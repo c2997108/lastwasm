@@ -77,12 +77,8 @@ static std::string exactSeed( const std::string& letters ){
   return result;
 }
 
-void CyclicSubsetSeed::fromMask( const std::string& mask,
-				 const std::string& alph,
-				 bool isMaskLowercase,
-				 const uchar letterCode[] ){
-  clear();
-
+std::vector<std::string> CyclicSubsetSeed::fromMask( const std::string& alph,
+						     const std::string& mask ){
   std::string es = exactSeed(alph);
   const char* seedAlph[256] = {0};
   seedAlph['1'] = es.c_str();
@@ -94,13 +90,23 @@ void CyclicSubsetSeed::fromMask( const std::string& mask,
   seedAlph['t'] = "AG CT";
   seedAlph['@'] = "AG CT";
 
+  std::vector<std::string> v;
+  int n = 0;
+
   for( unsigned i = 0; i < mask.size(); ++i ){
     uchar c = mask[i];
-    const char* x = seedAlph[c];
-    if( !x ) ERR( "bad seed pattern: " + mask );
-    std::istringstream iss(x);
-    appendPosition( iss, isMaskLowercase, letterCode );
+    if( c == ',' ){
+      n = 0;
+    }else{
+      const char* x = seedAlph[c];
+      if( !x ) ERR( "bad seed pattern: " + mask );
+      if( !n++ ) v.push_back("");
+      v.back() += x;
+      v.back() += "\n";
+    }
   }
+
+  return v;
 }
 
 void CyclicSubsetSeed::addLetter( std::vector<uchar>& numbersToSubsets,
