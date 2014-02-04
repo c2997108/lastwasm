@@ -54,14 +54,14 @@ public:
   void fromStream( std::istream& stream,
 		   bool isMaskLowercase, const uchar letterCode[] );
 
-  // The codeString is something like: "1110TT1001T1".  The "1"s are
+  // The mask is something like: "1110TT1001T1".  The "1"s are
   // must-match positions, the "0"s are don't care positions, and "T"
   // or "t" allows transitions but not transversions.  For consistency
   // with YASS/Iedera, you can also use "#" for match, "@" for
   // transition, and "_" or "-" for don't care.
-  void fromCodeString( const std::string& codeString,
-		       const std::string& letters,
-		       bool isMaskLowercase, const uchar letterCode[] );
+  void fromMask( const std::string& mask,
+		 const std::string& alph,
+		 bool isMaskLowercase, const uchar letterCode[] );
 
   void appendPosition( std::istream& inputLine,
 		       bool isMaskLowercase, const uchar letterCode[] );

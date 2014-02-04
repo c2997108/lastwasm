@@ -65,7 +65,7 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
     const std::string& mask = args.seedPatterns[x];
     if( numOfIndexes >= maxNumOfIndexes ) ERR( "too many seed patterns" );
     CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
-    seed.fromCodeString( mask, a, args.isCaseSensitive, alph.encode );
+    seed.fromMask( mask, a, args.isCaseSensitive, alph.encode );
   }
 
   if( numOfIndexes == 0 ){
@@ -74,7 +74,7 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
       seed.fromString( seed.yassSeed, args.isCaseSensitive, alph.encode );
     }
     else{
-      seed.fromCodeString( "1", a, args.isCaseSensitive, alph.encode );
+      seed.fromMask( "1", a, args.isCaseSensitive, alph.encode );
     }
   }
 

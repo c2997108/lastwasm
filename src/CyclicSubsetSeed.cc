@@ -77,17 +77,17 @@ static std::string exactSeed( const std::string& letters ){
   return result;
 }
 
-void CyclicSubsetSeed::fromCodeString( const std::string& codeString,
-				       const std::string& letters,
-				       bool isMaskLowercase,
-				       const uchar letterCode[] ){
+void CyclicSubsetSeed::fromMask( const std::string& mask,
+				 const std::string& alph,
+				 bool isMaskLowercase,
+				 const uchar letterCode[] ){
   clear();
 
-  std::string es = exactSeed(letters);
+  std::string es = exactSeed(alph);
 
-  for( unsigned i = 0; i < codeString.size(); ++i ){
+  for( unsigned i = 0; i < mask.size(); ++i ){
     std::istringstream iss;
-    switch( codeString[i] ){
+    switch( mask[i] ){
     case '1':
     case '#':
       iss.str(es);
@@ -95,7 +95,7 @@ void CyclicSubsetSeed::fromCodeString( const std::string& codeString,
     case '0':
     case '_':
     case '-':
-      iss.str(letters);
+      iss.str(alph);
       break;
     case 'T':
     case 't':
@@ -103,7 +103,7 @@ void CyclicSubsetSeed::fromCodeString( const std::string& codeString,
       iss.str("AG CT");
       break;
     default:
-      ERR( "bad seed pattern: " + codeString );
+      ERR( "bad seed pattern: " + mask );
     }
     appendPosition( iss, isMaskLowercase, letterCode );
   }
