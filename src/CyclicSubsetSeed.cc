@@ -84,27 +84,21 @@ void CyclicSubsetSeed::fromMask( const std::string& mask,
   clear();
 
   std::string es = exactSeed(alph);
+  const char* seedAlph[256] = {0};
+  seedAlph['1'] = es.c_str();
+  seedAlph['#'] = es.c_str();
+  seedAlph['0'] = alph.c_str();
+  seedAlph['_'] = alph.c_str();
+  seedAlph['-'] = alph.c_str();
+  seedAlph['T'] = "AG CT";
+  seedAlph['t'] = "AG CT";
+  seedAlph['@'] = "AG CT";
 
   for( unsigned i = 0; i < mask.size(); ++i ){
-    std::istringstream iss;
-    switch( mask[i] ){
-    case '1':
-    case '#':
-      iss.str(es);
-      break;
-    case '0':
-    case '_':
-    case '-':
-      iss.str(alph);
-      break;
-    case 'T':
-    case 't':
-    case '@':
-      iss.str("AG CT");
-      break;
-    default:
-      ERR( "bad seed pattern: " + mask );
-    }
+    uchar c = mask[i];
+    const char* x = seedAlph[c];
+    if( !x ) ERR( "bad seed pattern: " + mask );
+    std::istringstream iss(x);
     appendPosition( iss, isMaskLowercase, letterCode );
   }
 }
