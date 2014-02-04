@@ -55,6 +55,11 @@ public:
   static std::vector<std::string> fromMask( const std::string& alph,
 					    const std::string& mask );
 
+  // This is a more general version, where seedAlph maps mask
+  // characters to lines in the I/O format.
+  static std::vector<std::string> fromMask( const char* seedAlph[],
+					    const std::string& mask );
+
   void clear() { subsetLists.clear(); subsetMaps.clear(); }
 
   void fromFile( const std::string& fileName,

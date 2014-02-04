@@ -89,7 +89,11 @@ std::vector<std::string> CyclicSubsetSeed::fromMask( const std::string& alph,
   seedAlph['T'] = "AG CT";
   seedAlph['t'] = "AG CT";
   seedAlph['@'] = "AG CT";
+  return fromMask( seedAlph, mask );
+}
 
+std::vector<std::string> CyclicSubsetSeed::fromMask( const char* seedAlph[],
+						     const std::string& mask ){
   std::vector<std::string> v;
   int n = 0;
 
