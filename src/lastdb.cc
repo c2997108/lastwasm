@@ -46,6 +46,8 @@ bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
   else return false;
 }
 
+const unsigned maxNumOfIndexes = 16;
+
 // Set up the seed pattern(s), and return how many of them there are
 unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 			  const LastdbArguments& args, const Alphabet& alph ){
@@ -54,12 +56,14 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 
   for( unsigned x = 0; x < args.subsetSeedFiles.size(); ++x ){
     const std::string& name = args.subsetSeedFiles[x];
+    if( numOfIndexes >= maxNumOfIndexes ) ERR( "too many seed patterns" );
     CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
     seed.fromFile( name, args.isCaseSensitive, alph.encode );
   }
 
   for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
     const std::string& mask = args.seedPatterns[x];
+    if( numOfIndexes >= maxNumOfIndexes ) ERR( "too many seed patterns" );
     CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
     seed.fromCodeString( mask, a, args.isCaseSensitive, alph.encode );
   }

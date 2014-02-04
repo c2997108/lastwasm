@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Martin C. Frith
 
 #include "LastdbArguments.hh"
 #include "stringify.hh"
@@ -114,9 +114,6 @@ LAST home page: http://last.cbrc.jp/\n\
       ERR( "bad option" );
     }
   }
-
-  if( seedPatterns.size() + subsetSeedFiles.size() > maxNumOfIndexes )
-    ERR( "too many seed patterns" );
 
   if( optind >= argc )
     ERR( "please give me an output name and sequence file(s)\n\n" + usage );

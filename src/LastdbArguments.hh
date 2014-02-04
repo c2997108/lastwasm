@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2013, 2014 Martin C. Frith
 
 // This struct holds the command line arguments for lastdb.
 
@@ -12,8 +12,6 @@
 #include <vector>
 
 namespace cbrc{
-
-const unsigned maxNumOfIndexes = 16;
 
 struct LastdbArguments{
   typedef unsigned indexT;
