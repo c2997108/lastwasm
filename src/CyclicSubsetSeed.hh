@@ -1,4 +1,4 @@
-// Copyright 2009, 2010, 2013 Martin C. Frith
+// Copyright 2009, 2010, 2013, 2014 Martin C. Frith
 
 // A "subset seed" covers a range of sequence.  The size of this range
 // is called its span.  At each position, it maps letters (encoded as
@@ -41,7 +41,6 @@ public:
   enum { MAX_LETTERS = 64 };
   enum { DELIMITER = 255 };
 
-  static const char* proteinSeed;
   static const char* yassSeed;  // A DNA seed pattern, used by YASS
 
   void clear() { subsetLists.clear(); subsetMaps.clear(); }

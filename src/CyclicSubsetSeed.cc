@@ -1,4 +1,4 @@
-// Copyright 2009, 2010, 2013 Martin C. Frith
+// Copyright 2009, 2010, 2013, 2014 Martin C. Frith
 
 #include "CyclicSubsetSeed.hh"
 #include "stringify.hh"
@@ -13,11 +13,6 @@
 #define ERR(x) throw std::runtime_error(x)
 
 using namespace cbrc;
-
-// This will surely get replaced by a more interesting seed, after
-// some testing:
-const char* CyclicSubsetSeed::proteinSeed =
-  "A C D E F G H I K L M N P Q R S T V W Y";
 
 // This seed pattern is recommended in "YASS: enhancing the
 // sensitivity of DNA similarity search", NAR 2005 33:W540-W543.
