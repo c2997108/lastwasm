@@ -108,6 +108,11 @@ db=/tmp/last-test
     echo TEST 20  # expected counts
     lastal -s0 -e18 -j7 $db $dnaSeq
     echo
+
+    echo TEST 21  # named multi-seed, sparse query seeding
+    lastdb -c -uMAM8 $db hg19-M.fa
+    lastal -e34 -k128 -f0 $db galGal3-M-32.fa
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
