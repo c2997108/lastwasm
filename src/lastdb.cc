@@ -79,8 +79,9 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 
   if( numOfIndexes == 0 ){
     if( alph.letters == alph.dna ){
-      CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
-      seed.fromString( seed.yassSeed, args.isCaseSensitive, alph.encode );
+      const char* mask = "1T1001100101";  // YASS
+      std::vector<std::string> s = CyclicSubsetSeed::fromMask( a, mask );
+      addSeeds( indexes, numOfIndexes, s, args, alph );
     }
     else{
       std::vector<std::string> s = CyclicSubsetSeed::fromMask( a, "1" );

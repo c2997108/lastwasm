@@ -41,8 +41,6 @@ public:
   enum { MAX_LETTERS = 64 };
   enum { DELIMITER = 255 };
 
-  static const char* yassSeed;  // A DNA seed pattern, used by YASS
-
   // This converts a mask to a set of strings in the I/O format.
   // The mask is something like: "1110TT,1001T1".  The "1"s are
   // must-match positions, the "0"s are don't care positions, and "T"
