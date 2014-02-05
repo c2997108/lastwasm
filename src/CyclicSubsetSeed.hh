@@ -41,6 +41,10 @@ public:
   enum { MAX_LETTERS = 64 };
   enum { DELIMITER = 255 };
 
+  // This converts a seed name to a set of strings in the I/O format.
+  // If the name isn't known, it assumes it's a file and tries to read it.
+  static std::vector<std::string> fromName( const std::string& name );
+
   // This converts a mask to a set of strings in the I/O format.
   // The mask is something like: "1110TT,1001T1".  The "1"s are
   // must-match positions, the "0"s are don't care positions, and "T"
@@ -59,9 +63,6 @@ public:
 					    const std::string& mask );
 
   void clear() { subsetLists.clear(); subsetMaps.clear(); }
-
-  void fromFile( const std::string& fileName,
-		 bool isMaskLowercase, const uchar letterCode[] );
 
   void fromString( const std::string& s,
 		   bool isMaskLowercase, const uchar letterCode[] );

@@ -66,9 +66,8 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 
   for( unsigned x = 0; x < args.subsetSeedFiles.size(); ++x ){
     const std::string& name = args.subsetSeedFiles[x];
-    if( numOfIndexes >= maxNumOfIndexes ) ERR( "too many seed patterns" );
-    CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
-    seed.fromFile( name, args.isCaseSensitive, alph.encode );
+    std::vector<std::string> s = CyclicSubsetSeed::fromName( name );
+    addSeeds( indexes, numOfIndexes, s, args, alph );
   }
 
   for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){

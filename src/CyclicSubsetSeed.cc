@@ -1,6 +1,7 @@
 // Copyright 2009, 2010, 2013, 2014 Martin C. Frith
 
 #include "CyclicSubsetSeed.hh"
+#include "io.hh"
 #include "stringify.hh"
 #include <fstream>
 #include <sstream>
@@ -14,13 +15,39 @@
 
 using namespace cbrc;
 
-void CyclicSubsetSeed::fromFile( const std::string& fileName,
-				 bool isMaskLowercase,
-				 const uchar letterCode[] ){
-  std::ifstream f( fileName.c_str() );
-  if( !f ) ERR( "can't open file: " + fileName );
-  fromStream( f, isMaskLowercase, letterCode );
-  if( !f ) ERR( "can't read file: " + fileName );
+std::vector<std::string> CyclicSubsetSeed::fromName( const std::string& name ){
+  const char* seedAlph[256] = {0};
+  seedAlph['1'] = "A C G T";
+  seedAlph['0'] = "ACGT";
+  seedAlph['T'] = "AG CT";
+
+  if( name == "BISF" ){
+    seedAlph['1'] = "CT A G";
+    return fromMask( seedAlph, "1111110101100" );
+  }
+
+  if( name == "BISR" ){
+    seedAlph['1'] = "AG C T";
+    return fromMask( seedAlph, "1111110101100" );
+  }
+
+  if( name == "MAM8" ){
+    // From MC Frith & L Noe (2014) Nucleic Acids Research,
+    // Supplementary Table 12, second-last row.
+    return fromMask( seedAlph,
+		     "1101T1T0T1T00TT1TT,"
+		     "1TTTTT010TT0TT01011TTT,"
+		     "1TTTT10010T011T0TTTT1,"
+		     "111T011T0T01T100,"
+		     "1T10T100TT01000TT01TT11,"
+		     "111T101TT000T0T10T00T1T,"
+		     "111100T011TTT00T0TT01T,"
+		     "1T1T10T1101101" );
+  }
+
+  std::string s = slurp( name );
+  std::vector<std::string> v( 1, s );
+  return v;
 }
 
 void CyclicSubsetSeed::fromString( const std::string& s,
