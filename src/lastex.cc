@@ -1,4 +1,4 @@
-// Copyright 2010 Martin C. Frith
+// Copyright 2010, 2014 Martin C. Frith
 
 #include "LastexArguments.hh"
 #include "ScoreMatrix.hh"
@@ -101,7 +101,7 @@ void makeScoreMatrix( const std::string& matrixFile ){
     scoreMatrix.fromString( matrixFile );
   }
   else if( args.matchScore < 0 && args.mismatchCost < 0 && alph.isProtein() ){
-    scoreMatrix.fromString( scoreMatrix.blosum62 );
+    scoreMatrix.fromString( ScoreMatrix::stringFromName( "BL62" ) );
   }
   else{
     scoreMatrix.matchMismatch( args.matchScore, args.mismatchCost,
@@ -495,7 +495,7 @@ void lastex( int argc, char** argv ){
 
   std::string matrixString;
   if( !args.matrixFile.empty() ){
-    matrixString = slurp( args.matrixFile );
+    matrixString = ScoreMatrix::stringFromName( args.matrixFile );
     args.fromString( matrixString );  // read options from the matrix file
     args.fromArgs( argc, argv );  // command line overrides matrix file
   }

@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2011, 2014 Martin C. Frith
 
 // This struct holds a score matrix for aligning pairs of residues,
 // e.g. blosum62.  The delimiter symbol (space) aligned to anything
@@ -22,7 +22,7 @@ struct ScoreMatrix{
   enum { MAT = 64 };           // matrix size = MAT x MAT
   enum { OUTPAD = 2 };         // cell-padding for output
 
-  static const char* blosum62;
+  static std::string stringFromName( const std::string& name );
 
   void matchMismatch( int match, int mismatch, const std::string& letters );
   void fromString( const std::string& s );

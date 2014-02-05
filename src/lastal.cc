@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Martin C. Frith
 
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
@@ -73,7 +73,7 @@ void makeScoreMatrix( const std::string& matrixFile ){
     scoreMatrix.fromString( matrixFile );
   }
   else if( args.matchScore < 0 && args.mismatchCost < 0 && alph.isProtein() ){
-    scoreMatrix.fromString( scoreMatrix.blosum62 );
+    scoreMatrix.fromString( ScoreMatrix::stringFromName( "BL62" ) );
   }
   else{
     scoreMatrix.matchMismatch( args.matchScore, args.mismatchCost,
@@ -743,7 +743,7 @@ void lastal( int argc, char** argv ){
 
   std::string matrixFile;
   if( !args.matrixFile.empty() ){
-    matrixFile = slurp( args.matrixFile );
+    matrixFile = ScoreMatrix::stringFromName( args.matrixFile );
     args.fromString( matrixFile );  // read options from the matrix file
     args.fromArgs( argc, argv );  // command line overrides matrix file
   }
