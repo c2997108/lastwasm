@@ -18,12 +18,10 @@ reads are from the converted strand, and not its reverse-complement
 First, we need to run lastdb twice, for forward-strand and
 reverse-strand alignments::
 
-  lastdb -w2 -u bisulfite_f.seed my_f mygenome.fa
-  lastdb -w2 -u bisulfite_r.seed my_r mygenome.fa
+  lastdb -uBISF -w2 my_f mygenome.fa
+  lastdb -uBISR -w2 my_r mygenome.fa
 
-The .seed files are in the examples directory, and you need to specify
-where they are (e.g. "-u examples/bisulfite_f.seed").  Then, there are
-several steps:
+Then, there are several steps:
 
 1. Convert all Cs in the reads to Ts.  (Debatable: this slightly
    degrades LAST's ability to align the reads, but it avoids a bias,
@@ -64,8 +62,8 @@ the one in `<last-pair-probs.html>`_.  This gets a bit complicated, so
 we provide a last-bisulfite-paired script in the examples directory.
 Typical usage::
 
-  lastdb -w2 -u bisulfite_f.seed my_f mygenome.fa
-  lastdb -w2 -u bisulfite_r.seed my_r mygenome.fa
+  lastdb -uBISF -w2 my_f mygenome.fa
+  lastdb -uBISR -w2 my_r mygenome.fa
 
   last-bisulfite-paired.sh my_f my_r reads1.fastq reads2.fastq > results.maf
 

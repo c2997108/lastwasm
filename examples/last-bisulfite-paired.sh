@@ -12,8 +12,8 @@
     cat <<EOF
 Typical usage:
 
-  lastdb -w 2 -u bisulfite_f.seed my_f mygenome.fa
-  lastdb -w 2 -u bisulfite_r.seed my_r mygenome.fa
+  lastdb -uBISF -w2 my_f mygenome.fa
+  lastdb -uBISR -w2 my_r mygenome.fa
 
   $(basename $0) my_f my_r reads1.fastq reads2.fastq > results.maf
 
@@ -27,32 +27,16 @@ PATH=$PATH:$(dirname $0)/../src:$(dirname $0)/../scripts
 tmp=${TMPDIR-/tmp}/$$
 trap 'rm -f $tmp.*' EXIT
 
-cat > $tmp.fmat << 'EOF'
-    A   C   G   T
-A   6 -18 -18 -18
-C -18   6 -18   3
-G -18 -18   6 -18
-T -18 -18 -18   3
-EOF
-
-cat > $tmp.rmat << 'EOF'
-    A   C   G   T
-A   3 -18 -18 -18
-C -18   6 -18 -18
-G   3 -18   6 -18
-T -18 -18 -18   6
-EOF
-
 cat > $tmp.script << 'EOF'
 t=$1.$$
 
-lastal -p $1.fmat -s1 -Q1 -e120 -i1 "$2" "$4" > $t.t1f
-lastal -p $1.rmat -s0 -Q1 -e120 -i1 "$3" "$4" > $t.t1r
+lastal -pBISF -s1 -Q1 -e120 -i1 "$2" "$4" > $t.t1f
+lastal -pBISR -s0 -Q1 -e120 -i1 "$3" "$4" > $t.t1r
 last-merge-batches.py $t.t1f $t.t1r > $t.t1
 rm $t.t1f $t.t1r
 
-lastal -p $1.fmat -s0 -Q1 -e120 -i1 "$2" "$5" > $t.t2f
-lastal -p $1.rmat -s1 -Q1 -e120 -i1 "$3" "$5" > $t.t2r
+lastal -pBISF -s0 -Q1 -e120 -i1 "$2" "$5" > $t.t2f
+lastal -pBISR -s1 -Q1 -e120 -i1 "$3" "$5" > $t.t2r
 last-merge-batches.py $t.t2f $t.t2r > $t.t2
 rm $t.t2f $t.t2r
 
