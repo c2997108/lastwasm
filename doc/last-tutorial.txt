@@ -219,14 +219,16 @@ and sensitive.
 Example 8: Compare the cat and mouse genomes
 --------------------------------------------
 
-Here is one reasonable way to compare two such genomes::
+If you have ~50 GB of memory and don't mind waiting a few days, this
+is a good way to compare such genomes::
 
-  lastdb -c mousedb mouse/chr*.fa
+  lastdb -c -uMAM8 mousedb mouse/chr*.fa
   lastal -e34 -m100 mousedb cat/chr*.fa | last-split > myalns.maf
 
 This looks for a unique best alignment for each part of each cat
-chromosome.  It might use about 9 gigabytes of memory.  It also might
-take several days, unless we parallelize...
+chromosome.  Omitting -m100 makes it faster but somewhat lowers the
+sensitivity.  Omitting -uMAM8 makes it faster, reduces the memory use
+to ~10 GB, but considerably lowers the sensitivity.
 
 Going faster by using multiple CPUs
 -----------------------------------

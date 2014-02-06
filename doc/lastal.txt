@@ -94,15 +94,34 @@ Score Options
   -q COST
       Mismatch cost.
 
-  -p FILE
-      Obtain match and mismatch scores from the specified file.
-      Options -r and -q will be ignored.  For an example of the
-      format, see hoxd70.mat in the examples directory.  Any letters
-      that aren't in the file will get the lowest score in the file
-      when aligned to anything.  Asymmetric scores are allowed: query
-      letters correspond to columns and reference letters correspond
-      to rows.  Other options can be specified on lines starting with
-      "#last", but command line options override them.
+  -p NAME
+      Specify a match/mismatch score matrix.  Options -r and -q will
+      be ignored.
+
+      AT77: for AT-rich DNA (~77% A+T) (MC Frith 2011, NAR 39(4):e23).
+
+      BISF: for aligning bisulfite-converted DNA forward strands to a
+      closely-related genome.
+
+      BISR: for aligning bisulfite-converted DNA reverse strands to a
+      closely-related genome.
+
+      BL62 or BLOSUM62: for proteins.
+
+      BL80 or BLOSUM80: better at finding and aligning strong protein
+      similarities, especially short ones.
+
+      HOXD70: often used for weak DNA similarities (F Chiaromonte, VB
+      Yap, W Miller, PSB 2002:115-126).
+
+      Any other name is assumed to be a file name.  For an example of
+      the format, see hoxd70.mat in the examples directory.  Any
+      letters that aren't in the matrix will get the lowest score in
+      the matrix when aligned to anything.  Asymmetric scores are
+      allowed: query letters correspond to columns and reference
+      letters correspond to rows.  Other options can be specified on
+      lines starting with "#last", but command line options override
+      them.
 
   -a COST
       Gap existence cost.

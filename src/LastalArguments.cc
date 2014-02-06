@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Martin C. Frith
 
 #include "LastalArguments.hh"
 #include "stringify.hh"
@@ -63,7 +63,7 @@ Find local sequence alignments.\n\
 Score options (default settings):\n\
 -r: match score   (DNA: 1, protein: blosum62, 0<Q<5:  6)\n\
 -q: mismatch cost (DNA: 1, protein: blosum62, 0<Q<5: 18)\n\
--p: file for residue pair scores\n\
+-p: match/mismatch score matrix\n\
 -a: gap existence cost (DNA: 7, protein: 11, 0<Q<5: 21)\n\
 -b: gap extension cost (DNA: 1, protein:  2, 0<Q<5:  9)\n\
 -A: insertion existence cost (a)\n\

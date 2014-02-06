@@ -1,4 +1,4 @@
-// Copyright 2010 Martin C. Frith
+// Copyright 2010, 2014 Martin C. Frith
 
 #include "LastexArguments.hh"
 #include "stringify.hh"
@@ -42,7 +42,7 @@ Options (default settings):\n\
 -s: strands (2 for DNA, 1 for protein)\n\
 -r: match score   (DNA: 1, protein: blosum62)\n\
 -q: mismatch cost (DNA: 1, protein: blosum62)\n\
--p: file for residue pair scores\n\
+-p: match/mismatch score matrix\n\
 -a: gap existence cost (DNA: 7, protein: 11)\n\
 -b: gap extension cost (DNA: 1, protein:  2)\n\
 -g: do calculations for gapless alignments\n\

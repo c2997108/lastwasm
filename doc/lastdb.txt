@@ -102,10 +102,21 @@ Advanced Options
       You can specify multiple patterns by separating them with commas
       and/or using "-m" multiple times.
 
-  -u FILE
-      Specify a subset seed file. For an example of the format, see
-      yass.seed in the examples directory.  You can specify multiple
-      files by using "-u" multiple times.
+  -u NAME
+      Specify a subset seed.
+
+      BISF: for aligning bisulfite-converted DNA forward strands to a
+      closely-related genome.
+
+      BISR: for aligning bisulfite-converted DNA reverse strands to a
+      closely-related genome.
+
+      MAM8: for finding weak DNA similarities with high sensitivity,
+      but slow and high memory usage (e.g. ~50 GB for mammal genomes).
+
+      Any other name is assumed to be a file name.  For an example of
+      the format, see yass.seed in the examples directory.  You can
+      specify multiple seeds by using "-u" multiple times.
 
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)

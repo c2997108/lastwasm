@@ -46,7 +46,7 @@ Advanced Options (default settings):\n\
       + stringify(inputFormat) + ")\n\
 -s: volume size (unlimited)\n\
 -m: seed pattern\n\
--u: subset seed file (yass.seed)\n\
+-u: subset seed (yass.seed)\n\
 -w: index step (" + stringify(indexStep) + ")\n\
 -a: user-defined alphabet\n\
 -i: minimum limit on initial matches per query position ("
