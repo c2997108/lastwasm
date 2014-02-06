@@ -122,8 +122,8 @@ grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
 
 # Test: last-bisulfite, last-merge-batches, last-split, named seeds
-lastdb -uBISF -w2 f hg19-M.fa
-lastdb -uBISR -w2 r hg19-M.fa
+lastdb -uBISF f hg19-M.fa
+lastdb -uBISR r hg19-M.fa
 ../examples/last-bisulfite.sh f r bs100.fastq | grep -v '^#' | diff bs100.maf -
 rm f.* r.*
 

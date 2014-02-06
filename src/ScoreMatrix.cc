@@ -26,6 +26,7 @@ T -3 -2 -3  2\n\
 ";  // from MC Frith (2011) NAR 39(4):e23.
 
   if( name == "BISF" ) return "\
+#last -a21 -b9 -e180\n\
     A   C   G   T\n\
 A   6 -18 -18 -18\n\
 C -18   6 -18   3\n\
@@ -34,6 +35,7 @@ T -18 -18 -18   3\n\
 ";
 
   if( name == "BISR" ) return "\
+#last -a21 -b9 -e180\n\
     A   C   G   T\n\
 A   3 -18 -18 -18\n\
 C -18   6 -18 -18\n\

@@ -9,8 +9,8 @@
     cat <<EOF
 Typical usage:
 
-  lastdb -uBISF -w2 my_f mygenome.fa
-  lastdb -uBISR -w2 my_r mygenome.fa
+  lastdb -uBISF my_f mygenome.fa
+  lastdb -uBISR my_r mygenome.fa
 
   $(basename $0) my_f my_r reads.fastq > results.maf
 
