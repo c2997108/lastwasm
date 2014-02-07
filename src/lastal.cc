@@ -73,7 +73,8 @@ void makeScoreMatrix( const std::string& matrixFile ){
     scoreMatrix.fromString( matrixFile );
   }
   else if( args.matchScore < 0 && args.mismatchCost < 0 && alph.isProtein() ){
-    scoreMatrix.fromString( ScoreMatrix::stringFromName( "BL62" ) );
+    const char* b = args.isTranslated() ? "BLOSUM80" : "BLOSUM62";
+    scoreMatrix.fromString( ScoreMatrix::stringFromName( b ) );
   }
   else{
     scoreMatrix.matchMismatch( args.matchScore, args.mismatchCost,

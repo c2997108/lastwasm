@@ -37,7 +37,7 @@ db=/tmp/last-test
 
     echo TEST 5  # translated alignment & genetic code file
     lastdb -p $db $protSeq
-    lastal -F12 -e40 -G $gc $db $dnaSeq
+    lastal -F12 -pBL62 -e40 -G $gc $db $dnaSeq
     echo
 
     echo TEST 6  # subset seed file, soft-masking
@@ -69,7 +69,7 @@ db=/tmp/last-test
 
     echo TEST 12  # generalized affine gaps, frameshifts, tabular output
     lastdb -p -c $db $protSeq
-    lastal -F12 -c2 -e40 -f0 $db $dnaSeq
+    lastal -F12 -pBL62 -c2 -e40 -f0 $db $dnaSeq
     echo
 
     echo TEST 13  # gapless alignment, protein-protein alignment, seed freq

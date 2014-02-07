@@ -61,15 +61,14 @@ void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
 Find local sequence alignments.\n\
 \n\
 Score options (default settings):\n\
--r: match score   (DNA: 1, protein: blosum62, 0<Q<5:  6)\n\
--q: mismatch cost (DNA: 1, protein: blosum62, 0<Q<5: 18)\n\
--p: match/mismatch score matrix\n\
+-r: match score   (DNA: 1, 0<Q<5:  6)\n\
+-q: mismatch cost (DNA: 1, 0<Q<5: 18)\n\
+-p: match/mismatch score matrix (protein-protein: BL62, DNA-protein: BL80)\n\
 -a: gap existence cost (DNA: 7, protein: 11, 0<Q<5: 21)\n\
 -b: gap extension cost (DNA: 1, protein:  2, 0<Q<5:  9)\n\
 -A: insertion existence cost (a)\n\
 -B: insertion extension cost (b)\n\
--c: unaligned residue pair cost ("
-    + stringify(gapPairCost) + ")\n\
+-c: unaligned residue pair cost (off)\n\
 -F: frameshift cost (off)\n\
 -x: maximum score drop for gapped alignments (max[y, e-1])\n\
 -y: maximum score drop for gapless alignments (t*10)\n\
