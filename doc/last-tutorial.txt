@@ -226,9 +226,9 @@ is a good way to compare such genomes::
   lastal -e34 -m100 mousedb cat/chr*.fa | last-split > myalns.maf
 
 This looks for a unique best alignment for each part of each cat
-chromosome.  Omitting -m100 makes it faster but somewhat lowers the
-sensitivity.  Omitting -uMAM8 makes it faster, reduces the memory use
-to ~10 GB, but considerably lowers the sensitivity.
+chromosome.  Omitting -m100 makes it faster but somewhat less
+sensitive.  Omitting -uMAM8 reduces the memory use to ~10 GB and makes
+it faster but considerably less sensitive.
 
 Going faster by using multiple CPUs
 -----------------------------------
