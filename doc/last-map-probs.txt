@@ -16,31 +16,27 @@ Typical usage
 These commands map DNA reads to the human genome::
 
   lastdb -m1111110 hu human/chr*.fa
-  lastal -Q1 -e120 hu reads.fastq | last-map-probs.py -s150 > myalns.maf
-
-Explanation of typical usage
-----------------------------
-
-These commands find alignments with mismap probability <= 0.01 and
-score >= 150 (-s150).  The score threshold should be high enough to
-avoid random, spurious alignments: otherwise, the mismap probabilities
-will not be reliable.  A threshold of 150 is often reasonable.  For
-instance, if we compare 50 bp reads to the human genome, we expect a
-random alignment with score >= 150 once every few thousand reads.
-
-The lastal command finds alignments with score >= 120 (-e120).  This
-is because the mismap probability of an alignment with score 150 may
-depend on alignments with score < 150.  Setting e = s-30 seems to work
-well.
-
-(We used to recommend option -d108, but this is no longer necessary.)
+  lastal -Q1 -e120 hu reads.fastq | last-map-probs.py > myalns.maf
 
 Options
 -------
 
-  -h, --help          Print a help message and exit.
-  -m M, --mismap=M    Don't write alignments with mismap probability > M.
-  -s S, --score=S     Don't write alignments with score < S.
+  -h, --help
+         Show a help message, with default option values, and exit.
+
+  -m M, --mismap=M
+         Don't write alignments with mismap probability > M.
+         Low-confidence alignments will be discarded unless you
+         increase this value!
+
+  -s S, --score=S
+         Don't write alignments with score < S.  The default value is
+         somewhat higher than the lastal score threshold.
+         Specifically, it is e + t * ln(1000), where e is the score
+         threshold, and t is a scale factor that is written in the
+         lastal header.  This roughly means that, for every alignment
+         it writes, it has considered alternative alignments with
+         one-thousandth the probability.
 
 Details
 -------
@@ -58,7 +54,7 @@ Using multiple CPUs
 
 This will run the pipeline on all your CPU cores::
 
-  parallel-fastq "lastal -Q1 -e120 hu | last-map-probs.py -s150" < reads.fastq > myalns.maf
+  parallel-fastq "lastal -Q1 -e120 hu | last-map-probs.py" < reads.fastq > myalns.maf
 
 It requires GNU parallel to be installed
 (http://www.gnu.org/software/parallel/).

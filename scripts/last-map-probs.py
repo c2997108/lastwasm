@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Copyright 2010, 2011, 2012 Martin C. Frith
+# Copyright 2010, 2011, 2012, 2014 Martin C. Frith
 
 # Read query-genome alignments: write them along with the probability
 # that each alignment is not the true mapping of its query.  These
@@ -73,18 +73,23 @@ def doOneBatch(lines, opts, temperature):
     writeOneBatch(lines, queryNames, scores, denominators, opts, temperature)
 
 def readHeaderOrDie(lines):
+    t = 0.0
+    e = -1
     for line in lines:
         if line.startswith("#") or line.isspace():
             print line,
             for i in line.split():
-                if i.startswith("t="):
-                    return float(i[2:])
+                if i.startswith("t="): t = float(i[2:])
+                elif i.startswith("e="): e = int(i[2:])
+            if t > 0 and e >= 0: break
         else:
-            raise Exception("I need a header line with: t=(a positive value)")
+            raise Exception("I need a header with t= and e=")
+    return t, e
 
 def lastMapProbs(opts, args):
     f = fileinput.input(args)
-    temperature = readHeaderOrDie(f)
+    temperature, e = readHeaderOrDie(f)
+    if opts.score < 0: opts.score = e + round(temperature * math.log(1000))
     lines = []
 
     for line in f:
@@ -106,8 +111,8 @@ if __name__ == "__main__":
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-m", "--mismap", type="float", default=0.01, metavar="M",
                   help="don't write alignments with mismap probability > M (default: %default)")
-    op.add_option("-s", "--score", type="float", default=0, metavar="S",
-                  help="don't write alignments with score < S (default: %default)")
+    op.add_option("-s", "--score", type="float", default=-1, metavar="S",
+                  help="don't write alignments with score < S (default: e+t*ln[1000])")
     (opts, args) = op.parse_args()
     if not args and sys.stdin.isatty():
         op.print_help()
