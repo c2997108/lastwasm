@@ -186,7 +186,7 @@ appendFromFasta( MultiSequence& multi,
   indexT maxSeqLen = maxLettersPerVolume( args, numOfIndexes );
   if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
-  indexT oldUnfinishedSize = multi.unfinishedSize();
+  std::size_t oldUnfinishedSize = multi.unfinishedSize();
   indexT oldFinishedSize = multi.finishedSize();
 
   if ( args.inputFormat == sequenceFormat::fasta )

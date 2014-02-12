@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2014 Martin C. Frith
 
 // This class holds multiple sequences and their names.  The sequences
 // are concatenated, with delimiters between them.
@@ -68,7 +68,7 @@ class MultiSequence{
   indexT finishedSize() const{ return ends.back(); }
 
   // total length of finished and unfinished sequences plus delimiters
-  indexT unfinishedSize() const{ return seq.size(); }
+  std::size_t unfinishedSize() const{ return seq.size(); }
 
   // which sequence is the coordinate in?
   indexT whichSequence( indexT coordinate ) const;

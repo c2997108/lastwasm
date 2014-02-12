@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2013, 2014 Martin C. Frith
 
 #include "SubsetSuffixArray.hh"
 #include "io.hh"
@@ -28,8 +28,8 @@ void SubsetSuffixArray::clearPositions(){
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
 				   bool isMaskLowercase,
 				   const uchar letterCode[] ){
-  indexT textLength = -1;
-  indexT unindexedPositions = -1;
+  indexT textLength = 0;  // 0 never occurs in a valid file
+  indexT unindexedPositions = 0;  // 0 never occurs in a valid file
   indexT bucketDepth = -1;
   seed.clear();
 
@@ -49,7 +49,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
     }
   }
 
-  if( textLength+1 == 0 || unindexedPositions+1 == 0 || bucketDepth+1 == 0 ||
+  if( textLength == 0 || unindexedPositions == 0 || bucketDepth+1 == 0 ||
       !seed.span() || !f.eof() ){
     throw std::runtime_error( "can't read file: " + fileName );
   }
@@ -61,6 +61,8 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
 				 bool isAppendPrj, indexT textLength ) const{
+  assert( textLength > index.size() );
+
   std::string fileName = baseName + ".prj";
   std::ofstream f( fileName.c_str(),
 		   isAppendPrj ? std::ios::app : std::ios::out );
