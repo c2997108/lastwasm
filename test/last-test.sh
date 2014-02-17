@@ -127,6 +127,8 @@ lastdb -uBISR r hg19-M.fa
 ../examples/last-bisulfite.sh f r bs100.fastq | grep -v '^#' | diff bs100.maf -
 rm f.* r.*
 
+./maf-convert-test.sh
+
 # Test: lastdb, lastal, last-split, maf-sort, maf-join
 cd ../examples
 ./multiMito.sh | diff multiMito.maf -
