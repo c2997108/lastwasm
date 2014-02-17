@@ -23,19 +23,10 @@ def quantify(iterable, pred=bool):
     """Count how many times the predicate is true."""
     return sum(map(pred, iterable))
 
-def dictFromStrings(strings):
-    pairs = [i.split("=") for i in strings]
-    return dict(pairs)
-
 class Maf:
-    def __init__(self, lines):
-        lines = map(str.split, lines)
+    def __init__(self, aLine, sLines, qLines, pLines):
+        self.namesAndValues = dict(i.split("=") for i in aLine[1:])
 
-        aLines = [i[1:] for i in lines if i[0] == "a"]
-        aStrings = chain(*aLines)
-        self.namesAndValues = dictFromStrings(aStrings)
-
-        sLines = [i for i in lines if i[0] == "s"]
         if not sLines: raise Exception("empty alignment")
         cols = zip(*sLines)
         self.seqNames = cols[1]
@@ -45,8 +36,8 @@ class Maf:
         self.seqSizes = map(int, cols[5])
         self.alnStrings = cols[6]
 
-        self.pLines = [i for i in lines if i[0] == "p"]
-        self.qLines = [i for i in lines if i[0] == "q"]
+        self.qLines = qLines
+        self.pLines = pLines
 
 def dieUnlessPairwise(maf):
     if len(maf.alnStrings) != 2:
@@ -537,15 +528,30 @@ def writeHtml(maf, lineSize):
 
 ##### Routines for reading MAF format: #####
 
-def filterComments(lines, isKeepCommentLines):
+def mafInput(lines, isKeepComments):
+    a = []
+    s = []
+    q = []
+    p = []
     for i in lines:
-        if i.startswith("#"):
-            if isKeepCommentLines: print i,
-        else: yield i
-
-def mafInput(lines):
-    for k, v in groupby(lines, str.isspace):
-        if not k: yield Maf(v)
+        w = i.split()
+        if not w:
+            if a: yield Maf(a, s, q, p)
+            a = []
+            s = []
+            q = []
+            p = []
+        elif w[0] == "a":
+            a = w
+        elif w[0] == "s":
+            s.append(w)
+        elif w[0] == "q":
+            q.append(w)
+        elif w[0] == "p":
+            p.append(w)
+        elif i[0] == "#" and isKeepComments:
+            print i,
+    if a: yield Maf(a, s, q, p)
 
 def isFormat(myString, myFormat):
     return myFormat.startswith(myString)
@@ -566,7 +572,7 @@ def mafConvert(opts, args):
     if isFormat(format, "html") and not opts.noheader: writeHtmlHeader()
     isKeepCommentLines = isFormat(format, "tabular") and not opts.noheader
     oldQueryName = ""
-    for maf in mafInput(filterComments(inputLines, isKeepCommentLines)):
+    for maf in mafInput(inputLines, isKeepCommentLines):
         if   isFormat(format, "axt"): writeAxt(maf)
         elif isFormat(format, "blast"):
             writeBlast(maf, opts.linesize, oldQueryName)
