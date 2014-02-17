@@ -258,8 +258,9 @@ def writeSamHeader(sequenceLengths, dictFile, readGroupItems):
     if readGroupItems:
         print "@RG\t" + "\t".join(readGroupItems)
 
-mapqMissing = 255
-mapqMaximum = 254
+mapqMissing = "255"
+mapqMaximum = "254"
+mapqMaximumNum = float(mapqMaximum)
 
 def mapqFromProb(probString):
     try: p = float(probString)
@@ -267,8 +268,8 @@ def mapqFromProb(probString):
     if p < 0 or p > 1: raise Exception("bad probability: " + probString)
     if p == 0: return mapqMaximum
     phred = -10 * math.log(p, 10)
-    if phred > mapqMaximum: return mapqMaximum
-    return int(round(phred))
+    if phred >= mapqMaximumNum: return mapqMaximum
+    return str(int(round(phred)))
 
 def cigarCategory(alignmentColumn):
     x, y = alignmentColumn
@@ -308,7 +309,7 @@ def writeSam(maf, rg):
     rName, rStart, rAlnSize, rStrand, rSeqSize, rAlnString = head
     if rStrand != "+":
         raise Exception("for SAM, the 1st strand in each alignment must be +")
-    pos = rStart + 1  # convert to 1-based coordinate
+    pos = str(rStart + 1)  # convert to 1-based coordinate
 
     for qName, qStart, qAlnSize, qStrand, qSeqSize, qAlnString in tail:
         alignmentColumns = zip(rAlnString.upper(), qAlnString.upper())
@@ -332,26 +333,26 @@ def writeSam(maf, rg):
         # I'm not sure whether to add 2 and/or 8 to flag.
         if qName.endswith("/1"):
             qName = qName[:-2]
-            if qStrand == "+": flag = 99  # 1 + 2 + 32 + 64
-            else:              flag = 83  # 1 + 2 + 16 + 64
+            if qStrand == "+": flag = "99"  # 1 + 2 + 32 + 64
+            else:              flag = "83"  # 1 + 2 + 16 + 64
         elif qName.endswith("/2"):
             qName = qName[:-2]
-            if qStrand == "+": flag = 163  # 1 + 2 + 32 + 128
-            else:              flag = 147  # 1 + 2 + 16 + 128
+            if qStrand == "+": flag = "163"  # 1 + 2 + 32 + 128
+            else:              flag = "147"  # 1 + 2 + 16 + 128
         else:
-            if qStrand == "+": flag = 0
-            else:              flag = 16
+            if qStrand == "+": flag = "0"
+            else:              flag = "16"
 
         editDistance = sum(1 for x, y in alignmentColumns if x != y)
         # no special treatment of ambiguous bases: might be a minor bug
         editDistance = "NM:i:" + str(editDistance)
 
-        outWords = [qName, flag, rName, pos, mapq, cigar, "*", 0, 0, seq, qual]
+        outWords = [qName, flag, rName, pos, mapq, cigar, "*\t0\t0", seq, qual]
         outWords.append(editDistance)
         if score: outWords.append(score)
         if evalue: outWords.append(evalue)
         if rg: outWords.append(rg)
-        print joined(outWords, "\t")
+        print "\t".join(outWords)
 
 ##### Routines for converting to BLAST-like format: #####
 
