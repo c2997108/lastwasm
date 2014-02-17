@@ -279,10 +279,14 @@ def cigarCategory(alignmentColumn):
         if y == "-": return "D"
         else: return "M"
 
-def cigarParts(alignmentColumns):
+def cigarParts(beg, alignmentColumns, end):
+    if beg:
+        yield str(beg) + "H"
     # (doesn't handle translated alignments)
     for k, v in groupby(alignmentColumns, cigarCategory):
-        yield len(list(v)), k
+        yield str(sum(1 for _ in v)) + k
+    if end:
+        yield str(end) + "H"
 
 def writeSam(maf, rg):
     if 3 in mafLetterSizes(maf):
@@ -309,16 +313,8 @@ def writeSam(maf, rg):
     for qName, qStart, qAlnSize, qStrand, qSeqSize, qAlnString in tail:
         alignmentColumns = zip(rAlnString.upper(), qAlnString.upper())
 
-        cigar = []
-        if qStart:
-            pair = qStart, "H"
-            cigar.append(pair)
-        cigar.extend(cigarParts(alignmentColumns))
         qRevStart = qSeqSize - qStart - qAlnSize
-        if qRevStart:
-            pair = qRevStart, "H"
-            cigar.append(pair)
-        cigar = joined(chain(*cigar), "")
+        cigar = "".join(cigarParts(qStart, alignmentColumns, qRevStart))
 
         seq = deleted(qAlnString, "-")
 
