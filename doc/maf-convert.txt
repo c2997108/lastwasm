@@ -32,6 +32,10 @@ Options
          nucleotides.  This affects psl format only (the first 4
          columns).
 
+  -n, --noheader
+         Omit any header lines from the output.  This may be useful if
+         you concatenate outputs, e.g. from parallel jobs.
+
   -d, --dictionary
          Include a dictionary of sequence lengths in the sam header
          section (lines starting with @SQ).  This requires reading the
@@ -53,6 +57,13 @@ Options
 
 Hints for sam/bam
 -----------------
+
+* To run fast on multiple CPUs, and get a correct header at the top,
+  this may be the least-awkward way.  First, make a header (perhaps by
+  using CreateSequenceDictionary).  Then, concatenate the output of a
+  command like this::
+
+    fastq-parallel "... | maf-convert.py -n sam" < q.fastq
 
 * Here is yet another way to get a sequence dictionary, using samtools
   (http://samtools.sourceforge.net/).  Assume the reference sequences

@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# Copyright 2010, 2011, 2013 Martin C. Frith
+# Copyright 2010, 2011, 2013, 2014 Martin C. Frith
 # Read MAF-format alignments: write them in other formats.
 # Seems to work with Python 2.x, x>=4
 
@@ -561,10 +561,10 @@ def mafConvert(opts, args):
         else:
             readGroupItems = []
             rg = ""
-        writeSamHeader(d, opts.dictfile, readGroupItems)
+        if not opts.noheader: writeSamHeader(d, opts.dictfile, readGroupItems)
     inputLines = fileinput.input(args[1:])
-    if isFormat(format, "html"): writeHtmlHeader()
-    isKeepCommentLines = isFormat(format, "tabular")
+    if isFormat(format, "html") and not opts.noheader: writeHtmlHeader()
+    isKeepCommentLines = isFormat(format, "tabular") and not opts.noheader
     oldQueryName = ""
     for maf in mafInput(filterComments(inputLines, isKeepCommentLines)):
         if   isFormat(format, "axt"): writeAxt(maf)
@@ -576,7 +576,7 @@ def mafConvert(opts, args):
         elif isFormat(format, "sam"): writeSam(maf, rg)
         elif isFormat(format, "tabular"): writeTab(maf)
         else: raise Exception("unknown format: " + format)
-    if isFormat(format, "html"): print "</body></html>"
+    if isFormat(format, "html") and not opts.noheader: print "</body></html>"
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
@@ -595,6 +595,8 @@ if __name__ == "__main__":
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-p", "--protein", action="store_true",
                   help="assume protein alignments, for psl match counts")
+    op.add_option("-n", "--noheader", action="store_true",
+                  help="omit any header lines from the output")
     op.add_option("-d", "--dictionary", action="store_true",
                   help="include dictionary of sequence lengths in sam format")
     op.add_option("-f", "--dictfile",
