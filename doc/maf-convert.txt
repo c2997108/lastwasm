@@ -63,7 +63,7 @@ Hints for sam/bam
   using CreateSequenceDictionary).  Then, concatenate the output of a
   command like this::
 
-    fastq-parallel "... | maf-convert.py -n sam" < q.fastq
+    parallel-fastq "... | maf-convert.py -n sam" < q.fastq
 
 * Here is yet another way to get a sequence dictionary, using samtools
   (http://samtools.sourceforge.net/).  Assume the reference sequences
