@@ -64,6 +64,12 @@ static const char *skipWord(const char *c) {
   return e;
 }
 
+static const char *skipSpace(const char *c) {
+  if (!c) return 0;
+  while (std::isspace(*c)) ++c;
+  return c;
+}
+
 struct Complement {
   unsigned char c[UCHAR_MAX+1];
   Complement() {
@@ -82,31 +88,41 @@ struct Complement {
 static Complement complement;
 
 void flipMafStrands(std::vector<std::string>& maf) {
-  std::string a, b, c, d;
+  std::string s;
   for (unsigned i = 0; i < maf.size(); ++i) {
     std::string& line = maf[i];
-    std::istringstream iss(line);
-    if (line[0] == 's') {
+    const char *c = line.c_str();
+    const char *d, *e, *f, *g;
+    if (*c == 's') {
       unsigned x, y, z;
-      iss >> a >> b >> x >> y >> c >> z >> d;
-      if (!iss) err("bad MAF line: " + line);
+      d = skipWord(c);
+      d = skipWord(d);
+      d = skipSpace(d);
+      e = readUint(d, x);
+      f = readUint(e, y);
+      f = skipWord(f);
+      f = readUint(f, z);
+      f = skipSpace(f);
+      g = readWord(f, s);
+      if (!g) err("bad MAF line: " + line);
       x = z - x - y;
-      reverse(d.begin(), d.end());
-      transform(d.begin(), d.end(), d.begin(), complement);
+      reverse(s.begin(), s.end());
+      transform(s.begin(), s.end(), s.begin(), complement);
       std::ostringstream oss;
-      oss << a << ' ' << b << ' ' << x << ' ' << y << ' '
-	  << c << ' ' << z << ' ' << d;
+      oss << std::string(c, d) << x << std::string(e, f) << s;
       line = oss.str();
-    } else if (line[0] == 'q') {
-      iss >> a >> b >> c;
-      if (!iss) err("bad MAF line: " + line);
-      reverse(c.begin(), c.end());
-      line = a + ' ' + b + ' ' + c;
-    } else if (line[0] == 'p') {
-      iss >> a >> b;
-      if (!iss) err("bad MAF line: " + line);
-      reverse(b.begin(), b.end());
-      line = a + ' ' + b;
+    } else if (*c == 'q') {
+      d = skipSpace(skipWord(skipWord(c)));
+      e = readWord(d, s);
+      if (!e) err("bad MAF line: " + line);
+      reverse(s.begin(), s.end());
+      line = std::string(c, d) + s;
+    } else if (*c == 'p') {
+      d = skipSpace(skipWord(c));
+      e = readWord(d, s);
+      if (!e) err("bad MAF line: " + line);
+      reverse(s.begin(), s.end());
+      line = std::string(c, d) + s;
     }
   }
 }
