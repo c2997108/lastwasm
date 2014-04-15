@@ -4,8 +4,10 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cerrno>
 #include <climits>
 #include <cmath>
+#include <cstdlib>  // strtoul
 #include <iostream>
 #include <numeric>  // accumulate
 #include <sstream>
@@ -23,6 +25,43 @@ static const char *strBeg(const std::string& s) {
 
 static const char *strEnd(const std::string& s) {
   return s.c_str() + s.size();
+}
+
+static const char *readUint(const char *c, unsigned &x) {
+  if (!c) return 0;
+  errno = 0;
+  char *e;
+  unsigned long z = std::strtoul(c, &e, 10);
+  if (e == c || errno == ERANGE || z > UINT_MAX) return 0;
+  x = z;
+  return e;
+}
+
+static const char *readChar(const char *c, char &d) {
+  if (!c) return 0;
+  while (std::isspace(*c)) ++c;
+  if (*c == 0) return 0;
+  d = *c++;
+  return c;
+}
+
+static const char *readWord(const char *c, std::string &s) {
+  if (!c) return 0;
+  while (std::isspace(*c)) ++c;
+  const char *e = c;
+  while (std::isgraph(*e)) ++e;
+  if (e == c) return 0;
+  s.assign(c, e);
+  return e;
+}
+
+static const char *skipWord(const char *c) {
+  if (!c) return 0;
+  while (std::isspace(*c)) ++c;
+  const char *e = c;
+  while (std::isgraph(*e)) ++e;
+  if (e == c) return 0;
+  return e;
 }
 
 struct Complement {
@@ -75,14 +114,17 @@ void flipMafStrands(std::vector<std::string>& maf) {
 static void canonicalizeMafStrands(std::vector<std::string>& maf) {
   unsigned s = 0;
   for (unsigned i = 0; i < maf.size(); ++i) {
-    std::string& line = maf[i];
-    if (line[0] == 's') ++s;
+    const char *c = maf[i].c_str();
+    if (*c == 's') ++s;
     if (s == 2) {
-      std::istringstream iss(line);
-      std::string a, b, c, d, e;
-      iss >> a >> b >> c >> d >> e;
-      if (!iss) err("bad MAF line: " + line);
-      if (e == "-") flipMafStrands(maf);
+      char strand;
+      c = skipWord(c);
+      c = skipWord(c);
+      c = skipWord(c);
+      c = skipWord(c);
+      c = readChar(c, strand);
+      if (!c) err("bad MAF line: " + maf[i]);
+      if (strand == '-') flipMafStrands(maf);
       return;
     }
   }
@@ -92,28 +134,41 @@ static void canonicalizeMafStrands(std::vector<std::string>& maf) {
 void UnsplitAlignment::init() {
   canonicalizeMafStrands(lines);
 
-  std::string a, b, c;
   unsigned s = 0;
   for (unsigned i = 0; i < lines.size(); ++i) {
-    std::string& line = lines[i];
-    std::istringstream iss(line);
-    if (line[0] == 's') {
+    const char *c = lines[i].c_str();
+    if (*c == 's') {
       ++s;
-      unsigned len;
+      unsigned len = 0;  // initialize it to keep the compiler happy
       if (s == 1) {
-	iss >> a >> rname >> rstart >> len >> b >> c >> ralign;
+	c = skipWord(c);
+	c = readWord(c, rname);
+	c = readUint(c, rstart);
+	c = readUint(c, len);
+	c = skipWord(c);
+	c = skipWord(c);
+	c = readWord(c, ralign);
 	rend = rstart + len;
       } else if (s == 2) {
-	iss >> a >> qname >> qstart >> len >> qstrand >> qfullend >> qalign;
+	c = skipWord(c);
+	c = readWord(c, qname);
+	c = readUint(c, qstart);
+	c = readUint(c, len);
+	c = readChar(c, qstrand);
+	c = readUint(c, qfullend);
+	c = readWord(c, qalign);
 	qend = qstart + len;
       }
-    } else if (line[0] == 'q') {
+    } else if (*c == 'q') {
       if (s == 1)
         err("I can't handle quality data for the genomic sequence");
-      if (s == 2)
-        iss >> a >> b >> qQual;
+      if (s == 2) {
+	c = skipWord(c);
+	c = skipWord(c);
+	c = readWord(c, qQual);
+      }
     }
-    if (!iss) err("bad MAF line: " + line);
+    if (!c) err("bad MAF line: " + lines[i]);
   }
 }
 
