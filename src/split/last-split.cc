@@ -1,4 +1,4 @@
-// Copyright 2013 Martin C. Frith
+// Copyright 2013, 2014 Martin C. Frith
 
 #include "last-split.hh"
 
@@ -103,7 +103,7 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 	    << std::setprecision(6);
   std::vector<std::string> s = cbrc::mafSlice(a.lines, alnBeg, alnEnd);
   s.push_back(cbrc::pLineFromProbs(p));
-  if (a.qstrand == "-") cbrc::flipMafStrands(s);
+  if (a.qstrand == '-') cbrc::flipMafStrands(s);
   cbrc::printMaf(s);
 }
 

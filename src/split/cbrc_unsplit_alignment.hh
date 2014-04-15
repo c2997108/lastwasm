@@ -18,7 +18,7 @@ public:
     std::string qname;
     unsigned qstart;
     unsigned qend;
-    std::string qstrand;
+    char qstrand;
     unsigned qfullend;
     unsigned rstart;
     unsigned rend;

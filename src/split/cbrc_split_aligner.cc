@@ -1,5 +1,5 @@
 // Copyright 2012 Risa Kawaguchi
-// Copyright 2013 Martin C. Frith
+// Copyright 2013, 2014 Martin C. Frith
 
 #include "cbrc_split_aligner.hh"
 #include "cbrc_linalg.hh"
@@ -661,7 +661,7 @@ void SplitAligner::initSpliceCoords() {
       if (f == chromosomeIndex.end())
 	err("can't find " + a.rname + " in the genome");
       unsigned c = f->second;
-      if (a.qstrand == "+") k += genome.seqBeg(c);
+      if (a.qstrand == '+') k += genome.seqBeg(c);
       else                  k += genome.finishedSize() - genome.seqEnd(c);
     }
 
@@ -693,7 +693,7 @@ void SplitAligner::initSpliceSignals() {
   resizeMatrix(spliceEndSignals, 1);
 
   for (unsigned i = 0; i < numAlns; ++i) {
-    char strand = alns[i].qstrand[0];
+    char strand = alns[i].qstrand;
     unsigned len = dpEnd(i) - dpBeg(i);
     for (unsigned j = 0; j <= len; ++j) {
       spliceBegSignals[i][j] = spliceBegSignal(spliceBegCoords[i][j], strand);
