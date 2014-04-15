@@ -7,6 +7,7 @@
 #include <cerrno>
 #include <climits>
 #include <cmath>
+#include <cstdio>  // sprintf
 #include <cstdlib>  // strtoul
 #include <iostream>
 #include <numeric>  // accumulate
@@ -108,9 +109,9 @@ void flipMafStrands(std::vector<std::string>& maf) {
       x = z - x - y;
       reverse(s.begin(), s.end());
       transform(s.begin(), s.end(), s.begin(), complement);
-      std::ostringstream oss;
-      oss << std::string(c, d) << x << std::string(e, f) << s;
-      line = oss.str();
+      char buffer[32];
+      std::sprintf(buffer, "%u", x);
+      line = std::string(c, d) + buffer + std::string(e, f) + s;
     } else if (*c == 'q') {
       d = skipSpace(skipWord(skipWord(c)));
       e = readWord(d, s);
