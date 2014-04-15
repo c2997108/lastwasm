@@ -1,4 +1,4 @@
-// Copyright 2013 Martin C. Frith
+// Copyright 2013, 2014 Martin C. Frith
 
 #include "cbrc_unsplit_alignment.hh"
 
@@ -97,11 +97,7 @@ void UnsplitAlignment::init() {
   for (unsigned i = 0; i < lines.size(); ++i) {
     std::string& line = lines[i];
     std::istringstream iss(line);
-    if (line[0] == 'a') {
-      while (iss >> a >> std::ws && getline(iss, b, '='))
-	if (b == "score" && iss >> score)
-	  break;
-    } else if (line[0] == 's') {
+    if (line[0] == 's') {
       ++s;
       unsigned len;
       if (s == 1) {

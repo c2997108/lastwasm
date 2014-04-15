@@ -1,5 +1,5 @@
 // Copyright 2012 Risa Kawaguchi
-// Copyright 2013 Martin C. Frith
+// Copyright 2013, 2014 Martin C. Frith
 
 //
 // 1. UnsplitAlignment -> container of maf file information
@@ -15,7 +15,6 @@ namespace cbrc {
 
 class UnsplitAlignment {
 public:
-    int score;
     std::string qname;
     unsigned qstart;
     unsigned qend;
