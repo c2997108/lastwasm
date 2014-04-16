@@ -11,7 +11,6 @@
 #include <cstdlib>  // strtoul
 #include <iostream>
 #include <numeric>  // accumulate
-#include <sstream>
 #include <stdexcept>
 
 static void err(const std::string& s) {
@@ -189,33 +188,34 @@ void UnsplitAlignment::init() {
   }
 }
 
-static unsigned seqPosFromAlnPos(unsigned alnPos, const std::string& aln) {
-  return alnPos - count(aln.begin(), aln.begin() + alnPos, '-');
+static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
+  return alnPos - std::count(aln, aln + alnPos, '-');
 }
 
 std::vector<std::string> mafSlice(const std::vector<std::string>& maf,
 				  unsigned alnBeg, unsigned alnEnd) {
   std::vector<std::string> out;
-  std::string a, b, c, d, e, f;
   for (unsigned i = 0; i < maf.size(); ++i) {
-    const std::string& line = maf[i];
-    std::istringstream iss(line);
-    if (line[0] == 's') {
-      unsigned x;
-      iss >> a >> b >> x >> c >> d >> e >> f;
+    const char *c = maf[i].c_str();
+    const char *d, *e, *f;
+    if (*c == 's') {
+      unsigned x = 0;  // initialize it to keep the compiler happy
+      d = skipWord(skipWord(c));
+      e = skipWord(readUint(d, x));
+      f = skipSpace(skipWord(skipWord(e)));
       unsigned beg = x + seqPosFromAlnPos(alnBeg, f);
       unsigned end = x + seqPosFromAlnPos(alnEnd, f);
       unsigned len = end - beg;
-      std::ostringstream oss;
-      oss << a << ' ' << b << ' ' << beg << ' ' << len << ' '
-          << d << ' ' << e << ' ' << f.substr(alnBeg, alnEnd - alnBeg);
-      out.push_back(oss.str());
-    } else if (line[0] == 'q') {
-      iss >> a >> b >> c;
-      out.push_back(a + ' ' + b + ' ' + c.substr(alnBeg, alnEnd - alnBeg));
-    } else if (line[0] == 'p') {
-      iss >> a >> b;
-      out.push_back(a + ' ' + b.substr(alnBeg, alnEnd - alnBeg));
+      char buffer[64];
+      std::sprintf(buffer, " %u %u", beg, len);
+      out.push_back(std::string(c, d) + buffer +
+		    std::string(e, f) + std::string(f + alnBeg, f + alnEnd));
+    } else if (*c == 'q') {
+      d = skipSpace(skipWord(skipWord(c)));
+      out.push_back(std::string(c, d) + std::string(d + alnBeg, d + alnEnd));
+    } else if (*c == 'p') {
+      d = skipSpace(skipWord(c));
+      out.push_back(std::string(c, d) + std::string(d + alnBeg, d + alnEnd));
     }
   }
   return out;
