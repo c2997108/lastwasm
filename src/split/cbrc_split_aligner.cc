@@ -694,10 +694,11 @@ void SplitAligner::initSpliceSignals() {
 
   for (unsigned i = 0; i < numAlns; ++i) {
     char strand = alns[i].qstrand;
-    unsigned len = dpEnd(i) - dpBeg(i);
-    for (unsigned j = 0; j <= len; ++j) {
-      spliceBegSignals[i][j] = spliceBegSignal(spliceBegCoords[i][j], strand);
-      spliceEndSignals[i][j] = spliceEndSignal(spliceEndCoords[i][j], strand);
+    for (unsigned j = dpBeg(i); j <= dpEnd(i); ++j) {
+      cell(spliceBegSignals, i, j) =
+	spliceBegSignal(cell(spliceBegCoords, i, j), strand);
+      cell(spliceEndSignals, i, j) =
+	spliceEndSignal(cell(spliceEndCoords, i, j), strand);
     }
   }
 }
