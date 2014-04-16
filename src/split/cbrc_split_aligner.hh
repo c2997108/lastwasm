@@ -1,5 +1,5 @@
 // Copyright 2012 Risa Kawaguchi
-// Copyright 2013 Martin C. Frith
+// Copyright 2013, 2014 Martin C. Frith
 
 #ifndef CBRC_SPLIT_ALIGNER_HH
 #define CBRC_SPLIT_ALIGNER_HH
@@ -224,14 +224,15 @@ private:
     { return v[i][j - dpBeg(i)]; }
 
     template<typename T>
-    void resizeVector(T& v, int extraCells) const
-    { v.resize(maxEnd - minBeg + extraCells); }
+    void resizeVector(T& v) const
+    { v.resize(maxEnd - minBeg + 1); }
 
     template<typename T>
-    void resizeMatrix(T& m, int extraCells) const {
+    void resizeMatrix(T& m) const {
       m.resize(numAlns);
       for (unsigned i = 0; i < numAlns; ++i)
-	m[i].resize(dpEnd(i) - dpBeg(i) + extraCells);
+	m[i].resize(dpEnd(i) - dpBeg(i) + 1);
+      // the "+ 1" is unnecessary for some matrices, but necessary for others
     }
 
     double probFromSpliceF(unsigned i, unsigned j, unsigned oldNumInplay,

@@ -298,8 +298,8 @@ void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
 }
 
 long SplitAligner::viterbi() {
-    resizeMatrix(Vmat, 1);
-    resizeVector(Vvec, 1);
+    resizeMatrix(Vmat);
+    resizeVector(Vvec);
 
     for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
     cell(Vvec, minBeg) = INT_MIN/2;
@@ -460,10 +460,10 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 }
 
 void SplitAligner::forward() {
-    resizeVector(rescales, 1);
+    resizeVector(rescales);
     cell(rescales, minBeg) = 1.0;
 
-    resizeMatrix(Fmat, 1);
+    resizeMatrix(Fmat);
     for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
     double probFromRestart = 0.0;
     double probFromJump = 0.0;
@@ -505,7 +505,7 @@ void SplitAligner::forward() {
 }
 
 void SplitAligner::backward() {
-    resizeMatrix(Bmat, 1);
+    resizeMatrix(Bmat);
     for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
     double probFromRestart = 0.0;
     double probFromJump = 0.0;
@@ -637,8 +637,8 @@ void SplitAligner::calcDelScores(unsigned i) {
 }
 
 void SplitAligner::calcScoreMatrices() {
-  resizeMatrix(Amat, 0);
-  resizeMatrix(Dmat, 1);
+  resizeMatrix(Amat);
+  resizeMatrix(Dmat);
 
   for (unsigned i = 0; i < numAlns; i++) {
     calcBaseScores(i);
@@ -648,8 +648,8 @@ void SplitAligner::calcScoreMatrices() {
 }
 
 void SplitAligner::initSpliceCoords() {
-  resizeMatrix(spliceBegCoords, 1);
-  resizeMatrix(spliceEndCoords, 1);
+  resizeMatrix(spliceBegCoords);
+  resizeMatrix(spliceEndCoords);
 
   for (unsigned i = 0; i < numAlns; ++i) {
     const UnsplitAlignment& a = alns[i];
@@ -689,8 +689,8 @@ void SplitAligner::initSpliceCoords() {
 }
 
 void SplitAligner::initSpliceSignals() {
-  resizeMatrix(spliceBegSignals, 1);
-  resizeMatrix(spliceEndSignals, 1);
+  resizeMatrix(spliceBegSignals);
+  resizeMatrix(spliceEndSignals);
 
   for (unsigned i = 0; i < numAlns; ++i) {
     char strand = alns[i].qstrand;
@@ -728,8 +728,8 @@ void SplitAligner::initRnameAndStrandIds() {
 }
 
 void SplitAligner::initForwardBackward() {
-  resizeMatrix(Aexp, 0);
-  resizeMatrix(Dexp, 1);
+  resizeMatrix(Aexp);
+  resizeMatrix(Dexp);
 
   for (unsigned i = 0; i < numAlns; ++i)
     for (unsigned j = dpBeg(i); j < dpEnd(i); ++j)
