@@ -575,67 +575,74 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 void SplitAligner::calcBaseScores(unsigned i) {
   int firstGapScore = gapExistenceScore + gapExtensionScore;
   const UnsplitAlignment& a = alns[i];
-  unsigned j = dpBeg(i);
 
-  while (j < a.qstart) cell(Amat, i, j++) = firstGapScore;
+  int *b = &cell(Amat, i, dpBeg(i));
+  int *s = &cell(Amat, i, a.qstart);
+  int *f = &cell(Amat, i, a.qend);
+  int *e = &cell(Amat, i, dpEnd(i));
 
-  for (unsigned k = 0; j < a.qend; ++k) {
+  while (b < s) *b++ = firstGapScore;
+
+  for (unsigned k = 0; b < f; ++k) {
     char x = a.ralign[k];
     char y = a.qalign[k];
     if (y == '-') /* noop */;
-    else if (x == '-') cell(Amat, i, j++) = firstGapScore;
+    else if (x == '-') *b++ = firstGapScore;
     else {
       int q = a.qQual.empty() ? numQualCodes - 1 : a.qQual[k] - qualityOffset;
       assert(q >= 0);
       assert(q < numQualCodes);
-      cell(Amat, i, j++) = score_mat[x % 64][y % 64][q];
+      *b++ = score_mat[x % 64][y % 64][q];
     }
     // Amazingly, in ASCII, '.' equals 'n' mod 64.
     // So '.' will get the same scores as 'n'.
   }
 
-  while (j < dpEnd(i)) cell(Amat, i, j++) = firstGapScore;
+  while (b < e) *b++ = firstGapScore;
 }
 
 void SplitAligner::calcInsScores(unsigned i) {
   const UnsplitAlignment& a = alns[i];
-  unsigned j = dpBeg(i);
   bool isExt = false;
 
-  while (j < a.qstart) {
-    cell(Dmat, i, j++) = (isExt ? -gapExistenceScore : 0);
+  int *b = &cell(Dmat, i, dpBeg(i));
+  int *s = &cell(Dmat, i, a.qstart);
+  int *e = &cell(Dmat, i, dpEnd(i));
+
+  while (b < s) {
+    *b++ = (isExt ? -gapExistenceScore : 0);
     isExt = true;
   }
 
   for (unsigned k = 0; k < a.qalign.size(); ++k) {
     bool isDel = (a.qalign[k] == '-');
     bool isIns = (a.ralign[k] == '-');
-    if (!isDel) cell(Dmat, i, j++) = (isIns && isExt ? -gapExistenceScore : 0);
+    if (!isDel) *b++ = (isIns && isExt ? -gapExistenceScore : 0);
     isExt = isIns;
   }
 
-  while (j < dpEnd(i)) {
-    cell(Dmat, i, j++) = (isExt ? -gapExistenceScore : 0);
+  while (b < e) {
+    *b++ = (isExt ? -gapExistenceScore : 0);
     isExt = true;
   }
 
-  cell(Dmat, i, j++) = 0;
+  *b++ = 0;
 }
 
 void SplitAligner::calcDelScores(unsigned i) {
   const UnsplitAlignment& a = alns[i];
-  unsigned j = a.qstart;
+  int *b = &cell(Dmat, i, a.qstart);
   int delScore = 0;
   for (unsigned k = 0; k < a.qalign.size(); ++k) {
     if (a.qalign[k] == '-') {  // deletion in query
       if (delScore == 0) delScore = gapExistenceScore;
       delScore += gapExtensionScore;
     } else {
-      cell(Dmat, i, j++) += delScore;
+      *b++ += delScore;
       delScore = 0;
     }
   }
-  cell(Dmat, i, j++) += delScore;
+  *b++ += delScore;
 }
 
 void SplitAligner::calcScoreMatrices() {
