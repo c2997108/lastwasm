@@ -316,11 +316,12 @@ long SplitAligner::viterbi() {
 	long sMax = INT_MIN/2;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
+	    size_t k = matrixRowOrigins[i] + j;
 	    long s = max(JB(i, j),
-			 scoreIndel(i, j),
+			 Vmat[k] + Dmat[k],
 			 scoreFromJump + spliceEndScore(i, j),
-			 scoreFromSplice(i, j, oldNumInplay, oldInplayPos)) + cell(Amat, i, j);
-	    cell(Vmat, i, j+1) = s;
+			 scoreFromSplice(i, j, oldNumInplay, oldInplayPos)) + Amat[k];
+	    Vmat[k+1] = s;
 	    sMax = std::max(sMax, s + spliceBegScore(i, j+1));
 	}
 	cell(Vvec, j+1) = std::max(sMax + restartScore, cell(Vvec, j));
@@ -484,11 +485,12 @@ void SplitAligner::forward() {
 	double rNew = 1.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
+	    size_t k = matrixRowOrigins[i] + j;
 	    double p = (IB(i, j) * begprob +
-			cell(Fmat, i, j) * cell(Dexp, i, j) +
+			Fmat[k] * Dexp[k] +
 			probFromJump * spliceEndProb(i, j) +
-			probFromSpliceF(i, j, oldNumInplay, oldInplayPos)) * cell(Aexp, i, j) / r;
-	    cell(Fmat, i, j+1) = p;
+			probFromSpliceF(i, j, oldNumInplay, oldInplayPos)) * Aexp[k] / r;
+	    Fmat[k+1] = p;
 	    zF += IE(i, j+1) * p;
 	    pSum += p * spliceBegProb(i, j+1);
 	    rNew += p;
@@ -525,11 +527,12 @@ void SplitAligner::backward() {
 	double pSum = 0.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
+	    size_t k = matrixRowOrigins[i] + j;
 	    double p = (IE(i, j) * endprob +
-			cell(Bmat, i, j) * cell(Dexp, i, j) +
+			Bmat[k] * Dexp[k] +
 			probFromJump * spliceBegProb(i, j) +
-			probFromSpliceB(i, j, oldNumInplay, oldInplayPos)) * cell(Aexp, i, j-1) / r;
-	    cell(Bmat, i, j-1) = p;
+			probFromSpliceB(i, j, oldNumInplay, oldInplayPos)) * Aexp[k-1] / r;
+	    Bmat[k-1] = p;
 	    //zB += IB(i, j-1) * p;
 	    pSum += p * spliceEndProb(i, j-1);
         }
