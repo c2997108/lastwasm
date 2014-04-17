@@ -583,13 +583,17 @@ void SplitAligner::calcBaseScores(unsigned i) {
 
   while (b < s) *b++ = firstGapScore;
 
-  for (unsigned k = 0; b < f; ++k) {
-    char x = a.ralign[k];
-    char y = a.qalign[k];
+  const char *rAlign = a.ralign.c_str();
+  const char *qAlign = a.qalign.c_str();
+  const char *qQual = a.qQual.c_str();
+
+  while (b < f) {
+    char x = *rAlign++;
+    char y = *qAlign++;
+    int q = *qQual ? (*qQual++ - qualityOffset) : (numQualCodes - 1);
     if (y == '-') /* noop */;
     else if (x == '-') *b++ = firstGapScore;
     else {
-      int q = a.qQual.empty() ? numQualCodes - 1 : a.qQual[k] - qualityOffset;
       assert(q >= 0);
       assert(q < numQualCodes);
       *b++ = score_mat[x % 64][y % 64][q];
@@ -614,9 +618,12 @@ void SplitAligner::calcInsScores(unsigned i) {
     isExt = true;
   }
 
-  for (unsigned k = 0; k < a.qalign.size(); ++k) {
-    bool isDel = (a.qalign[k] == '-');
-    bool isIns = (a.ralign[k] == '-');
+  const char *rAlign = a.ralign.c_str();
+  const char *qAlign = a.qalign.c_str();
+
+  while (*qAlign) {
+    bool isDel = (*qAlign++ == '-');
+    bool isIns = (*rAlign++ == '-');
     if (!isDel) *b++ = (isIns && isExt ? -gapExistenceScore : 0);
     isExt = isIns;
   }
@@ -632,9 +639,10 @@ void SplitAligner::calcInsScores(unsigned i) {
 void SplitAligner::calcDelScores(unsigned i) {
   const UnsplitAlignment& a = alns[i];
   int *b = &cell(Dmat, i, a.qstart);
+  const char *qAlign = a.qalign.c_str();
   int delScore = 0;
-  for (unsigned k = 0; k < a.qalign.size(); ++k) {
-    if (a.qalign[k] == '-') {  // deletion in query
+  while (*qAlign) {
+    if (*qAlign++ == '-') {  // deletion in query
       if (delScore == 0) delScore = gapExistenceScore;
       delScore += gapExtensionScore;
     } else {
