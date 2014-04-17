@@ -10,7 +10,6 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <stddef.h>  // size_t
 #include <stdexcept>
 
 static void err(const std::string& s) {
@@ -808,6 +807,17 @@ void SplitAligner::initDpBounds() {
     size_t eo = dpExtension(maxMatchScore * (e - minBeg), minScore, oldDiv);
     size_t en = dpExtension(maxMatchScore * (maxEnd - e), minScore, newDiv);
     dpEnds[i] = e + std::min(eo, en);
+  }
+
+  // This sets the coordinate system for a ragged matrix, with numAlns
+  // rows, where row i has cells from dpBeg(i) to dpEnd(i) inclusive.
+  // (The final cell per row is used in some matrices but not others.)
+  matrixRowOrigins.resize(numAlns);
+  size_t s = 0;
+  for (unsigned i = 0; i < numAlns; ++i) {
+    s -= dpBeg(i);
+    matrixRowOrigins[i] = s;
+    s += dpEnd(i) + 1;
   }
 }
 

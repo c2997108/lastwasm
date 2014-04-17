@@ -13,6 +13,7 @@
 #include <vector>
 #include <cmath>
 #include <climits>
+#include <stddef.h>  // size_t
 #include <map>
 
 namespace cbrc {
@@ -90,12 +91,6 @@ public:
     double spliceSignalStrandProb() const;
 
 private:
-    typedef std::vector< std::vector<int> > MatrixInt;
-    typedef std::vector< std::vector<long> > MatrixLong;
-    typedef std::vector< std::vector<unsigned> > MatrixUnsigned;
-    typedef std::vector< std::vector<double> > MatrixDouble;
-    typedef std::vector< std::vector<unsigned char> > MatrixUchar;
-
     static const int numQualCodes = 64;
     static int score_mat[64][64][numQualCodes];
     int maxMatchScore;
@@ -113,20 +108,21 @@ private:
     unsigned maxEnd;  // the maximum query end coordinate of any candidate
     std::vector<unsigned> dpBegs;  // dynamic programming begin coords
     std::vector<unsigned> dpEnds;  // dynamic programming end coords
-    MatrixInt Amat;  // scores at query bases, for each candidate
-    MatrixInt Dmat;  // scores between query bases, for each candidate
-    MatrixLong Vmat;  // DP matrix for Viterbi algorithm
+    std::vector<size_t> matrixRowOrigins;  // layout of ragged matrices
+    std::vector<int> Amat;  // scores at query bases, for each candidate
+    std::vector<int> Dmat;  // scores between query bases, for each candidate
+    std::vector<long> Vmat;  // DP matrix for Viterbi algorithm
     std::vector<long> Vvec;  // DP vector for Viterbi algorithm
-    MatrixDouble Aexp;
-    MatrixDouble Dexp;
-    MatrixDouble Fmat;  // DP matrix for Forward algorithm
-    MatrixDouble Bmat;  // DP matrix for Backward algorithm
+    std::vector<double> Aexp;
+    std::vector<double> Dexp;
+    std::vector<double> Fmat;  // DP matrix for Forward algorithm
+    std::vector<double> Bmat;  // DP matrix for Backward algorithm
     std::vector<double> rescales;  // the usual scaling for numerical stability
 
-    MatrixLong VmatRev;
+    std::vector<long> VmatRev;
     std::vector<long> VvecRev;
-    MatrixDouble FmatRev;
-    MatrixDouble BmatRev;
+    std::vector<double> FmatRev;
+    std::vector<double> BmatRev;
     std::vector<double> rescalesRev;
 
     std::vector<unsigned> sortedAlnIndices;
@@ -139,10 +135,10 @@ private:
     double spliceTerm1;
     double spliceTerm2;
     unsigned maxSpliceDist;
-    MatrixUnsigned spliceBegCoords;
-    MatrixUnsigned spliceEndCoords;
-    MatrixUchar spliceBegSignals;
-    MatrixUchar spliceEndSignals;
+    std::vector<unsigned> spliceBegCoords;
+    std::vector<unsigned> spliceEndCoords;
+    std::vector<unsigned char> spliceBegSignals;
+    std::vector<unsigned char> spliceEndSignals;
     std::vector<unsigned> rBegs;  // genomic beg coordinate of each candidate
     std::vector<unsigned> rEnds;  // genomic end coordinate of each candidate
     std::vector<unsigned> rnameAndStrandIds;
@@ -215,13 +211,15 @@ private:
     cell(const std::vector<T>& v, unsigned j) const
     { return v[j - minBeg]; }
 
+    // cell j in row i of a ragged matrix
     template<typename T> T&
-    cell(std::vector< std::vector<T> >& v, unsigned i, unsigned j) const
-    { return v[i][j - dpBeg(i)]; }
+    cell(std::vector<T>& v, unsigned i, unsigned j) const
+    { return v[matrixRowOrigins[i] + j]; }
 
+    // cell j in row i of a ragged matrix
     template<typename T> const T&
-    cell(const std::vector< std::vector<T> >& v, unsigned i, unsigned j) const
-    { return v[i][j - dpBeg(i)]; }
+    cell(const std::vector<T>& v, unsigned i, unsigned j) const
+    { return v[matrixRowOrigins[i] + j]; }
 
     template<typename T>
     void resizeVector(T& v) const
@@ -229,10 +227,11 @@ private:
 
     template<typename T>
     void resizeMatrix(T& m) const {
-      m.resize(numAlns);
-      for (unsigned i = 0; i < numAlns; ++i)
-	m[i].resize(dpEnd(i) - dpBeg(i) + 1);
-      // the "+ 1" is unnecessary for some matrices, but necessary for others
+      // This reserves size for a ragged matrix, which is actually
+      // stored in a flat vector.  There are numAlns rows, and row i
+      // has dpEnd(i) - dpBeg(i) + 1 cells.  (The final cell per row
+      // is used in some matrices but not others.)
+      m.resize(matrixRowOrigins[numAlns-1] + dpEnd(numAlns-1) + 1);
     }
 
     double probFromSpliceF(unsigned i, unsigned j, unsigned oldNumInplay,
