@@ -729,19 +729,20 @@ void SplitAligner::initRnameAndStrandIds() {
   }
 }
 
+static void doExp(std::vector<int>::const_iterator beg,
+		  std::vector<int>::const_iterator end,
+		  std::vector<double>::iterator out,
+		  double scale) {
+  while (beg < end) *out++ = std::exp(*beg++ / scale);
+  // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
+}
+
 void SplitAligner::initForwardBackward() {
   resizeMatrix(Aexp);
+  doExp(Amat.begin(), Amat.end(), Aexp.begin(), scale);
+
   resizeMatrix(Dexp);
-
-  for (unsigned i = 0; i < numAlns; ++i)
-    for (unsigned j = dpBeg(i); j < dpEnd(i); ++j)
-      cell(Aexp, i, j) = std::exp(cell(Amat, i, j) / scale);
-
-  for (unsigned i = 0; i < numAlns; ++i)
-    for (unsigned j = dpBeg(i); j <= dpEnd(i); ++j)
-      cell(Dexp, i, j) = std::exp(cell(Dmat, i, j) / scale);
-
-  // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
+  doExp(Dmat.begin(), Dmat.end(), Dexp.begin(), scale);
 }
 
 int SplitAligner::maxJumpScore() const {
