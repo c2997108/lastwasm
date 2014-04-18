@@ -88,7 +88,6 @@ struct Complement {
 static Complement complement;
 
 void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
-  std::string s;
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
     const char *d, *e, *f, *g;
@@ -101,26 +100,26 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
       f = skipWord(f);
       f = readUint(f, z);
       f = skipSpace(f);
-      g = readWord(f, s);
+      g = skipWord(f);
       if (!g) err("bad MAF line: " + *i);
       x = z - x - y;
-      reverse(s.begin(), s.end());
-      transform(s.begin(), s.end(), s.begin(), complement);
+      std::string::iterator beg = i->begin() + (f - c);
+      std::string::iterator end = i->begin() + (g - c);
+      reverse(beg, end);
+      transform(beg, end, beg, complement);
       char buffer[32];
       std::sprintf(buffer, " %u", x);
-      *i = std::string(c, d) + buffer + std::string(e, f) + s;
+      *i = i->substr(0, d - c) + buffer + i->substr(e - c);
     } else if (*c == 'q') {
       d = skipSpace(skipWord(skipWord(c)));
-      e = readWord(d, s);
+      e = skipWord(d);
       if (!e) err("bad MAF line: " + *i);
-      reverse(s.begin(), s.end());
-      *i = std::string(c, d) + s;
+      reverse(i->begin() + (d - c), i->begin() + (e - c));
     } else if (*c == 'p') {
       d = skipSpace(skipWord(c));
-      e = readWord(d, s);
+      e = skipWord(d);
       if (!e) err("bad MAF line: " + *i);
-      reverse(s.begin(), s.end());
-      *i = std::string(c, d) + s;
+      reverse(i->begin() + (d - c), i->begin() + (e - c));
     }
   }
 }
