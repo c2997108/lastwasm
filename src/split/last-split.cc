@@ -301,7 +301,7 @@ void lastSplit(LastSplitOptions& opts) {
 	} else if (isSpace(line)) {
 	  addMaf(mafs, maf);
 	  maf.clear();
-	} else if (line[0] != '#') {
+	} else if (line[0] != '#' && line[0] != 'a') {
 	  maf.push_back(line);
 	}
       }
