@@ -101,9 +101,10 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   std::cout << std::setprecision(3)
 	    << "a score=" << score << " mismap=" << mismap << "\n"
 	    << std::setprecision(6);
-  std::vector<std::string> s = cbrc::mafSlice(a.lines, alnBeg, alnEnd);
+  std::vector<std::string> s = cbrc::mafSlice(a.lines.begin(), a.lines.end(),
+					      alnBeg, alnEnd);
   s.push_back(cbrc::pLineFromProbs(p));
-  if (a.qstrand == '-') cbrc::flipMafStrands(s);
+  if (a.qstrand == '-') cbrc::flipMafStrands(s.begin(), s.end());
   cbrc::printMaf(s);
 }
 

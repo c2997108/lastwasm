@@ -13,6 +13,9 @@
 
 namespace cbrc {
 
+typedef std::vector<std::string>::iterator       StringIt;
+typedef std::vector<std::string>::const_iterator StringCi;
+
 class UnsplitAlignment {
 public:
     std::string qname;
@@ -32,9 +35,9 @@ public:
     void init();
 };
 
-void flipMafStrands(std::vector<std::string>& maf);
+void flipMafStrands(StringIt linesBeg, StringIt linesEnd);
 
-std::vector<std::string> mafSlice(const std::vector<std::string>& maf,
+std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
 				  unsigned alnBeg, unsigned alnEnd);
 
 void mafSliceBeg(const std::string& rAln, const std::string& qAln,

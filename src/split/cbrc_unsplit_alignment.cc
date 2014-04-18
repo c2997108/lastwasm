@@ -87,11 +87,10 @@ struct Complement {
 };
 static Complement complement;
 
-void flipMafStrands(std::vector<std::string>& maf) {
+void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
   std::string s;
-  for (unsigned i = 0; i < maf.size(); ++i) {
-    std::string& line = maf[i];
-    const char *c = line.c_str();
+  for (StringIt i = linesBeg; i < linesEnd; ++i) {
+    const char *c = i->c_str();
     const char *d, *e, *f, *g;
     if (*c == 's') {
       unsigned x, y, z;
@@ -103,33 +102,33 @@ void flipMafStrands(std::vector<std::string>& maf) {
       f = readUint(f, z);
       f = skipSpace(f);
       g = readWord(f, s);
-      if (!g) err("bad MAF line: " + line);
+      if (!g) err("bad MAF line: " + *i);
       x = z - x - y;
       reverse(s.begin(), s.end());
       transform(s.begin(), s.end(), s.begin(), complement);
       char buffer[32];
       std::sprintf(buffer, " %u", x);
-      line = std::string(c, d) + buffer + std::string(e, f) + s;
+      *i = std::string(c, d) + buffer + std::string(e, f) + s;
     } else if (*c == 'q') {
       d = skipSpace(skipWord(skipWord(c)));
       e = readWord(d, s);
-      if (!e) err("bad MAF line: " + line);
+      if (!e) err("bad MAF line: " + *i);
       reverse(s.begin(), s.end());
-      line = std::string(c, d) + s;
+      *i = std::string(c, d) + s;
     } else if (*c == 'p') {
       d = skipSpace(skipWord(c));
       e = readWord(d, s);
-      if (!e) err("bad MAF line: " + line);
+      if (!e) err("bad MAF line: " + *i);
       reverse(s.begin(), s.end());
-      line = std::string(c, d) + s;
+      *i = std::string(c, d) + s;
     }
   }
 }
 
-static void canonicalizeMafStrands(std::vector<std::string>& maf) {
+static void canonicalizeMafStrands(StringIt linesBeg, StringIt linesEnd) {
   unsigned s = 0;
-  for (unsigned i = 0; i < maf.size(); ++i) {
-    const char *c = maf[i].c_str();
+  for (StringIt i = linesBeg; i < linesEnd; ++i) {
+    const char *c = i->c_str();
     if (*c == 's') ++s;
     if (s == 2) {
       char strand;
@@ -138,8 +137,8 @@ static void canonicalizeMafStrands(std::vector<std::string>& maf) {
       c = skipWord(c);
       c = skipWord(c);
       c = readChar(c, strand);
-      if (!c) err("bad MAF line: " + maf[i]);
-      if (strand == '-') flipMafStrands(maf);
+      if (!c) err("bad MAF line: " + *i);
+      if (strand == '-') flipMafStrands(linesBeg, linesEnd);
       return;
     }
   }
@@ -147,11 +146,11 @@ static void canonicalizeMafStrands(std::vector<std::string>& maf) {
 }
 
 void UnsplitAlignment::init() {
-  canonicalizeMafStrands(lines);
+  canonicalizeMafStrands(lines.begin(), lines.end());
 
   unsigned s = 0;
-  for (unsigned i = 0; i < lines.size(); ++i) {
-    const char *c = lines[i].c_str();
+  for (StringCi i = lines.begin(); i < lines.end(); ++i) {
+    const char *c = i->c_str();
     if (*c == 's') {
       ++s;
       unsigned len = 0;  // initialize it to keep the compiler happy
@@ -183,7 +182,7 @@ void UnsplitAlignment::init() {
 	c = readWord(c, qQual);
       }
     }
-    if (!c) err("bad MAF line: " + lines[i]);
+    if (!c) err("bad MAF line: " + *i);
   }
 }
 
@@ -191,11 +190,11 @@ static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
   return alnPos - std::count(aln, aln + alnPos, '-');
 }
 
-std::vector<std::string> mafSlice(const std::vector<std::string>& maf,
+std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
 				  unsigned alnBeg, unsigned alnEnd) {
   std::vector<std::string> out;
-  for (unsigned i = 0; i < maf.size(); ++i) {
-    const char *c = maf[i].c_str();
+  for (StringCi i = linesBeg; i < linesEnd; ++i) {
+    const char *c = i->c_str();
     const char *d, *e, *f;
     if (*c == 's') {
       unsigned x = 0;  // initialize it to keep the compiler happy
