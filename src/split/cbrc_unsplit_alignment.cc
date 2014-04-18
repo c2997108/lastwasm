@@ -171,7 +171,7 @@ void UnsplitAlignment::init() {
 	c = readUint(c, qstart);
 	c = readUint(c, len);
 	c = readChar(c, qstrand);
-	c = readUint(c, qfullend);
+	c = skipWord(c);
 	c = readWord(c, qalign);
 	qend = qstart + len;
       }

@@ -19,7 +19,6 @@ public:
     unsigned qstart;
     unsigned qend;
     char qstrand;
-    unsigned qfullend;
     unsigned rstart;
     unsigned rend;
     std::string rname;

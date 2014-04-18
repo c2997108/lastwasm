@@ -133,7 +133,7 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
   if (opts.no_split) {
     if (opts.verbose) std::cerr << "\n";
     for (unsigned i = 0; i < end - beg; ++i) {
-      doOneAlignmentPart(sa, beg[i], i, 0, beg->qfullend,
+      doOneAlignmentPart(sa, beg[i], i, beg[i].qstart, beg[i].qend,
 			 forwardDirectionProb, opts);
     }
   } else {
