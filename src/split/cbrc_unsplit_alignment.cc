@@ -146,10 +146,10 @@ static void canonicalizeMafStrands(StringIt linesBeg, StringIt linesEnd) {
 }
 
 void UnsplitAlignment::init() {
-  canonicalizeMafStrands(lines.begin(), lines.end());
+  canonicalizeMafStrands(linesBeg, linesEnd);
 
   unsigned s = 0;
-  for (StringCi i = lines.begin(); i < lines.end(); ++i) {
+  for (StringCi i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
     if (*c == 's') {
       ++s;

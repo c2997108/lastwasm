@@ -18,6 +18,8 @@ typedef std::vector<std::string>::const_iterator StringCi;
 
 class UnsplitAlignment {
 public:
+    StringIt linesBeg;
+    StringIt linesEnd;
     std::string qname;
     unsigned qstart;
     unsigned qend;
@@ -28,10 +30,9 @@ public:
     std::string ralign;
     std::string qalign;
     std::string qQual;
-    std::vector<std::string> lines;
     UnsplitAlignment(){}
-    UnsplitAlignment(const std::vector<std::string>& linesIn)
-      : lines(linesIn) { init(); }
+    UnsplitAlignment(StringIt linesBegIn, StringIt linesEndIn)
+      : linesBeg(linesBegIn), linesEnd(linesEndIn) { init(); }
     void init();
 };
 

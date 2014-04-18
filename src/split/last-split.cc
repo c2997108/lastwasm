@@ -101,7 +101,7 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   std::cout << std::setprecision(3)
 	    << "a score=" << score << " mismap=" << mismap << "\n"
 	    << std::setprecision(6);
-  std::vector<std::string> s = cbrc::mafSlice(a.lines.begin(), a.lines.end(),
+  std::vector<std::string> s = cbrc::mafSlice(a.linesBeg, a.linesEnd,
 					      alnBeg, alnEnd);
   s.push_back(cbrc::pLineFromProbs(p));
   if (a.qstrand == '-') cbrc::flipMafStrands(s.begin(), s.end());
@@ -173,8 +173,14 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
   }
 }
 
-static void doOneBatch(std::vector<cbrc::UnsplitAlignment>& mafs,
+static void doOneBatch(std::vector<std::string>& mafLines,
+		       const std::vector<unsigned>& mafEnds,
                        cbrc::SplitAligner& sa, const LastSplitOptions& opts) {
+  std::vector<cbrc::UnsplitAlignment> mafs;
+  for (unsigned i = 1; i < mafEnds.size(); ++i)
+    mafs.push_back(cbrc::UnsplitAlignment(mafLines.begin() + mafEnds[i-1],
+					  mafLines.begin() + mafEnds[i]));
+
   stable_sort(mafs.begin(), mafs.end(), less);
   std::vector<cbrc::UnsplitAlignment>::const_iterator b = mafs.begin();
   std::vector<cbrc::UnsplitAlignment>::const_iterator e = mafs.begin();
@@ -201,10 +207,10 @@ static void printParameters(const LastSplitOptions& opts) {
   std::cout << "\n" << std::setprecision(6);
 }
 
-static void addMaf(std::vector<cbrc::UnsplitAlignment>& mafs,
-		   const std::vector<std::string>& maf) {
-  if (maf.empty()) return;
-  mafs.push_back(cbrc::UnsplitAlignment(maf));
+static void addMaf(std::vector<unsigned>& mafEnds,
+		   const std::vector<std::string>& mafLines) {
+  if (mafLines.size() > mafEnds.back())  // if we have new maf lines:
+    mafEnds.push_back(mafLines.size());  // store the new end
 }
 
 void lastSplit(LastSplitOptions& opts) {
@@ -219,8 +225,8 @@ void lastSplit(LastSplitOptions& opts) {
   int lastalScoreThreshold = -1;
   double scale = 0;
   double genomeSize = 0;
-  std::vector<std::string> maf;
-  std::vector<cbrc::UnsplitAlignment> mafs;
+  std::vector<std::string> mafLines;  // lines of multiple MAF blocks
+  std::vector<unsigned> mafEnds(1);  // which lines are in which MAF block
 
   for (unsigned i = 0; i < opts.inputFileNames.size(); ++i) {
     std::ifstream inFileStream;
@@ -295,20 +301,19 @@ void lastSplit(LastSplitOptions& opts) {
       }
       if (state == 1) {  // we are reading alignments
 	if (startsWith(line, "# batch")) {
-	  addMaf(mafs, maf);
-	  maf.clear();
-	  doOneBatch(mafs, sa, opts);
-	  mafs.clear();
+	  addMaf(mafEnds, mafLines);
+	  doOneBatch(mafLines, mafEnds, sa, opts);
+	  mafLines.clear();
+	  mafEnds.resize(1);
 	} else if (isSpace(line)) {
-	  addMaf(mafs, maf);
-	  maf.clear();
+	  addMaf(mafEnds, mafLines);
 	} else if (line[0] != '#' && line[0] != 'a') {
-	  maf.push_back(line);
+	  mafLines.push_back(line);
 	}
       }
       if (startsWith(line, "#")) std::cout << line << "\n";
     }
   }
-  addMaf(mafs, maf);
-  doOneBatch(mafs, sa, opts);
+  addMaf(mafEnds, mafLines);
+  doOneBatch(mafLines, mafEnds, sa, opts);
 }
