@@ -97,7 +97,6 @@ void flipMafStrands(std::vector<std::string>& maf) {
       unsigned x, y, z;
       d = skipWord(c);
       d = skipWord(d);
-      d = skipSpace(d);
       e = readUint(d, x);
       f = readUint(e, y);
       f = skipWord(f);
@@ -109,7 +108,7 @@ void flipMafStrands(std::vector<std::string>& maf) {
       reverse(s.begin(), s.end());
       transform(s.begin(), s.end(), s.begin(), complement);
       char buffer[32];
-      std::sprintf(buffer, "%u", x);
+      std::sprintf(buffer, " %u", x);
       line = std::string(c, d) + buffer + std::string(e, f) + s;
     } else if (*c == 'q') {
       d = skipSpace(skipWord(skipWord(c)));

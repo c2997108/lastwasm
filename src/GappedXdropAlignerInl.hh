@@ -1,6 +1,6 @@
-// Copyright 2011, 2013 Martin C. Frith
+// Copyright 2011, 2013, 2014 Martin C. Frith
 
-#ifndef GAPPED_XDROP_ALIGHER_INL_HH
+#ifndef GAPPED_XDROP_ALIGNER_INL_HH
 #define GAPPED_XDROP_ALIGNER_INL_HH
 
 #include <algorithm>

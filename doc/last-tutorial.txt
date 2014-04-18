@@ -160,12 +160,12 @@ Alignment scoring schemes
 The default DNA scoring scheme used by lastal is tuned for finding
 long, weak alignments.  It is::
 
-  match score = 1,  mismatch cost = 1,  gap cost = 7 + 1 * (gap length),
+  match score = 1,  mismatch cost = 1,  gap cost = 7 + 1 * (gap length)
 
 However, if you use option -Q1, it uses a different scoring scheme
 tuned for finding short, strong alignments::
 
-  match score = 6,  mismatch cost = 18,  gap cost = 21 + 9 * (gap length),
+  match score = 6,  mismatch cost = 18,  gap cost = 21 + 9 * (gap length)
 
 In the next two examples, we set the scoring scheme by hand.
 
@@ -230,6 +230,15 @@ chromosome.  Omitting -m100 makes it faster but somewhat less
 sensitive.  Omitting -uMAM8 reduces the memory use to ~10 GB and makes
 it faster but considerably less sensitive.
 
+Example 9: Compare the human and chimp genomes
+----------------------------------------------
+
+For strongly similar genomes (e.g. 99% identity), something like this
+is more appropriate::
+
+  lastdb -c -m1111110 human human.fa
+  lastal -q3 -e30 human chimp.fa | last-split > myalns.maf
+
 Going faster by using multiple CPUs
 -----------------------------------
 
@@ -276,8 +285,8 @@ Notes:
 * parallel-fastq assumes that each fastq record is 4 lines, so there
   should be no line wrapping or blank lines.
 
-Example 9: Ambiguity of alignment columns
------------------------------------------
+Example 10: Ambiguity of alignment columns
+------------------------------------------
 
 Consider this alignment::
 
