@@ -69,8 +69,8 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       double forwardDirectionProb,
 			       const LastSplitOptions& opts) {
   unsigned alnBeg, alnEnd;
-  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, alnBeg);
-  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend, qSliceEnd, alnEnd);
+  cbrc::mafSliceBeg(a.ralign.c_str(), a.qalign.c_str(), a.qstart, qSliceBeg, alnBeg);
+  cbrc::mafSliceEnd(a.ralign.c_str(), a.qalign.c_str(), a.qend, qSliceEnd, alnEnd);
 
   int score = sa.segmentScore(alnNum, qSliceBeg, qSliceEnd);
   if (score < opts.score) return;

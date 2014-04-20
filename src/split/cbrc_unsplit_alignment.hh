@@ -41,10 +41,10 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd);
 std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
 				  unsigned alnBeg, unsigned alnEnd);
 
-void mafSliceBeg(const std::string& rAln, const std::string& qAln,
+void mafSliceBeg(const char* rAln, const char* qAln,
 		 unsigned qBeg, unsigned& qSliceBeg, unsigned& alnBeg);
 
-void mafSliceEnd(const std::string& rAln, const std::string& qAln,
+void mafSliceEnd(const char* rAln, const char* qAln,
 		 unsigned qEnd, unsigned& qSliceEnd, unsigned& alnEnd);
 
 void printMaf(const std::vector<std::string>& maf);

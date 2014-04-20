@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdio>  // sprintf
 #include <cstdlib>  // strtoul
+#include <cstring>  // strlen
 #include <iostream>
 #include <numeric>  // accumulate
 #include <stdexcept>
@@ -19,14 +20,6 @@ static void err(const std::string& s) {
 
 namespace cbrc {
     
-static const char *strBeg(const std::string& s) {
-  return s.c_str();
-}
-
-static const char *strEnd(const std::string& s) {
-  return s.c_str() + s.size();
-}
-
 static const char *readUint(const char *c, unsigned &x) {
   if (!c) return 0;
   errno = 0;
@@ -234,28 +227,29 @@ static unsigned nthBaseSuffix(const char *sequenceWithGapsEnd, unsigned n) {
     }
 }
 
-void mafSliceBeg(const std::string& rAln, const std::string& qAln,
+void mafSliceBeg(const char* rAln, const char* qAln,
 		 unsigned qBeg, unsigned& qSliceBeg, unsigned& alnBeg) {
   if (qSliceBeg < qBeg) {
     qSliceBeg = qBeg;
     alnBeg = 0;
   } else {
-    alnBeg = nthBasePrefix(strBeg(qAln), qSliceBeg - qBeg);
+    alnBeg = nthBasePrefix(qAln, qSliceBeg - qBeg);
   }
-  unsigned numInserts = nthBasePrefix(strBeg(rAln) + alnBeg, 0);
+  unsigned numInserts = nthBasePrefix(rAln + alnBeg, 0);
   alnBeg += numInserts;
   qSliceBeg += numInserts;
 }
 
-void mafSliceEnd(const std::string& rAln, const std::string& qAln,
+void mafSliceEnd(const char* rAln, const char* qAln,
 		 unsigned qEnd, unsigned& qSliceEnd, unsigned& alnEnd) {
+  unsigned alnLength = std::strlen(qAln);
   if (qSliceEnd > qEnd) {
     qSliceEnd = qEnd;
-    alnEnd = qAln.size();
+    alnEnd = alnLength;
   } else {
-    alnEnd = qAln.size() - nthBaseSuffix(strEnd(qAln), qEnd - qSliceEnd);
+    alnEnd = alnLength - nthBaseSuffix(qAln + alnLength, qEnd - qSliceEnd);
   }
-  unsigned numInserts = nthBaseSuffix(strBeg(rAln) + alnEnd, 0);
+  unsigned numInserts = nthBaseSuffix(rAln + alnEnd, 0);
   alnEnd -= numInserts;
   qSliceEnd -= numInserts;
 }
