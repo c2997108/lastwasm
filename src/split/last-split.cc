@@ -53,13 +53,12 @@ static int scoreFromProb(double prob, double scale) {
 // Defines an ordering, for sorting.
 static bool less(const cbrc::UnsplitAlignment& a,
 		 const cbrc::UnsplitAlignment& b) {
-  return
-    a.qname != b.qname ? a.qname < b.qname :
-    a.qstart != b.qstart ? a.qstart < b.qstart :
-    a.qend != b.qend ? a.qend < b.qend :
-    a.qstrand != b.qstrand ? a.qstrand < b.qstrand :
-    a.qalign != b.qalign ? a.qalign < b.qalign :
-    a.rname < b.rname;
+  if (a.qname   != b.qname  ) return a.qname   < b.qname;
+  if (a.qstart  != b.qstart ) return a.qstart  < b.qstart;
+  if (a.qend    != b.qend   ) return a.qend    < b.qend;
+  if (a.qstrand != b.qstrand) return a.qstrand < b.qstrand;
+  if (a.qalign  != b.qalign ) return a.qalign  < b.qalign;
+  else                        return a.rname   < b.rname;
 }
 
 static void doOneAlignmentPart(cbrc::SplitAligner& sa,
