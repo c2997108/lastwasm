@@ -79,6 +79,7 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
       d = skipWord(c);
       d = skipWord(d);
       e = readUint(d, x);
+      e = skipSpace(e);
       f = readUint(e, y);
       f = skipWord(f);
       f = readUint(f, z);
@@ -91,8 +92,17 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
       reverse(beg, end);
       transform(beg, end, beg, complement);
       char buffer[32];
-      std::sprintf(buffer, " %u", x);
-      *i = i->substr(0, d - c) + buffer + i->substr(e - c);
+      int buflen = std::sprintf(buffer, " %u ", x);
+      if (buflen <= e - d) {
+	// if the field is small enough, copy it into the line (fast)
+	beg = i->begin() + (d - c);
+	end = i->begin() + (e - c);
+	beg = copy(buffer, buffer + buflen, beg);
+	while (beg < end) *beg++ = ' ';
+      } else {
+	// else, reconstruct the line (slow)
+	*i = i->substr(0, d - c) + buffer + i->substr(e - c);
+      }
     } else if (*c == 'q') {
       d = skipSpace(skipWord(skipWord(c)));
       e = skipWord(d);
