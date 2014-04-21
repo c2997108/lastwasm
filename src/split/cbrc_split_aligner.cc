@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cctype>
+#include <cstring>  // strcmp
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -583,9 +584,9 @@ void SplitAligner::calcBaseScores(unsigned i) {
 
   while (b < s) *b++ = firstGapScore;
 
-  const char *rAlign = a.ralign.c_str();
-  const char *qAlign = a.qalign.c_str();
-  const char *qQual = a.qQual.c_str();
+  const char *rAlign = a.ralign;
+  const char *qAlign = a.qalign;
+  const char *qQual = a.qQual;
 
   while (b < f) {
     char x = *rAlign++;
@@ -618,8 +619,8 @@ void SplitAligner::calcInsScores(unsigned i) {
     isExt = true;
   }
 
-  const char *rAlign = a.ralign.c_str();
-  const char *qAlign = a.qalign.c_str();
+  const char *rAlign = a.ralign;
+  const char *qAlign = a.qalign;
 
   while (*qAlign) {
     bool isDel = (*qAlign++ == '-');
@@ -639,7 +640,7 @@ void SplitAligner::calcInsScores(unsigned i) {
 void SplitAligner::calcDelScores(unsigned i) {
   const UnsplitAlignment& a = alns[i];
   int *b = &cell(Dmat, i, a.qstart);
-  const char *qAlign = a.qalign.c_str();
+  const char *qAlign = a.qalign;
   int delScore = 0;
   while (*qAlign) {
     if (*qAlign++ == '-') {  // deletion in query
@@ -676,7 +677,7 @@ void SplitAligner::initSpliceCoords() {
     if (!chromosomeIndex.empty()) {
       StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
       if (f == chromosomeIndex.end())
-	err("can't find " + a.rname + " in the genome");
+	err("can't find " + std::string(a.rname) + " in the genome");
       unsigned c = f->second;
       if (a.qstrand == '+') k += genome.seqBeg(c);
       else                  k += genome.finishedSize() - genome.seqEnd(c);
@@ -689,7 +690,7 @@ void SplitAligner::initSpliceCoords() {
       ++j;
       cell(spliceBegCoords, i, j) = k;
     }
-    for (unsigned x = 0; x < a.ralign.size(); ++x) {
+    for (unsigned x = 0; a.ralign[x]; ++x) {
       if (a.qalign[x] != '-') cell(spliceEndCoords, i, j) = k;
       if (a.qalign[x] != '-') ++j;
       if (a.ralign[x] != '-') ++k;
@@ -726,7 +727,7 @@ struct RnameAndStrandLess {
   bool operator()(unsigned a, unsigned b) const {
     return
       alns[a].qstrand != alns[b].qstrand ? alns[a].qstrand < alns[b].qstrand :
-      alns[a].rname < alns[b].rname;
+      std::strcmp(alns[a].rname, alns[b].rname) < 0;
   }
 
   const UnsplitAlignment *alns;

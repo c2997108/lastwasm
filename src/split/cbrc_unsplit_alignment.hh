@@ -20,16 +20,16 @@ class UnsplitAlignment {
 public:
     StringIt linesBeg;
     StringIt linesEnd;
-    std::string qname;
+    const char *qname;
     unsigned qstart;
     unsigned qend;
     char qstrand;
     unsigned rstart;
     unsigned rend;
-    std::string rname;
-    std::string ralign;
-    std::string qalign;
-    std::string qQual;
+    const char *rname;
+    const char *ralign;
+    const char *qalign;
+    const char *qQual;
     UnsplitAlignment(){}
     UnsplitAlignment(StringIt linesBegIn, StringIt linesEndIn)
       : linesBeg(linesBegIn), linesEnd(linesEndIn) { init(); }

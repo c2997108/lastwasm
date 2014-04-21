@@ -38,16 +38,6 @@ static const char *readChar(const char *c, char &d) {
   return c;
 }
 
-static const char *readWord(const char *c, std::string &s) {
-  if (!c) return 0;
-  while (std::isspace(*c)) ++c;
-  const char *e = c;
-  while (std::isgraph(*e)) ++e;
-  if (e == c) return 0;
-  s.assign(c, e);
-  return e;
-}
-
 static const char *skipWord(const char *c) {
   if (!c) return 0;
   while (std::isspace(*c)) ++c;
@@ -141,40 +131,51 @@ void UnsplitAlignment::init() {
   canonicalizeMafStrands(linesBeg, linesEnd);
 
   unsigned s = 0;
-  for (StringCi i = linesBeg; i < linesEnd; ++i) {
+  for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
+    const char *d, *e;
     if (*c == 's') {
       ++s;
-      unsigned len = 0;  // initialize it to keep the compiler happy
+      unsigned len;
       if (s == 1) {
-	c = skipWord(c);
-	c = readWord(c, rname);
-	c = readUint(c, rstart);
-	c = readUint(c, len);
-	c = skipWord(c);
-	c = skipWord(c);
-	c = readWord(c, ralign);
+	d = skipWord(c);
+	rname = skipSpace(d);
+	d = skipWord(rname);
+	e = readUint(d, rstart);
+	e = readUint(e, len);
+	e = skipWord(e);
+	e = skipWord(e);
+	ralign = skipSpace(e);
+	e = skipWord(ralign);
+	if (!e) err("bad MAF line: " + *i);
 	rend = rstart + len;
+	(*i)[d - c] = 0;  // write a terminator for the sequence name
+	(*i)[e - c] = 0;  // write a terminator for the alignment string
       } else if (s == 2) {
-	c = skipWord(c);
-	c = readWord(c, qname);
-	c = readUint(c, qstart);
-	c = readUint(c, len);
-	c = readChar(c, qstrand);
-	c = skipWord(c);
-	c = readWord(c, qalign);
+	d = skipWord(c);
+	qname = skipSpace(d);
+	d = skipWord(qname);
+	e = readUint(d, qstart);
+	e = readUint(e, len);
+	e = readChar(e, qstrand);
+	e = skipWord(e);
+	qalign = skipSpace(e);
+	e = skipWord(qalign);
+	if (!e) err("bad MAF line: " + *i);
 	qend = qstart + len;
+	(*i)[d - c] = 0;  // write a terminator for the sequence name
+	(*i)[e - c] = 0;  // write a terminator for the alignment string
       }
     } else if (*c == 'q') {
       if (s == 1)
         err("I can't handle quality data for the genomic sequence");
       if (s == 2) {
-	c = skipWord(c);
-	c = skipWord(c);
-	c = readWord(c, qQual);
+	qQual = skipSpace(skipWord(skipWord(c)));
+	d = skipWord(qQual);
+	if (!d) err("bad MAF line: " + *i);
+	(*i)[d - c] = 0;  // write a terminator for the quality string
       }
     }
-    if (!c) err("bad MAF line: " + *i);
   }
 }
 
@@ -191,7 +192,8 @@ std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
     if (*c == 's') {
       unsigned x = 0;  // initialize it to keep the compiler happy
       d = skipWord(skipWord(c));
-      e = skipWord(readUint(d, x));
+      e = d + 1;  // skip over the string terminator
+      e = skipWord(readUint(e, x));
       f = skipSpace(skipWord(skipWord(e)));
       unsigned beg = x + seqPosFromAlnPos(alnBeg, f);
       unsigned end = x + seqPosFromAlnPos(alnEnd, f);

@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cctype>
 #include <cmath>
+#include <cstring>  // strcmp
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -53,12 +54,15 @@ static int scoreFromProb(double prob, double scale) {
 // Defines an ordering, for sorting.
 static bool less(const cbrc::UnsplitAlignment& a,
 		 const cbrc::UnsplitAlignment& b) {
-  if (a.qname   != b.qname  ) return a.qname   < b.qname;
+  int qnameCmp = std::strcmp(a.qname, b.qname);
+  if (qnameCmp  != 0        ) return qnameCmp  < 0;
   if (a.qstart  != b.qstart ) return a.qstart  < b.qstart;
   if (a.qend    != b.qend   ) return a.qend    < b.qend;
   if (a.qstrand != b.qstrand) return a.qstrand < b.qstrand;
-  if (a.qalign  != b.qalign ) return a.qalign  < b.qalign;
-  else                        return a.rname   < b.rname;
+  int qalignCmp = std::strcmp(a.qalign, b.qalign);
+  if (qalignCmp != 0        ) return qalignCmp < 0;
+  int ralignCmp = std::strcmp(a.ralign, b.ralign);
+  /**/                        return ralignCmp < 0;
 }
 
 static void doOneAlignmentPart(cbrc::SplitAligner& sa,
@@ -68,8 +72,8 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       double forwardDirectionProb,
 			       const LastSplitOptions& opts) {
   unsigned alnBeg, alnEnd;
-  cbrc::mafSliceBeg(a.ralign.c_str(), a.qalign.c_str(), a.qstart, qSliceBeg, alnBeg);
-  cbrc::mafSliceEnd(a.ralign.c_str(), a.qalign.c_str(), a.qend, qSliceEnd, alnEnd);
+  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, alnBeg);
+  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEnd, alnEnd);
 
   int score = sa.segmentScore(alnNum, qSliceBeg, qSliceEnd);
   if (score < opts.score) return;
@@ -185,7 +189,7 @@ static void doOneBatch(std::vector<std::string>& mafLines,
   std::vector<cbrc::UnsplitAlignment>::const_iterator e = mafs.begin();
   while (e < mafs.end()) {
     ++e;
-    if (e == mafs.end() || e->qname != b->qname) {
+    if (e == mafs.end() || std::strcmp(e->qname, b->qname) != 0) {
       doOneQuery(b, e, sa, opts);
       b = e;
     }
