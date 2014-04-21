@@ -3,7 +3,6 @@
 #include "cbrc_unsplit_alignment.hh"
 
 #include <algorithm>
-#include <cctype>
 #include <cerrno>
 #include <climits>
 #include <cmath>
@@ -16,6 +15,14 @@
 
 static void err(const std::string& s) {
   throw std::runtime_error(s);
+}
+
+static bool isGraph(char c) {
+  return c > ' ';  // faster than std::isgraph
+}
+
+static bool isSpace(char c) {
+  return c > 0 && c <= ' ';  // faster than std::isspace
 }
 
 namespace cbrc {
@@ -32,7 +39,7 @@ static const char *readUint(const char *c, unsigned &x) {
 
 static const char *readChar(const char *c, char &d) {
   if (!c) return 0;
-  while (std::isspace(*c)) ++c;
+  while (isSpace(*c)) ++c;
   if (*c == 0) return 0;
   d = *c++;
   return c;
@@ -40,16 +47,16 @@ static const char *readChar(const char *c, char &d) {
 
 static const char *skipWord(const char *c) {
   if (!c) return 0;
-  while (std::isspace(*c)) ++c;
+  while (isSpace(*c)) ++c;
   const char *e = c;
-  while (std::isgraph(*e)) ++e;
+  while (isGraph(*e)) ++e;
   if (e == c) return 0;
   return e;
 }
 
 static const char *skipSpace(const char *c) {
   if (!c) return 0;
-  while (std::isspace(*c)) ++c;
+  while (isSpace(*c)) ++c;
   return c;
 }
 
@@ -274,11 +281,11 @@ sLineFieldWidths(const std::vector<std::string>& maf) {
     if (*p != 's') continue;
     for (unsigned j = 0; *p; ++j) {
       const char* pOld = p;
-      while (std::isgraph(*p)) ++p;
+      while (isGraph(*p)) ++p;
       unsigned width = p - pOld;
       if (widths.size() <= j) widths.push_back(width);
       else widths[j] = std::max(widths[j], width);
-      while (std::isspace(*p)) ++p;
+      while (isSpace(*p)) ++p;
     }
   }
   return widths;
@@ -286,9 +293,9 @@ sLineFieldWidths(const std::vector<std::string>& maf) {
 
 // Copy the next field of src to dest, left-justified
 static void sprintLeft(char*& dest, const char*& src, unsigned width) {
-  while (std::isspace(*src)) ++src;
+  while (isSpace(*src)) ++src;
   const char* s = src;
-  while (std::isgraph(*src)) *dest++ = *src++;
+  while (isGraph(*src)) *dest++ = *src++;
   unsigned w = src - s;
   while (w++ < width) *dest++ = ' ';
   ++dest;
@@ -296,12 +303,12 @@ static void sprintLeft(char*& dest, const char*& src, unsigned width) {
 
 // Copy the next field of src to dest, right-justified
 static void sprintRight(char*& dest, const char*& src, unsigned width) {
-  while (std::isspace(*src)) ++src;
+  while (isSpace(*src)) ++src;
   const char* s = src;
-  while (std::isgraph(*s)) ++s;
+  while (isGraph(*s)) ++s;
   unsigned w = s - src;
   while (w++ < width) *dest++ = ' ';
-  while (std::isgraph(*src)) *dest++ = *src++;
+  while (isGraph(*src)) *dest++ = *src++;
   ++dest;
 }
 
