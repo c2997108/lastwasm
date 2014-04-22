@@ -111,15 +111,15 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
 	*i = i->substr(0, d - c) + buffer + i->substr(e - c);
       }
     } else if (*c == 'q') {
-      d = skipSpace(skipWord(skipWord(c)));
-      e = skipWord(d);
-      if (!e) err("bad MAF line: " + *i);
-      reverse(i->begin() + (d - c), i->begin() + (e - c));
+      f = skipSpace(skipWord(skipWord(c)));
+      g = skipWord(f);
+      if (!g) err("bad MAF line: " + *i);
+      reverse(i->begin() + (f - c), i->begin() + (g - c));
     } else if (*c == 'p') {
-      d = skipSpace(skipWord(c));
-      e = skipWord(d);
-      if (!e) err("bad MAF line: " + *i);
-      reverse(i->begin() + (d - c), i->begin() + (e - c));
+      f = skipSpace(skipWord(c));
+      g = skipWord(f);
+      if (!g) err("bad MAF line: " + *i);
+      reverse(i->begin() + (f - c), i->begin() + (g - c));
     }
   }
 }
