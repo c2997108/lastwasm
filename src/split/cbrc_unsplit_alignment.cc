@@ -147,6 +147,8 @@ static void canonicalizeMafStrands(StringIt linesBeg, StringIt linesEnd) {
 void UnsplitAlignment::init() {
   canonicalizeMafStrands(linesBeg, linesEnd);
 
+  qQual = 0;  // in case the input lacks sequence quality data
+
   unsigned s = 0;
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();

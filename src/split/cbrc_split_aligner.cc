@@ -601,7 +601,7 @@ void SplitAligner::calcBaseScores(unsigned i) {
   while (b < f) {
     char x = *rAlign++;
     char y = *qAlign++;
-    int q = *qQual ? (*qQual++ - qualityOffset) : (numQualCodes - 1);
+    int q = qQual ? (*qQual++ - qualityOffset) : (numQualCodes - 1);
     if (y == '-') /* noop */;
     else if (x == '-') *b++ = firstGapScore;
     else {
