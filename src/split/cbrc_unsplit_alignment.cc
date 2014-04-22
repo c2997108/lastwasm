@@ -152,47 +152,45 @@ void UnsplitAlignment::init() {
   unsigned s = 0;
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
-    const char *d, *e;
+    const char *lineEnd = c + i->size();
+    const char *d, *e, *f, *g;
     if (*c == 's') {
       ++s;
-      unsigned len;
+      unsigned start, len;
+      char strand;
+      d = skipWord(c);
+      d = skipSpace(d);
+      e = skipWord(d);
+      f = readUint(e, start);
+      f = readUint(f, len);
+      f = readChar(f, strand);
+      f = skipWord(f);
+      f = skipSpace(f);
+      g = skipWord(f);
+      if (!g) err("bad MAF line: " + *i);
+      (*i)[e - c] = 0;  // write a terminator for the sequence name
+      if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
       if (s == 1) {
-	d = skipWord(c);
-	rname = skipSpace(d);
-	d = skipWord(rname);
-	e = readUint(d, rstart);
-	e = readUint(e, len);
-	e = skipWord(e);
-	e = skipWord(e);
-	ralign = skipSpace(e);
-	e = skipWord(ralign);
-	if (!e) err("bad MAF line: " + *i);
-	rend = rstart + len;
-	(*i)[d - c] = 0;  // write a terminator for the sequence name
-	(*i)[e - c] = 0;  // write a terminator for the alignment string
+	rstart = start;
+	rend = start + len;
+	rname = i->c_str() + (d - c);
+	ralign = i->c_str() + (f - c);
       } else if (s == 2) {
-	d = skipWord(c);
-	qname = skipSpace(d);
-	d = skipWord(qname);
-	e = readUint(d, qstart);
-	e = readUint(e, len);
-	e = readChar(e, qstrand);
-	e = skipWord(e);
-	qalign = skipSpace(e);
-	e = skipWord(qalign);
-	if (!e) err("bad MAF line: " + *i);
-	qend = qstart + len;
-	(*i)[d - c] = 0;  // write a terminator for the sequence name
-	(*i)[e - c] = 0;  // write a terminator for the alignment string
+	qstart = start;
+	qend = start + len;
+	qstrand = strand;
+	qname = i->c_str() + (d - c);
+	qalign = i->c_str() + (f - c);
       }
     } else if (*c == 'q') {
       if (s == 1)
         err("I can't handle quality data for the genomic sequence");
       if (s == 2) {
-	qQual = skipSpace(skipWord(skipWord(c)));
-	d = skipWord(qQual);
-	if (!d) err("bad MAF line: " + *i);
-	(*i)[d - c] = 0;  // write a terminator for the quality string
+	f = skipSpace(skipWord(skipWord(c)));
+	g = skipWord(f);
+	if (!g) err("bad MAF line: " + *i);
+	if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
+	qQual = i->c_str() + (f - c);
       }
     }
   }
