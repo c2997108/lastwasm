@@ -755,20 +755,14 @@ void SplitAligner::initRnameAndStrandIds() {
   }
 }
 
-static void doExp(std::vector<int>::const_iterator beg,
-		  std::vector<int>::const_iterator end,
-		  std::vector<double>::iterator out,
-		  double scale) {
-  while (beg < end) *out++ = std::exp(*beg++ / scale);
-  // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
-}
-
 void SplitAligner::initForwardBackward() {
   resizeMatrix(Aexp);
-  doExp(Amat.begin(), Amat.end(), Aexp.begin(), scale);
+  transform(Amat.begin(), Amat.end(), Aexp.begin(), scaledExp);
 
   resizeMatrix(Dexp);
-  doExp(Dmat.begin(), Dmat.end(), Dexp.begin(), scale);
+  transform(Dmat.begin(), Dmat.end(), Dexp.begin(), scaledExp);
+
+  // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
 int SplitAligner::maxJumpScore() const {
@@ -953,7 +947,7 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
   for (unsigned i = 1; i < spliceTableSize; ++i) {
     int s = calcSpliceScore(i);
     spliceScoreTable[i] = s;
-    spliceProbTable[i] = std::exp(s / scale);
+    spliceProbTable[i] = scaledExp(s);
   }
 }
 
@@ -965,9 +959,10 @@ void SplitAligner::setParams(int gapExistenceScoreIn, int gapExtensionScoreIn,
   jumpScore = jumpScoreIn;
   restartScore = restartScoreIn;
   scale = scaleIn;
+  scaledExp.setBase(std::exp(1.0 / scale));
   qualityOffset = qualityOffsetIn;
-  jumpProb = std::exp(jumpScore / scale);
-  restartProb = std::exp(restartScore / scale);
+  jumpProb = scaledExp(jumpScore);
+  restartProb = scaledExp(restartScore);
 }
 
 static int scoreFromProb(double prob, double scale) {
@@ -1022,8 +1017,8 @@ void SplitAligner::setSpliceSignals() {
   spliceEndScores[0 * 4 + 1] = scoreFromProb(aAC / aAvg, scale);
 
   for (int i = 0; i < 17; ++i) {
-    spliceBegProbs[i] = std::exp(spliceBegScores[i] / scale);
-    spliceEndProbs[i] = std::exp(spliceEndScores[i] / scale);
+    spliceBegProbs[i] = scaledExp(spliceBegScores[i]);
+    spliceEndProbs[i] = scaledExp(spliceEndScores[i]);
   }
 }
 
@@ -1143,8 +1138,8 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
   for (unsigned i = 0; i < blen; ++i) bmat[i] = &bvec[i * blen];
   for (unsigned i = 0; i < blen; ++i)
     for (unsigned j = 0; j < blen; ++j)
-      bmat[i][j] = std::exp(matrixLookup(matrix, rowNames, colNames,
-					 bases[i], bases[j]) / scale);
+      bmat[i][j] = scaledExp(matrixLookup(matrix, rowNames, colNames,
+					  bases[i], bases[j]));
   std::vector<double> queryLetterProbs(blen, 1.0);
   linalgSolve(&bmat[0], &queryLetterProbs[0], blen);
 

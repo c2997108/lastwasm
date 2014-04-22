@@ -5,6 +5,7 @@
 #define CBRC_SPLIT_ALIGNER_HH
 
 #include "cbrc_unsplit_alignment.hh"
+#include "cbrc_int_exponentiator.hh"
 
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
@@ -102,6 +103,7 @@ private:
     double jumpProb;
     double restartProb;
     double scale;
+    IntExponentiator scaledExp;  // for fast calculation of exp(x / scale)
     unsigned numAlns;  // the number of candidate alignments (for 1 query)
     std::vector<UnsplitAlignment>::const_iterator alns;  // the candidates
     unsigned minBeg;  // the minimum query start coordinate of any candidate
@@ -175,7 +177,7 @@ private:
     int spliceScore(unsigned d) const
     { return d < spliceTableSize ? spliceScoreTable[d] : calcSpliceScore(d); }
     double calcSpliceProb(double dist) const
-    { return std::exp(calcSpliceScore(dist) / scale); }
+    { return scaledExp(calcSpliceScore(dist)); }
     double spliceProb(unsigned d) const
     { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
     void initSpliceCoords();
