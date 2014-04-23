@@ -310,7 +310,7 @@ void lastSplit(LastSplitOptions& opts) {
 	  mafEnds.resize(1);
 	} else if (isSpace(line)) {
 	  addMaf(mafEnds, mafLines);
-	} else if (line[0] != '#' && line[0] != 'a') {
+	} else if (line[0] == 's' || line[0] == 'q' || line[0] == 'p') {
 	  mafLines.push_back(line);
 	}
       }

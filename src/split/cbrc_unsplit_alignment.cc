@@ -60,6 +60,11 @@ static const char *skipSpace(const char *c) {
   return c;
 }
 
+static const char *rskipSpace(const char *c) {
+  while (isSpace(*(c-1))) --c;
+  return c;
+}
+
 struct Complement {
   unsigned char c[UCHAR_MAX+1];
   Complement() {
@@ -80,9 +85,13 @@ static Complement complement;
 void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
-    const char *d, *e, *f, *g;
+    const char *lineEnd = c + i->size();
+    const char *d, *e, *f;
+    const char *g = rskipSpace(lineEnd);
     if (*c == 's') {
-      unsigned x, y, z;
+      unsigned x = 0;
+      unsigned y = 0;
+      unsigned z = 0;
       d = skipWord(c);
       d = skipWord(d);
       e = readUint(d, x);
@@ -91,8 +100,7 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
       f = skipWord(f);
       f = readUint(f, z);
       f = skipSpace(f);
-      g = skipWord(f);
-      if (!g) err("bad MAF line: " + *i);
+      if (!f || f >= g) err("bad MAF line: " + *i);
       x = z - x - y;
       std::string::iterator beg = i->begin() + (f - c);
       std::string::iterator end = i->begin() + (g - c);
@@ -112,13 +120,11 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
       }
     } else if (*c == 'q') {
       f = skipSpace(skipWord(skipWord(c)));
-      g = skipWord(f);
-      if (!g) err("bad MAF line: " + *i);
+      if (!f || f >= g) err("bad MAF line: " + *i);
       reverse(i->begin() + (f - c), i->begin() + (g - c));
     } else if (*c == 'p') {
       f = skipSpace(skipWord(c));
-      g = skipWord(f);
-      if (!g) err("bad MAF line: " + *i);
+      if (!f || f >= g) err("bad MAF line: " + *i);
       reverse(i->begin() + (f - c), i->begin() + (g - c));
     }
   }
@@ -153,11 +159,13 @@ void UnsplitAlignment::init() {
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
     const char *lineEnd = c + i->size();
-    const char *d, *e, *f, *g;
+    const char *d, *e, *f;
+    const char *g = rskipSpace(lineEnd);
     if (*c == 's') {
       ++s;
-      unsigned start, len;
-      char strand;
+      unsigned start = 0;
+      unsigned len = 0;
+      char strand = 0;
       d = skipWord(c);
       d = skipSpace(d);
       e = skipWord(d);
@@ -166,8 +174,7 @@ void UnsplitAlignment::init() {
       f = readChar(f, strand);
       f = skipWord(f);
       f = skipSpace(f);
-      g = skipWord(f);
-      if (!g) err("bad MAF line: " + *i);
+      if (!f || f >= g) err("bad MAF line: " + *i);
       (*i)[e - c] = 0;  // write a terminator for the sequence name
       if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
       if (s == 1) {
@@ -187,8 +194,7 @@ void UnsplitAlignment::init() {
         err("I can't handle quality data for the genomic sequence");
       if (s == 2) {
 	f = skipSpace(skipWord(skipWord(c)));
-	g = skipWord(f);
-	if (!g) err("bad MAF line: " + *i);
+	if (!f || f >= g) err("bad MAF line: " + *i);
 	if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
 	qQual = i->c_str() + (f - c);
       }
