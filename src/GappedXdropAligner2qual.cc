@@ -40,8 +40,8 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
   init();
 
   for (std::size_t antidiagonal = 2; /* noop */; ++antidiagonal) {
-    std::size_t seq1beg = arrayMin(maxSeq1begs);
-    std::size_t seq1end = arrayMax(minSeq1ends);
+    std::size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
+    std::size_t seq1end = std::max(minSeq1ends[0], minSeq1ends[1]);
 
     if (seq1beg >= seq1end) break;
 
