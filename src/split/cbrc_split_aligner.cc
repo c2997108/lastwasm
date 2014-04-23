@@ -240,12 +240,16 @@ void SplitAligner::updateInplayAlnIndicesF(unsigned& sortedAlnPos,
                                            unsigned j) {  // query coordinate
   oldInplayAlnIndices.swap(newInplayAlnIndices);
   oldNumInplay = newNumInplay;
-  newNumInplay = 0;
 
-  for (unsigned x = 0; x < oldNumInplay; ++x) {
-    unsigned i = oldInplayAlnIndices[x];
+  unsigned *newBeg = &newInplayAlnIndices[0];
+  unsigned *newEnd = newBeg;
+  const unsigned *oldBeg = &oldInplayAlnIndices[0];
+  const unsigned *oldEnd = oldBeg + oldNumInplay;
+
+  while (oldBeg < oldEnd) {
+    unsigned i = *oldBeg++;
     if (dpEnd(i) == j) continue;  // it is no longer "in play"
-    newInplayAlnIndices[newNumInplay++] = i;
+    *newEnd++ = i;
   }
 
   unsigned sortedAlnOldPos = sortedAlnPos;
@@ -253,16 +257,15 @@ void SplitAligner::updateInplayAlnIndicesF(unsigned& sortedAlnPos,
   for (/* noop */; sortedAlnPos < numAlns; ++sortedAlnPos) {
     unsigned i = sortedAlnIndices[sortedAlnPos];
     if (dpBeg(i) > j) break;  // it is not yet "in play"
-    //newInplayAlnIndices[newNumInplay++] = i;
   }
 
-  mergeInto(&newInplayAlnIndices[0],
-            &newInplayAlnIndices[0] + newNumInplay,
+  mergeInto(newBeg,
+            newEnd,
             &sortedAlnIndices[0] + sortedAlnOldPos,
             &sortedAlnIndices[0] + sortedAlnPos,
             RbegLess(&rnameAndStrandIds[0], &rBegs[0]));
 
-  newNumInplay += (sortedAlnPos - sortedAlnOldPos);
+  newNumInplay = (newEnd - newBeg) + (sortedAlnPos - sortedAlnOldPos);
 }
 
 void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
@@ -271,12 +274,16 @@ void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
                                            unsigned j) {  // query coordinate
   oldInplayAlnIndices.swap(newInplayAlnIndices);
   oldNumInplay = newNumInplay;
-  newNumInplay = 0;
 
-  for (unsigned x = 0; x < oldNumInplay; ++x) {
-    unsigned i = oldInplayAlnIndices[x];
+  unsigned *newBeg = &newInplayAlnIndices[0];
+  unsigned *newEnd = newBeg;
+  const unsigned *oldBeg = &oldInplayAlnIndices[0];
+  const unsigned *oldEnd = oldBeg + oldNumInplay;
+
+  while (oldBeg < oldEnd) {
+    unsigned i = *oldBeg++;
     if (dpBeg(i) == j) continue;  // it is no longer "in play"
-    newInplayAlnIndices[newNumInplay++] = i;
+    *newEnd++ = i;
   }
 
   unsigned sortedAlnOldPos = sortedAlnPos;
@@ -284,16 +291,15 @@ void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
   for (/* noop */; sortedAlnPos < numAlns; ++sortedAlnPos) {
     unsigned i = sortedAlnIndices[sortedAlnPos];
     if (dpEnd(i) < j) break;  // it is not yet "in play"
-    //newInplayAlnIndices[newNumInplay++] = i;
   }
 
-  mergeInto(&newInplayAlnIndices[0],
-            &newInplayAlnIndices[0] + newNumInplay,
+  mergeInto(newBeg,
+            newEnd,
             &sortedAlnIndices[0] + sortedAlnOldPos,
             &sortedAlnIndices[0] + sortedAlnPos,
             RendLess(&rnameAndStrandIds[0], &rEnds[0]));
 
-  newNumInplay += (sortedAlnPos - sortedAlnOldPos);
+  newNumInplay = (newEnd - newBeg) + (sortedAlnPos - sortedAlnOldPos);
 }
 
 long SplitAligner::viterbi() {
