@@ -25,16 +25,28 @@ static bool isSpace(char c) {
   return c > 0 && c <= ' ';  // faster than std::isspace
 }
 
+static bool isDigit(char c) {
+  return c >= '0' && c <= '9';
+}
+
 namespace cbrc {
     
 static const char *readUint(const char *c, unsigned &x) {
   if (!c) return 0;
-  errno = 0;
-  char *e;
-  unsigned long z = std::strtoul(c, &e, 10);
-  if (e == c || errno == ERANGE || z > UINT_MAX) return 0;
+
+  // faster than std::strtoul
+  while (isSpace(*c)) ++c;
+  if (!isDigit(*c)) return 0;
+  unsigned z = *c++ - '0';
+  while (isDigit(*c)) {
+    if (z > UINT_MAX / 10) return 0;
+    unsigned digit = *c++ - '0';
+    z = z * 10 + digit;
+    if (z < digit) return 0;
+  }
+
   x = z;
-  return e;
+  return c;
 }
 
 static const char *readChar(const char *c, char &d) {
