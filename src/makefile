@@ -103,7 +103,8 @@ Alphabet.o: Alphabet.cc Alphabet.hh
 Centroid.o: Centroid.cc Centroid.hh GappedXdropAligner.hh \
  ScoreMatrixRow.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
  OneQualityScoreMatrix.hh GappedXdropAlignerInl.hh
-CyclicSubsetSeed.o: CyclicSubsetSeed.cc CyclicSubsetSeed.hh stringify.hh
+CyclicSubsetSeed.o: CyclicSubsetSeed.cc CyclicSubsetSeed.hh io.hh \
+ stringify.hh
 DiagonalTable.o: DiagonalTable.cc DiagonalTable.hh
 GappedXdropAligner.o: GappedXdropAligner.cc GappedXdropAligner.hh \
  ScoreMatrixRow.hh GappedXdropAlignerInl.hh
@@ -135,7 +136,7 @@ OneQualityScoreMatrix.o: OneQualityScoreMatrix.cc \
  stringify.hh
 QualityPssmMaker.o: QualityPssmMaker.cc QualityPssmMaker.hh \
  ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
-ScoreMatrix.o: ScoreMatrix.cc ScoreMatrix.hh
+ScoreMatrix.o: ScoreMatrix.cc ScoreMatrix.hh io.hh
 SegmentPair.o: SegmentPair.cc SegmentPair.hh
 SegmentPairPot.o: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh
 SubsetSuffixArray.o: SubsetSuffixArray.cc SubsetSuffixArray.hh \
@@ -284,14 +285,15 @@ gumbel_params/sls_pvalues.o: gumbel_params/sls_pvalues.cpp gumbel_params/ncbi_pc
  gumbel_params/corelib/ncbidbg.hpp gumbel_params/sls_alp_regression.hpp
 split/cbrc_linalg.o: split/cbrc_linalg.cc split/cbrc_linalg.hh
 split/cbrc_split_aligner.o: split/cbrc_split_aligner.cc \
- split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh Alphabet.hh \
- MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh \
- stringify.hh split/cbrc_linalg.hh
+ split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \
+ split/cbrc_int_exponentiator.hh Alphabet.hh MultiSequence.hh \
+ ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
+ split/cbrc_linalg.hh
 split/cbrc_unsplit_alignment.o: split/cbrc_unsplit_alignment.cc \
  split/cbrc_unsplit_alignment.hh
 split/last-split-main.o: split/last-split-main.cc split/last-split.hh \
  stringify.hh version.hh
 split/last-split.o: split/last-split.cc split/last-split.hh \
- split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh Alphabet.hh \
- MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh \
- stringify.hh
+ split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \
+ split/cbrc_int_exponentiator.hh Alphabet.hh MultiSequence.hh \
+ ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
