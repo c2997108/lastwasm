@@ -1,4 +1,4 @@
-// Copyright 2013 Martin C. Frith
+// Copyright 2013, 2014 Martin C. Frith
 
 // Parse the command line and run last-split.
 
@@ -137,6 +137,8 @@ Options:\n\
   opts.inputFileNames.assign(argv + optind, argv + argc);
 
   if (opts.inputFileNames.empty()) opts.inputFileNames.push_back("-");
+
+  std::ios_base::sync_with_stdio(false);  // makes std::cin much faster!!!
 
   lastSplit(opts);
 }
