@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Martin C. Frith
 
 #include "Alignment.hh"
 #include "GeneticCode.hh"
@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <algorithm>
 #include <cassert>
-#include <cstdio>  // sprintf
 #include <iterator>  // ostream_iterator
 
 // make C++ tolerable:
@@ -79,25 +78,40 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   os << '\n';
 }
 
-static int mySprintf( char* buffer, unsigned long x ){
-  return std::sprintf( buffer, "%lu", x );
+static int numDigits( size_t x ){
+  int n = 0;
+  do{
+    ++n;
+    x /= 10;
+  }while(x);
+  return n;
 }
 
 // Printing with either C++ streams or sprintf can be noticeably slow.
 // So the next 3 functions are used instead.
 
-static char* sprintLeft( char* dest, const char* src, int srcLen, int width ){
+static char* sprintLeft( char* dest, const char* src, int width ){
+  char* end = dest + width;
   while( *src ) *dest++ = *src++;
-  while( srcLen++ < width ) *dest++ = ' ';
+  while( dest < end ) *dest++ = ' ';
   *dest++ = ' ';
   return dest;
 }
 
-static char* sprintRight( char* dest, const char* src, int srcLen, int width ){
-  while( srcLen++ < width ) *dest++ = ' ';
-  while( *src ) *dest++ = *src++;
-  *dest++ = ' ';
-  return dest;
+static char* sprintSize( char* dest, size_t size, int width ){
+  char* end = dest + width;
+  char* beg = end;
+
+  do{
+    --beg;
+    *beg = '0' + size % 10;
+    size /= 10;
+  }while( size );
+
+  while( dest < beg ) *dest++ = ' ';
+
+  *end++ = ' ';
+  return end;
 }
 
 static char* sprintChar( char* dest, char c ){
@@ -123,20 +137,17 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 
   const std::string n1 = seq1.seqName(w1);
   const std::string n2 = seq2.seqName(w2);
-
-  char b1[32], b2[32], r1[32], r2[32], s1[32], s2[32];
-  // sprintf is faster than ostringstream
-  const int b1size = mySprintf( b1, alnBeg1 - seqStart1 );
-  const int b2size = mySprintf( b2, alnBeg2 - seqStart2 );
-  const int r1size = mySprintf( r1, alnEnd1 - alnBeg1 );
-  const int r2size = mySprintf( r2, alnEnd2 - alnBeg2 );
-  const int s1size = mySprintf( s1, seq1.seqLen(w1) );
-  const int s2size = mySprintf( s2, seq2.seqLen(w2) );
+  size_t b1 = alnBeg1 - seqStart1;
+  size_t b2 = alnBeg2 - seqStart2;
+  size_t r1 = alnEnd1 - alnBeg1;
+  size_t r2 = alnEnd2 - alnBeg2;
+  size_t s1 = seq1.seqLen(w1);
+  size_t s2 = seq2.seqLen(w2);
 
   const int nw = std::max( n1.size(), n2.size() );
-  const int bw = std::max( b1size, b2size );
-  const int rw = std::max( r1size, r2size );
-  const int sw = std::max( s1size, s2size );
+  const int bw = std::max( numDigits(b1), numDigits(b2) );
+  const int rw = std::max( numDigits(r1), numDigits(r2) );
+  const int sw = std::max( numDigits(s1), numDigits(s2) );
 
   size_t headLen = 2 + nw + 1 + bw + 1 + rw + 3 + sw + 1;
   size_t lineLen = headLen + numColumns( frameSize2 ) + 1;
@@ -151,35 +162,35 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   os << '\n';
 
   dest = sprintChar( line, 's' );
-  dest = sprintLeft( dest, n1.c_str(), n1.size(), nw );
-  dest = sprintRight( dest, b1, b1size, bw );
-  dest = sprintRight( dest, r1, r1size, rw );
+  dest = sprintLeft( dest, n1.c_str(), nw );
+  dest = sprintSize( dest, b1, bw );
+  dest = sprintSize( dest, r1, rw );
   dest = sprintChar( dest, '+' );
-  dest = sprintRight( dest, s1, s1size, sw );
+  dest = sprintSize( dest, s1, sw );
   writeTopSeq( seq1.seqReader(), alph, frameSize2, dest );
   os.write( line, lineLen );
 
   if( seq1.qualsPerLetter() > 0 ){
     dest = sprintChar( line, 'q' );
     dest += nw + 1;
-    dest = sprintRight( dest, "", 0, bw + 1 + rw + 3 + sw );
+    dest = sprintLeft( dest, "", bw + 1 + rw + 3 + sw );
     writeTopQual( seq1.qualityReader(), seq1.qualsPerLetter(), dest );
     os.write( line, lineLen );
   }
 
   dest = sprintChar( line, 's' );
-  dest = sprintLeft( dest, n2.c_str(), n2.size(), nw );
-  dest = sprintRight( dest, b2, b2size, bw );
-  dest = sprintRight( dest, r2, r2size, rw );
+  dest = sprintLeft( dest, n2.c_str(), nw );
+  dest = sprintSize( dest, b2, bw );
+  dest = sprintSize( dest, r2, rw );
   dest = sprintChar( dest, strand );
-  dest = sprintRight( dest, s2, s2size, sw );
+  dest = sprintSize( dest, s2, sw );
   writeBotSeq( seq2.seqReader(), alph, frameSize2, dest );
   os.write( line, lineLen );
 
   if( seq2.qualsPerLetter() > 0 ){
     dest = sprintChar( line, 'q' );
     dest += nw + 1;
-    dest = sprintRight( dest, "", 0, bw + 1 + rw + 3 + sw );
+    dest = sprintLeft( dest, "", bw + 1 + rw + 3 + sw );
     writeBotQual( seq2.qualityReader(), seq2.qualsPerLetter(), dest );
     os.write( line, lineLen );
   }
