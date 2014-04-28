@@ -6,7 +6,7 @@ CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 # -Wconversion
 # -fomit-frame-pointer ?
 
-CFLAGS = -Wall
+CFLAGS = -Wall -O2
 
 DBOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o	\
 SubsetSuffixArray.o LastdbArguments.o io.o fileMap.o	\
@@ -38,7 +38,9 @@ SPOBJ = Alphabet.o MultiSequence.o fileMap.o split/cbrc_linalg.o	\
 split/last-split.o split/cbrc_split_aligner.o split/last-split-main.o	\
 split/cbrc_unsplit_alignment.o
 
-ALL = lastdb lastal lastex last-split
+MBOBJ = last-merge-batches.o
+
+ALL = lastdb lastal lastex last-split last-merge-batches
 
 all: $(ALL)
 
@@ -53,6 +55,9 @@ lastex: $(EXOBJ)
 
 last-split: $(SPOBJ)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(SPOBJ)
+
+last-merge-batches: $(MBOBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(MBOBJ)
 
 .SUFFIXES:
 .SUFFIXES: .o .c .cc .cpp

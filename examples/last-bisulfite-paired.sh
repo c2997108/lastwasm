@@ -32,12 +32,12 @@ t=$1.$$
 
 lastal -pBISF -s1 -Q1 -e120 -i1 "$2" "$4" > $t.t1f
 lastal -pBISR -s0 -Q1 -e120 -i1 "$3" "$4" > $t.t1r
-last-merge-batches.py $t.t1f $t.t1r > $t.t1
+last-merge-batches $t.t1f $t.t1r > $t.t1
 rm $t.t1f $t.t1r
 
 lastal -pBISF -s0 -Q1 -e120 -i1 "$2" "$5" > $t.t2f
 lastal -pBISR -s1 -Q1 -e120 -i1 "$3" "$5" > $t.t2r
-last-merge-batches.py $t.t2f $t.t2r > $t.t2
+last-merge-batches $t.t2f $t.t2r > $t.t2
 rm $t.t2f $t.t2r
 
 last-pair-probs.py -m0.1 $t.t1 $t.t2 |
