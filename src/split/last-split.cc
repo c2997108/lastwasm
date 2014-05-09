@@ -225,6 +225,8 @@ void lastSplit(LastSplitOptions& opts) {
   int sequenceFormat = -1;
   int gapExistenceCost = -1;
   int gapExtensionCost = -1;
+  int insExistenceCost = -1;
+  int insExtensionCost = -1;
   int lastalScoreThreshold = -1;
   double scale = 0;
   double genomeSize = 0;
@@ -266,6 +268,8 @@ void lastSplit(LastSplitOptions& opts) {
 	    getline(ws, key, '=');
 	    if (key == "a") ws >> gapExistenceCost;
 	    if (key == "b") ws >> gapExtensionCost;
+	    if (key == "A") ws >> insExistenceCost;
+	    if (key == "B") ws >> insExtensionCost;
 	    if (key == "e") ws >> lastalScoreThreshold;
 	    if (key == "t") ws >> scale;
 	    if (key == "Q") ws >> sequenceFormat;
@@ -275,6 +279,7 @@ void lastSplit(LastSplitOptions& opts) {
 	  if (scoreMatrix.empty())
 	    err("I need a header with score parameters");
 	  if (gapExistenceCost < 0 || gapExtensionCost < 0 ||
+	      insExistenceCost < 0 || insExtensionCost < 0 ||
 	      lastalScoreThreshold < 0 || scale <= 0 || genomeSize <= 0)
 	    err("can't read the header");
 	  if (sequenceFormat == 2 || sequenceFormat >= 4)
@@ -291,6 +296,7 @@ void lastSplit(LastSplitOptions& opts) {
 	  int qualityOffset = (sequenceFormat == 3) ? 64 : 33;
 	  printParameters(opts);
 	  sa.setParams(-gapExistenceCost, -gapExtensionCost,
+		       -insExistenceCost, -insExtensionCost,
 		       -jumpCost, -restartCost, scale, qualityOffset);
 	  double splicePrior = opts.isSplicedAlignment ? opts.cis : 0.0;
 	  sa.setSpliceParams(splicePrior, opts.mean, opts.sdev);

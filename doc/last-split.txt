@@ -239,7 +239,6 @@ Limitations
 
 last-split does not support:
 
-* Different scores for insertions and deletions.
 * Generalized affine gap costs.
 
 To do

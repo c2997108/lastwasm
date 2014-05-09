@@ -583,14 +583,14 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 
 // The next 2 routines represent affine gap scores in a cunning way.
 // Amat holds scores at query bases, and at every base that is aligned
-// to a gap it gets a score of gapExistenceScore + gapExtensionScore.
+// to a gap it gets a score of insExistenceScore + insExtensionScore.
 // Dmat holds scores between query bases, and between every pair of
 // bases that are both aligned to gaps it gets a score of
-// -gapExistenceScore.  This produces suitable affine gap scores, even
+// -insExistenceScore.  This produces suitable affine gap scores, even
 // if we jump from one alignment to another in the middle of a gap.
 
 void SplitAligner::calcBaseScores(unsigned i) {
-  int firstGapScore = gapExistenceScore + gapExtensionScore;
+  int firstGapScore = insExistenceScore + insExtensionScore;
   const UnsplitAlignment& a = alns[i];
 
   int *b = &cell(Amat, i, dpBeg(i));
@@ -631,7 +631,7 @@ void SplitAligner::calcInsScores(unsigned i) {
   int *e = &cell(Dmat, i, dpEnd(i));
 
   while (b < s) {
-    *b++ = (isExt ? -gapExistenceScore : 0);
+    *b++ = (isExt ? -insExistenceScore : 0);
     isExt = true;
   }
 
@@ -641,12 +641,12 @@ void SplitAligner::calcInsScores(unsigned i) {
   while (*qAlign) {
     bool isDel = (*qAlign++ == '-');
     bool isIns = (*rAlign++ == '-');
-    if (!isDel) *b++ = (isIns && isExt ? -gapExistenceScore : 0);
+    if (!isDel) *b++ = (isIns && isExt ? -insExistenceScore : 0);
     isExt = isIns;
   }
 
   while (b < e) {
-    *b++ = (isExt ? -gapExistenceScore : 0);
+    *b++ = (isExt ? -insExistenceScore : 0);
     isExt = true;
   }
 
@@ -812,19 +812,19 @@ void SplitAligner::initDpBounds() {
   // length * maxMatchScore
 
   // An extension of length x must have a (negative) score <=
-  // maxJumpScore + gapExistenceScore + gapExtensionScore * x
+  // maxJumpScore + insExistenceScore + insExtensionScore * x
 
-  assert(gapExtensionScore < 0);
+  assert(insExtensionScore < 0);
   assert(maxMatchScore >= 0);
 
-  size_t oldDiv = -gapExtensionScore;
-  size_t newDiv = maxMatchScore - gapExtensionScore;
+  size_t oldDiv = -insExtensionScore;
+  size_t newDiv = maxMatchScore - insExtensionScore;
 
   size_t minScore = -1;
   if (jumpProb > 0.0 || splicePrior > 0.0) {
     int m = maxJumpScore();
-    assert(m + gapExistenceScore <= 0);
-    minScore = 1 - (m + gapExistenceScore);
+    assert(m + insExistenceScore <= 0);
+    minScore = 1 - (m + insExistenceScore);
   }
 
   for (unsigned i = 0; i < numAlns; ++i) {
@@ -958,10 +958,13 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
 }
 
 void SplitAligner::setParams(int gapExistenceScoreIn, int gapExtensionScoreIn,
+			     int insExistenceScoreIn, int insExtensionScoreIn,
 			     int jumpScoreIn, int restartScoreIn,
 			     double scaleIn, int qualityOffsetIn) {
   gapExistenceScore = gapExistenceScoreIn;
   gapExtensionScore = gapExtensionScoreIn;
+  insExistenceScore = insExistenceScoreIn;
+  insExtensionScore = insExtensionScoreIn;
   jumpScore = jumpScoreIn;
   restartScore = restartScoreIn;
   scale = scaleIn;
