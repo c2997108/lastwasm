@@ -630,7 +630,7 @@ namespace cbrc{
   // that 126 is reserved for special cases.
   static uchar asciiProbability( double probCorrect ){
     assert( probCorrect >= 0 );
-    assert( probCorrect <= 1 );
+    //assert( probCorrect <= 1 );  // can fail: floating point is imperfect
     double e = 1 - probCorrect;
     double f = std::max( e, 1e-10 );  // avoid overflow errors
     double g = -10 * std::log10(f);
