@@ -372,24 +372,24 @@ void SplitAligner::traceBack(long viterbiScore,
     --j;
     score -= cell(Amat, i, j);
     if (score == JB(i, j)) {
-	queryBegs.push_back(j);
-        return;            
-    } else if (score == scoreIndel(i, j)) {
-	/* noop */;
-    } else {
-	queryBegs.push_back(j);
-	long s = score - spliceEndScore(i, j);
-	if (s == cell(Vvec, j)) {
-	  while (s == cell(Vvec, j-1)) --j;
-	  i = findScore(j, s - restartScore);
-	} else {
-	    unsigned k = findScore(j, s - jumpScore);
-	    i = (k < numAlns) ? k : findSpliceScore(i, j, score);
-	}
-	assert(i < numAlns);
-	alnNums.push_back(i);
-	queryEnds.push_back(j);
+      queryBegs.push_back(j);
+      return;
     }
+
+    if (score == scoreIndel(i, j)) continue;
+
+    queryBegs.push_back(j);
+    long s = score - spliceEndScore(i, j);
+    if (s == cell(Vvec, j)) {
+      while (s == cell(Vvec, j-1)) --j;
+      i = findScore(j, s - restartScore);
+    } else {
+      unsigned k = findScore(j, s - jumpScore);
+      i = (k < numAlns) ? k : findSpliceScore(i, j, score);
+    }
+    assert(i < numAlns);
+    alnNums.push_back(i);
+    queryEnds.push_back(j);
   }
 }
 
