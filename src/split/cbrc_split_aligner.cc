@@ -376,14 +376,23 @@ void SplitAligner::traceBack(long viterbiScore,
       return;
     }
 
-    if (score == scoreIndel(i, j)) continue;
+    // We either stay in this alignment, or jump to another one.  If
+    // the scores are equally good, then we stay if the strand is "+",
+    // else jump.  This gives cleaner inversion boundaries, but it
+    // makes some other kinds of boundary less clean.  What's the best
+    // procedure for tied scores?
 
-    queryBegs.push_back(j);
+    bool isStay = (score == scoreIndel(i, j));
+    if (isStay && alns[i].qstrand == '+') continue;
+
     long s = score - spliceEndScore(i, j);
     if (s == cell(Vvec, j)) {
+      queryBegs.push_back(j);
       while (s == cell(Vvec, j-1)) --j;
       i = findScore(j, s - restartScore);
     } else {
+      if (isStay) continue;
+      queryBegs.push_back(j);
       unsigned k = findScore(j, s - jumpScore);
       i = (k < numAlns) ? k : findSpliceScore(i, j, score);
     }
