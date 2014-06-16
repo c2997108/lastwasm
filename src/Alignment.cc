@@ -18,7 +18,6 @@ using namespace cbrc;
 void Alignment::fromSegmentPair( const SegmentPair& sp ){
   blocks.assign( 1, sp );
   score = sp.score;
-  fullScore = 0;
 }
 
 static void addExpectedCounts( double* expectedCounts,
@@ -79,15 +78,16 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2,
-			   const Alphabet& alph,
+			   const Alphabet& alph, AlignmentExtras& extras,
 			   double gamma, int outputType ){
   score = seed.score;
-  fullScore = (outputType > 3) ? seed.score : 0;
+  if( outputType > 3 ) extras.fullScore = seed.score;
 
   if( outputType == 7 ){
     assert( seed.size > 0 );  // makes things easier to understand
     const int numEmissionCounts = alph.size * alph.size;
     const int numTransitionCounts = 10;
+    std::vector<double>& expectedCounts = extras.expectedCounts;
     expectedCounts.resize( numEmissionCounts + numTransitionCounts );
     countSeedMatches( &expectedCounts[0],
 		      seq1 + seed.beg1(), seq1 + seed.end1(),
@@ -96,10 +96,12 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
   }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
+  std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
   extend( blocks, columnAmbiguityCodes, aligner, centroid, seq1, seq2,
 	  seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
-	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
+	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
+	  extras, gamma, outputType );
 
   if( score == -INF ) return;  // avoid the bizarre-seed assert
 
@@ -118,7 +120,8 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
   extend( forwardBlocks, forwardAmbiguities, aligner, centroid, seq1, seq2,
 	  seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
-	  frameSize, pssm2, sm2qual, qual1, qual2, alph, gamma, outputType );
+	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
+	  extras, gamma, outputType );
 
   if( score == -INF ) return;  // avoid the bizarre-seed assert
 
@@ -221,7 +224,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			const ScoreMatrixRow* pssm2,
                         const TwoQualityScoreMatrix& sm2qual,
                         const uchar* qual1, const uchar* qual2,
-			const Alphabet& alph, double gamma, int outputType ){
+			const Alphabet& alph, AlignmentExtras& extras,
+			double gamma, int outputType ){
   if( frameSize ){
     assert( outputType < 4 );
     assert( !globality );
@@ -296,13 +300,13 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     }
 
     centroid.getColumnAmbiguities( ambiguityCodes, chunks, isForward );
-    fullScore += centroid.logPartitionFunction();
+    extras.fullScore += centroid.logPartitionFunction();
 
     if( outputType == 7 ){
       ExpectedCount ec;
       centroid.computeExpectedCounts( seq1, seq2, start1, start2,
 				      isForward, gap, ec );
-      addExpectedCounts( &expectedCounts[0], ec, alph );
+      addExpectedCounts( &extras.expectedCounts[0], ec, alph );
     }
   }
 }

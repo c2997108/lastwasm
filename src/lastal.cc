@@ -442,6 +442,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     if( SegmentPairPot::isMarked(sp) ) continue;
 
     Alignment aln;
+    AlignmentExtras extras;  // not used
     aln.seed = sp;
 
     shrinkToLongestIdenticalRun( aln.seed, dis );
@@ -450,7 +451,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     aln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, args.globality,
 		   dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
                    args.frameshiftCost, frameSize, dis.p,
-                   dis.t, dis.i, dis.j, alph );
+                   dis.t, dis.i, dis.j, alph, extras );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
@@ -505,14 +506,16 @@ void alignFinish( const AlignmentPot& gappedAlns,
     }
     else{  // calculate match probabilities:
       Alignment probAln;
+      AlignmentExtras extras;
       probAln.seed = aln.seed;
       probAln.makeXdrop( gappedXdropAligner, centroid,
 			 dis.a, dis.b, args.globality,
 			 dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
                          args.frameshiftCost, frameSize, dis.p, dis.t,
-			 dis.i, dis.j, alph, args.gamma, args.outputType );
+			 dis.i, dis.j, alph, extras,
+			 args.gamma, args.outputType );
       probAln.write( text, query, strand, args.isTranslated(),
-		     alph, args.outputFormat, out );
+		     alph, args.outputFormat, out, extras );
     }
   }
 }

@@ -22,15 +22,17 @@ static void writeSignedDifference( size_t x, size_t y, std::ostream& os ){
 
 void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 		       char strand, bool isTranslated, const Alphabet& alph,
-		       int format, std::ostream& os ) const{
+		       int format, std::ostream& os,
+		       const AlignmentExtras& extras ) const{
   assert( !blocks.empty() );
-  if( format == 0 ) writeTab( seq1, seq2, strand, isTranslated, os );
-  else              writeMaf( seq1, seq2, strand, isTranslated, alph, os );
+  if( format == 0 ) writeTab( seq1, seq2, strand, isTranslated, os, extras );
+  else              writeMaf( seq1, seq2, strand, isTranslated,
+			      alph, os, extras );
 }
 
 void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
-			  char strand, bool isTranslated,
-			  std::ostream& os ) const{
+			  char strand, bool isTranslated, std::ostream& os,
+			  const AlignmentExtras& extras ) const{
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
   size_t w1 = seq1.whichSequence(alnBeg1);
@@ -73,6 +75,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
     if( i->size ) os << i->size;
   }
 
+  double fullScore = extras.fullScore;
   if( fullScore > 0 ) os << "\tfullScore=" << fullScore;
 
   os << '\n';
@@ -122,7 +125,12 @@ static char* sprintChar( char* dest, char c ){
 
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated, const Alphabet& alph,
-			  std::ostream& os ) const{
+			  std::ostream& os,
+			  const AlignmentExtras& extras ) const{
+  double fullScore = extras.fullScore;
+  const std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
+  const std::vector<double>& expectedCounts = extras.expectedCounts;
+
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
   size_t w1 = seq1.whichSequence(alnBeg1);
