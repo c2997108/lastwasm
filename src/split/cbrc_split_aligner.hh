@@ -255,15 +255,6 @@ private:
     void initForwardBackward();
     void initDpBounds();
 
-    double IB(unsigned i, unsigned j) const
-    { return (alns[i].qstart == j) ? 1.0 : 0.0; }
-
-    double IE(unsigned i, unsigned j) const
-    { return (alns[i].qend == j) ? 1.0 : 0.0; }
-
-    int JB(unsigned i, unsigned j) const
-    { return (alns[i].qstart == j) ? 0 : INT_MIN/2; }
-
     long scoreIndel(unsigned i, unsigned j) const {
       return cell(Vmat, i, j) + cell(Dmat, i, j);
     }

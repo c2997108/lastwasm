@@ -17,10 +17,6 @@ static void err(const std::string& s) {
   throw std::runtime_error(s);
 }
 
-static long max(long a, long b, long c) {
-  return (std::max(std::max(a, b), c));
-}
-
 namespace cbrc {
 
 template<typename T, int N> T arrayMax(T (&array)[N]) {
@@ -324,9 +320,9 @@ long SplitAligner::viterbi() {
 	    unsigned i = newInplayAlnIndices[x];
 	    size_t k = matrixRowOrigins[i] + j;
 
-	    long s = max(JB(i, j),
-			 Vmat[k] + Dmat[k],
-			 scoreFromJump + spliceEndScore(i, j));
+	    long s = std::max(Vmat[k] + Dmat[k],
+			      scoreFromJump + spliceEndScore(i, j));
+	    if (alns[i].qstart == j && s < 0) s = 0;
 	    if (splicePrior > 0.0)
 	      s = std::max(s,
 			   scoreFromSplice(i, j, oldNumInplay, oldInplayPos));
@@ -371,7 +367,7 @@ void SplitAligner::traceBack(long viterbiScore,
     long score = cell(Vmat, i, j);
     --j;
     score -= cell(Amat, i, j);
-    if (score == JB(i, j)) {
+    if (alns[i].qstart == j && score == 0) {
       queryBegs.push_back(j);
       return;
     }
@@ -505,15 +501,14 @@ void SplitAligner::forward() {
 	    unsigned i = newInplayAlnIndices[x];
 	    size_t k = matrixRowOrigins[i] + j;
 
-	    double p = (IB(i, j) * begprob +
-			Fmat[k] * Dexp[k] +
-			probFromJump * spliceEndProb(i, j));
+	    double p = Fmat[k] * Dexp[k] + probFromJump * spliceEndProb(i, j);
+	    if (alns[i].qstart == j) p += begprob;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceF(i, j, oldNumInplay, oldInplayPos);
 	    p = p * Aexp[k] / r;
 
 	    Fmat[k+1] = p;
-	    zF += IE(i, j+1) * p;
+	    if (alns[i].qend == j+1) zF += p;
 	    pSum += p * spliceBegProb(i, j+1);
 	    rNew += p;
         }
@@ -551,15 +546,14 @@ void SplitAligner::backward() {
 	    unsigned i = newInplayAlnIndices[x];
 	    size_t k = matrixRowOrigins[i] + j;
 
-	    double p = (IE(i, j) * endprob +
-			Bmat[k] * Dexp[k] +
-			probFromJump * spliceBegProb(i, j));
+	    double p = Bmat[k] * Dexp[k] + probFromJump * spliceBegProb(i, j);
+	    if (alns[i].qend == j) p += endprob;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceB(i, j, oldNumInplay, oldInplayPos);
 	    p = p * Aexp[k-1] / r;
 
 	    Bmat[k-1] = p;
-	    //zB += IB(i, j-1) * p;
+	    //if (alns[i].qstart == j-1) zB += p;
 	    pSum += p * spliceEndProb(i, j-1);
         }
         endprob /= r;
