@@ -39,21 +39,7 @@ AT), and ending at AG (and to a lesser extent AC).  However, it allows
 splices starting and ending anywhere.  It also favours splices with
 introns of typical length, specified by a log-normal distribution
 (i.e. cis-splices).  However, it allows arbitrary trans-splices
-between any two places in the genome.  If you wish to turn off
-trans-splicing, add -t0 to the last-split options.
-
-Unfortunately, the cis-splicing calculations can be slow, depending on
-various factors such as query sequence length.  If it is too slow,
-please try the next recipe.
-
-Faster trans-spliced alignment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Here we use -c0 to turn off cis-splicing, and -t0.004 to specify a
-higher probability of trans-splicing::
-
-  lastdb -m1111110 db genome.fasta
-  lastal -Q1 -e120 db q.fastq | last-split -c0 -t0.004 -g db > out.maf
+between any two places in the genome.
 
 FAQ
 ---
@@ -140,8 +126,27 @@ of the query, whereas spliced alignment applies a standard gap
 penalty.  (Both allow arbitrarily large unaligned parts at the edges
 of the query.)
 
-For DNA queries, you might wish to try "trans-spliced" alignment
-without considering splice signals::
+Specialized examples
+--------------------
+
+Faster spliced alignment
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Spliced alignment can be slow.  It can be sped up, at a small cost in
+accuracy, by not favouring cis-splices::
+
+  lastdb -m1111110 db genome.fasta
+  lastal -Q1 -e120 db q.fastq | last-split -c0 -t0.004 -g db > out.maf
+
+The -c0 turns off cis-splicing, and the -t0.004 specifies a higher
+probability of trans-splicing.
+
+"Spliced" alignment of DNA reads to a genome
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If we do not wish to allow arbitrarily large unaligned parts in the
+middle of the query, we can do "spliced" alignment without considering
+splice signals or favouring cis-splices::
 
   lastdb -m1111110 db genome.fasta
   lastal -Q1 -e120 db q.fastq | last-split -c0 > out.maf
