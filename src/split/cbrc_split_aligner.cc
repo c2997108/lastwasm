@@ -303,7 +303,8 @@ long SplitAligner::viterbi() {
     resizeVector(Vvec);
 
     for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
-    cell(Vvec, minBeg) = INT_MIN/2;
+    long maxScore = INT_MIN/2;
+    cell(Vvec, minBeg) = maxScore;
     long scoreFromJump = INT_MIN/2;
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
@@ -331,8 +332,9 @@ long SplitAligner::viterbi() {
 	    Vmat[k+1] = s;
 	    sMax = std::max(sMax, s + spliceBegScore(i, j+1));
 	}
-	cell(Vvec, j+1) = std::max(sMax + restartScore, cell(Vvec, j));
-	scoreFromJump = std::max(sMax + jumpScore, cell(Vvec, j+1));
+	maxScore = std::max(sMax, maxScore);
+	cell(Vvec, j+1) = maxScore;
+	scoreFromJump = std::max(sMax + jumpScore, maxScore + restartScore);
     }
 
     return endScore();
@@ -382,10 +384,11 @@ void SplitAligner::traceBack(long viterbiScore,
     if (isStay && alns[i].qstrand == '+') continue;
 
     long s = score - spliceEndScore(i, j);
-    if (s == cell(Vvec, j)) {
+    long t = s - restartScore;
+    if (t == cell(Vvec, j)) {
       queryBegs.push_back(j);
-      while (s == cell(Vvec, j-1)) --j;
-      i = findScore(j, s - restartScore);
+      while (t == cell(Vvec, j-1)) --j;
+      i = findScore(j, t);
     } else {
       if (isStay) continue;
       queryBegs.push_back(j);
@@ -479,7 +482,7 @@ void SplitAligner::forward() {
 
     resizeMatrix(Fmat);
     for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
-    double probFromRestart = 0.0;
+    double sumProb = 0.0;
     double probFromJump = 0.0;
     double begprob = 1.0;
     double zF = 0.0;  // sum of probabilities from the forward algorithm
@@ -514,8 +517,8 @@ void SplitAligner::forward() {
         }
         begprob /= r;
         cell(rescales, j+1) = rNew;
-	probFromRestart = pSum * restartProb + probFromRestart / r;
-	probFromJump = pSum * jumpProb + probFromRestart;
+	sumProb = pSum + sumProb / r;
+	probFromJump = pSum * jumpProb + sumProb * restartProb;
     }
 
     //zF /= cell(rescales, maxEnd);
@@ -525,7 +528,7 @@ void SplitAligner::forward() {
 void SplitAligner::backward() {
     resizeMatrix(Bmat);
     for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
-    double probFromRestart = 0.0;
+    double sumProb = 0.0;
     double probFromJump = 0.0;
     double endprob = 1.0;
     //double zB = 0.0;  // sum of probabilities from the backward algorithm
@@ -557,8 +560,8 @@ void SplitAligner::backward() {
 	    pSum += p * spliceEndProb(i, j-1);
         }
         endprob /= r;
-	probFromRestart = pSum * restartProb + probFromRestart / r;
-	probFromJump = pSum * jumpProb + probFromRestart;
+	sumProb = pSum * restartProb + sumProb / r;
+	probFromJump = pSum * jumpProb + sumProb;
     }
 
     //zB /= cell(rescales, minBeg);
