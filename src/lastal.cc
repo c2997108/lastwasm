@@ -192,7 +192,8 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
-  if( version < 294 ) ERR( "the lastdb files are old: please re-run lastdb" );
+  if( version < 294 && version > 0)
+    ERR( "the lastdb files are old: please re-run lastdb" );
 }
 
 // Read a per-volume .prj file, with info about a database volume
