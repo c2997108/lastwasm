@@ -187,11 +187,15 @@ static void doOneBatch(std::vector<std::string>& mafLines,
   stable_sort(mafs.begin(), mafs.end(), less);
   std::vector<cbrc::UnsplitAlignment>::const_iterator b = mafs.begin();
   std::vector<cbrc::UnsplitAlignment>::const_iterator e = mafs.begin();
+  size_t qendMax = 0;
   while (e < mafs.end()) {
+    if (e->qend > qendMax) qendMax = e->qend;
     ++e;
-    if (e == mafs.end() || std::strcmp(e->qname, b->qname) != 0) {
+    if (e == mafs.end() || std::strcmp(e->qname, b->qname) != 0 ||
+	(e->qstart >= qendMax && !opts.isSplicedAlignment)) {
       doOneQuery(b, e, sa, opts);
       b = e;
+      qendMax = 0;
     }
   }
 }
