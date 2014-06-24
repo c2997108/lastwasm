@@ -191,13 +191,18 @@ Options
          increase this value!
 
   -s, --score=INT
-         Don't write alignments with score < INT.  The default value
-         is somewhat higher than the lastal score threshold.
-         Specifically, it is e + t * ln(1000), where e is the score
-         threshold, and t is a scale factor that is written in the
-         lastal header.  This roughly means that, for every alignment
-         it writes, it has considered alternative alignments with
-         one-thousandth the probability.
+         Don't write alignments with score < INT.
+
+         For SPLIT alignment, the default value is e (the lastal score
+         threshold).  Alignments with score just above INT will get
+         high mismap probabilities.
+
+         For SPLICED alignment, the default value is e + t * ln(1000),
+         where t is a scale factor that is written in the lastal
+         header.  This roughly means that, for every alignment it
+         writes, it has considered alternative alignments with
+         one-thousandth the probability.  Alignments with score just
+         above INT will not necessarily get high mismap probabilities.
 
   -n, --no-split
          Do probability calculations as usual, but write the

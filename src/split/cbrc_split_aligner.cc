@@ -303,9 +303,9 @@ long SplitAligner::viterbi() {
     resizeVector(Vvec);
 
     for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
-    long maxScore = INT_MIN/2;
+    long maxScore = 0;
     cell(Vvec, minBeg) = maxScore;
-    long scoreFromJump = INT_MIN/2;
+    long scoreFromJump = restartScore;
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
 		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
@@ -323,7 +323,7 @@ long SplitAligner::viterbi() {
 
 	    long s = std::max(Vmat[k] + Dmat[k],
 			      scoreFromJump + spliceEndScore(i, j));
-	    if (alns[i].qstart == j && s < 0) s = 0;
+	    if (restartProb <= 0 && alns[i].qstart == j && s < 0) s = 0;
 	    if (splicePrior > 0.0)
 	      s = std::max(s,
 			   scoreFromSplice(i, j, oldNumInplay, oldInplayPos));
@@ -337,7 +337,7 @@ long SplitAligner::viterbi() {
 	scoreFromJump = std::max(sMax + jumpScore, maxScore + restartScore);
     }
 
-    return endScore();
+    return (restartProb > 0) ? maxScore : endScore();
 }
 
 long SplitAligner::endScore() const {
@@ -358,9 +358,19 @@ void SplitAligner::traceBack(long viterbiScore,
 			     std::vector<unsigned>& alnNums,
 			     std::vector<unsigned>& queryBegs,
 			     std::vector<unsigned>& queryEnds) const {
-  unsigned i = findEndScore(viterbiScore);
-  assert(i < numAlns);
-  unsigned j = alns[i].qend;
+  unsigned i, j;
+  if (restartProb > 0) {
+    j = maxEnd;
+    long t = cell(Vvec, j);
+    if (t == 0) return;
+    while (t == cell(Vvec, j-1)) --j;
+    i = findScore(j, t);
+    assert(i < numAlns);
+  } else {
+    i = findEndScore(viterbiScore);
+    assert(i < numAlns);
+    j = alns[i].qend;
+  }
 
   alnNums.push_back(i);
   queryEnds.push_back(j);
@@ -369,7 +379,7 @@ void SplitAligner::traceBack(long viterbiScore,
     long score = cell(Vmat, i, j);
     --j;
     score -= cell(Amat, i, j);
-    if (alns[i].qstart == j && score == 0) {
+    if (restartProb <= 0 && alns[i].qstart == j && score == 0) {
       queryBegs.push_back(j);
       return;
     }
@@ -387,6 +397,7 @@ void SplitAligner::traceBack(long viterbiScore,
     long t = s - restartScore;
     if (t == cell(Vvec, j)) {
       queryBegs.push_back(j);
+      if (t == 0) return;
       while (t == cell(Vvec, j-1)) --j;
       i = findScore(j, t);
     } else {
@@ -482,8 +493,8 @@ void SplitAligner::forward() {
 
     resizeMatrix(Fmat);
     for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
-    double sumProb = 0.0;
-    double probFromJump = 0.0;
+    double sumProb = 1;
+    double probFromJump = restartProb;
     double begprob = 1.0;
     double zF = 0.0;  // sum of probabilities from the forward algorithm
 
@@ -505,7 +516,7 @@ void SplitAligner::forward() {
 	    size_t k = matrixRowOrigins[i] + j;
 
 	    double p = Fmat[k] * Dexp[k] + probFromJump * spliceEndProb(i, j);
-	    if (alns[i].qstart == j) p += begprob;
+	    if (restartProb <= 0 && alns[i].qstart == j) p += begprob;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceF(i, j, oldNumInplay, oldInplayPos);
 	    p = p * Aexp[k] / r;
@@ -521,6 +532,7 @@ void SplitAligner::forward() {
 	probFromJump = pSum * jumpProb + sumProb * restartProb;
     }
 
+    if (restartProb > 0) zF = sumProb;
     //zF /= cell(rescales, maxEnd);
     cell(rescales, maxEnd) = zF;  // this causes scaled zF to equal 1
 }
@@ -528,8 +540,8 @@ void SplitAligner::forward() {
 void SplitAligner::backward() {
     resizeMatrix(Bmat);
     for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
-    double sumProb = 0.0;
-    double probFromJump = 0.0;
+    double sumProb = (restartProb > 0) ? 1 : 0;
+    double probFromJump = sumProb;
     double endprob = 1.0;
     //double zB = 0.0;  // sum of probabilities from the backward algorithm
 
@@ -550,7 +562,7 @@ void SplitAligner::backward() {
 	    size_t k = matrixRowOrigins[i] + j;
 
 	    double p = Bmat[k] * Dexp[k] + probFromJump * spliceBegProb(i, j);
-	    if (alns[i].qend == j) p += endprob;
+	    if (restartProb <= 0 && alns[i].qend == j) p += endprob;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceB(i, j, oldNumInplay, oldInplayPos);
 	    p = p * Aexp[k-1] / r;
@@ -564,6 +576,7 @@ void SplitAligner::backward() {
 	probFromJump = pSum * jumpProb + sumProb;
     }
 
+    //if (restartProb > 0) zB = sumProb;
     //zB /= cell(rescales, minBeg);
 }
 

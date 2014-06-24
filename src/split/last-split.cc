@@ -285,7 +285,8 @@ void lastSplit(LastSplitOptions& opts) {
 	  if (sequenceFormat == 2 || sequenceFormat >= 4)
 	    err("unsupported Q format");
 	  if (opts.score < 0)
-	    opts.score = lastalScoreThreshold + scoreFromProb(1000, scale);
+	    opts.score = lastalScoreThreshold +
+	      (opts.isSplicedAlignment ? scoreFromProb(1000, scale) : 0);
 	  int restartCost =
 	    opts.isSplicedAlignment ? -(INT_MIN/2) : opts.score - 1;
 	  double jumpProb = opts.isSplicedAlignment

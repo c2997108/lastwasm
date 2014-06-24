@@ -60,7 +60,7 @@ Options:\n\
     + cbrc::stringify(opts.sdev) + ")\n\
  -m, --mismap=PROB  maximum mismap probability (default="
     + cbrc::stringify(opts.mismap) + ")\n\
- -s, --score=INT    minimum alignment score (default=e+t*ln[1000])\n\
+ -s, --score=INT    minimum alignment score (default=e OR e+t*ln[1000])\n\
  -n, --no-split     write original, not split, alignments\n\
  -v, --verbose      be verbose\n\
  -V, --version      show version information and exit\n\

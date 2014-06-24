@@ -128,8 +128,8 @@ This will use about 15 gigabytes of memory.
 
 * The -e120 option requests alignments with score >= 120.  This is
   intentionally a somewhat low score (high E-value): last-split then
-  discards alignments with score < 150 (120+30), but it uses them to
-  estimate the ambiguity of alignments with score >= 150.
+  discards low-confidence alignments, but it uses them to estimate the
+  ambiguity of high-confidence alignments.
 
 * last-split reads the alignments produced by lastal, and looks for a
   unique best alignment for each part of each read.  It allows
@@ -200,10 +200,11 @@ Very short reads
 ----------------
 
 WARNING!  The standard score parameters do not align very short reads.
-This is because the match score is 6 and the score threshold is 150,
-so at least 25 high-quality matches are required (or a greater number
-of low-quality matches).  To align very short reads, reduce the score
-threshold (lastal -e and/or last-split -s).
+This is because the match score is 6 and the score threshold is 120,
+so at least 20 high-quality matches are required (or a greater number
+of low-quality matches).  In addition, last-split discards
+low-confidence alignments.  To align very short reads, reduce lastal's
+score threshold (-e) or increase last-split's error threshold (-m).
 
 If the score threshold is too low, you will get meaningless, random
 alignments.
@@ -223,7 +224,7 @@ If you have ~50 GB of memory and don't mind waiting a few days, this
 is a good way to compare such genomes::
 
   lastdb -c -uMAM8 mousedb mouse/chr*.fa
-  lastal -e34 -m100 mousedb cat/chr*.fa | last-split > myalns.maf
+  lastal -e40 -m100 mousedb cat/chr*.fa | last-split > myalns.maf
 
 This looks for a unique best alignment for each part of each cat
 chromosome.  Omitting -m100 makes it faster but somewhat less
@@ -237,7 +238,7 @@ For strongly similar genomes (e.g. 99% identity), something like this
 is more appropriate::
 
   lastdb -c -m1111110 human human.fa
-  lastal -q3 -e30 human chimp.fa | last-split > myalns.maf
+  lastal -q3 -e35 human chimp.fa | last-split > myalns.maf
 
 Going faster by using multiple CPUs
 -----------------------------------
