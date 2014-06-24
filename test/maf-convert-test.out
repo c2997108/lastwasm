@@ -6538,652 +6538,666 @@ pre {font-family: "Courier New", monospace, serif; font-size: 0.8125em}
 
 <h3>Alignment score=429:</h3>
 <pre>
-chrM 13914 <span class="a">TCGGATTCTACCCTAGCATCACACACCGCACAATCCCCTATCTAGGCCTTCTTACGAGCCAAAACCTGCCCCTACTCCTCCTAGACC</span> 14000
-0       87 <span class="a">TCGAATTCTACCCTAACATCACACACCGCACAATCCCCTATCTAAACCTTCTTACGAGCCAAAACCTACCCCTACTCCTCCTAAACC</span>     1
+chrM 13914 <span class="e">T</span><span class="d">C</span><span class="c">GG</span><span class="b">AT</span><span class="a">TCTACCCTAGCATCACACACCGCACAATCCCCTATCTAGGCCTTCTTACGAGCCAAAACCTGCCCCTACTCCTCC</span><span class="b">TA</span><span class="c">GA</span><span class="d">C</span><span class="e">C</span> 14000
+0       87 <span class="e">T</span><span class="d">C</span><span class="c">GA</span><span class="b">AT</span><span class="a">TCTACCCTAACATCACACACCGCACAATCCCCTATCTAAACCTTCTTACGAGCCAAAACCTACCCCTACTCCTCC</span><span class="b">TA</span><span class="c">AA</span><span class="d">C</span><span class="e">C</span>     1
            *** *********** ****************************  ********************* *************** ***
 
 </pre>
 <h3>Alignment score=420:</h3>
 <pre>
-chrM 1544 <span class="a">TTATATAGAGGAGACAAGTCGTAACATGGTAAGTGTACTGGAAAGTGCACTTGGACGAACCAGAGTGTAGCTTAACACAAAGCACCC</span> 1630
-1       1 <span class="a">TTATATAGAGGAGATAAGTCGTAATATGGTAAGTGTATTGGAAAGTGTATTTGGATGAACTAGAGTGTAGTTTAATATAAAGCATTT</span>   87
+chrM 1544 <span class="e">TT</span><span class="d">A</span><span class="c">T</span><span class="b">AT</span><span class="a">AGAGGAGACAAGTCGTAACATGGTAAGTGTACTGGAAAGTGCACTTGGACGAACCAGAGTGTAGCTTAACACAAA</span><span class="b">G</span><span class="c">CA</span><span class="d">C</span><span class="e">CC</span> 1630
+1       1 <span class="e">TT</span><span class="d">A</span><span class="c">T</span><span class="b">AT</span><span class="a">AGAGGAGATAAGTCGTAATATGGTAAGTGTATTGGAAAGTGTATTTGGATGAACTAGAGTGTAGTTTAATATAAA</span><span class="b">G</span><span class="c">CA</span><span class="d">T</span><span class="e">TT</span>   87
           ************** ********* ************ ********* * ***** **** ********* **** * ******   
 
 </pre>
 <h3>Alignment score=207:</h3>
 <pre>
-chrM 3291 <span class="a">ttcctcttcttaacaacaTACCCATGGCCAACCTCCTACTCCTCATTGTACCCATTCTAA</span> 3350
-10      1 <span class="a">TTTTTTTTTTTAATCATATATTTATGGTTAATTTTTTATTTTTTATTGTATTTATTCTAA</span>   60
+chrM 3291 <span class="f">t</span><span class="e">tc</span><span class="d">c</span><span class="c">tct</span><span class="b">tct</span><span class="a">taacaacaTACCCATGGCCAACCTCCTACTCCTCATTGTA</span><span class="b">CCC</span><span class="c">AT</span><span class="d">T</span><span class="e">CTA</span><span class="f">A</span> 3350
+10      1 <span class="f">T</span><span class="e">TT</span><span class="d">T</span><span class="c">TTT</span><span class="b">TTT</span><span class="a">TAATCATATATTTATGGTTAATTTTTTATTTTTTATTGTA</span><span class="b">TTT</span><span class="c">AT</span><span class="d">T</span><span class="e">CTA</span><span class="f">A</span>   60
           **  * ** ****  * ***   ****  **  *  ** *  * ******   *******
 
 </pre>
 <h3>Alignment score=403:</h3>
 <pre>
-chrM 15998 <span class="a">TAAGATTCTAATTTAAACTATTCTCTGTTCTTTCATGGGGAAGCAGATTTGGGTACCACCCAAGTATTGACTCACCCATCAACAACC</span> 16084
-11      87 <span class="a">TAAAATTCTAATTTAAACTATTCTCTATTCTTTCATAAAAAAACAAATTTAAATACCACCCAAATATTAACTCACCCATCAACAACC</span>     1
+chrM 15998 <span class="e">TA</span><span class="d">A</span><span class="c">GA</span><span class="b">T</span><span class="a">TCTAATTTAAACTATTCTCTGTTCTTTCATGGGGAAGCAGATTTGGGTACCACCCAAGTATTGACTCACCCATC</span><span class="b">AAC</span><span class="c">AA</span><span class="d">C</span><span class="e">C</span> 16084
+11      87 <span class="e">TA</span><span class="d">A</span><span class="c">AA</span><span class="b">T</span><span class="a">TCTAATTTAAACTATTCTCTATTCTTTCATAAAAAAACAAATTTAAATACCACCCAAATATTAACTCACCCATC</span><span class="b">AAC</span><span class="c">AA</span><span class="d">C</span><span class="e">C</span>     1
            *** ********************** *********    ** ** ****   ********** **** ******************
 
 </pre>
 <h3>Alignment score=366:</h3>
 <pre>
-chrM 3254 <span class="a">tcgcataaaacttaaaactttacagtcagaggttcaattcctcttcttaacaacaTACCCATGGCCAACCTCCTACTCCTCATTGTA</span> 3340
-12      1 <span class="a">TCGTATAAAATTTAAAATTTTATAGTTAGAGGTTTAATTTTTTTTTTTAATAATATATTTATGGTTAATTTTTTATTTTTTATTGTA</span>   87
+chrM 3254 <span class="e">tc</span><span class="d">g</span><span class="c">c</span><span class="b">at</span><span class="a">aaaacttaaaactttacagtcagaggttcaattcctcttcttaacaacaTACCCATGGCCAACCTCCTACTCCT</span><span class="b">CAT</span><span class="c">TG</span><span class="e">TA</span> 3340
+12      1 <span class="e">TC</span><span class="d">G</span><span class="c">T</span><span class="b">AT</span><span class="a">AAAATTTAAAATTTTATAGTTAGAGGTTTAATTTTTTTTTTTAATAATATATTTATGGTTAATTTTTTATTTTT</span><span class="b">TAT</span><span class="c">TG</span><span class="e">TA</span>   87
           *** ****** ****** **** *** ******* ****  * ** **** ** ***   ****  **  *  ** *  * ******
 
 </pre>
 <h3>Alignment score=375:</h3>
 <pre>
-chrM 1369 <span class="a">ATTTTCTACCCCAGAAAACTACGATAGCCCTTATGAAACTTAAGGGTCGAAGGTGGATTTAGCAGTAAACTGAGAGTAGAGTGCTTA</span> 1455
-13     87 <span class="a">ATTTTCTACCCCAAAAAACTACGATAACCCTTATAAAACTTAAAAATCGAAAATAAATTTAACAATAAACTAAAAATAAAATACTTA</span>    1
+chrM 1369 <span class="e">AT</span><span class="c">T</span><span class="b">TT</span><span class="a">CTACCCCAGAAAACTACGATAGCCCTTATGAAACTTAAGGGTCGAAGGTGGATTTAGCAGTAAACTGAGAGTAGAG</span><span class="b">TGC</span><span class="c">T</span><span class="e">TA</span> 1455
+13     87 <span class="e">AT</span><span class="c">T</span><span class="b">TT</span><span class="a">CTACCCCAAAAAACTACGATAACCCTTATAAAACTTAAAAATCGAAAATAAATTTAACAATAAACTAAAAATAAAA</span><span class="b">TAC</span><span class="c">T</span><span class="e">TA</span>    1
           ************* ************ ******* ********   *****  *  ***** ** ****** * * ** * * ****
 
 </pre>
 <h3>Alignment score=367:</h3>
 <pre>
-chrM 6782 <span class="a">TTACAGTAGGAATAGACGTAGACACACGAGCATATTTCACCTCCGCTACCATAATCATCGCTATCCCCACCGGCGTCAAAGTATTT</span> 6867
-14     86 <span class="a">ATACAATAAAAATAAACGTAAACACACAAACATATTTCACCTCCGCTACCATAATCATCACTATCCACACCGACGTCAAAATATTT</span>    1
+chrM 6782 <span class="f">T</span><span class="e">T</span><span class="d">A</span><span class="c">CA</span><span class="b">GT</span><span class="a">AGGAATAGACGTAGACACACGAGCATATTTCACCTCCGCTACCATAATCATCGCTATCCCCACCGGCGTCAAA</span><span class="b">GTA</span><span class="c">T</span><span class="d">T</span><span class="e">T</span> 6867
+14     86 <span class="f">A</span><span class="e">T</span><span class="d">A</span><span class="c">CA</span><span class="b">AT</span><span class="a">AAAAATAAACGTAAACACACAAACATATTTCACCTCCGCTACCATAATCATCACTATCCACACCGACGTCAAA</span><span class="b">ATA</span><span class="c">T</span><span class="d">T</span><span class="e">T</span>    1
            **** **  **** ***** ****** * ***************************** ****** ***** ******* *****
 
 </pre>
 <h3>Alignment score=352:</h3>
 <pre>
-chrM 12882 <span class="a">TCATCCTCGCCTTAGCATGATTTATCCTACACTCCAACTCATGAGACCCACAACAAATAGCCCTTCTAAACGCTAATCCAAGCCTC</span> 12967
-15       2 <span class="a">TTATTTTTGTCTTAGTATGATTTATTTTATATTTTAATTTATGAGATTTATAATAAATAGTTTTTTTAAATGTTAATTTAAGTTTC</span>    87
+chrM 12882 <span class="e">TC</span><span class="d">A</span><span class="c">TCC</span><span class="b">TC</span><span class="a">GCCTTAGCATGATTTATCCTACACTCCAACTCATGAGACCCACAACAAATAGCCCTTCTAAACGCTAATCC</span><span class="b">AA</span><span class="c">GC</span><span class="e">CTC</span> 12967
+15       2 <span class="e">TT</span><span class="d">A</span><span class="c">TTT</span><span class="b">TT</span><span class="a">GTCTTAGTATGATTTATTTTATATTTTAATTTATGAGATTTATAATAAATAGTTTTTTTAAATGTTAATTT</span><span class="b">AA</span><span class="c">GT</span><span class="e">TTC</span>    87
            * **  * * ***** *********  ** * *  ** * ******   * ** ******   ** **** * ****  ***  **
 
 </pre>
 <h3>Alignment score=381:</h3>
 <pre>
-chrM 361 <span class="a">AAACAAAGAACCCTAACACCAGCCTAACCAGATTTCAAATTTTATCTTTAGGCGGTATGCACTTTTAACAGTCACCCCCCAACTAAC</span> 447
-16    87 <span class="a">AAACAAAAAACCCTAACACCAACCTAACCAAATTTCAAATTTTATCTTTTAACGATATACACTTTTAACAATCACCCCCCAACTAAC</span>   1
+chrM 361 <span class="e">AA</span><span class="d">A</span><span class="c">CA</span><span class="b">AAG</span><span class="a">AACCCTAACACCAGCCTAACCAGATTTCAAATTTTATCTTTAGGCGGTATGCACTTTTAACAGTCACCCCCCA</span><span class="b">AC</span><span class="c">T</span><span class="d">A</span><span class="e">AC</span> 447
+16    87 <span class="e">AA</span><span class="d">A</span><span class="c">CA</span><span class="b">AAA</span><span class="a">AACCCTAACACCAACCTAACCAAATTTCAAATTTTATCTTTTAACGATATACACTTTTAACAATCACCCCCCA</span><span class="b">AC</span><span class="c">T</span><span class="d">A</span><span class="e">AC</span>   1
          ******* ************* ******** ******************   ** *** *********** ****************
 
 </pre>
 <h3>Alignment score=320:</h3>
 <pre>
-chrM 10590 <span class="a">GTTCATTATAGCTACTCTCATAACCCTCAACACCCACTCCCTCTTAGCCAATATTGTGCCTATTGCCATACTAGTCTTTGCCGCCTG</span> 10676
-18       1 <span class="a">GTTTATTATAGTTATTTTTATAATTTTCAATATTTATTTTTTTTTAGTCAATATTGGGTTTATTGTTATATCAGTTTTTTTCGTCTG</span>    87
+chrM 10590 <span class="e">GT</span><span class="d">T</span><span class="c">CA</span><span class="b">TT</span><span class="a">ATAGCTACTCTCATAACCCTCAACACCCACTCCCTCTTAGCCAATATTGTGCCTATTGCCATACTAGTC</span><span class="b">TTT</span><span class="c">GCCGC</span><span class="d">C</span><span class="e">TG</span> 10676
+18       1 <span class="e">GT</span><span class="d">T</span><span class="c">TA</span><span class="b">TT</span><span class="a">ATAGTTATTTTTATAATTTTCAATATTTATTTTTTTTTAGTCAATATTGGGTTTATTGTTATATCAGTT</span><span class="b">TTT</span><span class="c">TTCGT</span><span class="d">C</span><span class="e">TG</span>    87
            *** ******* ** * * ****   **** *   * *   * **** ******** *  *****  ***  *** ***  ** ***
 
 </pre>
 <h3>Alignment score=366:</h3>
 <pre>
-chrM 14175 <span class="a">ACAATATATACACCAACAAACAATGTTCAACCAGTAACCACTACTAATCAACGCCCATAATCATACAAAGCCCCCGCACCAATAGGA</span> 14261
-19       1 <span class="a">ACAATATATATTTTAATAAATAATGTTTAATTGGTAATTATTATTAATTAACGTTTATAATTATATAAAGTTTTTGTATTAATAGGA</span>    87
+chrM 14175 <span class="e">AC</span><span class="c">A</span><span class="b">ATA</span><span class="a">TATACACCAACAAACAATGTTCAACCAGTAACCACTACTAATCAACGCCCATAATCATACAAAGCCCCCGCACCAA</span><span class="b">TA</span><span class="c">G</span><span class="d">G</span><span class="e">A</span> 14261
+19       1 <span class="e">AC</span><span class="c">A</span><span class="b">ATA</span><span class="a">TATATTTTAATAAATAATGTTTAATTGGTAATTATTATTAATTAACGTTTATAATTATATAAAGTTTTTGTATTAA</span><span class="b">TA</span><span class="c">G</span><span class="d">G</span><span class="e">A</span>    87
            **********    ** *** ****** **   ****  * ** **** ****   ***** *** ****     * *  *******
 
 </pre>
 <h3>Alignment score=364:</h3>
 <pre>
-chrM 12301 <span class="a">GGCCCCAAAAATTTTGGTGCAACTCCAAATAAAAGTAATAACCATGCACACTACTATAACCACCCTAACCCTGACTTCCCTAAT</span> 12384
-2        4 <span class="a">GGTTTTAAAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAATTATTCTAACTTTGATTTTTTTAAT</span>    87
+chrM 12301 <span class="e">G</span><span class="d">G</span><span class="c">CC</span><span class="b">CCA</span><span class="a">AAAATTTTGGTGCAACTCCAAATAAAAGTAATAACCATGCACACTACTATAACCACCCTAACCCTGACT</span><span class="b">TCC</span><span class="c">CTA</span><span class="e">AT</span> 12384
+2        4 <span class="e">G</span><span class="d">G</span><span class="c">TT</span><span class="b">TTA</span><span class="a">AAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAATTATTCTAACTTTGATT</span><span class="b">TTT</span><span class="c">TTA</span><span class="e">AT</span>    87
            **    ************* ** *  ***************  *** * * ** *****  *  *****  *** **   ****
 
 </pre>
 <h3>Alignment score=329:</h3>
 <pre>
-chrM 5860 <span class="a">TTACAGTCCAATGCTTCACTCAGCCATTTTACCTCACCCCCACTGATGTTCGCCGACCGTTGACTATTCTCTACAAACCACAAAGAC</span> 5946
-20      1 <span class="a">TTATAGTTTAATGTTTTATTTAGTTATTTTATTTTATTTTTACTGATGTTCGTCGATCGTTGATTATTATTTATAGATTATAAAGAT</span>   87
+chrM 5860 <span class="f">T</span><span class="e">T</span><span class="d">A</span><span class="c">C</span><span class="b">AGT</span><span class="a">CCAATGCTTCACTCAGCCATTTTACCTCACCCCCACTGATGTTCGCCGACCGTTGACTATTCTCTACAAACCACA</span><span class="b">AA</span><span class="c">G</span><span class="e">AC</span> 5946
+20      1 <span class="f">T</span><span class="e">T</span><span class="d">A</span><span class="c">T</span><span class="b">AGT</span><span class="a">TTAATGTTTTATTTAGTTATTTTATTTTATTTTTACTGATGTTCGTCGATCGTTGATTATTATTTATAGATTATA</span><span class="b">AA</span><span class="c">G</span><span class="e">AT</span>   87
           *** ***  **** ** * * **  ******  * *     *********** *** ****** **** * ** * *  * ***** 
 
 </pre>
 <h3>Alignment score=369:</h3>
 <pre>
-chrM 81 <span class="a">GATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACC</span> 167
-21    1 <span class="a">GATAGTATTGCGAGACGTTGGAGTCGGAGTATTCTATGTCGTAGTATTTGTTTTTGATTTTTGTTTTATTTTATTATTTATCGTATT</span>  87
+chrM 81 <span class="e">G</span><span class="d">A</span><span class="c">T</span><span class="b">AGC</span><span class="a">ATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTA</span><span class="b">TCG</span><span class="c">C</span><span class="d">A</span><span class="e">CC</span> 167
+21    1 <span class="e">G</span><span class="d">A</span><span class="c">T</span><span class="b">AGT</span><span class="a">ATTGCGAGACGTTGGAGTCGGAGTATTCTATGTCGTAGTATTTGTTTTTGATTTTTGTTTTATTTTATTATTTA</span><span class="b">TCG</span><span class="c">T</span><span class="d">A</span><span class="e">TT</span>  87
         ***** *********** ***** ***** *  ******** ***** *** *******  **  * *** ************ *  
 
 </pre>
 <h3>Alignment score=383:</h3>
 <pre>
-chrM 15083 <span class="a">CTGAAACATCGGCATTATCCTCCTGCTTGCAACTATAGCAACAGCCTTCATAGGCTATGTCCTCCCGTGAGGCCAAATATCA</span> 15164
-22      82 <span class="a">CTAAAACATCGACATTATCCTCCTACTTACAACTATAACAACAACCTTCATAAACTATATCCTCCCATAAAACCAAATATCA</span>     1
+chrM 15083 <span class="e">C</span><span class="d">T</span><span class="c">GAA</span><span class="b">AC</span><span class="a">ATCGGCATTATCCTCCTGCTTGCAACTATAGCAACAGCCTTCATAGGCTATGTCCTCCCGTGAGGCCA</span><span class="b">AAT</span><span class="c">AT</span><span class="e">CA</span> 15164
+22      82 <span class="e">C</span><span class="d">T</span><span class="c">AAA</span><span class="b">AC</span><span class="a">ATCGACATTATCCTCCTACTTACAACTATAACAACAACCTTCATAAACTATATCCTCCCATAAAACCA</span><span class="b">AAT</span><span class="c">AT</span><span class="e">CA</span>     1
            ** ******** ************ *** ******** ***** ********  **** ******* * *  **********
 
 </pre>
 <h3>Alignment score=383:</h3>
 <pre>
-chrM 3177 <span class="a">AATGATATCATCTCAACTTAGTATTATACCCACACCCACCCAAGAACAGGGTTTgttaagatggcagagcccggtaatcgcataaaa</span> 3263
-23     87 <span class="a">AATAATATCATCTCAACTTAATATTATACCCACACCCACCCAAAAACAAAATTTATTAAAATAACAAAACCCGATAATCACATAAAA</span>    1
+chrM 3177 <span class="e">AA</span><span class="d">T</span><span class="c">GA</span><span class="b">TA</span><span class="a">TCATCTCAACTTAGTATTATACCCACACCCACCCAAGAACAGGGTTTgttaagatggcagagcccggtaatcg</span><span class="b">ca</span><span class="c">ta</span><span class="e">aaa</span> 3263
+23     87 <span class="e">AA</span><span class="d">T</span><span class="c">AA</span><span class="b">TA</span><span class="a">TCATCTCAACTTAATATTATACCCACACCCACCCAAAAACAAAATTTATTAAAATAACAAAACCCGATAATCA</span><span class="b">CA</span><span class="c">TA</span><span class="e">AAA</span>    1
           *** **************** ********************** ****   *** **** **  ** * **** ***** *******
 
 </pre>
 <h3>Alignment score=369:</h3>
 <pre>
-chrM 10082 <span class="a">TAATCAACACCCTCCTAGCCTTACTACTAATAATTATTACATTTTGACTACCACAACTCAACGGCTACATAGAAAAATCCACCCCTT</span> 10168
-24       1 <span class="a">TAATTAATATTTTTTTAGTTTTATTATTAATAATTATTATATTTTGACTATTATAATTTAACGGTTATATAGAAAAATTTATTTCTT</span>    87
+chrM 10082 <span class="e">TA</span><span class="c">AT</span><span class="b">CA</span><span class="a">ACACCCTCCTAGCCTTACTACTAATAATTATTACATTTTGACTACCACAACTCAACGGCTACATAGAAAAATC</span><span class="b">CA</span><span class="c">CC</span><span class="d">C</span><span class="e">CT</span><span class="f">T</span> 10168
+24       1 <span class="e">TA</span><span class="c">AT</span><span class="b">TA</span><span class="a">ATATTTTTTTAGTTTTATTATTAATAATTATTATATTTTGACTATTATAATTTAACGGTTATATAGAAAAATT</span><span class="b">TA</span><span class="c">TT</span><span class="d">T</span><span class="e">CT</span><span class="f">T</span>    87
            **** ** *   *  ***  *** ** ************ **********  * ** * ***** ** **********  *   ***
 
 </pre>
 <h3>Alignment score=337:</h3>
 <pre>
-chrM 1209 <span class="a">TTCTGTAATCGATAAACCCCGATCAACCTCACCACCTCTTGCTCAGCCTATATACCGCCATCTTCAGCAAACCCTGATGAAGGCTAC</span> 1295
-25      1 <span class="a">TTTTGTAATCGTTAAATTTTGATTAATCTTATTATTCTTTGTTTAGTTTAGATATCGTTATTTTTAGTAAATTTTGATGAAGGTTAT</span>   87
+chrM 1209 <span class="e">TTC</span><span class="c">TG</span><span class="b">TA</span><span class="a">ATCGATAAACCCCGATCAACCTCACCACCTCTTGCTCAGCCTATATACCGCCATCTTCAGCAAACCCTGATGAA</span><span class="b">GG</span><span class="c">C</span><span class="d">T</span><span class="e">AC</span> 1295
+25      1 <span class="e">TTT</span><span class="c">TG</span><span class="b">TA</span><span class="a">ATCGTTAAATTTTGATTAATCTTATTATTCTTTGTTTAGTTTAGATATCGTTATTTTTAGTAAATTTTGATGAA</span><span class="b">GG</span><span class="c">T</span><span class="d">T</span><span class="e">AT</span>   87
           ** ******** ****    *** ** ** *  *    *** * **  ** *** **  ** ** ** ***   ********* ** 
 
 </pre>
 <h3>Alignment score=296:</h3>
 <pre>
-chrM 4661 <span class="a">CAACCGCATCCATAATCCTTCTAATAGCTATCCTCTTCAACAATATACTCTCCGGACAATGAACCATAACCAATA</span> 4735
-26      1 <span class="a">TAACAGTATTTATAATTTTCTTAATAGTTATTTTTTTTAATAATATATTTTGCGGATAATGAATTATAACTAATA</span>   75
+chrM 4661 <span class="e">CA</span><span class="d">AC</span><span class="c">CG</span><span class="b">CAT</span><span class="a">CCATAATCCTTCTAATAGCTATCCTCTTCAACAATATACTCTCCGGACAATGAACCATAA</span><span class="b">CC</span><span class="c">AA</span><span class="e">TA</span> 4735
+26      1 <span class="e">TA</span><span class="d">AC</span><span class="c">AG</span><span class="b">TAT</span><span class="a">TTATAATTTTCTTAATAGTTATTTTTTTTAATAATATATTTTGCGGATAATGAATTATAA</span><span class="b">CT</span><span class="c">AA</span><span class="e">TA</span>   75
            *** * **  *****  *  ****** ***  * ** ** ****** * * **** ******  ***** ****
 
 </pre>
 <h3>Alignment score=375:</h3>
 <pre>
-chrM 14125 <span class="a">CCTAACCCTACTCCTAATCACATAACCTATTCCCCCGAGCAATCTCAATTACAATATATACACCAACAAACAATGTTCAACCAGTAA</span> 14211
-27       1 <span class="a">TTTAATTTTATTTTTAATTATATAATTTATTTTTTCGAGTAATTTTAATTATAATATATATATTAATAAATAATGTTTAATTAGTAA</span>    87
+chrM 14125 <span class="e">CC</span><span class="d">T</span><span class="c">A</span><span class="b">ACC</span><span class="a">CTACTCCTAATCACATAACCTATTCCCCCGAGCAATCTCAATTACAATATATACACCAACAAACAATGTTCAAC</span><span class="b">CAG</span><span class="c">T</span><span class="d">A</span><span class="e">A</span> 14211
+27       1 <span class="e">TT</span><span class="d">T</span><span class="c">A</span><span class="b">ATT</span><span class="a">TTATTTTTAATTATATAATTTATTTTTTCGAGTAATTTTAATTATAATATATATATTAATAAATAATGTTTAAT</span><span class="b">TAG</span><span class="c">T</span><span class="d">A</span><span class="e">A</span>    87
              ***   ** *  **** * ****  ****    **** *** * ***** ******** *  ** *** ****** **  *****
 
 </pre>
 <h3>Alignment score=399:</h3>
 <pre>
-chrM 919 <span class="a">CAAGTCAATAGAAGCCGGCGTAAAGAGTGTTTTAGATCACCCCCTCCCCAATAAAGCTAAAACTCACCTGAGTTGTAAAAAACTCCA</span> 1005
-28     1 <span class="a">TAAGTTAATAGAAGTCGGCGTAAAGAGTGTTTTAGATTATTTTTTTTTTAATAAAGTTAAAATTTATTTGAGTTGTAAAAAATTTTA</span>   87
+chrM 919 <span class="e">CA</span><span class="c">A</span><span class="b">GTC</span><span class="a">AATAGAAGCCGGCGTAAAGAGTGTTTTAGATCACCCCCTCCCCAATAAAGCTAAAACTCACCTGAGTTGTAAAAA</span><span class="b">A</span><span class="c">CT</span><span class="d">C</span><span class="e">CA</span> 1005
+28     1 <span class="e">TA</span><span class="c">A</span><span class="b">GTT</span><span class="a">AATAGAAGTCGGCGTAAAGAGTGTTTTAGATTATTTTTTTTTTAATAAAGTTAAAATTTATTTGAGTTGTAAAAA</span><span class="b">A</span><span class="c">TT</span><span class="d">T</span><span class="e">TA</span>   87
           **** ******** ********************** *     *    ******* ***** * *  ************** *  *
 
 </pre>
 <h3>Alignment score=342:</h3>
 <pre>
-chrM 4776 <span class="a">AGCAATAAAACTAGGAATAGCCCCCTTTCACTTCTGAGTCCCAGAGGTTACCCAAGGCACCCCTCTGACATCCGGCCTGCT</span> 4856
-29      1 <span class="a">AGTAATAAAATTAGGAATAGTTTTTTTTTATTTTTGAGTTTTAGAGGTTATTTAAGGTATTTTTTTGATATTCGGTTTGTT</span>   81
+chrM 4776 <span class="e">A</span><span class="d">G</span><span class="c">C</span><span class="b">AAT</span><span class="a">AAAACTAGGAATAGCCCCCTTTCACTTCTGAGTCCCAGAGGTTACCCAAGGCACCCCTCTGACATCCG</span><span class="b">GC</span><span class="c">CT</span><span class="d">G</span><span class="e">CT</span> 4856
+29      1 <span class="e">A</span><span class="d">G</span><span class="c">T</span><span class="b">AAT</span><span class="a">AAAATTAGGAATAGTTTTTTTTTATTTTTGAGTTTTAGAGGTTATTTAAGGTATTTTTTTGATATTCG</span><span class="b">GT</span><span class="c">TT</span><span class="d">G</span><span class="e">TT</span>   81
           ** ******* *********     *** * ** *****   ********   **** *    * *** ** ***  ** *
 
 </pre>
 <h3>Alignment score=258:</h3>
 <pre>
-chrM 12454 <span class="a">TGTCGCATCCACCTTTATTATCAGTCTCTTCCCCACAACAATATTCATGTGCCTAGACCAAGAAGTTAT</span> 12522
-3       69 <span class="a">AATTGCATCCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACCAAAAAATGAT</span>     1
+chrM 12454 <span class="f">T</span><span class="e">GTC</span><span class="d">G</span><span class="c">C</span><span class="b">AT</span><span class="a">CCACCTTTATTATCAGTCTCTTCCCCACAACAATATTCATGTGCCTAGACC</span><span class="b">AAG</span><span class="c">AA</span><span class="d">G</span><span class="e">TTA</span><span class="f">T</span> 12522
+3       69 <span class="f">A</span><span class="e">ATT</span><span class="d">G</span><span class="c">C</span><span class="b">AT</span><span class="a">CCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACC</span><span class="b">AAA</span><span class="c">AA</span><span class="d">A</span><span class="e">TGA</span><span class="f">T</span>     1
              * ********* *** ***** ********** ************* * ** * ***** ** * **
 
 </pre>
 <h3>Alignment score=349:</h3>
 <pre>
-chrM 6056 <span class="a">ACCACATCTACAACGTTATCGTCACAGCCCATGCATTTGTAATAATCTTCTTCATAGTAATACCCATCATAATCGGAGGCTTTGGCA</span> 6142
-30      1 <span class="a">ATTATATTTATAACGTTATCGTTATAGTTTATGTATTTGTAATAATTTTTTTTATAGTAATATTTATTAGAATCGGAGGTTTTGGTC</span>   87
+chrM 6056 <span class="e">AC</span><span class="d">C</span><span class="c">A</span><span class="b">CAT</span><span class="a">CTACAACGTTATCGTCACAGCCCATGCATTTGTAATAATCTTCTTCATAGTAATACCCATCATAATCGGAGGC</span><span class="b">TT</span><span class="c">TG</span><span class="d">G</span><span class="e">C</span><span class="f">A</span> 6142
+30      1 <span class="e">AT</span><span class="d">T</span><span class="c">A</span><span class="b">TAT</span><span class="a">TTATAACGTTATCGTTATAGTTTATGTATTTGTAATAATTTTTTTTATAGTAATATTTATTAGAATCGGAGGT</span><span class="b">TT</span><span class="c">TG</span><span class="d">G</span><span class="e">T</span><span class="f">C</span>   87
           *  * ** ** *********** * **   *** ************ ** ** *********   ** * ********* *****  
 
 </pre>
 <h3>Alignment score=378:</h3>
 <pre>
-chrM 2795 <span class="a">CCTGCATTAAAAATTTCGGTTGGGGCGACCTCGGAGCAGAACCCAACCTCCGAGCAGTACATGCTAAGACTTCACCAGTCAAAGCG</span> 2880
-31      1 <span class="a">TTTGTCTTAAAAATTTTGGTTGGGGCGATTTCGGAGTAGAATTTAATTTTCGAGTAGTATATGTTAAGATTTTATTAGTTAAAGTG</span>   86
+chrM 2795 <span class="f">C</span><span class="e">CTG</span><span class="d">CA</span><span class="c">TT</span><span class="b">AA</span><span class="a">AAATTTCGGTTGGGGCGACCTCGGAGCAGAACCCAACCTCCGAGCAGTACATGCTAAGACTTCACCAGTCA</span><span class="b">AA</span><span class="c">G</span><span class="e">CG</span> 2880
+31      1 <span class="f">T</span><span class="e">TTG</span><span class="d">TC</span><span class="c">TT</span><span class="b">AA</span><span class="a">AAATTTTGGTTGGGGCGATTTCGGAGTAGAATTTAATTTTCGAGTAGTATATGTTAAGATTTTATTAGTTA</span><span class="b">AA</span><span class="c">G</span><span class="e">TG</span>   86
             **  ********** ***********  ****** ****   **  * **** **** *** ***** ** *  *** **** *
 
 </pre>
 <h3>Alignment score=360:</h3>
 <pre>
-chrM 8061 <span class="a">GTCTTGCACTCATGAGCTGTCCCCACATTAGGCTTAAAAACAGATGCAATTCCCGGACGTCTAAACCAAACCACTTTCACCGCTACA</span> 8147
-32      1 <span class="a">GTTTTGTATTTATGAGTTGTTTTTATATTAGGTTTAAAAATAGATGTAATTTTCGGACGTTTAAATTAAATTATTTGTATCGTTATA</span>   87
+chrM 8061 <span class="e">GT</span><span class="d">C</span><span class="c">TT</span><span class="b">GC</span><span class="a">ACTCATGAGCTGTCCCCACATTAGGCTTAAAAACAGATGCAATTCCCGGACGTCTAAACCAAACCACT</span><span class="b">TTCACCG</span><span class="c">CTA</span><span class="e">CA</span> 8147
+32      1 <span class="e">GT</span><span class="d">T</span><span class="c">TT</span><span class="b">GT</span><span class="a">ATTTATGAGTTGTTTTTATATTAGGTTTAAAAATAGATGTAATTTTCGGACGTTTAAATTAAATTATT</span><span class="b">TGTATCG</span><span class="c">TTA</span><span class="e">TA</span>   87
           ** *** * * ***** ***    * ****** ******* ***** ****  ******* ****  ***  * **  * ** ** *
 
 </pre>
 <h3>Alignment score=155:</h3>
 <pre>
-chrM 12858 <span class="a">ACAACCGTATCGGCGATATCGGTTTCATCCTCGCCTTAGCATGA</span> 12901
-33       1 <span class="a">ATAATCGTATCGGCCATATCGGTTTTATTTTTGCTTTAGTTTGA</span>    44
+chrM 12858 <span class="e">AC</span><span class="c">AA</span><span class="b">CC</span><span class="a">GTATCGGCGATATCGGTTTCATCCTCGC</span><span class="b">CTT</span><span class="c">AG</span><span class="d">C</span><span class="e">ATG</span><span class="f">A</span> 12901
+33       1 <span class="e">AT</span><span class="c">AA</span><span class="b">TC</span><span class="a">GTATCGGCCATATCGGTTTTATTTTTGC</span><span class="b">TTT</span><span class="c">AG</span><span class="d">T</span><span class="e">TTG</span><span class="f">A</span>    44
            * ** ********* ********** **  * ** ****  ***
 
 </pre>
 <h3>Alignment score=423:</h3>
 <pre>
-chrM 3261 <span class="a">aaacttaaaactttacagtcagaggttcaattcctcttcttaacaacaTACCCATGGCCAACCTCCTACTCCTCATTGTACCCATTC</span> 3347
-34     87 <span class="a">AAACTTAAAACTTTACAATCAAAAATTCAATTCCTCTTCTTAACAACATACCCATAACCAACCTCCTACTCCTCATTATACCCATTC</span>    1
+chrM 3261 <span class="e">aa</span><span class="d">a</span><span class="c">c</span><span class="b">tta</span><span class="a">aaactttacagtcagaggttcaattcctcttcttaacaacaTACCCATGGCCAACCTCCTACTCCTCATTGTACC</span><span class="b">CA</span><span class="c">T</span><span class="d">T</span><span class="e">C</span> 3347
+34     87 <span class="e">AA</span><span class="d">A</span><span class="c">C</span><span class="b">TTA</span><span class="a">AAACTTTACAATCAAAAATTCAATTCCTCTTCTTAACAACATACCCATAACCAACCTCCTACTCCTCATTATACC</span><span class="b">CA</span><span class="c">T</span><span class="d">T</span><span class="e">C</span>    1
           ***************** *** *  ******************************  ******************** *********
 
 </pre>
 <h3>Alignment score=357:</h3>
 <pre>
-chrM 4797 <span class="a">CCCCTTTCACTTCTGAGTCCCAGAGGTTACCCAAGGCACCCCTCTGACATCCGGCCTGCTTCTTCTCACATGACAAAAACTAGCCCC</span> 4883
-35      1 <span class="a">TTTCTTTTATTTTTGAGTTTTAGAGGTTATTTAAGGTATTTTTTTGATATTCGGTTTGTTTTTTTTTATATGATAAAAATTAGTTTT</span>   87
+chrM 4797 <span class="f">C</span><span class="e">CC</span><span class="d">C</span><span class="c">TT</span><span class="b">TCA</span><span class="a">CTTCTGAGTCCCAGAGGTTACCCAAGGCACCCCTCTGACATCCGGCCTGCTTCTTCTCACATGACAAAAAC</span><span class="b">TA</span><span class="c">GC</span><span class="e">CCC</span> 4883
+35      1 <span class="f">T</span><span class="e">TT</span><span class="d">C</span><span class="c">TT</span><span class="b">TTA</span><span class="a">TTTTTGAGTTTTAGAGGTTATTTAAGGTATTTTTTTGATATTCGGTTTGTTTTTTTTTATATGATAAAAAT</span><span class="b">TA</span><span class="c">GT</span><span class="e">TTT</span>   87
              **** * ** *****   ********   **** *    * *** ** ***  ** ** ** * * **** ***** ***    
 
 </pre>
 <h3>Alignment score=367:</h3>
 <pre>
-chrM 14460 <span class="a">GCTGTAGTATATCCAAAGACAACCATCATTCCCCCTAAATAAATTAAAAAAACTATTAAACCCATATAACCTCCCCCAAAATTCAGA</span> 14546
-36       1 <span class="a">GTTGTAGTATATTTAAAGATAATTATTATTTTTTTTAAATAAATTAAAAAAATTATTAAATTTATATAATTTTTTTTAAACTTTATA</span>    87
+chrM 14460 <span class="e">GC</span><span class="d">T</span><span class="c">G</span><span class="b">TA</span><span class="a">GTATATCCAAAGACAACCATCATTCCCCCTAAATAAATTAAAAAAACTATTAAACCCATATAACCTCCCCCA</span><span class="b">AA</span><span class="c">ATT</span><span class="d">C</span><span class="e">AG</span><span class="f">A</span> 14546
+36       1 <span class="e">GT</span><span class="d">T</span><span class="c">G</span><span class="b">TA</span><span class="a">GTATATTTAAAGATAATTATTATTTTTTTTAAATAAATTAAAAAAATTATTAAATTTATATAATTTTTTTTA</span><span class="b">AA</span><span class="c">CTT</span><span class="d">T</span><span class="e">AT</span><span class="f">A</span>    87
            * **********  ***** **  ** ***     ***************** *******   ******  *     *** ** * *
 
 </pre>
 <h3>Alignment score=378:</h3>
 <pre>
-chrM 10097 <span class="a">TAGCCTTACTACTAATAATTATTACATTTTGACTACCACAACTCAACGGCTACATAGAAAAATCCACCCCTTACGAGTGCGGCTTCG</span> 10183
-37       1 <span class="a">TAGTTTTATTATTAATAATTATTATATTTTGATCATTATAATTTAATGGTTATATAGAAAAATTTATTTTTTACGAGTGCGGTTTCG</span>    87
+chrM 10097 <span class="e">TA</span><span class="c">GC</span><span class="b">CTT</span><span class="a">ACTACTAATAATTATTACATTTTGACTACCACAACTCAACGGCTACATAGAAAAATCCACCCCTTACGAGTGC</span><span class="b">GG</span><span class="c">CT</span><span class="d">T</span><span class="e">CG</span> 10183
+37       1 <span class="e">TA</span><span class="c">GT</span><span class="b">TTT</span><span class="a">ATTATTAATAATTATTATATTTTGATCATTATAATTTAATGGTTATATAGAAAAATTTATTTTTTACGAGTGC</span><span class="b">GG</span><span class="c">TT</span><span class="d">T</span><span class="e">CG</span>    87
            ***  *** ** ************ *******  *  * ** * ** ** ** **********  *    ************ ****
 
 </pre>
 <h3>Alignment score=206:</h3>
 <pre>
-chrM 3627 <span class="a">CCACCTCTAGCCTAGCCGTTTACTCAATCCTCTGATCAGGGTGAGCATCAAACTCAAACTACGCCCTGATCGGCGCACTGCGAGCAG</span> 3713
-38     87 <span class="a">GAGAGTGTATCTCATGCATTGCATGACCGGTTAGACGCAAATAACCATCAAACTCAATCTACGCCCTAATCGACGCACTACGAACAA</span>    1
+chrM 3627 <span class="f">CCACCT</span><span class="e">CTAGCCTAGCCGTTTAC</span><span class="d">TCAATCC</span><span class="c">TCTGATCA</span><span class="b">GGG</span><span class="a">TGAGCATCAAACTCAAACTACGCCCTGATCGGCGCACT</span><span class="b">GCG</span><span class="c">AG</span><span class="d">C</span><span class="e">AG</span> 3713
+38     87 <span class="f">GAGAGT</span><span class="e">GTATCTCATGCATTGCA</span><span class="d">TGACCGG</span><span class="c">TTAGACGC</span><span class="b">AAA</span><span class="a">TAACCATCAAACTCAATCTACGCCCTAATCGACGCACT</span><span class="b">ACG</span><span class="c">AA</span><span class="d">C</span><span class="e">AA</span>    1
                * ** *  *  * **   * *    *  **      * * ************ ********* **** ****** *** ** 
 
 </pre>
 <h3>Alignment score=366:</h3>
 <pre>
-chrM 7894 <span class="a">AATGGTACTGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCATTATTCCTAGAACCAGGCG</span> 7980
-39      1 <span class="a">AATGGTATTGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATAAGGCG</span>   87
+chrM 7894 <span class="e">A</span><span class="d">A</span><span class="c">T</span><span class="b">GGT</span><span class="a">ACTGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCATTATTCCTAGA</span><span class="b">AC</span><span class="c">CAGG</span><span class="e">CG</span> 7980
+39      1 <span class="e">A</span><span class="d">A</span><span class="c">T</span><span class="b">GGT</span><span class="a">ATTGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGA</span><span class="b">AT</span><span class="c">AAGG</span><span class="e">CG</span>   87
           ******* ****  ******** * *** ***** *** **** ** ** *  ** *** **     ******  *****  *****
 
 </pre>
 <h3>Alignment score=408:</h3>
 <pre>
-chrM 5738 <span class="a">CGCCGCCGGGAAAAAAGGCGGGAGAAGCCCCGGCAGGTTTGAAGCTGCTTCTTCGAATTTGCAATTCAATATGAAAATCACCTCGGA</span> 5824
-4       1 <span class="a">CGTCGTCGGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTTGTAATTTAATATGAAAATTATTTCGGA</span>   87
+chrM 5738 <span class="e">CG</span><span class="d">C</span><span class="c">C</span><span class="b">GCC</span><span class="a">GGGAAAAAAGGCGGGAGAAGCCCCGGCAGGTTTGAAGCTGCTTCTTCGAATTTGCAATTCAATATGAAAATCA</span><span class="b">CCT</span><span class="c">CG</span><span class="d">G</span><span class="e">A</span> 5824
+4       1 <span class="e">CG</span><span class="d">T</span><span class="c">C</span><span class="b">GTC</span><span class="a">GGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTTGTAATTTAATATGAAAATTA</span><span class="b">TTT</span><span class="c">CG</span><span class="d">G</span><span class="e">A</span>   87
           ** ** *********************   *** ************* ** ********** **** *********** *  *****
 
 </pre>
 <h3>Alignment score=354:</h3>
 <pre>
-chrM 5187 <span class="a">ACTAACACCCTTAATTCCATCCACCCTCCTCTCCCTAGGAGGCCTGCCCCCGCTAACCGGCTTTTTGCCCAAATGGGCCATTATCGA</span> 5273
-40      1 <span class="a">ATTAATATTTTTAATTTTATTTATTTTTTTTTTTTTAGGAGGTTTGTTTTCGTTAATCGGTTTTTTGTCTAAATGGGTTATTATTGA</span>   87
+chrM 5187 <span class="e">AC</span><span class="d">T</span><span class="c">A</span><span class="b">AC</span><span class="a">ACCCTTAATTCCATCCACCCTCCTCTCCCTAGGAGGCCTGCCCCCGCTAACCGGCTTTTTGCCCAAATGGGCCA</span><span class="b">TTA</span><span class="c">TC</span><span class="d">G</span><span class="e">A</span> 5273
+40      1 <span class="e">AT</span><span class="d">T</span><span class="c">A</span><span class="b">AT</span><span class="a">ATTTTTAATTTTATTTATTTTTTTTTTTTTAGGAGGTTTGTTTTCGTTAATCGGTTTTTTGTCTAAATGGGTTA</span><span class="b">TTA</span><span class="c">TT</span><span class="d">G</span><span class="e">A</span>   87
           * *** *   ******  **  *   *  * *   *******  **    ** *** *** ****** * *******  ***** **
 
 </pre>
 <h3>Alignment score=292:</h3>
 <pre>
-chrM 10194 <span class="a">CCCCGCCCGCGTCCCTTTCTCCATAAAATTCTTCTTAGTAGCTATTACCTTCTTATTATTTGATCTAGAAATTGCCCTCCTTTTACC</span> 10280
-41       1 <span class="a">TTTCGTTCGTTTTTTTTTCTTTATAAAATTTTTTTTAGTAGTTATTATTTTTTTATTATTTGATATAGAAATTGATTTTCTTTTATT</span>    87
+chrM 10194 <span class="f">C</span><span class="e">CC</span><span class="d">C</span><span class="c">GC</span><span class="b">CCGCGT</span><span class="a">CCCTTTCTCCATAAAATTCTTCTTAGTAGCTATTACCTTCTTATTATTTGATCTAGAAATTGCCCT</span><span class="b">CCTT</span><span class="c">TT</span><span class="d">A</span><span class="e">CC</span> 10280
+41       1 <span class="f">T</span><span class="e">TT</span><span class="d">C</span><span class="c">GT</span><span class="b">TCGTTT</span><span class="a">TTTTTTCTTTATAAAATTTTTTTTAGTAGTTATTATTTTTTTATTATTTGATATAGAAATTGATTT</span><span class="b">TCTT</span><span class="c">TT</span><span class="d">A</span><span class="e">TT</span>    87
               **  **  *   *****  ******** ** ******* *****  ** ************ *********   * ******  
 
 </pre>
 <h3>Alignment score=397:</h3>
 <pre>
-chrM 5521 <span class="a">AGGTTAAATACAGACCAAGAGCCTTCAAAGCCCTCAGTAAGTTGCAATACTTAATTTCTGCAACAGCTAAGGACTGCAAAACCCCAC</span> 5607
-42      1 <span class="a">AGGTTAAATATAGATTAAGAGTTTTTAAAGCCTTTAGTAAGTTGTAATATTTAATTTTTGTAATAGTTAAGGATTGTAAAACTTTAT</span>   87
+chrM 5521 <span class="e">A</span><span class="d">G</span><span class="c">GT</span><span class="b">TA</span><span class="a">AATACAGACCAAGAGCCTTCAAAGCCCTCAGTAAGTTGCAATACTTAATTTCTGCAACAGCTAAGGACTGCAAA</span><span class="b">AC</span><span class="c">CC</span><span class="d">C</span><span class="e">AC</span> 5607
+42      1 <span class="e">A</span><span class="d">G</span><span class="c">GT</span><span class="b">TA</span><span class="a">AATATAGATTAAGAGTTTTTAAAGCCTTTAGTAAGTTGTAATATTTAATTTTTGTAATAGTTAAGGATTGTAAA</span><span class="b">AC</span><span class="c">TT</span><span class="d">T</span><span class="e">AT</span>   87
           ********** ***  *****  ** ****** * ********* **** ******* ** ** ** ****** ** *****   * 
 
 </pre>
 <h3>Alignment score=240:</h3>
 <pre>
-chrM 14282 <span class="a">CCCCTCTCCTTCATAAATTATTCAGCTTCCTACACTATTAAAGTTTACCACAACCACCACCCCATCATACTCTTT</span> 14356
-43      75 <span class="a">CGTGCCTTCCAGCCCCAGCAATGCAGGACCTACACTATTAGAATTTACCACAACCACCACCCCATCATACTCTTT</span>     1
+chrM 14282 <span class="f">CCCCTCTCCTTCA</span><span class="e">TAAATTATTCAG</span><span class="d">C</span><span class="c">TT</span><span class="b">CC</span><span class="a">TACACTATTAAAGTTTACCACAACCACCACCCCATCATAC</span><span class="b">TC</span><span class="c">T</span><span class="d">T</span><span class="e">T</span> 14356
+43      75 <span class="f">CGTGCCTTCCAGC</span><span class="e">CCCAGCAATGCA</span><span class="d">G</span><span class="c">GA</span><span class="b">CC</span><span class="a">TACACTATTAGAATTTACCACAACCACCACCCCATCATAC</span><span class="b">TC</span><span class="c">T</span><span class="d">T</span><span class="e">T</span>     1
            *    ** *       *  * *      ************ * ********************************
+
+</pre>
+<h3>Alignment score=148:</h3>
+<pre>
+chrM 6451 <span class="f">CTCTTCGTCTGATCCG</span><span class="e">TCCTAATCACAGCAGTCCTAC</span><span class="d">TTCT</span><span class="c">CCTATCTCTC</span><span class="b">CCA</span><span class="a">GTCCTAGCTGCTGGCATCACTATAC</span><span class="b">TAC</span><span class="c">T</span><span class="d">A</span><span class="e">AC</span> 6536
+44     86 <span class="f">AATAGCAGCCCAGATT</span><span class="e">CACGACCCACTGGCGGTCTGT</span><span class="d">ACAT</span><span class="c">GGGGATTCCT</span><span class="b">CTA</span><span class="a">ATCCTAACTCCTAACATCACTACAC</span><span class="b">TAC</span><span class="c">T</span><span class="d">A</span><span class="e">AC</span>    1
+               *  *  *      * *  *** *  *  **     *      **  * * ***** ** **  ******** *********
 
 </pre>
 <h3>Alignment score=376:</h3>
 <pre>
-chrM 9711 <span class="a">ACTGGGTCTCTATTTTACCCTCCTACAAGCCTCAGAGTACTTCGAGTCTCCCTTCACCATTTCCGACGGCATCTACGGC</span> 9789
-45     79 <span class="a">ACTAAATCTCTATTTTACCATCCTACAAACCTCAAAATACTTCGAATCTCCCTTCACCATTTCCAACGACATCTACGAC</span>    1
+chrM 9711 <span class="e">AC</span><span class="c">TG</span><span class="b">GG</span><span class="a">TCTCTATTTTACCCTCCTACAAGCCTCAGAGTACTTCGAGTCTCCCTTCACCATTTCCGACGGCATC</span><span class="b">TA</span><span class="c">C</span><span class="d">G</span><span class="e">GC</span> 9789
+45     79 <span class="e">AC</span><span class="c">TA</span><span class="b">AA</span><span class="a">TCTCTATTTTACCATCCTACAAACCTCAAAATACTTCGAATCTCCCTTCACCATTTCCAACGACATC</span><span class="b">TA</span><span class="c">C</span><span class="d">G</span><span class="e">AC</span>    1
           ***   ************* ******** ***** * ******** ****************** *** ******** *
 
 </pre>
 <h3>Alignment score=384:</h3>
 <pre>
-chrM 12476 <span class="a">AGTCTCTTCCCCACAACAATATTCATGTGCCTAGACCAAGAAGTTATTATCTCGAACTGACACTGAGCCACAACCCAAACAACCCAG</span> 12562
-46       1 <span class="a">AGTTTTTTTTTTATAATAATATTTATGTGTTTAGATTAAGAAGTTATTATTTCGAATTGATATTGAGTTATAATTTAAATAATTCAG</span>    87
+chrM 12476 <span class="e">A</span><span class="d">G</span><span class="c">TCT</span><span class="b">CTT</span><span class="a">CCCCACAACAATATTCATGTGCCTAGACCAAGAAGTTATTATCTCGAACTGACACTGAGCCACAACCCAAACA</span><span class="b">AC</span><span class="c">CC</span><span class="d">A</span><span class="e">G</span> 12562
+46       1 <span class="e">A</span><span class="d">G</span><span class="c">TTT</span><span class="b">TTT</span><span class="a">TTTTATAATAATATTTATGTGTTTAGATTAAGAAGTTATTATTTCGAATTGATATTGAGTTATAATTTAAATA</span><span class="b">AT</span><span class="c">TC</span><span class="d">A</span><span class="e">G</span>    87
            *** * **    * ** ****** *****  ****  ************* ***** *** * ****  * **   *** **  ***
 
 </pre>
 <h3>Alignment score=365:</h3>
 <pre>
-chrM 6331 <span class="a">GTAGACCTAACCATCTTCTCCTTACACCTAGCAGGTGTCTCCTCTATCTTAGGGGCCATCAATTTCATCACAACAATTATCAATATA</span> 6417
-47      1 <span class="a">GTAGATTTAATTATTTTTTTTTTATATTTAGTAGGTGTTTTTTTTATTTTAGGGGTTATTAATTTTATTATAATAATTATTAATATA</span>   87
+chrM 6331 <span class="e">GT</span><span class="c">A</span><span class="b">GAC</span><span class="a">CTAACCATCTTCTCCTTACACCTAGCAGGTGTCTCCTCTATCTTAGGGGCCATCAATTTCATCACAACAATTATC</span><span class="b">AA</span><span class="c">TA</span><span class="e">TA</span> 6417
+47      1 <span class="e">GT</span><span class="c">A</span><span class="b">GAT</span><span class="a">TTAATTATTTTTTTTTTATATTTAGTAGGTGTTTTTTTTATTTTAGGGGTTATTAATTTTATTATAATAATTATT</span><span class="b">AA</span><span class="c">TA</span><span class="e">TA</span>   87
           *****  ***  ** ** *  *** *  *** ****** *  * *** *******  ** ***** ** * ** ****** ******
 
 </pre>
 <h3>Alignment score=366:</h3>
 <pre>
-chrM 6203 <span class="a">TAAGCTTCTGACTCTTACCTCCCTCTCTCCTACTCCTGCTCGCATCTGCTATAGTGGAGGCCGGAGCAGGAACAGGTTGAACAGTC</span> 6288
-48      1 <span class="a">TAAGTTTTTGACTTTTATTTTTTTTTTTTTTATTTTTGTTCGTATTTGTTATAGTGGAGGTTGGAGTAGGAATAGGTTGAATAGTT</span>   86
+chrM 6203 <span class="e">TA</span><span class="c">A</span><span class="b">GCTT</span><span class="a">CTGACTCTTACCTCCCTCTCTCCTACTCCTGCTCGCATCTGCTATAGTGGAGGCCGGAGCAGGAACAGGTTGA</span><span class="b">AC</span><span class="c">AG</span><span class="e">TC</span> 6288
+48      1 <span class="e">TA</span><span class="c">A</span><span class="b">GTTT</span><span class="a">TTGACTTTTATTTTTTTTTTTTTTATTTTTGTTCGTATTTGTTATAGTGGAGGTTGGAGTAGGAATAGGTTGA</span><span class="b">AT</span><span class="c">AG</span><span class="e">TT</span>   86
           **** ** ***** ***  *   * * *  ** *  ** *** ** ** ***********  **** ***** ******** *** 
 
 </pre>
 <h3>Alignment score=369:</h3>
 <pre>
-chrM 12897 <span class="a">CATGATTTATCCTACACTCCAACTCATGAGACCCACAACAAATAGCCCTTCTAAACGCTAATCCAAGCCTCACCCCACTACTAGGCC</span> 12983
-49       1 <span class="a">TATGATTTATTTTATATTTTAATTTATGAGATTTATAATAAATAGTTTTTTTAAATGTTAATTTAAGTTTTATTTTATTATTAGGTT</span>    87
+chrM 12897 <span class="e">CA</span><span class="d">T</span><span class="c">G</span><span class="b">ATT</span><span class="a">TATCCTACACTCCAACTCATGAGACCCACAACAAATAGCCCTTCTAAACGCTAATCCAAGCCTCACCCCACTAC</span><span class="b">TA</span><span class="c">GG</span><span class="e">CC</span> 12983
+49       1 <span class="e">TA</span><span class="d">T</span><span class="c">G</span><span class="b">ATT</span><span class="a">TATTTTATATTTTAATTTATGAGATTTATAATAAATAGTTTTTTTAAATGTTAATTTAAGTTTTATTTTATTAT</span><span class="b">TA</span><span class="c">GG</span><span class="e">TT</span>    87
             *********  ** * *  ** * ******   * ** ******   ** **** * ****  ***  * *    * ** ****  
 
 </pre>
 <h3>Alignment score=280:</h3>
 <pre>
-chrM 6087 <span class="a">TGCATTTGTAATAATCTTCTTCATAGTAATACCCATCATAATCGGAGGCTTTGGCAACTGACTAGTTCCCCTAATAATCGGTGCCCC</span> 6173
-5      87 <span class="a">TGGGTTCTTCTTAGCAACTGTTATAATAATACCCATCATAATCGAAAACTTTAACAACTAACAAATTCCCCTAATAATCGATACCCC</span>    1
+chrM 6087 <span class="f">TGCATTTGTA</span><span class="e">ATAATCTTCT</span><span class="d">TC</span><span class="c">A</span><span class="b">TAG</span><span class="a">TAATACCCATCATAATCGGAGGCTTTGGCAACTGACTAGTTCCCCTAATAATCGGT</span><span class="b">GC</span><span class="c">C</span><span class="d">C</span><span class="e">C</span> 6173
+5      87 <span class="f">TGGGTTCTTC</span><span class="e">TTAGCAACTG</span><span class="d">TT</span><span class="c">A</span><span class="b">TAA</span><span class="a">TAATACCCATCATAATCGAAAACTTTAACAACTAACAAATTCCCCTAATAATCGAT</span><span class="b">AC</span><span class="c">C</span><span class="d">C</span><span class="e">C</span>    1
           **  **  *  **       * *** ****************** *  ****  ***** ** * *************** * ****
 
 </pre>
 <h3>Alignment score=151:</h3>
 <pre>
-chrM 6026 <span class="a">TGGGCCAGCCAGGCAACCTTCTAGGTAACGACCACA</span> 6061
-50      1 <span class="a">TGGGTTAGTTAGGTAATTTTTTAGGTAACGATGATA</span>   36
+chrM 6026 <span class="e">TG</span><span class="c">GG</span><span class="b">CC</span><span class="a">AGCCAGGCAACCTTCTAGGTA</span><span class="b">ACG</span><span class="c">A</span><span class="d">C</span><span class="e">CACA</span> 6061
+50      1 <span class="e">TG</span><span class="c">GG</span><span class="b">TT</span><span class="a">AGTTAGGTAATTTTTTAGGTA</span><span class="b">ACG</span><span class="c">A</span><span class="d">T</span><span class="e">GATA</span>   36
           ****  **  *** **  ** **********  * *
 
 </pre>
 <h3>Alignment score=378:</h3>
 <pre>
-chrM 9665 <span class="a">AAAACAACCGAAACCAAATAATTCAAGCACTGCTTATTACAATTTTACTGGGTCTCTATTTTACCCTCCTACAAGCCTCAGAGTACT</span> 9751
-51      1 <span class="a">AAAATAATTGAAATTAAATAATTTAAGTATTGTTTATTATAATTTTATTGGGTTTTTATTTTATTTTTTTATAAGTTTTAGAGTATT</span>   87
+chrM 9665 <span class="e">A</span><span class="d">A</span><span class="c">A</span><span class="b">AC</span><span class="a">AACCGAAACCAAATAATTCAAGCACTGCTTATTACAATTTTACTGGGTCTCTATTTTACCCTCCTACAAGCCTCAG</span><span class="b">AG</span><span class="c">T</span><span class="d">A</span><span class="e">CT</span> 9751
+51      1 <span class="e">A</span><span class="d">A</span><span class="c">A</span><span class="b">AT</span><span class="a">AATTGAAATTAAATAATTTAAGTATTGTTTATTATAATTTTATTGGGTTTTTATTTTATTTTTTTATAAGTTTTAG</span><span class="b">AG</span><span class="c">T</span><span class="d">A</span><span class="e">TT</span>   87
           **** **  ****  ******** *** * ** ****** ******* ***** * *******   *  ** ***  * ****** *
+
+</pre>
+<h3>Alignment score=147:</h3>
+<pre>
+chrM 10546 <span class="f">C</span><span class="e">TC</span><span class="c">AT</span><span class="b">ATCCT</span><span class="a">CCCTACTATGCCTAGAAGGAAT</span><span class="b">AATACT</span><span class="c">AT</span><span class="d">C</span><span class="e">GC</span> 10588
+52       1 <span class="f">T</span><span class="e">TT</span><span class="c">AT</span><span class="b">ATTTT</span><span class="a">TTTTATAACGCTTAGAAGGAAT</span><span class="b">CACCTT</span><span class="c">AT</span><span class="d">C</span><span class="e">GT</span>    43
+            * ****  *   **  * ** ********** *   ***** 
 
 </pre>
 <h3>Alignment score=386:</h3>
 <pre>
-chrM 14459 <span class="a">CGCTGTAGTATATCCAAAGACAACCATCATTCCCCCTAAATAAATTAAAAAAACTATTAAACCCATATAACCTCCCCCAAAATTCAG</span> 14545
-53       1 <span class="a">TGTTGTAGTATATTTAAAGATAATTATTATTTTTTTTAAATAAATTAAAAAAATTATTAAATTTATATAATTTTTTTTAAAATTTAG</span>    87
+chrM 14459 <span class="e">CG</span><span class="d">C</span><span class="c">T</span><span class="b">GT</span><span class="a">AGTATATCCAAAGACAACCATCATTCCCCCTAAATAAATTAAAAAAACTATTAAACCCATATAACCTCCCCCAAA</span><span class="b">AT</span><span class="c">TC</span><span class="d">A</span><span class="e">G</span> 14545
+53       1 <span class="e">TG</span><span class="d">T</span><span class="c">T</span><span class="b">GT</span><span class="a">AGTATATTTAAAGATAATTATTATTTTTTTTAAATAAATTAAAAAAATTATTAAATTTATATAATTTTTTTTAAA</span><span class="b">AT</span><span class="c">TT</span><span class="d">A</span><span class="e">G</span>    87
             * **********  ***** **  ** ***     ***************** *******   ******  *     ****** **
 
 </pre>
 <h3>Alignment score=382:</h3>
 <pre>
-chrM 6398 <span class="a">TCACAACAATTATCAATATAAAACCCCCTGCCATAACCCAATACCAAACGCCCCTCTTCGTCTGATCCGTCCTAATCACAGCAGTC</span> 6483
-54     86 <span class="a">ACACAACAATTATCAATATAAAAACCCCTACCATAACCCAATACCAAACACCCCTCTTCGTCTATTCCGTCCTAATCACAACAATC</span>    1
+chrM 6398 <span class="f">T</span><span class="e">C</span><span class="d">A</span><span class="c">CA</span><span class="b">AC</span><span class="a">AATTATCAATATAAAACCCCCTGCCATAACCCAATACCAAACGCCCCTCTTCGTCTGATCCGTCCTAATCAC</span><span class="b">AGC</span><span class="c">AG</span><span class="d">T</span><span class="e">C</span> 6483
+54     86 <span class="f">A</span><span class="e">C</span><span class="d">A</span><span class="c">CA</span><span class="b">AC</span><span class="a">AATTATCAATATAAAAACCCCTACCATAACCCAATACCAAACACCCCTCTTCGTCTATTCCGTCCTAATCAC</span><span class="b">AAC</span><span class="c">AA</span><span class="d">T</span><span class="e">C</span>    1
            ********************** ***** ******************* *************  *************** ** **
 
 </pre>
 <h3>Alignment score=372:</h3>
 <pre>
-chrM 37 <span class="a">AGCTCTCCATGCATTTGGTATTTTCGTCTGGGGGGTGTGCACGCGATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCA</span> 123
-55    1 <span class="a">AGCTTTTTATGTATTTGGTATTTTCGTTTGGGGGGTGTGTACGCGATAGTATTGCGAGACGTTGGAGTCGGAGTAATCTATGTCGTA</span>  87
+chrM 37 <span class="e">A</span><span class="d">G</span><span class="c">CTC</span><span class="b">TCC</span><span class="a">ATGCATTTGGTATTTTCGTCTGGGGGGTGTGCACGCGATAGCATTGCGAGACGCTGGAGCCGGAGCA</span><span class="b">CCCTATGT</span><span class="c">CG</span><span class="e">CA</span> 123
+55    1 <span class="e">A</span><span class="d">G</span><span class="c">CTT</span><span class="b">TTT</span><span class="a">ATGTATTTGGTATTTTCGTTTGGGGGGTGTGTACGCGATAGTATTGCGAGACGTTGGAGTCGGAGTA</span><span class="b">ATCTATGT</span><span class="c">CG</span><span class="e">TA</span>  87
         **** *  *** *************** *********** ********* *********** ***** ***** *  ******** *
 
 </pre>
 <h3>Alignment score=411:</h3>
 <pre>
-chrM 9570 <span class="a">CACCCCGCTAAATCCCCTAGAAGTCCCACTCCTAAACACATCCGTATTACTCGCATCAGGAGTATCAATCACCTGAGCTCACCATAG</span> 9656
-56     87 <span class="a">CACCCCACTAAATCCCCTAAAAATCCCACTCCTAAACACATCCGTATTACTCGCATCAAAAATATCAATCACCTAAACTCACCATAA</span>    1
+chrM 9570 <span class="e">CA</span><span class="c">C</span><span class="b">CC</span><span class="a">CGCTAAATCCCCTAGAAGTCCCACTCCTAAACACATCCGTATTACTCGCATCAGGAGTATCAATCACCTGAGCTCA</span><span class="b">CC</span><span class="c">A</span><span class="d">T</span><span class="e">AG</span> 9656
+56     87 <span class="e">CA</span><span class="c">C</span><span class="b">CC</span><span class="a">CACTAAATCCCCTAAAAATCCCACTCCTAAACACATCCGTATTACTCGCATCAAAAATATCAATCACCTAAACTCA</span><span class="b">CC</span><span class="c">A</span><span class="d">T</span><span class="e">AA</span>    1
           ****** ************ ** ***********************************  * ************ * ********* 
 
 </pre>
 <h3>Alignment score=313:</h3>
 <pre>
-chrM 11220 <span class="a">CTAGTAGGCTCCCTTCCCCTACTCATCGCACTAATTTACACTCACAACACCCTAGGCTCACTAAACATTCTACTACTCACTCTCA</span> 11304
-57       1 <span class="a">TTAGTAGGTTTTTTTTTTTTATTTATTTTATTAATTTATATTTATAATATGTTAGGTTTATTAAATATTTTATTATTGATTTTTA</span>    85
+chrM 11220 <span class="e">CT</span><span class="c">AG</span><span class="b">TA</span><span class="a">GGCTCCCTTCCCCTACTCATCGCACTAATTTACACTCACAACACCCTAGGCTCACTAAACATTCTACTA</span><span class="b">CTCA</span><span class="c">CTC</span><span class="d">T</span><span class="e">CA</span> 11304
+57       1 <span class="e">TT</span><span class="c">AG</span><span class="b">TA</span><span class="a">GGTTTTTTTTTTTTATTTATTTTATTAATTTATATTTATAATATGTTAGGTTTATTAAATATTTTATTA</span><span class="b">TTGA</span><span class="c">TTT</span><span class="d">T</span><span class="e">TA</span>    85
             ******* *   **    ** * **   * ******* * * * ** *   **** * * **** *** ** ** * * * * *
 
 </pre>
 <h3>Alignment score=397:</h3>
 <pre>
-chrM 12835 <span class="a">AGCAGCCATTCAAGCAGTCCTATACAACCGTATCGGCGATATCGGTTTCATCCTCGCCTTAGCATGATTTATCCTACACTCCAAC</span> 12919
-58      85 <span class="a">AACAACCATTCAAACAATCCTATACAACCGTATCCACGATATCGATTTCATCCTCGCCTTAACATAATTTATCCTACACTCCAAC</span>     1
+chrM 12835 <span class="e">AG</span><span class="d">C</span><span class="c">AG</span><span class="b">C</span><span class="a">CATTCAAGCAGTCCTATACAACCGTATCGGCGATATCGGTTTCATCCTCGCCTTAGCATGATTTATCCTACAC</span><span class="b">TC</span><span class="c">C</span><span class="d">A</span><span class="e">AC</span> 12919
+58      85 <span class="e">AA</span><span class="d">C</span><span class="c">AA</span><span class="b">C</span><span class="a">CATTCAAACAATCCTATACAACCGTATCCACGATATCGATTTCATCCTCGCCTTAACATAATTTATCCTACAC</span><span class="b">TC</span><span class="c">C</span><span class="d">A</span><span class="e">AC</span>     1
            * ** ******** ** *****************  ******** **************** *** *******************
 
 </pre>
 <h3>Alignment score=361:</h3>
 <pre>
-chrM 9918 <span class="a">CGCCGCCTGATACTGGCATTTTGTAGATGTGGTTTGACTATTTCTGTATGTCTCCATCTATTGATGAGGGTCTTACTCTTTT</span> 9999
-59     82 <span class="a">CTACGCCTAATACTAACATTCTATAAATATAATTTAGCTATTTCTATATATCTCCATCTATTAATAAAAATCTTACTCTTTT</span>    1
+chrM 9918 <span class="f">CG</span><span class="e">C</span><span class="d">C</span><span class="c">G</span><span class="b">CC</span><span class="a">TGATACTGGCATTTTGTAGATGTGGTTTGACTATTTCTGTATGTCTCCATCTATTGATGAGGGTCTTACT</span><span class="b">CT</span><span class="c">T</span><span class="d">T</span><span class="e">T</span> 9999
+59     82 <span class="f">CT</span><span class="e">A</span><span class="d">C</span><span class="c">G</span><span class="b">CC</span><span class="a">TAATACTAACATTCTATAAATATAATTTAGCTATTTCTATATATCTCCATCTATTAATAAAAATCTTACT</span><span class="b">CT</span><span class="c">T</span><span class="d">T</span><span class="e">T</span>    1
           *  ***** *****  **** * ** ** *  ***  ******** *** ************ ** *   ************
 
 </pre>
 <h3>Alignment score=368:</h3>
 <pre>
-chrM 11107 <span class="a">TCATATTTTATATCTTCTTCGAAACCACACTTATCCCCACCTTGGCTATCATCACCCGATGAGGCAACCAGCCAGAACGCCTGAACG</span> 11193
-6        1 <span class="a">TTATATTTTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGATGAGGTAATTAGTTAGAATGTCTGAACG</span>    87
+chrM 11107 <span class="e">TC</span><span class="d">A</span><span class="c">T</span><span class="b">ATT</span><span class="a">TTATATCTTCTTCGAAACCACACTTATCCCCACCTTGGCTATCATCACCCGATGAGGCAACCAGCCAGAACGCC</span><span class="b">TGA</span><span class="c">A</span><span class="e">CG</span> 11193
+6        1 <span class="e">TT</span><span class="d">A</span><span class="c">T</span><span class="b">ATT</span><span class="a">TTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGATGAGGTAATTAGTTAGAATGTC</span><span class="b">TGA</span><span class="c">A</span><span class="e">CG</span>    87
            * *********** ** *******  * * ****    *  **** *** ** *  ******** **  **  **** * *******
 
 </pre>
 <h3>Alignment score=383:</h3>
 <pre>
-chrM 12615 <span class="a">CATTGTTCGTTACATGGTCCATCATAGAATTCTCACTGTGATATATAAACTCAGACCCAAACATTAATCAGTTCTTCAAATATCTAC</span> 12701
-60      87 <span class="a">CATTATTCGTTACATAATCCATCATAAAATTCTCACTATAATATATAAACTCAAACCCAAACATTAATCAATTCTTCAAATCTCTAC</span>     1
+chrM 12615 <span class="f">C</span><span class="e">A</span><span class="d">T</span><span class="c">T</span><span class="b">GT</span><span class="a">TCGTTACATGGTCCATCATAGAATTCTCACTGTGATATATAAACTCAGACCCAAACATTAATCAGTTCTTCAA</span><span class="b">AT</span><span class="c">ATCT</span><span class="e">AC</span> 12701
+60      87 <span class="f">C</span><span class="e">A</span><span class="d">T</span><span class="c">T</span><span class="b">AT</span><span class="a">TCGTTACATAATCCATCATAAAATTCTCACTATAATATATAAACTCAAACCCAAACATTAATCAATTCTTCAA</span><span class="b">AT</span><span class="c">CTCT</span><span class="e">AC</span>     1
            **** **********  ********* ********** * ************* **************** ********** *****
 
 </pre>
 <h3>Alignment score=196:</h3>
 <pre>
-chrM 16063 <span class="a">ATTGACTCACCCATCAACAACCGCTATGTATTTCGTACATTACTGCCAGCCACCATGAATATTGTACGGTACCATAAA</span> 16140
-63       1 <span class="a">ATTGATTTATTCTTTAATAATCGTTATGTATTTCGTATATTATTGTTAGTTGGTTAGAGTATTGTCCGGGACGCCATT</span>    78
+chrM 16063 <span class="e">AT</span><span class="d">T</span><span class="c">G</span><span class="b">ACTC</span><span class="a">ACCCATCAACAACCGCTATGTATTTCGTACATTACTGCCA</span><span class="b">GC</span><span class="c">CA</span><span class="d">CCAT</span><span class="e">GAATATTGTACGGTA</span><span class="f">CCATAAA</span> 16140
+63       1 <span class="e">AT</span><span class="d">T</span><span class="c">G</span><span class="b">ATTT</span><span class="a">ATTCTTTAATAATCGTTATGTATTTCGTATATTATTGTTA</span><span class="b">GT</span><span class="c">TG</span><span class="d">GTTA</span><span class="e">GAGTATTGTCCGGGA</span><span class="f">CGCCATT</span>    78
            ***** * *  * * ** ** ** ************* **** **  **       ** ****** *** **   *  
 
 </pre>
 <h3>Alignment score=345:</h3>
 <pre>
-chrM 13008 <span class="a">CAGCCCAATTAGGTCTCCACCCCTGACTCCCCTCAGCCATAGAAGGCCCCACCCCAGTCTCAGCCCTACTCCACTCAAGCACTATAG</span> 13094
-64       1 <span class="a">TAGCTTAATTAGGTTTTTAGTTTTGATTTTTTTTAGTTATAGAAGGTTTTATTTTAGTTTTAGTTTTATTTTATTTAAGTATTATAG</span>    87
+chrM 13008 <span class="e">CA</span><span class="c">GC</span><span class="b">CC</span><span class="a">AATTAGGTCTCCACCCCTGACTCCCCTCAGCCATAGAAGGCCCCACCCCAGTCTCAGCCCTACTCCACTCAAGCA</span><span class="b">CT</span><span class="c">AT</span><span class="d">A</span><span class="e">G</span> 13094
+64       1 <span class="e">TA</span><span class="c">GC</span><span class="b">TT</span><span class="a">AATTAGGTTTTTAGTTTTGATTTTTTTTAGTTATAGAAGGTTTTATTTTAGTTTTAGTTTTATTTTATTTAAGTA</span><span class="b">TT</span><span class="c">AT</span><span class="d">A</span><span class="e">G</span>    87
             ***  ******** *  *    *** *    * **  ********    *    *** * **   ** *  * * *** * *****
 
 </pre>
 <h3>Alignment score=359:</h3>
 <pre>
-chrM 12003 <span class="a">CAATGGGGCTCACTCACCCACCACATTAACAACATAAAACCCTCATTCACACGAGAAAACACCCTCATGTTCATACACCTATCCCC</span> 12088
-65       1 <span class="a">TAATGGGGTTTATTTATTTATTATATTAATAATATAAAATTTTTATTTATACGAGAAAATATTTTTATTTTTATATATTTATTTTT</span>    86
+chrM 12003 <span class="e">CA</span><span class="c">AT</span><span class="b">G</span><span class="a">GGGCTCACTCACCCACCACATTAACAACATAAAACCCTCATTCACACGAGAAAACACCCTCATGTTCATACAC</span><span class="b">CTA</span><span class="c">T</span><span class="d">C</span><span class="e">CCC</span> 12088
+65       1 <span class="e">TA</span><span class="c">AT</span><span class="b">G</span><span class="a">GGGTTTATTTATTTATTATATTAATAATATAAAATTTTTATTTATACGAGAAAATATTTTTATTTTTATATAT</span><span class="b">TTA</span><span class="c">T</span><span class="d">T</span><span class="e">TTT</span>    86
             ******* * * * *   *  * ***** ** ******   * *** * ********* *   * ** ** *** *  ***    
 
 </pre>
 <h3>Alignment score=363:</h3>
 <pre>
-chrM 14922 <span class="a">GCCTCAACCGCCTTTTCATCAATCGCCCACATCACTCGAGACGTAAATTATGGCTGAATCATCCGCTACCTTCACGCCAATGGCGCC</span> 15008
-66       1 <span class="a">GTTTTAATCGTTTTTTTATTAATCGTTTATATTATTTGAGACGTAAATTATGGTTGAATTATTCGTTATTTTTATGTTAATGGCGTT</span>    87
+chrM 14922 <span class="e">GC</span><span class="d">C</span><span class="c">TC</span><span class="b">AA</span><span class="a">CCGCCTTTTCATCAATCGCCCACATCACTCGAGACGTAAATTATGGCTGAATCATCCGCTACCTTCACGCCAAT</span><span class="b">GG</span><span class="c">C</span><span class="d">G</span><span class="e">CC</span> 15008
+66       1 <span class="e">GT</span><span class="d">T</span><span class="c">TT</span><span class="b">AA</span><span class="a">TCGTTTTTTTATTAATCGTTTATATTATTTGAGACGTAAATTATGGTTGAATTATTCGTTATTTTTATGTTAAT</span><span class="b">GG</span><span class="c">C</span><span class="d">G</span><span class="e">TT</span>    87
            *  * ** **  **** ** *****   * ** * * **************** ***** ** ** **  ** * *  *******  
 
 </pre>
 <h3>Alignment score=398:</h3>
 <pre>
-chrM 9521 <span class="a">GCCTAGCCCCTACCCCCCAACTAGGAGGGCACTGGCCCCCAACAGGCATCACCCCGCTAAATCCCCTAGAAGTCCCACTCCTAAACA</span> 9607
-67     87 <span class="a">ACCTAACCCCTACCCCCCAACTAAAAAAACACTAGCCCCCAACAAACATCACCCCACTAAATCCCCTAAAAATACCACTCCTAAACA</span>    1
+chrM 9521 <span class="e">GC</span><span class="c">C</span><span class="b">TAG</span><span class="a">CCCCTACCCCCCAACTAGGAGGGCACTGGCCCCCAACAGGCATCACCCCGCTAAATCCCCTAGAAGTCCCACTCC</span><span class="b">T</span><span class="c">AA</span><span class="d">A</span><span class="e">CA</span> 9607
+67     87 <span class="e">AC</span><span class="c">C</span><span class="b">TAA</span><span class="a">CCCCTACCCCCCAACTAAAAAAACACTAGCCCCCAACAAACATCACCCCACTAAATCCCCTAAAAATACCACTCC</span><span class="b">T</span><span class="c">AA</span><span class="d">A</span><span class="e">CA</span>    1
            **** *****************  *   **** **********  ********* ************ ** * *************
 
 </pre>
 <h3>Alignment score=401:</h3>
 <pre>
-chrM 15821 <span class="a">CTTCACAACAATCCTAATCCTAATACCAACTATCTCCCTAATTGAAAACAAAATACTCAAATGGGCCTGTCCTTGTAGTATAAACTA</span> 15907
-68      87 <span class="a">CTTCACAACAATCCTAATCCTAATACCAACTATCTCCCTAATTAAAAACAAAATACTCAAATAAACCTATCCTTATAATATAAACTA</span>     1
+chrM 15821 <span class="e">C</span><span class="d">T</span><span class="c">T</span><span class="b">CA</span><span class="a">CAACAATCCTAATCCTAATACCAACTATCTCCCTAATTGAAAACAAAATACTCAAATGGGCCTGTCCTTGTAGTA</span><span class="b">TAA</span><span class="c">AC</span><span class="e">TA</span> 15907
+68      87 <span class="e">C</span><span class="d">T</span><span class="c">T</span><span class="b">CA</span><span class="a">CAACAATCCTAATCCTAATACCAACTATCTCCCTAATTAAAAACAAAATACTCAAATAAACCTATCCTTATAATA</span><span class="b">TAA</span><span class="c">AC</span><span class="e">TA</span>     1
            ******************************************* ******************   *** ***** ** *********
 
 </pre>
 <h3>Alignment score=349:</h3>
 <pre>
-chrM 5661 <span class="a">GACCAATGGGACTTAAACCCACAAACACTTAGTTAACAGCTAAGCACCCTAATCAACTGGCTTCAATCTACTTCTCCCGCCGCCGGG</span> 5747
-69      1 <span class="a">GATTAATGGGATTTAAATTTAAAAATATTTAGTTAATAGTTAAGTATTTTAATTAATTGGTTTTAATTTATTTTTTTCGTCGTCTGT</span>   87
+chrM 5661 <span class="e">G</span><span class="d">A</span><span class="c">CC</span><span class="b">AA</span><span class="a">TGGGACTTAAACCCACAAACACTTAGTTAACAGCTAAGCACCCTAATCAACTGGCTTCAATCTACTTCTCCC</span><span class="b">GCC</span><span class="c">G</span><span class="d">C</span><span class="e">CGG</span><span class="f">G</span> 5747
+69      1 <span class="e">G</span><span class="d">A</span><span class="c">TT</span><span class="b">AA</span><span class="a">TGGGATTTAAATTTAAAAATATTTAGTTAATAGTTAAGTATTTTAATTAATTGGTTTTAATTTATTTTTTTC</span><span class="b">GTC</span><span class="c">G</span><span class="d">T</span><span class="e">CTG</span><span class="f">T</span>   87
           **  ******* *****   * *** * ******** ** **** *   **** ** *** ** *** ** ** *  ** ** * * 
 
 </pre>
 <h3>Alignment score=340:</h3>
 <pre>
-chrM 144 <span class="a">CCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAG</span> 228
-7     85 <span class="a">CCTAATTCTCTTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAATATATTAATTAATTAATACTTATAA</span>   1
+chrM 144 <span class="f">C</span><span class="e">CTC</span><span class="d">A</span><span class="c">T</span><span class="b">TCTA</span><span class="a">TTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGC</span><span class="b">TT</span><span class="c">G</span><span class="d">T</span><span class="e">AG</span> 228
+7     85 <span class="f">C</span><span class="e">CTA</span><span class="d">A</span><span class="c">T</span><span class="b">TCTC</span><span class="a">TTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAATATATTAATTAATTAATAC</span><span class="b">TT</span><span class="c">A</span><span class="d">T</span><span class="e">AA</span>   1
          *** ***** **** ****** ***** ************ ** *************** * * ************* *** ** 
 
 </pre>
 <h3>Alignment score=340:</h3>
 <pre>
-chrM 7676 <span class="a">CATTTTCCTTATCTGCTTCCTAGTCCTGTATGCCCTTTTCCTAACACTCACAACAAAACTAACTAATACTAACATCTCAGACGC</span> 7759
-70      1 <span class="a">TATTTTTTTTATTTGTTTTTTAGTTTTGTATGTTTTTTTTTTAATATTTATAATAAAATTAATTAATATTAATATTTTAGACGT</span>   84
+chrM 7676 <span class="e">CA</span><span class="d">T</span><span class="c">TT</span><span class="b">TCCT</span><span class="a">TATCTGCTTCCTAGTCCTGTATGCCCTTTTCCTAACACTCACAACAAAACTAACTAATACTAACATCTC</span><span class="b">AG</span><span class="c">A</span><span class="d">C</span><span class="e">GC</span> 7759
+70      1 <span class="e">TA</span><span class="d">T</span><span class="c">TT</span><span class="b">TTTT</span><span class="a">TATTTGTTTTTTAGTTTTGTATGTTTTTTTTTTAATATTTATAATAAAATTAATTAATATTAATATTTT</span><span class="b">AG</span><span class="c">A</span><span class="d">C</span><span class="e">GT</span>   84
            *****  **** ** **  ****  ******   ****  *** * * * ** **** *** ***** *** ** * ***** 
 
 </pre>
 <h3>Alignment score=348:</h3>
 <pre>
-chrM 15445 <span class="a">TTCTCTTCCTTCTCTCCTTAATGACATTAACACTATTCTCACCAGACCTCCTAGGCGACCCAGACAATTATACCCTAGCCAACCCCT</span> 15531
-71       1 <span class="a">TTTTTTTTTTTTTTTTTTTAATGATATTAATATTATTTTTATCAGATTTTTTAGGCGATTTAGATAATTATATTTTAGTTAATTTTT</span>    87
+chrM 15445 <span class="f">T</span><span class="e">TC</span><span class="d">T</span><span class="c">CT</span><span class="b">TCCT</span><span class="a">TCTCTCCTTAATGACATTAACACTATTCTCACCAGACCTCCTAGGCGACCCAGACAATTATACCCTAGCC</span><span class="b">AA</span><span class="c">C</span><span class="d">C</span><span class="e">CCT</span> 15531
+71       1 <span class="f">T</span><span class="e">TT</span><span class="d">T</span><span class="c">TT</span><span class="b">TTTT</span><span class="a">TTTTTTTTTAATGATATTAATATTATTTTTATCAGATTTTTTAGGCGATTTAGATAATTATATTTTAGTT</span><span class="b">AA</span><span class="c">T</span><span class="d">T</span><span class="e">TTT</span>    87
            ** * **  ** * *  ******* ***** * **** * * ****  *  *******   *** *******   ***  **    *
 
 </pre>
 <h3>Alignment score=280:</h3>
 <pre>
-chrM 11022 <span class="a">CCACTATCACGAAAAAAACTCTACCTCTCTATACTAATCTCCCTACAAATCTCCTTAATTATAACATTCACAGCCACAGAACTA</span> 11105
-72       1 <span class="a">TTATTATTACAAACAAAATTTTATTTTTTTATAGTAATTTTTTTATAAATTTTTTCAATTTTAATATTTAGAGTAATAGATTTA</span>    84
+chrM 11022 <span class="e">CC</span><span class="d">A</span><span class="c">CT</span><span class="b">ATC</span><span class="a">ACGAAAAAAACTCTACCTCTCTATACTAATCTCCCTACAAATCTCCTTAATTATAACATTCACAGC</span><span class="b">CACA</span><span class="c">GA</span><span class="e">ACTA</span> 11105
+72       1 <span class="e">TT</span><span class="d">A</span><span class="c">TT</span><span class="b">ATT</span><span class="a">ACAAACAAAATTTTATTTTTTTATAGTAATTTTTTTATAAATTTTTTCAATTTTAATATTTAGAGT</span><span class="b">AATA</span><span class="c">GA</span><span class="e">TTTA</span>    84
              * *** ** ** **** * **  * * **** **** *   ** **** *  * **** *** *** * **  * ***  **
 
 </pre>
 <h3>Alignment score=321:</h3>
 <pre>
-chrM 14599 <span class="a">TAGGAGAAGGCTTAGAAGAAAACCCCACAAACCCCATTACTAAACCCACACTCAACAGAAACAAAGCATACATCATTATTCTCGCA</span> 14684
-73      86 <span class="a">TAAAAAAAAACCTAAAAAAAAACCCCACAAACCCCATTACTAAACCCACACTCAACAAAAACAAAACATATATCATTATTCCCGCA</span>     1
+chrM 14599 <span class="e">TA</span><span class="d">G</span><span class="c">GAG</span><span class="b">AAGG</span><span class="a">CTTAGAAGAAAACCCCACAAACCCCATTACTAAACCCACACTCAACAGAAACAAAGCATACATCATTA</span><span class="b">TT</span><span class="c">C</span><span class="d">TC</span><span class="e">GCA</span> 14684
+73      86 <span class="e">TA</span><span class="d">A</span><span class="c">AAA</span><span class="b">AAAA</span><span class="a">CCTAAAAAAAAACCCCACAAACCCCATTACTAAACCCACACTCAACAAAAACAAAACATATATCATTA</span><span class="b">TT</span><span class="c">C</span><span class="d">CC</span><span class="e">GCA</span>     1
            **  * **  * ** ** *************************************** ******* **** ********** ****
 
 </pre>
 <h3>Alignment score=240:</h3>
 <pre>
-chrM 4222 <span class="a">CTCCATACCCATTACAATCTCCAGCATTCCCCCTCAAACCTAAGAAATATGTCTGATAAAAGAGTTACTTTGATAGAGTAAATA</span> 4305
-74     84 <span class="a">CTTGGTGTAGATACTGAGCTGCCGAATAAACCCTCAAACCTAGGAAATATATCTAATAAAAAAATTACTTTAATAGAATAAATA</span>    1
+chrM 4222 <span class="f">CTCCATACC</span><span class="e">CATTACAATCT</span><span class="d">CCAGC</span><span class="c">ATTC</span><span class="b">CC</span><span class="a">CCTCAAACCTAAGAAATATGTCTGATAAAAGAGTTACTTTGATAG</span><span class="b">AGT</span><span class="c">AA</span><span class="d">A</span><span class="e">TA</span> 4305
+74     84 <span class="f">CTTGGTGTA</span><span class="e">GATACTGAGCT</span><span class="d">GCCGA</span><span class="c">ATAA</span><span class="b">AC</span><span class="a">CCTCAAACCTAGGAAATATATCTAATAAAAAAATTACTTTAATAG</span><span class="b">AAT</span><span class="c">AA</span><span class="d">A</span><span class="e">TA</span>    1
           **   *    **    * ** * * **   ************ ******* *** ****** * ******* ***** ******
 
 </pre>
 <h3>Alignment score=397:</h3>
 <pre>
-chrM 6364 <span class="a">GGTGTCTCCTCTATCTTAGGGGCCATCAATTTCATCACAACAATTATCAATATAAAACCCCCTGCCATAACCCAATACCAAACGC</span> 6448
-75     85 <span class="a">AGTATCTCCTCTATCTTAAAAACCATCAATTTCATCACAACAATTATCAATATAAAACCCCCTACCATAACCCAATACCAAACAC</span>    1
+chrM 6364 <span class="e">GG</span><span class="d">T</span><span class="c">G</span><span class="b">TC</span><span class="a">TCCTCTATCTTAGGGGCCATCAATTTCATCACAACAATTATCAATATAAAACCCCCTGCCATAACCCAATAC</span><span class="b">CAA</span><span class="c">AC</span><span class="e">GC</span> 6448
+75     85 <span class="e">AG</span><span class="d">T</span><span class="c">A</span><span class="b">TC</span><span class="a">TCCTCTATCTTAAAAACCATCAATTTCATCACAACAATTATCAATATAAAACCCCCTACCATAACCCAATAC</span><span class="b">CAA</span><span class="c">AC</span><span class="e">AC</span>    1
            ** **************    ***************************************** ******************* *
 
 </pre>
 <h3>Alignment score=355:</h3>
 <pre>
-chrM 4156 <span class="a">CCAACTCATACACCTCCTATGAAAAAACTTCCTACCACTCACCCTAGCATTACTTATATGATATGTCTCCATACCCATTACAATCTC</span> 4242
-76      1 <span class="a">TTAATTTATATATTTTTTATGAAAAAATTTTTTATTATTTATTTTAGTATTATTTATATGATATGTTTCTATATTTATTATAATTTT</span>   87
+chrM 4156 <span class="e">CC</span><span class="d">A</span><span class="c">A</span><span class="b">CTC</span><span class="a">ATACACCTCCTATGAAAAAACTTCCTACCACTCACCCTAGCATTACTTATATGATATGTCTCCATACCCATTA</span><span class="b">CA</span><span class="c">AT</span><span class="e">CTC</span> 4242
+76      1 <span class="e">TT</span><span class="d">A</span><span class="c">A</span><span class="b">TTT</span><span class="a">ATATATTTTTTATGAAAAAATTTTTTATTATTTATTTTAGTATTATTTATATGATATGTTTCTATATTTATTA</span><span class="b">TA</span><span class="c">AT</span><span class="e">TTT</span>   87
             ** * *** *  *  ********** **  **  * * *   *** **** ************* ** ***   **** *** * 
 
 </pre>
 <h3>Alignment score=381:</h3>
 <pre>
-chrM 10778 <span class="a">CCCAACAATTATATTACTACCACTGACATGACTTTCCAAAAAGCACATAATTTGAATCAACACAACCACCCACAGCCTAATTATTAG</span> 10864
-77      87 <span class="a">CCCAATAATTATATTACTACCACTAACATAACTTTCCAAAAAACACATAATTTAAATCAACACAACCACCCACAACCTAATTATTAA</span>     1
+chrM 10778 <span class="e">CC</span><span class="d">C</span><span class="c">AACA</span><span class="b">AT</span><span class="a">TATATTACTACCACTGACATGACTTTCCAAAAAGCACATAATTTGAATCAACACAACCACCCACAGCCTAAT</span><span class="b">TA</span><span class="c">TT</span><span class="e">AG</span> 10864
+77      87 <span class="e">CC</span><span class="d">C</span><span class="c">AATA</span><span class="b">AT</span><span class="a">TATATTACTACCACTAACATAACTTTCCAAAAAACACATAATTTAAATCAACACAACCACCCACAACCTAAT</span><span class="b">TA</span><span class="c">TT</span><span class="e">AA</span>     1
            ***** ****************** **** ************ ********** ******************** *********** 
 
 </pre>
 <h3>Alignment score=329:</h3>
 <pre>
-chrM 11895 <span class="a">CTCTCTGTGCTAGTAACCACGTTCTCCTGATCAAATATCACTCTCCTACTTACAGGACTCAACATACTAGTCACAGCCCTATACT</span> 11979
-78       1 <span class="a">TTTTTTGTGTTAGTAATTATGTTTTGTTGATTAAATATTATTCTTTTATTTATAGGATTTAATATATTAGTTATAGTTTTATATT</span>    85
+chrM 11895 <span class="f">C</span><span class="e">TC</span><span class="d">T</span><span class="c">CT</span><span class="b">GT</span><span class="a">GCTAGTAACCACGTTCTCCTGATCAAATATCACTCTCCTACTTACAGGACTCAACATACTAGTCACAGCC</span><span class="b">CTA</span><span class="c">T</span><span class="d">A</span><span class="e">CT</span> 11979
+78       1 <span class="f">T</span><span class="e">TT</span><span class="d">T</span><span class="c">TT</span><span class="b">GT</span><span class="a">GTTAGTAATTATGTTTTGTTGATTAAATATTATTCTTTTATTTATAGGATTTAATATATTAGTTATAGTT</span><span class="b">TTA</span><span class="c">T</span><span class="d">A</span><span class="e">TT</span>    85
             * * **** ******  * *** *  **** ****** * ***  ** *** **** * ** *** **** * **   **** *
 
 </pre>
 <h3>Alignment score=369:</h3>
 <pre>
-chrM 10827 <span class="a">ATTTGAATCAACACAACCACCCACAGCCTAATTATTAGCATCATCCCCCTACTATTTTTTAACCAAATCAACAACAACCTATTTAGC</span> 10913
-79       1 <span class="a">ATTTGAATTAATATAATTATTTATAGTTTAATTATTAGTATTATTTTTTTATTATTTTTTAATTAAATTAATAATAATTTATTTAGT</span>    87
+chrM 10827 <span class="e">AT</span><span class="d">T</span><span class="c">T</span><span class="b">GA</span><span class="a">ATCAACACAACCACCCACAGCCTAATTATTAGCATCATCCCCCTACTATTTTTTAACCAAATCAACAACAACCT</span><span class="b">ATT</span><span class="c">TA</span><span class="e">GC</span> 10913
+79       1 <span class="e">AT</span><span class="d">T</span><span class="c">T</span><span class="b">GA</span><span class="a">ATTAATATAATTATTTATAGTTTAATTATTAGTATTATTTTTTTATTATTTTTTAATTAAATTAATAATAATTT</span><span class="b">ATT</span><span class="c">TA</span><span class="e">GT</span>    87
            ******** ** * **  *   * **  ********** ** **     ** **********  **** ** ** **  ******* 
 
 </pre>
 <h3>Alignment score=368:</h3>
 <pre>
-chrM 5007 <span class="a">AGCATACTCCTCAATTACCCACATAGGATGAATAATAGCAGTTCTACCGTACAACCCTAACATAACCATTCTTAATTTAACTATTTA</span> 5093
-8       1 <span class="a">AGTATATTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAATATATCTATTTTTAATTTAATTATTTA</span>   87
+chrM 5007 <span class="e">A</span><span class="d">G</span><span class="c">CA</span><span class="b">TA</span><span class="a">CTCCTCAATTACCCACATAGGATGAATAATAGCAGTTCTACCGTACAACCCTAACATAACCATTCTTAATTTAA</span><span class="b">CT</span><span class="c">AT</span><span class="d">T</span><span class="e">TA</span> 5093
+8       1 <span class="e">A</span><span class="d">G</span><span class="c">TA</span><span class="b">TA</span><span class="a">TTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAATATATCTATTTTTAATTTAA</span><span class="b">TT</span><span class="c">AT</span><span class="d">T</span><span class="e">TA</span>   87
           ** *** ** * *****   * **************** **** ** **** **   *** *** * *** ********* ******
 
 </pre>
 <h3>Alignment score=359:</h3>
 <pre>
-chrM 8357 <span class="a">TTACAGTGAAATGCCCCAACTAAATACTACCGTATGGCCCACCATAATTACCCCCATACTCCTTACACTATTCCTCATCACCCAACT</span> 8443
-81      1 <span class="a">TTATAGTGAAATGTTTTAATTAAATATTATCGTATGGTTTATTATAATTATTTTTATATTTTTTATATTATTTTTTATTATTTAATT</span>   87
+chrM 8357 <span class="e">TT</span><span class="d">A</span><span class="c">C</span><span class="b">AG</span><span class="a">TGAAATGCCCCAACTAAATACTACCGTATGGCCCACCATAATTACCCCCATACTCCTTACACTATTCCTCATCA</span><span class="b">CCC</span><span class="c">A</span><span class="d">A</span><span class="e">CT</span> 8443
+81      1 <span class="e">TT</span><span class="d">A</span><span class="c">T</span><span class="b">AG</span><span class="a">TGAAATGTTTTAATTAAATATTATCGTATGGTTTATTATAATTATTTTTATATTTTTTATATTATTTTTTATTA</span><span class="b">TTT</span><span class="c">A</span><span class="d">A</span><span class="e">TT</span>   87
           *** *********    ** ****** ** *******   *  *******     *** *  *** * ****  * ** *   ** *
 
 </pre>
 <h3>Alignment score=422:</h3>
 <pre>
-chrM 9714 <span class="a">GGGTCTCTATTTTACCCTCCTACAAGCCTCAGAGTACTTCGAGTCTCCCTTCACCATTTCCGACGGCATCTACGGCTCAACATTTTT</span> 9800
-82     87 <span class="a">AAATCTCTATATTACCCTCCTACAAACCTCAAAATACTTCGAATCTCCCTTCACCATTTCCAACGACATCTACGACTCAACATTTTT</span>    1
+chrM 9714 <span class="e">GG</span><span class="d">G</span><span class="c">T</span><span class="b">CT</span><span class="a">CTATTTTACCCTCCTACAAGCCTCAGAGTACTTCGAGTCTCCCTTCACCATTTCCGACGGCATCTACGGCTCAACA</span><span class="b">TT</span><span class="c">T</span><span class="d">T</span><span class="e">T</span> 9800
+82     87 <span class="e">AA</span><span class="d">A</span><span class="c">T</span><span class="b">CT</span><span class="a">CTATATTACCCTCCTACAAACCTCAAAATACTTCGAATCTCCCTTCACCATTTCCAACGACATCTACGACTCAACA</span><span class="b">TT</span><span class="c">T</span><span class="d">T</span><span class="e">T</span>    1
              ******* ************** ***** * ******** ****************** *** ******** ************
 
 </pre>
 <h3>Alignment score=332:</h3>
 <pre>
-chrM 1727 <span class="a">CCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCGCAAGGGAAAGATGAAAAATTATAA</span> 1813
-83     87 <span class="a">CCATTTACCCAAACAAAATATAAACAATAAAAATTGAAACCTAACGCAATAAATATAATACCACAAAAAAAAAATAAAAAATTATAA</span>    1
+chrM 1727 <span class="e">C</span><span class="d">C</span><span class="c">A</span><span class="b">TT</span><span class="a">TACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCGCAAGGGAAAGATGAAAA</span><span class="b">ATT</span><span class="c">A</span><span class="d">T</span><span class="e">AA</span> 1813
+83     87 <span class="e">C</span><span class="d">C</span><span class="c">A</span><span class="b">TT</span><span class="a">TACCCAAACAAAATATAAACAATAAAAATTGAAACCTAACGCAATAAATATAATACCACAAAAAAAAAATAAAAA</span><span class="b">ATT</span><span class="c">A</span><span class="d">T</span><span class="e">AA</span>    1
           ************* *** ****  * *** ************  ******* ***** **** ***   *** ** ***********
 
 </pre>
 <h3>Alignment score=309:</h3>
 <pre>
-chrM 11567 <span class="a">AATTATAACAAGCTCCATCTGCCTACGACAAACAGACCTAAAATCGCTCATTGCATACTCTTCAATCAGCCACATAGCCCTCGTAG</span> 11652
-85       1 <span class="a">AATTATAATAAGTTTTATTTGTTTATGATAAATAGATTAAAAATCGTTTATTGTATATTTTTTAATTGGTGATATAGGTCTCGTTG</span>    86
+chrM 11567 <span class="e">AA</span><span class="d">T</span><span class="c">T</span><span class="b">AT</span><span class="a">AACAAGCTCCATCTGCCTACGACAAACAGACCTAAAATCGCTCATTGCATACTCTTCAATCAGCCACAT</span><span class="b">AGC</span><span class="c">CCTC</span><span class="d">G</span><span class="e">TA</span><span class="f">G</span> 11652
+85       1 <span class="e">AA</span><span class="d">T</span><span class="c">T</span><span class="b">AT</span><span class="a">AATAAGTTTTATTTGTTTATGATAAATAGATTAAAAATCGTTTATTGTATATTTTTTAATTGGTGATAT</span><span class="b">AGG</span><span class="c">TCTC</span><span class="d">G</span><span class="e">TT</span><span class="f">G</span>    86
            ******** *** *  ** **  ** ** *** ***   ******* * **** *** * ** ***  *  * ****  ***** *
 
 </pre>
 <h3>Alignment score=357:</h3>
 <pre>
-chrM 9191 <span class="a">CTGCACGACAACACATAATGACCCACCAATCACATGCCTATCATATAGTAAAACCCAGCCCATGACCCCTAACAGGGGCCCTCTC</span> 9275
-86     85 <span class="a">ATGCGCGGCAACACATAATAACCCACCAATCACATACCTATCATATAATAAAACCCAACCCATAACCCCTAACAAAAACCCTCTC</span>    1
+chrM 9191 <span class="f">CTG</span><span class="e">CACGA</span><span class="c">CA</span><span class="b">ACA</span><span class="a">CATAATGACCCACCAATCACATGCCTATCATATAGTAAAACCCAGCCCATGACCCCTAACAGGGGCC</span><span class="b">CT</span><span class="c">C</span><span class="d">T</span><span class="e">C</span> 9275
+86     85 <span class="f">ATG</span><span class="e">CGCGG</span><span class="c">CA</span><span class="b">ACA</span><span class="a">CATAATAACCCACCAATCACATACCTATCATATAATAAAACCCAACCCATAACCCCTAACAAAAACC</span><span class="b">CT</span><span class="c">C</span><span class="d">T</span><span class="e">C</span>    1
            *** ** *********** *************** *********** ********* ***** **********    *******
 
 </pre>
 <h3>Alignment score=366:</h3>
 <pre>
-chrM 15012 <span class="a">ATATTCTTTATCTGCCTCTTCCTACACATCGGGCGAGGCCTATATTACGGATCATTTCTCTACTCAGAAACCTGAAACATCGGCATT</span> 15098
-87       1 <span class="a">ATATTTTTTATTTGTTTTTTTTTATATATCGGGCGAGGTTTATATTATGGATTATTTTTTTATTTAGAAATTTGAAATATCGGTATT</span>    87
+chrM 15012 <span class="e">AT</span><span class="c">ATT</span><span class="b">CTT</span><span class="a">TATCTGCCTCTTCCTACACATCGGGCGAGGCCTATATTACGGATCATTTCTCTACTCAGAAACCTGAAACATC</span><span class="b">GG</span><span class="c">C</span><span class="d">A</span><span class="e">TT</span> 15098
+87       1 <span class="e">AT</span><span class="c">ATT</span><span class="b">TTT</span><span class="a">TATTTGTTTTTTTTTATATATCGGGCGAGGTTTATATTATGGATTATTTTTTTATTTAGAAATTTGAAATATC</span><span class="b">GG</span><span class="c">T</span><span class="d">A</span><span class="e">TT</span>    87
            ***** ***** **  * **  ** * ***********  ******* **** **** * ** * *****  ***** ***** ***
 
 </pre>
 <h3>Alignment score=354:</h3>
 <pre>
-chrM 716 <span class="a">AGTGAGTTCACCCTCTAAATCACCACGATCAAAAGGGACAAGCATCAAGCACGCAGCAATGCAGCTCAAAACGCTTAGCCTAGCCAC</span> 802
-88     1 <span class="a">AGTGAGTTTATTTTTTAAATTATTATGATTAAAAGGGACAAGTATTAAGTACGTAATAATGTAGTTTAAAACCTTTAGTTTAGTTAT</span>  87
+chrM 716 <span class="e">A</span><span class="d">G</span><span class="c">T</span><span class="b">GA</span><span class="a">GTTCACCCTCTAAATCACCACGATCAAAAGGGACAAGCATCAAGCACGCAGCAATGCAGCTCAAAACGCTTAGCC</span><span class="b">TAG</span><span class="c">C</span><span class="d">C</span><span class="e">AC</span> 802
+88     1 <span class="e">A</span><span class="d">G</span><span class="c">T</span><span class="b">GA</span><span class="a">GTTTATTTTTTAAATTATTATGATTAAAAGGGACAAGTATTAAGTACGTAATAATGTAGTTTAAAACCTTTAGTT</span><span class="b">TAG</span><span class="c">T</span><span class="d">T</span><span class="e">AT</span>  87
          ******** *   * ***** *  * *** ************ ** *** *** *  **** ** * *****  ****  ***  * 
 
 </pre>
 <h3>Alignment score=358:</h3>
 <pre>
-chrM 8408 <span class="a">CCCCATACTCCTTACACTATTCCTCATCACCCAACTAAAAATATTAAACACAAACTACCACCTACCTCCCTCACCAAAGCCCATAAA</span> 8494
-89      1 <span class="a">TTTTATATTTTTTATATTATTTTTTATTATTTAATTAAAAATATTAAATATAAATTATTATTTATTTTTTTTATTAAAGTTTATAAA</span>   87
+chrM 8408 <span class="e">CCC</span><span class="d">C</span><span class="c">A</span><span class="b">TAC</span><span class="a">TCCTTACACTATTCCTCATCACCCAACTAAAAATATTAAACACAAACTACCACCTACCTCCCTCACCAAAGC</span><span class="b">CCA</span><span class="c">TA</span><span class="d">A</span><span class="e">A</span> 8494
+89      1 <span class="e">TTT</span><span class="d">T</span><span class="c">A</span><span class="b">TAT</span><span class="a">TTTTTATATTATTTTTTATTATTTAATTAAAAATATTAAATATAAATTATTATTTATTTTTTTTATTAAAGT</span><span class="b">TTA</span><span class="c">TA</span><span class="d">A</span><span class="e">A</span>   87
               *** *  *** * ****  * ** *   ** ************* * *** **  *  **  *   * *  ****   *****
 
 </pre>
 <h3>Alignment score=375:</h3>
 <pre>
-chrM 7902 <span class="a">TGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCATTATTCCTAGAACCAGGCGACCTGCGA</span> 7988
-9       1 <span class="a">TGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATTAGGTGATTTGCGA</span>   87
+chrM 7902 <span class="e">TG</span><span class="c">A</span><span class="b">ACC</span><span class="a">TACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCATTATTCCTAGAACCAGGCGA</span><span class="b">CCT</span><span class="c">GC</span><span class="d">G</span><span class="e">A</span> 7988
+9       1 <span class="e">TG</span><span class="c">A</span><span class="b">ATT</span><span class="a">TACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATTAGGTGA</span><span class="b">TTT</span><span class="c">GC</span><span class="d">G</span><span class="e">A</span>   87
           ****  ******** * *** ***** *** **** ** ** *  ** *** **     ******  *****  *** **  *****
 
 </pre>
 <h3>Alignment score=278:</h3>
 <pre>
-chrM 1599 <span class="a">CGAACCAGAGTGTAGCTTAACACAAAGCACCCAACTTACACTTAGGAGATTTCAACTTAACTTGAC</span> 1664
-90     66 <span class="a">CTAACCAAAATATAACTTAACACAAAACACCCAACTTACACTTAAAAAATTTCAACTTAACTTAAC</span>    1
+chrM 1599 <span class="f">C</span><span class="e">GA</span><span class="d">A</span><span class="c">C</span><span class="b">CAG</span><span class="a">AGTGTAGCTTAACACAAAGCACCCAACTTACACTTAGGAGATTTCAACTTAA</span><span class="b">CT</span><span class="c">T</span><span class="d">G</span><span class="e">AC</span> 1664
+90     66 <span class="f">C</span><span class="e">TA</span><span class="d">A</span><span class="c">C</span><span class="b">CAA</span><span class="a">AATATAACTTAACACAAAACACCCAACTTACACTTAAAAAATTTCAACTTAA</span><span class="b">CT</span><span class="c">T</span><span class="d">A</span><span class="e">AC</span>    1
           * ***** * * ** *********** *****************  * *************** **
 
 </pre>
 <h3>Alignment score=421:</h3>
 <pre>
-chrM 3742 <span class="a">CCTAGCCATCATTCTACTATCAACATTACTAATAAGTGGCTCCTTTAACCTCTCCACCCTTATCACAACACAAGAACACCTCTGATT</span> 3828
-91     87 <span class="a">CCTAACCATCATTCTACTATCAACATTACTAATAAGTAACTCCTTTAACCTCTCCACCCTTGTCACAACACAAAAACACCTCTAATT</span>    1
+chrM 3742 <span class="e">C</span><span class="d">C</span><span class="c">TA</span><span class="b">GC</span><span class="a">CATCATTCTACTATCAACATTACTAATAAGTGGCTCCTTTAACCTCTCCACCCTTATCACAACACAAGAACACCT</span><span class="b">CT</span><span class="c">GA</span><span class="d">T</span><span class="e">T</span> 3828
+91     87 <span class="e">C</span><span class="d">C</span><span class="c">TA</span><span class="b">AC</span><span class="a">CATCATTCTACTATCAACATTACTAATAAGTAACTCCTTTAACCTCTCCACCCTTGTCACAACACAAAAACACCT</span><span class="b">CT</span><span class="c">AA</span><span class="d">T</span><span class="e">T</span>    1
           **** ********************************  ********************** *********** ********* ***
 
 </pre>
 <h3>Alignment score=360:</h3>
 <pre>
-chrM 5910 <span class="a">CGCCGACCGTTGACTATTCTCTACAAACCACAAAGACATTGGAACACTATACCTATTATTCGGCGCATGAGCTGGAGTCCTAG</span> 5992
-92      1 <span class="a">CGTCGATCGTTGATTATTTTTTATAAATTATAAAGATATTGGAATATTATATTTATTATTCGGTGTATGAGTTGGAGTTTTAG</span>   83
+chrM 5910 <span class="e">CG</span><span class="d">C</span><span class="c">C</span><span class="b">GAC</span><span class="a">CGTTGACTATTCTCTACAAACCACAAAGACATTGGAACACTATACCTATTATTCGGCGCATGAGCTGGA</span><span class="b">G</span><span class="c">TCC</span><span class="d">T</span><span class="e">AG</span> 5992
+92      1 <span class="e">CG</span><span class="d">T</span><span class="c">C</span><span class="b">GAT</span><span class="a">CGTTGATTATTTTTTATAAATTATAAAGATATTGGAATATTATATTTATTATTCGGTGTATGAGTTGGA</span><span class="b">G</span><span class="c">TTT</span><span class="d">T</span><span class="e">AG</span>   83
           ** *** ****** **** * ** ***  * ***** ******* * ****  ********** * ***** ******  ***
 
 </pre>
 <h3>Alignment score=222:</h3>
 <pre>
-chrM 3747 <span class="a">CCATCATTCTACTATCAACATTACTAATAAGTGGCTCCTTTAACCTCTCCACCCTTATCACAACACAAGAACACCTCTGATTACT</span> 3831
-93     85 <span class="a">GGGACAGCCAGATCGCCCACCTTATCAGGAACGTTCCTTTTAACCTCTCCACCCTTATCACAACACATAAACACCTCTAATTACT</span>    1
+chrM 3747 <span class="f">CCATCATTCTA</span><span class="e">CTATCAACATTACTAATAAGTGGCT</span><span class="d">CC</span><span class="c">T</span><span class="b">TT</span><span class="a">AACCTCTCCACCCTTATCACAACACAAGAACACCTCTG</span><span class="b">ATT</span><span class="c">A</span><span class="d">C</span><span class="e">T</span> 3831
+93     85 <span class="f">GGGACAGCCAG</span><span class="e">ATCGCCCACCTTATCAGGAACGTTC</span><span class="d">CT</span><span class="c">T</span><span class="b">TT</span><span class="a">AACCTCTCCACCCTTATCACAACACATAAACACCTCTA</span><span class="b">ATT</span><span class="c">A</span><span class="d">C</span><span class="e">T</span>    1
               **  *   *  *     *  * *  *  *   * *****************************  ********* ******
 
 </pre>
 <h3>Alignment score=326:</h3>
 <pre>
-chrM 12019 <span class="a">CCCACCACATTAACAACATAAAACCCTCATTCACACGAGAAAACACCCTCATGTTCATACACCTATCCCCCATTCTCCTCCTATCCC</span> 12105
-94       1 <span class="a">TTTATTATATTAATAATATAAAATTTTTATTTATACGAGAAAATATTTTTATGTTTATGTATTTATTTTTTATTTTTTTTTGATTTT</span>    87
+chrM 12019 <span class="e">CC</span><span class="d">C</span><span class="c">AC</span><span class="b">CA</span><span class="a">CATTAACAACATAAAACCCTCATTCACACGAGAAAACACCCTCATGTTCATACACCTATCCCCCATT</span><span class="b">CTC</span><span class="c">CT</span><span class="d">C</span><span class="e">CTATCC</span><span class="f">C</span> 12105
+94       1 <span class="e">TT</span><span class="d">T</span><span class="c">AT</span><span class="b">TA</span><span class="a">TATTAATAATATAAAATTTTTATTTATACGAGAAAATATTTTTATGTTTATGTATTTATTTTTTATT</span><span class="b">TTT</span><span class="c">TT</span><span class="d">T</span><span class="e">TGATTT</span><span class="f">T</span>    87
               *  * ***** ** ******   * *** * ********* *   * ***** **  *  ***     *** *  *   **   
 
 </pre>
 <h3>Alignment score=279:</h3>
 <pre>
-chrM 132 <span class="a">CTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTG</span> 205
-95     1 <span class="a">TTTTGATTTTTGTCTTATTTTATTATTTATCGTATTTACGTTTAATATTATAGGTGAATATATTTATTGAAGAG</span>  74
+chrM 132 <span class="e">CTT</span><span class="c">TG</span><span class="b">ATT</span><span class="a">CCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATAC</span><span class="b">CTA</span><span class="c">C</span><span class="d">T</span><span class="e">AAAG</span><span class="f">TG</span> 205
+95     1 <span class="e">TTT</span><span class="c">TG</span><span class="b">ATT</span><span class="a">TTTGTCTTATTTTATTATTTATCGTATTTACGTTTAATATTATAGGTGAATATAT</span><span class="b">TTA</span><span class="c">T</span><span class="d">T</span><span class="e">GAAG</span><span class="f">AG</span>  74
           *******  ** ** *** ************ *  ****** ******* *** *** ***  ** * *** *
 
 </pre>
 <h3>Alignment score=378:</h3>
 <pre>
-chrM 3992 <span class="a">ACAAACATTATTATAATAAACACCCTCACCACTACAATCTTCCTAGGAACAACATATGACGCACTCTCCCCTGAACTCTACACAACA</span> 4078
-96      1 <span class="a">ATAAATATTATTATAATAAATATTTTTATTATTATAATTTTTTTAGGAATAATATATGACGTATTTTTTTTTGAATTTTATATAATA</span>   87
+chrM 3992 <span class="e">AC</span><span class="c">A</span><span class="b">AAC</span><span class="a">ATTATTATAATAAACACCCTCACCACTACAATCTTCCTAGGAACAACATATGACGCACTCTCCCCTGAACTCTAC</span><span class="b">ACA</span><span class="c">A</span><span class="e">CA</span> 4078
+96      1 <span class="e">AT</span><span class="c">A</span><span class="b">AAT</span><span class="a">ATTATTATAATAAATATTTTTATTATTATAATTTTTTTAGGAATAATATATGACGTATTTTTTTTTGAATTTTAT</span><span class="b">ATA</span><span class="c">A</span><span class="e">TA</span>   87
           * *** ************** *   * *  * ** *** **  ****** ** ******** * * *    **** * ** * ** *
 
 </pre>
 <h3>Alignment score=257:</h3>
 <pre>
-chrM 570 <span class="a">CCCCCCACAGTTTATGTAGCTTACCTCCTCAAAGCAATACACTGAAAATGTTTAGACGGGCTCACATCACCCCATAAACAAATAGG</span> 655
-97     1 <span class="a">TTTTTTACAGTTTATGTAGTTTATTTTTTTAAAGTAATATATTGAAAATGTTTAGACGCTTTGACCGAGGAGAACCCTTAATTACT</span>  86
+chrM 570 <span class="e">CCC</span><span class="d">C</span><span class="c">CC</span><span class="b">AC</span><span class="a">AGTTTATGTAGCTTACCTCCTCAAAGCAATACACTGAAAATGTTTAG</span><span class="b">AC</span><span class="c">GG</span><span class="d">G</span><span class="e">CTCACATCACCCCA</span><span class="f">TAAACAAATAGG</span> 655
+97     1 <span class="e">TTT</span><span class="d">T</span><span class="c">TT</span><span class="b">AC</span><span class="a">AGTTTATGTAGTTTATTTTTTTAAAGTAATATATTGAAAATGTTTAG</span><span class="b">AC</span><span class="c">GC</span><span class="d">T</span><span class="e">TTGACCGAGGAGAA</span><span class="f">CCCTTAATTACT</span>  86
                ************* ***  *  * **** **** * ****************   * **        *     ** **  
 
 </pre>
 <h3>Alignment score=230:</h3>
 <pre>
-chrM 6926 <span class="a">CCCTAGGATTCATCTTTCTTTTCACCGTAGGTGGCCTGACTGGCATTGTATTAGCAAACTCATCACTAGACATCGTACTACACG</span> 7009
-98     84 <span class="a">CACTTACACTGACCTGTATGATCGGAATGCATAACCTAACTAACACTATATTAACAAACTCATCACTAAACATCGTACTACACG</span>    1
+chrM 6926 <span class="f">CCCTAGGA</span><span class="e">TTCATCT</span><span class="d">TTC</span><span class="c">TTTTCACCGTA</span><span class="b">GGTGG</span><span class="a">CCTGACTGGCATTGTATTAGCAAACTCATCACTAGACATCGTAC</span><span class="b">TA</span><span class="c">C</span><span class="d">A</span><span class="e">CG</span> 7009
+98     84 <span class="f">CACTTACA</span><span class="e">CTGACCT</span><span class="d">GTA</span><span class="c">TGATCGGAATG</span><span class="b">CATAA</span><span class="a">CCTAACTAACACTATATTAACAAACTCATCACTAAACATCGTAC</span><span class="b">TA</span><span class="c">C</span><span class="d">A</span><span class="e">CG</span>    1
           * **   * * * ** * *  **    *   *  *** ***  ** * ***** ************** ***************
 
 </pre>
 <h3>Alignment score=284:</h3>
 <pre>
-chrM 8940 <span class="a">TCCCCATACTAGTTATTATCGAAACCATCAGCCTACTCATTCAACCAATAGCCCTGGCCGTACGCCTAACCGCTAACATTACTGCAG</span> 9026
-99     87 <span class="a">ACGCCAAATAGTTTATTATCAAAACCATCAACCTACTCATTCAAACAATAACCCTAACCGTACGCCTAACCGATAATATTATTACAA</span>    1
+chrM 8940 <span class="f">TCC</span><span class="e">CCATACTA</span><span class="d">G</span><span class="c">T</span><span class="b">TA</span><span class="a">TTATCGAAACCATCAGCCTACTCATTCAACCAATAGCCCTGGCCGTACGCCTAACC</span><span class="b">GCTAACA</span><span class="c">TTACT</span><span class="d">GC</span><span class="e">AG</span> 9026
+99     87 <span class="f">ACG</span><span class="e">CCAAATAG</span><span class="d">T</span><span class="c">T</span><span class="b">TA</span><span class="a">TTATCAAAACCATCAACCTACTCATTCAAACAATAACCCTAACCGTACGCCTAACC</span><span class="b">GATAATA</span><span class="c">TTATT</span><span class="d">AC</span><span class="e">AA</span>    1
            * *** *    ******** ********* ************* ***** ****  *************** *** **** * ** 
 
 </pre>
@@ -9434,7 +9448,7 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 38	4	0	0	0	0	0	0	+	SRR359290.9033	75	0	42	chr3	198022430	37456613	37456655	1	42,	0,	37456613,
 0	16	chrM	13914	100	87M	*	0	0	TCGAATTCTACCCTAACATCACACACCGCACAATCCCCTATCTAAACCTTCTTACGAGCCAAAACCTACCCCTACTCCTCCTAAACC	C@A=<3CC@@CBCCC8CBAC?BBBC?BB@BCCBBBCCCCBBBCBCABCBBBCCCCBCBBAC@CCBBCCACCACCCCCCBCCACCA?B	NM:i:6	AS:i:429
 1	0	chrM	1544	100	87M	*	0	0	TTATATAGAGGAGATAAGTCGTAATATGGTAAGTGTATTGGAAAGTGTATTTGGATGAACTAGAGTGTAGTTTAATATAAAGCATTT	BB@1;?@B@BBBC@BBBCACBBA>B??=?A@B?B?B=7@4BB;B>@@@A?>=B@A@>@7>BA>BA6BA?@@B@@?B?AABBAB=<>B	NM:i:13	AS:i:420
-10	0	chrM	3291	100	60M27H	*	0	0	TTTTTTTTTTTAATCATATATTTATGGTTAATTTTTTATTTTTTATTGTATTTATTCTAA	@6)>B+A9<)?>>A(?A=-(48/<5?=1>4>:B@@<-:@@5;/9==ABA47*5':B<###	NM:i:23	AS:i:207
+10	0	chrM	3291	95	60M27H	*	0	0	TTTTTTTTTTTAATCATATATTTATGGTTAATTTTTTATTTTTTATTGTATTTATTCTAA	@6)>B+A9<)?>>A(?A=-(48/<5?=1>4>:B@@<-:@@5;/9==ABA47*5':B<###	NM:i:23	AS:i:207
 11	16	chrM	15998	100	87M	*	0	0	TAAAATTCTAATTTAAACTATTCTCTATTCTTTCATAAAAAAACAAATTTAAATACCACCCAAATATTAACTCACCCATCAACAACC	3>@A?.6=B?(9AB>429B3/6@B<8?'?B?4<AB8@BA6;==CB7<A>=?9CCCB@CBABACCCA=CCC?:CBA4@CBB>ACCC<9	NM:i:13	AS:i:403
 12	0	chrM	3254	100	87M	*	0	0	TCGTATAAAATTTAAAATTTTATAGTTAGAGGTTTAATTTTTTTTTTTAATAATATATTTATGGTTAATTTTTTATTTTTTATTGTA	<BCCCCCCCCCC=CCCCCCCCCCC?BCCCCC??>CBCCCCCCCCBCCCCBCCCCCCC@@ACACCBC@CBCBC@?@A9CCCBCABCCB	NM:i:25	AS:i:366
 13	16	chrM	1369	100	87M	*	0	0	ATTTTCTACCCCAAAAAACTACGATAACCCTTATAAAACTTAAAAATCGAAAATAAATTTAACAATAAACTAAAAATAAAATACTTA	6668;999:865=8856=?:67?@:5?@988B@?@B;@A99?2<>8A@>@;BB@=9AA@?9@AA>:BABA>AAB@@ABCA?BABB@B	NM:i:18	AS:i:375
@@ -9458,26 +9472,28 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 30	0	chrM	6056	100	87M	*	0	0	ATTATATTTATAACGTTATCGTTATAGTTTATGTATTTGTAATAATTTTTTTTATAGTAATATTTATTAGAATCGGAGGTTTTGGTC	BB@<BBCBBBB@ABBB>ABB@B>BBA3>-@>BBCABAB>B6:+4BB;B8C?@?B=@BB?A;@?A?B@@B@BB@>-@:@?:>@A81>#	NM:i:22	AS:i:349
 31	0	chrM	2795	100	86M1H	*	0	0	TTTGTCTTAAAAATTTTGGTTGGGGCGATTTCGGAGTAGAATTTAATTTTCGAGTAGTATATGTTAAGATTTTATTAGTTAAAGTG	BBBB@,AB>B=BB:@>AA8?B<>7@A@?A@A<@@BAA>?.9,9A?A<@?A9'91-45<@25;@:5A@>?9<9?>>A<>@<@?AA>7	NM:i:23	AS:i:378
 32	0	chrM	8061	100	87M	*	0	0	GTTTTGTATTTATGAGTTGTTTTTATATTAGGTTTAAAAATAGATGTAATTTTCGGACGTTTAAATTAAATTATTTGTATCGTTATA	BCCB@BCBBCB?BCBABB@BBBBBBBBB?BC?BBBBC<BBB@C@@=CC<<>:BC@BB78?@A@B@ABB>@B?BB>:4=;:?;3<B44	NM:i:26	AS:i:360
-33	0	chrM	12858	100	44M43H	*	0	0	ATAATCGTATCGGCCATATCGGTTTTATTTTTGCTTTAGTTTGA	;AA+;<B9(62;?8(6?>:;-8@;)<AB8)((>B>AA5%?####	NM:i:10	AS:i:155
+33	0	chrM	12858	42	44M43H	*	0	0	ATAATCGTATCGGCCATATCGGTTTTATTTTTGCTTTAGTTTGA	;AA+;<B9(62;?8(6?>:;-8@;)<AB8)((>B>AA5%?####	NM:i:10	AS:i:155
 34	16	chrM	3261	100	87M	*	0	0	AAACTTAAAACTTTACAATCAAAAATTCAATTCCTCTTCTTAACAACATACCCATAACCAACCTCCTACTCCTCATTATACCCATTC	7<>9A@@ABB2@ABBAB<-:AB@BAB8++:B:ABBAB?7BCB5AB@B@5@B>BA?ABBACBBBBB@BACB;BCAACBBBCBBBBACB	NM:i:7	AS:i:423
 35	0	chrM	4797	100	87M	*	0	0	TTTCTTTTATTTTTGAGTTTTAGAGGTTATTTAAGGTATTTTTTTGATATTCGGTTTGTTTTTTTTTATATGATAAAAATTAGTTTT	?BC?CAAB@B=CCCCBBB@B@>@@BBACB?@B@CB@CBACC>A4BBACAAB?B@C@@B:5B@@@A?.=A8B>A?A;8;?@?A:===6	NM:i:33	AS:i:357
 36	0	chrM	14460	100	87M	*	0	0	GTTGTAGTATATTTAAAGATAATTATTATTTTTTTTAAATAAATTAAAAAAATTATTAAATTTATATAATTTTTTTTAAACTTTATA	BB:@@BCB4BBCB?*@A>BB>99BCBBCC>53B<<(>)(<9(87:3B??CBCCBCBCBBCCBB->@1?+?@:@@B??177'71;A##	NM:i:26	AS:i:367
 37	0	chrM	10097	100	87M	*	0	0	TAGTTTTATTATTAATAATTATTATATTTTGATCATTATAATTTAATGGTTATATAGAAAAATTTATTTTTTACGAGTGCGGTTTCG	BBAA;6BBB6@BC=>B>C@C<BBB??@CBACBA+C=@AB?BB8@?@<66BA@B>BA@B:ABAB?2AA7A@@8A<3B+AB85B>=<<B	NM:i:22	AS:i:378
-38	16	chrM	3627	100	87M	*	0	0	GAGAGTGTATCTCATGCATTGCATGACCGGTTAGACGCAAATAACCATCAAACTCAATCTACGCCCTAATCGACGCACTACGAACAA	######################################?B30;/%2(94+A@7C5A5%7)B*@5?B(@9?C+C/7B*>>:@?)8)?<	NM:i:36	AS:i:206
+38	16	chrM	3627	98	87M	*	0	0	GAGAGTGTATCTCATGCATTGCATGACCGGTTAGACGCAAATAACCATCAAACTCAATCTACGCCCTAATCGACGCACTACGAACAA	######################################?B30;/%2(94+A@7C5A5%7)B*@5?B(@9?C+C/7B*>>:@?)8)?<	NM:i:36	AS:i:206
 39	0	chrM	7894	100	87M	*	0	0	AATGGTATTGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATAAGGCG	B?=BBBBB?B@BABBB=@BABBAAA@BBAA>;0===8>=;7.5:<;@@@A@<8A>351:@A2(;>@9-;73:7;<34.962+:=;.6	NM:i:24	AS:i:366
 4	0	chrM	5738	100	87M	*	0	0	CGTCGTCGGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTTGTAATTTAATATGAAAATTATTTCGGA	?BCC@?CCBCC@CBCACCCCCCCC@ABCCAABBCCBC@A=B@CBCACCC@BCB@?CCACBCBBBBB>C>@>BBB?BBB:=<B@B>BB	NM:i:13	AS:i:408
 40	0	chrM	5187	100	87M	*	0	0	ATTAATATTTTTAATTTTATTTATTTTTTTTTTTTTAGGAGGTTTGTTTTCGTTAATCGGTTTTTTGTCTAAATGGGTTATTATTGA	BB?BBBBBBBBCBBABBAB?B@@B<9BAB>BA@BBB<@BA@ABAAAB=:@BB:BAAB=<>@?4<@B@A@?9=?@=.4?9:+778;32	NM:i:32	AS:i:354
 41	0	chrM	10194	100	87M	*	0	0	TTTCGTTCGTTTTTTTTTCTTTATAAAATTTTTTTTAGTAGTTATTATTTTTTTATTATTTGATATAGAAATTGATTTTCTTTTATT	*);9:14@3>,B?05:B9BA@2=87@>3><(=?9-)3=;/=@:BB@B@0?;>:A09>@4;3>915@2>08;<7.'2;>>8A:+81;A	NM:i:25	AS:i:292
 42	0	chrM	5521	100	87M	*	0	0	AGGTTAAATATAGATTAAGAGTTTTTAAAGCCTTTAGTAAGTTGTAATATTTAATTTTTGTAATAGTTAAGGATTGTAAAACTTTAT	B88>BCBB4BABB=BB>;B=<?BB:?AB?@AB?@B>9A?A@A?A>@?@4?>>@?B<@@6B=@<B55:7(25A:?7>=>;@;@?5(9@	NM:i:20	AS:i:397
 43	16	chrM	14282	100	12H75M	*	0	0	CGTGCCTTCCAGCCCCAGCAATGCAGGACCTACACTATTAGAATTTACCACAACCACCACCCCATCATACTCTTT	############################@7?:50??><B:)ABBB>>BAA9B@B?B@A@B@BBB=B=CCCCB@CB	NM:i:23	AS:i:240
+44	16	chrM	6451	43	1H86M	*	0	0	AATAGCAGCCCAGATTCACGACCCACTGGCGGTCTGTACATGGGGATTCCTCTAATCCTAACTCCTAACATCACTACACTACTAAC	#####################################################6>@04@B-@'%0:''7-@B?CC<':>(3+C>*>	NM:i:43	AS:i:148
 45	16	chrM	9711	100	8H79M	*	0	0	ACTAAATCTCTATTTTACCATCCTACAAACCTCAAAATACTTCGAATCTCCCTTCACCATTTCCAACGACATCTACGAC	:541/<@?993;,4@>6;3)9>5%6=<?(0BB<@A7B8B@BB66AB@A?4@@BB??ABABB=CABBBB@BBABBC?9@B	NM:i:11	AS:i:376
 46	0	chrM	12476	100	87M	*	0	0	AGTTTTTTTTTTATAATAATATTTATGTGTTTAGATTAAGAAGTTATTATTTCGAATTGATATTGAGTTATAATTTAAATAATTCAG	BC>>ACA?BBBB>B?>CCC@ABBB@BB@>?BABBABB;789@B??@@<C?BBBAA@A?@4A@A@B@<19@.4A=:B@=B<B7<@@@B	NM:i:26	AS:i:384
 47	0	chrM	6331	100	87M	*	0	0	GTAGATTTAATTATTTTTTTTTTATATTTAGTAGGTGTTTTTTTTATTTTAGGGGTTATTAATTTTATTATAATAATTATTAATATA	AC>=ABBAA@CB6BCCB9?BAB=CCB@<B;C<CA@C@,9CCBAB>?=BBAB@A34@(86<CBBCB<<B=BA@@B=A92A?826;:B>	NM:i:25	AS:i:365
 48	0	chrM	6203	100	86M1H	*	0	0	TAAGTTTTTGACTTTTATTTTTTTTTTTTTTATTTTTGTTCGTATTTGTTATAGTGGAGGTTGGAGTAGGAATAGGTTGAATAGTT	BCBBB@BBBB@BBB?BB>B?BBBAB@>A?B?<AAAB>B9BAB<@A@>ABA87AAAB?A@?BABBA@B:A@B=:@<8:<477<@??9	NM:i:25	AS:i:366
 49	0	chrM	12897	100	87M	*	0	0	TATGATTTATTTTATATTTTAATTTATGAGATTTATAATAAATAGTTTTTTTAAATGTTAATTTAAGTTTTATTTTATTATTAGGTT	BCBCBBCCCBB?BBB6CBCCB@@@BAA@C?BB@B@B@?BBC?B@B@@BBB>BBA5@BB<>B=?@A4B>?>?BA==>?B?=@B:<=@B	NM:i:33	AS:i:369
 5	16	chrM	6087	100	87M	*	0	0	TGGGTTCTTCTTAGCAACTGTTATAATAATACCCATCATAATCGAAAACTTTAACAACTAACAAATTCCCCTAATAATCGATACCCC	######################A8</<B::6>?@>@@?5>7/?B68@/B.A4BC<BB;B3B?BB>C5BB=>@>CBBABAABCCC?CB	NM:i:25	AS:i:280
-50	0	chrM	6026	100	36M51H	*	0	0	TGGGTTAGTTAGGTAATTTTTTAGGTAACGATGATA	?)3<2A>:>*?6<B8>@7BB@<@B@>B0*(26)8B<	NM:i:11	AS:i:151
+50	0	chrM	6026	36	36M51H	*	0	0	TGGGTTAGTTAGGTAATTTTTTAGGTAACGATGATA	?)3<2A>:>*?6<B8>@7BB@<@B@>B0*(26)8B<	NM:i:11	AS:i:151
 51	0	chrM	9665	100	87M	*	0	0	AAAATAATTGAAATTAAATAATTTAAGTATTGTTTATTATAATTTTATTGGGTTTTTATTTTATTTTTTTATAAGTTTTAGAGTATT	BCCCCBCCCCBBBBACCBACBBA@C@CBCBBCCBAACBCACBC@CBBCABBBBBBCAA<BAC@;?@CB>BBABBBABABB@@BBBBA	NM:i:23	AS:i:378
+52	0	chrM	10546	33	43M44H	*	0	0	TTTATATTTTTTTTATAACGCTTAGAAGGAATCACCTTATCGT	:-*<%<=>@;@='5'8())-=:>CB3:1%3:7%8%'?6>,235	NM:i:16	AS:i:147
 53	0	chrM	14459	100	87M	*	0	0	TGTTGTAGTATATTTAAAGATAATTATTATTTTTTTTAAATAAATTAAAAAAATTATTAAATTTATATAATTTTTTTTAAAATTTAG	BBB?@ABBBBCBB*BBA@@B>@B<@??B<?BA@?AB8B<?B::@??6<A@?A<?@A@@@7:B8?@9@?<@<@B<=;A??@:=1?:.5	NM:i:25	AS:i:386
 54	16	chrM	6398	100	1H86M	*	0	0	ACACAACAATTATCAATATAAAAACCCCTACCATAACCCAATACCAAACACCCCTCTTCGTCTATTCCGTCCTAATCACAACAATC	#@5@:6-2=04B?C><*;A6>BC*?B86B=>@;'(BCB84A,AB?+0;>7@B<?74A58A8C?*'<?CBA7BBCB<CCCC9@BCC=	NM:i:8	AS:i:382
 55	0	chrM	37	100	87M	*	0	0	AGCTTTTTATGTATTTGGTATTTTCGTTTGGGGGGTGTGTACGCGATAGTATTGCGAGACGTTGGAGTCGGAGTAATCTATGTCGTA	BBCBBBBC@C>B@B?@BBBBABAAB?A@B@BB>BBB?AACA@@BABBBBABA:A@@B>@AB@A:BAAA8B?@@A<43><?A?:>??A	NM:i:13	AS:i:372
@@ -9487,7 +9503,7 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 59	16	chrM	9918	100	5H82M	*	0	0	CTACGCCTAATACTAACATTCTATAAATATAATTTAGCTATTTCTATATATCTCCATCTATTAATAAAAATCTTACTCTTTT	###?1@<AA>/@)+;6=3,=4)7:<9A@@>:@A>B?)420>99A5@AB<?<>6=?B?BBAB:*0A?B-B9BA>B:>@8=ACB	NM:i:20	AS:i:361
 6	0	chrM	11107	100	87M	*	0	0	TTATATTTTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGATGAGGTAATTAGTTAGAATGTCTGAACG	BBB?C<@BA;5AB:AB@B?B<AB>A<AB:@AB9;=@AA43A>@;,5=@@A@/@>@=:?:@>><>-=6@746?=05?*?<<==9775=	NM:i:25	AS:i:368
 60	16	chrM	12615	100	87M	*	0	0	CATTATTCGTTACATAATCCATCATAAAATTCTCACTATAATATATAAACTCAAACCCAAACATTAATCAATTCTTCAAATCTCTAC	#@>?:@<13=A51=5((06?@=9@?A2.7>)1,@-)(5=@BAABAABA<(72:@B<7@)<@+:((8B:;(;7;/78:3@(=)=>B>B	NM:i:9	AS:i:383
-63	0	chrM	16063	100	78M9H	*	0	0	ATTGATTTATTCTTTAATAATCGTTATGTATTTCGTATATTATTGTTAGTTGGTTAGAGTATTGTCCGGGACGCCATT	3)>(<@))@A*<*>(0(94<:0)<+BA:>:7>B8'?%66-?>B5).A6@0=###########################	NM:i:28	AS:i:196
+63	0	chrM	16063	88	78M9H	*	0	0	ATTGATTTATTCTTTAATAATCGTTATGTATTTCGTATATTATTGTTAGTTGGTTAGAGTATTGTCCGGGACGCCATT	3)>(<@))@A*<*>(0(94<:0)<+BA:>:7>B8'?%66-?>B5).A6@0=###########################	NM:i:28	AS:i:196
 64	0	chrM	13008	100	87M	*	0	0	TAGCTTAATTAGGTTTTTAGTTTTGATTTTTTTTAGTTATAGAAGGTTTTATTTTAGTTTTAGTTTTATTTTATTTAAGTATTATAG	BCCCAC@CCACCCC=CCCC0CCCCCCACCCBCCCCCCC@CCBC>C@CBCCA<BBCBCACBCB@?B@BB?@@B@@,;BB?A?AB>BB=	NM:i:38	AS:i:345
 65	0	chrM	12003	100	86M1H	*	0	0	TAATGGGGTTTATTTATTTATTATATTAATAATATAAAATTTTTATTTATACGAGAAAATATTTTTATTTTTATATATTTATTTTT	0AAA;B;B>;>:06<BBB>??A@?BBBB?BC/BB>=B:A+;2<@B@??B>BBC=B6';B=BABBABA+'.>4@AB?B869@.<-/>	NM:i:33	AS:i:359
 66	0	chrM	14922	100	87M	*	0	0	GTTTTAATCGTTTTTTTATTAATCGTTTATATTATTTGAGACGTAAATTATGGTTGAATTATTCGTTATTTTTATGTTAATGGCGTT	BBC?CCBBB9@CACB@BBB>@BB@BBB<?B1?87+2=A=8/<)8;7@4;@B>AA:B@B<'86@6<48,.=?</</:82>>B<';=@A	NM:i:27	AS:i:363
