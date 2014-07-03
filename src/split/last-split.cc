@@ -62,7 +62,8 @@ static bool less(const cbrc::UnsplitAlignment& a,
   int qalignCmp = std::strcmp(a.qalign, b.qalign);
   if (qalignCmp != 0        ) return qalignCmp < 0;
   int ralignCmp = std::strcmp(a.ralign, b.ralign);
-  /**/                        return ralignCmp < 0;
+  if (ralignCmp != 0        ) return ralignCmp < 0;
+  return a.linesBeg < b.linesBeg;  // stabilizes the sort
 }
 
 static void doOneAlignmentPart(cbrc::SplitAligner& sa,
@@ -180,11 +181,12 @@ static void doOneBatch(std::vector<std::string>& mafLines,
 		       const std::vector<unsigned>& mafEnds,
                        cbrc::SplitAligner& sa, const LastSplitOptions& opts) {
   std::vector<cbrc::UnsplitAlignment> mafs;
+  mafs.reserve(mafEnds.size() - 1);  // saves memory: no excess capacity
   for (unsigned i = 1; i < mafEnds.size(); ++i)
     mafs.push_back(cbrc::UnsplitAlignment(mafLines.begin() + mafEnds[i-1],
 					  mafLines.begin() + mafEnds[i]));
 
-  stable_sort(mafs.begin(), mafs.end(), less);
+  sort(mafs.begin(), mafs.end(), less);
   std::vector<cbrc::UnsplitAlignment>::const_iterator b = mafs.begin();
   std::vector<cbrc::UnsplitAlignment>::const_iterator e = mafs.begin();
   size_t qendMax = 0;
