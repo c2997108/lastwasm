@@ -135,19 +135,22 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
     i->start2 = dnaToAa( seedEnd2 + i->start2, frameSize );
   }
 
+  bool isMergeSeedReverse = !blocks.empty() && isNext( blocks.back(), seed );
+  bool isMergeSeedForward =
+    !forwardBlocks.empty() && isNext( seed, forwardBlocks.back() );
+
   // check that the seed isn't very bizarre and dubious:
-  assert( (seed.size > 0) ||
-	  (!blocks.empty() && isNext( blocks.back(), seed )) ||
-	  (!forwardBlocks.empty() && isNext( seed, forwardBlocks.back() )) );
+  assert( seed.size > 0 || isMergeSeedReverse || isMergeSeedForward );
 
   // splice together the two extensions and the seed (a bit messy):
 
-  if( !blocks.empty() && isNext( blocks.back(), seed ) ){
-    blocks.back().size += seed.size;
-  }
-  else blocks.push_back(seed);
+  blocks.reserve( blocks.size() + forwardBlocks.size() +
+		  1 - isMergeSeedReverse - isMergeSeedForward );
 
-  if( !forwardBlocks.empty() && isNext( seed, forwardBlocks.back() ) ){
+  if( isMergeSeedReverse ) blocks.back().size += seed.size;
+  else                     blocks.push_back(seed);
+
+  if( isMergeSeedForward ){
     blocks.back().size += forwardBlocks.back().size;
     forwardBlocks.pop_back();
   }

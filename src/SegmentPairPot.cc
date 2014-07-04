@@ -1,4 +1,4 @@
-// Copyright 2008, 2010 Martin C. Frith
+// Copyright 2008, 2010, 2014 Martin C. Frith
 
 #include "SegmentPairPot.hh"
 #include <cassert>
@@ -15,6 +15,7 @@ void SegmentPairPot::sort(){
   items.erase( newEnd, items.end() );
 
   iters.clear();
+  iters.reserve( items.size() );
 
   for( iterator i = items.begin(); i < items.end(); ++i ){
     iters.push_back(i);
