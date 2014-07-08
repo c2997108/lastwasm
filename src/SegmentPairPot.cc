@@ -11,8 +11,7 @@ void SegmentPairPot::sort(){
   // Remove duplicates.  We assume that, after sorting, duplicates are
   // consecutive.  This will be true if non-duplicates never overlap,
   // which is true if all the SegmentPairs are "optimal".
-  iterator newEnd = std::unique( items.begin(), items.end() );
-  items.erase( newEnd, items.end() );
+  items.erase( unique( items.begin(), items.end() ), items.end() );
 
   iters.clear();
   iters.reserve( items.size() );

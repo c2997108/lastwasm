@@ -714,7 +714,7 @@ std::istream& appendFromFasta( std::istream& in ){
   if( maxSeqLen < args.batchSize ) maxSeqLen = indexT(-1);
   if( query.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
-  std::size_t oldUnfinishedSize = query.unfinishedSize();
+  size_t oldUnfinishedSize = query.unfinishedSize();
 
   /**/ if( args.inputFormat == sequenceFormat::fasta )
     query.appendFromFasta( in, maxSeqLen );

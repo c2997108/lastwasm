@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2014 Martin C. Frith
 
 // This struct holds segment-pairs, and allows us to find
 // (near-)overlaps between sets of segment-pairs efficiently.  To find
@@ -10,7 +10,7 @@
 #define SEGMENT_PAIR_POT_HH
 #include "SegmentPair.hh"
 #include <algorithm>  // remove_if
-#include <cstddef>  // size_t
+#include <stddef.h>  // size_t
 #include <vector>
 
 namespace cbrc{
@@ -29,13 +29,13 @@ struct SegmentPairPot{
   void add( const SegmentPair& sp ) { items.push_back(sp); }
 
   // the number of SegmentPairs in the pot
-  std::size_t size() const { return items.size(); }
+  size_t size() const { return items.size(); }
 
   // this must be called before using the following methods
   void sort();
 
   // get the i-th SegmentPair, sorted by score
-  SegmentPair& get( std::size_t i ) { return *iters[i]; }
+  SegmentPair& get( size_t i ) { return *iters[i]; }
 
   // set the score of all items that overlap sp to zero
   void markOverlaps( const SegmentPair& sp );
