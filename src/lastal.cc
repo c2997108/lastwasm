@@ -433,6 +433,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
   erase_if( gaplessAlns.items, SegmentPairPot::isMarked );
 
+  gaplessAlns.cull( args.cullingLimitForGaplessAlignments );
   gaplessAlns.sort();  // sort by score descending, and remove duplicates
 
   LOG( "redone gapless alignments=" << gaplessAlns.size() );

@@ -31,6 +31,12 @@ struct SegmentPairPot{
   // the number of SegmentPairs in the pot
   size_t size() const { return items.size(); }
 
+  // remove duplicate SegmentPairs, and then:
+  // discard SegmentPairs whose query coordinates lie within limit or
+  // more SegmentPairs that have higher score-per-length
+  void cull( size_t limit );
+  // does nothing if limit is 0
+
   // this must be called before using the following methods
   void sort();
 

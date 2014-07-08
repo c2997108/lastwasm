@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2011, 2012, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Martin C. Frith
 
 // This struct holds the command line arguments for lastal.
 
@@ -9,6 +9,7 @@
 
 #include <string>
 #include <iosfwd>
+#include <stddef.h>  // size_t
 
 namespace cbrc{
 
@@ -70,6 +71,7 @@ struct LastalArguments{
   indexT minHitDepth;
   indexT oneHitMultiplicity;
   indexT maxGaplessAlignmentsPerQueryPosition;
+  size_t cullingLimitForGaplessAlignments;
   indexT queryStep;
   indexT batchSize;  // approx size of query sequences to scan in 1 batch
   indexT maxRepeatDistance;  // supress repeats <= this distance apart

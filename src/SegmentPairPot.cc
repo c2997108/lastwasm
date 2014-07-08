@@ -3,7 +3,71 @@
 #include "SegmentPairPot.hh"
 #include <cassert>
 
+// Check if n1/d1 < n2/d2, without overflow.
+// This uses "continued fractions".
+static bool lessFraction( size_t n1, size_t d1, size_t n2, size_t d2 ) {
+  // assume that d1 > 0 and d2 > 0
+  size_t q1 = n1 / d1;
+  size_t q2 = n2 / d2;
+  if( q1 < q2 ) return true;
+  if( q1 > q2 ) return false;
+  size_t r1 = n1 % d1;
+  size_t r2 = n2 % d2;
+  if( r2 == 0 ) return false;
+  if( r1 == 0 ) return true;
+  return lessFraction( d2, r2, d1, r1 );
+}
+
 namespace cbrc{
+
+static bool cullingLess( const SegmentPair& x, const SegmentPair& y ){
+  return x.beg2() != y.beg2() ? x.beg2() < y.beg2()
+    :    x.score  != y.score  ? x.score  > y.score
+    :                           x.beg1() < y.beg1();
+}
+
+void SegmentPairPot::cull( size_t limit ){
+  if( !limit ) return;
+
+  std::sort( items.begin(), items.end(), cullingLess );
+
+  items.erase( unique( items.begin(), items.end() ), items.end() );
+  // this is redundantly repeated in SegmentPairPot::sort()
+
+  std::vector<iterator> stash;
+
+  for( iterator i = items.begin(); i < items.end(); ++i ){
+    size_t iBeg = i->beg2();
+    size_t iEnd = i->end2();
+    size_t iLen = i->size;
+    int iScore = i->score;
+
+    size_t numOfDominatingItems = 0;
+
+    size_t x = 0;
+
+    for( size_t y = 0; y < stash.size(); ++y ){
+      iterator j = stash[ y ];
+      size_t jEnd = j->end2();
+      if( jEnd <= iBeg ) continue;
+      stash[ x++ ] = j;
+      if( jEnd < iEnd ) continue;
+      size_t jLen = j->size;
+      int jScore = j->score;
+      if( lessFraction( iScore, iLen, jScore, jLen ) ) ++numOfDominatingItems;
+    }
+
+    stash.resize( x );
+
+    if( numOfDominatingItems >= limit ){
+      mark( *i );
+    }else{
+      stash.push_back( i );
+    }
+  }
+
+  erase_if( items, isMarked );
+}
 
 void SegmentPairPot::sort(){
   std::sort( items.begin(), items.end(), itemLess );

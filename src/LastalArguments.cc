@@ -45,6 +45,7 @@ LastalArguments::LastalArguments() :
   minHitDepth(0),  // depends on the outputType
   oneHitMultiplicity(10),
   maxGaplessAlignmentsPerQueryPosition(0),  // depends on oneHitMultiplicity
+  cullingLimitForGaplessAlignments(0),
   queryStep(1),
   batchSize(0),  // depends on the outputType, and voluming
   maxRepeatDistance(1000),  // sufficiently conservative?
@@ -116,7 +117,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-      "ho:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:n:k:i:w:t:g:G:vj:";
+      "ho:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:n:C:k:i:w:t:g:G:vj:";
   while( (c = getopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -211,6 +212,9 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'n':
       unstringify( maxGaplessAlignmentsPerQueryPosition, optarg );
       if( maxGaplessAlignmentsPerQueryPosition <= 0 ) badopt( c, optarg );
+      break;
+    case 'C':
+      unstringify( cullingLimitForGaplessAlignments, optarg );
       break;
     case 'k':
       unstringify( queryStep, optarg );
