@@ -11,10 +11,6 @@
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 #include <iostream>
 
-static void err(const std::string& s) {
-  throw std::runtime_error(s);
-}
-
 static void run(int argc, char* argv[]) {
   LastSplitOptions opts;
 
@@ -130,7 +126,7 @@ Options:\n\
       std::cout << version;
       return;
     case '?':
-      err( "bad option" );
+      throw std::runtime_error("");
     }
   }
 
@@ -147,8 +143,12 @@ int main(int argc, char* argv[]) {
   try {
     run(argc, argv);
     return EXIT_SUCCESS;
+  } catch (const std::bad_alloc& e) {  // bad_alloc::what() may be unfriendly
+    std::cerr << argv[0] << ": out of memory\n";
+    return EXIT_FAILURE;
   } catch (const std::exception& e) {
-    std::cerr << "last-split: " << e.what() << '\n';
+    const char *s = e.what();
+    if (*s) std::cerr << argv[0] << ": " << s << '\n';
     return EXIT_FAILURE;
   }
 }

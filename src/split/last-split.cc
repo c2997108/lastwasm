@@ -115,7 +115,7 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
 		       std::vector<cbrc::UnsplitAlignment>::const_iterator end,
 		       cbrc::SplitAligner& sa, const LastSplitOptions& opts) {
-  if (opts.verbose) std::cerr << beg->qname;
+  if (opts.verbose) std::cerr << beg->qname << "\t" << (end - beg);
   sa.initForOneQuery(beg, end);
 
   if (opts.direction != 0) {
