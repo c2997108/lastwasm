@@ -836,6 +836,7 @@ void lastal( int argc, char** argv ){
   out.precision(6);  // reset the precision to the default value
   out << "# CPU time: " << (std::clock() - startTime + 0.0) / CLOCKS_PER_SEC
       << " seconds\n";
+  if (!flush(out)) ERR( "write error" );
 }
 
 int main( int argc, char** argv )
