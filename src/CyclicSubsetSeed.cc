@@ -31,6 +31,16 @@ std::vector<std::string> CyclicSubsetSeed::fromName( const std::string& name ){
     return fromMask( seedAlph, "1111110101100" );
   }
 
+  if( name == "MAM4" ){
+    // From MC Frith & L Noe (2014) Nucleic Acids Research,
+    // Supplementary Table 11, row 12.
+    return fromMask( seedAlph,
+		     "11100TT01T00T10TTTT,"
+		     "TTTT110TT0T001T0T1T1,"
+		     "11TT010T01TT0001T,"
+		     "11TT10T1T101TT" );
+  }
+
   if( name == "MAM8" ){
     // From MC Frith & L Noe (2014) Nucleic Acids Research,
     // Supplementary Table 12, second-last row.

@@ -113,6 +113,11 @@ Advanced Options
 
       MAM8: for finding weak DNA similarities with high sensitivity,
       but slow and high memory usage (e.g. ~50 GB for mammal genomes).
+      [From Frith & Noe 2014 NAR 42:e59 Table S12, row 15.]
+
+      MAM4: like MAM8, but a bit less sensitive, and uses about half
+      as much memory.  [From Frith & Noe 2014 NAR 42:e59 Table S11,
+      row 12.]
 
       Any other name is assumed to be a file name.  For an example of
       the format, see yass.seed in the examples directory.  You can
