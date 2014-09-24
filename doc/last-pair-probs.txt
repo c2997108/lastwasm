@@ -15,12 +15,12 @@ Typical usage::
   lastdb -m1111110 humandb human/chr*.fa
   lastal -Q1 -e120 -i1 humandb reads1.fastq > temp1.maf
   lastal -Q1 -e120 -i1 humandb reads2.fastq > temp2.maf
-  last-pair-probs.py temp1.maf temp2.maf > results.maf
+  last-pair-probs temp1.maf temp2.maf > results.maf
 
 If your reads come from potentially-spliced RNA molecules, use the -r
 option::
 
-  last-pair-probs.py -r temp1.maf temp2.maf > results.maf
+  last-pair-probs -r temp1.maf temp2.maf > results.maf
 
 Without -r, it assumes the distances between paired reads follow a
 normal distribution.  With -r, it assumes the distances follow a
@@ -114,7 +114,7 @@ Tips
     mkfifo pipe1 pipe2
     lastal -Q1 -e120 -i1 humandb reads1.fastq > pipe1 &
     lastal -Q1 -e120 -i1 humandb reads2.fastq > pipe2 &
-    last-pair-probs.py -f250 -s30 pipe1 pipe2 > results.maf
+    last-pair-probs -f250 -s30 pipe1 pipe2 > results.maf
 
   This streams the alignments from lastal to last-pair-probs.
 
@@ -152,7 +152,7 @@ CPUs.  One way to do that is by using GNU parallel
     #! /bin/sh
     lastal -Q1 -e120 -i1 "$3" "$4" > /tmp/$$.1
     lastal -Q1 -e120 -i1 "$3" "$5" > /tmp/$$.2
-    last-pair-probs.py -f "$1" -s "$2" /tmp/$$.1 /tmp/$$.2
+    last-pair-probs -f "$1" -s "$2" /tmp/$$.1 /tmp/$$.2
     rm /tmp/$$.*
 
 * Set execute permission::

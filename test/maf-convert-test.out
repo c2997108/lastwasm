@@ -1,11 +1,11 @@
 Usage: 
-  maf-convert.py --help
-  maf-convert.py axt mafFile(s)
-  maf-convert.py blast mafFile(s)
-  maf-convert.py html mafFile(s)
-  maf-convert.py psl mafFile(s)
-  maf-convert.py sam mafFile(s)
-  maf-convert.py tab mafFile(s)
+  maf-convert --help
+  maf-convert axt mafFile(s)
+  maf-convert blast mafFile(s)
+  maf-convert html mafFile(s)
+  maf-convert psl mafFile(s)
+  maf-convert sam mafFile(s)
+  maf-convert tab mafFile(s)
 
 Read MAF-format alignments & write them in another format.
 

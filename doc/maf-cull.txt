@@ -13,8 +13,8 @@ maf-cull will quit with an error message.
 
 You can use it like this::
 
-  maf-cull.py --limit=3 sorted-alignments.maf > culled.maf
-  maf-cull.py -l3 sorted-alignments.maf > culled.maf
+  maf-cull --limit=3 sorted-alignments.maf > culled.maf
+  maf-cull -l3 sorted-alignments.maf > culled.maf
 
 If you want to cull based on a sequence other than the top one, use
 maf-swap to bring that sequence to the top.

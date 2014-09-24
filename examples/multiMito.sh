@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# This script demonstrates using LAST and maf-join.py to construct a
+# This script demonstrates using LAST and maf-join to construct a
 # multiple alignment of the human, mouse, chicken, and fugu
 # mitochondrial genomes.
 
@@ -14,16 +14,16 @@ PATH=$PATH:../src:../scripts
 lastdb -c humanMito humanMito.fa
 
 # Align the mouse sequence to the human sequence:
-lastal -e25 -j4 humanMito mouseMito.fa | last-split | maf-sort.sh > hm.maf
+lastal -e25 -j4 humanMito mouseMito.fa | last-split | maf-sort > hm.maf
 
 # Align the chicken sequence to the human sequence:
-lastal -e25 -j4 humanMito chickenMito.fa | last-split | maf-sort.sh > hc.maf
+lastal -e25 -j4 humanMito chickenMito.fa | last-split | maf-sort > hc.maf
 
 # Align the fugu sequence to the human sequence:
-lastal -e25 -j4 humanMito fuguMito.fa | last-split | maf-sort.sh > hf.maf
+lastal -e25 -j4 humanMito fuguMito.fa | last-split | maf-sort > hf.maf
 
 # Join the pairwise alignments into a multiple alignment:
-maf-join.py hm.maf hc.maf hf.maf
+maf-join hm.maf hc.maf hf.maf
 
 # Clean up the intermediate files that we made:
 rm humanMito.??? h?.maf

@@ -5,11 +5,11 @@ This script reads alignments in maf format, and writes them in another
 format.  It can write them in these formats: axt, blast, html, psl,
 sam, tab.  You can use it like this::
 
-  maf-convert.py psl my-alignments.maf > my-alignments.psl
+  maf-convert psl my-alignments.maf > my-alignments.psl
 
 It's often convenient to pipe in the input, like this::
 
-  ... | maf-convert.py psl > my-alignments.psl
+  ... | maf-convert psl > my-alignments.psl
 
 The input should be "multiple alignment format" as described in the
 UCSC Genome FAQ (not "MIRA assembly format" or any other maf).
@@ -63,7 +63,7 @@ Hints for sam/bam
   using CreateSequenceDictionary).  Then, concatenate the output of a
   command like this::
 
-    parallel-fastq "... | maf-convert.py -n sam" < q.fastq
+    parallel-fastq "... | maf-convert -n sam" < q.fastq
 
 * Here is yet another way to get a sequence dictionary, using samtools
   (http://samtools.sourceforge.net/).  Assume the reference sequences

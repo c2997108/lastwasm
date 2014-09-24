@@ -40,7 +40,7 @@ lastal -pBISR -s1 -Q1 -e120 -i1 "$3" "$5" > $t.t2r
 last-merge-batches $t.t2f $t.t2r > $t.t2
 rm $t.t2f $t.t2r
 
-last-pair-probs.py -m0.1 $t.t1 $t.t2 |
+last-pair-probs -m0.1 $t.t1 $t.t2 |
 perl -F'(\s+)' -ane '$F[12] =~ y/ta/CG/ if /^s/ and $s++ % 2; print @F'
 rm $t.t1 $t.t2
 EOF

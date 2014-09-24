@@ -6,7 +6,7 @@ cd $(dirname $0)
 
 PATH=../scripts:$PATH
 
-r=maf-convert.py
+r=maf-convert
 
 maf1=SRR359290-1k.maf
 maf2=bs100.maf
