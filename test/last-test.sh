@@ -117,6 +117,11 @@ db=/tmp/last-test
     echo TEST 22  # named score matrix, sparse query seeding
     lastal -pHOXD70 -k128 -f0 $db galGal3-M-32.fa
     echo
+
+    echo TEST 23  # MAM4, gapless alignment culling
+    lastdb -uMAM4 $db hg19-M.fa
+    lastal -e34 -C2 -f0 $db galGal3-M-32.fa
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -

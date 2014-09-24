@@ -217,6 +217,12 @@ Miscellaneous Options
       extensions, it skips any remaining initial matches starting at
       that position.
 
+  -C LIMIT
+      Culling limit for gapless alignments.  Before extending gapped
+      alignments, discard any gapless alignment whose query
+      coordinates lie in those of LIMIT or more others with higher
+      score-per-length.
+
   -k STEP
       Look for initial matches starting only at every STEP-th position
       in the query.  This makes lastal faster but less sensitive.

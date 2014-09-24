@@ -92,6 +92,7 @@ Miscellaneous options (default settings):\n\
     + stringify(oneHitMultiplicity) + ")\n\
 -l: length threshold for initial matches (1 if -j0, else infinity)\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
+-C: culling limit for gapless alignments (off)\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
 -i: query batch size (8 KiB, unless there are multiple lastdb volumes)\n\
