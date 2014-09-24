@@ -29,7 +29,6 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-#include <ctime>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 
 #define ERR(x) throw std::runtime_error(x)
@@ -743,8 +742,6 @@ std::istream& appendFromFasta( std::istream& in ){
 }
 
 void lastal( int argc, char** argv ){
-  std::clock_t startTime = std::clock();
-
   args.fromArgs( argc, argv );
 
   std::string matrixFile;
@@ -808,6 +805,7 @@ void lastal( int argc, char** argv ){
   writeHeader( refSequences, refLetters, out );
   out.precision(3);  // print non-integers more compactly
   countT queryBatchCount = 0;
+  countT sequenceCount = 0;
 
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
@@ -819,7 +817,9 @@ void lastal( int argc, char** argv ){
     LOG( "reading " << *i << "..." );
 
     while( appendFromFasta( in ) ){
-      if( !query.isFinished() ){
+      if( query.isFinished() ){
+	++sequenceCount;
+      }else{
         // this enables downstream parsers to read one batch at a time:
         out << "# batch " << queryBatchCount++ << "\n";
 	scanAllVolumes( volumes, out );
@@ -833,9 +833,7 @@ void lastal( int argc, char** argv ){
     scanAllVolumes( volumes, out );
   }
 
-  out.precision(6);  // reset the precision to the default value
-  out << "# CPU time: " << (std::clock() - startTime + 0.0) / CLOCKS_PER_SEC
-      << " seconds\n";
+  out << "# Query sequences=" << sequenceCount << "\n";
   if (!flush(out)) ERR( "write error" );
 }
 

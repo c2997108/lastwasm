@@ -89,7 +89,7 @@ s chr32 0 1028 + 1028 CATCTAAACCAACACCTAATCCTAAACCTAAGGCCTTCCGGAATCCTAAACCTAAGCC
 s chr32 0 1028 + 1028 CATCTAAACCAACACCTAATCCTAAACCTAAGGCCTTCCGGAATCCTAAACCTAAGCCAACAGctaaccctaacccatcccctaacccaatccatagccctaagcttaagcctaaccctaagccaaaccctagccctaaccatagccccaactccagcactaaccgtaatggtaaacttaatgataatcctaaccctaacacaaaccctTCTTTCCGGAGCTGGGGAAACCGACTCCAGAAATGCCATCTGAGGGAACAGACGTCCTGGCAGATAGAACAAACCAGGTGTGAGCACTGTCTTTCCAAAGTTACACCGAAGCCGTTGGAGGACAGGTCGGACCTCAGGCCTTCCCGCGGCACCAACTACTGTCGGCGGATTTGCGCATAGATCCTTCACAGCTGTTTCAAAGAACCATTCTGTGATTCTATGATCTTCCAGGACCCTTCCAAGCCACACCATCCTGTGGTTCTatcatcttccaggactcttgcaacacaaaccattctatggttctgtgatCACTAAGGAACCTCCCAAGCCACGCCGTCCTGCAGTTCTGtgatcttccaggacccttccaacacggaccatcctatggttctatgatCTTCCAGGACCCTCCTGTGCGGGTGATGTCACCATGACGTGATGACCTCACAGATGCCCTGGGGTGGGGCAGGGGCAGTGGGTCAGCGCGGAACCTGCTGGCCCCATTCTGCGGGTGGTGCTGGTCCAGCGAGGAGCTGTGCGAGTGGTGCAGTAATGCGGGCCCAGTGTGTCAGCAGAAGATTAAGGGCGGTGTGGCGTGCGAAGCTGGTGGAGGAGGAGCTGCTGGTGAGCTCTGGGTGCACAGACACAGAAGGGCCGGCGGGGGGAGCTGCCGGCTGGAGGCAGCAGAGGGCCGGGCACCTCCGGTGGGATGCAGAGCTGCCGGCAGCACCTCGGTGCCAACGCTGCTCCTCTCCCTTCACACAGGCTCATGCGGCCGTGGAGAAGTGCAAGGCCGTGGCCAGGGAATCCTTGATG
 p                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# CPU time: 0.34 seconds
+# Query sequences=2
 
 TEST 2
 #
@@ -125,7 +125,7 @@ TEST 2
 44	chr32	51	158	+	1028	chr32	3	158	+	1028	158
 42	chr32	3	138	+	1028	chr32	69	138	+	1028	138
 42	chr32	69	138	+	1028	chr32	3	138	+	1028	138
-# CPU time: 0.18 seconds
+# Query sequences=2
 
 TEST 3
 #
@@ -168,7 +168,7 @@ chr32
 11	2
 12	1
 
-# CPU time: 0 seconds
+# Query sequences=2
 
 TEST 4
 #
@@ -254,7 +254,7 @@ s chrM          956 35 + 16775 tttgttattttttaattttttttttattttttAAA
 s SRR001981.279   0 35 -    36 TTTTTTTGTTTTTTTTTTTTTTTTGTTTTTTTTAA
 q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$II
 
-# CPU time: 0.04 seconds
+# Query sequences=1000
 
 TEST 5
 #
@@ -353,7 +353,7 @@ s Q2LCP8  138 23 +   491 ISSICFYILALNKNSRKGIEGGL
 s chrM   7839 69 - 16775 VSSADFWALSVKHSWSSGDEGGL
 
 # batch 1
-# CPU time: 0.07 seconds
+# Query sequences=2
 
 TEST 6
 #
@@ -379,7 +379,7 @@ TEST 6
 19	chrM	4168	33	+	16775	chrM	12574	33	-	16775	33
 18	chrM	31	34	+	16775	chrM	16710	34	-	16775	34
 # batch 1
-# CPU time: 0 seconds
+# Query sequences=2
 
 TEST 7
 #
@@ -405,7 +405,7 @@ TEST 7
 2102	chr32	665	274	+	1028	chrM	7941	268	-	16775	117,5:0,72,1:0,79
 2060	chr32	721	195	+	1028	chrM	7144	192	-	16775	91,3:0,101
 # batch 1
-# CPU time: 0.01 seconds
+# Query sequences=2
 
 TEST 8
 #
@@ -436,7 +436,7 @@ s chr32                  97 40 + 1028 ccctaagcttaagcctaaccctaagccaaaccctagccct
 s HWW-E2:1:1:10:1477#0/1 10 40 +   50 CCCTAACCCTAANCCTAACCCTAACCCTAACCCTAACCCT
 q HWW-E2:1:1:10:1477#0/1              aaaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^aaS\RMX]\
 
-# CPU time: 0 seconds
+# Query sequences=100
 
 TEST 9
 #
@@ -482,7 +482,7 @@ s chrM 958 30 + 16775 tgttattttttaattttttttttatttttt
 s 2      0 30 -    36 TATTTTATTTTTTGCTTTTTTTTTTTTTTT
 q 2                   C@JK?B?BBEJFA>==TXBSVSDAFF`hhD
 
-# CPU time: 0 seconds
+# Query sequences=100
 
 TEST 10
 #
@@ -579,7 +579,7 @@ q SRR001981.815                3+)03/+<I--G,I'9I/D3+IEII7
 p                              $$$$$$%&&&&~~~~~~~~~~~~~~~
 
 # batch 4
-# CPU time: 0.04 seconds
+# Query sequences=1000
 
 TEST 11
 #
@@ -611,7 +611,7 @@ TEST 11
 78	chrM	6570	46	+	16775	chrM	12733	46	-	16775	46
 # batch 1
 3084	chr32	0	1028	+	1028	chr32	0	1028	+	1028	1028
-# CPU time: 0.03 seconds
+# Query sequences=2
 
 TEST 12
 #
@@ -668,7 +668,7 @@ TEST 12
 41	Q2LCP8	0	34	+	491	chrM	196	102	-	16775	34
 40	Q2LCP8	406	20	+	491	chrM	2209	60	-	16775	20
 # batch 1
-# CPU time: 0.08 seconds
+# Query sequences=2
 
 TEST 13
 #
@@ -725,7 +725,7 @@ TEST 13
 47	Q2LCP8	110	69	+	491	Q2LCP8	278	69	+	491	69
 55	Q2LCP8	255	96	+	491	Q2LCP8	324	96	+	491	96
 37	Q2LCP8	7	46	+	491	Q2LCP8	391	46	+	491	46
-# CPU time: 0.05 seconds
+# Query sequences=1
 
 TEST 14
 #
@@ -763,7 +763,7 @@ q S1_55               ?-;F8)M='&1-J+1B(&-27B&,@<L.917D'=/>Q*55,7?)4%H7DFD1>F8.8.
 s S1_100  0 239 - 239 TCATTATGCAAAGTGGT-TGGATCTGTTTTATGCCGGATTCA-TAATAATCTGCCGCCGCTGCGTTTTGTGCGTAATCTCGGGTTAATGGCGG-CAGAGCGTGCTGGCGTGTT-AAACGTCAGGCGCTGAAAT-TGCGTTAGGGTTGTAGCCTTACAACATTGCCGGATGCGTGCCAACCGTAGGTCGGATAAGACGCGGCAG-GTCGCATCCGACATTGAAGGATAAGACGTGTCAACATCGCA
 q S1_100              <i~'a;><q<f*`kduZ-LNlIBn@-2KH*~aLG44oC+H9]-A@9;WJ7.P~L?1h~/NVmp~HNfFOKEJ=m4V_FT<JrD}WR(FFNs~N-I:EBI)HP`US8,+R>~;N-B*xC?h_I~O4MIaS<9C/-@wSQk6F[^$9S~f4i87PTP6E<OvDJ=XN~0_N;HFR;*FaK~AEQUJQWU\oH]~~OU_a<H;VOT-?ZrXPI\~w&@f7bP~?LNFN+\HUS:lI5]l;b@mN\~5<
 
-# CPU time: 1.01 seconds
+# Query sequences=100
 
 TEST 15
 #
@@ -801,7 +801,7 @@ TEST 15
 90	chrM	971	15	+	16775	SRR001981.805	21	15	+	36	15
 91	chrM	959	27	+	16775	SRR001981.815	1	25	-	36	10,2:0,15
 # batch 4
-# CPU time: 0.02 seconds
+# Query sequences=1000
 
 TEST 16
 #
@@ -827,7 +827,7 @@ TEST 16
 19	chrM	4168	33	+	16775	chrM	12574	33	-	16775	33
 18	chrM	31	34	+	16775	chrM	16710	34	-	16775	34
 # batch 1
-# CPU time: 0.02 seconds
+# Query sequences=2
 
 TEST 17
 #
@@ -853,7 +853,7 @@ TEST 17
 19	chrM	4168	33	+	16775	chrM	12574	33	-	16775	33
 18	chrM	31	34	+	16775	chrM	16710	34	-	16775	34
 # batch 1
-# CPU time: 0 seconds
+# Query sequences=2
 
 TEST 18
 #
@@ -882,7 +882,7 @@ TEST 18
 60	chrM	950	36	+	16775	SRR001981.597	0	36	-	36	19,2:0,10,1:0,4,0:3
 # batch 3
 # batch 4
-# CPU time: 0.02 seconds
+# Query sequences=1000
 
 TEST 19
 #
@@ -931,7 +931,7 @@ p                              ))*++,111.,()+,,,,,0/~~~~~~~~~~(&&&%).)
 
 # batch 3
 # batch 4
-# CPU time: 0.04 seconds
+# Query sequences=1000
 
 TEST 20
 #
@@ -983,7 +983,7 @@ p                       (+./~~~~~~~~~~BA@@@@@@@@@?=:62-,*'
 c 4.89 0.00223 0.25 0.93 2.08 8.23 2 0.247 0.963 3.26e-07 8.23 0.00218 0.711 0.945 2.08 4.91 36.5 0.00253 0.00248 0.00149 0.00145 1.1e-06 0 0 0 0
 
 # batch 1
-# CPU time: 0 seconds
+# Query sequences=2
 
 TEST 21
 #
@@ -1013,7 +1013,7 @@ TEST 21
 95	chrM	1742	281	+	16571	chrM	2432	295	+	16775	26,0:1,12,0:4,25,0:4,11,0:2,57,1:0,42,0:1,24,0:3,83
 48	chrM	14425	318	+	16571	chrM	16456	319	+	16775	247,0:2,54,1:0,16
 # batch 1
-# CPU time: 0.01 seconds
+# Query sequences=2
 
 TEST 22
 #
@@ -1039,7 +1039,7 @@ TEST 22
 58424	chrM	14729	1565	+	16571	chrM	14874	1560	+	16775	23,0:1,7,0:2,1121,0:2,25,1:0,31,0:6,14,4:0,20,0:2,49,17:0,19,2:0,8,0:8,18,1:0,18,0:14,35,3:0,31,0:1,21,9:0,2,3:0,9,1:0,24,0:1,19,0:4,15,5:0,10
 8383	chrM	14155	588	+	16571	chrM	16213	562	+	16775	121,3:0,23,2:0,23,4:0,64,5:0,10,4:0,2,9:0,118,2:0,8,0:2,14,0:1,5,1:0,99,0:2,54,1:0,16
 # batch 1
-# CPU time: 0.16 seconds
+# Query sequences=2
 
 TEST 23
 #
@@ -1069,5 +1069,5 @@ TEST 23
 95	chrM	1742	281	+	16571	chrM	2432	295	+	16775	26,0:1,12,0:4,25,0:4,11,0:2,57,1:0,42,0:1,24,0:3,83
 48	chrM	14425	318	+	16571	chrM	16456	319	+	16775	247,0:2,54,1:0,16
 # batch 1
-# CPU time: 0.15 seconds
+# Query sequences=2
 
