@@ -9,7 +9,7 @@
 # according to the number of aligned nt-pairs within it, but the
 # result is too faint.  How can this be done better?
 
-import sys, os, re, itertools, optparse
+import fileinput, itertools, optparse, os, re, sys
 
 # Try to make PIL/PILLOW work:
 try: from PIL import Image, ImageDraw, ImageFont, ImageColor
@@ -53,50 +53,81 @@ forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
 reverse_color = ImageColor.getcolor(opts.reversecolor, image_mode)
 overlap_color = tuple([(i+j)//2 for i, j in zip(forward_color, reverse_color)])
 
-def isGapless(alignmentColumn):
-    return "-" not in alignmentColumn
-
-def matchAndInsertLengths(alignmentColumns):
-    for k, v in itertools.groupby(alignmentColumns, isGapless):
-        if k:
-            matchLength = sum(1 for i in v)
-            yield str(matchLength)
+def tabBlocks(beg1, beg2, blocks):
+    '''Get the gapless blocks of an alignment, from LAST tabular format.'''
+    for i in blocks.split(","):
+        if ":" in i:
+            x, y = i.split(":")
+            beg1 += int(x)
+            beg2 += int(y)
         else:
-            blockRows = itertools.izip(*v)
-            insertLengths = (len(i) - i.count("-") for i in blockRows)
-            yield ":".join(map(str, insertLengths))
+            size = int(i)
+            yield beg1, beg2, size
+            beg1 += size
+            beg2 += size
 
-def alignmentInput(lines):  # read alignments in either tabular or MAF format
+def mafBlocks(beg1, beg2, seq1, seq2):
+    '''Get the gapless blocks of an alignment, from MAF format.'''
+    size = 0
+    for x, y in itertools.izip(seq1, seq2):
+        if x == "-":
+            if size:
+                yield beg1, beg2, size
+                beg1 += size
+                beg2 += size
+                size = 0
+            beg2 += 1
+        elif y == "-":
+            if size:
+                yield beg1, beg2, size
+                beg1 += size
+                beg2 += size
+                size = 0
+            beg1 += 1
+        else:
+            size += 1
+    if size: yield beg1, beg2, size
+
+def alignmentInput(lines):
+    '''Get alignments and sequence lengths, from MAF or tabular format.'''
+    mafCount = 0
     for line in lines:
         w = line.split()
         if line[0].isdigit():  # tabular format
-            yield w
-        elif line[0] == "a":  # MAF format
-            sLines = []
+            chr1, beg1, seqlen1 = w[1], int(w[2]), int(w[5])
+            if w[4] == "-": beg1 -= seqlen1
+            chr2, beg2, seqlen2 = w[6], int(w[7]), int(w[10])
+            if w[9] == "-": beg2 -= seqlen2
+            blocks = tabBlocks(beg1, beg2, w[11])
+            yield chr1, seqlen1, chr2, seqlen2, blocks
         elif line[0] == "s":  # MAF format
-            sLines.append(w)
-            if len(sLines) == 2:
-                alignmentRows = (i[6] for i in sLines)
-                alignmentColumns = itertools.izip(*alignmentRows)
-                blocks = ",".join(matchAndInsertLengths(alignmentColumns))
-                yield sLines[0][0:6] + sLines[1][1:6] + [blocks]
+            if mafCount == 0:
+                chr1, beg1, seqlen1, seq1 = w[1], int(w[2]), int(w[5]), w[6]
+                if w[4] == "-": beg1 -= seqlen1
+                mafCount = 1
+            else:
+                chr2, beg2, seqlen2, seq2 = w[1], int(w[2]), int(w[5]), w[6]
+                if w[4] == "-": beg2 -= seqlen2
+                blocks = mafBlocks(beg1, beg2, seq1, seq2)
+                yield chr1, seqlen1, chr2, seqlen2, blocks
+                mafCount = 0
 
-seq_size_dic1 = {}  # sizes of the first set of sequences
-seq_size_dic2 = {}  # sizes of the second set of sequences
-alignments = []
+def readAlignments(lines):
+    '''Get alignments and sequence lengths, from MAF or tabular format.'''
+    alignments = []
+    seqLengths1 = {}
+    seqLengths2 = {}
+    for chr1, seqlen1, chr2, seqlen2, blocks in alignmentInput(lines):
+        aln = chr1, chr2, blocks
+        alignments.append(aln)
+        seqLengths1[chr1] = seqlen1
+        seqLengths2[chr2] = seqlen2
+    return alignments, seqLengths1, seqLengths2
 
-f = open(args[0])
 sys.stderr.write(my_name + ": reading alignments...\n")
-for w in alignmentInput(f):
-    seq1, pos1, strand1, size1 = w[1], int(w[2]), w[4], int(w[5])
-    seq2, pos2, strand2, size2 = w[6], int(w[7]), w[9], int(w[10])
-    blocks = w[11]
-    seq_size_dic1[seq1] = size1
-    seq_size_dic2[seq2] = size2
-    aln = seq1, seq2, pos1, pos2, strand1, strand2, blocks
-    alignments.append(aln)
+input = fileinput.input(args[0])
+alignments, seq_size_dic1, seq_size_dic2 = readAlignments(input)
 sys.stderr.write(my_name + ": done\n")
-f.close()
 
 if not alignments:
     sys.exit(my_name + ": there are no alignments")
@@ -177,34 +208,23 @@ seq_start_dic2 = dict(zip(seq_names2, seq_starts2))
 hits = [0] * (width * height)  # the image data
 
 sys.stderr.write(my_name + ": processing alignments...\n")
-for aln in alignments:
-    seq1, seq2, pos1, pos2, strand1, strand2, blocks = aln
-    last1 = seq_size_dic1[seq1] - 1
-    last2 = seq_size_dic2[seq2] - 1
+for seq1, seq2, blocks in alignments:
     seq_start1 = seq_start_dic1[seq1]
     seq_start2 = seq_start_dic2[seq2]
     my_start = seq_start2 * width + seq_start1
-    if strand1 == strand2: store_value = 1
-    else:                  store_value = 2
-    for i in blocks.split(","):
-        if ":" in i:  # it's a gap region: skip over it
-            insertLength1, insertLength2 = i.split(":")
-            pos1 += int(insertLength1)
-            pos2 += int(insertLength2)
-        else:  # it's a match region: draw pixels for it
-            matchLength = int(i)
-            end1 = pos1 + matchLength
-            end2 = pos2 + matchLength
-            if strand1 == '+': j = xrange(pos1, end1)
-            else:              j = xrange(last1 - pos1, last1 - end1, -1)
-            if strand2 == '+': k = xrange(pos2, end2)
-            else:              k = xrange(last2 - pos2, last2 - end2, -1)
-            for real_pos1, real_pos2 in itertools.izip(j, k):
-                pix1 = real_pos1 // bp_per_pix
-                pix2 = real_pos2 // bp_per_pix
-                hits[my_start + pix2 * width + pix1] |= store_value
-            pos1 = end1
-            pos2 = end2
+    for beg1, beg2, size in blocks:
+        end1 = beg1 + size
+        end2 = beg2 + size
+        if beg1 >= 0: j = xrange(beg1, end1)
+        else:         j = xrange(-1 - beg1, -1 - end1, -1)
+        if beg2 >= 0: k = xrange(beg2, end2)
+        else:         k = xrange(-1 - beg2, -1 - end2, -1)
+        if beg2 >= 0: store_value = 1
+        else:         store_value = 2
+        for real_pos1, real_pos2 in itertools.izip(j, k):
+            pix1 = real_pos1 // bp_per_pix
+            pix2 = real_pos2 // bp_per_pix
+            hits[my_start + pix2 * width + pix1] |= store_value
 sys.stderr.write(my_name + ": done\n")
 
 def make_label(text, text_size, range_start, range_size):
