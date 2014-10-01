@@ -21,7 +21,6 @@ static void badopt( char opt, const char* arg ){
 namespace cbrc{
 
 LastalArguments::LastalArguments() :
-  outFile("-"),
   outputFormat(1),
   outputType(3),
   strand(-1),  // depends on the alphabet
@@ -80,7 +79,6 @@ Score options (default settings):\n\
 Cosmetic options (default settings):\n\
 -h: show all options and their default settings\n\
 -v: be verbose: write messages about what lastal is doing\n\
--o: output file\n\
 -f: output format: 0=tabular, 1=maf ("
     + stringify(outputFormat) + ")\n\
 \n\
@@ -118,15 +116,12 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-      "ho:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:n:C:k:i:w:t:g:G:vj:";
+      "hu:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:n:C:k:i:w:t:g:G:vj:";
   while( (c = getopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
       std::cout << help;
       throw EXIT_SUCCESS;
-    case 'o':
-      outFile = optarg;
-      break;
     case 'u':
       unstringify( maskLowercase, optarg );
       if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );

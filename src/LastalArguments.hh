@@ -47,7 +47,6 @@ struct LastalArguments{
   bool isTranslated() const{ return frameshiftCost > 0; }
 
   // options:
-  std::string outFile;
   int outputFormat;
   int outputType;
   int strand;

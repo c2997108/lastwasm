@@ -800,8 +800,7 @@ void lastal( int argc, char** argv ){
 
   if( volumes+1 == 0 ) readIndex( args.lastdbName, refSequences );
 
-  std::ofstream outFileStream;
-  std::ostream& out = openOut( args.outFile, outFileStream );
+  std::ostream& out = std::cout;
   writeHeader( refSequences, refLetters, out );
   out.precision(3);  // print non-integers more compactly
   countT queryBatchCount = 0;
@@ -834,12 +833,12 @@ void lastal( int argc, char** argv ){
   }
 
   out << "# Query sequences=" << sequenceCount << "\n";
-  if (!flush(out)) ERR( "write error" );
 }
 
 int main( int argc, char** argv )
 try{
   lastal( argc, argv );
+  if (!flush(std::cout)) ERR( "write error" );
   return EXIT_SUCCESS;
 }
 catch( const std::bad_alloc& e ) {  // bad_alloc::what() may be unfriendly

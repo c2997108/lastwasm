@@ -58,9 +58,6 @@ Cosmetic Options
 
   -v  Be verbose: write messages about what lastal is doing.
 
-  -o FILE
-      Write output to the specified file, instead of the screen.
-
   -f NUMBER
       Choose the output format: 0 means tabular and 1 means MAF.  MAF
       format looks like this:
