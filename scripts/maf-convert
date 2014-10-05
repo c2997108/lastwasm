@@ -337,7 +337,7 @@ def writeSam(maf, rg):
             # don't try to handle multiple alignments for now (YAGNI):
             if len(maf.qLines) > 1 or len(tail) > 1 or qualityName != qName:
                 raise Exception("can't interpret the quality data")
-            qual = ''.join(j for i, j in zip(qAlnString, qualityString)
+            qual = ''.join(j for i, j in izip(qAlnString, qualityString)
                            if i != "-")
 
         # It's hard to get all the pair info, so this is very
