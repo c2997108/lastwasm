@@ -271,23 +271,35 @@ def mapqFromProb(probString):
     if phred >= mapqMaximumNum: return mapqMaximum
     return str(int(round(phred)))
 
-def cigarCategory(alignmentColumn):
-    x, y = alignmentColumn
-    if x == "-":
-        if y == "-": return "P"
-        else: return "I"
-    else:
-        if y == "-": return "D"
-        else: return "M"
-
 def cigarParts(beg, alignmentColumns, end):
-    if beg:
-        yield str(beg) + "H"
+    if beg: yield str(beg) + "H"
+
     # (doesn't handle translated alignments)
-    for k, v in groupby(alignmentColumns, cigarCategory):
-        yield str(sum(1 for _ in v)) + k
-    if end:
-        yield str(end) + "H"
+    isActive = True
+    for x, y in alignmentColumns: break
+    else: isActive = False
+    while isActive:
+        size = 1
+        if x == "-":
+            for x, y in alignmentColumns:
+                if x != "-": break
+                size += 1
+            else: isActive = False
+            yield str(size) + "I"
+        elif y == "-":
+            for x, y in alignmentColumns:
+                if y != "-": break
+                size += 1
+            else: isActive = False
+            yield str(size) + "D"
+        else:
+            for x, y in alignmentColumns:
+                if x == "-" or y == "-": break
+                size += 1
+            else: isActive = False
+            yield str(size) + "M"
+
+    if end: yield str(end) + "H"
 
 def writeSam(maf, rg):
     if 3 in mafLetterSizes(maf):
@@ -315,7 +327,7 @@ def writeSam(maf, rg):
         alignmentColumns = zip(rAlnString.upper(), qAlnString.upper())
 
         qRevStart = qSeqSize - qStart - qAlnSize
-        cigar = "".join(cigarParts(qStart, alignmentColumns, qRevStart))
+        cigar = "".join(cigarParts(qStart, iter(alignmentColumns), qRevStart))
 
         seq = deleted(qAlnString, "-")
 
