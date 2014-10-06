@@ -58,10 +58,11 @@ def coordinatesPerLetter(alnString, alnSize):
 def mafLetterSizes(maf):
     return map(coordinatesPerLetter, maf.alnStrings, maf.alnSizes)
 
-def isTranslated(maf):
-    for i, j in izip(maf.alnStrings, maf.alnSizes):
-        if "\\" in i or "/" in i: return True
-        if len(i) - i.count("-") < j: return True
+def isTranslated(sLines):
+    for i in sLines:
+        alnString = i[6]
+        if "\\" in alnString or "/" in alnString: return True
+        if len(alnString) - alnString.count("-") < int(i[3]): return True
     return False
 
 def insertionSize(alnString, letterSize):
@@ -308,40 +309,44 @@ def cigarParts(beg, alignmentColumns, end):
     if end: yield str(end) + "H"
 
 def writeSam(maf, rg):
-    if isTranslated(maf):
+    aLine, sLines, qLines, pLines = maf
+
+    if isTranslated(sLines):
         raise Exception("this looks like translated DNA - can't convert to SAM format")
 
-    try: score = "AS:i:" + str(int(maf.namesAndValues["score"]))
-    except (KeyError, ValueError): score = None  # it must be an integer
+    score = None
+    evalue = None
+    mapq = mapqMissing
+    for i in aLine:
+        if i.startswith("score="):
+            v = i[6:]
+            if v.isdigit(): score = "AS:i:" + v  # it must be an integer
+        elif i.startswith("expect="):
+            evalue = "EV:Z:" + i[7:]
+        elif i.startswith("mismap="):
+            mapq = mapqFromProb(i[7:])
 
-    try: evalue = "EV:Z:" + maf.namesAndValues["expect"]
-    except KeyError: evalue = None
+    head, tail = sLines[0], sLines[1:]
 
-    try: mapq = mapqFromProb(maf.namesAndValues["mismap"])
-    except KeyError: mapq = mapqMissing
-
-    rows = zip(maf.seqNames, maf.alnStarts, maf.alnSizes,
-               maf.strands, maf.seqSizes, maf.alnStrings)
-    head, tail = rows[0], rows[1:]
-
-    rName, rStart, rAlnSize, rStrand, rSeqSize, rAlnString = head
+    s, rName, rStart, rAlnSize, rStrand, rSeqSize, rAlnString = head
     if rStrand != "+":
         raise Exception("for SAM, the 1st strand in each alignment must be +")
-    pos = str(rStart + 1)  # convert to 1-based coordinate
+    pos = str(int(rStart) + 1)  # convert to 1-based coordinate
 
-    for qName, qStart, qAlnSize, qStrand, qSeqSize, qAlnString in tail:
+    for s, qName, qStart, qAlnSize, qStrand, qSeqSize, qAlnString in tail:
         alignmentColumns = zip(rAlnString.upper(), qAlnString.upper())
 
-        qRevStart = qSeqSize - qStart - qAlnSize
+        qStart = int(qStart)
+        qRevStart = int(qSeqSize) - qStart - int(qAlnSize)
         cigar = "".join(cigarParts(qStart, iter(alignmentColumns), qRevStart))
 
         seq = deleted(qAlnString, "-")
 
         qual = "*"
-        if maf.qLines:
-            q, qualityName, qualityString = maf.qLines[0]
+        if qLines:
+            q, qualityName, qualityString = qLines[0]
             # don't try to handle multiple alignments for now (YAGNI):
-            if len(maf.qLines) > 1 or len(tail) > 1 or qualityName != qName:
+            if len(qLines) > 1 or len(tail) > 1 or qualityName != qName:
                 raise Exception("can't interpret the quality data")
             qual = ''.join(j for i, j in izip(qAlnString, qualityString)
                            if i != "-")
@@ -551,7 +556,7 @@ def mafInput(lines, isKeepComments):
     for i in lines:
         w = i.split()
         if not w:
-            if a: yield Maf(a, s, q, p)
+            if a: yield a, s, q, p
             a = []
             s = []
             q = []
@@ -566,7 +571,7 @@ def mafInput(lines, isKeepComments):
             p.append(w)
         elif i[0] == "#" and isKeepComments:
             print i,
-    if a: yield Maf(a, s, q, p)
+    if a: yield a, s, q, p
 
 def isFormat(myString, myFormat):
     return myFormat.startswith(myString)
@@ -588,14 +593,15 @@ def mafConvert(opts, args):
     isKeepCommentLines = isFormat(format, "tabular") and not opts.noheader
     oldQueryName = ""
     for maf in mafInput(inputLines, isKeepCommentLines):
-        if   isFormat(format, "axt"): writeAxt(maf)
+        if   isFormat(format, "axt"): writeAxt(Maf(*maf))
         elif isFormat(format, "blast"):
+            maf = Maf(*maf)
             writeBlast(maf, opts.linesize, oldQueryName)
             oldQueryName = maf.seqNames[1]
-        elif isFormat(format, "html"): writeHtml(maf, opts.linesize)
-        elif isFormat(format, "psl"): writePsl(maf, opts.protein)
+        elif isFormat(format, "html"): writeHtml(Maf(*maf), opts.linesize)
+        elif isFormat(format, "psl"): writePsl(Maf(*maf), opts.protein)
         elif isFormat(format, "sam"): writeSam(maf, rg)
-        elif isFormat(format, "tabular"): writeTab(maf)
+        elif isFormat(format, "tabular"): writeTab(Maf(*maf))
         else: raise Exception("unknown format: " + format)
     if isFormat(format, "html") and not opts.noheader: print "</body></html>"
 
