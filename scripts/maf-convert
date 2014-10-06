@@ -58,6 +58,9 @@ def coordinatesPerLetter(alnString, alnSize):
 def mafLetterSizes(maf):
     return map(coordinatesPerLetter, maf.alnStrings, maf.alnSizes)
 
+def alnLetterSizes(sLines):
+    return [coordinatesPerLetter(i[6], int(i[3])) for i in sLines]
+
 def isTranslated(sLines):
     for i in sLines:
         alnString = i[6]
@@ -119,27 +122,33 @@ def writeAxt(maf):
 ##### Routines for converting to tabular format: #####
 
 def writeTab(maf):
+    aLine, sLines, qLines, pLines = maf
+
+    score = "0"
+    expect = None
+    mismap = None
+    for i in aLine:
+        if   i.startswith("score="): score = i[6:]
+        elif i.startswith("expect="): expect = i[7:]
+        elif i.startswith("mismap="): mismap = i[7:]
+
     outWords = []
-    outWords.append(maf.namesAndValues["score"])
+    outWords.append(score)
 
-    cols = maf.seqNames, maf.alnStarts, maf.alnSizes, maf.strands, maf.seqSizes
-    rows = zip(*cols)
-    outWords.extend(chain(*rows))
+    for i in sLines: outWords.extend(i[1:6])
 
-    alignmentColumns = zip(*maf.alnStrings)
-    letterSizes = mafLetterSizes(maf)
+    alnStrings = [i[6] for i in sLines]
+    alignmentColumns = zip(*alnStrings)
+    letterSizes = alnLetterSizes(sLines)
     gapInfo = matchAndInsertSizes(alignmentColumns, letterSizes)
     gapStrings = imap(joined, gapInfo, repeat(":"))
     gapWord = ",".join(gapStrings)
     outWords.append(gapWord)
 
-    try: outWords.append(maf.namesAndValues["expect"])
-    except KeyError: pass
+    if expect: outWords.append(expect)
+    if mismap: outWords.append(mismap)
 
-    try: outWords.append(maf.namesAndValues["mismap"])
-    except KeyError: pass
-
-    print joined(outWords, "\t")
+    print "\t".join(outWords)
 
 ##### Routines for converting to PSL format: #####
 
@@ -601,7 +610,7 @@ def mafConvert(opts, args):
         elif isFormat(format, "html"): writeHtml(Maf(*maf), opts.linesize)
         elif isFormat(format, "psl"): writePsl(Maf(*maf), opts.protein)
         elif isFormat(format, "sam"): writeSam(maf, rg)
-        elif isFormat(format, "tabular"): writeTab(Maf(*maf))
+        elif isFormat(format, "tabular"): writeTab(maf)
         else: raise Exception("unknown format: " + format)
     if isFormat(format, "html") and not opts.noheader: print "</body></html>"
 
