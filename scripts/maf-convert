@@ -58,6 +58,12 @@ def coordinatesPerLetter(alnString, alnSize):
 def mafLetterSizes(maf):
     return map(coordinatesPerLetter, maf.alnStrings, maf.alnSizes)
 
+def isTranslated(maf):
+    for i, j in izip(maf.alnStrings, maf.alnSizes):
+        if "\\" in i or "/" in i: return True
+        if len(i) - i.count("-") < j: return True
+    return False
+
 def insertionSize(alnString, letterSize):
     """Get the length of sequence included in the alnString."""
     letters, forwardShifts, reverseShifts = insertionCounts(alnString)
@@ -302,7 +308,7 @@ def cigarParts(beg, alignmentColumns, end):
     if end: yield str(end) + "H"
 
 def writeSam(maf, rg):
-    if 3 in mafLetterSizes(maf):
+    if isTranslated(maf):
         raise Exception("this looks like translated DNA - can't convert to SAM format")
 
     try: score = "AS:i:" + str(int(maf.namesAndValues["score"]))
