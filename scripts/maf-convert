@@ -94,11 +94,12 @@ def matchAndInsertSizes(alignmentColumns, letterSizes):
     for k, v in groupby(alignmentColumns, isGapless):
         if k:
             sizeOfGaplessBlock = len(list(v))
-            yield [sizeOfGaplessBlock]
+            yield str(sizeOfGaplessBlock)
         else:
-            blockRows = zip(*v)
-            blockRows = map(''.join, blockRows)
-            yield map(insertionSize, blockRows, letterSizes)
+            blockRows = izip(*v)
+            blockRows = imap(''.join, blockRows)
+            insertSizes = imap(insertionSize, blockRows, letterSizes)
+            yield joined(insertSizes, ":")
 
 ##### Routines for converting to AXT format: #####
 
@@ -146,8 +147,7 @@ def writeTab(maf):
     alnStrings = [i[6] for i in sLines]
     alignmentColumns = zip(*alnStrings)
     letterSizes = alnLetterSizes(sLines)
-    gapInfo = matchAndInsertSizes(alignmentColumns, letterSizes)
-    gapStrings = imap(joined, gapInfo, repeat(":"))
+    gapStrings = matchAndInsertSizes(alignmentColumns, letterSizes)
     gapWord = ",".join(gapStrings)
     outWords.append(gapWord)
 
