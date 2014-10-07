@@ -73,6 +73,12 @@ def insertionSize(alnString, letterSize):
     letters, forwardShifts, reverseShifts = insertionCounts(alnString)
     return letters * letterSize + forwardShifts - reverseShifts
 
+def symbolSize(symbol, letterSize):
+    if symbol == "-": return 0
+    if symbol == "\\": return 1
+    if symbol == "/": return -1
+    return letterSize
+
 def isMatch(alignmentColumn):
     # No special treatment of ambiguous bases/residues: same as NCBI BLAST.
     first = alignmentColumn[0].upper()
@@ -154,14 +160,27 @@ def writeTab(maf):
 
 def pslBlocks(alignmentColumns, alnStarts, letterSizes):
     """Get sizes and start coordinates of gapless blocks in an alignment."""
-    coordinates = alnStarts
-    for i in matchAndInsertSizes(alignmentColumns, letterSizes):
-        if len(i) == 1:  # we have the size of a gapless block
-            yield i + coordinates
-            increments = imap(operator.mul, letterSizes, cycle(i))
-            coordinates = map(operator.add, coordinates, increments)
-        else:  # we have sizes of inserts between gapless blocks
-            coordinates = map(operator.add, coordinates, i)
+    start1, start2 = alnStarts
+    letterSize1, letterSize2 = letterSizes
+    size = 0
+    for x, y in alignmentColumns:
+        if x == "-":
+            if size:
+                yield size, start1, start2
+                start1 += size * letterSize1
+                start2 += size * letterSize2
+                size = 0
+            start2 += symbolSize(y, letterSize2)
+        elif y == "-":
+            if size:
+                yield size, start1, start2
+                start1 += size * letterSize1
+                start2 += size * letterSize2
+                size = 0
+            start1 += symbolSize(x, letterSize1)
+        else:
+            size += 1
+    if size: yield size, start1, start2
 
 def pslCommaString(things):
     # UCSC software seems to prefer a trailing comma
