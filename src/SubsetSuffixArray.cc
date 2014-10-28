@@ -87,7 +87,7 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 // could & probably should return the match depth
 void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
                                const uchar* queryPtr, const uchar* text,
-                               indexT maxHits, indexT minDepth ) const{
+                               indexT maxHits, indexT maxDepth ) const{
   indexT depth = 0;
   const uchar* subsetMap = seed.firstMap();
 
@@ -98,7 +98,7 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   indexT bucketEnd = index.size();
 
   while( depth < bucketDepth ){
-    if( bucketEnd - bucketBeg <= maxHits || depth >= minDepth ){
+    if( bucketEnd - bucketBeg <= maxHits || depth >= maxDepth ){
       beg = &index[0] + bucketBeg;
       end = &index[0] + bucketEnd;
       return;
@@ -121,7 +121,7 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   end = &index[0] + bucketEnd;
 
   while( true ){
-    if( indexT(end - beg) <= maxHits || depth >= minDepth ) return;
+    if( indexT(end - beg) <= maxHits || depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset < CyclicSubsetSeed::DELIMITER ){
       equalRange( beg, end, text+depth, subsetMap, subset );

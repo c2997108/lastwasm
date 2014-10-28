@@ -59,11 +59,11 @@ public:
 
   // Find the smallest match to the text, starting at the given
   // position in the query, such that there are at most maxHits
-  // matches, or the match-depth is at least minDepth.  Return the
-  // range of matching indices via beg and end.
+  // matches, or the match-depth is maxDepth.  Return the range of
+  // matching indices via beg and end.
   void match( const indexT*& beg, const indexT*& end,
               const uchar* queryPtr, const uchar* text,
-              indexT maxHits, indexT minDepth ) const;
+              indexT maxHits, indexT maxDepth ) const;
 
   // Count matches of all sizes, starting at the given position in the
   // query.  Don't try this for large self-comparisons!
