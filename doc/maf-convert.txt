@@ -83,7 +83,7 @@ Hints for sam/bam
 
     java -jar FixMateInformation.jar I=y.sam O=z.bam VALIDATION_STRINGENCY=SILENT
 
-  Using samtools::
+  Alternatively, using samtools::
 
     samtools sort -n y.bam ysorted
     samtools fixmate ysorted.bam z.bam
