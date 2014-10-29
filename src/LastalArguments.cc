@@ -430,33 +430,35 @@ int LastalArguments::calcMinScoreGapless( double numLettersInReference,
 }
 
 void LastalArguments::writeCommented( std::ostream& stream ) const{
-  stream << "# "
-	 << "a=" << gapExistCost << ' '
-	 << "b=" << gapExtendCost << ' '
-	 << "A=" << insExistCost << ' '
-	 << "B=" << insExtendCost << ' '
-	 << "c=" << gapPairCost << ' '
-	 << "F=" << frameshiftCost << ' '
-	 << "e=" << minScoreGapped << ' '
-	 << "d=" << minScoreGapless << ' '
-	 << "x=" << maxDropGapped << ' '
-	 << "y=" << maxDropGapless << ' '
-	 << "z=" << maxDropFinal << '\n';
+  stream << '#'
+	 << " a=" << gapExistCost
+	 << " b=" << gapExtendCost
+	 << " A=" << insExistCost
+	 << " B=" << insExtendCost
+	 << " c=" << gapPairCost
+	 << " F=" << frameshiftCost
+	 << " e=" << minScoreGapped
+	 << " d=" << minScoreGapless
+	 << " x=" << maxDropGapped
+	 << " y=" << maxDropGapless
+	 << " z=" << maxDropFinal
+	 << '\n';
 
-  stream << "# "
-	 << "u=" << maskLowercase << ' '
-	 << "s=" << strand << ' '
-	 << "T=" << globality << ' '
-	 << "m=" << oneHitMultiplicity << ' '
-	 << "l=" << minHitDepth << ' '
-         << "n=" << maxGaplessAlignmentsPerQueryPosition << ' '
-	 << "k=" << queryStep << ' '
-	 << "i=" << batchSize << ' '
-	 << "w=" << maxRepeatDistance << ' '
-	 << "t=" << temperature << ' '
-	 << "g=" << gamma << ' '
-	 << "j=" << outputType << ' '
-	 << "Q=" << inputFormat << '\n';
+  stream << '#'
+	 << " u=" << maskLowercase
+	 << " s=" << strand
+	 << " T=" << globality
+	 << " m=" << oneHitMultiplicity
+	 << " l=" << minHitDepth
+	 << " n=" << maxGaplessAlignmentsPerQueryPosition
+	 << " k=" << queryStep
+	 << " i=" << batchSize
+	 << " w=" << maxRepeatDistance
+	 << " t=" << temperature
+	 << " g=" << gamma
+	 << " j=" << outputType
+	 << " Q=" << inputFormat
+	 << '\n';
 
   stream << "# " << lastdbName << '\n';
 }
