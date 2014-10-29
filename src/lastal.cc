@@ -260,7 +260,7 @@ void countMatches( char strand ){
 
     for( unsigned x = 0; x < numOfIndexes; ++x )
       suffixArrays[x].countMatches( matchCounts[seqNum], query.seqReader() + i,
-				    text.seqReader() );
+				    text.seqReader(), -1 );
   }
 }
 

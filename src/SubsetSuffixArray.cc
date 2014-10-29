@@ -138,7 +138,8 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
 
 void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
 				      const uchar* queryPtr,
-				      const uchar* text ) const{
+				      const uchar* text,
+				      indexT maxDepth ) const{
   indexT depth = 0;
   const uchar* subsetMap = seed.firstMap();
 
@@ -152,6 +153,7 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
     if( bucketBeg == bucketEnd ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
     counts[depth] += bucketEnd - bucketBeg;
+    if( depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
     ++depth;
@@ -170,6 +172,7 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
     if( beg == end ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
     counts[depth] += end - beg;
+    if( depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
     equalRange( beg, end, text+depth, subsetMap, subset );

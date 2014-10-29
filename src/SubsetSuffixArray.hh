@@ -66,10 +66,11 @@ public:
               const uchar* queryPtr, const uchar* text,
               indexT maxHits, indexT minDepth, indexT maxDepth ) const;
 
-  // Count matches of all sizes, starting at the given position in the
-  // query.  Don't try this for large self-comparisons!
+  // Count matches of all sizes (up to maxDepth), starting at the
+  // given position in the query.
   void countMatches( std::vector<unsigned long long>& counts,
-		     const uchar* queryPtr, const uchar* text ) const;
+		     const uchar* queryPtr, const uchar* text,
+		     indexT maxDepth ) const;
 
 private:
   CyclicSubsetSeed seed;
