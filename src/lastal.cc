@@ -341,7 +341,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
       const indexT* beg;
       const indexT* end;
       suffixArrays[x].match( beg, end, dis.b + i, dis.a,
-			     args.oneHitMultiplicity, args.minHitDepth );
+			     args.oneHitMultiplicity, 0, args.minHitDepth );
       matchCount += end - beg;
 
       // Tried: if we hit a delimiter when using contiguous seeds, then

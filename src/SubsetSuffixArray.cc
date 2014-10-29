@@ -87,7 +87,8 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 // could & probably should return the match depth
 void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
                                const uchar* queryPtr, const uchar* text,
-                               indexT maxHits, indexT maxDepth ) const{
+                               indexT maxHits,
+                               indexT minDepth, indexT maxDepth ) const{
   indexT depth = 0;
   const uchar* subsetMap = seed.firstMap();
 
@@ -98,22 +99,23 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   indexT bucketEnd = index.size();
 
   while( depth < bucketDepth ){
-    if( bucketEnd - bucketBeg <= maxHits || depth >= maxDepth ){
+    indexT size = bucketEnd - bucketBeg;
+    if( (size <= maxHits || depth >= maxDepth) && depth >= minDepth ){
       beg = &index[0] + bucketBeg;
       end = &index[0] + bucketEnd;
       return;
     }
     uchar subset = subsetMap[ queryPtr[depth] ];
-    if( subset < CyclicSubsetSeed::DELIMITER ){
-      ++depth;
-      indexT step = bucketSteps[depth];
-      bucketPtr += subset * step;
-      bucketBeg = *bucketPtr;
-      bucketEnd = *(bucketPtr + step);
-      subsetMap = seed.nextMap( subsetMap );
-    }else{  // we hit a delimiter in the query, so finish without any matches:
-      bucketBeg = bucketEnd;
+    if( subset == CyclicSubsetSeed::DELIMITER ){
+      beg = end = &index[0];
+      return;
     }
+    ++depth;
+    indexT step = bucketSteps[depth];
+    bucketPtr += subset * step;
+    bucketBeg = *bucketPtr;
+    bucketEnd = *(bucketPtr + step);
+    subsetMap = seed.nextMap( subsetMap );
   }
 
   // match using binary search:
@@ -121,15 +123,16 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   end = &index[0] + bucketEnd;
 
   while( true ){
-    if( indexT(end - beg) <= maxHits || depth >= maxDepth ) return;
+    indexT size = end - beg;
+    if( (size <= maxHits || depth >= maxDepth) && depth >= minDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
-    if( subset < CyclicSubsetSeed::DELIMITER ){
-      equalRange( beg, end, text+depth, subsetMap, subset );
-      ++depth;
-      subsetMap = seed.nextMap( subsetMap );
-    }else{  // we hit a delimiter in the query, so finish without any matches:
+    if( subset == CyclicSubsetSeed::DELIMITER ){
       beg = end;
+      return;
     }
+    equalRange( beg, end, text+depth, subsetMap, subset );
+    ++depth;
+    subsetMap = seed.nextMap( subsetMap );
   }
 }
 

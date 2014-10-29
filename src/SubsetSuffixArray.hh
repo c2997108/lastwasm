@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2013, 2014 Martin C. Frith
 
 // This class holds a suffix array.  The suffix array is just a list
 // of numbers indicating positions in a text, sorted according to the
@@ -59,11 +59,12 @@ public:
 
   // Find the smallest match to the text, starting at the given
   // position in the query, such that there are at most maxHits
-  // matches, or the match-depth is maxDepth.  Return the range of
-  // matching indices via beg and end.
+  // matches, and the match-depth is at least minDepth, or the
+  // match-depth is maxDepth.  Return the range of matching indices
+  // via beg and end.
   void match( const indexT*& beg, const indexT*& end,
               const uchar* queryPtr, const uchar* text,
-              indexT maxHits, indexT maxDepth ) const;
+              indexT maxHits, indexT minDepth, indexT maxDepth ) const;
 
   // Count matches of all sizes, starting at the given position in the
   // query.  Don't try this for large self-comparisons!
