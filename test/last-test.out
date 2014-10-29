@@ -1044,7 +1044,7 @@ TEST 22
 TEST 23
 #
 # a=7 b=1 A=7 B=1 c=100000 F=-1 e=34 d=12 x=33 y=9 z=33
-# u=0 s=2 T=0 m=10 l=4294967295 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# u=0 s=2 T=0 m=10 l=4294967295 n=10 C=2 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 #
