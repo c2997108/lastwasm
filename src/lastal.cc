@@ -260,7 +260,7 @@ void countMatches( char strand ){
 
     for( unsigned x = 0; x < numOfIndexes; ++x )
       suffixArrays[x].countMatches( matchCounts[seqNum], query.seqReader() + i,
-				    text.seqReader(), -1 );
+				    text.seqReader(), args.maxHitDepth );
   }
 }
 
@@ -341,7 +341,8 @@ void alignGapless( SegmentPairPot& gaplessAlns,
       const indexT* beg;
       const indexT* end;
       suffixArrays[x].match( beg, end, dis.b + i, dis.a,
-			     args.oneHitMultiplicity, 0, args.minHitDepth );
+			     args.oneHitMultiplicity,
+			     args.minHitDepth, args.maxHitDepth );
       matchCount += end - beg;
 
       // Tried: if we hit a delimiter when using contiguous seeds, then

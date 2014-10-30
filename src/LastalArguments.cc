@@ -41,7 +41,8 @@ LastalArguments::LastalArguments() :
   maxDropGapless(-1),  // depends on the score matrix
   maxDropFinal(-1),  // depends on maxDropGapped
   inputFormat(sequenceFormat::fasta),
-  minHitDepth(0),  // depends on the outputType
+  minHitDepth(1),
+  maxHitDepth(-1),
   oneHitMultiplicity(10),
   maxGaplessAlignmentsPerQueryPosition(0),  // depends on oneHitMultiplicity
   cullingLimitForGaplessAlignments(0),
@@ -88,7 +89,9 @@ Miscellaneous options (default settings):\n\
     + stringify(globality) + ")\n\
 -m: maximum initial matches per query position ("
     + stringify(oneHitMultiplicity) + ")\n\
--l: length threshold for initial matches (1 if -j0, else infinity)\n\
+-l: minimum length for initial matches ("
+    + stringify(minHitDepth) + ")\n\
+-L: maximum length for initial matches (infinity)\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
 -C: culling limit for gapless alignments (off)\n\
 -k: step-size along the query sequence ("
@@ -116,7 +119,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-      "hu:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:n:C:k:i:w:t:g:G:vj:";
+      "hu:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
   while( (c = getopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -203,7 +206,9 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'l':
       unstringify( minHitDepth, optarg );
-      if( minHitDepth <= 0 ) badopt( c, optarg );
+      break;
+    case 'L':
+      unstringify( maxHitDepth, optarg );
       break;
     case 'n':
       unstringify( maxGaplessAlignmentsPerQueryPosition, optarg );
@@ -364,9 +369,6 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
   }
 
-  if( minHitDepth == 0 )
-    minHitDepth = (outputType == 0) ? 1 : -1;
-
   if( maxGaplessAlignmentsPerQueryPosition == 0 )
     maxGaplessAlignmentsPerQueryPosition =
       (oneHitMultiplicity > 0) ? oneHitMultiplicity : -1;
@@ -450,6 +452,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " T=" << globality;
   stream << " m=" << oneHitMultiplicity;
   stream << " l=" << minHitDepth;
+  if( maxHitDepth + 1 > 0 )
+    stream << " L=" << maxHitDepth;
   stream << " n=" << maxGaplessAlignmentsPerQueryPosition;
   if( cullingLimitForGaplessAlignments )
     stream << " C=" << cullingLimitForGaplessAlignments;
