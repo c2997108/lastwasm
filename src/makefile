@@ -19,9 +19,9 @@ SegmentPairPot.o AlignmentPot.o GeneralizedAffineGapCosts.o		\
 Centroid.o LambdaCalculator.o TwoQualityScoreMatrix.o			\
 OneQualityScoreMatrix.o QualityPssmMaker.o GeneticCode.o		\
 gaplessXdrop.o gaplessPssmXdrop.o gaplessTwoQualityXdrop.o		\
-AlignmentWrite.o MultiSequenceQual.o GappedXdropAlignerPssm.o		\
-GappedXdropAligner2qual.o GappedXdropAligner3frame.o lastal.o		\
-CA_code/lambda_calculator.o
+SubsetSuffixArraySearch.o AlignmentWrite.o MultiSequenceQual.o		\
+GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
+GappedXdropAligner3frame.o lastal.o CA_code/lambda_calculator.o
 
 EXOBJ = Alphabet.o LastexArguments.o io.o ScoreMatrix.o lastex.o	\
 gumbel_params/mcf_local_alignment_evaluer.o				\
@@ -147,6 +147,9 @@ SegmentPairPot.o: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh
 SubsetSuffixArray.o: SubsetSuffixArray.cc SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  io.hh
+SubsetSuffixArraySearch.o: SubsetSuffixArraySearch.cc \
+ SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
+ fileMap.hh stringify.hh
 SubsetSuffixArraySort.o: SubsetSuffixArraySort.cc SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
 TwoQualityScoreMatrix.o: TwoQualityScoreMatrix.cc \
