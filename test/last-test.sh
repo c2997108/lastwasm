@@ -122,6 +122,15 @@ db=/tmp/last-test
     lastdb -uMAM4 $db hg19-M.fa
     lastal -e34 -C2 -f0 $db galGal3-M-32.fa
     echo
+
+    echo TEST 24  # minimum seed length
+    lastal -e34 -f0 -l30 $db galGal3-M-32.fa
+    echo
+
+    echo TEST 25  # match-counting with min & max lengths
+    lastdb -m1 $db $dnaSeq
+    lastal -j0 -l4 -L11 -s0 $db $dnaSeq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
