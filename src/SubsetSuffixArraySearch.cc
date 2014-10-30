@@ -16,13 +16,25 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
 
   // match using buckets:
   indexT bucketDepth = maxBucketPrefix();
+  indexT startDepth = std::min( bucketDepth, minDepth );
   const indexT* bucketPtr = &buckets[0];
-  indexT bucketBeg = 0;
-  indexT bucketEnd = index.size();
+
+  while( depth < startDepth ){
+    uchar subset = subsetMap[ queryPtr[depth] ];
+    if( subset == CyclicSubsetSeed::DELIMITER ){
+      beg = end = &index[0];
+      return;
+    }
+    ++depth;
+    bucketPtr += subset * bucketSteps[depth];
+    subsetMap = seed.nextMap( subsetMap );
+  }
+
+  indexT bucketBeg = *bucketPtr;
+  indexT bucketEnd = depth ? *(bucketPtr + bucketSteps[depth]) : index.size();
 
   while( depth < bucketDepth ){
-    indexT size = bucketEnd - bucketBeg;
-    if( (size <= maxHits || depth >= maxDepth) && depth >= minDepth ){
+    if( bucketEnd - bucketBeg <= maxHits || depth >= maxDepth ){
       beg = &index[0] + bucketBeg;
       end = &index[0] + bucketEnd;
       return;
