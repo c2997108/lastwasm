@@ -138,19 +138,14 @@ const SubsetSuffixArray::indexT*
 SubsetSuffixArray::lowerBound( const indexT* beg, const indexT* end,
 			       const uchar* textBase,
 			       const uchar* subsetMap, uchar subset ){
-  for( ;; ){
-    std::size_t size = end - beg;
-    if( size <= 4 ) break;  // 3,4 seem good for hg18 chr21 versus itself
-    const indexT* mid = beg + size / 2;
+  while( beg < end ){
+    const indexT* mid = beg + std::size_t( end - beg ) / 2;
     if( subsetMap[ textBase[ *mid ] ] < subset ){
       beg = mid + 1;
     }else{
       end = mid;
     }
   }
-
-  while( subsetMap[ textBase[ *beg ] ] < subset ) ++beg;  // linear search
-
   return beg;
 }
 
@@ -158,18 +153,13 @@ const SubsetSuffixArray::indexT*
 SubsetSuffixArray::upperBound( const indexT* beg, const indexT* end,
 			       const uchar* textBase,
 			       const uchar* subsetMap, uchar subset ){
-  for( ;; ){
-    std::size_t size = end - beg;
-    if( size <= 4 ) break;  // 3,4 seem good for hg18 chr21 versus itself
-    const indexT* mid = beg + size / 2;
+  while( beg < end ){
+    const indexT* mid = beg + std::size_t( end - beg ) / 2;
     if( subsetMap[ textBase[ *mid ] ] <= subset ){
       beg = mid + 1;
     }else{
       end = mid;
     }
   }
-
-  while( subsetMap[ textBase[ *(end-1) ] ] > subset ) --end;  // linear search
-
   return end;
 }
