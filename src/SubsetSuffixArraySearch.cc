@@ -11,6 +11,9 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
                                const uchar* queryPtr, const uchar* text,
                                indexT maxHits,
                                indexT minDepth, indexT maxDepth ) const{
+  // the next line is unnecessary, but makes it faster in some cases:
+  if( maxHits == 0 && minDepth < maxDepth ) minDepth = maxDepth;
+
   indexT depth = 0;
   const uchar* subsetMap = seed.firstMap();
 
@@ -56,9 +59,23 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   beg = &index[0] + bucketBeg;
   end = &index[0] + bucketEnd;
 
+  if( depth < minDepth ){
+    indexT d = depth;
+    const uchar* s = subsetMap;
+    while( depth < minDepth ){
+      uchar subset = subsetMap[ queryPtr[depth] ];
+      if( subset == CyclicSubsetSeed::DELIMITER ){
+	beg = end;
+	return;
+      }
+      ++depth;
+      subsetMap = seed.nextMap( subsetMap );
+    }
+    equalRange2( beg, end, queryPtr + d, queryPtr + depth, text + d, s );
+  }
+
   while( true ){
-    indexT size = end - beg;
-    if( (size <= maxHits || depth >= maxDepth) && depth >= minDepth ) return;
+    if( indexT(end - beg) <= maxHits || depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ){
       beg = end;
@@ -159,6 +176,127 @@ SubsetSuffixArray::upperBound( const indexT* beg, const indexT* end,
       beg = mid + 1;
     }else{
       end = mid;
+    }
+  }
+  return end;
+}
+
+void SubsetSuffixArray::equalRange2( const indexT*& beg, const indexT*& end,
+				     const uchar* queryBeg,
+				     const uchar* queryEnd,
+				     const uchar* textBase,
+				     const uchar* subsetMap ) const{
+  const uchar* qBeg = queryBeg;
+  const uchar* qEnd = qBeg;
+  const uchar* tBeg = textBase;
+  const uchar* tEnd = tBeg;
+  const uchar* sBeg = subsetMap;
+  const uchar* sEnd = sBeg;
+
+  while( beg < end ){
+    const indexT* mid = beg + std::size_t( end - beg ) / 2;
+    indexT offset = *mid;
+    const uchar* q;
+    const uchar* t;
+    const uchar* s;
+    if( qBeg < qEnd ){
+      q = qBeg;
+      t = tBeg + offset;
+      s = sBeg;
+    }else{
+      q = qEnd;
+      t = tEnd + offset;
+      s = sEnd;
+    }
+    uchar x, y;
+    for( ; ; ){  // loop over consecutive letters
+      x = s[ *t ];  // this text letter's subset
+      y = s[ *q ];  // this query letter's subset
+      if( x != y ) break;
+      ++q;  // next query letter
+      if( q == queryEnd ){  // we found a full match to [queryBeg, queryEnd)
+	beg = lowerBound2( beg, mid, qBeg, queryEnd, tBeg, sBeg );
+	end = upperBound2( mid + 1, end, qEnd, queryEnd, tEnd, sEnd );
+	return;
+      }
+      ++t;  // next text letter
+      s = seed.nextMap( s );  // next mapping from letters to subsets
+    }
+    if( x < y ){
+      beg = mid + 1;
+      // the next 3 lines are unnecessary, but make it faster:
+      qBeg = q;
+      tBeg = t - offset;
+      sBeg = s;
+    }else{
+      end = mid;
+      // the next 3 lines are unnecessary, but make it faster:
+      qEnd = q;
+      tEnd = t - offset;
+      sEnd = s;
+    }
+  }
+}
+
+const SubsetSuffixArray::indexT*
+SubsetSuffixArray::lowerBound2( const indexT* beg, const indexT* end,
+				const uchar* queryBeg, const uchar* queryEnd,
+				const uchar* textBase,
+				const uchar* subsetMap ) const{
+  while( beg < end ){
+    const indexT* mid = beg + std::size_t( end - beg ) / 2;
+    indexT offset = *mid;
+    const uchar* t = textBase + offset;
+    const uchar* q = queryBeg;
+    const uchar* s = subsetMap;
+    for( ; ; ){  // loop over consecutive letters
+      if( s[ *t ] < s[ *q ] ){
+	beg = mid + 1;
+	// the next 3 lines are unnecessary, but make it faster:
+	queryBeg = q;
+	textBase = t - offset;
+	subsetMap = s;
+	break;
+      }
+      ++q;  // next query letter
+      if( q == queryEnd ){  // we found a full match to [queryBeg, queryEnd)
+	end = mid;
+	break;
+      }
+      ++t;  // next text letter
+      s = seed.nextMap( s );  // next mapping from letters to subsets
+    }
+  }
+  return beg;
+}
+
+const SubsetSuffixArray::indexT*
+SubsetSuffixArray::upperBound2( const indexT* beg, const indexT* end,
+				const uchar* queryBeg, const uchar* queryEnd,
+				const uchar* textBase,
+				const uchar* subsetMap ) const{
+  while( beg < end ){
+    const indexT* mid = beg + std::size_t( end - beg ) / 2;
+    indexT offset = *mid;
+    const uchar* t = textBase + offset;
+    const uchar* q = queryBeg;
+    const uchar* s = subsetMap;
+    for( ; ; ){  // loop over consecutive letters
+      if( s[ *t ] > s[ *q ] ){
+	end = mid;
+	// the next 3 lines are unnecessary, but make it faster:
+	queryBeg = q;
+	textBase = t - offset;
+	subsetMap = s;
+        break;
+      }
+      ++q;  // next query letter
+      if( q == queryEnd ){  // we found a full match to [queryBeg, queryEnd)
+	beg = mid + 1;
+	break;
+      }
+      ++t;  // next text letter
+      s = seed.nextMap( s );  // next mapping from letters to subsets
     }
   }
   return end;

@@ -78,15 +78,31 @@ private:
   VectorOrMmap<indexT> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
 
+  // These find the suffix array range of one letter, whose subset is
+  // "subset", within the suffix array range [beg, end):
   static void equalRange( const indexT*& beg, const indexT*& end,
 			  const uchar* textBase,
-			  const uchar* subsetMap, uchar symbol );
+			  const uchar* subsetMap, uchar subset );
   static const indexT* lowerBound( const indexT* beg, const indexT* end,
 				   const uchar* textBase,
 				   const uchar* subsetMap, uchar subset );
   static const indexT* upperBound( const indexT* beg, const indexT* end,
 				   const uchar* textBase,
 				   const uchar* subsetMap, uchar subset );
+
+  // These find the suffix array range of string [queryBeg, queryEnd)
+  // within the suffix array range [beg, end):
+  void equalRange2( const indexT*& beg, const indexT*& end,
+		    const uchar* queryBeg, const uchar* queryEnd,
+		    const uchar* textBase, const uchar* subsetMap ) const;
+  const indexT* lowerBound2( const indexT* beg, const indexT* end,
+			     const uchar* queryBeg, const uchar* queryEnd,
+			     const uchar* textBase,
+			     const uchar* subsetMap ) const;
+  const indexT* upperBound2( const indexT* beg, const indexT* end,
+			     const uchar* queryBeg, const uchar* queryEnd,
+			     const uchar* textBase,
+			     const uchar* subsetMap ) const;
 
   // Return the maximum prefix size covered by the buckets.
   indexT maxBucketPrefix() const { return bucketSteps.size() - 1; }
