@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2012 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2012, 2014 Martin C. Frith
 
 #include "Alphabet.hh"
 #include <istream>
@@ -24,7 +24,7 @@ void Alphabet::fromString( const std::string& alphString ){
 void Alphabet::count( const uchar* beg, const uchar* end,
                       countT* counts ) const{
   for( /* noop */; beg < end; ++beg ){
-    unsigned uppercase = canonical[ *beg ];
+    unsigned uppercase = numbersToUppercase[ *beg ];
     if( uppercase < size ) ++counts[ uppercase ];
   }
 }
@@ -61,7 +61,7 @@ void Alphabet::init(){
   std::fill_n( encode, capacity, dummyCode );
 
   for( unsigned i = 0; i < capacity; ++i ){
-    canonical[i] = i;
+    numbersToUppercase[i] = i;
   }
 
   unsigned code = 0;
@@ -87,7 +87,7 @@ void Alphabet::addLetters( const std::string& lettersToAdd, unsigned& code ){
     if( encode[letter] == dummyCode ){
       encode[letter] = code;
       decode[code] = letter;
-      canonical[code] = encode[ std::toupper(letter) ];
+      numbersToUppercase[code] = encode[ std::toupper(letter) ];
       ++code;
     }
   }

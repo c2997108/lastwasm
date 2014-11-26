@@ -1,4 +1,4 @@
-// Copyright 2008, 2009, 2010, 2012, 2013 Martin C. Frith
+// Copyright 2008, 2009, 2010, 2012, 2013, 2014 Martin C. Frith
 
 // This struct maps characters to codes (small integers) and back.
 
@@ -49,7 +49,7 @@ struct Alphabet{
   unsigned size;          // same as letters.size(): excludes delimiters
   uchar encode[capacity];  // translate ASCII letters to codes (small integers)
   uchar decode[capacity];  // translate codes to ASCII letters
-  uchar canonical[capacity];   // translate lowercase codes to uppercase codes
+  uchar numbersToUppercase[capacity];   // translate codes to uppercase codes
   uchar complement[capacity];  // translate DNA codes to their complements
 
   void init();

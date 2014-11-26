@@ -24,10 +24,10 @@ static void addExpectedCounts( double* expectedCounts,
 			       const ExpectedCount& ec,
 			       const Alphabet& alph ){
   for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
-    unsigned x = alph.canonical[i];
+    unsigned x = alph.numbersToUppercase[i];
     if( x >= alph.size ) continue;
     for( unsigned j = 0; j < scoreMatrixRowSize; ++j ){
-      unsigned y = alph.canonical[j];
+      unsigned y = alph.numbersToUppercase[j];
       if( y >= alph.size ) continue;
       expectedCounts[ x * alph.size + y ] += ec.emit[i][j];
     }
@@ -58,8 +58,8 @@ static void countSeedMatches( double* expectedCounts,
 			      const uchar* seq1beg, const uchar* seq1end,
 			      const uchar* seq2beg, const Alphabet& alph ){
   while( seq1beg < seq1end ){
-    unsigned x1 = alph.canonical[ *seq1beg++ ];
-    unsigned x2 = alph.canonical[ *seq2beg++ ];
+    unsigned x1 = alph.numbersToUppercase[ *seq1beg++ ];
+    unsigned x2 = alph.numbersToUppercase[ *seq2beg++ ];
     if( x1 < alph.size && x2 < alph.size )
       ++expectedCounts[ x1 * alph.size + x2 ];
   }

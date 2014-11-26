@@ -106,11 +106,11 @@ void makeQualityScorers(){
       if( args.maskLowercase > 0 )
         oneQualityScoreMatrixMasked.init( m, alph.size, lambda,
                                           &lp2[0], isPhred2, offset2,
-                                          alph.canonical, true );
+                                          alph.numbersToUppercase, true );
       if( args.maskLowercase < 3 )
         oneQualityScoreMatrix.init( m, alph.size, lambda,
                                     &lp2[0], isPhred2, offset2,
-                                    alph.canonical, false );
+                                    alph.numbersToUppercase, false );
       if( args.outputType > 3 ){
         const OneQualityScoreMatrix &m = (args.maskLowercase < 3) ?
             oneQualityScoreMatrix : oneQualityScoreMatrixMasked;
@@ -121,7 +121,7 @@ void makeQualityScorers(){
       bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
       qualityPssmMaker.init( m, alph.size, lambda, isMatchMismatch,
                              args.matchScore, -args.mismatchCost,
-                             offset2, alph.canonical );
+                             offset2, alph.numbersToUppercase );
     }
   }
   else{
@@ -129,11 +129,11 @@ void makeQualityScorers(){
       if( args.maskLowercase > 0 )
         twoQualityScoreMatrixMasked.init( m, lambda, &lp1[0], &lp2[0],
                                           isPhred1, offset1, isPhred2, offset2,
-                                          alph.canonical, true);
+                                          alph.numbersToUppercase, true);
       if( args.maskLowercase < 3 )
         twoQualityScoreMatrix.init( m, lambda, &lp1[0], &lp2[0],
                                     isPhred1, offset1, isPhred2, offset2,
-                                    alph.canonical, false );
+                                    alph.numbersToUppercase, false );
       if( args.outputType > 3 ){
         ERR( "fastq-versus-fastq column probabilities not implemented" );
       }
@@ -402,7 +402,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 // It may not be the best strategy for protein alignment with subset
 // seeds: there could be few or no identical matches...
 void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
-  sp.maxIdenticalRun( dis.a, dis.b, alph.canonical );
+  sp.maxIdenticalRun( dis.a, dis.b, alph.numbersToUppercase );
   sp.score = dis.gaplessScore( sp.beg1(), sp.end1(), sp.beg2() );
 }
 
