@@ -60,10 +60,6 @@ void Alphabet::init(){
 
   std::fill_n( encode, capacity, dummyCode );
 
-  for( unsigned i = 0; i < capacity; ++i ){
-    numbersToUppercase[i] = i;
-  }
-
   unsigned code = 0;
   addLetters( letters, code );
   size = code;
@@ -78,6 +74,7 @@ void Alphabet::init(){
   addLetters( "abcdefghijklmnopqrstuvwxyz", code );
   addLetters( ".", code );  // sometimes appears in FASTQ
 
+  initCaseConversions( code );
   makeComplement();
 }
 
@@ -87,9 +84,21 @@ void Alphabet::addLetters( const std::string& lettersToAdd, unsigned& code ){
     if( encode[letter] == dummyCode ){
       encode[letter] = code;
       decode[code] = letter;
-      numbersToUppercase[code] = encode[ std::toupper(letter) ];
       ++code;
     }
+  }
+}
+
+void Alphabet::initCaseConversions( unsigned codeEnd ) {
+  for( unsigned i = 0; i < codeEnd; ++i ){
+    uchar letter = decode[i];
+    numbersToUppercase[i] = encode[ std::toupper(letter) ];
+    numbersToLowercase[i] = encode[ std::tolower(letter) ];
+  }
+
+  for( unsigned i = codeEnd; i < capacity; ++i ){
+    numbersToUppercase[i] = i;
+    numbersToLowercase[i] = i;
   }
 }
 

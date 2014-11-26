@@ -49,11 +49,13 @@ struct Alphabet{
   unsigned size;          // same as letters.size(): excludes delimiters
   uchar encode[capacity];  // translate ASCII letters to codes (small integers)
   uchar decode[capacity];  // translate codes to ASCII letters
-  uchar numbersToUppercase[capacity];   // translate codes to uppercase codes
+  uchar numbersToUppercase[capacity];  // translate codes to uppercase codes
+  uchar numbersToLowercase[capacity];  // translate codes to lowercase codes
   uchar complement[capacity];  // translate DNA codes to their complements
 
   void init();
   void addLetters( const std::string& lettersToAdd, unsigned& code );
+  void initCaseConversions( unsigned codeEnd );
   void makeComplement();
 };
 
