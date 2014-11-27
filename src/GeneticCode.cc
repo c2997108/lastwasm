@@ -38,7 +38,7 @@ void GeneticCode::fromString( const std::string& s ){
 //
 void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph )
 {
-  std::vector<uchar>	codon(3);
+  uchar codon[3];
 
   genome2residue.assign( UNKNOWN, 'X' );
 
@@ -91,12 +91,13 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
 }
 
 //
-void GeneticCode::translate( const uchar* beg, const uchar* end, uchar* dest ){
+void GeneticCode::translate( const uchar* beg, const uchar* end,
+			     uchar* dest ) const{
   size_t size = end - beg;
 
   for( size_t i = 0 ; i < 3 ; i++ ){
     for( size_t j = i ; j+2 < size ; j+=3 ){
-      *dest++ = genome2residue[codon2number( &beg[j] )];
+      *dest++ = translation( beg + j );
     }
 
     // this ensures that each reading frame has exactly the same size:
@@ -111,21 +112,10 @@ void GeneticCode::translate( const uchar* beg, const uchar* end, uchar* dest ){
 }
 
 //
-int GeneticCode::codon2number( const uchar *codon )
-{
-  int 		number;
-
-  number = codon[0] * NumMember*NumMember + codon[1] * NumMember + codon[2];
-  assert( number < UNKNOWN );
-
-  return number;
-}
-
-//
-int GeneticCode::codon2number2( std::vector<uchar> codon, const Alphabet& dnaAlph )
-{
-  dnaAlph.tr( &codon.front(), &codon.back() + 1 );
-  return codon2number( &codon[0] );
+int GeneticCode::codon2number2( const uchar* codon, const Alphabet& dnaAlph ){
+  uchar c[3] = { codon[0], codon[1], codon[2] };
+  dnaAlph.tr( c, c + 3 );
+  return codon2number( c );
 }
 
 //

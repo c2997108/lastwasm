@@ -11,37 +11,33 @@
 
 namespace cbrc{
 
+typedef unsigned char uchar;
+
 class Alphabet;
 
-class GeneticCode
-{
+class GeneticCode{
  private:
-  typedef unsigned char uchar;
+  std::string AAs;
+  std::string Base[3];
+  static const int NumMember = 54;  // DNA member
+  static const int UNKNOWN = NumMember*NumMember*NumMember;  // unknown residue
+  std::vector<uchar> genome2residue;
 
-  GeneticCode( GeneticCode &c );
-  const GeneticCode & operator=( const GeneticCode &c );
-  std::string			AAs;
-  std::string			Base[3];
-  static const int 		NumMember = 54;			// DNA member
-  static const int 		UNKNOWN = NumMember*NumMember*NumMember;	// unknown residue
-  std::vector<uchar>		genome2residue;
- protected:
-  virtual int			codon2number( const uchar* codon );
-  virtual int			codon2number2( std::vector<uchar> codon, const Alphabet& dnaAlph );
-  friend std::istream& operator>>( std::istream& stream, GeneticCode& codon  );
+  static int codon2number( const uchar* codon )
+  { return codon[0] * NumMember*NumMember + codon[1] * NumMember + codon[2]; }
+
+  static int codon2number2( const uchar* codon, const Alphabet& dnaAlph );
+
+  friend std::istream& operator>>( std::istream& stream, GeneticCode& codon );
+
  public:
-  GeneticCode(){
-    //    std::cout << "Constructing GeneticCode.\n";
-  }
-  virtual			~GeneticCode(){
-    //    std::cout << "Destructing GeneticCode.\n";
-  }
-  virtual void 			fromFile( const std::string& codeTable );
-  virtual void 			fromString( const std::string& s );
-  virtual void			codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph );
-  virtual void 			translate( const uchar* beg,
-                                           const uchar* end,
-					   uchar* dest );
+  void fromFile( const std::string& codeTable );
+  void fromString( const std::string& s );
+  void codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph );
+  void translate( const uchar* beg, const uchar* end, uchar* dest ) const;
+
+  uchar translation( const uchar* codon ) const
+  { return genome2residue[ codon2number( codon ) ]; }
 
   static const char* standard;  // the standard genetic code
 };
