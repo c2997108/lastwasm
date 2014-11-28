@@ -167,11 +167,11 @@ void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
 // lowercase-masked letters and DNA "N"s aren't indexed.)
 static indexT maxLettersPerVolume( const LastdbArguments& args,
 				   unsigned numOfIndexes ){
-  std::size_t bytesPerLetter = isFastq( args.inputFormat ) ? 2 : 1;
-  std::size_t maxIndexBytesPerPosition = sizeof(indexT) + 1;
+  size_t bytesPerLetter = isFastq( args.inputFormat ) ? 2 : 1;
+  size_t maxIndexBytesPerPosition = sizeof(indexT) + 1;
   maxIndexBytesPerPosition *= numOfIndexes;
-  std::size_t x = bytesPerLetter * args.indexStep + maxIndexBytesPerPosition;
-  std::size_t y = args.volumeSize / x * args.indexStep;
+  size_t x = bytesPerLetter * args.indexStep + maxIndexBytesPerPosition;
+  size_t y = args.volumeSize / x * args.indexStep;
   indexT z = y;
   if( z < y ) z = indexT(-1);
   return z;
@@ -186,7 +186,7 @@ appendFromFasta( MultiSequence& multi,
   indexT maxSeqLen = maxLettersPerVolume( args, numOfIndexes );
   if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
-  std::size_t oldUnfinishedSize = multi.unfinishedSize();
+  size_t oldUnfinishedSize = multi.unfinishedSize();
   indexT oldFinishedSize = multi.finishedSize();
 
   if ( args.inputFormat == sequenceFormat::fasta )
@@ -198,8 +198,8 @@ appendFromFasta( MultiSequence& multi,
     ERR( "encountered a sequence that's too long" );
 
   // encode the newly-read sequence
-  alph.tr( multi.seqWriter() + oldUnfinishedSize,
-           multi.seqWriter() + multi.unfinishedSize() );
+  uchar* seq = multi.seqWriter();
+  alph.tr( seq + oldUnfinishedSize, seq + multi.unfinishedSize() );
 
   if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
     checkQualityCodes( multi.qualityReader() + oldUnfinishedSize,

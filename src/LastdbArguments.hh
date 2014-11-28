@@ -5,7 +5,7 @@
 #ifndef LASTDB_ARGUMENTS_HH
 #define LASTDB_ARGUMENTS_HH
 
-#include <cstddef>  // size_t
+#include <stddef.h>  // size_t
 #include "SequenceFormat.hh"
 
 #include <string>
@@ -26,7 +26,7 @@ struct LastdbArguments{
   bool isProtein;
   bool isCaseSensitive;
   std::vector< std::string > seedPatterns;
-  std::size_t volumeSize;  // type?
+  size_t volumeSize;  // type?
   indexT indexStep;
   std::vector< std::string > subsetSeedFiles;
   std::string userAlphabet;

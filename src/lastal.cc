@@ -586,15 +586,16 @@ void scan( char strand, std::ostream& out ){
 void translateAndScan( char strand, std::ostream& out ){
   if( args.isTranslated() ){
     LOG( "translating..." );
-    std::vector<uchar> translation( query.finishedSize() );
-    geneticCode.translate( query.seqReader(),
-                           query.seqReader() + query.finishedSize(),
-			   &translation[0] );
+    const uchar* seq = query.seqReader();
+    size_t size = query.finishedSize();
+    std::vector<uchar> translation( size );
+    geneticCode.translate( seq, seq + size, &translation[0] );
     query.swapSeq(translation);
     scan( strand, out );
     query.swapSeq(translation);
+  }else{
+    scan( strand, out );
   }
-  else scan( strand, out );
 }
 
 void readIndex( const std::string& baseName, indexT seqCount ) {
@@ -731,8 +732,8 @@ std::istream& appendFromFasta( std::istream& in ){
     ERR( "encountered a sequence that's too long" );
 
   // encode the newly-read sequence
-  queryAlph.tr( query.seqWriter() + oldUnfinishedSize,
-                query.seqWriter() + query.unfinishedSize() );
+  uchar* seq = query.seqWriter();
+  queryAlph.tr( seq + oldUnfinishedSize, seq + query.unfinishedSize() );
 
   if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
     checkQualityCodes( query.qualityReader() + oldUnfinishedSize,
