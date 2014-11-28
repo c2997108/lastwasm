@@ -716,7 +716,7 @@ std::istream& appendFromFasta( std::istream& in ){
   if( maxSeqLen < args.batchSize ) maxSeqLen = indexT(-1);
   if( query.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
-  size_t oldUnfinishedSize = query.unfinishedSize();
+  size_t oldSize = query.unfinishedSize();
 
   /**/ if( args.inputFormat == sequenceFormat::fasta )
     query.appendFromFasta( in, maxSeqLen );
@@ -733,11 +733,12 @@ std::istream& appendFromFasta( std::istream& in ){
 
   // encode the newly-read sequence
   uchar* seq = query.seqWriter();
-  queryAlph.tr( seq + oldUnfinishedSize, seq + query.unfinishedSize() );
+  size_t newSize = query.unfinishedSize();
+  queryAlph.tr( seq + oldSize, seq + newSize );
 
   if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
-    checkQualityCodes( query.qualityReader() + oldUnfinishedSize,
-                       query.qualityReader() + query.unfinishedSize(),
+    checkQualityCodes( query.qualityReader() + oldSize,
+                       query.qualityReader() + newSize,
                        qualityOffset( args.inputFormat ) );
 
   return in;

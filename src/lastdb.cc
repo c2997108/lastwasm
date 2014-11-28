@@ -179,15 +179,13 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
 
 // Read the next sequence, adding it to the MultiSequence and the SuffixArray
 std::istream&
-appendFromFasta( MultiSequence& multi,
-		 SubsetSuffixArray indexes[], unsigned numOfIndexes,
+appendFromFasta( MultiSequence& multi, unsigned numOfIndexes,
 		 const LastdbArguments& args, const Alphabet& alph,
 		 std::istream& in ){
   indexT maxSeqLen = maxLettersPerVolume( args, numOfIndexes );
   if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
-  size_t oldUnfinishedSize = multi.unfinishedSize();
-  indexT oldFinishedSize = multi.finishedSize();
+  size_t oldSize = multi.unfinishedSize();
 
   if ( args.inputFormat == sequenceFormat::fasta )
     multi.appendFromFasta( in, maxSeqLen );
@@ -199,19 +197,13 @@ appendFromFasta( MultiSequence& multi,
 
   // encode the newly-read sequence
   uchar* seq = multi.seqWriter();
-  alph.tr( seq + oldUnfinishedSize, seq + multi.unfinishedSize() );
+  size_t newSize = multi.unfinishedSize();
+  alph.tr( seq + oldSize, seq + newSize );
 
   if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
-    checkQualityCodes( multi.qualityReader() + oldUnfinishedSize,
-                       multi.qualityReader() + multi.unfinishedSize(),
+    checkQualityCodes( multi.qualityReader() + oldSize,
+                       multi.qualityReader() + newSize,
                        qualityOffset( args.inputFormat ) );
-
-  if( in && multi.isFinished() && !args.isCountsOnly ){
-    for( unsigned x = 0; x < numOfIndexes; ++x ){
-      indexes[x].addPositions( multi.seqReader(), oldFinishedSize,
-			       multi.finishedSize(), args.indexStep );
-    }
-  }
 
   return in;
 }
@@ -240,7 +232,7 @@ void lastdb( int argc, char** argv ){
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
-    while( appendFromFasta( multi, indexes, numOfIndexes, args, alph, in ) ){
+    while( appendFromFasta( multi, numOfIndexes, args, alph, in ) ){
       if( !args.isProtein && args.userAlphabet.empty() &&
           sequenceCount == 0 && isDubiousDna( alph, multi ) ){
         std::cerr << "lastdb: that's some funny-lookin DNA\n";
@@ -248,12 +240,19 @@ void lastdb( int argc, char** argv ){
 
       if( multi.isFinished() ){
         ++sequenceCount;
-        indexT lastSeq = multi.finishedSequences() - 1;
-        alph.count( multi.seqReader() + multi.seqBeg(lastSeq),
-                    multi.seqReader() + multi.seqEnd(lastSeq),
-                    &letterCounts[0] );
-        // memory-saving, which seems to be important on 32-bit systems:
-        if( args.isCountsOnly ) multi.reinitForAppending();
+	const uchar* seq = multi.seqReader();
+	size_t lastSeq = multi.finishedSequences() - 1;
+	size_t beg = multi.seqBeg( lastSeq );
+	size_t end = multi.seqEnd( lastSeq );
+	alph.count( seq + beg, seq + end, &letterCounts[0] );
+	if( args.isCountsOnly ){
+	  // memory-saving, which seems to be important on 32-bit systems:
+	  multi.reinitForAppending();
+	}else{
+	  for( unsigned x = 0; x < numOfIndexes; ++x ){
+	    indexes[x].addPositions( seq, beg, end, args.indexStep );
+	  }
+	}
       }
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
