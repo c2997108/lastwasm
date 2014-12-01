@@ -768,6 +768,8 @@ void lastal( int argc, char** argv ){
       ERR( "can't use option -m < " + stringify(minSeedLimit) +
 	   ": need to re-run lastdb with i <= " +
 	   stringify(args.oneHitMultiplicity) );
+    if( args.minHitDepth > 1 )
+      ERR( "can't use option -l > 1: need to re-run lastdb with i <= 1" );
   }
 
   bool isMultiVolume = (volumes+1 > 0 && volumes > 1);

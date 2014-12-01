@@ -213,6 +213,8 @@ static void radixSortN( const uchar* text, const uchar* subsetMap,
 
 void SubsetSuffixArray::sortIndex( const uchar* text,
 				   indexT maxUnsortedInterval ){
+  const indexT minLength = 1;
+
   PUSH( &index.v.front(), &index.v.back() + 1, 0 );
 
   while( sp > stack ){
@@ -221,7 +223,7 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
     indexT depth;
     POP( beg, end, depth );
 
-    if( end - beg <= maxUnsortedInterval ) continue;
+    if( end - beg <= maxUnsortedInterval && depth >= minLength ) continue;
 
     if( end - beg < 10 ){  // ???
       insertionSort( text, seed, beg, end, depth );

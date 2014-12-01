@@ -131,6 +131,11 @@ db=/tmp/last-test
     lastdb -m1 $db $dnaSeq
     lastal -j0 -l4 -L11 -s0 $db $dnaSeq
     echo
+
+    echo TEST 26
+    lastdb -i10 $db tttttccccc.fa
+    lastal -e5 -f0 $db ttttt.fa | grep -v '^#'
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
