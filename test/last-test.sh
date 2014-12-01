@@ -148,6 +148,8 @@ rm f.* r.*
 
 ./maf-convert-test.sh
 
+./last-pair-test.sh
+
 # Test: lastdb, lastal, last-split, maf-sort, maf-join
 cd ../examples
 ./multiMito.sh | diff multiMito.maf -
