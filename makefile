@@ -7,7 +7,7 @@ exec_prefix = $(prefix)
 bindir = $(exec_prefix)/bin
 install: all
 	mkdir -p $(bindir)
-	cp src/last?? src/last-split src/last-merge-batches scripts/* $(bindir)
+	cp src/last?? src/last-split src/last-merge-batches src/last-pair-probs scripts/* $(bindir)
 
 clean:
 	@cd src && $(MAKE) clean
@@ -17,7 +17,7 @@ html:
 
 distdir = last-`hg id -n`
 
-RSYNCFLAGS = -rC --exclude 'last??' --exclude last-split --exclude last-merge-batches
+RSYNCFLAGS = -rC --exclude 'last??' --exclude last-split --exclude last-merge-batches --exclude last-pair-probs
 
 dist: log html
 	@cd src && $(MAKE) version.hh

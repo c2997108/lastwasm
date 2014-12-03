@@ -38,9 +38,11 @@ SPOBJ = Alphabet.o MultiSequence.o fileMap.o split/cbrc_linalg.o	\
 split/last-split.o split/cbrc_split_aligner.o split/last-split-main.o	\
 split/cbrc_unsplit_alignment.o
 
+PPOBJ = last-pair-probs.o last-pair-probs-main.o
+
 MBOBJ = last-merge-batches.o
 
-ALL = lastdb lastal lastex last-split last-merge-batches
+ALL = lastdb lastal lastex last-split last-merge-batches last-pair-probs
 
 all: $(ALL)
 
@@ -55,6 +57,9 @@ lastex: $(EXOBJ)
 
 last-split: $(SPOBJ)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(SPOBJ)
+
+last-pair-probs: $(PPOBJ)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(PPOBJ)
 
 last-merge-batches: $(MBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(MBOBJ)
@@ -162,6 +167,9 @@ gaplessTwoQualityXdrop.o: gaplessTwoQualityXdrop.cc \
  gaplessTwoQualityXdrop.hh TwoQualityScoreMatrix.hh ScoreMatrixRow.hh
 gaplessXdrop.o: gaplessXdrop.cc gaplessXdrop.hh ScoreMatrixRow.hh
 io.o: io.cc io.hh
+last-pair-probs-main.o: last-pair-probs-main.cc last-pair-probs.hh \
+ stringify.hh
+last-pair-probs.o: last-pair-probs.cc last-pair-probs.hh
 lastal.o: lastal.cc LastalArguments.hh SequenceFormat.hh \
  QualityPssmMaker.hh ScoreMatrixRow.hh OneQualityScoreMatrix.hh \
  TwoQualityScoreMatrix.hh qualityScoreUtil.hh stringify.hh \

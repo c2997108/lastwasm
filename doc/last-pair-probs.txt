@@ -1,14 +1,15 @@
 last-pair-probs
 ===============
 
-This script reads alignments of paired DNA reads to a genome, and:
+This program reads alignments of paired DNA reads to a genome, and:
 
 1. estimates the distribution of distances between paired reads,
 2. estimates the probability that each alignment represents the
    genomic source of the read.
 
-The script takes as input two files of alignments, where one read from
-each pair is in one file, and the other read is in the other file.
+The program takes as input two files of alignments, where one read
+from each pair is in one file, and the other read is in the other
+file.
 
 Typical usage::
 
@@ -30,7 +31,7 @@ spliced RNA.
 Details
 -------
 
-* The script writes the alignments with "mismap" probabilities,
+* The program writes the alignments with "mismap" probabilities,
   i.e. the probability that the alignment does not represent the
   genomic source of the read.  By default, it discards alignments with
   mismap probability > 0.01.
@@ -43,7 +44,7 @@ Details
   Negative distances are not considered when -r is used, nor for
   circular chromosomes.
 
-* The script reads one batch of alignments at a time from each file
+* The program reads one batch of alignments at a time from each file
   (by looking for lines starting with "# batch").  It assumes that
   each pair of batches has the alignments for one pair of reads.  To
   achieve that, the read pairs should be in the same order in the
@@ -54,11 +55,11 @@ Details
   tabular).  They must include header lines (of the kind produced by
   lastal) describing the alignment parameters.
 
-* By default, the script makes two passes over each file.  So they
+* By default, the program makes two passes over each file.  So they
   must be real files (not pipes).  However, if you use option -e, or
   both -f and -s, it makes just one pass over each file.
 
-* If a read name ends in neither "/1" nor "/2", the script appends
+* If a read name ends in neither "/1" nor "/2", the program appends
   "/1" if it comes from the first file or "/2" if it comes from the
   second.
 
@@ -79,13 +80,13 @@ Options
 
   -f BP, --fraglen=BP
          The mean distance in bp.  (With -r, the mean of
-         ln[distance].)  If this is not specified, the script will
+         ln[distance].)  If this is not specified, the program will
          estimate it from the alignments.
 
   -s BP, --sdev=BP
          The standard deviation of distance in bp.  (With -r, the
          standard deviation of ln[distance].)  If this is not
-         specified, the script will estimate it from the alignments.
+         specified, the program will estimate it from the alignments.
 
   -d PROB, --disjoint=PROB
          The prior probability that a pair of reads comes from
