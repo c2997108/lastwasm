@@ -33,5 +33,13 @@ maf-convert tab $tmp.maf2 > $tmp.tab2
     last-pair-probs -cX $tmp.tab1 $tmp.tab2
 
     last-pair-probs -c. $tmp.tab1 $tmp.tab2
+
+    sed 's:/1::' $tmp.maf1 > $tmp.m1
+    sed 's:/2::' $tmp.maf2 > $tmp.m2
+    last-pair-probs $tmp.m1 $tmp.m2
+
+    sed 's:/1::' $tmp.tab1 > $tmp.t1
+    sed 's:/2::' $tmp.tab2 > $tmp.t2
+    last-pair-probs $tmp.t1 $tmp.t2
 } 2> /dev/null |
 diff last-pair-test.out -
