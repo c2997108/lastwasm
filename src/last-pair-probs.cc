@@ -44,14 +44,25 @@ static bool isSpace(char c) {
   return c > 0 && c <= ' ';  // faster than std::isspace
 }
 
+static bool isDigit(char c) {
+  return c >= '0' && c <= '9';
+}
+
 static const char *readLong(const char *c, long &x) {
   if (!c) return 0;
-  errno = 0;
-  char *e;
-  long z = std::strtoul(c, &e, 10);
-  if (e == c || errno == ERANGE) return 0;
+  while (isSpace(*c)) ++c;
+  // this doesn't read negative numbers:
+  if (!isDigit(*c)) return 0;
+  long z = *c++ - '0';
+  while (isDigit(*c)) {
+    if (z > LONG_MAX / 10) return 0;
+    z *= 10;
+    long digit = *c++ - '0';
+    if (z > LONG_MAX - digit) return 0;
+    z += digit;
+  }
   x = z;
-  return e;
+  return c;
 }
 
 static const char *readDouble(const char *c, double &x) {
