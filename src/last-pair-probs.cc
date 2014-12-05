@@ -191,48 +191,43 @@ static void printAlignmentWithMismapProb(const Alignment& alignment,
   const std::vector<std::string>& lines = alignment.text;
   const std::string& qName = alignment.qName;
   size_t qNameLen = qName.length();
-  if (qNameLen >= 2) {
-    if (qName.substr(qNameLen-2) == "/1" || qName.substr(qNameLen-2) == "/2")
+  if (qNameLen >= 2 && qName[qNameLen-2] == '/')
+    if (qName[qNameLen-1] == '1' || qName[qNameLen-1] == '2')
       suf = "";
-  }
   char p[32];
   sprintf(p, "%.3g", prob);
   if (lines.size() == 1) {	// we have tabular format
-    std::stringstream ss(lines[0]);
-    std::string s;
-    std::vector<std::string> w;
-    while (ss >> s) {
-      w.push_back(s);
-    }
-    w[6] += suf;
-    w.push_back(p);
-    for (unsigned i = 0; i < w.size()-1; i++) {
-      std::cout << w[i] << "\t";
-    }
-    std::cout << w[w.size()-1] << "\n";
+    const char *c = lines[0].c_str();
+    const char *d = c;
+    for (int i = 0; i < 7; ++i) d = skipWord(d);
+    std::cout.write(c, d - c);
+    std::cout << suf << d << '\t' << p << '\n';
   }
   else {	// we have MAF format
-    std::cout << lines[0] << " mismap=" << p << "\n";
+    std::cout << lines[0] << " mismap=" << p << '\n';
     std::string pad(suf.length(), ' ');	// spacer to keep the alignment of MAF lines
-    const unsigned rNameEnd = alignment.genomeStrand.length() + 1;  // where to insert the spacer
-    const unsigned qNameEnd = qName.length() + 2;	// where to insert the suffix
+    size_t rNameEnd = alignment.genomeStrand.length() + 1;  // where to insert the spacer
+    size_t qNameEnd = qNameLen + 2;	// where to insert the suffix
     unsigned s = 0;
     for (std::vector<std::string>::const_iterator itr = lines.begin()+1; itr != lines.end(); itr++) {
-      const std::string& line = *itr;
-      if (line[0] == 's' || line[0] == 'q') {
-        if (line[0] == 's') s++;
+      const char *c = itr->c_str();
+      if (*c == 's' || *c == 'q') {
+        if (*c == 's') s++;
         if (s == 1) {
-          std::cout << itr->substr(0,rNameEnd) << pad << itr->substr(rNameEnd) << "\n";
+	  std::cout.write(c, rNameEnd);
+	  std::cout << pad << (c + rNameEnd) << '\n';
         } else {
-          std::cout << itr->substr(0,qNameEnd) << suf << itr->substr(qNameEnd) << "\n";
+	  std::cout.write(c, qNameEnd);
+	  std::cout << suf << (c + qNameEnd) << '\n';
         }
-      } else if (line[0] == 'p') {
-        std::cout << itr->substr(0,1) << pad << itr->substr(1) << "\n";
+      } else if (*c == 'p') {
+        std::cout.write(c, 1);
+        std::cout << pad << (c + 1) << '\n';
       } else {
-        std::cout << *itr << "\n";
+        std::cout << c << '\n';
       }
     }
-    std::cout << "\n";	// each MAF block should end with a blank line
+    std::cout << '\n';	// each MAF block should end with a blank line
   }
 }
 
