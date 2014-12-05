@@ -119,11 +119,8 @@ Tips
 
   This streams the alignments from lastal to last-pair-probs.
 
-* To go faster, try a fast version of Python such as PyPy.
-
-* To go really fast, try gapless alignment (add -j1 to the lastal
-  options).  Often, this is only minusculely less accurate than gapped
-  alignment.
+* To go faster, try gapless alignment (add -j1 to the lastal options).
+  Often, this is only minusculely less accurate than gapped alignment.
 
 * Tabular output (lastal option -f0) is smaller and faster.
 

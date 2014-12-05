@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <cctype>  // isdigit, etc
+#include <cerrno>
 #include <cmath>
 #include <cstdlib>  // atof, atol
+#include <cstring>  // strncmp
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -32,6 +34,67 @@ typedef std::multimap<std::string, Alignment> MMAP;
 
 static void err(const std::string& s) {
   throw std::runtime_error(s);
+}
+
+static bool isGraph(char c) {
+  return c > ' ';  // faster than std::isgraph
+}
+
+static bool isSpace(char c) {
+  return c > 0 && c <= ' ';  // faster than std::isspace
+}
+
+static const char *readLong(const char *c, long &x) {
+  if (!c) return 0;
+  errno = 0;
+  char *e;
+  long z = std::strtoul(c, &e, 10);
+  if (e == c || errno == ERANGE) return 0;
+  x = z;
+  return e;
+}
+
+static const char *readDouble(const char *c, double &x) {
+  if (!c) return 0;
+  errno = 0;
+  char *e;
+  double z = std::strtod(c, &e);
+  if (e == c || errno == ERANGE) return 0;
+  x = z;
+  return e;
+}
+
+static const char *readChar(const char *c, char &d) {
+  if (!c) return 0;
+  while (isSpace(*c)) ++c;
+  if (*c == 0) return 0;
+  d = *c++;
+  return c;
+}
+
+static const char *readWord(const char *c, std::string &s) {
+  if (!c) return 0;
+  while (isSpace(*c)) ++c;
+  const char *e = c;
+  while (isGraph(*e)) ++e;
+  if (e == c) return 0;
+  s.assign(c, e);
+  return e;
+}
+
+static const char *skipWord(const char *c) {
+  if (!c) return 0;
+  while (isSpace(*c)) ++c;
+  const char *e = c;
+  while (isGraph(*e)) ++e;
+  if (e == c) return 0;
+  return e;
+}
+
+static const char *skipSpace(const char *c) {
+  if (!c) return 0;
+  while (isSpace(*c)) ++c;
+  return c;
 }
 
 static std::istream& openIn(const std::string& fileName, std::ifstream& ifs) {
@@ -325,10 +388,15 @@ static Alignment parseAlignment(double score, const std::string& rName,
 }
 
 static double parseMafScore(const std::string& aLine) {
-  std::stringstream ss(aLine);
-  std::string i;
-  while (ss >> i) {
-    if (i.substr(0,6) == "score=") return std::atof(i.substr(6).c_str());
+  const char *c = aLine.c_str();
+  while ((c = skipWord(c))) {
+    c = skipSpace(c);
+    if (std::strncmp(c, "score=", 6) == 0) {
+      double score;
+      c = readDouble(c + 6, score);
+      if (!c) err("bad score");
+      return score;
+    }
   }
   err("missing score");
   return 0.0;	// dummy;
@@ -337,18 +405,33 @@ static double parseMafScore(const std::string& aLine) {
 static Alignment parseMaf(const std::vector<std::string>& lines, char strand,
                           double scale, const std::set<std::string>& circularChroms) {
   const double score = parseMafScore(lines[0]);
-  std::string rqName[2], junk;
-  char qStrand[2];
-  long rStart[2], rSpan[2], rSize[2];
+  std::string rName, qName;
+  char qStrand;
+  long rStart, rSpan, rSize;
   unsigned n = 0;
   for (std::vector<std::string>::const_iterator itr = lines.begin(); itr != lines.end(); itr++) {
-    if (itr->substr(0,1) == "s") {
-      std::stringstream ss(*itr);
-      ss >> junk >> rqName[n] >> rStart[n] >> rSpan[n] >> qStrand[n] >> rSize[n];
+    const char *c = itr->c_str();
+    if (*c == 's') {
+      if (n == 0) {
+	c = skipWord(c);
+        c = readWord(c, rName);
+        c = readLong(c, rStart);
+        c = readLong(c, rSpan);
+        c = skipWord(c);
+	c = readLong(c, rSize);
+      } else if (n == 1) {
+	c = skipWord(c);
+	c = readWord(c, qName);
+	c = skipWord(c);
+	c = skipWord(c);
+	c = readChar(c, qStrand);
+      }
       n++;
     }
+    if (!c) err("bad MAF line: " + *itr);
   }
-  return parseAlignment(score, rqName[0], rStart[0], rSpan[0], rSize[0], rqName[1], qStrand[1],
+  if (n < 2) err("bad MAF");
+  return parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand,
                         lines, strand, scale, circularChroms);
 }
 
@@ -356,12 +439,22 @@ static Alignment parseTab(const std::string& line, char strand,
                           double scale, const std::set<std::string>& circularChroms) {
   std::vector<std::string> lines;
   lines.push_back(line);
-  std::stringstream ss(line);
   double score;
-  std::string rName, qName, junk;
+  std::string rName, qName;
   char qStrand;
   long rStart, rSpan, rSize;
-  ss >> score >> rName >> rStart >> rSpan >> junk >> rSize >> qName >> junk >> junk >> qStrand;
+  const char *c = line.c_str();
+  c = readDouble(c, score);
+  c = readWord(c, rName);
+  c = readLong(c, rStart);
+  c = readLong(c, rSpan);
+  c = skipWord(c);
+  c = readLong(c, rSize);
+  c = readWord(c, qName);
+  c = skipWord(c);
+  c = skipWord(c);
+  c = readChar(c, qStrand);
+  if (!c) err("bad line: " + line);
   return parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand,
                         lines, strand, scale, circularChroms);
 }
