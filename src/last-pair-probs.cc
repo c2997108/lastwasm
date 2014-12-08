@@ -393,8 +393,8 @@ static Alignment parseAlignment(double score, const std::string& rName,
   return parse;
 }
 
-static double parseMafScore(const std::string& aLine) {
-  const char *c = aLine.c_str();
+static double parseMafScore(const char *aLine) {
+  const char *c = aLine;
   while ((c = skipWord(c))) {
     c = skipSpace(c);
     if (std::strncmp(c, "score=", 6) == 0) {
@@ -411,7 +411,7 @@ static double parseMafScore(const std::string& aLine) {
 static Alignment parseMaf(const std::vector<std::string>& lines,
 			  char strand, double scale,
 			  const std::set<std::string>& circularChroms) {
-  const double score = parseMafScore(lines[0]);
+  const double score = parseMafScore(lines[0].c_str());
   std::string rName, qName;
   char qStrand;
   long rStart, rSpan, rSize;
@@ -487,17 +487,14 @@ static bool readBatch(std::istream& input,
       }
     }
     else if (line.substr(0,8) == "# batch ") {
-      if (maf.size()) {
-        alns.push_back(parseMaf(maf, strand, scale, circularChroms));
-        maf.clear();
-      }
-      return false;
+      break;
     }
   }
   if (maf.size()) {
     alns.push_back(parseMaf(maf, strand, scale, circularChroms));
   }
-  return true;
+
+  return input;
 }
 
 static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in2,
@@ -506,10 +503,10 @@ static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in
   std::vector<long> lengths;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool endBatches1 = readBatch(in1, '+', scale1, circularChroms, a1);
-    bool endBatches2 = readBatch(in2, '-', scale2, circularChroms, a2);
+    bool ok1 = readBatch(in1, '+', scale1, circularChroms, a1);
+    bool ok2 = readBatch(in2, '-', scale2, circularChroms, a2);
     unambiguousFragmentLengths(a1, a2, lengths);
-    if (endBatches1 || endBatches2) break;
+    if (!ok1 || !ok2) break;
   }
   return lengths;
 }
@@ -519,11 +516,11 @@ static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
                                 const LastPairProbsOptions& opts) {
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool endBatches1 = readBatch(in1, '+', scale1, opts.circular, a1);
-    bool endBatches2 = readBatch(in2, '-', scale2, opts.circular, a2);
+    bool ok1 = readBatch(in1, '+', scale1, opts.circular, a1);
+    bool ok2 = readBatch(in2, '-', scale2, opts.circular, a2);
     printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
     printAlnsForOneRead(a2, a1, opts, opts.maxMissingScore2, "/2");
-    if (endBatches1 || endBatches2) break;
+    if (!ok1 || !ok2) break;
   }
 }
 
