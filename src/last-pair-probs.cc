@@ -22,13 +22,15 @@ typedef const char *String;
 struct Alignment {
   const String *linesBeg;
   const String *linesEnd;
-  std::string genomeStrand;
+  std::string rName;
   long c;
   long rSize;
   double scaledScore;
   std::string qName;
+  char strand;
   bool operator<( const Alignment& aln ) const {
-    return genomeStrand < aln.genomeStrand;
+    if (strand != aln.strand) return strand < aln.strand;
+    return rName < aln.rName;
   }
 };
 
@@ -214,7 +216,7 @@ static void printAlignmentWithMismapProb(const Alignment& alignment,
   else {	// we have MAF format
     std::cout << *linesBeg << " mismap=" << p << '\n';
     const char *pad = *suf ? "  " : "";  // spacer to keep the alignment of MAF lines
-    size_t rNameEnd = alignment.genomeStrand.length() + 1;  // where to insert the spacer
+    size_t rNameEnd = alignment.rName.length() + 2;  // where to insert the spacer
     size_t qNameEnd = qNameLen + 2;	// where to insert the suffix
     unsigned s = 0;
     for (const String *i = linesBeg + 1; i < linesEnd; ++i) {
@@ -254,7 +256,7 @@ static double *conjointScores(const Alignment& aln1,
 			      double *scores) {
   for (const Alignment *j = jBeg; j < jEnd; ++j) {
     const Alignment &aln2 = *j;
-    if (aln1.genomeStrand != aln2.genomeStrand) continue;
+    if (aln1.strand != aln2.strand || aln1.rName != aln2.rName) continue;
     long length = headToHeadDistance(aln1, aln2);
     if (isRna) {	// use a log-normal distribution
       if (length <= 0) continue;
@@ -290,7 +292,7 @@ static void probForEachAlignment(const std::vector<Alignment>& alignments1,
     if (scoresEnd > scores) {
       double y = opts.outer + logSumExp(scores, scoresEnd);
       *zs++ = i->scaledScore + logSumExp(x, y);
-    } else {	// no items in alignments2 have the same genomeStrand
+    } else {
       *zs++ = i->scaledScore + x;
     }
   }
@@ -336,7 +338,7 @@ static void unambiguousFragmentLengths(const std::vector<Alignment>& alignments1
   std::vector<Alignment>::const_iterator itr1, itr2;
   for (itr1 = alignments1.begin(); itr1 != alignments1.end(); itr1++) {
     for (itr2 = alignments2.begin(); itr2 != alignments2.end(); itr2++) {
-      if (itr1->genomeStrand == itr2->genomeStrand) {
+      if (itr1->strand == itr2->strand && itr1->rName == itr2->rName) {
         long newLength = headToHeadDistance(*itr1, *itr2);
         if (oldLength == LONG_MAX) {
           oldLength = newLength;
@@ -375,8 +377,6 @@ static Alignment parseAlignment(double score, const std::string& rName,
 				const String *linesBeg, const String *linesEnd,
                                 char strand, double scale,
                                 const std::set<std::string>& circularChroms) {
-  const std::string genomeStrand = (qStrand == strand) ? rName + "+" : rName + "-";
-
   long c = -rStart;
   if (qStrand == '-') {
     c = rStart + rSpan;
@@ -388,11 +388,12 @@ static Alignment parseAlignment(double score, const std::string& rName,
   Alignment parse;
   parse.linesBeg = linesBeg;
   parse.linesEnd = linesEnd;
-  parse.genomeStrand = genomeStrand;
+  parse.rName = rName;
   parse.c = c;
   parse.rSize = rSize;
   parse.scaledScore = scaledScore;
   parse.qName = qName;
+  parse.strand = (qStrand == strand) ? '+' : '-';
   return parse;
 }
 
