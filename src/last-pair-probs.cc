@@ -19,21 +19,6 @@
 
 typedef const char *String;
 
-struct Alignment {
-  const String *linesBeg;
-  const String *linesEnd;
-  std::string rName;
-  long c;
-  long rSize;
-  double scaledScore;
-  std::string qName;
-  char strand;
-  bool operator<( const Alignment& aln ) const {
-    if (strand != aln.strand) return strand < aln.strand;
-    return rName < aln.rName;
-  }
-};
-
 static void err(const std::string& s) {
   throw std::runtime_error(s);
 }
@@ -49,6 +34,32 @@ static bool isSpace(char c) {
 static bool isDigit(char c) {
   return c >= '0' && c <= '9';
 }
+
+static int wordCmp(const char* x, const char* y) {
+  // Like strcmp, but stops at spaces.
+  while (isGraph(*y)) {
+    if (*x != *y) return *x - *y;
+    ++x;
+    ++y;
+  }
+  return isGraph(*x);
+}
+
+struct Alignment {
+  const String *linesBeg;
+  const String *linesEnd;
+  const char *rName;
+  long c;
+  long rSize;
+  double scaledScore;
+  const char *qName;
+  char strand;
+  bool operator<( const Alignment& aln ) const {
+    if (strand != aln.strand) return strand < aln.strand;
+    int rNameCmp = wordCmp(rName, aln.rName);
+    return rNameCmp < 0;
+  }
+};
 
 static const char *readLong(const char *c, long &x) {
   if (!c) return 0;
@@ -85,13 +96,13 @@ static const char *readChar(const char *c, char &d) {
   return c;
 }
 
-static const char *readWord(const char *c, std::string &s) {
+static const char *readWord(const char *c, String &s) {
   if (!c) return 0;
   while (isSpace(*c)) ++c;
   const char *e = c;
   while (isGraph(*e)) ++e;
   if (e == c) return 0;
-  s.assign(c, e);
+  s = c;
   return e;
 }
 
@@ -195,15 +206,17 @@ class AlignmentParameters {
   }
 };
 
+static bool isGoodQueryName(const char *nameEnd) {
+  return nameEnd[-2] == '/' && (nameEnd[-1] == '1' || nameEnd[-1] == '2');
+}
+
 static void printAlignmentWithMismapProb(const Alignment& alignment,
                                          double prob, const char *suf) {
   const String *linesBeg = alignment.linesBeg;
   const String *linesEnd = alignment.linesEnd;
-  const std::string& qName = alignment.qName;
-  size_t qNameLen = qName.length();
-  if (qNameLen >= 2 && qName[qNameLen-2] == '/')
-    if (qName[qNameLen-1] == '1' || qName[qNameLen-1] == '2')
-      suf = "";
+  const char *qName = alignment.qName;
+  size_t qNameLen = skipWord(qName) - qName;
+  if (isGoodQueryName(qName + qNameLen)) suf = "";
   char p[32];
   sprintf(p, "%.3g", prob);
   if (linesEnd - linesBeg == 1) {  // we have tabular format
@@ -216,8 +229,10 @@ static void printAlignmentWithMismapProb(const Alignment& alignment,
   else {	// we have MAF format
     std::cout << *linesBeg << " mismap=" << p << '\n';
     const char *pad = *suf ? "  " : "";  // spacer to keep the alignment of MAF lines
-    size_t rNameEnd = alignment.rName.length() + 2;  // where to insert the spacer
-    size_t qNameEnd = qNameLen + 2;	// where to insert the suffix
+    const char *rName = alignment.rName;
+    size_t rNameLen = skipWord(rName) - rName;
+    size_t rNameEnd = rNameLen + 2;  // where to insert the spacer
+    size_t qNameEnd = qNameLen + 2;  // where to insert the suffix
     unsigned s = 0;
     for (const String *i = linesBeg + 1; i < linesEnd; ++i) {
       const char *c = *i;
@@ -256,7 +271,8 @@ static double *conjointScores(const Alignment& aln1,
 			      double *scores) {
   for (const Alignment *j = jBeg; j < jEnd; ++j) {
     const Alignment &aln2 = *j;
-    if (aln1.strand != aln2.strand || aln1.rName != aln2.rName) continue;
+    if (aln1.strand != aln2.strand || wordCmp(aln1.rName, aln2.rName))
+      continue;
     long length = headToHeadDistance(aln1, aln2);
     if (isRna) {	// use a log-normal distribution
       if (length <= 0) continue;
@@ -338,7 +354,7 @@ static void unambiguousFragmentLengths(const std::vector<Alignment>& alignments1
   std::vector<Alignment>::const_iterator itr1, itr2;
   for (itr1 = alignments1.begin(); itr1 != alignments1.end(); itr1++) {
     for (itr2 = alignments2.begin(); itr2 != alignments2.end(); itr2++) {
-      if (itr1->strand == itr2->strand && itr1->rName == itr2->rName) {
+      if (itr1->strand == itr2->strand && !wordCmp(itr1->rName, itr2->rName)) {
         long newLength = headToHeadDistance(*itr1, *itr2);
         if (oldLength == LONG_MAX) {
           oldLength = newLength;
@@ -371,9 +387,9 @@ static AlignmentParameters readHeaderOrDie(std::istream& lines) {
   return params;			// dummy
 }
 
-static Alignment parseAlignment(double score, const std::string& rName,
+static Alignment parseAlignment(double score, const char *rName,
                                 long rStart, long rSpan, long rSize,
-                                const std::string& qName, char qStrand,
+                                const char *qName, char qStrand,
 				const String *linesBeg, const String *linesEnd,
                                 char strand, double scale,
                                 const std::set<std::string>& circularChroms) {
@@ -416,7 +432,7 @@ static Alignment parseMaf(const String *linesBeg, const String *linesEnd,
 			  char strand, double scale,
 			  const std::set<std::string>& circularChroms) {
   double score = parseMafScore(*linesBeg);
-  std::string rName, qName;
+  String rName, qName;
   char qStrand;
   long rStart, rSpan, rSize;
   unsigned n = 0;
@@ -450,7 +466,7 @@ static Alignment parseTab(const String *linesBeg, const String *linesEnd,
 			  char strand, double scale,
 			  const std::set<std::string>& circularChroms) {
   double score;
-  std::string rName, qName;
+  String rName, qName;
   char qStrand;
   long rStart, rSpan, rSize;
   const char *c = *linesBeg;
