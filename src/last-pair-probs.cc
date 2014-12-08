@@ -15,7 +15,6 @@
 #include <stdexcept>
 #include <limits.h>
 #include <cfloat>
-#include <map>
 #include <stddef.h>  // size_t
 
 typedef const char *String;
@@ -32,8 +31,6 @@ struct Alignment {
     return genomeStrand < aln.genomeStrand;
   }
 };
-
-typedef std::multimap<std::string, Alignment> MMAP;
 
 static void err(const std::string& s) {
   throw std::runtime_error(s);
@@ -252,11 +249,12 @@ static long headToHeadDistance(const Alignment& alignment1, const Alignment& ali
 }
 
 static double *conjointScores(const Alignment& aln1,
-			      const std::pair<MMAP::iterator, MMAP::iterator>& alns2,
+			      const Alignment *jBeg, const Alignment *jEnd,
 			      double fraglen, double inner, bool isRna,
 			      double *scores) {
-  for (MMAP::iterator itr = alns2.first; itr != alns2.second; itr++) {
-    const Alignment& aln2 = itr->second;
+  for (const Alignment *j = jBeg; j < jEnd; ++j) {
+    const Alignment &aln2 = *j;
+    if (aln1.genomeStrand != aln2.genomeStrand) continue;
     long length = headToHeadDistance(aln1, aln2);
     if (isRna) {	// use a log-normal distribution
       if (length <= 0) continue;
@@ -280,20 +278,15 @@ static void probForEachAlignment(const std::vector<Alignment>& alignments1,
   size_t size2 = alignments2.size();
   std::vector<double> scoresVec(size2);
   double *scores = &scoresVec[0];
-  std::vector<Alignment>::const_iterator itr;
   for (size_t i = 0; i < size2; ++i)
     scores[i] = alignments2[i].scaledScore;
   double x = opts.disjointScore + logSumExp(scores, scores + size2);
-  MMAP mapAlns2;
-  for (itr = alignments2.begin(); itr != alignments2.end(); itr++) {
-    mapAlns2.insert(std::pair<std::string, Alignment>(itr->genomeStrand, *itr));
-  }
 
+  const Alignment *jBeg = &alignments2[0];
+  const Alignment *jEnd = jBeg + size2;
   std::vector<Alignment>::const_iterator i;
   for (i = alignments1.begin(); i < alignments1.end(); ++i) {
-    // get the items in alignments2 that have the same genomeStrand:
-    std::pair<MMAP::iterator, MMAP::iterator> alns2 = mapAlns2.equal_range(i->genomeStrand);
-    double *scoresEnd = conjointScores(*i, alns2, opts.fraglen, opts.inner, opts.rna, scores);
+    double *scoresEnd = conjointScores(*i, jBeg, jEnd, opts.fraglen, opts.inner, opts.rna, scores);
     if (scoresEnd > scores) {
       double y = opts.outer + logSumExp(scores, scoresEnd);
       *zs++ = i->scaledScore + logSumExp(x, y);
