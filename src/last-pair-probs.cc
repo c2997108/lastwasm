@@ -271,8 +271,7 @@ static double *conjointScores(const Alignment& aln1,
 			      double *scores) {
   for (const Alignment *j = jBeg; j < jEnd; ++j) {
     const Alignment &aln2 = *j;
-    if (aln1.strand != aln2.strand || wordCmp(aln1.rName, aln2.rName))
-      continue;
+    if (aln1 < aln2) break;
     long length = headToHeadDistance(aln1, aln2);
     if (isRna) {	// use a log-normal distribution
       if (length <= 0) continue;
@@ -304,6 +303,7 @@ static void probForEachAlignment(const std::vector<Alignment>& alignments1,
   const Alignment *jEnd = jBeg + size2;
   std::vector<Alignment>::const_iterator i;
   for (i = alignments1.begin(); i < alignments1.end(); ++i) {
+    while (jBeg < jEnd && *jBeg < *i) ++jBeg;
     double *scoresEnd = conjointScores(*i, jBeg, jEnd, opts.fraglen, opts.inner, opts.rna, scores);
     if (scoresEnd > scores) {
       double y = opts.outer + logSumExp(scores, scoresEnd);
@@ -351,16 +351,18 @@ static void unambiguousFragmentLengths(const std::vector<Alignment>& alignments1
                                        std::vector<long>& lengths) {
   // Returns the fragment length implied by alignments of a pair of reads.
   long oldLength = LONG_MAX;
-  std::vector<Alignment>::const_iterator itr1, itr2;
-  for (itr1 = alignments1.begin(); itr1 != alignments1.end(); itr1++) {
-    for (itr2 = alignments2.begin(); itr2 != alignments2.end(); itr2++) {
-      if (itr1->strand == itr2->strand && !wordCmp(itr1->rName, itr2->rName)) {
-        long newLength = headToHeadDistance(*itr1, *itr2);
-        if (oldLength == LONG_MAX) {
-          oldLength = newLength;
-        } else if (newLength != oldLength) {
-          return;  // the fragment length is ambiguous
-        }
+  std::vector<Alignment>::const_iterator i, j;
+  std::vector<Alignment>::const_iterator jBeg = alignments2.begin();
+  std::vector<Alignment>::const_iterator jEnd = alignments2.end();
+  for (i = alignments1.begin(); i < alignments1.end(); ++i) {
+    while (jBeg < jEnd && *jBeg < *i) ++jBeg;
+    for (j = jBeg; j < jEnd; ++j) {
+      if (*i < *j) break;
+      long newLength = headToHeadDistance(*i, *j);
+      if (oldLength == LONG_MAX) {
+	oldLength = newLength;
+      } else if (newLength != oldLength) {
+	return;  // the fragment length is ambiguous
       }
     }
   }
@@ -522,6 +524,8 @@ static bool readBatch(std::istream& input,
   if (mafStart < numOfLines)
     alns.push_back(parseMaf(&lines[mafStart], &lines[0] + numOfLines,
 			    strand, scale, circularChroms));
+
+  stable_sort(alns.begin(), alns.end());
 
   return input;
 }
