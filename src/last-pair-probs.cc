@@ -472,6 +472,7 @@ static bool readBatch(std::istream& input,
 		      const std::set<std::string>& circularChroms,
 		      std::vector<Alignment>& alns) {
   // Yields alignment data from MAF or tabular format.
+  alns.clear();
   std::vector<std::string> maf;
   std::string line;
   while (std::getline(input, line)) {
@@ -503,8 +504,8 @@ static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in
                                              const double scale1, const double scale2,
                                              const std::set<std::string>& circularChroms) {
   std::vector<long> lengths;
+  std::vector<Alignment> a1, a2;
   while (1) {
-    std::vector<Alignment> a1, a2;
     bool endBatches1 = readBatch(in1, '+', scale1, circularChroms, a1);
     bool endBatches2 = readBatch(in2, '-', scale2, circularChroms, a2);
     unambiguousFragmentLengths(a1, a2, lengths);
@@ -516,8 +517,8 @@ static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in
 static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
                                 double scale1, double scale2,
                                 const LastPairProbsOptions& opts) {
+  std::vector<Alignment> a1, a2;
   while (1) {
-    std::vector<Alignment> a1, a2;
     bool endBatches1 = readBatch(in1, '+', scale1, opts.circular, a1);
     bool endBatches2 = readBatch(in2, '-', scale2, opts.circular, a2);
     printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
