@@ -18,12 +18,15 @@
 #include <map>
 #include <stddef.h>  // size_t
 
+typedef const char *String;
+
 struct Alignment {
+  const String *linesBeg;
+  const String *linesEnd;
   std::string genomeStrand;
   long c;
   long rSize;
   double scaledScore;
-  std::vector<std::string> text;
   std::string qName;
   bool operator<( const Alignment& aln ) const {
     return genomeStrand < aln.genomeStrand;
@@ -188,7 +191,8 @@ class AlignmentParameters {
 
 static void printAlignmentWithMismapProb(const Alignment& alignment,
                                          double prob, std::string suf) {
-  const std::vector<std::string>& lines = alignment.text;
+  const String *linesBeg = alignment.linesBeg;
+  const String *linesEnd = alignment.linesEnd;
   const std::string& qName = alignment.qName;
   size_t qNameLen = qName.length();
   if (qNameLen >= 2 && qName[qNameLen-2] == '/')
@@ -196,21 +200,21 @@ static void printAlignmentWithMismapProb(const Alignment& alignment,
       suf = "";
   char p[32];
   sprintf(p, "%.3g", prob);
-  if (lines.size() == 1) {	// we have tabular format
-    const char *c = lines[0].c_str();
+  if (linesEnd - linesBeg == 1) {  // we have tabular format
+    const char *c = *linesBeg;
     const char *d = c;
     for (int i = 0; i < 7; ++i) d = skipWord(d);
     std::cout.write(c, d - c);
     std::cout << suf << d << '\t' << p << '\n';
   }
   else {	// we have MAF format
-    std::cout << lines[0] << " mismap=" << p << '\n';
+    std::cout << *linesBeg << " mismap=" << p << '\n';
     std::string pad(suf.length(), ' ');	// spacer to keep the alignment of MAF lines
     size_t rNameEnd = alignment.genomeStrand.length() + 1;  // where to insert the spacer
     size_t qNameEnd = qNameLen + 2;	// where to insert the suffix
     unsigned s = 0;
-    for (std::vector<std::string>::const_iterator itr = lines.begin()+1; itr != lines.end(); itr++) {
-      const char *c = itr->c_str();
+    for (const String *i = linesBeg + 1; i < linesEnd; ++i) {
+      const char *c = *i;
       if (*c == 's' || *c == 'q') {
         if (*c == 's') s++;
         if (s == 1) {
@@ -370,7 +374,7 @@ static AlignmentParameters readHeaderOrDie(std::istream& lines) {
 static Alignment parseAlignment(double score, const std::string& rName,
                                 long rStart, long rSpan, long rSize,
                                 const std::string& qName, char qStrand,
-                                const std::vector<std::string>& text,
+				const String *linesBeg, const String *linesEnd,
                                 char strand, double scale,
                                 const std::set<std::string>& circularChroms) {
   const std::string genomeStrand = (qStrand == strand) ? rName + "+" : rName + "-";
@@ -384,11 +388,12 @@ static Alignment parseAlignment(double score, const std::string& rName,
 
   const double scaledScore = score / scale;	// needed in 2nd pass
   Alignment parse;
+  parse.linesBeg = linesBeg;
+  parse.linesEnd = linesEnd;
   parse.genomeStrand = genomeStrand;
   parse.c = c;
   parse.rSize = rSize;
   parse.scaledScore = scaledScore;
-  parse.text = text;
   parse.qName = qName;
   return parse;
 }
@@ -408,16 +413,16 @@ static double parseMafScore(const char *aLine) {
   return 0.0;	// dummy;
 }
 
-static Alignment parseMaf(const std::vector<std::string>& lines,
+static Alignment parseMaf(const String *linesBeg, const String *linesEnd,
 			  char strand, double scale,
 			  const std::set<std::string>& circularChroms) {
-  const double score = parseMafScore(lines[0].c_str());
+  double score = parseMafScore(*linesBeg);
   std::string rName, qName;
   char qStrand;
   long rStart, rSpan, rSize;
   unsigned n = 0;
-  for (std::vector<std::string>::const_iterator itr = lines.begin(); itr != lines.end(); itr++) {
-    const char *c = itr->c_str();
+  for (const String *i = linesBeg; i < linesEnd; ++i) {
+    const char *c = *i;
     if (*c == 's') {
       if (n == 0) {
 	c = skipWord(c);
@@ -435,23 +440,21 @@ static Alignment parseMaf(const std::vector<std::string>& lines,
       }
       n++;
     }
-    if (!c) err("bad MAF line: " + *itr);
+    if (!c) err("bad MAF line: " + std::string(*i));
   }
   if (n < 2) err("bad MAF");
   return parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand,
-                        lines, strand, scale, circularChroms);
+                        linesBeg, linesEnd, strand, scale, circularChroms);
 }
 
-static Alignment parseTab(const std::string& line,
+static Alignment parseTab(const String *linesBeg, const String *linesEnd,
 			  char strand, double scale,
 			  const std::set<std::string>& circularChroms) {
-  std::vector<std::string> lines;
-  lines.push_back(line);
   double score;
   std::string rName, qName;
   char qStrand;
   long rStart, rSpan, rSize;
-  const char *c = line.c_str();
+  const char *c = *linesBeg;
   c = readDouble(c, score);
   c = readWord(c, rName);
   c = readLong(c, rStart);
@@ -462,37 +465,48 @@ static Alignment parseTab(const std::string& line,
   c = skipWord(c);
   c = skipWord(c);
   c = readChar(c, qStrand);
-  if (!c) err("bad line: " + line);
+  if (!c) err("bad line: " + std::string(*linesBeg));
   return parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand,
-                        lines, strand, scale, circularChroms);
+                        linesBeg, linesEnd, strand, scale, circularChroms);
 }
 
 static bool readBatch(std::istream& input,
 		      char strand, const double scale,
 		      const std::set<std::string>& circularChroms,
+		      std::vector<char>& text, std::vector<String>& lines,
 		      std::vector<Alignment>& alns) {
   // Yields alignment data from MAF or tabular format.
+  text.clear();
   alns.clear();
-  std::vector<std::string> maf;
+  std::vector<size_t> lineStarts;
   std::string line;
   while (std::getline(input, line)) {
-    if (std::isdigit(line[0])) {
-      alns.push_back(parseTab(line, strand, scale, circularChroms));
-    } else if (std::isalpha(line[0])) {
-      maf.push_back(line);
-    } else if (!std::isgraph(line[0])) {
-      if (maf.size()) {
-        alns.push_back(parseMaf(maf, strand, scale, circularChroms));
-        maf.clear();
-      }
-    }
-    else if (line.substr(0,8) == "# batch ") {
-      break;
+    const char *c = line.c_str();
+    if (std::strncmp(c, "# batch ", 8) == 0) break;
+    lineStarts.push_back(text.size());
+    text.insert(text.end(), c, c + line.size() + 1);
+  }
+
+  size_t numOfLines = lineStarts.size();
+  lines.resize(numOfLines);
+
+  size_t mafStart = 0;
+  for (size_t i = 0; i < numOfLines; ++i) {
+    String *j = &lines[i];
+    *j = &text[lineStarts[i]];
+    const char *c = *j;
+    if (isDigit(*c))
+      alns.push_back(parseTab(j, j + 1, strand, scale, circularChroms));
+    if (!std::isalpha(*c)) {
+      if (mafStart < i)
+	alns.push_back(parseMaf(&lines[mafStart], j,
+				strand, scale, circularChroms));
+      mafStart = i + 1;
     }
   }
-  if (maf.size()) {
-    alns.push_back(parseMaf(maf, strand, scale, circularChroms));
-  }
+  if (mafStart < numOfLines)
+    alns.push_back(parseMaf(&lines[mafStart], &lines[0] + numOfLines,
+			    strand, scale, circularChroms));
 
   return input;
 }
@@ -501,10 +515,12 @@ static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in
                                              const double scale1, const double scale2,
                                              const std::set<std::string>& circularChroms) {
   std::vector<long> lengths;
+  std::vector<char> text1, text2;
+  std::vector<String> lines1, lines2;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool ok1 = readBatch(in1, '+', scale1, circularChroms, a1);
-    bool ok2 = readBatch(in2, '-', scale2, circularChroms, a2);
+    bool ok1 = readBatch(in1, '+', scale1, circularChroms, text1, lines1, a1);
+    bool ok2 = readBatch(in2, '-', scale2, circularChroms, text2, lines2, a2);
     unambiguousFragmentLengths(a1, a2, lengths);
     if (!ok1 || !ok2) break;
   }
@@ -514,10 +530,12 @@ static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in
 static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
                                 double scale1, double scale2,
                                 const LastPairProbsOptions& opts) {
+  std::vector<char> text1, text2;
+  std::vector<String> lines1, lines2;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool ok1 = readBatch(in1, '+', scale1, opts.circular, a1);
-    bool ok2 = readBatch(in2, '-', scale2, opts.circular, a2);
+    bool ok1 = readBatch(in1, '+', scale1, opts.circular, text1, lines1, a1);
+    bool ok2 = readBatch(in2, '-', scale2, opts.circular, text2, lines2, a2);
     printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
     printAlnsForOneRead(a2, a1, opts, opts.maxMissingScore2, "/2");
     if (!ok1 || !ok2) break;
