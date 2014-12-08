@@ -117,13 +117,13 @@ static std::istream& openIn(const std::string& fileName, std::ifstream& ifs) {
   return ifs;
 }
 
-static double logSumExp(std::vector<double>& numbers) {
+static double logSumExp(const double *beg, const double *end) {
   // Adds numbers, in log space, to avoid overflow.
-  if (numbers.empty()) return -1.0e99;  // should be -inf
-  const double m = *std::max_element(numbers.begin(), numbers.end());
+  const double m = *std::max_element(beg, end);
   double s = 0.0;
-  for (std::vector<double>::iterator itr = numbers.begin(); itr != numbers.end(); itr++) {
-    s += std::exp(*itr - m);
+  while (beg < end) {
+    s += std::exp(*beg - m);
+    ++beg;
   }
   return std::log(s) + m;
 }
@@ -251,55 +251,56 @@ static long headToHeadDistance(const Alignment& alignment1, const Alignment& ali
   return length;
 }
 
-static std::vector<double> conjointScores(const Alignment& aln1,
-                                          const std::pair<MMAP::iterator, MMAP::iterator>& alns2,
-                                          double fraglen, double inner, bool isRna) {
-  std::vector<double> cScores;
+static double *conjointScores(const Alignment& aln1,
+			      const std::pair<MMAP::iterator, MMAP::iterator>& alns2,
+			      double fraglen, double inner, bool isRna,
+			      double *scores) {
   for (MMAP::iterator itr = alns2.first; itr != alns2.second; itr++) {
-    long length = headToHeadDistance(aln1, itr->second);
+    const Alignment& aln2 = itr->second;
+    long length = headToHeadDistance(aln1, aln2);
     if (isRna) {	// use a log-normal distribution
       if (length <= 0) continue;
       double loglen = std::log((double)length);
       double x = loglen - fraglen;
-      cScores.push_back(itr->second.scaledScore + inner * (x * x) - loglen);
+      *scores++ = aln2.scaledScore + inner * (x * x) - loglen;
     }
     else {    	// use a normal distribution
       if ((length > 0) != (fraglen > 0.0)) continue;	// ?
       double x = length - fraglen;
-      cScores.push_back(itr->second.scaledScore + inner * (x * x));
+      *scores++ = aln2.scaledScore + inner * (x * x);
     }
   }
-  return cScores;
+  return scores;
 }
 
-static std::vector<double> probForEachAlignment(const std::vector<Alignment>& alignments1,
-                                                const std::vector<Alignment>& alignments2,
-                                                const LastPairProbsOptions& opts) {
-  std::vector<double> zs;
-  std::vector<double> numbers;
+static void probForEachAlignment(const std::vector<Alignment>& alignments1,
+				 const std::vector<Alignment>& alignments2,
+				 const LastPairProbsOptions& opts,
+				 double *zs) {
+  size_t size2 = alignments2.size();
+  std::vector<double> scoresVec(size2);
+  double *scores = &scoresVec[0];
   std::vector<Alignment>::const_iterator itr;
-  for (itr = alignments2.begin(); itr != alignments2.end(); itr++) {
-    numbers.push_back(itr->scaledScore);
-  }
-  double x = opts.disjointScore + logSumExp(numbers);
+  for (size_t i = 0; i < size2; ++i)
+    scores[i] = alignments2[i].scaledScore;
+  double x = opts.disjointScore + logSumExp(scores, scores + size2);
   MMAP mapAlns2;
   for (itr = alignments2.begin(); itr != alignments2.end(); itr++) {
     mapAlns2.insert(std::pair<std::string, Alignment>(itr->genomeStrand, *itr));
   }
 
-  std::vector<Alignment>::const_iterator aln1;
-  for (aln1 = alignments1.begin(); aln1 != alignments1.end(); aln1++) {
+  std::vector<Alignment>::const_iterator i;
+  for (i = alignments1.begin(); i < alignments1.end(); ++i) {
     // get the items in alignments2 that have the same genomeStrand:
-    std::pair<MMAP::iterator, MMAP::iterator> alns2 = mapAlns2.equal_range(aln1->genomeStrand);
-    std::vector<double> cScores = conjointScores(*aln1, alns2, opts.fraglen, opts.inner, opts.rna);
-    if (cScores.size()) {
-      double y = opts.outer + logSumExp(cScores);
-      zs.push_back(aln1->scaledScore + logSumExp(x, y));
+    std::pair<MMAP::iterator, MMAP::iterator> alns2 = mapAlns2.equal_range(i->genomeStrand);
+    double *scoresEnd = conjointScores(*i, alns2, opts.fraglen, opts.inner, opts.rna, scores);
+    if (scoresEnd > scores) {
+      double y = opts.outer + logSumExp(scores, scoresEnd);
+      *zs++ = i->scaledScore + logSumExp(x, y);
     } else {	// no items in alignments2 have the same genomeStrand
-      zs.push_back(aln1->scaledScore + x);
+      *zs++ = i->scaledScore + x;
     }
   }
-  return zs;
 }
 
 static void printAlnsForOneRead(const std::vector<Alignment>& alignments1,
@@ -307,22 +308,24 @@ static void printAlnsForOneRead(const std::vector<Alignment>& alignments1,
                                 const LastPairProbsOptions& opts,
                                 double maxMissingScore, const char *suf) {
   size_t size1 = alignments1.size();
+  if (size1 == 0) return;
   size_t size2 = alignments2.size();
-  std::vector<double> zs;
+  std::vector<double> zsVec(size1);
+  double *zs = &zsVec[0];
   double w = maxMissingScore;
 
   if (size2 > 0) {
-    zs = probForEachAlignment(alignments1, alignments2, opts);
+    probForEachAlignment(alignments1, alignments2, opts, zs);
     double w0 = -DBL_MAX;
     for (size_t i = 0; i < size2; ++i)
       w0 = std::max(w0, alignments2[i].scaledScore);
     w += w0;
   } else {
     for (size_t i = 0; i < size1; ++i)
-      zs.push_back(alignments1[i].scaledScore + opts.disjointScore);
+      zs[i] = alignments1[i].scaledScore + opts.disjointScore;
   }
 
-  double z = logSumExp(zs);
+  double z = logSumExp(zs, zs + size1);
   double zw = logSumExp(z, w);
 
   for (size_t i = 0; i < size1; ++i) {
