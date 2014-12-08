@@ -408,8 +408,9 @@ static double parseMafScore(const std::string& aLine) {
   return 0.0;	// dummy;
 }
 
-static Alignment parseMaf(const std::vector<std::string>& lines, char strand,
-                          double scale, const std::set<std::string>& circularChroms) {
+static Alignment parseMaf(const std::vector<std::string>& lines,
+			  char strand, double scale,
+			  const std::set<std::string>& circularChroms) {
   const double score = parseMafScore(lines[0]);
   std::string rName, qName;
   char qStrand;
@@ -441,8 +442,9 @@ static Alignment parseMaf(const std::vector<std::string>& lines, char strand,
                         lines, strand, scale, circularChroms);
 }
 
-static Alignment parseTab(const std::string& line, char strand,
-                          double scale, const std::set<std::string>& circularChroms) {
+static Alignment parseTab(const std::string& line,
+			  char strand, double scale,
+			  const std::set<std::string>& circularChroms) {
   std::vector<std::string> lines;
   lines.push_back(line);
   double score;
@@ -465,13 +467,14 @@ static Alignment parseTab(const std::string& line, char strand,
                         lines, strand, scale, circularChroms);
 }
 
-static bool readBatches(std::istream& lines, char strand,
-                        const double scale, const std::set<std::string>& circularChroms,
-                        std::vector<Alignment>& alns) {
+static bool readBatch(std::istream& input,
+		      char strand, const double scale,
+		      const std::set<std::string>& circularChroms,
+		      std::vector<Alignment>& alns) {
   // Yields alignment data from MAF or tabular format.
   std::vector<std::string> maf;
   std::string line;
-  while (std::getline(lines, line)) {
+  while (std::getline(input, line)) {
     if (std::isdigit(line[0])) {
       alns.push_back(parseTab(line, strand, scale, circularChroms));
     } else if (std::isalpha(line[0])) {
@@ -501,15 +504,11 @@ static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in
                                              const std::set<std::string>& circularChroms) {
   std::vector<long> lengths;
   while (1) {
-    std::vector<Alignment> batches1, batches2;
-    bool endBatches1 = readBatches(in1, '+', scale1, circularChroms, batches1);
-    bool endBatches2 = readBatches(in2, '-', scale2, circularChroms, batches2);
-    //    std::sort(batches1.begin(), batches1.end());
-    //    std::sort(batches2.begin(), batches2.end());
-    unambiguousFragmentLengths(batches1, batches2, lengths);
-    if (endBatches1 || endBatches2) {
-      break;
-    }
+    std::vector<Alignment> a1, a2;
+    bool endBatches1 = readBatch(in1, '+', scale1, circularChroms, a1);
+    bool endBatches2 = readBatch(in2, '-', scale2, circularChroms, a2);
+    unambiguousFragmentLengths(a1, a2, lengths);
+    if (endBatches1 || endBatches2) break;
   }
   return lengths;
 }
@@ -518,16 +517,12 @@ static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
                                 double scale1, double scale2,
                                 const LastPairProbsOptions& opts) {
   while (1) {
-    std::vector<Alignment> batches1, batches2;
-    bool endBatches1 = readBatches(in1, '+', scale1, opts.circular, batches1);
-    bool endBatches2 = readBatches(in2, '-', scale2, opts.circular, batches2);
-    //    std::sort(batches1.begin(), batches1.end());
-    //    std::sort(batches2.begin(), batches2.end());
-    printAlnsForOneRead(batches1, batches2, opts, opts.maxMissingScore1, "/1");
-    printAlnsForOneRead(batches2, batches1, opts, opts.maxMissingScore2, "/2");
-    if (endBatches1 || endBatches2) {
-      break;
-    }
+    std::vector<Alignment> a1, a2;
+    bool endBatches1 = readBatch(in1, '+', scale1, opts.circular, a1);
+    bool endBatches2 = readBatch(in2, '-', scale2, opts.circular, a2);
+    printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
+    printAlnsForOneRead(a2, a1, opts, opts.maxMissingScore2, "/2");
+    if (endBatches1 || endBatches2) break;
   }
 }
 
