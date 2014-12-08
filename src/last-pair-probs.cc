@@ -128,6 +128,13 @@ static double logSumExp(std::vector<double>& numbers) {
   return std::log(s) + m;
 }
 
+static double logSumExp(double x, double y) {
+  // Special case of the preceding routine.
+  return (x > y)
+    ? std::log(1 + std::exp(y - x)) + x
+    : std::log(std::exp(x - y) + 1) + y;
+}
+
 class AlignmentParameters {
   // Parses the score scale factor, minimum score, and genome size.
   double t;
@@ -190,7 +197,7 @@ class AlignmentParameters {
 };
 
 static void printAlignmentWithMismapProb(const Alignment& alignment,
-                                         double prob, std::string suf) {
+                                         double prob, const char *suf) {
   const String *linesBeg = alignment.linesBeg;
   const String *linesEnd = alignment.linesEnd;
   const std::string& qName = alignment.qName;
@@ -209,7 +216,7 @@ static void printAlignmentWithMismapProb(const Alignment& alignment,
   }
   else {	// we have MAF format
     std::cout << *linesBeg << " mismap=" << p << '\n';
-    std::string pad(suf.length(), ' ');	// spacer to keep the alignment of MAF lines
+    const char *pad = *suf ? "  " : "";  // spacer to keep the alignment of MAF lines
     size_t rNameEnd = alignment.genomeStrand.length() + 1;  // where to insert the spacer
     size_t qNameEnd = qNameLen + 2;	// where to insert the suffix
     unsigned s = 0;
@@ -249,15 +256,17 @@ static std::vector<double> conjointScores(const Alignment& aln1,
                                           double fraglen, double inner, bool isRna) {
   std::vector<double> cScores;
   for (MMAP::iterator itr = alns2.first; itr != alns2.second; itr++) {
-    const long length = headToHeadDistance(aln1, itr->second);
+    long length = headToHeadDistance(aln1, itr->second);
     if (isRna) {	// use a log-normal distribution
       if (length <= 0) continue;
-      const double loglen = std::log((double)length);
-      cScores.push_back(itr->second.scaledScore + inner * std::pow(loglen-fraglen, 2.0) - loglen);
+      double loglen = std::log((double)length);
+      double x = loglen - fraglen;
+      cScores.push_back(itr->second.scaledScore + inner * (x * x) - loglen);
     }
     else {    	// use a normal distribution
       if ((length > 0) != (fraglen > 0.0)) continue;	// ?
-      cScores.push_back(itr->second.scaledScore + inner * std::pow(length-fraglen, 2.0));
+      double x = length - fraglen;
+      cScores.push_back(itr->second.scaledScore + inner * (x * x));
     }
   }
   return cScores;
@@ -272,7 +281,7 @@ static std::vector<double> probForEachAlignment(const std::vector<Alignment>& al
   for (itr = alignments2.begin(); itr != alignments2.end(); itr++) {
     numbers.push_back(itr->scaledScore);
   }
-  const double x = opts.disjointScore + logSumExp(numbers);
+  double x = opts.disjointScore + logSumExp(numbers);
   MMAP mapAlns2;
   for (itr = alignments2.begin(); itr != alignments2.end(); itr++) {
     mapAlns2.insert(std::pair<std::string, Alignment>(itr->genomeStrand, *itr));
@@ -284,11 +293,8 @@ static std::vector<double> probForEachAlignment(const std::vector<Alignment>& al
     std::pair<MMAP::iterator, MMAP::iterator> alns2 = mapAlns2.equal_range(aln1->genomeStrand);
     std::vector<double> cScores = conjointScores(*aln1, alns2, opts.fraglen, opts.inner, opts.rna);
     if (cScores.size()) {
-      std::vector<double> xy;
       double y = opts.outer + logSumExp(cScores);
-      xy.push_back(x);
-      xy.push_back(y);
-      zs.push_back(aln1->scaledScore + logSumExp(xy));
+      zs.push_back(aln1->scaledScore + logSumExp(x, y));
     } else {	// no items in alignments2 have the same genomeStrand
       zs.push_back(aln1->scaledScore + x);
     }
@@ -299,34 +305,30 @@ static std::vector<double> probForEachAlignment(const std::vector<Alignment>& al
 static void printAlnsForOneRead(const std::vector<Alignment>& alignments1,
                                 const std::vector<Alignment>& alignments2,
                                 const LastPairProbsOptions& opts,
-                                double maxMissingScore, const std::string suf) {
-  std::vector<Alignment>::const_iterator itr;
+                                double maxMissingScore, const char *suf) {
+  size_t size1 = alignments1.size();
+  size_t size2 = alignments2.size();
   std::vector<double> zs;
-  double w;
+  double w = maxMissingScore;
 
-  if (alignments2.size()) {
+  if (size2 > 0) {
     zs = probForEachAlignment(alignments1, alignments2, opts);
     double w0 = -DBL_MAX;
-    for (itr = alignments2.begin(); itr != alignments2.end(); itr++) {
-      w0 = (itr->scaledScore > w0) ? itr->scaledScore : w0;
-    }
-    w = maxMissingScore + w0;
+    for (size_t i = 0; i < size2; ++i)
+      w0 = std::max(w0, alignments2[i].scaledScore);
+    w += w0;
   } else {
-    for (itr = alignments1.begin(); itr != alignments1.end(); itr++) {
-      zs.push_back(itr->scaledScore + opts.disjointScore);
-    }
-    w = maxMissingScore;
+    for (size_t i = 0; i < size1; ++i)
+      zs.push_back(alignments1[i].scaledScore + opts.disjointScore);
   }
 
-  std::vector<double> zw0;
-  zw0.push_back(logSumExp(zs));
-  zw0.push_back(w);
-  const double zw = logSumExp(zw0);
-  
-  std::vector<double>::iterator itrzs;
-  for (itr = alignments1.begin(), itrzs = zs.begin(); itr != alignments1.end() && itrzs != zs.end(); itr++, itrzs++) {
-    const double prob = 1.0 - std::exp(*itrzs - zw);
-    if (prob <= opts.mismap) printAlignmentWithMismapProb(*itr, prob, suf);
+  double z = logSumExp(zs);
+  double zw = logSumExp(z, w);
+
+  for (size_t i = 0; i < size1; ++i) {
+    double prob = 1.0 - std::exp(zs[i] - zw);
+    if (prob <= opts.mismap)
+      printAlignmentWithMismapProb(alignments1[i], prob, suf);
   }
 }
 
@@ -606,7 +608,7 @@ static void calculateScorePieces(LastPairProbsOptions& opts,
   else {	// parameters for a Normal Distribution (of fragment lengths):
     const double pi = atan(1.0) * 4.0;
     opts.outer = -std::log(opts.sdev * std::sqrt(2.0 * pi));
-    opts.inner = -1.0 / (2.0 * std::pow(opts.sdev, 2.0));
+    opts.inner = -1.0 / (2.0 * (opts.sdev * opts.sdev));
   }
   opts.outer += safeLog(1.0 - opts.disjoint);
 
@@ -616,7 +618,7 @@ static void calculateScorePieces(LastPairProbsOptions& opts,
 
   // Max possible influence of an alignment just below the score threshold:
   double maxLogPrior = opts.outer;
-  if (opts.rna) maxLogPrior += std::pow(opts.sdev, 2.0) / 2.0 - opts.fraglen;
+  if (opts.rna) maxLogPrior += (opts.sdev * opts.sdev) / 2.0 - opts.fraglen;
   opts.maxMissingScore1 = (params1.eGet() - 1.0) / params1.tGet() + maxLogPrior;
   opts.maxMissingScore2 = (params2.eGet() - 1.0) / params2.tGet() + maxLogPrior;
 }
