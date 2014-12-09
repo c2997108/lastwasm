@@ -2,12 +2,13 @@
 // Copyright 2014 Martin C. Frith
 
 #include "last-pair-probs.hh"
+#include "stringify.hh"
 
 #include <algorithm>
 #include <cctype>  // isalpha
 #include <cerrno>
 #include <cmath>
-#include <cstdlib>  // atof, atol
+#include <cstdlib>  // atof
 #include <cstring>  // strncmp
 #include <fstream>
 #include <iostream>
@@ -155,19 +156,20 @@ class AlignmentParameters {
   AlignmentParameters() : t(-1), e(-1), g(-1) {}  // dummy values
 
   void update(const std::string& line) {
-    std::stringstream ss(line);
+    std::istringstream ss(line);
     std::string i;
     while (ss >> i) {
+      const char *c = i.c_str();
       if (t == -1.0 && i.substr(0,2) == "t=") {
-        t = std::atof(i.substr(2).c_str());
+	cbrc::unstringify(t, c + 2);
         if (t <= 0) err("t must be positive");
       }
       if (e == -1.0 && i.substr(0,2) == "e=") {
-        e = std::atof(i.substr(2).c_str());
+	cbrc::unstringify(e, c + 2);
         if (e <= 0) err("e must be positive");
       }
       if (g == -1.0 && i.substr(0,8) == "letters=") {
-        g = std::atol(i.substr(8).c_str());
+	cbrc::unstringify(g, c + 8);
         if (g <= 0) err("letters must be positive");
       }
     }
@@ -492,6 +494,11 @@ static bool readBatch(std::istream& input,
   if (mafStart < numOfLines)
     alns.push_back(parseMaf(&lines[mafStart], &lines[0] + numOfLines,
 			    strand, scale, circularChroms));
+
+  size_t numOfAlns = alns.size();
+  for (size_t i = 1; i < numOfAlns; ++i)
+    if (wordCmp(alns[i - 1].qName, alns[i].qName) != 0)
+      err("found 2 queries in 1 batch: did you forget lastal -i1?");
 
   stable_sort(alns.begin(), alns.end());
 
