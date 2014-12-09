@@ -4,7 +4,7 @@
 #include "last-pair-probs.hh"
 
 #include <algorithm>
-#include <cctype>  // isdigit, etc
+#include <cctype>  // isalpha
 #include <cerrno>
 #include <cmath>
 #include <cstdlib>  // atof, atol
@@ -147,63 +147,43 @@ static double logSumExp(double x, double y) {
 
 class AlignmentParameters {
   // Parses the score scale factor, minimum score, and genome size.
-  double t;
-  double e;
-  long g;
+  double t;  // score scale factor
+  double e;  // minimum score
+  long   g;  // genome size
 
  public:
-  AlignmentParameters() {	// dummy values:
-    this->t = -1.0;	// score scale factor
-    this->e = -1.0;	// minimum score
-    this->g = -1;		// genome size
-  }
+  AlignmentParameters() : t(-1), e(-1), g(-1) {}  // dummy values
 
   void update(const std::string& line) {
     std::stringstream ss(line);
     std::string i;
     while (ss >> i) {
-      if (this->t == -1.0 && i.substr(0,2) == "t=") {
-        this->t = std::atof(i.substr(2).c_str());
-        if (this->t <= 0) {
-          err("t must be positive");
-        }
+      if (t == -1.0 && i.substr(0,2) == "t=") {
+        t = std::atof(i.substr(2).c_str());
+        if (t <= 0) err("t must be positive");
       }
-      if (this->e == -1.0 && i.substr(0,2) == "e=") {
-        this->e = std::atof(i.substr(2).c_str());
-        if (this->e <= 0) {
-          err("e must be positive");
-        }
+      if (e == -1.0 && i.substr(0,2) == "e=") {
+        e = std::atof(i.substr(2).c_str());
+        if (e <= 0) err("e must be positive");
       }
-      if (this->g == -1.0 && i.substr(0,8) == "letters=") {
-        this->g = std::atol(i.substr(8).c_str());
-        if (this->g <= 0) {
-          err("letters must be positive");
-        }
+      if (g == -1.0 && i.substr(0,8) == "letters=") {
+        g = std::atol(i.substr(8).c_str());
+        if (g <= 0) err("letters must be positive");
       }
     }
   }
 
-  bool isValid() const {
-    return this->t != -1.0 && this->e != -1.0 && this->g != -1;
-  }
+  bool isValid() const { return t != -1 && e != -1 && g != -1; }
 
   void validate() const {
-    if (this->t == -1.0) err("I need a header line with t=");
-    if (this->e == -1.0) err("I need a header line with e=");
-    if (this->g == -1) err("I need a header line with letters=");
+    if (t == -1) err("I need a header line with t=");
+    if (e == -1) err("I need a header line with e=");
+    if (g == -1) err("I need a header line with letters=");
   }
 
-  double tGet() const {
-    return this->t;
-  }
-
-  double eGet() const {
-    return this->e;
-  }
-
-  long gGet() const {
-    return this->g;
-  }
+  double tGet() const { return t; }
+  double eGet() const { return e; }
+  long   gGet() const { return g; }
 };
 
 static bool isGoodQueryName(const char *nameEnd) {
@@ -225,8 +205,7 @@ static void printAlignmentWithMismapProb(const Alignment& alignment,
     for (int i = 0; i < 7; ++i) d = skipWord(d);
     std::cout.write(c, d - c);
     std::cout << suf << d << '\t' << p << '\n';
-  }
-  else {	// we have MAF format
+  } else {  // we have MAF format
     std::cout << *linesBeg << " mismap=" << p << '\n';
     const char *pad = *suf ? "  " : "";  // spacer to keep the alignment of MAF lines
     const char *rName = alignment.rName;
@@ -256,12 +235,10 @@ static void printAlignmentWithMismapProb(const Alignment& alignment,
   }
 }
 
-static long headToHeadDistance(const Alignment& alignment1, const Alignment& alignment2) {
+static long headToHeadDistance(const Alignment& x, const Alignment& y) {
   // The 5'-to-5' distance between 2 alignments on opposite strands.
-  long length = alignment1.c + alignment2.c;
-  if (length > alignment1.rSize) {
-    length -= alignment1.rSize;	// for circular chroms
-  }
+  long length = x.c + y.c;
+  if (length > x.rSize) length -= x.rSize;  // for circular chroms
   return length;
 }
 
@@ -273,14 +250,13 @@ static double *conjointScores(const Alignment& aln1,
     const Alignment &aln2 = *j;
     if (aln1 < aln2) break;
     long length = headToHeadDistance(aln1, aln2);
-    if (isRna) {	// use a log-normal distribution
+    if (isRna) {  // use a log-normal distribution
       if (length <= 0) continue;
       double loglen = std::log((double)length);
       double x = loglen - fraglen;
       *scores++ = aln2.scaledScore + inner * (x * x) - loglen;
-    }
-    else {    	// use a normal distribution
-      if ((length > 0) != (fraglen > 0.0)) continue;	// ?
+    } else {      // use a normal distribution
+      if ((length > 0) != (fraglen > 0.0)) continue;  // ?
       double x = length - fraglen;
       *scores++ = aln2.scaledScore + inner * (x * x);
     }
@@ -304,7 +280,8 @@ static void probForEachAlignment(const std::vector<Alignment>& alignments1,
   std::vector<Alignment>::const_iterator i;
   for (i = alignments1.begin(); i < alignments1.end(); ++i) {
     while (jBeg < jEnd && *jBeg < *i) ++jBeg;
-    double *scoresEnd = conjointScores(*i, jBeg, jEnd, opts.fraglen, opts.inner, opts.rna, scores);
+    double *scoresEnd = conjointScores(*i, jBeg, jEnd, opts.fraglen,
+				       opts.inner, opts.rna, scores);
     if (scoresEnd > scores) {
       double y = opts.outer + logSumExp(scores, scoresEnd);
       *zs++ = i->scaledScore + logSumExp(x, y);
@@ -314,26 +291,26 @@ static void probForEachAlignment(const std::vector<Alignment>& alignments1,
   }
 }
 
-static void printAlnsForOneRead(const std::vector<Alignment>& alignments1,
-                                const std::vector<Alignment>& alignments2,
+static void printAlnsForOneRead(const std::vector<Alignment>& alns1,
+                                const std::vector<Alignment>& alns2,
                                 const LastPairProbsOptions& opts,
                                 double maxMissingScore, const char *suf) {
-  size_t size1 = alignments1.size();
+  size_t size1 = alns1.size();
   if (size1 == 0) return;
-  size_t size2 = alignments2.size();
+  size_t size2 = alns2.size();
   std::vector<double> zsVec(size1);
   double *zs = &zsVec[0];
   double w = maxMissingScore;
 
   if (size2 > 0) {
-    probForEachAlignment(alignments1, alignments2, opts, zs);
+    probForEachAlignment(alns1, alns2, opts, zs);
     double w0 = -DBL_MAX;
     for (size_t i = 0; i < size2; ++i)
-      w0 = std::max(w0, alignments2[i].scaledScore);
+      w0 = std::max(w0, alns2[i].scaledScore);
     w += w0;
   } else {
     for (size_t i = 0; i < size1; ++i)
-      zs[i] = alignments1[i].scaledScore + opts.disjointScore;
+      zs[i] = alns1[i].scaledScore + opts.disjointScore;
   }
 
   double z = logSumExp(zs, zs + size1);
@@ -341,34 +318,28 @@ static void printAlnsForOneRead(const std::vector<Alignment>& alignments1,
 
   for (size_t i = 0; i < size1; ++i) {
     double prob = 1.0 - std::exp(zs[i] - zw);
-    if (prob <= opts.mismap)
-      printAlignmentWithMismapProb(alignments1[i], prob, suf);
+    if (prob <= opts.mismap) printAlignmentWithMismapProb(alns1[i], prob, suf);
   }
 }
 
-static void unambiguousFragmentLengths(const std::vector<Alignment>& alignments1,
-                                       const std::vector<Alignment>& alignments2,
+static void unambiguousFragmentLengths(const std::vector<Alignment>& alns1,
+                                       const std::vector<Alignment>& alns2,
                                        std::vector<long>& lengths) {
   // Returns the fragment length implied by alignments of a pair of reads.
-  long oldLength = LONG_MAX;
+  long oldLen = LONG_MAX;
   std::vector<Alignment>::const_iterator i, j;
-  std::vector<Alignment>::const_iterator jBeg = alignments2.begin();
-  std::vector<Alignment>::const_iterator jEnd = alignments2.end();
-  for (i = alignments1.begin(); i < alignments1.end(); ++i) {
+  std::vector<Alignment>::const_iterator jBeg = alns2.begin();
+  std::vector<Alignment>::const_iterator jEnd = alns2.end();
+  for (i = alns1.begin(); i < alns1.end(); ++i) {
     while (jBeg < jEnd && *jBeg < *i) ++jBeg;
     for (j = jBeg; j < jEnd; ++j) {
       if (*i < *j) break;
-      long newLength = headToHeadDistance(*i, *j);
-      if (oldLength == LONG_MAX) {
-	oldLength = newLength;
-      } else if (newLength != oldLength) {
-	return;  // the fragment length is ambiguous
-      }
+      long newLen = headToHeadDistance(*i, *j);
+      if (oldLen == LONG_MAX) oldLen = newLen;
+      else if (newLen != oldLen) return;  // the fragment length is ambiguous
     }
   }
-  if (oldLength != LONG_MAX) {
-    lengths.push_back(oldLength);
-  }
+  if (oldLen != LONG_MAX) lengths.push_back(oldLen);
 }
 
 static AlignmentParameters readHeaderOrDie(std::istream& lines) {
@@ -377,16 +348,14 @@ static AlignmentParameters readHeaderOrDie(std::istream& lines) {
   while (getline(lines, line)) {
     if (line.substr(0,1) == "#") {
       params.update(line);
-      if (params.isValid()) {
+      if (params.isValid())
         return params;
-      }
-    }
-    else if (line.find_first_not_of(" ") != std::string::npos) {
+    } else if (line.find_first_not_of(" ") != std::string::npos) {
       break;
     }
   }
-  params.validate();	// die
-  return params;			// dummy
+  params.validate();  // die
+  return params;  // dummy
 }
 
 static Alignment parseAlignment(double score, const char *rName,
@@ -402,14 +371,13 @@ static Alignment parseAlignment(double score, const char *rName,
         circularChroms.find(".") != circularChroms.end()) c += rSize;
   }
 
-  const double scaledScore = score / scale;	// needed in 2nd pass
   Alignment parse;
   parse.linesBeg = linesBeg;
   parse.linesEnd = linesEnd;
   parse.rName = rName;
   parse.c = c;
   parse.rSize = rSize;
-  parse.scaledScore = scaledScore;
+  parse.scaledScore = score / scale;  // needed in 2nd pass
   parse.qName = qName;
   parse.strand = (qStrand == strand) ? '+' : '-';
   return parse;
@@ -427,7 +395,7 @@ static double parseMafScore(const char *aLine) {
     }
   }
   err("missing score");
-  return 0.0;	// dummy;
+  return 0.0;  // dummy;
 }
 
 static Alignment parseMaf(const String *linesBeg, const String *linesEnd,
@@ -531,7 +499,7 @@ static bool readBatch(std::istream& input,
 }
 
 static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in2,
-                                             const double scale1, const double scale2,
+                                             double scale1, double scale2,
                                              const std::set<std::string>& circularChroms) {
   std::vector<long> lengths;
   std::vector<char> text1, text2;
@@ -569,9 +537,8 @@ static double myRound(double myFloat) {
 
 static void estimateFragmentLengthDistribution(std::vector<long> lengths,
                                                LastPairProbsOptions& opts) {
-  if (lengths.empty()) {
+  if (lengths.empty())
     err("can't estimate the distribution of distances");
-  }
 
   // Define quartiles in the most naive way possible:
   std::sort(lengths.begin(), lengths.end());
@@ -580,39 +547,37 @@ static void estimateFragmentLengthDistribution(std::vector<long> lengths,
   const long quartile2 = lengths[sampleSize / 2];
   const long quartile3 = lengths[sampleSize * 3 / 4];
 
-  std::cerr << opts.progName << ": distance sample size: " << sampleSize << "\n";
-  std::cerr << opts.progName << ": distance quartiles: " << quartile1 << " " << quartile2 << " " << quartile3 << "\n";
+  std::cerr << opts.progName << ": distance sample size: "
+	    << sampleSize << "\n";
+  std::cerr << opts.progName << ": distance quartiles: "
+	    << quartile1 << " " << quartile2 << " " << quartile3 << "\n";
 
-  if (opts.rna && quartile1 <= 0) {
+  if (opts.rna && quartile1 <= 0)
     err("too many distances <= 0");
-  }
 
   const char* thing = (opts.rna) ? "ln[distance]" : "distance";
 
   if (!opts.isFraglen) {
-    if (opts.rna) {
-      opts.fraglen = myRound(std::log((double)quartile2));
-    } else {
-      opts.fraglen = double(quartile2);
-    }
-    std::cerr << opts.progName << ": estimated mean " << thing << ": " << opts.fraglen << "\n";
+    if (opts.rna) opts.fraglen = myRound(std::log((double)quartile2));
+    else          opts.fraglen = double(quartile2);
+    std::cerr << opts.progName << ": estimated mean "
+	      << thing << ": " << opts.fraglen << "\n";
   }
 
   if (!opts.isSdev) {
-    const double iqr = (opts.rna) ? 
-      std::log((double)quartile3) - std::log((double)quartile1) : quartile3 - quartile1;
+    const double iqr =
+      (opts.rna) ? std::log((double)quartile3) - std::log((double)quartile1)
+      :            quartile3 - quartile1;
     // Normal Distribution: sdev = iqr / (2 * qnorm(0.75))
     opts.sdev = myRound(iqr / 1.34898);
-    std::cerr << opts.progName << ": estimated standard deviation of " << thing << ": " << opts.sdev << "\n";
+    std::cerr << opts.progName << ": estimated standard deviation of "
+	      << thing << ": " << opts.sdev << "\n";
   }
 }
 
 static double safeLog(const double x) {
-  if (x == 0.0) {
-    return -1.0e99;
-  } else {
-    return std::log(x);
-  }
+  if (x == 0.0) return -1.0e99;
+  else          return std::log(x);
 }
 
 static void calculateScorePieces(LastPairProbsOptions& opts,
@@ -621,8 +586,7 @@ static void calculateScorePieces(LastPairProbsOptions& opts,
   if (opts.sdev == 0.0) {
     opts.outer = opts.rna ? opts.fraglen : 0.0;
     opts.inner = -1.0e99;
-  }
-  else {	// parameters for a Normal Distribution (of fragment lengths):
+  } else {  // parameters for a Normal Distribution (of fragment lengths):
     const double pi = atan(1.0) * 4.0;
     opts.outer = -std::log(opts.sdev * std::sqrt(2.0 * pi));
     opts.inner = -1.0 / (2.0 * (opts.sdev * opts.sdev));
@@ -636,8 +600,8 @@ static void calculateScorePieces(LastPairProbsOptions& opts,
   // Max possible influence of an alignment just below the score threshold:
   double maxLogPrior = opts.outer;
   if (opts.rna) maxLogPrior += (opts.sdev * opts.sdev) / 2.0 - opts.fraglen;
-  opts.maxMissingScore1 = (params1.eGet() - 1.0) / params1.tGet() + maxLogPrior;
-  opts.maxMissingScore2 = (params2.eGet() - 1.0) / params2.tGet() + maxLogPrior;
+  opts.maxMissingScore1 = (params1.eGet() - 1) / params1.tGet() + maxLogPrior;
+  opts.maxMissingScore2 = (params2.eGet() - 1) / params2.tGet() + maxLogPrior;
 }
 
 void lastPairProbs(LastPairProbsOptions& opts) {
