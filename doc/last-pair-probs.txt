@@ -1,67 +1,113 @@
 last-pair-probs
 ===============
 
-This program reads alignments of paired DNA reads to a genome, and:
+This program reads candidate alignments of paired DNA reads to a
+genome, and:
 
 1. estimates the distribution of distances between paired reads,
 2. estimates the probability that each alignment represents the
    genomic source of the read.
 
-The program takes as input two files of alignments, where one read
-from each pair is in one file, and the other read is in the other
-file.
+"Paired" means that the reads come from either end of a DNA fragment,
+in tail-to-tail orientation::
 
-Typical usage::
+  5' ---------->................................. 3'
+  3' .................................<---------- 5'
 
-  lastdb -m1111110 humandb human/chr*.fa
-  lastal -Q1 -e120 -i1 humandb reads1.fastq > temp1.maf
-  lastal -Q1 -e120 -i1 humandb reads2.fastq > temp2.maf
-  last-pair-probs temp1.maf temp2.maf > results.maf
+Or head-to-head orientation::
 
-If your reads come from potentially-spliced RNA molecules, use the -r
-option::
+  5' .................................----------> 3'
+  3' <----------................................. 5'
 
-  last-pair-probs -r temp1.maf temp2.maf > results.maf
+The program writes the alignments with "mismap" probabilities,
+i.e. the probability that the alignment does not represent the genomic
+source of the read. By default, it discards alignments with mismap
+probability > 0.01.
+
+Simple usage
+------------
+
+Suppose we have paired DNA reads in a file called "interleaved.fastq"
+(in fastq-sanger format), where the first two reads are paired, the
+next two reads are paired, and so on.  We can align them to the human
+genome like this::
+
+  lastdb -m1111110 hg human-genome.fasta
+  lastal -Q1 -e120 -i1 hg interleaved.fastq > temp.maf
+  last-pair-probs temp.maf > out.maf
+
+Suppose we have paired reads in two files, where the two first reads
+are paired, the two second reads are paired, and so on.  We can
+interleave them like this::
+
+  fastq-interleave x.fastq y.fastq | lastal -Q1 -e120 -i1 hg > temp.maf
+
+Reads from potentially-spliced RNA molecules
+--------------------------------------------
+
+Use the -r option::
+
+  last-pair-probs -r temp.maf > out.maf
 
 Without -r, it assumes the distances between paired reads follow a
 normal distribution.  With -r, it assumes the distances follow a
 skewed (log-normal) distribution, which is much more appropriate for
 spliced RNA.
 
+Efficient usage
+---------------
+
+The preceding recipes make a potentially-huge temp file, and
+last-pair-probs reads it twice: first to estimate the distance
+distribution, and then to estimate alignment probabilities.  It is
+more efficient to estimate the distance distribution from a small
+sample of the data::
+
+  lastal -Q1 -e120 -i1 hg sample.fastq | last-pair-probs -e
+
+Suppose this tells us that the mean distance is 250 and the standard
+deviation is 38.5.  We can use that to estimate the alignment
+probabilities::
+
+  lastal -Q1 -e120 -i1 hg all.fastq | last-pair-probs -f250 -s38.5 > out.maf
+
+Going faster by parallelization
+-------------------------------
+
+This will run the pipeline on all your CPU cores::
+
+  fastq-interleave x.fastq y.fastq |
+  parallel-fastq "lastal -Q1 -e120 -i1 hg | last-pair-probs -f250 -s38.5" > out.maf
+
+It requires GNU parallel to be installed
+(http://www.gnu.org/software/parallel/).
+
 Details
 -------
 
-* The program writes the alignments with "mismap" probabilities,
-  i.e. the probability that the alignment does not represent the
-  genomic source of the read.  By default, it discards alignments with
-  mismap probability > 0.01.
+* The "distance" between a pair of reads means the distance between
+  their 5' ends.  Positive distance indicates tail-to-tail
+  orientation, and negative distance indicates head-to-head
+  orientation.  Negative distances are not considered when -r is used,
+  nor for circular chromosomes.
 
-* It assumes that each pair of reads comes from opposite strands of a
-  DNA molecule.  The "distance" between them means the distance
-  between their 5' ends.  Positive distance indicates tail-to-tail
-  orientation (with the 5' end being the head and the 3' end being the
-  tail).  Negative distance indicates head-to-head orientation.
-  Negative distances are not considered when -r is used, nor for
-  circular chromosomes.
+* The program reads one batch of alignments at a time (by looking for
+  lines starting with "# batch").  It assumes there is exactly one DNA
+  read per batch: if it finds more than one, it will complain.  The
+  lastal -i1 option ensures there is one query per batch.
 
-* The program reads one batch of alignments at a time from each file
-  (by looking for lines starting with "# batch").  It assumes that
-  each pair of batches has the alignments for one pair of reads.  To
-  achieve that, the read pairs should be in the same order in the
-  fastq files, and the lastal -i1 option ensures there is one query
-  per batch.
-
-* The input files may be in either format produced by lastal (maf or
+* The alignments may be in either format produced by lastal (maf or
   tabular).  They must include header lines (of the kind produced by
   lastal) describing the alignment parameters.
 
-* By default, the program makes two passes over each file.  So they
-  must be real files (not pipes).  However, if you use option -e, or
-  both -f and -s, it makes just one pass over each file.
-
 * If a read name ends in neither "/1" nor "/2", the program appends
-  "/1" if it comes from the first file or "/2" if it comes from the
-  second.
+  "/1" if it is the 1st in a pair or "/2" if it is the 2nd.
+
+* It is also possible to supply the alignments in two files::
+
+    lastal -Q1 -e120 -i1 hg x.fastq > temp1.maf
+    lastal -Q1 -e120 -i1 hg y.fastq > temp2.maf
+    last-pair-probs temp1.maf temp2.maf > out.maf
 
 Options
 -------
@@ -106,63 +152,8 @@ Options
 Tips
 ----
 
-* For greater speed and convenience, first estimate the distance
-  distribution from a sample of your data (using -e), then analyze all
-  your data with this estimate (using -f and -s).
-
-* You can avoid temp files by using named pipes::
-
-    mkfifo pipe1 pipe2
-    lastal -Q1 -e120 -i1 humandb reads1.fastq > pipe1 &
-    lastal -Q1 -e120 -i1 humandb reads2.fastq > pipe2 &
-    last-pair-probs -f250 -s30 pipe1 pipe2 > results.maf
-
-  This streams the alignments from lastal to last-pair-probs.
-
 * To go faster, try gapless alignment (add -j1 to the lastal options).
   Often, this is only minusculely less accurate than gapped alignment.
-
-* Tabular output (lastal option -f0) is smaller and faster.
-
-Using multiple CPUs
--------------------
-
-With large datasets, it's important to go faster by using multiple
-CPUs.  One way to do that is by using GNU parallel
-(http://www.gnu.org/software/parallel/), as follows.
-
-* Split reads1.fastq into multiple files, with (say) 100000 reads per
-  file::
-
-    split -l400000 -a5 reads1.fastq 1
-
-  This assumes that a new fastq record begins every 4th line, i.e. no
-  line wrapping.  The created files will be called 1aaaaa, 1aaaab,
-  etc.
-
-* Split reads2.fastq::
-
-    split -l400000 -a5 reads2.fastq 2
-
-* Make a file called (say) last-pair.sh, with the following content
-  (or similar - you might want to use -r, -j1, etc)::
-
-    #! /bin/sh
-    lastal -Q1 -e120 -i1 "$3" "$4" > /tmp/$$.1
-    lastal -Q1 -e120 -i1 "$3" "$5" > /tmp/$$.2
-    last-pair-probs -f "$1" -s "$2" /tmp/$$.1 /tmp/$$.2
-    rm /tmp/$$.*
-
-* Set execute permission::
-
-    chmod +x last-pair.sh
-
-* Run it in parallel on all your CPU cores::
-
-    parallel --xapply ./last-pair.sh 250 30 humandb ::: 1* ::: 2* > results.maf
-
-  Here we have specified a mean distance of 250 and a standard
-  deviation of 30.
 
 Reference
 ---------

@@ -2,6 +2,8 @@
 // Copyright 2014 Martin C. Frith
 
 #include "last-pair-probs.hh"
+
+#include "io.hh"
 #include "stringify.hh"
 
 #include <algorithm>
@@ -120,12 +122,6 @@ static const char *skipSpace(const char *c) {
   if (!c) return 0;
   while (isSpace(*c)) ++c;
   return c;
-}
-
-static std::istream& openIn(const std::string& fileName, std::ifstream& ifs) {
-  ifs.open(fileName.c_str());
-  if (!ifs) err("can't open file: " + fileName);
-  return ifs;
 }
 
 static double logSumExp(const double *beg, const double *end) {
@@ -611,29 +607,38 @@ static void calculateScorePieces(LastPairProbsOptions& opts,
   opts.maxMissingScore2 = (params2.eGet() - 1) / params2.tGet() + maxLogPrior;
 }
 
+static void skipOneBatchMarker(std::istream& input) {
+  std::string line;
+  while (std::getline(input, line))
+    if (line.find("# batch ") == 0) break;
+}
+
 void lastPairProbs(LastPairProbsOptions& opts) {
-  std::string fileName1 = opts.inputFileNames[0];
-  std::string fileName2 = opts.inputFileNames[1];
+  const std::vector<std::string>& inputs = opts.inputFileNames;
+  size_t n = inputs.size();
 
   if (!opts.isFraglen || !opts.isSdev) {
     std::ifstream inFile1, inFile2;
-    std::istream& in1 = openIn(fileName1, inFile1);
-    std::istream& in2 = openIn(fileName2, inFile2);
-    std::vector<long> lengths = readQueryPairs1pass(in1, in2, 1.0, 1.0, opts.circular);
+    std::istream& in1 = (n > 0) ? cbrc::openIn(inputs[0], inFile1) : std::cin;
+    std::istream& in2 = (n > 1) ? cbrc::openIn(inputs[1], inFile2) : in1;
+    if (n < 2) skipOneBatchMarker(in1);
+    std::vector<long> lengths = readQueryPairs1pass(in1, in2, 1.0, 1.0,
+						    opts.circular);
     estimateFragmentLengthDistribution(lengths, opts);
   }
 
   if (!opts.estdist) {
     std::ifstream inFile1, inFile2;
-    std::istream& in1 = openIn(fileName1, inFile1);
-    std::istream& in2 = openIn(fileName2, inFile2);
+    std::istream& in1 = (n > 0) ? cbrc::openIn(inputs[0], inFile1) : std::cin;
+    std::istream& in2 = (n > 1) ? cbrc::openIn(inputs[1], inFile2) : in1;
     AlignmentParameters params1 = readHeaderOrDie(in1);
-    AlignmentParameters params2 = readHeaderOrDie(in2);
+    AlignmentParameters params2 = (n > 1) ? readHeaderOrDie(in2) : params1;
     calculateScorePieces(opts, params1, params2);
     std::cout << "# fraglen=" << opts.fraglen
               << " sdev=" << opts.sdev
               << " disjoint=" << opts.disjoint
               << " genome=" << params1.gGet() << "\n";
+    if (n < 2) skipOneBatchMarker(in1);
     readQueryPairs2pass(in1, in2, params1.tGet(), params2.tGet(), opts);
   }
 }

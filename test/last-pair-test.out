@@ -1,5 +1,6 @@
 Usage:
   last-pair-probs --help
+  last-pair-probs [options] interleaved-alignments
   last-pair-probs [options] alignments1 alignments2
 
 Read alignments of paired DNA reads to a genome, and: (1) estimate the

@@ -21,10 +21,11 @@ static void run(int argc, char* argv[]) {
   opts.isSdev = false;
   opts.isDisjoint = false;
   opts.progName = argv[0];
-  
+
   std::string help = "\
 Usage:\n\
   " + std::string(argv[0]) + " --help\n\
+  " + std::string(argv[0]) + " [options] interleaved-alignments\n\
   " + std::string(argv[0]) + " [options] alignments1 alignments2\n\
 \n\
 Read alignments of paired DNA reads to a genome, and: (1) estimate the\n\
@@ -104,14 +105,19 @@ Options:\n\
     }
   }
 
+  if (optind == argc && !opts.estdist && (!opts.isFraglen || !opts.isSdev)) {
+    std::cerr << help;
+    throw std::runtime_error("");
+  }
+
   if (!opts.isDisjoint) {
     opts.disjoint = opts.rna ? 0.02 : 0.01;
   }
 
   opts.inputFileNames.assign(argv + optind, argv + argc);
 
-  if (opts.inputFileNames.size() != 2) {
-    throw std::runtime_error("please give me two file names");
+  if (opts.inputFileNames.size() > 2) {
+    throw std::runtime_error("too many file names");
   }
 
   if (!opts.circular.size()) {
