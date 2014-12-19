@@ -21,6 +21,10 @@ Options:
   -c CHROM, --circular=CHROM
                         specifies that chromosome CHROM is circular (default:
                         chrM)
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean distance: 248
+# estimated standard deviation of distance: 40.7715
 # fraglen=248 sdev=40.7715 disjoint=0.01 genome=16571
 a score=156 mismap=0.000222
 s chrM 11 50 + 16571 TATCACCCTATTAACCACTCACGGGAGCTCTCCATGCATTTGGTATTTTC
@@ -362,6 +366,10 @@ s chrM 9350 26 + 16571 AACCAACACACTAACCATATACCAAT
 s 98/2    0 26 +    50 AACCAACACACTAACCATATACCAAT
 q 98/2                 9BBBA6=?8*<(;BAB@7B+AA<<A<
 
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean distance: 248
+# estimated standard deviation of distance: 40.7715
 # fraglen=248 sdev=40.7715 disjoint=0.01 genome=16571
 156	chrM	11	50	+	16571	4/2	0	50	+	50	50	0.000222
 180	chrM	9112	50	+	16571	6/1	0	50	-	50	50	8.89e-07
@@ -428,6 +436,10 @@ q 98/2                 9BBBA6=?8*<(;BAB@7B+AA<<A<
 251	chrM	7140	50	+	16571	95/2	0	50	+	50	50	1.71e-13
 180	chrM	9555	50	+	16571	98/1	0	50	-	50	50	8.7e-07
 154	chrM	9350	26	+	16571	98/2	0	26	+	50	26	0.000335
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean ln[distance]: 5.51343
+# estimated standard deviation of ln[distance]: 0.16408
 # fraglen=5.51343 sdev=0.16408 disjoint=0.02 genome=16571
 156	chrM	11	50	+	16571	4/2	0	50	+	50	50	0.000213
 180	chrM	9112	50	+	16571	6/1	0	50	-	50	50	9.4e-07
@@ -566,6 +578,10 @@ q 98/2                 9BBBA6=?8*<(;BAB@7B+AA<<A<
 251	chrM	7140	50	+	16571	95/2	0	50	+	50	50	1.71e-13
 180	chrM	9555	50	+	16571	98/1	0	50	-	50	50	8.7e-07
 154	chrM	9350	26	+	16571	98/2	0	26	+	50	26	0.000335
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean distance: 248
+# estimated standard deviation of distance: 40.7715
 # fraglen=248 sdev=40.7715 disjoint=0.001 genome=16571
 156	chrM	11	50	+	16571	4/2	0	50	+	50	50	0.000222
 180	chrM	9112	50	+	16571	6/1	0	50	-	50	50	8.89e-07
@@ -633,6 +649,10 @@ q 98/2                 9BBBA6=?8*<(;BAB@7B+AA<<A<
 251	chrM	7140	50	+	16571	95/2	0	50	+	50	50	1.71e-13
 180	chrM	9555	50	+	16571	98/1	0	50	-	50	50	8.7e-07
 154	chrM	9350	26	+	16571	98/2	0	26	+	50	26	0.000335
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean distance: 248
+# estimated standard deviation of distance: 40.7715
 # fraglen=248 sdev=40.7715 disjoint=0.01 genome=16571
 156	chrM	11	50	+	16571	4/2	0	50	+	50	50	0.000222
 180	chrM	9112	50	+	16571	6/1	0	50	-	50	50	8.89e-07
@@ -702,6 +722,10 @@ q 98/2                 9BBBA6=?8*<(;BAB@7B+AA<<A<
 251	chrM	7140	50	+	16571	95/2	0	50	+	50	50	1.71e-13
 180	chrM	9555	50	+	16571	98/1	0	50	-	50	50	8.7e-07
 154	chrM	9350	26	+	16571	98/2	0	26	+	50	26	0.000335
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean distance: 248
+# estimated standard deviation of distance: 40.7715
 # fraglen=248 sdev=40.7715 disjoint=0.01 genome=16571
 156	chrM	11	50	+	16571	4/2	0	50	+	50	50	0.000222
 180	chrM	9112	50	+	16571	6/1	0	50	-	50	50	8.89e-07
@@ -771,6 +795,10 @@ q 98/2                 9BBBA6=?8*<(;BAB@7B+AA<<A<
 251	chrM	7140	50	+	16571	95/2	0	50	+	50	50	1.71e-13
 180	chrM	9555	50	+	16571	98/1	0	50	-	50	50	8.7e-07
 154	chrM	9350	26	+	16571	98/2	0	26	+	50	26	0.000335
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean distance: 248
+# estimated standard deviation of distance: 40.7715
 # fraglen=248 sdev=40.7715 disjoint=0.01 genome=16571
 a score=156 mismap=0.000222
 s chrM   11 50 + 16571 TATCACCCTATTAACCACTCACGGGAGCTCTCCATGCATTTGGTATTTTC
@@ -1112,6 +1140,10 @@ s chrM   9350 26 + 16571 AACCAACACACTAACCATATACCAAT
 s 98/2    0 26 +    50 AACCAACACACTAACCATATACCAAT
 q 98/2                 9BBBA6=?8*<(;BAB@7B+AA<<A<
 
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean distance: 248
+# estimated standard deviation of distance: 40.7715
 # fraglen=248 sdev=40.7715 disjoint=0.01 genome=16571
 156	chrM	11	50	+	16571	4/2	0	50	+	50	50	0.000222
 180	chrM	9112	50	+	16571	6/1	0	50	-	50	50	8.89e-07

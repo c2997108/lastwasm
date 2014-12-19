@@ -550,9 +550,8 @@ static void estimateFragmentLengthDistribution(std::vector<long> lengths,
   const long quartile2 = lengths[sampleSize / 2];
   const long quartile3 = lengths[sampleSize * 3 / 4];
 
-  std::cerr << opts.progName << ": distance sample size: "
-	    << sampleSize << "\n";
-  std::cerr << opts.progName << ": distance quartiles: "
+  std::cout << "# distance sample size: " << sampleSize << "\n";
+  std::cout << "# distance quartiles: "
 	    << quartile1 << " " << quartile2 << " " << quartile3 << "\n";
 
   if (opts.rna && quartile1 <= 0)
@@ -563,8 +562,7 @@ static void estimateFragmentLengthDistribution(std::vector<long> lengths,
   if (!opts.isFraglen) {
     if (opts.rna) opts.fraglen = myRound(std::log((double)quartile2));
     else          opts.fraglen = double(quartile2);
-    std::cerr << opts.progName << ": estimated mean "
-	      << thing << ": " << opts.fraglen << "\n";
+    std::cout << "# estimated mean " << thing << ": " << opts.fraglen << "\n";
   }
 
   if (!opts.isSdev) {
@@ -573,8 +571,8 @@ static void estimateFragmentLengthDistribution(std::vector<long> lengths,
       :            quartile3 - quartile1;
     // Normal Distribution: sdev = iqr / (2 * qnorm(0.75))
     opts.sdev = myRound(iqr / 1.34898);
-    std::cerr << opts.progName << ": estimated standard deviation of "
-	      << thing << ": " << opts.sdev << "\n";
+    std::cout << "# estimated standard deviation of " << thing << ": "
+	      << opts.sdev << "\n";
   }
 }
 

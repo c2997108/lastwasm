@@ -20,7 +20,6 @@ static void run(int argc, char* argv[]) {
   opts.isFraglen = false;
   opts.isSdev = false;
   opts.isDisjoint = false;
-  opts.progName = argv[0];
 
   std::string help = "\
 Usage:\n\

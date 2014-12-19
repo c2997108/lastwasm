@@ -45,7 +45,6 @@ struct LastPairProbsOptions {
   double disjointScore;
   double maxMissingScore1;
   double maxMissingScore2;
-  const char* progName;
 };
 
 void lastPairProbs(LastPairProbsOptions& opts);
