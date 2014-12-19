@@ -21,6 +21,10 @@ static void run(int argc, char* argv[]) {
   opts.isSdev = false;
   opts.isDisjoint = false;
 
+  const char *version = "last-pair-probs "
+#include "version.hh"
+"\n";
+
   std::string help = "\
 Usage:\n\
   " + std::string(argv[0]) + " --help\n\
@@ -45,9 +49,10 @@ Options:\n\
   -c CHROM, --circular=CHROM\n\
                         specifies that chromosome CHROM is circular (default:\n\
                         chrM)\n\
+  -V, --version         show program's version number and exit\n\
 ";
 
-  const char sOpts[] = "hrem:f:s:d:c:";
+  const char sOpts[] = "hrem:f:s:d:c:V";
 
   static struct option lOpts[] = {
     { "help",     no_argument,       0, 'h' },
@@ -58,6 +63,7 @@ Options:\n\
     { "sdev",     required_argument, 0, 's' },
     { "disjoint", required_argument, 0, 'd' },
     { "circular", required_argument, 0, 'c' },
+    { "version",  no_argument,       0, 'V' },
     { 0, 0, 0, 0}
   };
 
@@ -99,6 +105,9 @@ Options:\n\
     case 'c':
       opts.circular.insert(optarg);
       break;
+    case 'V':
+      std::cout << version;
+      return;
     case '?':
       throw std::runtime_error("");
     }

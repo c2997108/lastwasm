@@ -21,6 +21,7 @@ Options:
   -c CHROM, --circular=CHROM
                         specifies that chromosome CHROM is circular (default:
                         chrM)
+  -V, --version         show program's version number and exit
 # distance sample size: 35
 # distance quartiles: 222 248 277
 # estimated mean distance: 248
