@@ -95,10 +95,17 @@ Score Options
       Specify a match/mismatch score matrix.  Options -r and -q will
       be ignored.
 
-      AT77: for AT-rich DNA (~77% A+T) (MC Frith 2011, NAR 39(4):e23).
+      AT77: for weakly-similar AT-rich DNA (~27% substitutions and
+      ~77% A+T) (MC Frith 2011, NAR 39(4):e23).
+
+      ATMAP: for strongly-similar AT-rich DNA (~4% substitutions and
+      ~76% A+T).  It is also suitable for sequences with more than 4%
+      substitution errors, if the excess error rate is explained by
+      quality scores.
 
       BISF: for aligning bisulfite-converted DNA forward strands to a
-      closely-related genome.
+      closely-related genome (MC Frith, R Mori, K Asai 2012, NAR
+      40(13):e100).
 
       BISR: for aligning bisulfite-converted DNA reverse strands to a
       closely-related genome.

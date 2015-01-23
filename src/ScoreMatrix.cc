@@ -25,6 +25,15 @@ G -2 -3  5 -3\n\
 T -3 -2 -3  2\n\
 ";  // from MC Frith (2011) NAR 39(4):e23.
 
+  if( name == "ATMAP" ) return "\
+#last -a24 -b6 -e150\n\
+    A   C   G   T\n\
+A   4 -12 -12 -12\n\
+C -12   9 -12 -12\n\
+G -12 -12   9 -12\n\
+T -12 -12 -12   4\n\
+";
+
   if( name == "BISF" ) return "\
 #last -a21 -b9 -e180\n\
     A   C   G   T\n\
