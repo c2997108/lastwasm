@@ -631,7 +631,7 @@ void SplitAligner::calcBaseScores(unsigned i) {
     else if (x == '-') *b++ = firstGapScore;
     else {
       assert(q >= 0);
-      assert(q < numQualCodes);
+      if (q >= numQualCodes) q = numQualCodes - 1;
       *b++ = score_mat[x % 64][y % 64][q];
     }
     // Amazingly, in ASCII, '.' equals 'n' mod 64.
