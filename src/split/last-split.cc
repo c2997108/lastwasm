@@ -327,7 +327,8 @@ void lastSplit(LastSplitOptions& opts) {
 	  mafLines.push_back(line);
 	}
       }
-      if (startsWith(line, "#")) std::cout << line << "\n";
+      if (startsWith(line, "#") && !startsWith(line, "# batch"))
+	std::cout << line << "\n";
     }
   }
   addMaf(mafEnds, mafLines);
