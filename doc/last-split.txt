@@ -41,6 +41,20 @@ introns of typical length, specified by a log-normal distribution
 (i.e. cis-splices).  However, it allows arbitrary trans-splices
 between any two places in the genome.
 
+Alignment of two whole genomes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can align the cat and rat genomes like this::
+
+  lastdb -c -uMAM8 catdb cat.fasta
+  lastal -m100 catdb rat.fasta | last-split -m1 > out.maf
+
+This will align each rat base-pair to at most one cat base-pair, but
+not necessarily vice-versa.  We can get 1-to-1 alignments by swapping
+the sequences and running last-split again::
+
+  maf-swap out.maf | last-split -m1 > out2.maf
+
 FAQ
 ---
 
@@ -102,7 +116,9 @@ lowest possible.  In general::
 
   Error probability <= 10 ^ -((ASCII value - 33) / 10)
 
-The "mismap" is simply the lowest probability from the "p" line.
+The "mismap" is simply the lowest probability from the "p" line.  (If
+you run last-split twice, as in the genome alignment example, the
+mismap is the lowest combined error probability from both "p" lines.)
 
 Split versus spliced alignment
 ------------------------------

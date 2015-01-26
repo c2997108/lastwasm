@@ -71,7 +71,8 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       unsigned alnNum,
 			       unsigned qSliceBeg, unsigned qSliceEnd,
 			       double forwardDirectionProb,
-			       const LastSplitOptions& opts) {
+			       const LastSplitOptions& opts,
+			       bool isAlreadySplit) {
   unsigned alnBeg, alnEnd;
   cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, alnBeg);
   cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEnd, alnEnd);
@@ -101,20 +102,29 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   double mismap = 1.0 - *std::max_element(p.begin(), p.end());
   mismap = std::max(mismap, 1e-10);
   if (mismap > opts.mismap) return;
+  int mismapPrecision = 3;
 
-  std::cout << std::setprecision(3)
-	    << "a score=" << score << " mismap=" << mismap << "\n"
-	    << std::setprecision(6);
   std::vector<std::string> s = cbrc::mafSlice(a.linesBeg, a.linesEnd,
 					      alnBeg, alnEnd);
   s.push_back(cbrc::pLineFromProbs(p));
+
+  if (isAlreadySplit && s.end()[-2][0] == 'p') {
+    mismap = cbrc::pLinesToErrorProb(s.end()[-2].c_str(), s.end()[-1].c_str());
+    if (mismap > opts.mismap) return;
+    mismapPrecision = 2;
+  }
+
+  std::cout << std::setprecision(mismapPrecision)
+	    << "a score=" << score << " mismap=" << mismap << "\n"
+	    << std::setprecision(6);
   if (a.qstrand == '-') cbrc::flipMafStrands(s.begin(), s.end());
   cbrc::printMaf(s);
 }
 
 static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
 		       std::vector<cbrc::UnsplitAlignment>::const_iterator end,
-		       cbrc::SplitAligner& sa, const LastSplitOptions& opts) {
+		       cbrc::SplitAligner& sa, const LastSplitOptions& opts,
+		       bool isAlreadySplit) {
   if (opts.verbose) std::cerr << beg->qname << "\t" << (end - beg);
   sa.initForOneQuery(beg, end);
 
@@ -139,7 +149,7 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     if (opts.verbose) std::cerr << "\n";
     for (unsigned i = 0; i < end - beg; ++i) {
       doOneAlignmentPart(sa, beg[i], i, beg[i].qstart, beg[i].qend,
-			 forwardDirectionProb, opts);
+			 forwardDirectionProb, opts, isAlreadySplit);
     }
   } else {
     long viterbiScore = LONG_MIN;
@@ -172,14 +182,15 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     for (unsigned k = 0; k < alnNums.size(); ++k) {
       unsigned i = alnNums[k];
       doOneAlignmentPart(sa, beg[i], i, queryBegs[k], queryEnds[k],
-			 forwardDirectionProb, opts);
+			 forwardDirectionProb, opts, isAlreadySplit);
     }
   }
 }
 
 static void doOneBatch(std::vector<std::string>& mafLines,
 		       const std::vector<unsigned>& mafEnds,
-                       cbrc::SplitAligner& sa, const LastSplitOptions& opts) {
+                       cbrc::SplitAligner& sa, const LastSplitOptions& opts,
+		       bool isAlreadySplit) {
   std::vector<cbrc::UnsplitAlignment> mafs;
   mafs.reserve(mafEnds.size() - 1);  // saves memory: no excess capacity
   for (unsigned i = 1; i < mafEnds.size(); ++i)
@@ -195,7 +206,7 @@ static void doOneBatch(std::vector<std::string>& mafLines,
     ++e;
     if (e == mafs.end() || std::strcmp(e->qname, b->qname) != 0 ||
 	(e->qstart >= qendMax && !opts.isSplicedAlignment)) {
-      doOneQuery(b, e, sa, opts);
+      doOneQuery(b, e, sa, opts, isAlreadySplit);
       b = e;
       qendMax = 0;
     }
@@ -238,6 +249,7 @@ void lastSplit(LastSplitOptions& opts) {
   double genomeSize = 0;
   std::vector<std::string> mafLines;  // lines of multiple MAF blocks
   std::vector<unsigned> mafEnds(1);  // which lines are in which MAF block
+  bool isAlreadySplit = false;  // has the input already undergone last-split?
 
   for (unsigned i = 0; i < opts.inputFileNames.size(); ++i) {
     std::ifstream inFileStream;
@@ -281,6 +293,8 @@ void lastSplit(LastSplitOptions& opts) {
 	    if (key == "Q") ws >> sequenceFormat;
 	    if (key == "letters") ws >> genomeSize;
 	  }
+	  // try to determine if last-split was already run (fragile):
+	  if (startsWith(line, "# m=")) isAlreadySplit = true;
 	} else if (!isSpace(line)) {
 	  if (scoreMatrix.empty())
 	    err("I need a header with score parameters");
@@ -318,7 +332,7 @@ void lastSplit(LastSplitOptions& opts) {
       if (state == 1) {  // we are reading alignments
 	if (startsWith(line, "# batch")) {
 	  addMaf(mafEnds, mafLines);
-	  doOneBatch(mafLines, mafEnds, sa, opts);
+	  doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
 	  mafLines.clear();
 	  mafEnds.resize(1);
 	} else if (isSpace(line)) {
@@ -332,5 +346,5 @@ void lastSplit(LastSplitOptions& opts) {
     }
   }
   addMaf(mafEnds, mafLines);
-  doOneBatch(mafLines, mafEnds, sa, opts);
+  doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
 }

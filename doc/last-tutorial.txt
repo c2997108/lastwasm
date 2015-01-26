@@ -217,19 +217,25 @@ increasing lastal's m parameter.  The default value is 10.  So -m100
 makes it more slow and sensitive, and -m1000 makes it much more slow
 and sensitive.
 
-Example 8: Compare the cat and mouse genomes
---------------------------------------------
+Example 8: Compare the cat and rat genomes
+------------------------------------------
 
 If you have ~50 GB of memory and don't mind waiting a few days, this
 is a good way to compare such genomes::
 
-  lastdb -c -uMAM8 mousedb mouse/chr*.fa
-  lastal -e40 -m100 mousedb cat/chr*.fa | last-split > myalns.maf
+  lastdb -c -uMAM8 catdb cat.fa
+  lastal -m100 catdb rat.fa | last-split -m1 > out.maf
 
-This looks for a unique best alignment for each part of each cat
+This looks for a unique best alignment for each part of each rat
 chromosome.  Omitting -m100 makes it faster but somewhat less
 sensitive.  Omitting -uMAM8 reduces the memory use to ~10 GB and makes
 it faster but considerably less sensitive.
+
+This recipe aligns each rat base-pair to at most one cat base-pair,
+but not necessarily vice-versa.  You can get strictly 1-to-1
+alignments by swapping the sequences and running last-split again::
+
+  maf-swap out.maf | last-split -m1 > out2.maf
 
 Example 9: Compare the human and chimp genomes
 ----------------------------------------------
@@ -238,7 +244,7 @@ For strongly similar genomes (e.g. 99% identity), something like this
 is more appropriate::
 
   lastdb -c -m1111110 human human.fa
-  lastal -q3 -e35 human chimp.fa | last-split > myalns.maf
+  lastal -q3 -e35 -m50 human chimp.fa | last-split -m1 > out.maf
 
 Going faster by using multiple CPUs
 -----------------------------------

@@ -380,4 +380,19 @@ std::string pLineFromProbs(const std::vector<double>& p) {
   return s;
 }
 
+double pLinesToErrorProb(const char *line1, const char *line2) {
+  double maxGoodProb = 0;
+  const char *i = skipSpace(skipWord(line1));
+  const char *j = skipSpace(skipWord(line2));
+  while (isGraph(*i) && isGraph(*j)) {
+    double x = std::pow(0.1, (*i - 33) * 0.1);  // error probability
+    double y = std::pow(0.1, (*j - 33) * 0.1);  // error probability
+    double z = (1 - x) * (1 - y);  // probability that neither is an error
+    if (z > maxGoodProb) maxGoodProb = z;
+    ++i;
+    ++j;
+  }
+  return 1 - maxGoodProb;  // minimum combined error probability
+}
+
 }
