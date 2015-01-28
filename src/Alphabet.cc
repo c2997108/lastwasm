@@ -29,9 +29,10 @@ void Alphabet::count( const uchar* beg, const uchar* end,
   }
 }
 
-void Alphabet::tr( uchar* beg, uchar* end ) const{
+void Alphabet::tr( uchar* beg, uchar* end, bool isKeepLowercase ) const{
+  const uchar* x = isKeepLowercase ? encode : lettersToUppercase;
   for( /* noop */; beg < end; ++beg ){
-    uchar code = encode[ *beg ];
+    uchar code = x[ *beg ];
     if( code == dummyCode ){
       throw std::runtime_error( std::string("bad symbol: ") + char(*beg) );
     }
@@ -99,6 +100,10 @@ void Alphabet::initCaseConversions( unsigned codeEnd ) {
   for( unsigned i = codeEnd; i < capacity; ++i ){
     numbersToUppercase[i] = i;
     numbersToLowercase[i] = i;
+  }
+
+  for( unsigned i = 0; i < capacity; ++i ){
+    lettersToUppercase[i] = numbersToUppercase[ encode[i] ];
   }
 }
 

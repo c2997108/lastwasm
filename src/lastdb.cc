@@ -198,7 +198,7 @@ appendFromFasta( MultiSequence& multi, unsigned numOfIndexes,
   // encode the newly-read sequence
   uchar* seq = multi.seqWriter();
   size_t newSize = multi.unfinishedSize();
-  alph.tr( seq + oldSize, seq + newSize );
+  alph.tr( seq + oldSize, seq + newSize, args.isKeepLowercase );
 
   if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
     checkQualityCodes( multi.qualityReader() + oldSize,

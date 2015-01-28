@@ -36,7 +36,7 @@ struct Alphabet{
   void count( const uchar* beg, const uchar* end, countT* counts ) const;
 
   // translate (encode) a sequence of letters to numbers, in place
-  void tr( uchar* beg, uchar* end ) const;
+  void tr( uchar* beg, uchar* end, bool isKeepLowercase=true ) const;
 
   // reverse-translate (decode) a sequence of numbers to letters
   // return the position after the last written position in dest
@@ -51,6 +51,7 @@ struct Alphabet{
   uchar decode[capacity];  // translate codes to ASCII letters
   uchar numbersToUppercase[capacity];  // translate codes to uppercase codes
   uchar numbersToLowercase[capacity];  // translate codes to lowercase codes
+  uchar lettersToUppercase[capacity];  // translate letters to uppercase codes
   uchar complement[capacity];  // translate DNA codes to their complements
 
   void init();

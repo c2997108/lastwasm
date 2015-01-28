@@ -734,7 +734,7 @@ std::istream& appendFromFasta( std::istream& in ){
   // encode the newly-read sequence
   uchar* seq = query.seqWriter();
   size_t newSize = query.unfinishedSize();
-  queryAlph.tr( seq + oldSize, seq + newSize );
+  queryAlph.tr( seq + oldSize, seq + newSize, args.isKeepLowercase );
 
   if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
     checkQualityCodes( query.qualityReader() + oldSize,

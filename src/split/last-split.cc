@@ -37,7 +37,7 @@ static bool startsWith(const std::string& s, const char* prefix) {
   }
 }
 
-// Does the string have no non-space characterts?
+// Does the string have no non-space characters?
 static bool isSpace(const std::string& s) {
   const char* t = s.c_str();
   for (;;) {

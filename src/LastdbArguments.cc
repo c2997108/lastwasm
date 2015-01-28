@@ -21,6 +21,7 @@ static bool isBisulfite( const std::vector< std::string >& seeds ){
 
 LastdbArguments::LastdbArguments() :
   isProtein(false),
+  isKeepLowercase(true),
   isCaseSensitive(false),
   seedPatterns(0),
   volumeSize(-1),

@@ -25,6 +25,7 @@ LastalArguments::LastalArguments() :
   outputType(3),
   strand(-1),  // depends on the alphabet
   globality(0),
+  isKeepLowercase(true),
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
   minScoreGapped(-1),  // depends on the alphabet
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
