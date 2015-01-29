@@ -22,6 +22,7 @@ static bool isBisulfite( const std::vector< std::string >& seeds ){
 LastdbArguments::LastdbArguments() :
   isProtein(false),
   isKeepLowercase(true),
+  tantanSetting(0),
   isCaseSensitive(false),
   seedPatterns(0),
   volumeSize(-1),
@@ -65,13 +66,20 @@ LAST home page: http://last.cbrc.jp/\n\
 ";
 
   int c;
-  while( (c = getopt(argc, argv, "hpcm:s:w:u:a:i:b:xvQ:")) != -1 ) {
+  while( (c = getopt(argc, argv, "hpR:cm:s:w:u:a:i:b:xvQ:")) != -1 ) {
     switch(c){
     case 'h':
       std::cout << help;
       throw EXIT_SUCCESS;
     case 'p':
       isProtein = true;
+      break;
+    case 'R':
+      if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );
+      if( optarg[1] < '0' || optarg[1] > '2' ) badopt( c, optarg );
+      if( optarg[2] ) badopt( c, optarg );
+      isKeepLowercase = optarg[0] - '0';
+      tantanSetting = optarg[1] - '0';
       break;
     case 'c':
       isCaseSensitive = true;

@@ -164,6 +164,7 @@ void calculateScoreStatistics(){
 // Read the .prj file for the whole database
 void readOuterPrj( const std::string& fileName, unsigned& volumes,
                    indexT& minSeedLimit,
+		   bool& isKeepRefLowercase, int& refTantanSetting,
                    countT& refSequences, countT& refLetters ){
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
@@ -178,6 +179,8 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "numofsequences" ) iss >> refSequences;
     if( word == "numofletters" ) iss >> refLetters;
     if( word == "maxunsortedinterval" ) iss >> minSeedLimit;
+    if( word == "keeplowercase" ) iss >> isKeepRefLowercase;
+    if( word == "tantansetting" ) iss >> refTantanSetting;
     if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "volumes" ) iss >> volumes;
@@ -758,7 +761,10 @@ void lastal( int argc, char** argv ){
   indexT minSeedLimit = 0;
   countT refSequences = -1;
   countT refLetters = -1;
+  bool isKeepRefLowercase = true;
+  int refTantanSetting = 0;
   readOuterPrj( args.lastdbName + ".prj", volumes, minSeedLimit,
+		isKeepRefLowercase, refTantanSetting,
 		refSequences, refLetters );
 
   if( minSeedLimit > 1 ){
@@ -774,6 +780,7 @@ void lastal( int argc, char** argv ){
 
   bool isMultiVolume = (volumes+1 > 0 && volumes > 1);
   args.setDefaultsFromAlphabet( alph.letters == alph.dna, alph.isProtein(),
+				isKeepRefLowercase, refTantanSetting,
                                 isCaseSensitiveSeeds, isMultiVolume );
   makeScoreMatrix( matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost,

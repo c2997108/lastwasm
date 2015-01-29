@@ -25,7 +25,8 @@ LastalArguments::LastalArguments() :
   outputType(3),
   strand(-1),  // depends on the alphabet
   globality(0),
-  isKeepLowercase(true),
+  isKeepLowercase(true),  // depends on the option used with lastdb
+  tantanSetting(-1),  // depends on the option used with lastdb
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
   minScoreGapped(-1),  // depends on the alphabet
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
@@ -120,12 +121,19 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-      "hu:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
+      "hR:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
   while( (c = getopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
       std::cout << help;
       throw EXIT_SUCCESS;
+    case 'R':
+      if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );
+      if( optarg[1] < '0' || optarg[1] > '2' ) badopt( c, optarg );
+      if( optarg[2] ) badopt( c, optarg );
+      isKeepLowercase = optarg[0] - '0';
+      tantanSetting = optarg[1] - '0';
+      break;
     case 'u':
       unstringify( maskLowercase, optarg );
       if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );
@@ -306,6 +314,8 @@ void LastalArguments::fromString( const std::string& s, bool optionsOnly ){
 }
 
 void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
+					       bool isKeepRefLowercase,
+					       int refTantanSetting,
                                                bool isCaseSensitiveSeeds,
 					       bool isVolumes ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
@@ -345,6 +355,11 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   if( insExtendCost < 0 ) insExtendCost = gapExtendCost;
 
   if( outputType < 2 ) minScoreGapless = minScoreGapped;
+
+  if( tantanSetting < 0 ){
+    isKeepLowercase = isKeepRefLowercase;
+    tantanSetting = refTantanSetting;
+  }
 
   if( maskLowercase < 0 ){
     if( isCaseSensitiveSeeds && inputFormat != sequenceFormat::pssm )

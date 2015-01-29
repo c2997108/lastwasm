@@ -114,6 +114,10 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 
   if( !args.isCountsOnly ){
     f << "maxunsortedinterval=" << args.minSeedLimit << '\n';
+    f << "keeplowercase=" << args.isKeepLowercase << '\n';
+    if( args.tantanSetting ){
+      f << "tantansetting=" << args.tantanSetting << '\n';
+    }
     f << "masklowercase=" << args.isCaseSensitive << '\n';
     if( args.inputFormat != sequenceFormat::fasta ){
       f << "sequenceformat=" << args.inputFormat << '\n';

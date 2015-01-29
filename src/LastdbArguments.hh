@@ -25,6 +25,7 @@ struct LastdbArguments{
   // options:
   bool isProtein;
   bool isKeepLowercase;
+  int tantanSetting;
   bool isCaseSensitive;
   std::vector< std::string > seedPatterns;
   size_t volumeSize;  // type?
