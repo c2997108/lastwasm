@@ -8,20 +8,22 @@ CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 
 CFLAGS = -Wall -O2
 
-DBOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o	\
-SubsetSuffixArray.o LastdbArguments.o io.o fileMap.o	\
-SubsetSuffixArraySort.o MultiSequenceQual.o lastdb.o
+DBOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o			\
+SubsetSuffixArray.o LastdbArguments.o io.o fileMap.o TantanMasker.o	\
+ScoreMatrix.o LambdaCalculator.o tantan.o SubsetSuffixArraySort.o	\
+MultiSequenceQual.o lastdb.o CA_code/lambda_calculator.o
 
 ALOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o			\
-SubsetSuffixArray.o LastalArguments.o io.o fileMap.o ScoreMatrix.o	\
-DiagonalTable.o SegmentPair.o Alignment.o GappedXdropAligner.o		\
-SegmentPairPot.o AlignmentPot.o GeneralizedAffineGapCosts.o		\
-Centroid.o LambdaCalculator.o TwoQualityScoreMatrix.o			\
-OneQualityScoreMatrix.o QualityPssmMaker.o GeneticCode.o		\
-gaplessXdrop.o gaplessPssmXdrop.o gaplessTwoQualityXdrop.o		\
-SubsetSuffixArraySearch.o AlignmentWrite.o MultiSequenceQual.o		\
-GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
-GappedXdropAligner3frame.o lastal.o CA_code/lambda_calculator.o
+SubsetSuffixArray.o LastalArguments.o io.o fileMap.o TantanMasker.o	\
+ScoreMatrix.o tantan.o DiagonalTable.o SegmentPair.o Alignment.o	\
+GappedXdropAligner.o SegmentPairPot.o AlignmentPot.o			\
+GeneralizedAffineGapCosts.o Centroid.o LambdaCalculator.o		\
+TwoQualityScoreMatrix.o OneQualityScoreMatrix.o QualityPssmMaker.o	\
+GeneticCode.o gaplessXdrop.o gaplessPssmXdrop.o				\
+gaplessTwoQualityXdrop.o SubsetSuffixArraySearch.o AlignmentWrite.o	\
+MultiSequenceQual.o GappedXdropAlignerPssm.o				\
+GappedXdropAligner2qual.o GappedXdropAligner3frame.o lastal.o		\
+CA_code/lambda_calculator.o
 
 EXOBJ = Alphabet.o LastexArguments.o io.o ScoreMatrix.o lastex.o	\
 gumbel_params/mcf_local_alignment_evaluer.o				\
@@ -157,6 +159,8 @@ SubsetSuffixArraySearch.o: SubsetSuffixArraySearch.cc \
  fileMap.hh stringify.hh
 SubsetSuffixArraySort.o: SubsetSuffixArraySort.cc SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
+TantanMasker.o: TantanMasker.cc TantanMasker.hh ScoreMatrixRow.hh \
+ tantan.hh ScoreMatrix.hh LambdaCalculator.hh
 TwoQualityScoreMatrix.o: TwoQualityScoreMatrix.cc \
  TwoQualityScoreMatrix.hh ScoreMatrixRow.hh qualityScoreUtil.hh \
  stringify.hh
@@ -178,16 +182,18 @@ lastal.o: lastal.cc LastalArguments.hh SequenceFormat.hh \
  CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh fileMap.hh Centroid.hh \
  GappedXdropAligner.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
  AlignmentPot.hh Alignment.hh SegmentPairPot.hh ScoreMatrix.hh \
- Alphabet.hh MultiSequence.hh DiagonalTable.hh gaplessXdrop.hh \
- gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh version.hh
+ Alphabet.hh MultiSequence.hh TantanMasker.hh tantan.hh DiagonalTable.hh \
+ gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh \
+ version.hh
 lastdb.o: lastdb.cc LastdbArguments.hh SequenceFormat.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
  fileMap.hh stringify.hh Alphabet.hh MultiSequence.hh ScoreMatrixRow.hh \
- io.hh qualityScoreUtil.hh version.hh
+ TantanMasker.hh tantan.hh io.hh qualityScoreUtil.hh version.hh
 lastex.o: lastex.cc LastexArguments.hh ScoreMatrix.hh Alphabet.hh io.hh \
  gumbel_params/mcf_local_alignment_evaluer.hpp \
  gumbel_params/sls_pvalues.hpp gumbel_params/sls_normal_distr_array.hpp \
  version.hh
+tantan.o: tantan.cc tantan.hh
 CA_code/lambda_calculator.o: CA_code/lambda_calculator.c CA_code/nrutil.h \
  CA_code/nrutil.c CA_code/ludcmp.c CA_code/lubksb.c \
  CA_code/lambda_calculator.h

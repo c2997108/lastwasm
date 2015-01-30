@@ -7,6 +7,7 @@
 #include "SubsetSuffixArray.hh"
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
+#include "TantanMasker.hh"
 #include "io.hh"
 #include "qualityScoreUtil.hh"
 #include "stringify.hh"
@@ -219,6 +220,10 @@ void lastdb( int argc, char** argv ){
   MultiSequence multi;
   SubsetSuffixArray indexes[maxNumOfIndexes];
   makeAlphabet( alph, args );
+  TantanMasker tantanMasker;
+  if( args.tantanSetting )
+    tantanMasker.init( alph.isProtein(), args.tantanSetting > 1,
+		       alph.letters, alph.encode );
   unsigned numOfIndexes = makeSubsetSeeds( indexes, args, alph );
   multi.initForAppending(1);
   alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
@@ -253,6 +258,10 @@ void lastdb( int argc, char** argv ){
 	  // memory-saving, which seems to be important on 32-bit systems:
 	  multi.reinitForAppending();
 	}else{
+	  if( args.tantanSetting ){
+	    uchar* w = multi.seqWriter();
+	    tantanMasker.mask( w + beg, w + end, alph.numbersToLowercase );
+	  }
 	  for( unsigned x = 0; x < numOfIndexes; ++x ){
 	    indexes[x].addPositions( seq, beg, end, args.indexStep );
 	  }

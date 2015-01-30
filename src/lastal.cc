@@ -19,6 +19,7 @@
 #include "ScoreMatrix.hh"
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
+#include "TantanMasker.hh"
 #include "DiagonalTable.hh"
 #include "GeneralizedAffineGapCosts.hh"
 #include "gaplessXdrop.hh"
@@ -43,6 +44,7 @@ namespace {
   LastalArguments args;
   Alphabet alph;
   Alphabet queryAlph;  // for translated alignment
+  TantanMasker tantanMasker;
   GeneticCode geneticCode;
   const unsigned maxNumOfIndexes = 16;
   SubsetSuffixArray suffixArrays[maxNumOfIndexes];
@@ -587,17 +589,45 @@ void scan( char strand, std::ostream& out ){
 // Scan one batch of query sequences against one database volume,
 // after optionally translating the query
 void translateAndScan( char strand, std::ostream& out ){
+  const uchar* seq = query.seqReader();
+  size_t size = query.finishedSize();
   if( args.isTranslated() ){
     LOG( "translating..." );
-    const uchar* seq = query.seqReader();
-    size_t size = query.finishedSize();
     std::vector<uchar> translation( size );
     geneticCode.translate( seq, seq + size, &translation[0] );
+    if( args.tantanSetting ){
+      LOG( "masking..." );
+      size_t frameSize = size / 3;
+      for( size_t i = 0; i < query.finishedSequences(); ++i ){
+	size_t dnaBeg = query.seqBeg(i);
+	size_t dnaLen = query.seqLen(i);
+	for( int frame = 0; frame < 3; ++frame ){
+	  if( dnaLen < 3 ) break;
+	  size_t aaBeg = dnaToAa( dnaBeg++, frameSize );
+	  size_t aaLen = dnaLen-- / 3;
+	  size_t aaEnd = aaBeg + aaLen;
+	  tantanMasker.mask( &translation[aaBeg], &translation[aaEnd],
+			     alph.numbersToLowercase );
+	}
+      }
+    }
     query.swapSeq(translation);
     scan( strand, out );
     query.swapSeq(translation);
   }else{
-    scan( strand, out );
+    if( args.tantanSetting ){
+      LOG( "masking..." );
+      std::vector<uchar> s( seq, seq + size );
+      for( size_t i = 0; i < query.finishedSequences(); ++i ){
+	tantanMasker.mask( &s[query.seqBeg(i)], &s[query.seqEnd(i)],
+			   alph.numbersToLowercase );
+      }
+      query.swapSeq(s);
+      scan( strand, out );
+      query.swapSeq(s);
+    }else{
+      scan( strand, out );
+    }
   }
 }
 
@@ -782,6 +812,9 @@ void lastal( int argc, char** argv ){
   args.setDefaultsFromAlphabet( alph.letters == alph.dna, alph.isProtein(),
 				isKeepRefLowercase, refTantanSetting,
                                 isCaseSensitiveSeeds, isMultiVolume );
+  if( args.tantanSetting )
+    tantanMasker.init( alph.isProtein(), args.tantanSetting > 1,
+		       alph.letters, alph.encode );
   makeScoreMatrix( matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost,
 		   args.insExistCost, args.insExtendCost, args.gapPairCost );
