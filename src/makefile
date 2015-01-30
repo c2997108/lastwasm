@@ -168,7 +168,7 @@ gaplessTwoQualityXdrop.o: gaplessTwoQualityXdrop.cc \
 gaplessXdrop.o: gaplessXdrop.cc gaplessXdrop.hh ScoreMatrixRow.hh
 io.o: io.cc io.hh
 last-pair-probs-main.o: last-pair-probs-main.cc last-pair-probs.hh \
- stringify.hh
+ stringify.hh version.hh
 last-pair-probs.o: last-pair-probs.cc last-pair-probs.hh io.hh \
  stringify.hh
 lastal.o: lastal.cc LastalArguments.hh SequenceFormat.hh \
