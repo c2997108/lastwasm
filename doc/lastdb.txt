@@ -36,6 +36,23 @@ Main Options
   -p  Interpret the sequences as proteins.  The default is to interpret
       them as DNA.
 
+  -R DIGITS
+      Specify lowercase-marking of repeats, by two digits (e.g. "-R 01"),
+      with the following meanings.
+
+      First digit:
+      0: Convert the input sequences to uppercase while reading them.
+      1: Keep any lowercase in the input sequences.
+
+      Second digit:
+      0: Do not check for simple repeats.
+      1: Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
+         This uses tantan (http://www.cbrc.jp/tantan/), which reliably
+         prevents non-homologous alignments, unlike other repeat
+         finders.
+      2: Convert simple DNA repeats to lowercase, with tantan tuned
+         for ~80% AT-rich genomes.
+
   -c  Soft-mask lowercase letters.  This means that, when we compare
       these sequences to some other sequences using lastal, lowercase
       letters will be excluded from initial matches.  This will apply

@@ -247,6 +247,22 @@ Miscellaneous Options
       If the reference was split into volumes by lastdb, then each
       volume will be read into memory once per query batch.
 
+  -R DIGITS
+      Specify lowercase-marking of repeats, by two digits (e.g. "-R 01"),
+      with the following meanings.
+
+      First digit:
+      0: Convert the input sequences to uppercase while reading them.
+      1: Keep any lowercase in the input sequences.
+
+      Second digit:
+      0: Do not check for simple repeats.
+      1: Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
+      2: Convert simple repeats, within AT-rich DNA, to lowercase.
+      Details: Tantan is applied separately to forward and reverse
+      strands.  For DNA-versus-protein alignment (option -F), it is
+      applied to the DNA after translation, at the protein level.
+
   -u NUMBER
       Specify treatment of lowercase letters when extending
       alignments.  0 means do not mask them; 1 means mask them for
