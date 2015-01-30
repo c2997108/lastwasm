@@ -136,6 +136,25 @@ db=/tmp/last-test
     lastdb -i10 $db tttttccccc.fa
     lastal -e5 -f0 $db ttttt.fa | grep -v '^#'
     echo
+
+    echo TEST 27  # tantan masking on DNA
+    lastdb -cR01 $db galGal3-M-32.fa
+    lastal $db hg19-M.fa
+    echo
+
+    echo TEST 28  # tantan masking on protein
+    lastdb -pcR01 $db Q2LCP8.fa
+    lastal $db Q5GS15.fa
+    echo
+
+    echo TEST 29  # tantan masking for translated alignment
+    lastal -F15 -pBL62 $db galGal3-M-32.fa
+    echo
+
+    echo TEST 30  # AT-rich DNA, tantan
+    lastdb -cR02 $db at-rich.fa
+    lastal -pAT77 -s0 $db at-rich.fa
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -

@@ -99,6 +99,7 @@ Miscellaneous options (default settings):\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
 -i: query batch size (8 KiB, unless there are multiple lastdb volumes)\n\
+-R: repeat-marking options (the same as was used for lastdb)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
     2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q<5, else 0)\n\
 -w: supress repeats inside exact matches, offset by this distance or less ("
@@ -463,6 +464,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << '\n';
 
   stream << '#';
+  stream << " R=" << isKeepLowercase << tantanSetting;
   stream << " u=" << maskLowercase;
   stream << " s=" << strand;
   stream << " T=" << globality;
