@@ -329,6 +329,12 @@ void LastalArguments::fromString( const std::string& s, bool optionsOnly ){
   fromStream( iss, optionsOnly );
 }
 
+const char* LastalArguments::matrixName( bool isProtein ) const{
+  if( matrixFile.empty() && matchScore < 0 && mismatchCost < 0 && isProtein )
+    return isTranslated() ? "BL80" : "BL62";
+  return matrixFile.c_str();
+}
+
 void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 					       bool isKeepRefLowercase,
 					       int refTantanSetting,

@@ -31,6 +31,9 @@ struct LastalArguments{
   // set parameters from lines beginning with "#last":
   void fromString( const std::string& s, bool optionsOnly = true );
 
+  // get the name of the substitution score matrix:
+  const char* matrixName( bool isProtein ) const;
+
   // set default option values that depend on input files:
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
 				bool isKeepRefLowercase, int refTantanSetting,

@@ -69,13 +69,10 @@ namespace {
 }
 
 // Set up a scoring matrix, based on the user options
-void makeScoreMatrix( const std::string& matrixFile ){
-  if( !matrixFile.empty() ){
+void makeScoreMatrix( const std::string& matrixName,
+		      const std::string& matrixFile ){
+  if( !matrixName.empty() ){
     scoreMatrix.fromString( matrixFile );
-  }
-  else if( args.matchScore < 0 && args.mismatchCost < 0 && alph.isProtein() ){
-    const char* b = args.isTranslated() ? "BLOSUM80" : "BLOSUM62";
-    scoreMatrix.fromString( ScoreMatrix::stringFromName( b ) );
   }
   else{
     scoreMatrix.matchMismatch( args.matchScore, args.mismatchCost,
@@ -780,13 +777,6 @@ std::istream& appendFromFasta( std::istream& in ){
 void lastal( int argc, char** argv ){
   args.fromArgs( argc, argv );
 
-  std::string matrixFile;
-  if( !args.matrixFile.empty() ){
-    matrixFile = ScoreMatrix::stringFromName( args.matrixFile );
-    args.fromString( matrixFile );  // read options from the matrix file
-    args.fromArgs( argc, argv );  // command line overrides matrix file
-  }
-
   unsigned volumes = unsigned(-1);
   indexT minSeedLimit = 0;
   countT refSequences = -1;
@@ -796,6 +786,14 @@ void lastal( int argc, char** argv ){
   readOuterPrj( args.lastdbName + ".prj", volumes, minSeedLimit,
 		isKeepRefLowercase, refTantanSetting,
 		refSequences, refLetters );
+
+  std::string matrixName = args.matrixName( alph.isProtein() );
+  std::string matrixFile;
+  if( !matrixName.empty() ){
+    matrixFile = ScoreMatrix::stringFromName( matrixName );
+    args.fromString( matrixFile );  // read options from the matrix file
+    args.fromArgs( argc, argv );  // command line overrides matrix file
+  }
 
   if( minSeedLimit > 1 ){
     if( args.outputType == 0 )
@@ -815,7 +813,7 @@ void lastal( int argc, char** argv ){
   if( args.tantanSetting )
     tantanMasker.init( alph.isProtein(), args.tantanSetting > 1,
 		       alph.letters, alph.encode );
-  makeScoreMatrix( matrixFile );
+  makeScoreMatrix( matrixName, matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost,
 		   args.insExistCost, args.insExtendCost, args.gapPairCost );
   if( args.outputType > 0 ) calculateScoreStatistics();
