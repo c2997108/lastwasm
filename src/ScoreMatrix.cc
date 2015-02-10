@@ -15,8 +15,16 @@
 
 namespace cbrc{
 
+const char *ScoreMatrix::canonicalName( const std::string& name ){
+  if( name == "BLOSUM62" ) return "BL62";
+  if( name == "BLOSUM80" ) return "BL80";
+  return name.c_str();
+}
+
 std::string ScoreMatrix::stringFromName( const std::string& name ){
-  if( name == "AT77" ) return "\
+  std::string n = canonicalName( name );
+
+  if( n == "AT77" ) return "\
 #last -a15 -b2 -e100\n\
    A  C  G  T\n\
 A  2 -3 -2 -3\n\
@@ -25,7 +33,7 @@ G -2 -3  5 -3\n\
 T -3 -2 -3  2\n\
 ";  // from MC Frith (2011) NAR 39(4):e23.
 
-  if( name == "ATMAP" ) return "\
+  if( n == "ATMAP" ) return "\
 #last -a24 -b6 -e150\n\
     A   C   G   T\n\
 A   4 -12 -12 -12\n\
@@ -34,7 +42,7 @@ G -12 -12   9 -12\n\
 T -12 -12 -12   4\n\
 ";
 
-  if( name == "BISF" ) return "\
+  if( n == "BISF" ) return "\
 #last -a21 -b9 -e180\n\
     A   C   G   T\n\
 A   6 -18 -18 -18\n\
@@ -43,7 +51,7 @@ G -18 -18   6 -18\n\
 T -18 -18 -18   3\n\
 ";
 
-  if( name == "BISR" ) return "\
+  if( n == "BISR" ) return "\
 #last -a21 -b9 -e180\n\
     A   C   G   T\n\
 A   3 -18 -18 -18\n\
@@ -52,7 +60,7 @@ G   3 -18   6 -18\n\
 T -18 -18 -18   6\n\
 ";
 
-  if( name == "HOXD70" ) return "\
+  if( n == "HOXD70" ) return "\
 #last -a 400 -b 30 -e 4500\n\
      A    C    G    T    N\n\
 A   91 -114  -31 -123 -100\n\
@@ -62,7 +70,7 @@ T -123  -31 -114   91 -100\n\
 N -100 -100 -100 -100 -100\n\
 ";
 
-  if( name == "BLOSUM62" || name == "BL62" ) return "\
+  if( n == "BL62" ) return "\
    A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  J  Z  X  *\n\
 A  4 -1 -2 -2  0 -1 -1  0 -2 -1 -1 -1 -1 -2 -1  1  0 -3 -2  0 -2 -1 -1 -1 -4\n\
 R -1  5  0 -2 -3  1  0 -2  0 -3 -2  2 -1 -3 -2 -1 -1 -3 -2 -3 -1 -2  0 -1 -4\n\
@@ -91,7 +99,7 @@ X -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -4\n\
 * -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4  1\n\
 ";  // copied from NCBI BLAST
 
-  if( name == "BLOSUM80" || name == "BL80" ) return "\
+  if( n == "BL80" ) return "\
    A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  J  Z  X  *\n\
 A  5 -2 -2 -2 -1 -1 -1  0 -2 -2 -2 -1 -1 -3 -1  1  0 -3 -2  0 -2 -2 -1 -1 -6\n\
 R -2  6 -1 -2 -4  1 -1 -3  0 -3 -3  2 -2 -4 -2 -1 -1 -4 -3 -3 -1 -3  0 -1 -6\n\
@@ -120,7 +128,7 @@ X -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -6\n\
 * -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6  1\n\
 ";
 
-  if( name == "MIQS" ) return "\
+  if( n == "MIQS" ) return "\
 #last -a 13 -b 2\n\
    A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  J  Z  X  *\n\
 A  3 -1  0  0  2  0  0  0 -1 -1 -1 -1 -1 -2  0  1  1 -4 -2  0  0 -1  0 -1 -6\n\
@@ -150,7 +158,7 @@ X -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -6 -6\n\
 * -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6 -6  1\n\
 ";
 
-  return slurp( name );
+  return slurp( n );
 }
 
 void ScoreMatrix::matchMismatch( int match, int mismatch,

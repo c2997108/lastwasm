@@ -22,6 +22,7 @@ struct ScoreMatrix{
   enum { MAT = 64 };           // matrix size = MAT x MAT
   enum { OUTPAD = 2 };         // cell-padding for output
 
+  static const char *canonicalName( const std::string& name );
   static std::string stringFromName( const std::string& name );
 
   void matchMismatch( int match, int mismatch, const std::string& letters );

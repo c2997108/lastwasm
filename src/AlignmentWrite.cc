@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <cassert>
+#include <cstdio>  // sprintf
 #include <iterator>  // ostream_iterator
 
 // make C++ tolerable:
@@ -123,6 +124,16 @@ static char* sprintChar( char* dest, char c ){
   return dest;
 }
 
+static void writeTopMafLine( int score, double fullScore, std::ostream& os ){
+  char line[256];
+  char* end = line;
+  *end++ = 'a';
+  end += std::sprintf( end, " score=%d", score );
+  if( fullScore > 0 ) end += std::sprintf( end, " fullScore=%.3g", fullScore );
+  *end++ = '\n';
+  os.write( line, end - line );
+}
+
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated, const Alphabet& alph,
 			  std::ostream& os,
@@ -164,10 +175,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   line[ lineLen - 1 ] = '\n';
   char* dest;
 
-  os << "a";
-  os << " score=" << score;
-  if( fullScore > 0 ) os << " fullScore=" << fullScore;
-  os << '\n';
+  writeTopMafLine( score, fullScore, os );
 
   dest = sprintChar( line, 's' );
   dest = sprintLeft( dest, n1.c_str(), nw );
