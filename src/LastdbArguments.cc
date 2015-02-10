@@ -13,6 +13,15 @@ static void badopt( char opt, const char* arg ){
   ERR( std::string("bad option value: -") + opt + ' ' + arg );
 }
 
+static int myGetopt( int argc, char** argv, const char* optstring ){
+  if( optind < argc ){
+    std::string nextarg = argv[optind];
+    if( nextarg == "--help"    ) return 'h';
+    if( nextarg == "--version" ) return 'V';
+  }
+  return getopt( argc, argv, optstring );
+}
+
 using namespace cbrc;
 
 static bool isBisulfite( const std::vector< std::string >& seeds ){
@@ -41,7 +50,7 @@ Usage: lastdb [options] output-name fasta-sequence-file(s)\n\
 Prepare sequences for subsequent alignment with lastal.\n\
 \n\
 Main Options:\n\
--h: show all options and their default settings\n\
+-h, --help: show all options and their default settings, and exit\n\
 -p: interpret the sequences as proteins\n\
 -R: repeat-marking options (default="
     + stringify(isKeepLowercase) + stringify(tantanSetting) + ")\n\
@@ -62,16 +71,22 @@ Advanced Options (default settings):\n\
 -b: bucket depth\n\
 -x: just count sequences and letters\n\
 -v: be verbose: write messages about what lastdb is doing\n\
+-V, --version: show version information, and exit\n\
 \n\
 Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 
   int c;
-  while( (c = getopt(argc, argv, "hpR:cm:s:w:u:a:i:b:xvQ:")) != -1 ) {
+  while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:u:a:i:b:xvQ:")) != -1 ) {
     switch(c){
     case 'h':
       std::cout << help;
+      throw EXIT_SUCCESS;
+    case 'V':
+      std::cout << "lastdb "
+#include "version.hh"
+	"\n";
       throw EXIT_SUCCESS;
     case 'p':
       isProtein = true;

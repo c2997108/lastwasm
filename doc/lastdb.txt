@@ -31,7 +31,8 @@ Options
 Main Options
 ~~~~~~~~~~~~
 
-  -h  Show all options and their default settings.
+  -h, --help
+      Show all options and their default settings, and exit.
 
   -p  Interpret the sequences as proteins.  The default is to interpret
       them as DNA.
@@ -165,6 +166,9 @@ Advanced Options
       case-sensitive.
 
   -v  Be verbose: write messages about what lastdb is doing.
+
+  -V, --version
+      Show version information, and exit.
 
 Limitations
 -----------

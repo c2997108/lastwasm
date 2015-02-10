@@ -149,6 +149,9 @@ Options
          (but if it is used, only the specified CHROMs are assumed to
          be circular.)
 
+  -V, --version
+         Show version information and exit.
+
 Tips
 ----
 

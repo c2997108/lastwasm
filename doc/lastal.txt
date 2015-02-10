@@ -54,7 +54,11 @@ Options
 Cosmetic Options
 ~~~~~~~~~~~~~~~~
 
-  -h  Show all options and their default settings.
+  -h, --help
+      Show all options and their default settings, and exit.
+
+  -V, --version
+      Show version information, and exit.
 
   -v  Be verbose: write messages about what lastal is doing.
 

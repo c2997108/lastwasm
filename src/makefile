@@ -135,9 +135,9 @@ GeneticCode.o: GeneticCode.cc GeneticCode.hh Alphabet.hh
 LambdaCalculator.o: LambdaCalculator.cc LambdaCalculator.hh \
  CA_code/lambda_calculator.h
 LastalArguments.o: LastalArguments.cc LastalArguments.hh \
- SequenceFormat.hh stringify.hh
+ SequenceFormat.hh stringify.hh version.hh
 LastdbArguments.o: LastdbArguments.cc LastdbArguments.hh \
- SequenceFormat.hh stringify.hh
+ SequenceFormat.hh stringify.hh version.hh
 LastexArguments.o: LastexArguments.cc LastexArguments.hh stringify.hh
 MultiSequence.o: MultiSequence.cc MultiSequence.hh ScoreMatrixRow.hh \
  VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh

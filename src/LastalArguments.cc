@@ -18,6 +18,15 @@ static void badopt( char opt, const char* arg ){
   ERR( std::string("bad option value: -") + opt + ' ' + arg );
 }
 
+static int myGetopt( int argc, char** argv, const char* optstring ){
+  if( optind < argc ){
+    std::string nextarg = argv[optind];
+    if( nextarg == "--help"    ) return 'h';
+    if( nextarg == "--version" ) return 'V';
+  }
+  return getopt( argc, argv, optstring );
+}
+
 namespace cbrc{
 
 LastalArguments::LastalArguments() :
@@ -80,7 +89,8 @@ Score options (default settings):\n\
 -e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<5: 180)\n\
 \n\
 Cosmetic options (default settings):\n\
--h: show all options and their default settings\n\
+-h, --help: show all options and their default settings, and exit\n\
+-V, --version: show version information, and exit\n\
 -v: be verbose: write messages about what lastal is doing\n\
 -f: output format: 0=tabular, 1=maf ("
     + stringify(outputFormat) + ")\n\
@@ -122,11 +132,16 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-      "hR:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
-  while( (c = getopt(argc, argv, optionString)) != -1 ){
+      "hVR:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
+  while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
       std::cout << help;
+      throw EXIT_SUCCESS;
+    case 'V':
+      std::cout << "lastal "
+#include "version.hh"
+	"\n";
       throw EXIT_SUCCESS;
     case 'R':
       if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );
