@@ -170,7 +170,7 @@ void ScoreMatrix::matchMismatch( int match, int mismatch,
 void ScoreMatrix::fromString( const std::string& matString ){
   std::istringstream iss(matString);
   iss >> *this;
-  assert(iss);
+  if( !iss ) ERR( "can't read the score matrix" );
 }
 
 void ScoreMatrix::init( const uchar encode[] ){
