@@ -155,6 +155,11 @@ db=/tmp/last-test
     lastdb -cR02 $db at-rich.fa
     lastal -pAT77 -s0 $db at-rich.fa
     echo
+
+    echo TEST 31  # fastq + tantan
+    lastdb -R01 $db $dnaSeq
+    lastal -Q1 -a15 -b3 -e80 $db nano.fq
+    echo
 } |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -

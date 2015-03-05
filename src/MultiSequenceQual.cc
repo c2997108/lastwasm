@@ -18,6 +18,7 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
   const uchar padQualityScore = 64;  // should never be used, but a valid value
 
   // initForAppending:
+  qualityScoresPerLetter = 1;
   if( qualityScores.v.empty() )
     qualityScores.v.insert( qualityScores.v.end(), padSize, padQualityScore );
 
@@ -64,6 +65,7 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
   std::size_t qualSize = seq.v.size() * alphSize;
 
   // initForAppending:
+  qualityScoresPerLetter = alphSize;
   if( qualityScores.v.empty() )
     qualityScores.v.insert( qualityScores.v.end(), qualPadSize,
                             padQualityScore );

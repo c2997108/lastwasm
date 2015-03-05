@@ -16,6 +16,7 @@ void MultiSequence::initForAppending( indexT padSizeIn ){
   ends.v.assign( 1, padSize );
   names.v.clear();
   nameEnds.v.assign( 1, 0 );
+  qualityScoresPerLetter = 0;
 }
 
 void MultiSequence::reinitForAppending(){
@@ -37,6 +38,7 @@ void MultiSequence::fromFiles( const std::string& baseName, indexT seqCount,
 
   qualityScores.m.open( baseName + ".qua",
                         ends.m.back() * qualitiesPerLetter );
+  qualityScoresPerLetter = qualitiesPerLetter;
 }
 
 void MultiSequence::toFiles( const std::string& baseName ) const{

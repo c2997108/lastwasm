@@ -108,8 +108,7 @@ class MultiSequence{
 
   // How many quality scores are there per letter?  There might be
   // none at all, one per letter, or several (e.g. 4) per letter.
-  std::size_t qualsPerLetter() const
-  { return qualityScores.size() / seq.size(); }
+  std::size_t qualsPerLetter() const { return qualityScoresPerLetter; }
 
  private:
   indexT padSize;  // number of delimiter chars between sequences
@@ -127,6 +126,7 @@ class MultiSequence{
   // Qphred = -10*log10(p)
   // Qsolexa = -10*log10(p/(1-p))
   VectorOrMmap<uchar> qualityScores;
+  std::size_t qualityScoresPerLetter;
 
   // read a FASTA header: read the whole line but store just the first word
   std::istream& readFastaName( std::istream& stream );
