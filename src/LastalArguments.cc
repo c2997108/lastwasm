@@ -476,7 +476,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " A=" << insExistCost;
   stream << " B=" << insExtendCost;
   stream << " c=" << gapPairCost;
-  stream << " F=" << frameshiftCost;
+  if( isTranslated() )
+    stream << " F=" << frameshiftCost;
   stream << " e=" << minScoreGapped;
   stream << " d=" << minScoreGapless;
   stream << " x=" << maxDropGapped;
