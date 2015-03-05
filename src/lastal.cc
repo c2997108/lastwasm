@@ -786,11 +786,14 @@ void lastal( int argc, char** argv ){
   readOuterPrj( args.lastdbName + ".prj", volumes, minSeedLimit,
 		isKeepRefLowercase, refTantanSetting,
 		refSequences, refLetters );
+  bool isDna = (alph.letters == alph.dna);
+  bool isProtein = alph.isProtein();
 
-  std::string matrixName = args.matrixName( alph.isProtein() );
+  std::string matrixName = args.matrixName( isProtein );
   std::string matrixFile;
   if( !matrixName.empty() ){
     matrixFile = ScoreMatrix::stringFromName( matrixName );
+    args.verbosity = 0;  // reset it
     args.fromString( matrixFile );  // read options from the matrix file
     args.fromArgs( argc, argv );  // command line overrides matrix file
   }
@@ -807,23 +810,18 @@ void lastal( int argc, char** argv ){
   }
 
   bool isMultiVolume = (volumes+1 > 0 && volumes > 1);
-  args.setDefaultsFromAlphabet( alph.letters == alph.dna, alph.isProtein(),
+  args.setDefaultsFromAlphabet( isDna, isProtein,
 				isKeepRefLowercase, refTantanSetting,
                                 isCaseSensitiveSeeds, isMultiVolume );
   if( args.tantanSetting )
-    tantanMasker.init( alph.isProtein(), args.tantanSetting > 1,
+    tantanMasker.init( isProtein, args.tantanSetting > 1,
 		       alph.letters, alph.encode );
   makeScoreMatrix( matrixName, matrixFile );
   gapCosts.assign( args.gapExistCost, args.gapExtendCost,
 		   args.insExistCost, args.insExtendCost, args.gapPairCost );
-  if( args.outputType > 0 ) calculateScoreStatistics();
-  args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
-  minScoreGapless = args.calcMinScoreGapless( refLetters, numOfIndexes );
-  if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
-  if( args.outputType > 0 ) makeQualityScorers();
 
   if( args.isTranslated() ){
-    if( alph.letters == alph.dna )  // allow user-defined alphabet
+    if( isDna )  // allow user-defined alphabet
       ERR( "expected protein database, but got DNA" );
     queryAlph.fromString( queryAlph.dna );
     if( args.geneticCodeFile.empty() )
@@ -837,6 +835,12 @@ void lastal( int argc, char** argv ){
     queryAlph = alph;
     query.initForAppending(1);
   }
+
+  if( args.outputType > 0 ) calculateScoreStatistics();
+  args.setDefaultsFromMatrix( lambdaCalculator.lambda() );
+  minScoreGapless = args.calcMinScoreGapless( refLetters, numOfIndexes );
+  if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
+  if( args.outputType > 0 ) makeQualityScorers();
 
   queryAlph.tr( query.seqWriter(),
                 query.seqWriter() + query.unfinishedSize() );
