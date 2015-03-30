@@ -3,10 +3,21 @@
 #include "LambdaCalculator.hh"
 #include <vector>
 #include <cassert>
+#include <cstdio>  // sprintf
 #include <cstdlib>
 #include <cfloat>
 #include <cmath>
 using namespace std;
+
+static double roundToFewDigits(double x)
+{
+  // This rounding fixes some inaccuracies, e.g. for DNA with a simple
+  // match/mismatch matrix it's likely to make all the probabilities
+  // exactly 0.25, as they should be.
+  char buffer[32];
+  sprintf(buffer, "%g", x);
+  return atof(buffer);
+}
 
 static double** makematrix(int m, int n, double val)
 {
@@ -360,7 +371,7 @@ bool LambdaCalculator::check_lambda(double** matrix, double lambda, int alpha_si
           letprob2.clear();
           return false;
         }
-      letprob2.push_back(p[i]);
+      letprob2.push_back(roundToFewDigits(p[i]));
     }
 
   for (int j=0; j<alpha_size; j++)
@@ -373,7 +384,7 @@ bool LambdaCalculator::check_lambda(double** matrix, double lambda, int alpha_si
           letprob1.clear();
           return false;
         }
-      letprob1.push_back(q[j]);
+      letprob1.push_back(roundToFewDigits(q[j]));
     }
 
   delete[] p;

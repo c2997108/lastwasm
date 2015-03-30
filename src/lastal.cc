@@ -27,6 +27,7 @@
 #include "gaplessTwoQualityXdrop.hh"
 #include "io.hh"
 #include "stringify.hh"
+#include <iomanip>  // setw
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -149,14 +150,33 @@ void calculateScoreStatistics(){
   LOG( "calculating matrix probabilities..." );
   // the case-sensitivity of the matrix makes no difference here
   lambdaCalculator.calculate( scoreMatrix.caseSensitive, alph.size );
+
   if( lambdaCalculator.isBad() ){
     if( isQuality( args.inputFormat ) ||
         (args.temperature < 0 && args.outputType > 3) )
       ERR( "can't get probabilities for this score matrix" );
     else
       LOG( "can't get probabilities for this score matrix" );
-  }else{
-    LOG( "lambda=" << lambdaCalculator.lambda() );
+    return;
+  }
+
+  const double *p1 = &lambdaCalculator.letterProbs1()[0];
+  const double *p2 = &lambdaCalculator.letterProbs2()[0];
+
+  LOG( "matrix lambda=" << lambdaCalculator.lambda() );
+  LOG( "matrix letter frequencies (upper=reference, lower=query):" );
+  if( args.verbosity > 0 ){
+    std::cerr << std::left;
+    std::streamsize p = std::cerr.precision(2);
+    unsigned e = alph.size;
+    for( unsigned i = 0; i < e; ++i )
+      std::cerr << std::setw(3) << alph.letters[i] << (i + 1 < e ? " " : "\n");
+    for( unsigned i = 0; i < e; ++i )
+      std::cerr << std::setw(3) << 100 * p1[i] << (i + 1 < e ? " " : "\n");
+    for( unsigned i = 0; i < e; ++i )
+      std::cerr << std::setw(3) << 100 * p2[i] << (i + 1 < e ? " " : "\n");
+    std::cerr.precision(p);
+    std::cerr << std::right;
   }
 }
 
