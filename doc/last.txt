@@ -75,15 +75,6 @@ gamma-centroid alignment:
 Other credits
 -------------
 
-* LAST includes public domain code from Yi-Kuo Yu and Stephen Altschul
-  (NCBI), to infer probabilities from a score matrix.  This is used
-  for incorporating sequence quality data, and estimating column
-  ambiguity.  Reference:
-
-    Yu Y-K, Altschul SF: The construction of amino acid substitution
-    matrices for the comparison of proteins with non-standard
-    compositions. Bioinformatics 21(2005), 902-911.
-
 * LAST includes public domain code from the Spouge group (NCBI), which
   forms the basis of lastex.  Reference:
 

@@ -1,4 +1,5 @@
 // Copyright 2008 Michiaki Hamada
+// Modified 2015 Yutaro Konta
 
 // This class calculates the scale factor (lambda), and the letter
 // probabilities, that are implicit in a scoring matrix.  The
@@ -45,6 +46,10 @@ class LambdaCalculator{
   double lambda_;
   std::vector<double> letterProbs1_;
   std::vector<double> letterProbs2_;
+  bool find_ub(double **matrix, int alpha_size, double *ub);
+  bool binary_search(double** matrix, int alpha_size, double lb, double ub, std::vector<double>& letprob1, std::vector<double>& letprob2, double* lambda, int maxiter);
+  double calculate_lambda(double** matrix, int alpha_size, std::vector<double>& letprob1, std::vector<double>& letprob2, int maxiter, int max_boundary_search_iter, double lb_ratio);
+  bool check_lambda(double** matrix, double lambda, int alpha_size, std::vector<double>& letprob1, std::vector<double>& letprob2);
 };
 
 }  // end namespace

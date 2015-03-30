@@ -11,7 +11,7 @@ CFLAGS = -Wall -O2
 DBOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o			\
 SubsetSuffixArray.o LastdbArguments.o io.o fileMap.o TantanMasker.o	\
 ScoreMatrix.o LambdaCalculator.o tantan.o SubsetSuffixArraySort.o	\
-MultiSequenceQual.o lastdb.o CA_code/lambda_calculator.o
+MultiSequenceQual.o lastdb.o
 
 ALOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o			\
 SubsetSuffixArray.o LastalArguments.o io.o fileMap.o TantanMasker.o	\
@@ -22,8 +22,7 @@ TwoQualityScoreMatrix.o OneQualityScoreMatrix.o QualityPssmMaker.o	\
 GeneticCode.o gaplessXdrop.o gaplessPssmXdrop.o				\
 gaplessTwoQualityXdrop.o SubsetSuffixArraySearch.o AlignmentWrite.o	\
 MultiSequenceQual.o GappedXdropAlignerPssm.o				\
-GappedXdropAligner2qual.o GappedXdropAligner3frame.o lastal.o		\
-CA_code/lambda_calculator.o
+GappedXdropAligner2qual.o GappedXdropAligner3frame.o lastal.o
 
 EXOBJ = Alphabet.o LastexArguments.o io.o ScoreMatrix.o lastex.o	\
 gumbel_params/mcf_local_alignment_evaluer.o				\
@@ -99,7 +98,6 @@ depend:
 	sed '/[m][v]/q' makefile > m
 	$(CXX) -MM *.cc >> m
 	$(CC) -MM *.c >> m
-	$(CC) -MM CA_code/lambda_calculator.c | sed 's|.*:|CA_code/&|' >> m
 	$(CXX) -MM -Igumbel_params */*.cpp | sed 's|.*:|gumbel_params/&|' >> m
 	$(CXX) -MM -I. split/*.cc | sed 's|.*:|split/&|' >> m
 	mv m makefile
@@ -133,8 +131,7 @@ GappedXdropAlignerPssm.o: GappedXdropAlignerPssm.cc GappedXdropAligner.hh \
 GeneralizedAffineGapCosts.o: GeneralizedAffineGapCosts.cc \
  GeneralizedAffineGapCosts.hh
 GeneticCode.o: GeneticCode.cc GeneticCode.hh Alphabet.hh
-LambdaCalculator.o: LambdaCalculator.cc LambdaCalculator.hh \
- CA_code/lambda_calculator.h
+LambdaCalculator.o: LambdaCalculator.cc LambdaCalculator.hh
 LastalArguments.o: LastalArguments.cc LastalArguments.hh \
  SequenceFormat.hh stringify.hh version.hh
 LastdbArguments.o: LastdbArguments.cc LastdbArguments.hh \
@@ -196,9 +193,6 @@ lastex.o: lastex.cc LastexArguments.hh ScoreMatrix.hh Alphabet.hh io.hh \
  version.hh
 tantan.o: tantan.cc tantan.hh
 last-merge-batches.o: last-merge-batches.c version.hh
-CA_code/lambda_calculator.o: CA_code/lambda_calculator.c CA_code/nrutil.h \
- CA_code/nrutil.c CA_code/ludcmp.c CA_code/lubksb.c \
- CA_code/lambda_calculator.h
 gumbel_params/mcf_local_alignment_evaluer.o: \
  gumbel_params/mcf_local_alignment_evaluer.cpp \
  gumbel_params/mcf_local_alignment_evaluer.hpp \
