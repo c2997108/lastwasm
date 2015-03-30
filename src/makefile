@@ -98,6 +98,7 @@ FORCE:
 depend:
 	sed '/[m][v]/q' makefile > m
 	$(CXX) -MM *.cc >> m
+	$(CC) -MM *.c >> m
 	$(CC) -MM CA_code/lambda_calculator.c | sed 's|.*:|CA_code/&|' >> m
 	$(CXX) -MM -Igumbel_params */*.cpp | sed 's|.*:|gumbel_params/&|' >> m
 	$(CXX) -MM -I. split/*.cc | sed 's|.*:|split/&|' >> m
@@ -194,6 +195,7 @@ lastex.o: lastex.cc LastexArguments.hh ScoreMatrix.hh Alphabet.hh io.hh \
  gumbel_params/sls_pvalues.hpp gumbel_params/sls_normal_distr_array.hpp \
  version.hh
 tantan.o: tantan.cc tantan.hh
+last-merge-batches.o: last-merge-batches.c version.hh
 CA_code/lambda_calculator.o: CA_code/lambda_calculator.c CA_code/nrutil.h \
  CA_code/nrutil.c CA_code/ludcmp.c CA_code/lubksb.c \
  CA_code/lambda_calculator.h
