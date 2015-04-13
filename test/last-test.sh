@@ -24,7 +24,7 @@ db=/tmp/last-test
 
     echo TEST 2  # multiple volumes & query batches
     lastdb -m1 -s1 $db $dnaSeq
-    lastal -f0 -i1 -w0 $db $dnaSeq
+    lastal -f0 -i1 -w0 -e40 $db $dnaSeq
     echo
 
     echo TEST 3  # match-counting, with multiple query batches
@@ -35,9 +35,9 @@ db=/tmp/last-test
     lastal -Q1 -e90 -a9 $db $fastq
     echo
 
-    echo TEST 5  # translated alignment & genetic code file
+    echo TEST 5  # gapless translated alignment & genetic code file
     lastdb -p $db $protSeq
-    lastal -F12 -pBL62 -e40 -G $gc $db $dnaSeq
+    lastal -F12 -pBL62 -e40 -G $gc -j1 $db $dnaSeq
     echo
 
     echo TEST 6  # subset seed file, soft-masking
@@ -115,7 +115,7 @@ db=/tmp/last-test
     echo
 
     echo TEST 22  # named score matrix, sparse query seeding
-    lastal -pHOXD70 -k128 -f0 $db galGal3-M-32.fa
+    lastal -pHOXD70 -e4500 -k128 -f0 $db galGal3-M-32.fa
     echo
 
     echo TEST 23  # MAM4, gapless alignment culling
@@ -139,21 +139,21 @@ db=/tmp/last-test
 
     echo TEST 27  # tantan masking on DNA
     lastdb -cR01 $db galGal3-M-32.fa
-    lastal $db hg19-M.fa
+    lastal -e40 $db hg19-M.fa
     echo
 
     echo TEST 28  # tantan masking on protein
     lastdb -pcR01 $db Q2LCP8.fa
-    lastal $db Q5GS15.fa
+    lastal -e100 $db Q5GS15.fa
     echo
 
     echo TEST 29  # tantan masking for translated alignment
-    lastal -F15 -pBL62 $db galGal3-M-32.fa
+    lastal -F15 -pBL62 -e100 $db galGal3-M-32.fa
     echo
 
     echo TEST 30  # AT-rich DNA, tantan
     lastdb -cR02 $db at-rich.fa
-    lastal -pAT77 -s0 $db at-rich.fa
+    lastal -pAT77 -e100 -s0 $db at-rich.fa
     echo
 
     echo TEST 31  # fastq + tantan
