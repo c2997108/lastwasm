@@ -2,26 +2,21 @@
 
 #include "GeneralizedAffineGapCosts.hh"
 #include <algorithm>
-#include <cassert>
 
 namespace cbrc{
 
 int GeneralizedAffineGapCosts::cost( int gapSize1, int gapSize2 ) const{
-  if( gapSize1 == 0 && gapSize2 == 0 ) return 0;
+  int delPart = gapSize1 ? delExist + delExtend * gapSize1 : 0;
+  int insPart = gapSize2 ? insExist + insExtend * gapSize2 : 0;
+  int c = delPart + insPart;
 
-  int c = delExist + delExtend * gapSize1 + insExist + insExtend * gapSize2;
-
-  if( gapSize1 >= gapSize2 ){
-    int d =
-      delExist + delExtend * (gapSize1 - gapSize2) + pairExtend * gapSize2;
-    assert( d >= delExist );  // try to catch overflow errors
+  if( gapSize1 >= gapSize2 && pairExtend < insExist + insExtend + delExtend ){
+    int d = delPart + (pairExtend - delExtend) * gapSize2;
     c = std::min( c, d );
   }
 
-  if( gapSize2 >= gapSize1 ){
-    int d =
-      insExist + insExtend * (gapSize2 - gapSize1) + pairExtend * gapSize1;
-    assert( d >= insExist );  // try to catch overflow errors
+  if( gapSize2 >= gapSize1 && pairExtend < delExist + delExtend + insExtend ){
+    int d = insPart + (pairExtend - insExtend) * gapSize1;
     c = std::min( c, d );
   }
 

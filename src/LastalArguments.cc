@@ -45,7 +45,7 @@ LastalArguments::LastalArguments() :
   gapExtendCost(-1),  // depends on the alphabet
   insExistCost(-1),  // depends on gapExistCost
   insExtendCost(-1),  // depends on gapExtendCost
-  gapPairCost(100000),  // I want it to be infinity, but avoid overflow
+  gapPairCost(-1),  // this means: OFF
   frameshiftCost(-1),  // this means: ordinary, non-translated alignment
   matrixFile(""),
   maxDropGapped(-1),  // depends on minScoreGapped & maxDropGapless
@@ -475,7 +475,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " b=" << gapExtendCost;
   stream << " A=" << insExistCost;
   stream << " B=" << insExtendCost;
-  stream << " c=" << gapPairCost;
+  if( gapPairCost > 0 )
+    stream << " c=" << gapPairCost;
   if( isTranslated() )
     stream << " F=" << frameshiftCost;
   stream << " e=" << minScoreGapped;

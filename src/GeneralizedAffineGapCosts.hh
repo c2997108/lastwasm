@@ -29,7 +29,8 @@ struct GeneralizedAffineGapCosts{
   int pairExtend;
 
   void assign( int a, int b, int A, int B, int c )
-  { delExist = a; delExtend = b; insExist = A; insExtend = B; pairExtend = c; }
+  { delExist = a; delExtend = b; insExist = A; insExtend = B;
+    pairExtend = (c > 0) ? c : 1000000000; }
 
   bool isSymmetric() const
   { return insExist == delExist && insExtend == delExtend; }
