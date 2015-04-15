@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cfloat>
 #include <cmath>
+//#include <iostream>
 using namespace std;
 
 static double roundToFewDigits(double x)
@@ -251,10 +252,12 @@ bool LambdaCalculator::find_ub(double **matrix, int alpha_size, double *ub)
         c_max_min = c_max;
     }
 
+  // the multiplication by 1.1 is sometimes necessary, presumably to
+  // prevent the upper bound from being too tight:
   if (r_max_min > c_max_min)
-    *ub = log(alpha_size - l_r)/r_max_min;
+    *ub = 1.1 * log(1.0 * (alpha_size - l_r))/r_max_min;
   else
-    *ub = log(alpha_size - l_c)/c_max_min;
+    *ub = 1.1 * log(1.0 * (alpha_size - l_c))/c_max_min;
 
   return true;
 }
