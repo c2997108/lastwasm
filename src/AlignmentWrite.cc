@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>  // sprintf
-#include <iterator>  // ostream_iterator
 
 // make C++ tolerable:
 #define CI(type) std::vector<type>::const_iterator
@@ -31,6 +30,15 @@ void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 			      alph, os, extras );
 }
 
+static char* writeTaggedItems( double fullScore, char separator, char* out ){
+  if( fullScore > 0 ){
+    *out++ = separator;
+    out += std::sprintf( out, "fullScore=%.3g", fullScore );
+  }
+  *out++ = '\n';
+  return out;
+}
+
 void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated, std::ostream& os,
 			  const AlignmentExtras& extras ) const{
@@ -46,19 +54,22 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
   size_t seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
+  size_t s1 = seq1.seqLen(w1);
+  size_t s2 = seq2.seqLen(w2);
+
   os << score << '\t';
 
   os << seq1.seqName(w1) << '\t'
      << alnBeg1 - seqStart1 << '\t'
      << alnEnd1 - alnBeg1 << '\t'
      << '+' << '\t'
-     << seq1.seqLen(w1) << '\t';
+     << s1 << '\t';
 
   os << seq2.seqName(w2) << '\t'
      << alnBeg2 - seqStart2 << '\t'
      << alnEnd2 - alnBeg2 << '\t'
      << strand << '\t'
-     << seq2.seqLen(w2) << '\t';
+     << s2 << '\t';
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
@@ -77,9 +88,9 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   }
 
   double fullScore = extras.fullScore;
-  if( fullScore > 0 ) os << "\tfullScore=" << fullScore;
-
-  os << '\n';
+  char line[256];
+  char* end = writeTaggedItems( fullScore, '\t', line );
+  os.write( line, end - line );
 }
 
 static int numDigits( size_t x ){
@@ -124,16 +135,6 @@ static char* sprintChar( char* dest, char c ){
   return dest;
 }
 
-static void writeTopMafLine( int score, double fullScore, std::ostream& os ){
-  char line[256];
-  char* end = line;
-  *end++ = 'a';
-  end += std::sprintf( end, " score=%d", score );
-  if( fullScore > 0 ) end += std::sprintf( end, " fullScore=%.3g", fullScore );
-  *end++ = '\n';
-  os.write( line, end - line );
-}
-
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated, const Alphabet& alph,
 			  std::ostream& os,
@@ -172,10 +173,15 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t lineLen = headLen + numColumns( frameSize2 ) + 1;
   std::vector<char> lineVector( lineLen );
   char* line = &lineVector[0];
+  char* tail = line + headLen;
   line[ lineLen - 1 ] = '\n';
   char* dest;
 
-  writeTopMafLine( score, fullScore, os );
+  char aLine[256];
+  dest = sprintChar( aLine, 'a' );
+  dest += std::sprintf( dest, "score=%d", score );
+  dest = writeTaggedItems( fullScore, ' ', dest );
+  os.write( aLine, dest - aLine );
 
   dest = sprintChar( line, 's' );
   dest = sprintLeft( dest, n1.c_str(), nw );
@@ -189,8 +195,8 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   if( seq1.qualsPerLetter() > 0 ){
     dest = sprintChar( line, 'q' );
     dest += nw + 1;
-    dest = sprintLeft( dest, "", bw + 1 + rw + 3 + sw );
-    writeTopQual( seq1.qualityReader(), seq1.qualsPerLetter(), dest );
+    std::fill( dest, tail, ' ' );
+    writeTopQual( seq1.qualityReader(), seq1.qualsPerLetter(), tail );
     os.write( line, lineLen );
   }
 
@@ -206,17 +212,16 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   if( seq2.qualsPerLetter() > 0 ){
     dest = sprintChar( line, 'q' );
     dest += nw + 1;
-    dest = sprintLeft( dest, "", bw + 1 + rw + 3 + sw );
-    writeBotQual( seq2.qualityReader(), seq2.qualsPerLetter(), dest );
+    std::fill( dest, tail, ' ' );
+    writeBotQual( seq2.qualityReader(), seq2.qualsPerLetter(), tail );
     os.write( line, lineLen );
   }
 
   if( columnAmbiguityCodes.size() > 0 ){
-    os << "p "
-       << std::setw( nw + bw + rw + sw + 6 ) << "";
-    std::copy( columnAmbiguityCodes.begin(), columnAmbiguityCodes.end(),
-               std::ostream_iterator<uchar>(os) );
-    os << '\n';
+    dest = sprintChar( line, 'p' );
+    std::fill( dest, tail, ' ' );
+    copy( columnAmbiguityCodes.begin(), columnAmbiguityCodes.end(), tail );
+    os.write( line, lineLen );
   }
 
   if( expectedCounts.size() > 0 ){
