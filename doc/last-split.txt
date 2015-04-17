@@ -46,7 +46,7 @@ Alignment of two whole genomes
 
 We can align the cat and rat genomes like this::
 
-  lastdb -c -uMAM8 catdb cat.fasta
+  lastdb -cR11 -uMAM8 catdb cat.fasta
   lastal -m100 catdb rat.fasta | last-split -m1 > out.maf
 
 This will align each rat base-pair to at most one cat base-pair, but
