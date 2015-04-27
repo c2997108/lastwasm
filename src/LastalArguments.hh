@@ -38,7 +38,7 @@ struct LastalArguments{
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
 				bool isKeepRefLowercase, int refTantanSetting,
                                 bool isCaseSensitiveSeeds, bool isVolumes );
-  void setDefaultsFromMatrix( double lambda );
+  void setDefaultsFromMatrix( double lambda, int minScore );
 
   // get minScoreGapless, or calculate a default value if it is unspecified:
   int calcMinScoreGapless( double numLettersInReference,

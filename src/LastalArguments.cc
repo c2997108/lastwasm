@@ -132,7 +132,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-      "hVR:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
+    "hVR:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -342,29 +342,24 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 					       bool isVolumes ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
-  if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
-
   if( isProtein ){
     // default match & mismatch scores: Blosum62 matrix
     if( matchScore < 0 && mismatchCost >= 0 ) matchScore   = 1;  // idiot-proof
     if( mismatchCost < 0 && matchScore >= 0 ) mismatchCost = 1;  // idiot-proof
     if( gapExistCost   < 0 ) gapExistCost   =  11;
     if( gapExtendCost  < 0 ) gapExtendCost  =   2;
-    if( minScoreGapped < 0 ) minScoreGapped = 100;
   }
   else if( !isQuality( inputFormat ) ){
     if( matchScore     < 0 ) matchScore     =   1;
     if( mismatchCost   < 0 ) mismatchCost   =   1;
     if( gapExistCost   < 0 ) gapExistCost   =   7;
     if( gapExtendCost  < 0 ) gapExtendCost  =   1;
-    if( minScoreGapped < 0 ) minScoreGapped =  40;
   }
   else{  // sequence quality scores will be used:
     if( matchScore     < 0 ) matchScore     =   6;
     if( mismatchCost   < 0 ) mismatchCost   =  18;
     if( gapExistCost   < 0 ) gapExistCost   =  21;
     if( gapExtendCost  < 0 ) gapExtendCost  =   9;
-    if( minScoreGapped < 0 ) minScoreGapped = 180;
     // With this scoring scheme for DNA, gapless lambda ~= ln(10)/10,
     // so these scores should be comparable to PHRED scores.
     // Furthermore, since mismatchCost/matchScore = 3, the target
@@ -375,8 +370,6 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 
   if( insExistCost < 0 ) insExistCost = gapExistCost;
   if( insExtendCost < 0 ) insExtendCost = gapExtendCost;
-
-  if( outputType < 2 ) minScoreGapless = minScoreGapped;
 
   if( tantanSetting < 0 ){
     isKeepLowercase = isKeepRefLowercase;
@@ -420,7 +413,15 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   }
 }
 
-void LastalArguments::setDefaultsFromMatrix( double lambda ){
+void LastalArguments::setDefaultsFromMatrix( double lambda, int minScore ){
+  if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
+  if( minScoreGapped < 0 ){
+    if( outputType > 0 && minScore < 0 )
+      ERR("can't automatically set the score threshold with these parameters");
+    minScoreGapped = minScore;
+  }
+  if( outputType < 2 ) minScoreGapless = minScoreGapped;
+
   if( temperature < 0 ) temperature = 1 / lambda;
 
   if( maxDropGapless < 0 ){  // should it depend on temperature or lambda?
