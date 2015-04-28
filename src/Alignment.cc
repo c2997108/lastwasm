@@ -103,7 +103,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
 	  extras, gamma, outputType );
 
-  if( score == -INF ) return;  // avoid the bizarre-seed assert
+  if( score == -INF ) return;  // maybe unnecessary?
 
   // convert left-extension coordinates to sequence coordinates:
   SegmentPair::indexT seedBeg1 = seed.beg1();
@@ -123,7 +123,7 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
 	  extras, gamma, outputType );
 
-  if( score == -INF ) return;  // avoid the bizarre-seed assert
+  if( score == -INF ) return;  // maybe unnecessary?
 
   // convert right-extension coordinates to sequence coordinates:
   SegmentPair::indexT seedEnd1 = seed.end1();
@@ -139,8 +139,11 @@ void Alignment::makeXdrop( GappedXdropAligner& aligner, Centroid& centroid,
   bool isMergeSeedForward =
     !forwardBlocks.empty() && isNext( seed, forwardBlocks.back() );
 
-  // check that the seed isn't very bizarre and dubious:
-  assert( seed.size > 0 || isMergeSeedReverse || isMergeSeedForward );
+  if( seed.size == 0 && !isMergeSeedReverse && !isMergeSeedForward ){
+    // unusual, weird case: give up
+    score = -INF;
+    return;
+  }
 
   // splice together the two extensions and the seed (a bit messy):
 

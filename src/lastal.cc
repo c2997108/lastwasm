@@ -541,6 +541,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
                          args.frameshiftCost, frameSize, dis.p, dis.t,
 			 dis.i, dis.j, alph, extras,
 			 args.gamma, args.outputType );
+      assert( aln.score != -INF );
       probAln.write( text, query, strand, args.isTranslated(),
 		     alph, args.outputFormat, out, extras );
     }
