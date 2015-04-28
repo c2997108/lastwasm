@@ -32,6 +32,7 @@
 
 #include "ScoreMatrixRow.hh"
 
+#include <iosfwd>
 #include <vector>
 
 namespace cbrc {
@@ -92,6 +93,11 @@ void makePositionSpecificExpMatrix(const OneQualityExpMatrix &m,
                                    const uchar *sequenceEnd,
                                    const uchar *qualityBeg,
                                    double *destinationBeg);
+
+void writeOneQualityScoreMatrix(const OneQualityScoreMatrix &m,
+                                const char *alphabet,
+                                int qualityOffset,
+                                std::ostream &out);
 
 }
 

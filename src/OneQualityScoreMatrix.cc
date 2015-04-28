@@ -7,6 +7,8 @@
 #include <algorithm>  // min
 #include <cassert>
 #include <cmath>
+#include <iomanip>  // setw
+#include <ostream>
 //#include <iostream>  // for debugging
 
 namespace cbrc {
@@ -88,6 +90,28 @@ void makePositionSpecificExpMatrix(const OneQualityExpMatrix &m,
     int quality2 = *qualityBeg++;
     for (int letter1 = 0; letter1 < scoreMatrixRowSize; ++letter1)
       *destinationBeg++ = m(letter1, letter2, quality2);
+  }
+}
+
+void writeOneQualityScoreMatrix(const OneQualityScoreMatrix &m,
+				const char *alphabet,
+				int qualityOffset,
+				std::ostream &out) {
+  out << "Qual";
+  for (int i = 0; alphabet[i]; ++i) {
+    out << "  ";
+    for (int j = 0; alphabet[j]; ++j)
+      out << " " << std::setw(2) << alphabet[i] << alphabet[j];
+  }
+  out << "\n";
+  for (int q = 0; q <= 40; ++q) {
+    out << std::setw(4) << q;
+    for (int i = 0; alphabet[i]; ++i) {
+      out << "  ";
+      for (int j = 0; alphabet[j]; ++j)
+	out << " " << std::setw(3) << m(i, j, q + qualityOffset);
+    }
+    out << "\n";
   }
 }
 
