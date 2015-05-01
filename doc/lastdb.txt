@@ -161,9 +161,8 @@ Advanced Options
       results.  The default is to use the maximum depth that consumes
       at most one byte per possible match start position.
 
-  -x  Just count sequences and letters.  This is much faster, and the
-      results are useful with lastex.  Letter counting is never
-      case-sensitive.
+  -x  Just count sequences and letters.  This is much faster.  Letter
+      counting is never case-sensitive.
 
   -v  Be verbose: write messages about what lastdb is doing.
 

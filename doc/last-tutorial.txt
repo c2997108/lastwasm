@@ -67,44 +67,8 @@ score penalty of 15 for frameshifts::
   lastdb -p -cR01 protdb proteins.fa
   lastal -F15 protdb dnas.fa
 
-Example 4: Calculate E-values of alignment scores
--------------------------------------------------
-
-lastal reports alignments whose score is at least some minimum value,
-e.g. 40.  If this value is too high we may miss meaningful alignments,
-but if it is too low we may find meaningless alignments.
-
-To solve this dilemma, it is useful to know what alignment scores are
-likely between completely random sequences.  For example, let us find
-what alignment scores are likely between two random sequences with the
-same lengths and base frequencies as the human and fugu mitochondrial
-genomes::
-
-  lastdb -x humdb humanMito.fa
-  lastdb -x fugdb fuguMito.fa
-  lastex humdb.prj fugdb.prj
-
-The lastdb commands count bases, and write them in files called
-humdb.prj and fugdb.prj.  The -x option tells it to only count bases
-and skip its usual preparation steps.  The lastex command prints a
-table of scores and expected numbers of alignments.  Here is an
-abbreviated version::
-
-  Score	     Expected number of alignments
-  39	     8.44e-11
-  22	     0.00805
-  20	     0.0699
-  12	     398
-
-This tells us, for example, that there will be on average 398
-alignments of score 12 or more between random sequences with these
-lengths and base frequencies.  Also, 22 is the minimum score such that
-the average number of alignments is no more than 0.01.
-
-Finally, we can find alignments with score at least 22 like this::
-
-  lastdb -cR01 humdb humanMito.fa
-  lastal -e22 humdb fuguMito.fa > myalns.maf
+Example 4: Removed
+------------------
 
 Example 5: Align human DNA reads to the human genome
 ----------------------------------------------------

@@ -24,17 +24,6 @@ gaplessTwoQualityXdrop.o SubsetSuffixArraySearch.o AlignmentWrite.o	\
 MultiSequenceQual.o GappedXdropAlignerPssm.o				\
 GappedXdropAligner2qual.o GappedXdropAligner3frame.o lastal.o
 
-EXOBJ = Alphabet.o LastexArguments.o io.o ScoreMatrix.o lastex.o	\
-gumbel_params/mcf_local_alignment_evaluer.o				\
-gumbel_params/njn_dynprogprob.o gumbel_params/njn_dynprogproblim.o	\
-gumbel_params/njn_dynprogprobproto.o gumbel_params/njn_ioutil.o		\
-gumbel_params/njn_localmaxstat.o					\
-gumbel_params/njn_localmaxstatmatrix.o					\
-gumbel_params/njn_localmaxstatutil.o gumbel_params/njn_matrix.o		\
-gumbel_params/random_gen.o gumbel_params/sls_alp.o			\
-gumbel_params/sls_alp_data.o gumbel_params/sls_alp_regression.o		\
-gumbel_params/sls_alp_sim.o gumbel_params/sls_pvalues.o
-
 SPOBJ = Alphabet.o MultiSequence.o fileMap.o split/cbrc_linalg.o	\
 split/last-split.o split/cbrc_split_aligner.o split/last-split-main.o	\
 split/cbrc_unsplit_alignment.o
@@ -43,7 +32,7 @@ PPOBJ = last-pair-probs.o last-pair-probs-main.o io.o
 
 MBOBJ = last-merge-batches.o
 
-ALL = lastdb lastal lastex last-split last-merge-batches last-pair-probs
+ALL = lastdb lastal last-split last-merge-batches last-pair-probs
 
 all: $(ALL)
 
@@ -52,9 +41,6 @@ lastdb: $(DBOBJ)
 
 lastal: $(ALOBJ)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(ALOBJ)
-
-lastex: $(EXOBJ)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(EXOBJ)
 
 last-split: $(SPOBJ)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(SPOBJ)
@@ -72,10 +58,10 @@ last-merge-batches: $(MBOBJ)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 .cc.o:
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Igumbel_params -I. -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I. -c -o $@ $<
 
 .cpp.o:
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Igumbel_params -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 clean:
 	rm -f $(ALL) *.o */*.o
@@ -98,7 +84,6 @@ depend:
 	sed '/[m][v]/q' makefile > m
 	$(CXX) -MM *.cc >> m
 	$(CC) -MM *.c >> m
-	$(CXX) -MM -Igumbel_params */*.cpp | sed 's|.*:|gumbel_params/&|' >> m
 	$(CXX) -MM -I. split/*.cc | sed 's|.*:|split/&|' >> m
 	mv m makefile
 Alignment.o: Alignment.cc Alignment.hh ScoreMatrixRow.hh SegmentPair.hh \
@@ -136,7 +121,6 @@ LastalArguments.o: LastalArguments.cc LastalArguments.hh \
  SequenceFormat.hh stringify.hh version.hh
 LastdbArguments.o: LastdbArguments.cc LastdbArguments.hh \
  SequenceFormat.hh stringify.hh version.hh
-LastexArguments.o: LastexArguments.cc LastexArguments.hh stringify.hh
 MultiSequence.o: MultiSequence.cc MultiSequence.hh ScoreMatrixRow.hh \
  VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh
 MultiSequenceQual.o: MultiSequenceQual.cc MultiSequence.hh \
@@ -187,121 +171,8 @@ lastdb.o: lastdb.cc LastdbArguments.hh SequenceFormat.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
  fileMap.hh stringify.hh Alphabet.hh MultiSequence.hh ScoreMatrixRow.hh \
  TantanMasker.hh tantan.hh io.hh qualityScoreUtil.hh version.hh
-lastex.o: lastex.cc LastexArguments.hh ScoreMatrix.hh Alphabet.hh io.hh \
- gumbel_params/mcf_local_alignment_evaluer.hpp \
- gumbel_params/sls_pvalues.hpp gumbel_params/sls_normal_distr_array.hpp \
- version.hh
 tantan.o: tantan.cc tantan.hh
 last-merge-batches.o: last-merge-batches.c version.hh
-gumbel_params/mcf_local_alignment_evaluer.o: \
- gumbel_params/mcf_local_alignment_evaluer.cpp \
- gumbel_params/mcf_local_alignment_evaluer.hpp \
- gumbel_params/sls_pvalues.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h gumbel_params/corelib/ncbitype.h \
- gumbel_params/corelib/ncbi_limits.h \
- gumbel_params/sls_normal_distr_array.hpp \
- gumbel_params/njn_localmaxstatmatrix.hpp \
- gumbel_params/njn_localmaxstat.hpp gumbel_params/sls_alp_sim.hpp \
- gumbel_params/sls_alp_data.hpp gumbel_params/util/random_gen.hpp \
- gumbel_params/corelib/ncbistd.hpp gumbel_params/corelib/ncbidbg.hpp \
- gumbel_params/sls_alp_regression.hpp gumbel_params/sls_alp.hpp
-gumbel_params/njn_dynprogprob.o: gumbel_params/njn_dynprogprob.cpp \
- gumbel_params/ncbi_pch.hpp gumbel_params/corelib/ncbitype.h \
- gumbel_params/corelib/ncbi_limits.h gumbel_params/njn_dynprogprob.hpp \
- gumbel_params/corelib/ncbidbg.hpp gumbel_params/njn_dynprogprobproto.hpp \
- gumbel_params/corelib/ncbistl.hpp gumbel_params/common/ncbi_export.h \
- gumbel_params/njn_memutil.hpp gumbel_params/njn_ioutil.hpp
-gumbel_params/njn_dynprogproblim.o: gumbel_params/njn_dynprogproblim.cpp \
- gumbel_params/ncbi_pch.hpp gumbel_params/njn_dynprogproblim.hpp \
- gumbel_params/corelib/ncbitype.h gumbel_params/corelib/ncbi_limits.h \
- gumbel_params/njn_dynprogprob.hpp gumbel_params/corelib/ncbidbg.hpp \
- gumbel_params/njn_dynprogprobproto.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h gumbel_params/njn_memutil.hpp \
- gumbel_params/njn_ioutil.hpp
-gumbel_params/njn_dynprogprobproto.o: gumbel_params/njn_dynprogprobproto.cpp \
- gumbel_params/ncbi_pch.hpp gumbel_params/njn_dynprogprobproto.hpp \
- gumbel_params/corelib/ncbistl.hpp gumbel_params/common/ncbi_export.h \
- gumbel_params/corelib/ncbitype.h
-gumbel_params/njn_ioutil.o: gumbel_params/njn_ioutil.cpp gumbel_params/ncbi_pch.hpp \
- gumbel_params/corelib/ncbistre.hpp gumbel_params/njn_ioutil.hpp \
- gumbel_params/corelib/ncbistl.hpp gumbel_params/common/ncbi_export.h
-gumbel_params/njn_localmaxstat.o: gumbel_params/njn_localmaxstat.cpp \
- gumbel_params/ncbi_pch.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h gumbel_params/sls_alp_data.hpp \
- gumbel_params/util/random_gen.hpp gumbel_params/corelib/ncbistd.hpp \
- gumbel_params/corelib/ncbidbg.hpp gumbel_params/corelib/ncbitype.h \
- gumbel_params/sls_alp_regression.hpp gumbel_params/corelib/ncbi_limits.h \
- gumbel_params/njn_localmaxstat.hpp gumbel_params/njn_memutil.hpp \
- gumbel_params/njn_ioutil.hpp gumbel_params/njn_dynprogproblim.hpp \
- gumbel_params/njn_dynprogprob.hpp gumbel_params/njn_dynprogprobproto.hpp \
- gumbel_params/njn_function.hpp gumbel_params/njn_doubletype.hpp \
- gumbel_params/njn_integer.hpp gumbel_params/njn_localmaxstatutil.hpp \
- gumbel_params/njn_matrix.hpp gumbel_params/njn_approx.hpp \
- gumbel_params/njn_vector.hpp
-gumbel_params/njn_localmaxstatmatrix.o: gumbel_params/njn_localmaxstatmatrix.cpp \
- gumbel_params/ncbi_pch.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h \
- gumbel_params/njn_localmaxstatmatrix.hpp \
- gumbel_params/njn_localmaxstat.hpp gumbel_params/corelib/ncbitype.h \
- gumbel_params/njn_localmaxstatutil.hpp \
- gumbel_params/corelib/ncbi_limits.h gumbel_params/njn_matrix.hpp \
- gumbel_params/njn_approx.hpp gumbel_params/njn_doubletype.hpp \
- gumbel_params/njn_ioutil.hpp gumbel_params/njn_vector.hpp \
- gumbel_params/njn_memutil.hpp
-gumbel_params/njn_localmaxstatutil.o: gumbel_params/njn_localmaxstatutil.cpp \
- gumbel_params/ncbi_pch.hpp gumbel_params/njn_localmaxstatutil.hpp \
- gumbel_params/corelib/ncbistl.hpp gumbel_params/common/ncbi_export.h \
- gumbel_params/corelib/ncbitype.h gumbel_params/corelib/ncbi_limits.h \
- gumbel_params/njn_matrix.hpp gumbel_params/njn_approx.hpp \
- gumbel_params/njn_doubletype.hpp gumbel_params/njn_ioutil.hpp \
- gumbel_params/njn_vector.hpp gumbel_params/njn_dynprogproblim.hpp \
- gumbel_params/njn_dynprogprob.hpp gumbel_params/corelib/ncbidbg.hpp \
- gumbel_params/njn_dynprogprobproto.hpp gumbel_params/njn_integer.hpp \
- gumbel_params/njn_memutil.hpp gumbel_params/njn_root.hpp \
- gumbel_params/njn_function.hpp gumbel_params/sls_alp_data.hpp \
- gumbel_params/util/random_gen.hpp gumbel_params/corelib/ncbistd.hpp \
- gumbel_params/sls_alp_regression.hpp
-gumbel_params/njn_matrix.o: gumbel_params/njn_matrix.cpp gumbel_params/ncbi_pch.hpp \
- gumbel_params/njn_matrix.hpp gumbel_params/corelib/ncbitype.h \
- gumbel_params/njn_approx.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h gumbel_params/njn_doubletype.hpp \
- gumbel_params/njn_ioutil.hpp gumbel_params/njn_vector.hpp
-gumbel_params/random_gen.o: gumbel_params/random_gen.cpp gumbel_params/ncbi_pch.hpp \
- gumbel_params/util/random_gen.hpp gumbel_params/corelib/ncbistd.hpp \
- gumbel_params/corelib/ncbistl.hpp gumbel_params/common/ncbi_export.h \
- gumbel_params/corelib/ncbidbg.hpp gumbel_params/corelib/ncbitype.h
-gumbel_params/sls_alp.o: gumbel_params/sls_alp.cpp gumbel_params/ncbi_pch.hpp \
- gumbel_params/sls_alp.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h gumbel_params/sls_alp_data.hpp \
- gumbel_params/util/random_gen.hpp gumbel_params/corelib/ncbistd.hpp \
- gumbel_params/corelib/ncbidbg.hpp gumbel_params/corelib/ncbitype.h \
- gumbel_params/sls_alp_regression.hpp gumbel_params/corelib/ncbi_limits.h
-gumbel_params/sls_alp_data.o: gumbel_params/sls_alp_data.cpp gumbel_params/ncbi_pch.hpp \
- gumbel_params/sls_alp_data.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h gumbel_params/util/random_gen.hpp \
- gumbel_params/corelib/ncbistd.hpp gumbel_params/corelib/ncbidbg.hpp \
- gumbel_params/corelib/ncbitype.h gumbel_params/sls_alp_regression.hpp \
- gumbel_params/corelib/ncbi_limits.h
-gumbel_params/sls_alp_regression.o: gumbel_params/sls_alp_regression.cpp \
- gumbel_params/ncbi_pch.hpp gumbel_params/sls_alp_regression.hpp \
- gumbel_params/corelib/ncbistl.hpp gumbel_params/common/ncbi_export.h \
- gumbel_params/corelib/ncbitype.h gumbel_params/corelib/ncbi_limits.h \
- gumbel_params/sls_alp_data.hpp gumbel_params/util/random_gen.hpp \
- gumbel_params/corelib/ncbistd.hpp gumbel_params/corelib/ncbidbg.hpp
-gumbel_params/sls_alp_sim.o: gumbel_params/sls_alp_sim.cpp gumbel_params/ncbi_pch.hpp \
- gumbel_params/sls_alp_sim.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h gumbel_params/sls_alp_data.hpp \
- gumbel_params/util/random_gen.hpp gumbel_params/corelib/ncbistd.hpp \
- gumbel_params/corelib/ncbidbg.hpp gumbel_params/corelib/ncbitype.h \
- gumbel_params/sls_alp_regression.hpp gumbel_params/corelib/ncbi_limits.h \
- gumbel_params/sls_alp.hpp
-gumbel_params/sls_pvalues.o: gumbel_params/sls_pvalues.cpp gumbel_params/ncbi_pch.hpp \
- gumbel_params/sls_pvalues.hpp gumbel_params/corelib/ncbistl.hpp \
- gumbel_params/common/ncbi_export.h gumbel_params/corelib/ncbitype.h \
- gumbel_params/corelib/ncbi_limits.h \
- gumbel_params/sls_normal_distr_array.hpp gumbel_params/sls_alp_data.hpp \
- gumbel_params/util/random_gen.hpp gumbel_params/corelib/ncbistd.hpp \
- gumbel_params/corelib/ncbidbg.hpp gumbel_params/sls_alp_regression.hpp
 split/cbrc_linalg.o: split/cbrc_linalg.cc split/cbrc_linalg.hh
 split/cbrc_split_aligner.o: split/cbrc_split_aligner.cc \
  split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \
