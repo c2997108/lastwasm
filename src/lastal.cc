@@ -884,7 +884,7 @@ void lastal( int argc, char** argv ){
   }
 
   if( args.outputType > 0 ) calculateScoreStatistics( matrixName, refLetters );
-  int minScore = isProtein ? 100 : isQuality( args.inputFormat ) ? 180 : 40;
+  int minScore = evaluer.minScore( args.maxEvalue, 1e18 );
   args.setDefaultsFromMatrix( lambdaCalculator.lambda(), minScore );
   minScoreGapless = args.calcMinScoreGapless( refLetters, numOfIndexes );
   if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;

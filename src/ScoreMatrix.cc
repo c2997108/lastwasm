@@ -25,7 +25,7 @@ std::string ScoreMatrix::stringFromName( const std::string& name ){
   std::string n = canonicalName( name );
 
   if( n == "AT77" ) return "\
-#last -a15 -b2 -e100\n\
+#last -a15 -b2\n\
    A  C  G  T\n\
 A  2 -3 -2 -3\n\
 C -3  5 -3 -2\n\
@@ -34,7 +34,7 @@ T -3 -2 -3  2\n\
 ";  // from MC Frith (2011) NAR 39(4):e23.
 
   if( n == "ATMAP" ) return "\
-#last -a24 -b6 -e150\n\
+#last -a24 -b6\n\
     A   C   G   T\n\
 A   4 -12 -12 -12\n\
 C -12   9 -12 -12\n\
@@ -43,7 +43,7 @@ T -12 -12 -12   4\n\
 ";
 
   if( n == "BISF" ) return "\
-#last -a21 -b9 -e180\n\
+#last -a21 -b9\n\
     A   C   G   T\n\
 A   6 -18 -18 -18\n\
 C -18   6 -18   3\n\
@@ -52,7 +52,7 @@ T -18 -18 -18   3\n\
 ";
 
   if( n == "BISR" ) return "\
-#last -a21 -b9 -e180\n\
+#last -a21 -b9\n\
     A   C   G   T\n\
 A   3 -18 -18 -18\n\
 C -18   6 -18 -18\n\
@@ -61,7 +61,7 @@ T -18 -18 -18   6\n\
 ";
 
   if( n == "HOXD70" ) return "\
-#last -a 400 -b 30 -e 4500\n\
+#last -a 400 -b 30\n\
      A    C    G    T    N\n\
 A   91 -114  -31 -123 -100\n\
 C -114  100 -125  -31 -100\n\

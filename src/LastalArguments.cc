@@ -88,7 +88,12 @@ Score options (default settings):\n\
 -y: maximum score drop for gapless alignments (t*10)\n\
 -z: maximum score drop for final gapped alignments (x)\n\
 -d: minimum score for gapless alignments (min[e, t*ln(1000*refSize/n)])\n\
--e: minimum score for gapped alignments (DNA: 40, protein: 100, 0<Q<5: 180)\n\
+-e: minimum score for gapped alignments\n\
+\n\
+E-value options (default settings):\n\
+-D: query letters per random alignment ("
+    + stringify(queryLettersPerRandomAlignment) + ")\n\
+-E: maximum expected alignments per square giga (1e+18/D/refSize/numOfStrands)\n\
 \n\
 Cosmetic options (default settings):\n\
 -h, --help: show all options and their default settings, and exit\n\
@@ -502,6 +507,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " x=" << maxDropGapped;
   stream << " y=" << maxDropGapless;
   stream << " z=" << maxDropFinal;
+  stream << " D=" << queryLettersPerRandomAlignment;
+  stream << " E=" << maxEvalue;
   stream << '\n';
 
   stream << '#';
