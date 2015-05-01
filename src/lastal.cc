@@ -8,6 +8,7 @@
 #include "TwoQualityScoreMatrix.hh"
 #include "qualityScoreUtil.hh"
 #include "LambdaCalculator.hh"
+#include "LastEvaluer.hh"
 #include "GeneticCode.hh"
 #include "SubsetSuffixArray.hh"
 #include "Centroid.hh"
@@ -54,6 +55,7 @@ namespace {
   GappedXdropAligner gappedXdropAligner;
   Centroid centroid( gappedXdropAligner );
   LambdaCalculator lambdaCalculator;
+  LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
@@ -404,7 +406,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 	  Alignment aln;
 	  aln.fromSegmentPair(sp);
 	  aln.write( text, query, strand, args.isTranslated(),
-		     alph, args.outputFormat, out );
+		     alph, evaluer, args.outputFormat, out );
 	}
 	else{
 	  gaplessAlns.add(sp);  // add the gapless alignment to the pot
@@ -529,7 +531,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
       aln.write( text, query, strand, args.isTranslated(),
-		 alph, args.outputFormat, out );
+		 alph, evaluer, args.outputFormat, out );
     }
     else{  // calculate match probabilities:
       Alignment probAln;
@@ -543,7 +545,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
 			 args.gamma, args.outputType );
       assert( aln.score != -INF );
       probAln.write( text, query, strand, args.isTranslated(),
-		     alph, args.outputFormat, out, extras );
+		     alph, evaluer, args.outputFormat, out, extras );
     }
   }
 }
@@ -736,6 +738,7 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
   args.writeCommented( out );
   out << "# Reference sequences=" << refSequences
       << " normal letters=" << refLetters << "\n";
+  if( args.outputType > 0 ) evaluer.writeCommented( out );
   out << "#\n";
 
   if( args.outputType == 0 ){  // we just want hit counts

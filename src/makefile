@@ -19,10 +19,18 @@ ScoreMatrix.o tantan.o DiagonalTable.o SegmentPair.o Alignment.o	\
 GappedXdropAligner.o SegmentPairPot.o AlignmentPot.o			\
 GeneralizedAffineGapCosts.o Centroid.o LambdaCalculator.o		\
 TwoQualityScoreMatrix.o OneQualityScoreMatrix.o QualityPssmMaker.o	\
-GeneticCode.o gaplessXdrop.o gaplessPssmXdrop.o				\
+GeneticCode.o LastEvaluer.o gaplessXdrop.o gaplessPssmXdrop.o		\
 gaplessTwoQualityXdrop.o SubsetSuffixArraySearch.o AlignmentWrite.o	\
 MultiSequenceQual.o GappedXdropAlignerPssm.o				\
-GappedXdropAligner2qual.o GappedXdropAligner3frame.o lastal.o
+GappedXdropAligner2qual.o GappedXdropAligner3frame.o lastal.o		\
+alp/sls_alignment_evaluer.o alp/sls_pvalues.o alp/sls_alp_sim.o		\
+alp/sls_alp_regression.o alp/sls_alp_data.o alp/sls_alp.o		\
+alp/sls_basic.o alp/njn_localmaxstatmatrix.o alp/njn_localmaxstat.o	\
+alp/njn_localmaxstatutil.o alp/njn_dynprogprob.o			\
+alp/njn_dynprogprobproto.o alp/njn_dynprogproblim.o alp/njn_ioutil.o	\
+alp/njn_random.o alp/sls_falp_alignment_evaluer.o			\
+alp/sls_fsa1_pvalues.o alp/sls_fsa1_utils.o alp/sls_fsa1.o		\
+alp/sls_fsa1_parameters.o
 
 SPOBJ = Alphabet.o MultiSequence.o fileMap.o split/cbrc_linalg.o	\
 split/last-split.o split/cbrc_split_aligner.o split/last-split-main.o	\
@@ -84,6 +92,7 @@ depend:
 	sed '/[m][v]/q' makefile > m
 	$(CXX) -MM *.cc >> m
 	$(CC) -MM *.c >> m
+	$(CXX) -MM alp/*.cpp | sed 's|.*:|alp/&|' >> m
 	$(CXX) -MM -I. split/*.cc | sed 's|.*:|split/&|' >> m
 	mv m makefile
 Alignment.o: Alignment.cc Alignment.hh ScoreMatrixRow.hh SegmentPair.hh \
@@ -93,8 +102,11 @@ Alignment.o: Alignment.cc Alignment.hh ScoreMatrixRow.hh SegmentPair.hh \
 AlignmentPot.o: AlignmentPot.cc AlignmentPot.hh Alignment.hh \
  ScoreMatrixRow.hh SegmentPair.hh
 AlignmentWrite.o: AlignmentWrite.cc Alignment.hh ScoreMatrixRow.hh \
- SegmentPair.hh GeneticCode.hh MultiSequence.hh VectorOrMmap.hh Mmap.hh \
- fileMap.hh stringify.hh Alphabet.hh
+ SegmentPair.hh GeneticCode.hh LastEvaluer.hh \
+ alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
+ alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
+ MultiSequence.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
+ Alphabet.hh
 Alphabet.o: Alphabet.cc Alphabet.hh
 Centroid.o: Centroid.cc Centroid.hh GappedXdropAligner.hh \
  ScoreMatrixRow.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
@@ -117,6 +129,10 @@ GeneralizedAffineGapCosts.o: GeneralizedAffineGapCosts.cc \
  GeneralizedAffineGapCosts.hh
 GeneticCode.o: GeneticCode.cc GeneticCode.hh Alphabet.hh
 LambdaCalculator.o: LambdaCalculator.cc LambdaCalculator.hh
+LastEvaluer.o: LastEvaluer.cc LastEvaluer.hh ScoreMatrixRow.hh \
+ alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
+ alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
+ GeneticCode.hh
 LastalArguments.o: LastalArguments.cc LastalArguments.hh \
  SequenceFormat.hh stringify.hh version.hh
 LastdbArguments.o: LastdbArguments.cc LastdbArguments.hh \
@@ -160,7 +176,9 @@ last-pair-probs.o: last-pair-probs.cc last-pair-probs.hh io.hh \
 lastal.o: lastal.cc LastalArguments.hh SequenceFormat.hh \
  QualityPssmMaker.hh ScoreMatrixRow.hh OneQualityScoreMatrix.hh \
  TwoQualityScoreMatrix.hh qualityScoreUtil.hh stringify.hh \
- LambdaCalculator.hh GeneticCode.hh SubsetSuffixArray.hh \
+ LambdaCalculator.hh LastEvaluer.hh alp/sls_alignment_evaluer.hpp \
+ alp/sls_pvalues.hpp alp/sls_basic.hpp alp/sls_falp_alignment_evaluer.hpp \
+ alp/sls_fsa1_pvalues.hpp GeneticCode.hh SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh fileMap.hh Centroid.hh \
  GappedXdropAligner.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
  AlignmentPot.hh Alignment.hh SegmentPairPot.hh ScoreMatrix.hh \
@@ -173,6 +191,77 @@ lastdb.o: lastdb.cc LastdbArguments.hh SequenceFormat.hh \
  TantanMasker.hh tantan.hh io.hh qualityScoreUtil.hh version.hh
 tantan.o: tantan.cc tantan.hh
 last-merge-batches.o: last-merge-batches.c version.hh
+alp/njn_dynprogprob.o: alp/njn_dynprogprob.cpp alp/njn_dynprogprob.hpp \
+ alp/njn_dynprogprobproto.hpp alp/njn_memutil.hpp alp/njn_ioutil.hpp
+alp/njn_dynprogproblim.o: alp/njn_dynprogproblim.cpp \
+ alp/njn_dynprogproblim.hpp alp/njn_dynprogprob.hpp \
+ alp/njn_dynprogprobproto.hpp alp/njn_memutil.hpp alp/njn_ioutil.hpp
+alp/njn_dynprogprobproto.o: alp/njn_dynprogprobproto.cpp \
+ alp/njn_dynprogprobproto.hpp
+alp/njn_ioutil.o: alp/njn_ioutil.cpp alp/njn_ioutil.hpp
+alp/njn_localmaxstat.o: alp/njn_localmaxstat.cpp alp/sls_basic.hpp \
+ alp/njn_localmaxstat.hpp alp/njn_memutil.hpp alp/njn_ioutil.hpp \
+ alp/njn_dynprogproblim.hpp alp/njn_dynprogprob.hpp \
+ alp/njn_dynprogprobproto.hpp alp/njn_function.hpp alp/njn_doubletype.hpp \
+ alp/njn_integer.hpp alp/njn_localmaxstatutil.hpp alp/njn_matrix.hpp \
+ alp/njn_approx.hpp alp/njn_vector.hpp
+alp/njn_localmaxstatmatrix.o: alp/njn_localmaxstatmatrix.cpp \
+ alp/njn_localmaxstatmatrix.hpp alp/njn_localmaxstat.hpp \
+ alp/njn_localmaxstatutil.hpp alp/njn_matrix.hpp alp/njn_approx.hpp \
+ alp/njn_doubletype.hpp alp/njn_ioutil.hpp alp/njn_vector.hpp \
+ alp/njn_memutil.hpp
+alp/njn_localmaxstatutil.o: alp/njn_localmaxstatutil.cpp \
+ alp/njn_localmaxstatutil.hpp alp/njn_matrix.hpp alp/njn_approx.hpp \
+ alp/njn_doubletype.hpp alp/njn_ioutil.hpp alp/njn_vector.hpp \
+ alp/njn_dynprogproblim.hpp alp/njn_dynprogprob.hpp \
+ alp/njn_dynprogprobproto.hpp alp/njn_integer.hpp alp/njn_memutil.hpp \
+ alp/njn_root.hpp alp/njn_function.hpp alp/sls_basic.hpp
+alp/njn_random.o: alp/njn_random.cpp alp/njn_random.hpp
+alp/sls_alignment_evaluer.o: alp/sls_alignment_evaluer.cpp \
+ alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
+ alp/sls_alp.hpp alp/sls_alp_data.hpp alp/sls_alp_regression.hpp \
+ alp/njn_random.hpp alp/njn_uniform.hpp alp/sls_alp_sim.hpp \
+ alp/njn_localmaxstatmatrix.hpp alp/njn_localmaxstat.hpp \
+ alp/njn_localmaxstatutil.hpp alp/njn_matrix.hpp alp/njn_approx.hpp \
+ alp/njn_doubletype.hpp alp/njn_ioutil.hpp alp/njn_vector.hpp
+alp/sls_alp.o: alp/sls_alp.cpp alp/sls_alp.hpp alp/sls_alp_data.hpp \
+ alp/sls_basic.hpp alp/sls_alp_regression.hpp alp/njn_random.hpp \
+ alp/njn_uniform.hpp
+alp/sls_alp_data.o: alp/sls_alp_data.cpp alp/sls_alp_data.hpp \
+ alp/sls_basic.hpp alp/sls_alp_regression.hpp alp/njn_random.hpp \
+ alp/njn_uniform.hpp
+alp/sls_alp_regression.o: alp/sls_alp_regression.cpp \
+ alp/sls_alp_regression.hpp alp/sls_basic.hpp
+alp/sls_alp_sim.o: alp/sls_alp_sim.cpp alp/sls_alp_sim.hpp \
+ alp/sls_alp_data.hpp alp/sls_basic.hpp alp/sls_alp_regression.hpp \
+ alp/njn_random.hpp alp/njn_uniform.hpp alp/sls_alp.hpp
+alp/sls_basic.o: alp/sls_basic.cpp alp/sls_basic.hpp
+alp/sls_falp_alignment_evaluer.o: alp/sls_falp_alignment_evaluer.cpp \
+ alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
+ alp/sls_basic.hpp alp/sls_fsa1_parameters.hpp alp/sls_fsa1_utils.hpp \
+ alp/njn_random.hpp alp/njn_uniform.hpp alp/sls_alp_regression.hpp \
+ alp/njn_localmaxstatmatrix.hpp alp/njn_localmaxstat.hpp \
+ alp/njn_localmaxstatutil.hpp alp/njn_matrix.hpp alp/njn_approx.hpp \
+ alp/njn_doubletype.hpp alp/njn_ioutil.hpp alp/njn_vector.hpp \
+ alp/sls_fsa1.hpp
+alp/sls_fsa1.o: alp/sls_fsa1.cpp alp/sls_fsa1.hpp alp/sls_alp_regression.hpp \
+ alp/sls_basic.hpp alp/sls_fsa1_utils.hpp alp/njn_random.hpp \
+ alp/njn_uniform.hpp alp/sls_fsa1_parameters.hpp alp/sls_fsa1_pvalues.hpp \
+ alp/njn_localmaxstatmatrix.hpp alp/njn_localmaxstat.hpp \
+ alp/njn_localmaxstatutil.hpp alp/njn_matrix.hpp alp/njn_approx.hpp \
+ alp/njn_doubletype.hpp alp/njn_ioutil.hpp alp/njn_vector.hpp
+alp/sls_fsa1_parameters.o: alp/sls_fsa1_parameters.cpp \
+ alp/sls_fsa1_parameters.hpp alp/sls_fsa1_utils.hpp alp/sls_basic.hpp \
+ alp/njn_random.hpp alp/njn_uniform.hpp alp/sls_alp_regression.hpp \
+ alp/sls_fsa1_pvalues.hpp
+alp/sls_fsa1_pvalues.o: alp/sls_fsa1_pvalues.cpp alp/sls_fsa1_pvalues.hpp \
+ alp/sls_basic.hpp alp/sls_fsa1_utils.hpp alp/njn_random.hpp \
+ alp/njn_uniform.hpp alp/sls_normal_distr_array.hpp
+alp/sls_fsa1_utils.o: alp/sls_fsa1_utils.cpp alp/sls_fsa1_utils.hpp \
+ alp/sls_basic.hpp alp/njn_random.hpp alp/njn_uniform.hpp
+alp/sls_pvalues.o: alp/sls_pvalues.cpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
+ alp/sls_alp_data.hpp alp/sls_alp_regression.hpp alp/njn_random.hpp \
+ alp/njn_uniform.hpp alp/sls_normal_distr_array.hpp
 split/cbrc_linalg.o: split/cbrc_linalg.cc split/cbrc_linalg.hh
 split/cbrc_split_aligner.o: split/cbrc_split_aligner.cc \
  split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \

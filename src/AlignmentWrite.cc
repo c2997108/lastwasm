@@ -2,6 +2,7 @@
 
 #include "Alignment.hh"
 #include "GeneticCode.hh"
+#include "LastEvaluer.hh"
 #include "MultiSequence.hh"
 #include "Alphabet.hh"
 #include <iomanip>
@@ -22,15 +23,26 @@ static void writeSignedDifference( size_t x, size_t y, std::ostream& os ){
 
 void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 		       char strand, bool isTranslated, const Alphabet& alph,
-		       int format, std::ostream& os,
-		       const AlignmentExtras& extras ) const{
+		       const LastEvaluer& evaluer, int format,
+		       std::ostream& os, const AlignmentExtras& extras ) const{
   assert( !blocks.empty() );
-  if( format == 0 ) writeTab( seq1, seq2, strand, isTranslated, os, extras );
-  else              writeMaf( seq1, seq2, strand, isTranslated,
-			      alph, os, extras );
+  if( format == 0 ) writeTab( seq1, seq2, strand, isTranslated,
+			      evaluer, os, extras );
+  else              writeMaf( seq1, seq2, strand, isTranslated, alph,
+			      evaluer, os, extras );
 }
 
-static char* writeTaggedItems( double fullScore, char separator, char* out ){
+static char* writeTaggedItems( const LastEvaluer& evaluer, double queryLength,
+			       int score, double fullScore,
+			       char separator, char* out ){
+  if( evaluer.isGood() ){
+    double epa = evaluer.evaluePerArea( score );
+    double area = evaluer.area( score, queryLength );
+    *out++ = separator;
+    out += std::sprintf( out, "EG2=%.2g", 1e18 * epa );
+    *out++ = separator;
+    out += std::sprintf( out, "E=%.2g", area * epa );
+  }
   if( fullScore > 0 ){
     *out++ = separator;
     out += std::sprintf( out, "fullScore=%.3g", fullScore );
@@ -40,7 +52,8 @@ static char* writeTaggedItems( double fullScore, char separator, char* out ){
 }
 
 void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
-			  char strand, bool isTranslated, std::ostream& os,
+			  char strand, bool isTranslated,
+			  const LastEvaluer& evaluer, std::ostream& os,
 			  const AlignmentExtras& extras ) const{
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
@@ -89,7 +102,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 
   double fullScore = extras.fullScore;
   char line[256];
-  char* end = writeTaggedItems( fullScore, '\t', line );
+  char* end = writeTaggedItems( evaluer, s2, score, fullScore, '\t', line );
   os.write( line, end - line );
 }
 
@@ -137,7 +150,7 @@ static char* sprintChar( char* dest, char c ){
 
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  char strand, bool isTranslated, const Alphabet& alph,
-			  std::ostream& os,
+			  const LastEvaluer& evaluer, std::ostream& os,
 			  const AlignmentExtras& extras ) const{
   double fullScore = extras.fullScore;
   const std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
@@ -180,7 +193,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   char aLine[256];
   dest = sprintChar( aLine, 'a' );
   dest += std::sprintf( dest, "score=%d", score );
-  dest = writeTaggedItems( fullScore, ' ', dest );
+  dest = writeTaggedItems( evaluer, s2, score, fullScore, ' ', dest );
   os.write( aLine, dest - aLine );
 
   dest = sprintChar( line, 's' );

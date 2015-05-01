@@ -17,6 +17,7 @@ typedef unsigned char uchar;
 
 class GappedXdropAligner;
 class GeneralizedAffineGapCosts;
+class LastEvaluer;
 class MultiSequence;
 class Alphabet;
 class Centroid;
@@ -65,7 +66,7 @@ struct Alignment{
 
   void write( const MultiSequence& seq1, const MultiSequence& seq2,
 	      char strand, bool isTranslated, const Alphabet& alph,
-	      int format, std::ostream& os,
+	      const LastEvaluer& evaluer, int format, std::ostream& os,
 	      const AlignmentExtras& extras = AlignmentExtras() ) const;
 
   // data:
@@ -94,12 +95,14 @@ struct Alignment{
 	       double gamma, int outputType );
 
   void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
-		 char strand, bool isTranslated, std::ostream& os,
+		 char strand, bool isTranslated,
+		 const LastEvaluer& evaluer, std::ostream& os,
 		 const AlignmentExtras& extras ) const;
 
   void writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 		 char strand, bool isTranslated, const Alphabet& alph,
-		 std::ostream& os, const AlignmentExtras& extras ) const;
+		 const LastEvaluer& evaluer, std::ostream& os,
+		 const AlignmentExtras& extras ) const;
 
   size_t numColumns( size_t frameSize ) const;
 
