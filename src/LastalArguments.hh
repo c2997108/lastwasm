@@ -36,6 +36,7 @@ struct LastalArguments{
 
   // set default option values that depend on input files:
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
+				double numLettersInReference,
 				bool isKeepRefLowercase, int refTantanSetting,
                                 bool isCaseSensitiveSeeds, bool isVolumes );
   void setDefaultsFromMatrix( double lambda, int minScore );
@@ -61,6 +62,8 @@ struct LastalArguments{
   bool isKeepLowercase;
   int tantanSetting;
   int maskLowercase;
+  double maxEvalue;
+  double queryLettersPerRandomAlignment;
   int minScoreGapped;
   int minScoreGapless;
   int matchScore;

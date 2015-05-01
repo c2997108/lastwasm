@@ -857,7 +857,7 @@ void lastal( int argc, char** argv ){
   }
 
   bool isMultiVolume = (volumes+1 > 0 && volumes > 1);
-  args.setDefaultsFromAlphabet( isDna, isProtein,
+  args.setDefaultsFromAlphabet( isDna, isProtein, refLetters,
 				isKeepRefLowercase, refTantanSetting,
                                 isCaseSensitiveSeeds, isMultiVolume );
   if( args.tantanSetting )

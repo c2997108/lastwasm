@@ -37,6 +37,8 @@ LastalArguments::LastalArguments() :
   isKeepLowercase(true),  // depends on the option used with lastdb
   tantanSetting(-1),  // depends on the option used with lastdb
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
+  maxEvalue(-1),
+  queryLettersPerRandomAlignment(1e6),
   minScoreGapped(-1),  // depends on the alphabet
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
   matchScore(-1),  // depends on the alphabet
@@ -132,7 +134,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-    "hVR:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
+    "hVR:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:D:E:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -217,6 +219,15 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'e':
       unstringify( minScoreGapped, optarg );
       if( minScoreGapped < 0 ) badopt( c, optarg );
+      break;
+
+    case 'D':
+      unstringify( queryLettersPerRandomAlignment, optarg );
+      if( queryLettersPerRandomAlignment <= 0 ) badopt( c, optarg );
+      break;
+    case 'E':
+      unstringify( maxEvalue, optarg );
+      if( maxEvalue <= 0 ) badopt( c, optarg );
       break;
 
     case 'Q':
@@ -336,6 +347,7 @@ const char* LastalArguments::matrixName( bool isProtein ) const{
 }
 
 void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
+					       double numLettersInReference,
 					       bool isKeepRefLowercase,
 					       int refTantanSetting,
                                                bool isCaseSensitiveSeeds,
@@ -366,6 +378,11 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // distribution of paired bases ~= 99% identity.  Because the
     // quality scores are unlikely to be perfect, it may be best to
     // use a lower target %identity than we otherwise would.
+  }
+
+  if( maxEvalue < 0 ){
+    double r = std::max( numLettersInReference, 1.0 );  // avoid divide-by-0
+    maxEvalue = 1e18 / (numOfStrands() * r * queryLettersPerRandomAlignment);
   }
 
   if( insExistCost < 0 ) insExistCost = gapExistCost;
