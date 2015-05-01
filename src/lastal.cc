@@ -151,7 +151,8 @@ void makeQualityScorers(){
 
 // Calculate statistical parameters for the alignment scoring scheme
 // Meaningless for PSSMs, unless they have the same scale as the score matrix
-void calculateScoreStatistics(){
+void calculateScoreStatistics( const std::string& matrixName,
+			       countT refLetters ){
   LOG( "calculating matrix probabilities..." );
   // the case-sensitivity of the matrix makes no difference here
   lambdaCalculator.calculate( scoreMatrix.caseSensitive, alph.size );
@@ -182,6 +183,25 @@ void calculateScoreStatistics(){
       std::cerr << std::setw(3) << 100 * p2[i] << (i + 1 < e ? " " : "\n");
     std::cerr.precision(p);
     std::cerr << std::right;
+  }
+
+  const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
+  bool isGapped = (args.outputType > 1);
+  bool isStandardGeneticCode = args.geneticCodeFile.empty();
+  LOG( "getting evalue parameters..." );
+  try{
+    evaluer.init( canonicalMatrixName, args.matchScore, args.mismatchCost,
+                  alph.letters.c_str(), scoreMatrix.caseSensitive,
+                  p1, p2, isGapped,
+                  gapCosts.delExist, gapCosts.delExtend,
+                  gapCosts.insExist, gapCosts.insExtend,
+                  args.frameshiftCost, geneticCode, isStandardGeneticCode );
+    evaluer.setSearchSpace( refLetters, args.numOfStrands() );
+    if( args.verbosity > 0 ) evaluer.writeParameters( std::cerr );
+  }catch( const Sls::error& e ){
+    LOG( "can't get evalue parameters for this scoring scheme" );
+    if( args.verbosity > 1 )
+      std::cerr << "ALP: " << e.error_code << ": " << e.st;
   }
 }
 
@@ -863,7 +883,7 @@ void lastal( int argc, char** argv ){
     query.initForAppending(1);
   }
 
-  if( args.outputType > 0 ) calculateScoreStatistics();
+  if( args.outputType > 0 ) calculateScoreStatistics( matrixName, refLetters );
   int minScore = isProtein ? 100 : isQuality( args.inputFormat ) ? 180 : 40;
   args.setDefaultsFromMatrix( lambdaCalculator.lambda(), minScore );
   minScoreGapless = args.calcMinScoreGapless( refLetters, numOfIndexes );
