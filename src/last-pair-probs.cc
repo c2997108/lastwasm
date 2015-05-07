@@ -202,7 +202,7 @@ static void printAlignmentWithMismapProb(const Alignment& alignment,
     const char *d = c;
     for (int i = 0; i < 7; ++i) d = skipWord(d);
     std::cout.write(c, d - c);
-    std::cout << suf << d << '\t' << p << '\n';
+    std::cout << suf << d << "\tmismap=" << p << '\n';
   } else {  // we have MAF format
     std::cout << *linesBeg << " mismap=" << p << '\n';
     const char *pad = *suf ? "  " : "";  // spacer to keep the alignment of MAF lines

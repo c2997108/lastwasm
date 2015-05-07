@@ -62,7 +62,7 @@ def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
             p = 1.0 - math.exp(s / temperature - denominators[queryNames[i]])
             i += 1
             if s < opts.score or p > opts.mismap: continue
-            newLineEnd = "\t%.3g\n" % p
+            newLineEnd = "\tmismap=%.3g\n" % p
             line = line.rstrip() + newLineEnd
         if isWanted: print line,
         if line.isspace(): isWanted = True  # reset at end of maf paragraph

@@ -132,12 +132,10 @@ def writeTab(maf):
     aLine, sLines, qLines, pLines = maf
 
     score = "0"
-    expect = None
-    mismap = None
+    endWords = []
     for i in aLine:
         if   i.startswith("score="): score = i[6:]
-        elif i.startswith("expect="): expect = i[7:]
-        elif i.startswith("mismap="): mismap = i[7:]
+        elif len(i) > 1: endWords.append(i)
 
     outWords = []
     outWords.append(score)
@@ -151,10 +149,7 @@ def writeTab(maf):
     gapWord = ",".join(gapStrings)
     outWords.append(gapWord)
 
-    if expect: outWords.append(expect)
-    if mismap: outWords.append(mismap)
-
-    print "\t".join(outWords)
+    print "\t".join(outWords + endWords)
 
 ##### Routines for converting to PSL format: #####
 
