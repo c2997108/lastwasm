@@ -32,14 +32,15 @@ you can use::
 
 Each alignment looks like this::
 
-  a score=85
-  s humanMito 1742 289 + 16571 AGTATAGGCGATAGAAATTGAAACCTGGCGCAAT...
-  s fuguMito  1182 300 + 16447 AGTATAGGAGATAGAAAAGGAA-CTAGGAGCTAT...
+  a score=27 EG2=4.7e+04 E=2.6e-05
+  s humanMito 2170 145 + 16571 AGTAGGCCTAAAAGCAGCCACCAATTAAGAAAGCGTT...
+  s fuguMito  1648 142 + 16447 AGTAGGCTTAGAAGCAGCCACCA--CAAGAAAGCGTT...
 
-The score is a measure of how strong the similarity is.  Lines
-starting with "s" contain: the sequence name, the start coordinate of
-the alignment, the number of bases spanned by the alignment, the
-strand, the sequence length, and the aligned bases.
+The score is a measure of how strong the similarity is.  EG2 and E are
+explained at `<last-evalues.html>`_.  Lines starting with "s" contain:
+the sequence name, the start coordinate of the alignment, the number
+of bases spanned by the alignment, the strand, the sequence length,
+and the aligned bases.
 
 The start coordinates are zero-based.  This means that, if the
 alignment begins right at the start of a sequence, the coordinate is
@@ -187,7 +188,7 @@ If you have ~50 GB of memory and don't mind waiting a few days, this
 is a good way to compare such genomes::
 
   lastdb -cR11 -uMAM8 catdb cat.fa
-  lastal -m100 catdb rat.fa | last-split -m1 > out.maf
+  lastal -m100 -E0.05 catdb rat.fa | last-split -m1 > out.maf
 
 This looks for a unique best alignment for each part of each rat
 chromosome.  Omitting -m100 makes it faster but somewhat less
@@ -207,7 +208,7 @@ For strongly similar genomes (e.g. 99% identity), something like this
 is more appropriate::
 
   lastdb -cR11 -m1111110 human human.fa
-  lastal -q3 -e35 -m50 human chimp.fa | last-split -m1 > out.maf
+  lastal -q3 -E0.05 -m50 human chimp.fa | last-split -m1 > out.maf
 
 Going faster by using multiple CPUs
 -----------------------------------
@@ -275,7 +276,7 @@ alignment.  We can do that using lastal option -j4::
 
 The output looks like this::
 
-  a score=17
+  a score=17 EG2=9.3e+09 E=5e-06
   s seqX 0 57 + 57 TGAAGTTAAAGGTATATGAATTCCAATTCTTAACCCCCCTATTAAACGAATATCTTG
   s seqY 0 51 + 51 TGAAGTTAGAGGTAT--GGTTTTGAGTAGT----CCTCCTATTTTTCGAATATCTTG
   p                %*.14442011.(%##"%$$$$###""!!!""""&'(*,340.,,.~~~~~~~~~~~

@@ -75,9 +75,6 @@ LAST FAQ
 :Q: How can I find alignments with > 95% identity?
 
 :A: One way is to use a scoring scheme like this: +5 for a match, and
-    -95 for a mismatch or a gap.  You'll also need to set the
-    alignment score threshold to a reasonable value.  In this example
-    we set it to 150, which means that we require at least 30
-    matches::
+    -95 for a mismatch or a gap::
 
-      lastal -r5 -q95 -a0 -b95 -e150
+      lastal -r5 -q95 -a0 -b95

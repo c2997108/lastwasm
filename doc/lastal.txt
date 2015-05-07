@@ -66,9 +66,9 @@ Cosmetic Options
       Choose the output format: 0 means tabular and 1 means MAF.  MAF
       format looks like this:
 
-        a score=15
-        s chr3L        19433515 23 + 24543557 TTTGGGAGTTGAAGTTTTCGCCC
-        s H04BA01F1907        2 21 +       25 TTTGGGAGTTGAAGGTT--GCCC
+        a score=15 EG2=4.7e+04 E=2.6e-05
+        s chr3 3515 23 + 4543557 TTTGGGAGTTGAAGTTTTCGCCC
+        s seqA    2 21 +      25 TTTGGGAGTTGAAGGTT--GCCC
 
       Lines starting with "s" contain: the sequence name, the start
       coordinate of the alignment, the number of sequence letters
@@ -79,12 +79,12 @@ Cosmetic Options
 
       The same alignment in tabular format looks like this:
 
-        15 chr3L 19433515 23 + 24543557 H04BA01F1907 2 21 + 25 17,2:0,4
+        15 chr3 3515 23 + 4543557 seqA 2 21 + 25 17,2:0,4 EG2=4.7e+04 E=2.6e-05
 
-      The final column shows the sizes and offsets of gapless blocks
-      in the alignment.  In this case, we have a block of size 17,
-      then an offset of size 2 in the upper sequence and 0 in the
-      lower sequence, then a block of size 4.
+      The "17,2:0,4" shows the sizes and offsets of gapless blocks in
+      the alignment.  In this case, we have a block of size 17, then
+      an offset of size 2 in the upper sequence and 0 in the lower
+      sequence, then a block of size 4.
 
 Score Options
 ~~~~~~~~~~~~~
@@ -193,6 +193,19 @@ Score Options
       Minimum alignment score.  (If you do gapless alignment with
       option -j1, then -d and -e mean the same thing.  If you set
       both, -e will prevail.)
+
+E-value options
+~~~~~~~~~~~~~~~
+
+  -D LENGTH
+      Report alignments that are expected by chance at most once per
+      LENGTH query letters.  This option only affects the default
+      value of -E, so if you specify -E then -D has no effect.
+
+  -E THRESHOLD
+      Maximum EG2 (expected alignments per square giga).  This option
+      only affects the default value of -e, so if you specify -e then
+      -E has no effect.
 
 Miscellaneous Options
 ~~~~~~~~~~~~~~~~~~~~~
@@ -400,9 +413,14 @@ Miscellaneous Options
       contain the position-specific scores.  Any letters not specified
       by any column will get the lowest score in each row.  This
       format is a simplified version of PSI-BLAST's ASCII format: the
-      non-simplified version is allowed too.  If you use PSSMs,
-      options -r -q and -p are mostly ignored, except that they
-      determine the default value of -y.
+      non-simplified version is allowed too.
+
+      Warning: lastal cannot directly calculate E-values for PSSMs.
+      The E-values (and the default value of -y) are determined by the
+      otherwise-unused match and mismatch scores (options -r -q and
+      -p).  There is evidence these E-values will be accurate if the
+      PSSM is "constructed to the same scale" as the match/mismatch
+      scores (SF Altschul et al. 1997, NAR 25(17):3389-402).
 
 Parallelization and Memory Sharing
 ----------------------------------
