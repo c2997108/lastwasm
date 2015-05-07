@@ -344,8 +344,8 @@ def writeSam(maf, rg):
         if i.startswith("score="):
             v = i[6:]
             if v.isdigit(): score = "AS:i:" + v  # it must be an integer
-        elif i.startswith("expect="):
-            evalue = "EV:Z:" + i[7:]
+        elif i.startswith("E="):
+            evalue = "EV:Z:" + i[2:]
         elif i.startswith("mismap="):
             mapq = mapqFromProb(i[7:])
 
@@ -445,7 +445,7 @@ def writeBlast(maf, lineSize, oldQueryName):
     print
 
     scoreLine = " Score = %s" % maf.namesAndValues["score"]
-    try: scoreLine += ", Expect = %s" % maf.namesAndValues["expect"]
+    try: scoreLine += ", Expect = %s" % maf.namesAndValues["E"]
     except KeyError: pass
     print scoreLine
 
@@ -537,7 +537,7 @@ def writeHtml(maf, lineSize):
     scoreLine = "Alignment"
     try:
         scoreLine += " score=%s" % maf.namesAndValues["score"]
-        scoreLine += ", expect=%s" % maf.namesAndValues["expect"]
+        scoreLine += ", expect=%s" % maf.namesAndValues["E"]
     except KeyError: pass
     print "<h3>%s:</h3>" % scoreLine
 
