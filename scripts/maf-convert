@@ -432,7 +432,7 @@ def blastChunker(maf, lineSize, alignmentColumns):
         ends = map(blastCoordinate, coords, maf.strands, maf.seqSizes)
         yield chunkCols, chunkRows, starts, ends
 
-def writeBlast(maf, lineSize, oldQueryName):
+def writeBlast(maf, opts, oldQueryName):
     dieUnlessPairwise(maf)
 
     if maf.seqNames[1] != oldQueryName:
@@ -444,7 +444,12 @@ def writeBlast(maf, lineSize, oldQueryName):
     print "          Length = %s" % maf.seqSizes[0]
     print
 
-    scoreLine = " Score = %s" % maf.namesAndValues["score"]
+    score = maf.namesAndValues["score"]
+    if opts.bitScoreA is not None and opts.bitScoreB is not None:
+        bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
+        scoreLine = " Score = %.3g bits (%s)" % (bitScore, score)
+    else:
+        scoreLine = " Score = %s" % score
     try: scoreLine += ", Expect = %s" % maf.namesAndValues["E"]
     except KeyError: pass
     print scoreLine
@@ -464,7 +469,7 @@ def writeBlast(maf, lineSize, oldQueryName):
     print " Strand = %s / %s" % (strands[1], strands[0])
     print
 
-    for chunk in blastChunker(maf, lineSize, alignmentColumns):
+    for chunk in blastChunker(maf, opts.linesize, alignmentColumns):
         cols, rows, starts, ends = chunk
         startWidth = maxlen(starts)
         matchSymbols = map(pairwiseMatchSymbol, cols)
@@ -571,7 +576,7 @@ def writeHtml(maf, lineSize):
 
 ##### Routines for reading MAF format: #####
 
-def mafInput(lines, isKeepComments):
+def mafInput(lines, opts, isKeepComments):
     a = []
     s = []
     q = []
@@ -592,8 +597,15 @@ def mafInput(lines, isKeepComments):
             q.append(w)
         elif w[0] == "p":
             p.append(w)
-        elif i[0] == "#" and isKeepComments:
-            print i,
+        elif i[0] == "#":
+            for j in w:
+                try:
+                    k, v = j.split("=")
+                    x = float(v)
+                    if k == "lambda": opts.bitScoreA = x / math.log(2)
+                    if k == "K":      opts.bitScoreB = math.log(x, 2)
+                except ValueError: pass
+            if isKeepComments: print i,
     if a: yield a, s, q, p
 
 def isFormat(myString, myFormat):
@@ -614,12 +626,14 @@ def mafConvert(opts, args):
     inputLines = fileinput.input(args[1:])
     if isFormat(format, "html") and not opts.noheader: writeHtmlHeader()
     isKeepCommentLines = isFormat(format, "tabular") and not opts.noheader
+    opts.bitScoreA = None
+    opts.bitScoreB = None
     oldQueryName = ""
-    for maf in mafInput(inputLines, isKeepCommentLines):
+    for maf in mafInput(inputLines, opts, isKeepCommentLines):
         if   isFormat(format, "axt"): writeAxt(Maf(*maf))
         elif isFormat(format, "blast"):
             maf = Maf(*maf)
-            writeBlast(maf, opts.linesize, oldQueryName)
+            writeBlast(maf, opts, oldQueryName)
             oldQueryName = maf.seqNames[1]
         elif isFormat(format, "html"): writeHtml(Maf(*maf), opts.linesize)
         elif isFormat(format, "psl"): writePsl(Maf(*maf), opts.protein)
