@@ -2,6 +2,7 @@ Usage:
   maf-convert --help
   maf-convert axt mafFile(s)
   maf-convert blast mafFile(s)
+  maf-convert blasttab mafFile(s)
   maf-convert html mafFile(s)
   maf-convert psl mafFile(s)
   maf-convert sam mafFile(s)

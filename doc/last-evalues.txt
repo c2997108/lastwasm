@@ -101,7 +101,7 @@ Some people like to use "bit scores".  If you are one of them, the bit
 score can be calculated like this::
 
   Bit score = (lambda * score - ln[K]) / ln[2]
-            = -log2( EG2 / 1e18 )
+            = log2( 1e18 / EG2 )
 
 Limitations
 ~~~~~~~~~~~
@@ -111,6 +111,14 @@ Limitations
   cases, lastal will complain that it cannot automatically choose a
   score threshold.  You can manually set a score threshold with lastal
   option -e.
+
+* There may be a long startup time to calculate the E-value parameters
+  (lambda, K, and finite-size correction parameters), especially for
+  alignment with frameshifts.  This is avoided, for particular scoring
+  schemes, by storing the parameters in LAST's source code.
+  Parameters for other scoring schemes can be added on request.  (Or
+  you can do it yourself: run lastal with option -v, so it prints the
+  E-value parameters, then copy them into LastEvaluer.cc.)
 
 * The E-values do not account for lastal option -c.  If you use this
   option, the E-values will be under-estimates.

@@ -479,6 +479,41 @@ def writeBlast(maf, opts, oldQueryName):
         print "Sbjct: %-*s %s %s" % (startWidth, starts[0], rows[0], ends[0])
         print
 
+def writeBlastTab(maf, opts):
+    aLine, sLines, qLines, pLines = maf
+
+    score = None
+    evalue = None
+    for i in aLine:
+        if   i.startswith("score="): score = i[6:]
+        elif i.startswith("E="):     evalue = i[2:]
+
+    sLine, qLine = sLines
+    alnStrings = [i[6] for i in sLines]
+    alignmentColumns = zip(*alnStrings)
+    alnSize = len(alignmentColumns)
+    matches = quantify(alignmentColumns, isMatch)
+    matchPercent = "%.2f" % (100.0 * matches / alnSize)
+    mismatches = quantify(alignmentColumns, isGapless) - matches
+    gapOpens = sum(map(gapRunCount, alnStrings))
+
+    qName = qLine[1]
+    qBeg = int(qLine[2]) + 1
+    qEnd = qBeg + int(qLine[3]) - 1
+
+    sName = sLine[1]
+    sBeg = int(sLine[2]) + 1
+    sEnd = sBeg + int(sLine[3]) - 1
+
+    out = [qName, sName, matchPercent, alnSize, mismatches, gapOpens,
+           qBeg, qEnd, sBeg, sEnd]
+    if evalue:
+        out.append(evalue)
+        if score and opts.bitScoreA is not None and opts.bitScoreB is not None:
+            bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
+            out.append("%.3g" % bitScore)
+    print joined(out, "\t")
+
 ##### Routines for converting to HTML format: #####
 
 def writeHtmlHeader():
@@ -635,6 +670,7 @@ def mafConvert(opts, args):
             maf = Maf(*maf)
             writeBlast(maf, opts, oldQueryName)
             oldQueryName = maf.seqNames[1]
+        elif isFormat(format, "blasttab"): writeBlastTab(maf, opts)
         elif isFormat(format, "html"): writeHtml(Maf(*maf), opts.linesize)
         elif isFormat(format, "psl"): writePsl(Maf(*maf), opts.protein)
         elif isFormat(format, "sam"): writeSam(maf, rg)
@@ -649,6 +685,7 @@ if __name__ == "__main__":
   %prog --help
   %prog axt mafFile(s)
   %prog blast mafFile(s)
+  %prog blasttab mafFile(s)
   %prog html mafFile(s)
   %prog psl mafFile(s)
   %prog sam mafFile(s)
