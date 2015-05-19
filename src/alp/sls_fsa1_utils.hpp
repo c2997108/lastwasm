@@ -30,7 +30,7 @@
 
 File name: sls_fsa1_utils.hpp
 
-Author: Sergey Sheetlin
+Author: Sergey Sheetlin, Martin Frith
 
 Contents: Frameshift alignment algorithms utilities
 
@@ -572,13 +572,15 @@ namespace Sls
 			d_step=10;
 		}
 
+		void increment_array(long int ind_);
+
 		inline void set_elem(
 			long int ind_,
 			T elem_)
 		{
-			while(ind_>d_dim)
+			if(ind_>d_dim)
 			{
-				increment_array();
+				increment_array(ind_);
 			};
 
 			d_elem[ind_]=elem_;
@@ -587,9 +589,9 @@ namespace Sls
 		inline T get_elem(
 			long int ind_)
 		{
-			while(ind_>d_dim)
+			if(ind_>d_dim)
 			{
-				increment_array();
+				increment_array(ind_);
 			};
 
 			return d_elem[ind_];
@@ -599,9 +601,9 @@ namespace Sls
 		inline void increase_elem_by_1(
 			long int ind_)
 		{
-			while(ind_>d_dim)
+			if(ind_>d_dim)
 			{
-				increment_array();
+				increment_array(ind_);
 			};
 
 			d_elem[ind_]++;
@@ -611,9 +613,9 @@ namespace Sls
 			long int ind_,
 			T x_)
 		{
-			while(ind_>d_dim)
+			if(ind_>d_dim)
 			{
-				increment_array();
+				increment_array(ind_);
 			};
 
 			d_elem[ind_]+=x_;
@@ -623,9 +625,9 @@ namespace Sls
 			long int ind_,
 			T x_)
 		{
-			while(ind_>d_dim)
+			if(ind_>d_dim)
 			{
-				increment_array();
+				increment_array(ind_);
 			};
 
 			d_elem[ind_]/=x_;
@@ -635,44 +637,6 @@ namespace Sls
 		{
 			delete[]d_elem;d_elem=NULL;
 		}
-
-		void increment_array()
-		{
-			T *d_elem_new=NULL;
-
-			try
-			{
-
-				d_dim+=d_step;
-
-				d_elem_new=new T[d_dim+1];
-				Sls::FSA_utils::assert_mem(d_elem_new);
-
-				long int i;
-				for(i=0;i<d_dim+1-d_step;i++)
-				{
-					d_elem_new[i]=d_elem[i];
-				};
-
-				for(i=d_dim+1-d_step;i<d_dim+1;i++)
-				{
-					d_elem_new[i]=0;
-				};
-
-
-				delete[]d_elem;d_elem=NULL;
-
-				d_elem=d_elem_new;d_elem_new=NULL;
-
-			}
-			catch (...)
-			{ 
-				delete[]d_elem_new;d_elem_new=NULL;
-				throw;
-			};
-
-		}
-
 
 
 	public:
@@ -714,21 +678,50 @@ namespace Sls
 			delete[]d_elem;d_elem=NULL;
 		}
 
+		void increment_array_on_the_right(long int ind_);
 
+		void increment_array_on_the_left(long int ind_);
 
+		inline void set_elems(const array_v<T> *a_)
+		{
+			long int a0=a_->d_ind0;
+			long int a1=a_->d_dim_plus_d_ind0;
 
-		void set_elem(
+			if(a0>a1)return;
+
+			while(a1>d_dim_plus_d_ind0)
+			{
+				d_dim_plus_d_ind0+=d_step;
+			};
+
+			while(a0<d_ind0)
+			{
+				d_ind0-=d_step;
+			};
+
+			d_dim=d_dim_plus_d_ind0-d_ind0;
+			d_elem=new T[d_dim+1];
+			sls_basic::assert_mem(d_elem);
+
+			long int i;
+			for(i=a0;i<=a1;i++)
+			{
+			  d_elem[i-d_ind0]=a_->d_elem[i-a0];
+			}
+		}
+
+		inline void set_elem(
 			long int ind_,
 			T elem_)
 		{
-			while(ind_>d_dim_plus_d_ind0)
+			if(ind_>d_dim_plus_d_ind0)
 			{
-				this->increment_array_on_the_rigth();
+				increment_array_on_the_right(ind_);
 			};
 
-			while(ind_<d_ind0)
+			if(ind_<d_ind0)
 			{
-				this->increment_array_on_the_left();
+				increment_array_on_the_left(ind_);
 			};
 
 			d_elem[ind_-d_ind0]=elem_;
@@ -747,17 +740,17 @@ namespace Sls
 		}
 
 
-		void increase_elem_by_1(
+		inline void increase_elem_by_1(
 			long int ind_)
 		{
-			while(ind_>d_dim_plus_d_ind0)
+			if(ind_>d_dim_plus_d_ind0)
 			{
-				this->increment_array_on_the_rigth();
+				increment_array_on_the_right(ind_);
 			};
 
-			while(ind_<d_ind0)
+			if(ind_<d_ind0)
 			{
-				this->increment_array_on_the_left();
+				increment_array_on_the_left(ind_);
 			};
 
 			d_elem[ind_-d_ind0]++;
@@ -768,14 +761,14 @@ namespace Sls
 			long int ind_,
 			double x_)
 		{
-			while(ind_>d_dim_plus_d_ind0)
+			if(ind_>d_dim_plus_d_ind0)
 			{
-				this->increment_array_on_the_rigth();
+				increment_array_on_the_right(ind_);
 			};
 
-			while(ind_<d_ind0)
+			if(ind_<d_ind0)
 			{
-				this->increment_array_on_the_left();
+				increment_array_on_the_left(ind_);
 			};
 
 			d_elem[ind_-d_ind0]+=x_;
@@ -786,14 +779,14 @@ namespace Sls
 			long int ind_,
 			double x_)
 		{
-			while(ind_>d_dim_plus_d_ind0)
+			if(ind_>d_dim_plus_d_ind0)
 			{
-				this->increment_array_on_the_rigth();
+				increment_array_on_the_right(ind_);
 			};
 
-			while(ind_<d_ind0)
+			if(ind_<d_ind0)
 			{
-				this->increment_array_on_the_left();
+				increment_array_on_the_left(ind_);
 			};
 
 			d_elem[ind_-d_ind0]/=x_;
@@ -830,85 +823,6 @@ namespace Sls
 
 
 
-		void increment_array_on_the_rigth()
-		{
-			T *d_elem_new=NULL;
-
-			try
-			{
-
-
-				d_dim+=d_step;
-
-				d_elem_new=new T[d_dim+1];
-				Sls::FSA_utils::assert_mem(d_elem_new);
-
-				long int i;
-				for(i=0;i<d_dim+1-d_step;i++)
-				{
-					d_elem_new[i]=d_elem[i];
-				};
-
-				for(i=d_dim+1-d_step;i<d_dim+1;i++)
-				{
-					d_elem_new[i]=0;
-				};
-
-				d_dim_plus_d_ind0=d_dim+d_ind0;
-
-
-				delete[]d_elem;d_elem=NULL;
-				d_elem=d_elem_new;d_elem_new=NULL;
-
-			}
-			catch (...)
-			{ 
-				delete[]d_elem_new;d_elem_new=NULL;
-				throw;
-			};
-		}
-
-
-		void increment_array_on_the_left()
-		{
-			T *d_elem_new=NULL;
-
-			try
-			{
-				d_dim+=d_step;
-				d_ind0-=d_step;
-
-				d_elem_new=new T[d_dim+1];
-				Sls::FSA_utils::assert_mem(d_elem_new);
-
-				long int i;
-
-				for(i=0;i<d_step;i++)
-				{
-					d_elem_new[i]=0;
-				};
-
-				for(i=0;i<d_dim+1-d_step;i++)
-				{
-					d_elem_new[i+d_step]=d_elem[i];
-				};
-
-				delete[]d_elem;d_elem=NULL;
-				d_elem=d_elem_new;d_elem_new=NULL;
-
-
-			}
-			catch (...)
-			{ 
-				delete[]d_elem_new;d_elem_new=NULL;
-				throw;
-			};
-
-		}
-
-
-
-			
 	public:
 			
 		long int d_step;
@@ -1072,6 +986,148 @@ namespace Sls
 
 		
 	};
+
+	template<class T>
+	void array_positive<T>::increment_array(long int ind_)
+	{
+		T *d_elem_new=NULL;
+
+		try
+		{
+			long int o_dim=d_dim;
+			do{
+			  d_dim+=d_step;
+			}while(ind_>d_dim);
+
+			d_elem_new=new T[d_dim+1];
+			FSA_utils::assert_mem(d_elem_new);
+
+			long int i;
+			for(i=0;i<o_dim+1;i++)
+			{
+				d_elem_new[i]=d_elem[i];
+			};
+
+			for(i=o_dim+1;i<d_dim+1;i++)
+			{
+				d_elem_new[i]=0;
+			};
+
+
+			delete[]d_elem;d_elem=NULL;
+
+			d_elem=d_elem_new;d_elem_new=NULL;
+		}
+		catch (...)
+		{ 
+			delete[]d_elem_new;d_elem_new=NULL;
+			throw;
+		};
+		
+	}
+
+	template<class T>
+	void array_v<T>::increment_array_on_the_right(long int ind_)
+	{
+		bool ee_error_flag=false;
+		error ee_error("",0);
+		T *d_elem_new=NULL;
+
+		try
+		{
+		try
+		{
+
+
+			long int o_dim=d_dim;
+			do{
+			  d_dim+=d_step;
+			  d_dim_plus_d_ind0+=d_step;
+			}while(ind_>d_dim_plus_d_ind0);
+
+			d_elem_new=new T[d_dim+1];
+			FSA_utils::assert_mem(d_elem_new);
+
+			long int i;
+			for(i=0;i<o_dim+1;i++)
+			{
+				d_elem_new[i]=d_elem[i];
+			};
+
+			for(i=o_dim+1;i<d_dim+1;i++)
+			{
+				d_elem_new[i]=0;
+			};
+
+			delete[]d_elem;d_elem=NULL;
+			d_elem=d_elem_new;d_elem_new=NULL;
+
+
+		}
+		catch (error er)
+		{
+			ee_error_flag=true;
+			ee_error=er;		
+		};
+		}
+		catch (...)
+		{ 
+			ee_error_flag=true;
+			ee_error=error("Internal error in the program\n",4);
+		};
+
+		//memory release
+
+		if(ee_error_flag)
+		{
+			delete[]d_elem_new;d_elem_new=NULL;
+			throw error(ee_error.st,ee_error.error_code);
+		};
+
+	}
+
+	template<class T>
+		void array_v<T>::increment_array_on_the_left(long int ind_)
+	{
+		T *d_elem_new=NULL;
+
+		try
+		{
+			long int o_dim=d_dim;
+			do{
+			  d_dim+=d_step;
+			  d_ind0-=d_step;
+			}while(ind_<d_ind0);
+			long int jump=d_dim-o_dim;
+
+			d_elem_new=new T[d_dim+1];
+			FSA_utils::assert_mem(d_elem_new);
+
+			long int i;
+
+			for(i=0;i<jump;i++)
+			{
+				d_elem_new[i]=0;
+			};
+
+			for(i=0;i<o_dim+1;i++)
+			{
+				d_elem_new[i+jump]=d_elem[i];
+			};
+
+
+			delete[]d_elem;d_elem=NULL;
+			d_elem=d_elem_new;d_elem_new=NULL;
+
+		}
+		catch (...)
+		{
+			delete[]d_elem_new;d_elem_new=NULL;
+			throw;
+		};
+
+
+	}
 
 
 }

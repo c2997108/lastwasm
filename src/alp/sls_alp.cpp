@@ -27,7 +27,7 @@
 
 File name: sls_alp.cpp
 
-Author: Sergey Sheetlin
+Author: Sergey Sheetlin, Martin Frith
 
 Contents: Ascending ladder points simulation
 
@@ -2039,11 +2039,7 @@ state * &state_)
 
 	d_alp_data->d_memory_size_in_MB+=(double)(sizeof(array<long int>))/mb_bytes;
 
-	long int i;
-	for(i=d_cells_counts->d_ind0;i<=d_cells_counts->d_dim_plus_d_ind0;i++)
-	{
-		state_->d_cells_counts->set_elem(i,d_cells_counts->d_elem[i-d_cells_counts->d_ind0]);
-	};
+	state_->d_cells_counts->set_elems(d_cells_counts);
 
 	state_->d_H_matr_len=d_H_matr_len;
 

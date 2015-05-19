@@ -30,7 +30,7 @@
 
 File name: sls_alp_data.hpp
 
-Author: Sergey Sheetlin
+Author: Sergey Sheetlin, Martin Frith
 
 Contents: Contains input data
 
@@ -119,16 +119,16 @@ namespace Sls {
 		~array_positive();
 
 
-		void increment_array();
+		void increment_array(long int ind_);
 		
 
 		inline void set_elem(
 			long int ind_,
 			T elem_)
 		{
-			while(ind_>d_dim)
+			if(ind_>d_dim)
 			{
-				increment_array();
+				increment_array(ind_);
 			};
 
 			d_elem[ind_]=elem_;
@@ -137,9 +137,9 @@ namespace Sls {
 		inline void increase_elem_by_1(
 			long int ind_)
 		{
-			while(ind_>d_dim)
+			if(ind_>d_dim)
 			{
-				increment_array();
+				increment_array(ind_);
 			};
 
 			d_elem[ind_]++;
@@ -149,9 +149,9 @@ namespace Sls {
 			long int ind_,
 			T x_)
 		{
-			while(ind_>d_dim)
+			if(ind_>d_dim)
 			{
-				increment_array();
+				increment_array(ind_);
 			};
 
 			d_elem[ind_]+=x_;
@@ -182,23 +182,51 @@ namespace Sls {
 
 		~array();
 
-		void increment_array_on_the_rigth();
+		void increment_array_on_the_right(long int ind_);
 
-		void increment_array_on_the_left();
+		void increment_array_on_the_left(long int ind_);
 
+
+		inline void set_elems(const array<T> *a_)
+		{
+			long int a0=a_->d_ind0;
+			long int a1=a_->d_dim_plus_d_ind0;
+
+			if(a0>a1)return;
+
+			while(a1>d_dim_plus_d_ind0)
+			{
+				d_dim_plus_d_ind0+=d_step;
+			};
+
+			while(a0<d_ind0)
+			{
+				d_ind0-=d_step;
+			};
+
+			d_dim=d_dim_plus_d_ind0-d_ind0;
+			d_elem=new T[d_dim+1];
+			sls_basic::assert_mem(d_elem);
+
+			long int i;
+			for(i=a0;i<=a1;i++)
+			{
+			  d_elem[i-d_ind0]=a_->d_elem[i-a0];
+			}
+		}
 
 		inline void set_elem(
 			long int ind_,
 			T elem_)
 		{
-			while(ind_>d_dim_plus_d_ind0)
+			if(ind_>d_dim_plus_d_ind0)
 			{
-				increment_array_on_the_rigth();
+				increment_array_on_the_right(ind_);
 			};
 
-			while(ind_<d_ind0)
+			if(ind_<d_ind0)
 			{
-				increment_array_on_the_left();
+				increment_array_on_the_left(ind_);
 			};
 
 			d_elem[ind_-d_ind0]=elem_;
@@ -207,14 +235,14 @@ namespace Sls {
 		inline void increase_elem_by_1(
 			long int ind_)
 		{
-			while(ind_>d_dim_plus_d_ind0)
+			if(ind_>d_dim_plus_d_ind0)
 			{
-				increment_array_on_the_rigth();
+				increment_array_on_the_right(ind_);
 			};
 
-			while(ind_<d_ind0)
+			if(ind_<d_ind0)
 			{
-				increment_array_on_the_left();
+				increment_array_on_the_left(ind_);
 			};
 
 			d_elem[ind_-d_ind0]++;
@@ -728,24 +756,28 @@ private:
 
 
 	template<class T>
-	void array_positive<T>::increment_array()
+	void array_positive<T>::increment_array(long int ind_)
 	{
 		T *d_elem_new=NULL;
 
 		try
 		{
-			d_dim+=d_step;
+			long int o_dim=d_dim;
+			do{
+			  d_dim+=d_step;
+			}while(ind_>d_dim);
+			long int jump=d_dim-o_dim;
 
 			d_elem_new=new T[d_dim+1];
 			alp_data::assert_mem(d_elem_new);
 
 			long int i;
-			for(i=0;i<d_dim+1-d_step;i++)
+			for(i=0;i<o_dim+1;i++)
 			{
 				d_elem_new[i]=d_elem[i];
 			};
 
-			for(i=d_dim+1-d_step;i<d_dim+1;i++)
+			for(i=o_dim+1;i<d_dim+1;i++)
 			{
 				d_elem_new[i]=0;
 			};
@@ -754,7 +786,7 @@ private:
 			delete[]d_elem;d_elem=NULL;
 			if(d_alp_data)
 			{
-				d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)d_step/mb_bytes;
+				d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)jump/mb_bytes;
 			};
 
 			d_elem=d_elem_new;d_elem_new=NULL;
@@ -781,7 +813,7 @@ private:
 	}
 
 	template<class T>
-	void array<T>::increment_array_on_the_rigth()
+	void array<T>::increment_array_on_the_right(long int ind_)
 	{
 		bool ee_error_flag=false;
 		error ee_error("",0);
@@ -793,27 +825,30 @@ private:
 		{
 
 
-			d_dim+=d_step;
+			long int o_dim=d_dim;
+			do{
+			  d_dim+=d_step;
+			  d_dim_plus_d_ind0+=d_step;
+			}while(ind_>d_dim_plus_d_ind0);
+			long int jump=d_dim-o_dim;
 
 			d_elem_new=new T[d_dim+1];
 			alp_data::assert_mem(d_elem_new);
 
 			long int i;
-			for(i=0;i<d_dim+1-d_step;i++)
+			for(i=0;i<o_dim+1;i++)
 			{
 				d_elem_new[i]=d_elem[i];
 			};
 
-			for(i=d_dim+1-d_step;i<d_dim+1;i++)
+			for(i=o_dim+1;i<d_dim+1;i++)
 			{
 				d_elem_new[i]=0;
 			};
 
-			d_dim_plus_d_ind0=d_dim+d_ind0;
-
 			if(d_alp_data)
 			{
-				d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)d_step/mb_bytes;
+				d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)jump/mb_bytes;
 			};
 
 
@@ -845,33 +880,37 @@ private:
 	}
 
 	template<class T>
-		void array<T>::increment_array_on_the_left()
+		void array<T>::increment_array_on_the_left(long int ind_)
 	{
 		T *d_elem_new=NULL;
 
 		try
 		{
-			d_dim+=d_step;
-			d_ind0-=d_step;
+			long int o_dim=d_dim;
+			do{
+			  d_dim+=d_step;
+			  d_ind0-=d_step;
+			}while(ind_<d_ind0);
+			long int jump=d_dim-o_dim;
 
 			d_elem_new=new T[d_dim+1];
 			alp_data::assert_mem(d_elem_new);
 
 			long int i;
 
-			for(i=0;i<d_step;i++)
+			for(i=0;i<jump;i++)
 			{
 				d_elem_new[i]=0;
 			};
 
-			for(i=0;i<d_dim+1-d_step;i++)
+			for(i=0;i<o_dim+1;i++)
 			{
-				d_elem_new[i+d_step]=d_elem[i];
+				d_elem_new[i+jump]=d_elem[i];
 			};
 
 			if(d_alp_data)
 			{
-				d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)d_step/mb_bytes;
+				d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)jump/mb_bytes;
 			};
 
 			delete[]d_elem;d_elem=NULL;

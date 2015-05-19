@@ -376,6 +376,7 @@ TEST 7
 # R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=99.2157 g=1 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
+# lambda=0.00991067 K=0.062759
 #
 #    A  C  G  T
 # A 53 -51 -51 -69
@@ -389,10 +390,10 @@ TEST 7
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
 #
 # batch 0
-2475	chrM	3957	91	+	16775	chrM	10123	88	-	16775	31,3:0,57
-2122	chrM	6564	57	+	16775	chrM	12727	57	-	16775	57
-2102	chr32	665	274	+	1028	chrM	7941	268	-	16775	117,5:0,72,1:0,79
-2060	chr32	721	195	+	1028	chrM	7144	192	-	16775	91,3:0,101
+2475	chrM	3957	91	+	16775	chrM	10123	88	-	16775	31,3:0,57	EG2=1.4e+06	E=0.00041
+2122	chrM	6564	57	+	16775	chrM	12727	57	-	16775	57	EG2=4.6e+07	E=0.014
+2102	chr32	665	274	+	1028	chrM	7941	268	-	16775	117,5:0,72,1:0,79	EG2=5.6e+07	E=0.016
+2060	chr32	721	195	+	1028	chrM	7144	192	-	16775	91,3:0,101	EG2=8.5e+07	E=0.025
 # batch 1
 # Query sequences=2
 
