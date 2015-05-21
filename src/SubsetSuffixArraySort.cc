@@ -5,6 +5,7 @@
 
 #include "SubsetSuffixArray.hh"
 #include <algorithm>  // iter_swap, min
+//#include <iostream>  // for debugging
 
 using namespace cbrc;
 
@@ -15,7 +16,7 @@ namespace{
   Stack* sp = stack;
 }
 
-#define PUSH(b, e, d) sp->beg = b, sp->end = e, (sp++)->depth = d
+#define PUSH(b, e, d) if( e-b > 1 ) sp->beg = b, sp->end = e, (sp++)->depth = d
 #define  POP(b, e, d) b = (--sp)->beg, e = sp->end, d = sp->depth
 
 static void insertionSort( const uchar* text, const CyclicSubsetSeed& seed,
@@ -46,21 +47,22 @@ static void insertionSort( const uchar* text, const CyclicSubsetSeed& seed,
 static void radixSort1( const uchar* text, const uchar* subsetMap,
 			indexT* beg, indexT* end, indexT depth ){
   indexT* end0 = beg;  // end of '0's
+  indexT* begN = end;  // beginning of delimiters
 
-  while( end0 < end ){
+  while( end0 < begN ){
     const indexT x = *end0;
     switch( subsetMap[ text[x] ] ){
     case 0:
       end0++;
       break;
     default:  // the delimiter subset
-      *end0 = *--end;
-      *end = x;
+      *end0 = *--begN;
+      *begN = x;
       break;
     }
   }
 
-  PUSH( beg, end, depth );   // the '0's
+  PUSH( beg, end0, depth );   // the '0's
 }
 
 // Specialized sort for 2 symbols + 1 delimiter.
@@ -69,8 +71,9 @@ static void radixSort2( const uchar* text, const uchar* subsetMap,
                         indexT* beg, indexT* end, indexT depth ){
   indexT* end0 = beg;  // end of '0's
   indexT* end1 = beg;  // end of '1's
+  indexT* begN = end;  // beginning of delimiters
 
-  while( end1 < end ){
+  while( end1 < begN ){
     const indexT x = *end1;
     switch( subsetMap[ text[x] ] ){
       case 0:
@@ -81,14 +84,14 @@ static void radixSort2( const uchar* text, const uchar* subsetMap,
         end1++;
         break;
       default:  // the delimiter subset
-        *end1 = *--end;
-        *end = x;
+        *end1 = *--begN;
+        *begN = x;
         break;
     }
   }
 
-  PUSH( beg, end0, depth );  // the '0's
-  PUSH( end0, end, depth );  // the '1's
+  PUSH( beg, end0, depth );   // the '0's
+  PUSH( end0, end1, depth );  // the '1's
 }
 
 // Specialized sort for 3 symbols + 1 delimiter.
@@ -98,6 +101,7 @@ static void radixSort3( const uchar* text, const uchar* subsetMap,
   indexT* end0 = beg;  // end of '0's
   indexT* end1 = beg;  // end of '1's
   indexT* beg2 = end;  // beginning of '2's
+  indexT* begN = end;  // beginning of delimiters
 
   while( end1 < beg2 ){
     const indexT x = *end1;
@@ -115,15 +119,15 @@ static void radixSort3( const uchar* text, const uchar* subsetMap,
         break;
       default:  // the delimiter subset
         *end1 = *--beg2;
-        *beg2 = *--end;
-        *end = x;
+        *beg2 = *--begN;
+        *begN = x;
         break;
     }
   }
 
   PUSH( beg, end0, depth );   // the '0's
-  PUSH( end0, beg2, depth );  // the '1's
-  PUSH( beg2, end, depth );   // the '2's
+  PUSH( end0, end1, depth );  // the '1's
+  PUSH( beg2, begN, depth );  // the '2's
 }
 
 // Specialized sort for 4 symbols + 1 delimiter.  E.g. DNA.
@@ -133,6 +137,7 @@ static void radixSort4( const uchar* text, const uchar* subsetMap,
   indexT* end1 = beg;  // end of '1's
   indexT* end2 = beg;  // end of '2's
   indexT* beg3 = end;  // beginning of '3's
+  indexT* begN = end;  // beginning of delimiters
 
   while( end2 < beg3 ){
     const indexT x = *end2;
@@ -155,16 +160,16 @@ static void radixSort4( const uchar* text, const uchar* subsetMap,
       break;
     default:  // the delimiter subset
       *end2 = *--beg3;
-      *beg3 = *--end;
-      *end = x;
+      *beg3 = *--begN;
+      *begN = x;
       break;
     }
   }
 
   PUSH( beg, end0, depth );   // the '0's
   PUSH( end0, end1, depth );  // the '1's
-  PUSH( end1, beg3, depth );  // the '2's
-  PUSH( beg3, end, depth );  // the '3's
+  PUSH( end1, end2, depth );  // the '2's
+  PUSH( beg3, begN, depth );  // the '3's
 }
 
 static void radixSortN( const uchar* text, const uchar* subsetMap,

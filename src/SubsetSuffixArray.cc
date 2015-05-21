@@ -53,7 +53,8 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
     throw std::runtime_error( "can't read file: " + fileName );
   }
 
-  index.m.open( baseName + ".suf", textLength - unindexedPositions );
+  indexT indexedPositions = textLength - unindexedPositions;
+  index.m.open( baseName + ".suf", indexedPositions );
   makeBucketSteps( bucketDepth );
   buckets.m.open( baseName + ".bck", bucketSteps[0] );
 }
