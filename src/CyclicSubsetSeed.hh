@@ -98,6 +98,12 @@ public:
     return y;
   }
 
+  const uchar* prevMap( const uchar* x ) const{
+    if( x == &subsetMaps.front() )
+      x = &subsetMaps.back() + 1;
+    return x - MAX_LETTERS;
+  }
+
 private:
   std::vector< std::vector<std::string> > subsetLists;
   std::vector<uchar> subsetMaps;
