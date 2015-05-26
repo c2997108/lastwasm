@@ -70,7 +70,7 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
       beg = end;
       break;
     }
-    equalRange( beg, end, text+depth, subsetMap, subset );
+    fastEqualRange( beg, end, text+depth, subsetMap, subset );
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
@@ -114,7 +114,7 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
     if( depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
-    equalRange( beg, end, text+depth, subsetMap, subset );
+    fastEqualRange( beg, end, text+depth, subsetMap, subset );
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
@@ -132,8 +132,7 @@ void SubsetSuffixArray::equalRange( indexT& beg, indexT& end,
     }else if( s > subset ){
       end = mid;
     }else{
-      if( subset > 0 )  // this "if" is unnecessary, but makes it a bit faster
-	beg = lowerBound( beg, mid, textBase, subsetMap, subset );
+      beg = lowerBound( beg, mid, textBase, subsetMap, subset );
       end = upperBound( mid + 1, end, textBase, subsetMap, subset );
       return;
     }
