@@ -61,8 +61,8 @@ public:
   // position in the query, such that there are at most maxHits
   // matches, and the match-depth is at least minDepth, or the
   // match-depth is maxDepth.  Return the range of matching indices
-  // via beg and end.
-  void match( const indexT*& beg, const indexT*& end,
+  // via begPtr and endPtr.
+  void match( const indexT*& begPtr, const indexT*& endPtr,
               const uchar* queryPtr, const uchar* text,
               indexT maxHits, indexT minDepth, indexT maxDepth ) const;
 

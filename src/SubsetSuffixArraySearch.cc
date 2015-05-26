@@ -7,7 +7,7 @@ using namespace cbrc;
 
 // use past results to speed up long matches?
 // could & probably should return the match depth
-void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
+void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
                                const uchar* queryPtr, const uchar* text,
                                indexT maxHits,
                                indexT minDepth, indexT maxDepth ) const{
@@ -30,11 +30,10 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
     subsetMap = seed.nextMap( subsetMap );
   }
 
-  indexT bucketBeg = *bucketPtr;
-  indexT bucketEnd =
-    depth ? *(bucketPtr + bucketSteps[depth]) : suffixArray.size();
+  indexT beg = *bucketPtr;
+  indexT end = depth ? *(bucketPtr + bucketSteps[depth]) : suffixArray.size();
 
-  while( depth > minDepth && bucketEnd - bucketBeg < maxHits ){
+  while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
     const uchar* oldMap = seed.prevMap( subsetMap );
     uchar subset = oldMap[ queryPtr[depth-1] ];
@@ -43,8 +42,8 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
     indexT oldEnd = *(bucketPtr + bucketSteps[depth-1]);
     if( oldEnd - oldBeg > maxHits ) break;
     subsetMap = oldMap;
-    bucketBeg = oldBeg;
-    bucketEnd = oldEnd;
+    beg = oldBeg;
+    end = oldEnd;
     --depth;
   }
 
@@ -56,29 +55,29 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
     while( depth < minDepth ){
       uchar subset = subsetMap[ queryPtr[depth] ];
       if( subset == CyclicSubsetSeed::DELIMITER ){
-	bucketBeg = bucketEnd;
+	beg = end;
 	break;
       }
       ++depth;
       subsetMap = seed.nextMap( subsetMap );
     }
-    equalRange2( bucketBeg, bucketEnd, queryPtr + d, queryPtr + depth, text + d, s );
+    equalRange2( beg, end, queryPtr + d, queryPtr + depth, text + d, s );
   }
 
   while( true ){
-    if( bucketEnd - bucketBeg <= maxHits || depth >= maxDepth ) break;
+    if( end - beg <= maxHits || depth >= maxDepth ) break;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ){
-      bucketBeg = bucketEnd;
+      beg = end;
       break;
     }
-    equalRange( bucketBeg, bucketEnd, text+depth, subsetMap, subset );
+    equalRange( beg, end, text+depth, subsetMap, subset );
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
 
-  beg = &suffixArray[0] + bucketBeg;
-  end = &suffixArray[0] + bucketEnd;
+  begPtr = &suffixArray[0] + beg;
+  endPtr = &suffixArray[0] + end;
 }
 
 void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
@@ -91,33 +90,33 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
   // match using buckets:
   indexT bucketDepth = maxBucketPrefix();
   const indexT* bucketPtr = &buckets[0];
-  indexT bucketBeg = 0;
-  indexT bucketEnd = suffixArray.size();
+  indexT beg = 0;
+  indexT end = suffixArray.size();
 
   while( depth < bucketDepth ){
-    if( bucketBeg == bucketEnd ) return;
+    if( beg == end ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
-    counts[depth] += bucketEnd - bucketBeg;
+    counts[depth] += end - beg;
     if( depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
     ++depth;
     indexT step = bucketSteps[depth];
     bucketPtr += subset * step;
-    bucketBeg = *bucketPtr;
-    bucketEnd = *(bucketPtr + step);
+    beg = *bucketPtr;
+    end = *(bucketPtr + step);
     subsetMap = seed.nextMap( subsetMap );
   }
 
   // match using binary search:
   while( true ){
-    if( bucketBeg == bucketEnd ) return;
+    if( beg == end ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
-    counts[depth] += bucketEnd - bucketBeg;
+    counts[depth] += end - beg;
     if( depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
-    equalRange( bucketBeg, bucketEnd, text+depth, subsetMap, subset );
+    equalRange( beg, end, text+depth, subsetMap, subset );
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
