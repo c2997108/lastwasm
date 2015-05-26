@@ -64,8 +64,7 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
     equalRange2( beg, end, queryPtr + d, queryPtr + depth, text + d, s );
   }
 
-  while( true ){
-    if( end - beg <= maxHits || depth >= maxDepth ) break;
+  while( end - beg > maxHits && depth < maxDepth ){
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ){
       beg = end;
@@ -109,8 +108,7 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
   }
 
   // match using binary search:
-  while( true ){
-    if( beg == end ) return;
+  while( beg < end ){
     if( counts.size() <= depth ) counts.resize( depth+1 );
     counts[depth] += end - beg;
     if( depth >= maxDepth ) return;

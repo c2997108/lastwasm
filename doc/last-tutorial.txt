@@ -47,9 +47,10 @@ alignment begins right at the start of a sequence, the coordinate is
 0.  If the strand is "-", the start coordinate is in the reverse
 strand.
 
-This alignment format is called MAF (multiple alignment format), and
-it is described in the UCSC Genome FAQ.  You can convert it to several
-other formats using maf-convert (see `<maf-convert.html>`_).
+This alignment format is called `MAF (multiple alignment format)
+<http://genome.ucsc.edu/FAQ/FAQformat.html#format5>`_.  You can
+convert it to several other formats using maf-convert (see
+`<maf-convert.html>`_).
 
 Example 2: Compare vertebrate proteins to invertebrate proteins
 ---------------------------------------------------------------
