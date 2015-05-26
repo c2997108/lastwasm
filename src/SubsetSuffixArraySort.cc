@@ -44,8 +44,8 @@ static void insertionSort( const uchar* text, const CyclicSubsetSeed& seed,
 
 // Specialized sort for 1 symbol + 1 delimiter.
 // E.g. wildcard positions in spaced seeds.
-static void radixSort1( const uchar* text, const uchar* subsetMap,
-			indexT* beg, indexT* end, indexT depth ){
+void SubsetSuffixArray::radixSort1( const uchar* text, const uchar* subsetMap,
+				    indexT* beg, indexT* end, indexT depth ){
   indexT* end0 = beg;  // end of '0's
   indexT* begN = end;  // beginning of delimiters
 
@@ -63,12 +63,20 @@ static void radixSort1( const uchar* text, const uchar* subsetMap,
   }
 
   PUSH( beg, end0, depth );   // the '0's
+
+  if( isChildDirectionForward( beg ) ){
+    if( end0 == end ) return;
+    setChildForward( beg, end0 );
+  }else{
+    if( begN == beg ) return;
+    setChildReverse( end, begN );
+  }
 }
 
 // Specialized sort for 2 symbols + 1 delimiter.
 // E.g. transition-constrained positions in subset seeds.
-static void radixSort2( const uchar* text, const uchar* subsetMap,
-                        indexT* beg, indexT* end, indexT depth ){
+void SubsetSuffixArray::radixSort2( const uchar* text, const uchar* subsetMap,
+				    indexT* beg, indexT* end, indexT depth ){
   indexT* end0 = beg;  // end of '0's
   indexT* end1 = beg;  // end of '1's
   indexT* begN = end;  // beginning of delimiters
@@ -92,12 +100,24 @@ static void radixSort2( const uchar* text, const uchar* subsetMap,
 
   PUSH( beg, end0, depth );   // the '0's
   PUSH( end0, end1, depth );  // the '1's
+
+  if( isChildDirectionForward( beg ) ){
+    if( end0 == end ) return;
+    setChildForward( beg, end0 );
+    if( end1 == end ) return;
+    setChildForward( end0, end1 );
+  }else{
+    if( begN == beg ) return;
+    setChildReverse( end, begN );
+    if( end0 == beg ) return;
+    setChildReverse( end1, end0 );
+  }
 }
 
 // Specialized sort for 3 symbols + 1 delimiter.
 // E.g. subset seeds for bisulfite-converted DNA.
-static void radixSort3( const uchar* text, const uchar* subsetMap,
-                        indexT* beg, indexT* end, indexT depth ){
+void SubsetSuffixArray::radixSort3( const uchar* text, const uchar* subsetMap,
+				    indexT* beg, indexT* end, indexT depth ){
   indexT* end0 = beg;  // end of '0's
   indexT* end1 = beg;  // end of '1's
   indexT* beg2 = end;  // beginning of '2's
@@ -128,11 +148,27 @@ static void radixSort3( const uchar* text, const uchar* subsetMap,
   PUSH( beg, end0, depth );   // the '0's
   PUSH( end0, end1, depth );  // the '1's
   PUSH( beg2, begN, depth );  // the '2's
+
+  if( isChildDirectionForward( beg ) ){
+    if( end0 == end ) return;
+    setChildForward( beg, end0 );
+    if( end1 == end ) return;
+    setChildForward( end0, end1 );
+    if( begN == end ) return;
+    setChildForward( beg2, begN );
+  }else{
+    if( begN == beg ) return;
+    setChildReverse( end, begN );
+    if( beg2 == beg ) return;
+    setChildReverse( begN, beg2 );
+    if( end0 == beg ) return;
+    setChildReverse( end1, end0 );
+  }
 }
 
 // Specialized sort for 4 symbols + 1 delimiter.  E.g. DNA.
-static void radixSort4( const uchar* text, const uchar* subsetMap,
-			indexT* beg, indexT* end, indexT depth ){
+void SubsetSuffixArray::radixSort4( const uchar* text, const uchar* subsetMap,
+				    indexT* beg, indexT* end, indexT depth ){
   indexT* end0 = beg;  // end of '0's
   indexT* end1 = beg;  // end of '1's
   indexT* end2 = beg;  // end of '2's
@@ -170,11 +206,31 @@ static void radixSort4( const uchar* text, const uchar* subsetMap,
   PUSH( end0, end1, depth );  // the '1's
   PUSH( end1, end2, depth );  // the '2's
   PUSH( beg3, begN, depth );  // the '3's
+
+  if( isChildDirectionForward( beg ) ){
+    if( end0 == end ) return;
+    setChildForward( beg, end0 );
+    if( end1 == end ) return;
+    setChildForward( end0, end1 );
+    if( end2 == end ) return;
+    setChildForward( end1, end2 );
+    if( begN == end ) return;
+    setChildForward( beg3, begN );
+  }else{
+    if( begN == beg ) return;
+    setChildReverse( end, begN );
+    if( beg3 == beg ) return;
+    setChildReverse( begN, beg3 );
+    if( end1 == beg ) return;
+    setChildReverse( end2, end1 );
+    if( end0 == beg ) return;
+    setChildReverse( end1, end0 );
+  }
 }
 
-static void radixSortN( const uchar* text, const uchar* subsetMap,
-			indexT* beg, indexT* end, indexT depth,
-			unsigned subsetCount ){
+void SubsetSuffixArray::radixSortN( const uchar* text, const uchar* subsetMap,
+				    indexT* beg, indexT* end, indexT depth,
+				    unsigned subsetCount ){
   static indexT bucketSize[256];  // initialized to zero at startup
   /*  */ indexT* bucketEnd[256];  // "static" makes little difference to speed
 
@@ -203,6 +259,24 @@ static void radixSortN( const uchar* text, const uchar* subsetMap,
   // don't sort within the delimiter bucket:
   bucketEnd[ CyclicSubsetSeed::DELIMITER ] = end;
 
+  if( isChildDirectionForward( beg ) ){
+    pos = beg;
+    for( unsigned i = 0; i < subsetCount; ++i ){
+      indexT* nextPos = bucketEnd[i];
+      if( nextPos == end ) break;
+      setChildForward( pos, nextPos );
+      pos = nextPos;
+    }
+  }else{
+    pos = end;
+    for( unsigned i = subsetCount; i > 0; --i ){
+      indexT* nextPos = bucketEnd[i - 1];
+      if( nextPos == beg ) break;
+      setChildReverse( pos, nextPos );
+      pos = nextPos;
+    }
+  }
+
   // permute items into the correct buckets:
   for( indexT* i = beg; i < end; /* noop */ ) {
     unsigned subset;  // unsigned is faster than uchar!
@@ -217,10 +291,16 @@ static void radixSortN( const uchar* text, const uchar* subsetMap,
 }
 
 void SubsetSuffixArray::sortIndex( const uchar* text,
-				   indexT maxUnsortedInterval ){
+				   indexT maxUnsortedInterval,
+				   int childTableType ){
   const indexT minLength = 1;
 
+  if( childTableType == 1 ) chibiTable.v.assign( suffixArray.v.size(), -1 );
+  if( childTableType == 2 ) kiddyTable.v.assign( suffixArray.v.size(), -1 );
+  if( childTableType == 3 ) childTable.v.assign( suffixArray.v.size(), 0 );
+
   PUSH( &suffixArray.v.front(), &suffixArray.v.back() + 1, 0 );
+  setChildReverse( &suffixArray.v.back() + 1, &suffixArray.v.front() );
 
   while( sp > stack ){
     indexT* beg;
@@ -230,7 +310,7 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 
     if( end - beg <= maxUnsortedInterval && depth >= minLength ) continue;
 
-    if( end - beg < 10 ){  // ???
+    if( end - beg < 10 && childTableType == 0 ){  // ???
       insertionSort( text, seed, beg, end, depth );
       continue;
     }

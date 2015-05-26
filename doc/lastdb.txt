@@ -161,6 +161,13 @@ Advanced Options
       results.  The default is to use the maximum depth that consumes
       at most one byte per possible match start position.
 
+  -C NUMBER
+      Specify the type of "child table" to make: 0 means none, 1 means
+      byte-size (uses a little more memory), 2 means short-size (uses
+      somewhat more memory), 3 means full (uses a lot more memory).
+      Choices > 0 make lastdb slower, and may make lastal successively
+      faster.
+
   -x  Just count sequences and letters.  This is much faster.  Letter
       counting is never case-sensitive.
 

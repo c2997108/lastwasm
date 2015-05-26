@@ -34,6 +34,7 @@ struct LastdbArguments{
   std::string userAlphabet;
   indexT minSeedLimit;
   indexT bucketDepth;
+  int childTableType;
   bool isCountsOnly;
   int verbosity;
   sequenceFormat::Enum inputFormat;

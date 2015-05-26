@@ -3,6 +3,7 @@
 #include "SubsetSuffixArray.hh"
 #include "io.hh"
 #include <cassert>
+#include <cstdio>  // remove
 #include <sstream>
 
 using namespace cbrc;
@@ -57,6 +58,18 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   suffixArray.m.open( baseName + ".suf", indexedPositions );
   makeBucketSteps( bucketDepth );
   buckets.m.open( baseName + ".bck", bucketSteps[0] );
+
+  try{
+    childTable.m.open( baseName + ".chi", indexedPositions );
+  }catch( std::runtime_error ){
+    try{
+      kiddyTable.m.open( baseName + ".chi2", indexedPositions );
+    }catch( std::runtime_error ){
+      try{
+	chibiTable.m.open( baseName + ".chi1", indexedPositions );
+      }catch( std::runtime_error ){}
+    }
+  }
 }
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
@@ -82,6 +95,18 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   memoryToBinaryFile( suffixArray.begin(), suffixArray.end(),
 		      baseName + ".suf" );
   memoryToBinaryFile( buckets.begin(), buckets.end(), baseName + ".bck" );
+
+  fileName = baseName + ".chi";
+  std::remove( fileName.c_str() );
+  memoryToBinaryFile( childTable.begin(), childTable.end(), fileName );
+
+  fileName = baseName + ".chi2";
+  std::remove( fileName.c_str() );
+  memoryToBinaryFile( kiddyTable.begin(), kiddyTable.end(), fileName );
+
+  fileName = baseName + ".chi1";
+  std::remove( fileName.c_str() );
+  memoryToBinaryFile( chibiTable.begin(), chibiTable.end(), fileName );
 }
 
 void SubsetSuffixArray::makeBuckets( const uchar* text, indexT bucketDepth ){

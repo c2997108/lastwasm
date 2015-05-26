@@ -24,6 +24,7 @@
 
 #include "CyclicSubsetSeed.hh"
 #include "VectorOrMmap.hh"
+#include <climits>
 
 namespace cbrc{
 
@@ -40,7 +41,8 @@ public:
   void addPositions( const uchar* text, indexT beg, indexT end, indexT step );
 
   // Sort the suffix array (but don't make the buckets).
-  void sortIndex( const uchar* text, indexT maxUnsortedInterval );
+  void sortIndex( const uchar* text,
+		  indexT maxUnsortedInterval, int childTableType );
 
   // Make the buckets.  If bucketDepth+1 == 0, then a default
   // bucketDepth is used.  The default is: the maximum possible
@@ -78,6 +80,12 @@ private:
   VectorOrMmap<indexT> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
 
+  VectorOrMmap<indexT> childTable;
+  VectorOrMmap<unsigned short> kiddyTable;  // smaller child table
+  VectorOrMmap<unsigned char> chibiTable;  // even smaller child table
+
+  enum ChildDirection { FORWARD, REVERSE, UNKNOWN };
+
   // These find the suffix array range of one letter, whose subset is
   // "subset", within the suffix array range [beg, end):
   void equalRange( indexT& beg, indexT& end, const uchar* textBase,
@@ -86,6 +94,11 @@ private:
 		     const uchar* subsetMap, uchar subset ) const;
   indexT upperBound( indexT beg, indexT end, const uchar* textBase,
 		     const uchar* subsetMap, uchar subset ) const;
+
+  // This does the same thing as equalRange, but uses a child table:
+  void childRange( indexT& beg, indexT& end, ChildDirection& childDirection,
+                   const uchar* textBase,
+                   const uchar* subsetMap, uchar subset ) const;
 
   // These find the suffix array range of string [queryBeg, queryEnd)
   // within the suffix array range [beg, end):
@@ -105,6 +118,18 @@ private:
   indexT defaultBucketDepth();
 
   void makeBucketSteps( indexT bucketDepth );
+
+  void radixSort1( const uchar* text, const uchar* subsetMap,
+		   indexT* beg, indexT* end, indexT depth );
+  void radixSort2( const uchar* text, const uchar* subsetMap,
+		   indexT* beg, indexT* end, indexT depth );
+  void radixSort3( const uchar* text, const uchar* subsetMap,
+		   indexT* beg, indexT* end, indexT depth );
+  void radixSort4( const uchar* text, const uchar* subsetMap,
+		   indexT* beg, indexT* end, indexT depth );
+  void radixSortN( const uchar* text, const uchar* subsetMap,
+		   indexT* beg, indexT* end, indexT depth,
+		   unsigned subsetCount );
 
   // Same as the 1st equalRange, but uses more info and may be faster:
   void equalRange( indexT& beg, indexT& end, const uchar* textBase,
@@ -133,6 +158,54 @@ private:
     if( subset > e ){ beg = end; return; }
     if( b == e ) return;
     equalRange( beg, end, textBase, subsetMap, subset, b, e, 1, 1 );
+  }
+
+  indexT getChildForward( indexT from ) const{
+    return
+      !childTable.empty() ? childTable[ from ] :
+      !kiddyTable.empty() ? from + kiddyTable[ from ] :
+      !chibiTable.empty() ? from + chibiTable[ from ] : from;
+  }
+
+  indexT getChildReverse( indexT from ) const{
+    return
+      !childTable.empty() ? childTable[ from - 1 ] :
+      !kiddyTable.empty() ? from - kiddyTable[ from - 1 ] :
+      !chibiTable.empty() ? from - chibiTable[ from - 1 ] : from;
+  }
+
+  void setKiddy( indexT index, indexT value ){
+    kiddyTable.v[ index ] = (value < USHRT_MAX) ? value : 0;
+  }
+
+  void setChibi( indexT index, indexT value ){
+    chibiTable.v[ index ] = (value < UCHAR_MAX) ? value : 0;
+  }
+
+  void setChildForward( const indexT* from, const indexT* to ){
+    if( to == from ) return;
+    const indexT* origin = &suffixArray.v[0];
+    indexT i = from - origin;
+    /**/ if( !childTable.v.empty() ) childTable.v[ i ] = to - origin;
+    else if( !kiddyTable.v.empty() ) setKiddy( i, to - from );
+    else if( !chibiTable.v.empty() ) setChibi( i, to - from );
+  }
+
+  void setChildReverse( const indexT* from, const indexT* to ){
+    if( to == from ) return;
+    const indexT* origin = &suffixArray.v[0];
+    indexT i = from - origin - 1;
+    /**/ if( !childTable.v.empty() ) childTable.v[ i ] = to - origin;
+    else if( !kiddyTable.v.empty() ) setKiddy( i, from - to );
+    else if( !chibiTable.v.empty() ) setChibi( i, from - to );
+  }
+
+  bool isChildDirectionForward( const indexT* beg ) const{
+    indexT i = beg - &suffixArray.v[0];
+    return
+      !childTable.v.empty() ? childTable.v[ i ] == 0 :
+      !kiddyTable.v.empty() ? kiddyTable.v[ i ] == USHRT_MAX :
+      !chibiTable.v.empty() ? chibiTable.v[ i ] == UCHAR_MAX : true;
   }
 };
 

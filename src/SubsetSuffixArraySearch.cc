@@ -64,13 +64,15 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
     equalRange2( beg, end, queryPtr + d, queryPtr + depth, text + d, s );
   }
 
+  ChildDirection childDirection = UNKNOWN;
+
   while( end - beg > maxHits && depth < maxDepth ){
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ){
       beg = end;
       break;
     }
-    fastEqualRange( beg, end, text+depth, subsetMap, subset );
+    childRange( beg, end, childDirection, text+depth, subsetMap, subset );
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
@@ -108,15 +110,75 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
   }
 
   // match using binary search:
+  ChildDirection childDirection = UNKNOWN;
+
   while( beg < end ){
     if( counts.size() <= depth ) counts.resize( depth+1 );
     counts[depth] += end - beg;
     if( depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
-    fastEqualRange( beg, end, text+depth, subsetMap, subset );
+    childRange( beg, end, childDirection, text+depth, subsetMap, subset );
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
+  }
+}
+
+void SubsetSuffixArray::childRange( indexT& beg, indexT& end,
+				    ChildDirection& childDirection,
+				    const uchar* textBase,
+				    const uchar* subsetMap,
+				    uchar subset ) const{
+  if( childDirection == UNKNOWN ){
+    indexT mid = getChildForward( beg );
+    if( mid == beg ){  // failure: never happens with the full childTable
+      mid = getChildReverse( end );
+      if( mid == end ){  // failure: never happens with the full childTable
+	fastEqualRange( beg, end, textBase, subsetMap, subset );
+	return;
+      }
+      childDirection = REVERSE;
+    }else{
+      childDirection = (mid < end) ? FORWARD : REVERSE;
+    }
+  }
+
+  if( childDirection == FORWARD ){
+    uchar e = subsetMap[ textBase[ suffixArray[ end - 1 ] ] ];
+    if( subset > e ){ beg = end; return; }
+    if( subset < e ) childDirection = REVERSE;  // flip it for next time
+    while( 1 ){
+      uchar b = subsetMap[ textBase[ suffixArray[ beg ] ] ];
+      if( subset < b ) { end = beg; return; }
+      if( b == e ) return;
+      indexT mid = getChildForward( beg );
+      if( mid == beg ){  // failure: never happens with the full childTable
+	indexT offset = kiddyTable.empty() ? UCHAR_MAX : USHRT_MAX;
+	equalRange( beg, end, textBase, subsetMap, subset, b, e, offset, 1 );
+	return;
+      }
+      if( subset == b ) { end = mid; return; }
+      beg = mid;
+      if( b + 1 == e ) return;  // unnecessary, but may be faster
+    }
+  }else{
+    uchar b = subsetMap[ textBase[ suffixArray[ beg ] ] ];
+    if( subset < b ) { end = beg; return; }
+    if( subset > b ) childDirection = FORWARD;  // flip it for next time
+    while( 1 ){
+      uchar e = subsetMap[ textBase[ suffixArray[ end - 1 ] ] ];
+      if( subset > e ){ beg = end; return; }
+      if( b == e ) return;
+      indexT mid = getChildReverse( end );
+      if( mid == end ){  // failure: never happens with the full childTable
+	indexT offset = kiddyTable.empty() ? UCHAR_MAX : USHRT_MAX;
+	equalRange( beg, end, textBase, subsetMap, subset, b, e, 1, offset );
+	return;
+      }
+      if( subset == e ) { beg = mid; return; }
+      end = mid;
+      if( b + 1 == e ) return;  // unnecessary, but may be faster
+    }
   }
 }
 

@@ -146,7 +146,8 @@ void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     LOG( "sorting..." );
-    indexes[x].sortIndex( multi.seqReader(), args.minSeedLimit );
+    indexes[x].sortIndex( multi.seqReader(),
+			  args.minSeedLimit, args.childTableType );
 
     LOG( "bucketing..." );
     indexes[x].makeBuckets( multi.seqReader(), args.bucketDepth );

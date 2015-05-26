@@ -40,6 +40,7 @@ LastdbArguments::LastdbArguments() :
   userAlphabet(""),
   minSeedLimit(0),
   bucketDepth(indexT(-1)),  // means: use the default (adapts to the data)
+  childTableType(0),
   isCountsOnly(false),
   verbosity(0),
   inputFormat(sequenceFormat::fasta){}
@@ -69,6 +70,8 @@ Advanced Options (default settings):\n\
 -i: minimum limit on initial matches per query position ("
     + stringify(minSeedLimit) + ")\n\
 -b: bucket depth\n\
+-C: child table type: 0=none, 1=byte-size, 2=short-size, 3=full ("
+    + stringify(childTableType) + ")\n\
 -x: just count sequences and letters\n\
 -v: be verbose: write messages about what lastdb is doing\n\
 -V, --version: show version information, and exit\n\
@@ -78,7 +81,7 @@ LAST home page: http://last.cbrc.jp/\n\
 ";
 
   int c;
-  while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:u:a:i:b:xvQ:")) != -1 ) {
+  while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:u:a:i:b:C:xvQ:")) != -1 ) {
     switch(c){
     case 'h':
       std::cout << help;
@@ -122,6 +125,10 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'b':
       unstringify( bucketDepth, optarg );
+      break;
+    case 'C':
+      unstringify( childTableType, optarg );
+      if( childTableType < 0 || childTableType > 3 ) badopt( c, optarg );
       break;
     case 'x':
       isCountsOnly = true;
