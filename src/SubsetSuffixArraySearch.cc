@@ -31,7 +31,8 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   }
 
   indexT bucketBeg = *bucketPtr;
-  indexT bucketEnd = depth ? *(bucketPtr + bucketSteps[depth]) : index.size();
+  indexT bucketEnd =
+    depth ? *(bucketPtr + bucketSteps[depth]) : suffixArray.size();
 
   while( depth > minDepth && bucketEnd - bucketBeg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
@@ -48,8 +49,8 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   }
 
   // match using binary search:
-  beg = &index[0] + bucketBeg;
-  end = &index[0] + bucketEnd;
+  beg = &suffixArray[0] + bucketBeg;
+  end = &suffixArray[0] + bucketEnd;
 
   if( depth < minDepth ){
     indexT d = depth;
@@ -90,7 +91,7 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
   indexT bucketDepth = maxBucketPrefix();
   const indexT* bucketPtr = &buckets[0];
   indexT bucketBeg = 0;
-  indexT bucketEnd = index.size();
+  indexT bucketEnd = suffixArray.size();
 
   while( depth < bucketDepth ){
     if( bucketBeg == bucketEnd ) return;
@@ -108,8 +109,8 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
   }
 
   // match using binary search:
-  const indexT* beg = &index[0] + bucketBeg;
-  const indexT* end = &index[0] + bucketEnd;
+  const indexT* beg = &suffixArray[0] + bucketBeg;
+  const indexT* end = &suffixArray[0] + bucketEnd;
 
   while( true ){
     if( beg == end ) return;

@@ -14,14 +14,14 @@ void SubsetSuffixArray::addPositions( const uchar* text,
 
   for( indexT i = beg; i < end; i += step ){
     if( subsetMap[ text[i] ] < CyclicSubsetSeed::DELIMITER ){
-      index.v.push_back(i);
+      suffixArray.v.push_back(i);
     }
     if( i + step < i ) break;  // avoid overflow
   }
 }
 
 void SubsetSuffixArray::clearPositions(){
-  index.v.clear();
+  suffixArray.v.clear();
 }
 
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
@@ -54,21 +54,21 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   }
 
   indexT indexedPositions = textLength - unindexedPositions;
-  index.m.open( baseName + ".suf", indexedPositions );
+  suffixArray.m.open( baseName + ".suf", indexedPositions );
   makeBucketSteps( bucketDepth );
   buckets.m.open( baseName + ".bck", bucketSteps[0] );
 }
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
 				 bool isAppendPrj, indexT textLength ) const{
-  assert( textLength > index.size() );
+  assert( textLength > suffixArray.size() );
 
   std::string fileName = baseName + ".prj";
   std::ofstream f( fileName.c_str(),
 		   isAppendPrj ? std::ios::app : std::ios::out );
 
   f << "totallength=" << textLength << '\n';
-  f << "specialcharacters=" << textLength - index.size() << '\n';
+  f << "specialcharacters=" << textLength - suffixArray.size() << '\n';
   f << "prefixlength=" << maxBucketPrefix() << '\n';
 
   for( unsigned i = 0; i < seed.span(); ++i ){
@@ -79,7 +79,8 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 
   if( !f ) throw std::runtime_error( "can't write file: " + fileName );
 
-  memoryToBinaryFile( index.begin(), index.end(), baseName + ".suf" );
+  memoryToBinaryFile( suffixArray.begin(), suffixArray.end(),
+		      baseName + ".suf" );
   memoryToBinaryFile( buckets.begin(), buckets.end(), baseName + ".bck" );
 }
 
@@ -90,8 +91,8 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, indexT bucketDepth ){
 
   buckets.v.clear();
 
-  for( indexT i = 0; i < index.size(); ++i ){
-    const uchar* textPtr = text + index[i];
+  for( indexT i = 0; i < suffixArray.size(); ++i ){
+    const uchar* textPtr = text + suffixArray[i];
     const uchar* subsetMap = seed.firstMap();
     indexT bucketIndex = 0;
     indexT depth = 0;
@@ -112,7 +113,7 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, indexT bucketDepth ){
     buckets.v.resize( bucketIndex+1, i );
   }
 
-  buckets.v.resize( bucketSteps[0], index.size() );
+  buckets.v.resize( bucketSteps[0], suffixArray.size() );
 }
 
 void SubsetSuffixArray::makeBucketSteps( indexT bucketDepth ){
@@ -128,7 +129,7 @@ void SubsetSuffixArray::makeBucketSteps( indexT bucketDepth ){
 }
 
 SubsetSuffixArray::indexT SubsetSuffixArray::defaultBucketDepth(){
-  indexT maxBucketEntries = index.size() / 4;
+  indexT maxBucketEntries = suffixArray.size() / 4;
   indexT bucketDepth = 0;
   indexT kmerEntries = 1;
   indexT bucketEntries = 1;

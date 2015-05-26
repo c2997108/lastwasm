@@ -220,7 +220,7 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 				   indexT maxUnsortedInterval ){
   const indexT minLength = 1;
 
-  PUSH( &index.v.front(), &index.v.back() + 1, 0 );
+  PUSH( &suffixArray.v.front(), &suffixArray.v.back() + 1, 0 );
 
   while( sp > stack ){
     indexT* beg;

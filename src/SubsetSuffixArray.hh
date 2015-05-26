@@ -74,7 +74,7 @@ public:
 
 private:
   CyclicSubsetSeed seed;
-  VectorOrMmap<indexT> index;  // sorted indices
+  VectorOrMmap<indexT> suffixArray;  // sorted indices
   VectorOrMmap<indexT> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
 
