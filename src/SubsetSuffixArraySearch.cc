@@ -49,8 +49,6 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
   }
 
   // match using binary search:
-  beg = &suffixArray[0] + bucketBeg;
-  end = &suffixArray[0] + bucketEnd;
 
   if( depth < minDepth ){
     indexT d = depth;
@@ -58,26 +56,29 @@ void SubsetSuffixArray::match( const indexT*& beg, const indexT*& end,
     while( depth < minDepth ){
       uchar subset = subsetMap[ queryPtr[depth] ];
       if( subset == CyclicSubsetSeed::DELIMITER ){
-	beg = end;
-	return;
+	bucketBeg = bucketEnd;
+	break;
       }
       ++depth;
       subsetMap = seed.nextMap( subsetMap );
     }
-    equalRange2( beg, end, queryPtr + d, queryPtr + depth, text + d, s );
+    equalRange2( bucketBeg, bucketEnd, queryPtr + d, queryPtr + depth, text + d, s );
   }
 
   while( true ){
-    if( indexT(end - beg) <= maxHits || depth >= maxDepth ) return;
+    if( bucketEnd - bucketBeg <= maxHits || depth >= maxDepth ) break;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ){
-      beg = end;
-      return;
+      bucketBeg = bucketEnd;
+      break;
     }
-    equalRange( beg, end, text+depth, subsetMap, subset );
+    equalRange( bucketBeg, bucketEnd, text+depth, subsetMap, subset );
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
+
+  beg = &suffixArray[0] + bucketBeg;
+  end = &suffixArray[0] + bucketEnd;
 }
 
 void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
@@ -109,28 +110,26 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
   }
 
   // match using binary search:
-  const indexT* beg = &suffixArray[0] + bucketBeg;
-  const indexT* end = &suffixArray[0] + bucketEnd;
-
   while( true ){
-    if( beg == end ) return;
+    if( bucketBeg == bucketEnd ) return;
     if( counts.size() <= depth ) counts.resize( depth+1 );
-    counts[depth] += end - beg;
+    counts[depth] += bucketEnd - bucketBeg;
     if( depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
-    equalRange( beg, end, text+depth, subsetMap, subset );
+    equalRange( bucketBeg, bucketEnd, text+depth, subsetMap, subset );
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
 }
 
-void SubsetSuffixArray::equalRange( const indexT*& beg, const indexT*& end,
+void SubsetSuffixArray::equalRange( indexT& beg, indexT& end,
 				    const uchar* textBase,
-				    const uchar* subsetMap, uchar subset ){
+				    const uchar* subsetMap,
+				    uchar subset ) const{
   while( beg < end ){
-    const indexT* mid = beg + std::size_t( end - beg ) / 2;
-    uchar s = subsetMap[ textBase[ *mid ] ];
+    indexT mid = beg + (end - beg) / 2;
+    uchar s = subsetMap[ textBase[ suffixArray[mid] ] ];
     if( s < subset ){
       beg = mid + 1;
     }else if( s > subset ){
@@ -144,13 +143,12 @@ void SubsetSuffixArray::equalRange( const indexT*& beg, const indexT*& end,
   }
 }
 
-const SubsetSuffixArray::indexT*
-SubsetSuffixArray::lowerBound( const indexT* beg, const indexT* end,
-			       const uchar* textBase,
-			       const uchar* subsetMap, uchar subset ){
+SubsetSuffixArray::indexT
+SubsetSuffixArray::lowerBound( indexT beg, indexT end, const uchar* textBase,
+			       const uchar* subsetMap, uchar subset ) const{
   while( beg < end ){
-    const indexT* mid = beg + std::size_t( end - beg ) / 2;
-    if( subsetMap[ textBase[ *mid ] ] < subset ){
+    indexT mid = beg + (end - beg) / 2;
+    if( subsetMap[ textBase[ suffixArray[mid] ] ] < subset ){
       beg = mid + 1;
     }else{
       end = mid;
@@ -159,13 +157,12 @@ SubsetSuffixArray::lowerBound( const indexT* beg, const indexT* end,
   return beg;
 }
 
-const SubsetSuffixArray::indexT*
-SubsetSuffixArray::upperBound( const indexT* beg, const indexT* end,
-			       const uchar* textBase,
-			       const uchar* subsetMap, uchar subset ){
+SubsetSuffixArray::indexT
+SubsetSuffixArray::upperBound( indexT beg, indexT end, const uchar* textBase,
+			       const uchar* subsetMap, uchar subset ) const{
   while( beg < end ){
-    const indexT* mid = beg + std::size_t( end - beg ) / 2;
-    if( subsetMap[ textBase[ *mid ] ] <= subset ){
+    indexT mid = beg + (end - beg) / 2;
+    if( subsetMap[ textBase[ suffixArray[mid] ] ] <= subset ){
       beg = mid + 1;
     }else{
       end = mid;
@@ -174,7 +171,7 @@ SubsetSuffixArray::upperBound( const indexT* beg, const indexT* end,
   return end;
 }
 
-void SubsetSuffixArray::equalRange2( const indexT*& beg, const indexT*& end,
+void SubsetSuffixArray::equalRange2( indexT& beg, indexT& end,
 				     const uchar* queryBeg,
 				     const uchar* queryEnd,
 				     const uchar* textBase,
@@ -187,8 +184,8 @@ void SubsetSuffixArray::equalRange2( const indexT*& beg, const indexT*& end,
   const uchar* sEnd = sBeg;
 
   while( beg < end ){
-    const indexT* mid = beg + std::size_t( end - beg ) / 2;
-    indexT offset = *mid;
+    indexT mid = beg + (end - beg) / 2;
+    indexT offset = suffixArray[mid];
     const uchar* q;
     const uchar* t;
     const uchar* s;
@@ -231,14 +228,14 @@ void SubsetSuffixArray::equalRange2( const indexT*& beg, const indexT*& end,
   }
 }
 
-const SubsetSuffixArray::indexT*
-SubsetSuffixArray::lowerBound2( const indexT* beg, const indexT* end,
+SubsetSuffixArray::indexT
+SubsetSuffixArray::lowerBound2( indexT beg, indexT end,
 				const uchar* queryBeg, const uchar* queryEnd,
 				const uchar* textBase,
 				const uchar* subsetMap ) const{
   while( beg < end ){
-    const indexT* mid = beg + std::size_t( end - beg ) / 2;
-    indexT offset = *mid;
+    indexT mid = beg + (end - beg) / 2;
+    indexT offset = suffixArray[mid];
     const uchar* t = textBase + offset;
     const uchar* q = queryBeg;
     const uchar* s = subsetMap;
@@ -263,14 +260,14 @@ SubsetSuffixArray::lowerBound2( const indexT* beg, const indexT* end,
   return beg;
 }
 
-const SubsetSuffixArray::indexT*
-SubsetSuffixArray::upperBound2( const indexT* beg, const indexT* end,
+SubsetSuffixArray::indexT
+SubsetSuffixArray::upperBound2( indexT beg, indexT end,
 				const uchar* queryBeg, const uchar* queryEnd,
 				const uchar* textBase,
 				const uchar* subsetMap ) const{
   while( beg < end ){
-    const indexT* mid = beg + std::size_t( end - beg ) / 2;
-    indexT offset = *mid;
+    indexT mid = beg + (end - beg) / 2;
+    indexT offset = suffixArray[mid];
     const uchar* t = textBase + offset;
     const uchar* q = queryBeg;
     const uchar* s = subsetMap;
