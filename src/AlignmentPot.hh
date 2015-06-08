@@ -20,8 +20,8 @@ struct AlignmentPot{
   // the number of alignments in the pot
   size_t size() const { return items.size(); }
 
-  // erase any alignment that shares an endpoint with a higher-scoring
-  // alignment
+  // if several alignments share an endpoint, erase all but one
+  // highest-scoring alignment
   void eraseSuboptimal();
 
   // sort the alignments in descending order of score
@@ -37,17 +37,23 @@ struct AlignmentPot{
   }
 
   static bool lessBeg( const Alignment& x, const Alignment& y ){
-    return
-      x.beg1() != y.beg1() ? x.beg1() < y.beg1() :
-      x.beg2() != y.beg2() ? x.beg2() < y.beg2() :
-      x.score > y.score;
+    if( x.beg1() != y.beg1() ) return x.beg1() < y.beg1();
+    if( x.beg2() != y.beg2() ) return x.beg2() < y.beg2();
+    if( x.score  != y.score  ) return x.score  > y.score;
+    // arbitrary (but systematic) order:
+    const SegmentPair& a = x.seed;
+    const SegmentPair& b = y.seed;
+    return a.beg1() != b.beg1() ? a.beg1() < b.beg1() : a.beg2() < b.beg2();
   }
 
   static bool lessEnd( const Alignment& x, const Alignment& y ){
-    return
-      x.end1() != y.end1() ? x.end1() < y.end1() :
-      x.end2() != y.end2() ? x.end2() < y.end2() :
-      x.score > y.score;
+    if( x.end1() != y.end1() ) return x.end1() < y.end1();
+    if( x.end2() != y.end2() ) return x.end2() < y.end2();
+    if( x.score  != y.score  ) return x.score  > y.score;
+    // arbitrary (but systematic) order:
+    const SegmentPair& a = x.seed;
+    const SegmentPair& b = y.seed;
+    return a.beg1() != b.beg1() ? a.beg1() < b.beg1() : a.beg2() < b.beg2();
   }
 
   static void mark( Alignment& a ) { a.blocks[0].score = -1; }

@@ -39,9 +39,9 @@ Steps in lastal
      different masking and/or maximum score drop parameters.  This
      step is performed only if u=2 or if z differs from x.
 
-  f) Non-redundantize the alignments: remove those that share an
-     endpoint (same coordinates in both sequences) with a
-     higher-scoring alignment.
+  f) Non-redundantize the alignments: if several alignments share an
+     endpoint (same coordinates in both sequences), remove all but one
+     highest-scoring one.
 
   g) Estimate the ambiguity of each aligned column (OFF by default).
 
