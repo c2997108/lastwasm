@@ -118,6 +118,7 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 	    << "a score=" << score << " mismap=" << mismap << "\n"
 	    << std::setprecision(6);
   if (a.qstrand == '-') cbrc::flipMafStrands(s.begin(), s.end());
+  if (opts.no_split && a.linesEnd[-1][0] == 'c') s.push_back(a.linesEnd[-1]);
   cbrc::printMaf(s);
 }
 
@@ -337,7 +338,7 @@ void lastSplit(LastSplitOptions& opts) {
 	  mafEnds.resize(1);
 	} else if (isSpace(line)) {
 	  addMaf(mafEnds, mafLines);
-	} else if (line[0] == 's' || line[0] == 'q' || line[0] == 'p') {
+	} else if (std::strchr("sqpc", line[0])) {
 	  mafLines.push_back(line);
 	}
       }
