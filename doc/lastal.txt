@@ -349,7 +349,7 @@ Miscellaneous Options
       non-redundantization; 3 means gapped alignments after
       non-redundantization; 4 means alignments with ambiguity
       estimates; 5 means gamma-centroid alignments; 6 means LAMA
-      alignments.
+      alignments; 7 means alignments with expected counts.
 
       If you use -j0, lastal will count the number of initial matches,
       per length, per query sequence.  Options -l and -L will set the
@@ -360,6 +360,31 @@ Miscellaneous Options
       If you use j>3, each alignment will get a "fullScore" (also
       known as "forward score" or "sum-of-paths score").  This is like
       the score, but it takes into account alternative alignments.
+
+      If you use -j7, lastal will print an extra MAF line starting
+      with "c" for each alignment.  The first 16 numbers on this line
+      are the expected counts of matches and mismatches: first the
+      count of reference As aligned to query As, then the count of
+      reference As aligned to query Cs, and so on.  For proteins there
+      will be 400 such numbers.  The final ten numbers are expected
+      counts related to gaps.  They are:
+
+      * The count of matches plus mismatches.  (This may exceed the
+        total of the preceding numbers, if the sequences have non-ACGT
+        letters.)
+      * The count of deleted letters.
+      * The count of inserted letters.
+      * The count of delete opens (= count of delete closes).
+      * The count of insert opens (= count of insert closes).
+      * The count of adjacent pairs of insertions and deletions.
+
+      The final four numbers are always zero, unless you use
+      generalized affine gap costs.  They are:
+
+      * The count of unaligned letter pairs.
+      * The count of unaligned letter pair opens (= count of closes).
+      * The count of adjacent pairs of deletions and unaligned letter pairs.
+      * The count of adjacent pairs of insertions and unaligned letter pairs.
 
   -Q NUMBER
       This option allows lastal to use sequence quality scores, or

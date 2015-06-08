@@ -126,7 +126,8 @@ Miscellaneous options (default settings):\n\
 -g: 'gamma' parameter for gamma-centroid and LAMA ("
     + stringify(gamma) + ")\n\
 -j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
-                 4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA ("
+                 4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA,\n\
+                 7=expected counts ("
     + stringify(outputType) + ")\n\
 -Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina,\n\
                   4=prb, 5=PSSM ("
