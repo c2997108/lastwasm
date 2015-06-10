@@ -186,34 +186,7 @@ namespace Sls {
 
 		void increment_array_on_the_left(long int ind_);
 
-
-		inline void set_elems(const array<T> *a_)
-		{
-			long int a0=a_->d_ind0;
-			long int a1=a_->d_dim_plus_d_ind0;
-
-			if(a0>a1)return;
-
-			while(a1>d_dim_plus_d_ind0)
-			{
-				d_dim_plus_d_ind0+=d_step;
-			};
-
-			while(a0<d_ind0)
-			{
-				d_ind0-=d_step;
-			};
-
-			d_dim=d_dim_plus_d_ind0-d_ind0;
-			d_elem=new T[d_dim+1];
-			sls_basic::assert_mem(d_elem);
-
-			long int i;
-			for(i=a0;i<=a1;i++)
-			{
-			  d_elem[i-d_ind0]=a_->d_elem[i-a0];
-			}
-		}
+		void set_elems(const array<T> *a_);
 
 		inline void set_elem(
 			long int ind_,
@@ -924,6 +897,40 @@ private:
 		};
 
 
+	}
+
+	template<class T>
+	void array<T>::set_elems(const array<T> *a_)
+	{
+		long int a0=a_->d_ind0;
+		long int a1=a_->d_dim_plus_d_ind0;
+
+		if(a0>a1)return;
+
+		while(a1>d_dim_plus_d_ind0)
+		{
+			d_dim_plus_d_ind0+=d_step;
+		};
+
+		while(a0<d_ind0)
+		{
+			d_ind0-=d_step;
+		};
+
+		d_dim=d_dim_plus_d_ind0-d_ind0;
+		d_elem=new T[d_dim+1];
+		alp_data::assert_mem(d_elem);
+
+		long int i;
+		for(i=a0;i<=a1;i++)
+		{
+			d_elem[i-d_ind0]=a_->d_elem[i-a0];
+		};
+
+		if(d_alp_data)
+		{
+			d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)(d_dim+1)/mb_bytes;
+		};
 	}
 
 
