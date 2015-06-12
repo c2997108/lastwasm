@@ -2,8 +2,8 @@
 
 DOCS = FAQ.html bisulfite.html last-evalues.html last-map-probs.html	\
 last-pair-probs.html last-papers.html last-postmask.html		\
-last-split.html last-tutorial.html last.html maf-convert.html		\
-maf-cull.html
+last-split.html last-train.html last-tutorial.html last.html		\
+maf-convert.html maf-cull.html
 
 all: ${DOCS}
 
