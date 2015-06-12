@@ -186,6 +186,7 @@ namespace Sls {
 
 		void increment_array_on_the_left(long int ind_);
 
+
 		void set_elems(const array<T> *a_);
 
 		inline void set_elem(
@@ -440,14 +441,12 @@ namespace Sls {
 
 
 
-		double get_allocated_memory_in_MB();
-
-
 
 		template<typename T>
 		static void get_memory_for_matrix(
 		long int dim_,
-		T ** &matr_)
+		T ** &matr_,
+		alp_data *alp_data_=NULL)
 		{
 			matr_=NULL;
 
@@ -468,7 +467,11 @@ namespace Sls {
 					matr_[i]=new T [dim_];
 					assert_mem(matr_[i]);
 				};
-				//d_memory_size_in_MB+=(double)sizeof(T)*(double)dim_*(double)dim_/mb_bytes;
+
+				if(alp_data_)
+				{
+					alp_data_->d_memory_size_in_MB+=(double)sizeof(T)*(double)dim_*(double)dim_/mb_bytes;
+				};
 
 			}
 			catch (...)
@@ -492,7 +495,8 @@ namespace Sls {
 		template<typename T>
 		static void delete_memory_for_matrix(
 		long int dim_,
-		T ** &matr_)
+		T ** &matr_,
+		alp_data *alp_data_=NULL)
 		{
 			long int i;
 			if(matr_)
@@ -504,7 +508,10 @@ namespace Sls {
 				delete []matr_;matr_=NULL;
 			};
 
-			//d_memory_size_in_MB-=(double)sizeof(T)*(double)dim_*(double)dim_/mb_bytes;
+			if(alp_data_)
+			{
+				alp_data_->d_memory_size_in_MB-=(double)sizeof(T)*(double)dim_*(double)dim_/mb_bytes;
+			};
 		}
 
 	static long int random_long(
@@ -701,18 +708,6 @@ namespace Sls {
 	
 
 
-
-private:
-
-	#ifndef _MSDOS_ //UNIX program
-
-	#else
-		_CrtMemState d_s1, d_s2, d_s3;
-	#endif
-
-	
-
-
 	};
 
 	//array_positive functions
@@ -784,6 +779,41 @@ private:
 		};
 
 	}
+
+	template<class T>
+	void array<T>::set_elems(const array<T> *a_)
+	{
+		long int a0=a_->d_ind0;
+		long int a1=a_->d_dim_plus_d_ind0;
+
+		if(a0>a1)return;
+
+		while(a1>d_dim_plus_d_ind0)
+		{
+			d_dim_plus_d_ind0+=d_step;
+		};
+
+		while(a0<d_ind0)
+		{
+			d_ind0-=d_step;
+		};
+
+		d_dim=d_dim_plus_d_ind0-d_ind0;
+		d_elem=new T[d_dim+1];
+		sls_basic::assert_mem(d_elem);
+
+		if(d_alp_data)
+		{
+			d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)(d_dim+1)/mb_bytes;
+		};
+
+		long int i;
+		for(i=a0;i<=a1;i++)
+		{
+			d_elem[i-d_ind0]=a_->d_elem[i-a0];
+		}
+	}
+
 
 	template<class T>
 	void array<T>::increment_array_on_the_right(long int ind_)
@@ -897,40 +927,6 @@ private:
 		};
 
 
-	}
-
-	template<class T>
-	void array<T>::set_elems(const array<T> *a_)
-	{
-		long int a0=a_->d_ind0;
-		long int a1=a_->d_dim_plus_d_ind0;
-
-		if(a0>a1)return;
-
-		while(a1>d_dim_plus_d_ind0)
-		{
-			d_dim_plus_d_ind0+=d_step;
-		};
-
-		while(a0<d_ind0)
-		{
-			d_ind0-=d_step;
-		};
-
-		d_dim=d_dim_plus_d_ind0-d_ind0;
-		d_elem=new T[d_dim+1];
-		alp_data::assert_mem(d_elem);
-
-		long int i;
-		for(i=a0;i<=a1;i++)
-		{
-			d_elem[i-d_ind0]=a_->d_elem[i-a0];
-		};
-
-		if(d_alp_data)
-		{
-			d_alp_data->d_memory_size_in_MB+=(double)sizeof(T)*(double)(d_dim+1)/mb_bytes;
-		};
 	}
 
 

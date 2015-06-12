@@ -182,6 +182,7 @@ alp::~alp()//destructor
 	release_and_calculate_memory(d_seqj,d_seq_a_len);
 
 
+
 	release_and_calculate_memory(d_WS_i_const_pred,d_W_matr_a_len);
 
 	release_and_calculate_memory(d_WI_i_const_pred,d_W_matr_a_len);
@@ -252,8 +253,6 @@ alp::~alp()//destructor
 
 
 
-
-
 	
 	release_and_calculate_memory(d_alp);
 
@@ -262,6 +261,7 @@ alp::~alp()//destructor
 	release_and_calculate_memory(d_H_J);
 
 	release_and_calculate_memory(d_alp_pos);
+
 
 
 
@@ -279,8 +279,6 @@ alp::~alp()//destructor
 
 					for(i=0;i<=d_nalp;i++)
 					{
-
-
 
 
 						release_and_calculate_memory(d_alp_states->d_elem[i]->d_HS_i_const_next,d_alp_states->d_elem[i]->d_H_matr_len);
@@ -307,6 +305,7 @@ alp::~alp()//destructor
 						release_and_calculate_memory(d_alp_states->d_elem[i]->d_cells_counts);
 
 						release_and_calculate_memory(d_alp_states->d_elem[i]);
+
 						
 					};
 				};
@@ -315,13 +314,13 @@ alp::~alp()//destructor
 	};
 
 	
-
 	release_and_calculate_memory(d_alp_states);
 
 	release_and_calculate_memory(d_alp_weights);
 
 	
 	release_and_calculate_memory(d_cells_counts);
+
 
 }
 
@@ -1968,15 +1967,8 @@ state * &state_)
 	d_cells_counts=new array<long int>(d_alp_data);
 	alp_data::assert_mem(d_cells_counts);
 
-	
 
-	array<long int> * array_tmp=state_->d_cells_counts;
-
-	long int i;
-	for(i=array_tmp->d_ind0;i<=array_tmp->d_dim_plus_d_ind0;i++)
-	{
-		d_cells_counts->set_elem(i,array_tmp->d_elem[i-array_tmp->d_ind0]);
-	};
+	d_cells_counts->set_elems(state_->d_cells_counts);
 
 
 	d_HS_ij_next=state_->d_HS_ij_next;
@@ -1984,6 +1976,7 @@ state * &state_)
 	d_HD_ij_next=state_->d_HD_ij_next;
 	d_H_ij_next=state_->d_H_ij_next;
 
+	long int i;
 	for(i=0;i<d_H_matr_len;i++)
 	{
 		d_HS_i_const_next[i]=state_->d_HS_i_const_next[i];

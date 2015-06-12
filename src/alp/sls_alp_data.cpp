@@ -678,13 +678,18 @@ void alp_data::release_memory()
 	delete[]d_RR2_sum;d_RR2_sum=NULL;
 	delete[]d_RR2_sum_elements;d_RR2_sum_elements=NULL;
 
+	
+	
 
-	d_memory_size_in_MB-=(double)(2.0*sizeof(double)+sizeof(long int))*(double)d_number_of_AA/mb_bytes;
+	d_memory_size_in_MB-=2.0*(double)(2.0*sizeof(double)+sizeof(long int))*(double)d_number_of_AA/mb_bytes;
+
+
 
 	if(d_smatr)
 	{
 		delete_memory_for_matrix(d_number_of_AA_smatr,d_smatr);
 	};
+
 
 	delete d_is;d_is=NULL;
 
@@ -786,33 +791,6 @@ void alp_data::check_out_file(
 
 		throw;
 	};
-
-}
-
-
-double alp_data::get_allocated_memory_in_MB()
-{
-
-	#ifndef _MSDOS_ //UNIX program
-
-		return 0;
-
-	#else
-		_CrtMemCheckpoint( &d_s2 );
-
-		_CrtMemDifference( &d_s3, &d_s1, &d_s2);
-
-		double total=0;
-		int use;
-		for (use = 0; use < _MAX_BLOCKS; use++)
-		{
-			total+=d_s3.lSizes[use];
-		}
-
-		total/=(double)1048576;
-		return total;
-
-	#endif
 
 }
 

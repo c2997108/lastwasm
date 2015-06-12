@@ -109,11 +109,11 @@ alp_data *alp_data_)
 
 
 		//quick tests
-
+		
 		quick_test(
 		quick_tests_trials_number,
 		d_alp_data->d_max_time_for_quick_tests);
-		
+
 		long int maximum_number_of_realizations_for_preliminary_simulation=1000;
 
 		bool loop_break_flag;
@@ -302,8 +302,6 @@ alp_data *alp_data_)
 		{
 			d_alp_data->d_rand_all->d_preliminary_realizations_numbers_ALP.push_back(number_of_realizations_with_ALP);
 		};
-
-
 
 
 		lambda=d_lambda_tmp->d_elem[nalp];
@@ -2240,6 +2238,8 @@ double max_time_)
 			alp_obj_tmp=new alp(d_alp_data);
 			alp_data::assert_mem(alp_obj_tmp);
 
+			d_alp_data->d_memory_size_in_MB+=(double)(sizeof(alp))/mb_bytes;
+
 			alp_obj_tmp->d_check_time_flag=check_time_flag;
 			alp_obj_tmp->d_time_error_flag=check_time_flag;
 
@@ -2253,6 +2253,7 @@ double max_time_)
 			if(!success3)
 			{
 				delete alp_obj_tmp;alp_obj_tmp=NULL;
+				d_alp_data->d_memory_size_in_MB-=(double)(sizeof(alp))/mb_bytes;
 				number_of_unsuccessful_objects2++;
 				if(number_of_unsuccessful_objects2>max_number_of_unsuccessful_objects2)
 				{
@@ -2275,7 +2276,10 @@ double max_time_)
 			};
 		};
 
+
 		delete alp_obj_tmp;alp_obj_tmp=NULL;
+		d_alp_data->d_memory_size_in_MB-=(double)(sizeof(alp))/mb_bytes;
+
 	};
 
 	if(check_time_flag)
@@ -2644,11 +2648,11 @@ double *lambda_error_)
 
 
 
-	double lambda;
-	double lambda_error;
+	double lambda=0;
+	double lambda_error=0;
 
-	double test_difference;
-	double test_difference_error;
+	double test_difference=0;
+	double test_difference_error=0;
 
 	long int nalp=upto_nalp_;
 
