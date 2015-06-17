@@ -37,19 +37,19 @@ static void addExpectedCounts( double* expectedCounts,
   double* transitionCounts = &expectedCounts[ numEmissionCounts ];
 
   transitionCounts[0] += ec.MM + ec.DM + ec.IM + ec.PM;  // match count
-  transitionCounts[1] += ec.DD + ec.DM + ec.DI;  // deleted letter count
-  transitionCounts[2] += ec.II + ec.IM;  // inserted letter count
-  transitionCounts[3] += ec.DM + ec.DI;  // deletion open/close count
-  transitionCounts[4] += ec.IM;  // insertion open/close count
+  transitionCounts[1] += ec.DD + ec.MD + ec.PD;  // deleted letter count
+  transitionCounts[2] += ec.II + ec.MI + ec.DI + ec.PI;  // ins. letter count
+  transitionCounts[3] += ec.MD + ec.PD;  // deletion open/close count
+  transitionCounts[4] += ec.MI + ec.DI + ec.PI;  // insertion open/close count
   transitionCounts[5] += ec.DI;  // adjacent insertion & deletion count
   transitionCounts[7] += ec.PP + ec.MP;  // unaligned letter pair count
   transitionCounts[6] += ec.MP;  // pair-gap open/close count
   transitionCounts[8] += ec.PD;
   transitionCounts[9] += ec.PI;
-  // MD = DM + DI - PD
-  // MI = IM - DI - PI
-  // PM = MP - PD - PI
-  // DM + IM + PM = MD + MI + MP
+  // MD = DM + DI - PD + DQ
+  // MI = IM - DI - PI + IQ
+  // PM = MP - PD - PI - PQ
+  // DM + IM + PM = MD + MI + MP - DQ - IQ - PQ
   // SM, SD, SP, SI seem to be always zero.
   // MQ, SQ ?
 }
