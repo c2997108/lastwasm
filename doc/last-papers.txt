@@ -92,8 +92,10 @@ research to society.
 
     Describes DNA-versus-protein alignment allowing for frameshifts.
 
-11. Split-alignment of genomes finds orthologies more accurately.
-    Frith MC, Kawaguchi R.  Genome Biology. 2015 (in press).
+11. `Split-alignment of genomes finds orthologies more accurately`__.
+    Frith MC, Kawaguchi R.  Genome Biology. 2015 16:106.
+
+    __ http://www.genomebiology.com/content/16/1/106
 
     Describes the split alignment algorithm, and its application to
     whole genome alignment.

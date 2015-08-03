@@ -311,3 +311,9 @@ core is indicated by "~" symbols, and it contains exact matches only.
 
 LAST has options to find alignments with optimal column probabilities,
 instead of optimal score: see `<lastal.txt>`_.
+
+Next steps
+----------
+
+* Need more speed, more sensitivity, less memory or disk usage?  See
+  `<last-tuning.html>`_.

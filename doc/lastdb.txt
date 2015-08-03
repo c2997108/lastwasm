@@ -74,7 +74,7 @@ Advanced Options
       each of the sequences given to lastdb.  This reduces the memory
       usage of lastdb and lastal, and it makes lastdb faster.  Its
       effect on the speed and sensitivity of lastal is not entirely
-      clear.  To emulate BLAT, use "-w 11".
+      clear.
 
   -s BYTES      
       Limit memory usage, by splitting the output files into smaller
