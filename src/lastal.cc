@@ -114,12 +114,12 @@ void makeQualityScorers(){
         oneQualityScoreMatrix.init( m, alph.size, lambda,
                                     &lp2[0], isPhred2, offset2,
                                     alph.numbersToUppercase, false );
-      const OneQualityScoreMatrix &m = (args.maskLowercase < 3) ?
+      const OneQualityScoreMatrix &q = (args.maskLowercase < 3) ?
 	oneQualityScoreMatrix : oneQualityScoreMatrixMasked;
       if( args.outputType > 3 )
-        oneQualityExpMatrix.init( m, args.temperature );
+        oneQualityExpMatrix.init( q, args.temperature );
       if( args.verbosity > 0 )
-	writeOneQualityScoreMatrix( m, alph.letters.c_str(),
+	writeOneQualityScoreMatrix( q, alph.letters.c_str(),
 				    offset2, std::cerr );
     }
     else if( args.inputFormat == sequenceFormat::prb ){

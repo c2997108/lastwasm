@@ -1,5 +1,5 @@
-#ifndef GUMBEL_FSA1_UTILS___HPP
-#define GUMBEL_FSA1_UTILS___HPP
+#ifndef GUMBEL_FSA1_UTILS
+#define GUMBEL_FSA1_UTILS
 
 /* $Id: $
 * ===========================================================================
@@ -440,7 +440,7 @@ namespace Sls
 				if(sum_distr_[v3-1]==value_)
 				{
 					v1=v3-1;
-					v2=v2;
+					v2=v3;
 					break;
 				};
 
@@ -1133,5 +1133,5 @@ namespace Sls
 }
 
 
-#endif // GUMBEL_FSA1_UTILS___HPP
+#endif // GUMBEL_FSA1_UTILS
 

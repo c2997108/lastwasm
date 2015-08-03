@@ -374,7 +374,7 @@ void LastEvaluer::writeCommented(std::ostream& out) const {
 }
 
 void LastEvaluer::writeParameters(std::ostream &out) const {
-  std::streamsize p = out.precision(17);
+  std::streamsize prec = out.precision(17);
   if (evaluer.isGood()) {
     const Sls::ALP_set_of_parameters &p = evaluer.parameters();
     out << p.lambda << ", " << p.K << ",\n"
@@ -392,7 +392,7 @@ void LastEvaluer::writeParameters(std::ostream &out) const {
 	<< p.alpha_J << ", " << p.beta_J << ",\n"
 	<< p.sigma << ", " << p.tau << "\n";
   }
-  out.precision(p);
+  out.precision(prec);
 }
 
 }

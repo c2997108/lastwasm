@@ -1,5 +1,5 @@
-#ifndef GUMBEL_FSA1___HPP
-#define GUMBEL_FSA1___HPP
+#ifndef GUMBEL_FSA1
+#define GUMBEL_FSA1
 
 /* $Id: $
 * ===========================================================================
@@ -1412,5 +1412,5 @@ namespace Sls
 
 }
 
-#endif // GUMBEL_FSA1___HPP
+#endif // GUMBEL_FSA1
 

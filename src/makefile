@@ -2,7 +2,7 @@ CXX = g++
 CC  = gcc
 
 CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
--Wcast-align -Wno-long-long -ansi -pedantic
+-Wcast-align -Wlogical-op -Wno-long-long -ansi -pedantic
 # -Wconversion
 # -fomit-frame-pointer ?
 

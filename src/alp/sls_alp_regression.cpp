@@ -56,7 +56,7 @@ std::vector<double> &res_
 	if(n_partition_<=0)
 	{
 		throw error("Error in alp_reg::find_tetta_general\n",4);
-		return;
+		
 	};
 	
 	long int i;

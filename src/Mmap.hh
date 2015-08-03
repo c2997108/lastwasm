@@ -27,7 +27,7 @@ public:
   // fails to read the file.  If s is zero, it doesn't try to read the
   // file.
   Mmap( const std::string& fileName, std::size_t s )
-    : begin_(0), end_(0) { open( fileName, s ); };
+    : begin_(0), end_(0) { open( fileName, s ); }
 
   // Release the mapping, if not empty.
   ~Mmap() { close(); }
