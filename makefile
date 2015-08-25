@@ -17,7 +17,7 @@ html:
 
 distdir = last-`hg id -n`
 
-RSYNCFLAGS = -rC --exclude 'last??' --exclude last-split --exclude last-merge-batches --exclude last-pair-probs
+RSYNCFLAGS = -aC --exclude 'last??' --exclude last-split --exclude last-merge-batches --exclude last-pair-probs
 
 dist: log html
 	@cd src && $(MAKE) version.hh ScoreMatrixData.hh
