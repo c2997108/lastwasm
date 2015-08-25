@@ -74,6 +74,9 @@ last-merge-batches: $(MBOBJ)
 clean:
 	rm -f $(ALL) *.o */*.o
 
+ScoreMatrixData.hh: ../data/*.mat
+	../build/mat-inc.sh ../data/*.mat > $@
+
 VERSION = \"`hg id -n`\"
 VERSION2 = \"`grep latesttagdistance ../.hg_archival.txt | cut -d' ' -f2`\"
 VERSION3 = \"UNKNOWN\"
@@ -146,7 +149,7 @@ OneQualityScoreMatrix.o: OneQualityScoreMatrix.cc \
  stringify.hh
 QualityPssmMaker.o: QualityPssmMaker.cc QualityPssmMaker.hh \
  ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
-ScoreMatrix.o: ScoreMatrix.cc ScoreMatrix.hh io.hh
+ScoreMatrix.o: ScoreMatrix.cc ScoreMatrix.hh io.hh ScoreMatrixData.hh
 SegmentPair.o: SegmentPair.cc SegmentPair.hh
 SegmentPairPot.o: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh
 SubsetSuffixArray.o: SubsetSuffixArray.cc SubsetSuffixArray.hh \

@@ -20,8 +20,8 @@ distdir = last-`hg id -n`
 RSYNCFLAGS = -rC --exclude 'last??' --exclude last-split --exclude last-merge-batches --exclude last-pair-probs
 
 dist: log html
-	@cd src && $(MAKE) version.hh
-	rsync $(RSYNCFLAGS) doc examples makefile scripts src *.txt $(distdir)
+	@cd src && $(MAKE) version.hh ScoreMatrixData.hh
+	rsync $(RSYNCFLAGS) doc examples makefile scripts src data *.txt $(distdir)
 	zip -qrm $(distdir) $(distdir)
 
 log:
