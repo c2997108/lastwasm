@@ -86,7 +86,7 @@ struct LastalArguments{
   size_t cullingLimitForGaplessAlignments;
   indexT queryStep;
   indexT batchSize;  // approx size of query sequences to scan in 1 batch
-  indexT maxRepeatDistance;  // supress repeats <= this distance apart
+  indexT maxRepeatDistance;  // suppress repeats <= this distance apart
   double temperature;  // probability = exp( score / temperature ) / Z
   double gamma;        // parameter for gamma-centroid alignment
   std::string geneticCodeFile;
