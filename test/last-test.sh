@@ -148,7 +148,7 @@ db=/tmp/last-test
     echo
 
     echo TEST 29  # tantan masking for translated alignment
-    lastal -F15 -pBL62 -e100 $db galGal3-M-32.fa
+    lastal -F15 -pBLOSUM62 -e100 $db galGal3-M-32.fa
     echo
 
     echo TEST 30  # AT-rich DNA, tantan
