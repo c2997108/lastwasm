@@ -117,7 +117,7 @@ Fastq format confusion
 Unfortunately, there is more than one fastq format (see
 http://nar.oxfordjournals.org/content/38/6/1767.long).  Recently
 (2013) fastq-sanger seems to be dominant, but if you have another
-variant you need to change the -Q option (see `<lastal.txt>`_).
+variant you need to change the -Q option (see `<lastal.html>`_).
 
 Alignment scoring schemes
 -------------------------
@@ -310,7 +310,7 @@ ambiguity estimates assume that the core is correctly aligned.  The
 core is indicated by "~" symbols, and it contains exact matches only.
 
 LAST has options to find alignments with optimal column probabilities,
-instead of optimal score: see `<lastal.txt>`_.
+instead of optimal score: see `<lastal.html>`_.
 
 Next steps
 ----------

@@ -1,6 +1,9 @@
 /* Style sheet for LAST HTML documents */
 h1 { color: navy }
 h2 { color: teal }
-div.document { margin-left: auto; margin-right: auto; max-width: 40em }
+div.document { margin-left: auto; margin-right: auto; max-width: 45em }
 li { margin-bottom: 1ex }
 strong { color: red }
+.option-list td { padding-bottom: 1em }
+.option-list td.option-group { padding-bottom: 0 }
+table.field-list { border: thin solid green }

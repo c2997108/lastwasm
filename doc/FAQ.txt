@@ -14,13 +14,13 @@ LAST FAQ
     of repeat sequences, you probably want the genome to be the query
     and the repeat library to be the reference.
 
-----
+..
 
 :Q: How can I get the percent-identity of each alignment?
 
 :A: Use maf-convert to convert them to blast or psl format.
 
-----
+..
 
 :Q: Why is LAST so slow at reading/writing files?
 
@@ -41,7 +41,7 @@ LAST FAQ
 
       echo 1 > /proc/sys/vm/drop_caches
 
-----
+..
 
 :Q: I'd like to compare my queries to a database of known proteins.
     Where can I get a database of known proteins?
@@ -50,7 +50,7 @@ LAST FAQ
     (http://www.uniprot.org/help/uniref), which have reduced
     redundancy.
 
-----
+..
 
 :Q: How does LAST get the sequence names?  How can I get nice, short,
     unique names?
@@ -70,7 +70,7 @@ LAST FAQ
     Sometimes you can make LAST's output significantly smaller by
     shortening the names.
 
-----
+..
 
 :Q: How can I find alignments with > 95% identity?
 

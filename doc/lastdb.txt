@@ -2,18 +2,18 @@ lastdb
 ======
 
 This program prepares sequences for subsequent comparison and
-alignment using lastal.  You can use it like this:
+alignment using lastal.  You can use it like this::
 
   lastdb humanDb humanChromosome*.fasta
 
-This will read files called humanChromosome*.fasta, and write several
-files whose names begin with humanDb.
+This will read files called ``humanChromosome*.fasta``, and write
+several files whose names begin with ``humanDb``.
 
 Input
 -----
 
 The input should be one or more files in fasta format, which looks
-like this:
+like this::
 
   >MyFirstSequence
   ATCGGGATATATGGAGAGCTTAGAG
@@ -21,7 +21,7 @@ like this:
   >My2ndSequence
   TTTAGAGGGTTCTTCGGGATT
 
-You can also pipe sequences into lastdb, for example:
+You can also pipe sequences into lastdb, for example::
 
   zcat humanChromosome*.fasta.gz | lastdb humanDb
 
@@ -38,20 +38,22 @@ Main Options
       them as DNA.
 
   -R DIGITS
-      Specify lowercase-marking of repeats, by two digits (e.g. "-R 01"),
-      with the following meanings.
+      Specify lowercase-marking of repeats, by two digits
+      (e.g. "-R01"), with the following meanings.
 
       First digit:
-      0: Convert the input sequences to uppercase while reading them.
-      1: Keep any lowercase in the input sequences.
+
+      0. Convert the input sequences to uppercase while reading them.
+      1. Keep any lowercase in the input sequences.
 
       Second digit:
-      0: Do not check for simple repeats.
-      1: Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
+
+      0. Do not check for simple repeats.
+      1. Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
          This uses tantan (http://www.cbrc.jp/tantan/), which reliably
          prevents non-homologous alignments, unlike other repeat
          finders.
-      2: Convert simple DNA repeats to lowercase, with tantan tuned
+      2. Convert simple DNA repeats to lowercase, with tantan tuned
          for ~80% AT-rich genomes.
 
   -c  Soft-mask lowercase letters.  This means that, when we compare
@@ -67,7 +69,7 @@ Advanced Options
       2 means fastq-solexa, and 3 means fastq-illumina.  The fastq
       formats provide sequence quality data, which will be stored by
       lastdb and then used by lastal.  These formats are described in
-      lastal.txt.
+      `<lastal.html>`_.
 
   -w STEP
       Allow initial matches to start only at every STEP-th position in
@@ -131,10 +133,10 @@ Advanced Options
 
       MAM8: for finding weak DNA similarities with high sensitivity,
       but slow and high memory usage (e.g. ~50 GB for mammal genomes).
-      [From Frith & Noe 2014 NAR 42:e59 Table S12, row 15.]
+      [From Frith & Noé 2014 NAR 42:e59 Table S12, row 15.]
 
       MAM4: like MAM8, but a bit less sensitive, and uses about half
-      as much memory.  [From Frith & Noe 2014 NAR 42:e59 Table S11,
+      as much memory.  [From Frith & Noé 2014 NAR 42:e59 Table S11,
       row 12.]
 
       Any other name is assumed to be a file name.  For an example of

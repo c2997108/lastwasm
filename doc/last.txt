@@ -11,6 +11,7 @@ genomes and/or large numbers of DNA reads).  It can:
 * Compare PSSMs to sequences.
 * Calculate the likelihood of chance similarities between random
   sequences.
+* Do split and spliced alignment.
 
 Requirements
 ------------
@@ -69,8 +70,8 @@ LAST's website is: http://last.cbrc.jp/
 Contact
 -------
 
-Questions and feedback are very welcome.  Please use the public
-mailing list:
+Questions and feedback are very welcome.  We like to use a **public**
+mailing list, so everyone can benefit from the discussion:
 
   last-align (ATmark) googlegroups (dot) com
 
@@ -82,10 +83,10 @@ useful and convenient without learning how various people actually
 know what we are doing right.  Unlike some other software projects, we
 will never send rude or mocking replies.
 
-Having said that, we cannot promise to always help.  If you find an
-error, please tell us the exact error message, the exact commands that
-trigger it, and any other potentially-relevant information (e.g. your
-operating system).
+Having said that, we cannot promise to always help.  **If you find an
+error, please try to: tell us the LAST version number and exact error
+message, and give us some input data and exact commands that trigger
+the problem.**
 
 If you do a benchmarking test of LAST, we recommend you contact us to
 check you are using it in a suitable way.  The history of
