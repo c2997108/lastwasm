@@ -1,10 +1,10 @@
 # Rules for converting the txt documents to html.
 
 DOCS = FAQ.html bisulfite.html last-evalues.html last-map-probs.html	\
-last-pair-probs.html last-papers.html last-postmask.html		\
-last-repeats.html last-split.html last-train.html last-tuning.html	\
-last-tutorial.html last.html lastal.html lastdb.html maf-convert.html	\
-maf-cull.html
+last-matrices.html last-pair-probs.html last-papers.html		\
+last-postmask.html last-repeats.html last-split.html last-train.html	\
+last-tuning.html last-tutorial.html last.html lastal.html lastdb.html	\
+maf-convert.html maf-cull.html
 
 all: ${DOCS}
 
@@ -21,3 +21,6 @@ RST_CSS = `locate html4css1.css | head -n1`
 
 .txt.html:
 	cat ${RST_CSS} last-doc.css | rst2html --stylesheet-path=/dev/stdin --initial-header-level=2 --no-doc-info $< $@
+
+last-matrices.txt: ../data/*.mat
+	../build/mat-doc.sh ../data/*.mat > $@

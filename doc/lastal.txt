@@ -99,36 +99,11 @@ Score Options
 
   -p NAME
       Specify a match/mismatch score matrix.  Options -r and -q will
-      be ignored.
+      be ignored.  The built-in matrices are described in
+      `<last-matrices.html>`_.
 
-      AT77: for weakly-similar AT-rich DNA (~27% substitutions and
-      ~77% A+T) (MC Frith 2011, NAR 39(4):e23).
-
-      ATMAP: for strongly-similar AT-rich DNA (~4% substitutions and
-      ~76% A+T).  It is also suitable for sequences with more than 4%
-      substitution errors, if the excess error rate is explained by
-      quality scores.
-
-      BISF: for aligning bisulfite-converted DNA forward strands to a
-      closely-related genome (MC Frith, R Mori, K Asai 2012, NAR
-      40(13):e100).
-
-      BISR: for aligning bisulfite-converted DNA reverse strands to a
-      closely-related genome.
-
-      BL62 or BLOSUM62: for proteins.
-
-      BL80 or BLOSUM80: better at finding and aligning strong protein
-      similarities, especially short ones.
-
-      HOXD70: often used for weak DNA similarities (F Chiaromonte, VB
-      Yap, W Miller, PSB 2002:115-126).
-
-      MIQS: better at finding remote protein homologs (K Yamada & K
-      Tomii 2014, Bioinformatics 30(3):317-25).
-
-      Any other name is assumed to be a file name.  For an example of
-      the format, see hoxd70.mat in the examples directory.  Any
+      Any other NAME is assumed to be a file name.  For an example of
+      the format, see the matrix files in the data directory.  Any
       letters that aren't in the matrix will get the lowest score in
       the matrix when aligned to anything.  Asymmetric scores are
       allowed: query letters correspond to columns and reference
