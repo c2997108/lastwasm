@@ -21,7 +21,7 @@ RSYNCFLAGS = -aC --exclude 'last??' --exclude last-split --exclude last-merge-ba
 
 dist: log html
 	@cd src && $(MAKE) version.hh ScoreMatrixData.hh
-	rsync $(RSYNCFLAGS) doc examples makefile scripts src data *.txt $(distdir)
+	rsync $(RSYNCFLAGS) build doc examples makefile scripts src data *.txt $(distdir)
 	zip -qrm $(distdir) $(distdir)
 
 log:

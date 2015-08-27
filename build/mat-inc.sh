@@ -27,7 +27,7 @@ for i in "$@"
 do
 
     basename $i .mat | sed 's/.*/{"&", "\\/'
-    sed 's/$/\\n\\/' $i
+    grep -v '^#[n ]' $i | awk NF | sed 's/$/\\n\\/'
     echo '"},'
     echo
 done
