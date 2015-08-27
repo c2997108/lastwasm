@@ -11,7 +11,6 @@ PATH=../src:../scripts:$PATH
 dnaSeq=galGal3-M-32.fa
 protSeq=Q2LCP8.fa
 fastq=SRR001981-1k.fastq
-mat=../examples/hoxd70.mat
 gc=../examples/vertebrateMito.gc
 seed=../examples/yass.seed
 db=/tmp/last-test
@@ -19,7 +18,7 @@ db=/tmp/last-test
 {
     echo TEST 1  # spaced seeds, soft-masking, centroid alignment, matrix file
     lastdb -c -m110 $db $dnaSeq
-    lastal -u1 -j5 -p $mat -x3400 -e2500 $db $dnaSeq
+    lastal -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 $db $dnaSeq
     echo
 
     echo TEST 2  # multiple volumes & query batches
