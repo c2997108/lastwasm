@@ -90,6 +90,7 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
     f << '\n';
   }
 
+  f.close();
   if( !f ) throw std::runtime_error( "can't write file: " + fileName );
 
   memoryToBinaryFile( suffixArray.begin(), suffixArray.end(),

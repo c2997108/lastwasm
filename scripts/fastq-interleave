@@ -1,7 +1,14 @@
 #! /bin/bash
 
-# Reads 2 fastq files, and writes them interleaved.
-# Assumes 1 fastq per 4 lines, i.e. no line wrapping.
+test $# = 2 || {
+    cat <<EOF
+Usage: $0 x.fastq y.fastq
+
+Read 2 fastq files, and write them interleaved.
+Assumes 1 fastq per 4 lines, i.e. no line wrapping.
+EOF
+    exit
+}
 
 paste <(cat "$1" | paste - - - -) <(cat "$2" | paste - - - -) | tr '\t' '\n'
 

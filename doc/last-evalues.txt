@@ -107,10 +107,8 @@ Limitations
 ~~~~~~~~~~~
 
 * E-values cannot be calculated for scoring schemes with weak mismatch
-  or gap costs (e.g. match score = 3, mismatch cost = 1).  In such
-  cases, lastal will complain that it cannot automatically choose a
-  score threshold.  You can manually set a score threshold with lastal
-  option -e.
+  or gap costs (e.g. match score = 99, mismatch cost = 1).  In such
+  cases, lastal requires you to set a score threshold with option -e.
 
 * There may be a long startup time to calculate the E-value parameters
   (lambda, K, and finite-size correction parameters), especially for

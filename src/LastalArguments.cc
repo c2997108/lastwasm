@@ -440,7 +440,9 @@ void LastalArguments::setDefaultsFromMatrix( double lambda, int minScore ){
   if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
   if( minScoreGapped < 0 ){
     if( outputType > 0 && minScore < 0 )
-      ERR("can't automatically set the score threshold with these parameters");
+      ERR("\
+can't calculate E-values: maybe the mismatch or gap costs are too weak.\n\
+To proceed without E-values, set a score threshold with option -e.");
     minScoreGapped = minScore;
   }
   if( outputType < 2 ) minScoreGapless = minScoreGapped;

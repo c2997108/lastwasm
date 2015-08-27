@@ -160,9 +160,11 @@ void calculateScoreStatistics( const std::string& matrixName,
   if( lambdaCalculator.isBad() ){
     if( isQuality( args.inputFormat ) ||
         (args.temperature < 0 && args.outputType > 3) )
-      ERR( "can't get probabilities for this score matrix" );
+      ERR( "can't calculate probabilities: "
+	   "maybe the mismatch costs are too weak" );
     else
-      LOG( "can't get probabilities for this score matrix" );
+      LOG( "can't calculate probabilities: "
+	   "maybe the mismatch costs are too weak" );
     return;
   }
 
@@ -188,7 +190,7 @@ void calculateScoreStatistics( const std::string& matrixName,
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
   bool isGapped = (args.outputType > 1);
   bool isStandardGeneticCode = args.geneticCodeFile.empty();
-  LOG( "getting evalue parameters..." );
+  LOG( "getting E-value parameters..." );
   try{
     evaluer.init( canonicalMatrixName, args.matchScore, args.mismatchCost,
                   alph.letters.c_str(), scoreMatrix.caseSensitive,
@@ -199,7 +201,7 @@ void calculateScoreStatistics( const std::string& matrixName,
     evaluer.setSearchSpace( refLetters, args.numOfStrands() );
     if( args.verbosity > 0 ) evaluer.writeParameters( std::cerr );
   }catch( const Sls::error& e ){
-    LOG( "can't get evalue parameters for this scoring scheme" );
+    LOG( "can't get E-value parameters for this scoring scheme" );
     if( args.verbosity > 1 )
       std::cerr << "ALP: " << e.error_code << ": " << e.st;
   }

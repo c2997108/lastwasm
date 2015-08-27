@@ -131,6 +131,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     }
   }
 
+  f.close();
   if( !f ) ERR( "can't write file: " + fileName );
 }
 

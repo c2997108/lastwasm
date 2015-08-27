@@ -80,6 +80,7 @@ void memoryToBinaryFile( T beg, T end, const std::string& fileName ){
   std::ofstream file( fileName.c_str(), std::ios::binary );
   if( !file ) throw std::runtime_error( "can't open file: " + fileName );
   memoryToStream( beg, end, file );
+  file.close();
   if( !file ) throw std::runtime_error( "can't write file: " + fileName );
 }
 
