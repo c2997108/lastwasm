@@ -239,15 +239,15 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     assert( !sm2qual );
     assert( gap.isSymmetric() );
 
-    size_t f = aaToDna( start2, frameSize ) + 1;
-    size_t r = aaToDna( start2, frameSize ) - 1;
+    size_t dnaStart = aaToDna( start2, frameSize );
+    size_t f = dnaStart + 1;
+    size_t r = dnaStart - 1;
+    size_t frame1 = dnaToAa( isForward ? f : r, frameSize );
+    size_t frame2 = dnaToAa( isForward ? r : f, frameSize );
 
-    const uchar* frame0 = seq2 + start2;
-    const uchar* frame1 = seq2 + dnaToAa( isForward ? f : r, frameSize );
-    const uchar* frame2 = seq2 + dnaToAa( isForward ? r : f, frameSize );
-
-    score += aligner.align3( seq1 + start1, frame0, frame1, frame2, isForward,
-                             sm, gap.delExist, gap.delExtend, gap.pairExtend,
+    score += aligner.align3( seq1 + start1, seq2 + start2,
+			     seq2 + frame1, seq2 + frame2, isForward,
+			     sm, gap.delExist, gap.delExtend, gap.pairExtend,
 			     frameshiftCost, maxDrop, smMax );
 
     size_t end1, end2, size;
