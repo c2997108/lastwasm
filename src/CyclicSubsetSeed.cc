@@ -55,6 +55,11 @@ std::vector<std::string> CyclicSubsetSeed::fromName( const std::string& name ){
 		     "1T1T10T1101101" );
   }
 
+  if( name == "MURPHY10" ){
+    seedAlph['1'] = "ILMV FWY A C G H P KR ST DENQ";
+    return fromMask( seedAlph, "1" );
+  }
+
   std::string s = slurp( name );
   std::vector<std::string> v( 1, s );
   return v;

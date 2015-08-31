@@ -126,10 +126,10 @@ Advanced Options
       Specify a subset seed.
 
       BISF: for aligning bisulfite-converted DNA forward strands to a
-      closely-related genome.
+      closely-related genome (MC Frith et al. NAR 2012 40:e100).
 
       BISR: for aligning bisulfite-converted DNA reverse strands to a
-      closely-related genome.
+      closely-related genome (MC Frith et al. NAR 2012 40:e100).
 
       MAM8: for finding weak DNA similarities with high sensitivity,
       but slow and high memory usage (e.g. ~50 GB for mammal genomes).
@@ -139,9 +139,15 @@ Advanced Options
       as much memory.  [From Frith & Noé 2014 NAR 42:e59 Table S11,
       row 12.]
 
-      Any other name is assumed to be a file name.  For an example of
-      the format, see yass.seed in the examples directory.  You can
-      specify multiple seeds by using "-u" multiple times.
+      MURPHY10: popular for finding long-and-weak protein
+      similarities.  It consists of this 10-letter reduced alphabet
+      (LR Murphy et al. Protein Eng. 2000 13:149)::
+
+        ILMV FWY A C G H P KR ST DENQ
+
+      Any other NAME is assumed to be a file name.  For an example of
+      the format, see the ".seed" files in the examples directory.
+      You can specify multiple seeds by using "-u" multiple times.
 
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)
