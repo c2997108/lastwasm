@@ -299,8 +299,8 @@ LAST home page: http://last.cbrc.jp/\n\
   if( maskLowercase == 2 && inputFormat == 5 )
     ERR( "can't combine option -u 2 with option -Q 5" );
 
-  if( isTranslated() && inputFormat > 0 )
-    ERR( "can't combine option -F with option -Q > 0" );
+  if( isTranslated() && inputFormat == 5 )
+    ERR( "can't combine option -F with option -Q 5" );
 
   if( isTranslated() && outputType > 3 )
     ERR( "can't combine option -F with option -j > 3" );

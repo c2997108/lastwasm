@@ -159,7 +159,21 @@ db=/tmp/last-test
     lastdb -R01 $db $dnaSeq
     lastal -Q1 -a15 -b3 -e80 $db nano.fq
     echo
-} |
+
+    echo TEST 32  # fasta query versus fastq reference
+    lastdb -Q1 $db sd-ccs-100.fq
+    lastal -a1 -D1000 $db galGal3-M-32.fa
+    echo
+
+    echo TEST 33  # prb query versus fastq reference
+    lastal -Q4 -a1 -D100 $db mouse_tss_prb.txt
+    echo
+
+    echo TEST 34  # fastq DNA versus protein
+    lastdb -pcR00 $db Q2LCP8.fa
+    lastal -Q1 -pBL62 -F12 -D1000 $db sd-ccs-100.fq
+    echo
+} 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
 

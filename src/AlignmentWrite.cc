@@ -224,7 +224,8 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   os.write( line, lineLen );
 
   size_t qualsPerBase2 = seq2.qualsPerLetter();
-  if( qualsPerBase2 ){
+  if( qualsPerBase2 && !isTranslated ){
+    // for translated alignment: don't write untranslated quality data
     dest = sprintChar( line, 'q' );
     dest += nw + 1;
     std::fill( dest, tail, ' ' );

@@ -37,6 +37,10 @@
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
 
+static void warn( const char* s ){
+  std::cerr << "lastal: " << s << '\n';
+}
+
 using namespace cbrc;
 
 namespace {
@@ -94,6 +98,10 @@ void makeScoreMatrix( const std::string& matrixName,
 }
 
 void makeQualityScorers(){
+  if( args.isTranslated() )
+    if( isQuality( args.inputFormat ) || isQuality( referenceFormat ) )
+      return warn( "quality data not used for DNA-versus-protein alignment" );
+
   const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
   double lambda = lambdaCalculator.lambda();
   const std::vector<double>& lp1 = lambdaCalculator.letterProbs1();
@@ -144,7 +152,7 @@ void makeQualityScorers(){
       }
     }
     else{
-      ERR( "when the reference is fastq, the query must also be fastq" );
+      warn("quality data not used for non-fastq query versus fastq reference");
     }
   }
 }
@@ -338,8 +346,7 @@ struct Dispatcher{
          twoQualityScoreMatrixMasked : twoQualityScoreMatrix ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
          (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
-      z( (args.inputFormat == sequenceFormat::fasta) ? 0 :
-         (referenceFormat  == sequenceFormat::fasta) ? 1 : 2 ){}
+      z( t ? 2 : p ? 1 : 0 ){}
 
   int forwardGaplessScore( indexT x, indexT y ) const{
     if( z==0 ) return forwardGaplessXdropScore( a+x, b+y, m, d );
@@ -574,6 +581,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
 
 void makeQualityPssm( bool isApplyMasking ){
   if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
+  if( args.isTranslated() ) return;
 
   LOG( "making PSSM..." );
   query.resizePssm();
