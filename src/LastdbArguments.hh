@@ -20,7 +20,15 @@ struct LastdbArguments{
   LastdbArguments();
 
   // set parameters from a list of arguments:
-  void fromArgs( int argc, char** argv );
+  void fromArgs( int argc, char** argv, bool isOptionsOnly = false );
+
+  // set parameters from a command line (by splitting it into arguments):
+  void fromLine( const std::string& line );
+
+  // set parameters from lines beginning with "#lastdb":
+  void fromString( const std::string& s );
+
+  void resetCumulativeOptions() { seedPatterns.clear(); verbosity = 0; }
 
   // options:
   bool isProtein;

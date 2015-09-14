@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>  // EXIT_SUCCESS
+#include <cstring>  // strtok
 
 #define ERR(x) throw std::runtime_error(x)
 
@@ -45,7 +46,7 @@ LastdbArguments::LastdbArguments() :
   verbosity(0),
   inputFormat(sequenceFormat::fasta){}
 
-void LastdbArguments::fromArgs( int argc, char** argv ){
+void LastdbArguments::fromArgs( int argc, char** argv, bool isOptionsOnly ){
   std::string usage = "\
 Usage: lastdb [options] output-name fasta-sequence-file(s)\n\
 Prepare sequences for subsequent alignment with lastal.\n\
@@ -80,6 +81,7 @@ Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 
+  optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:u:a:i:b:C:xvQ:")) != -1 ) {
     switch(c){
@@ -150,8 +152,32 @@ LAST home page: http://last.cbrc.jp/\n\
   // it's more important to save memory.  In a test, this did not harm
   // sensitivity, and even seemed to improve it.
 
+  if( isOptionsOnly ) return;
   if( optind >= argc )
     ERR( "please give me an output name and sequence file(s)\n\n" + usage );
   lastdbName = argv[optind++];
   inputStart = optind;
+}
+
+void LastdbArguments::fromLine( const std::string& line ){
+  const char* delimiters = " \t";
+  const char* s = line.c_str();
+  std::vector<char> args( s, s + line.size() + 1 );
+  std::vector<char*> argv;
+  char* i = std::strtok( &args[0], delimiters );
+  argv.push_back(i);
+  while( i ){
+    i = std::strtok( 0, delimiters );
+    argv.push_back(i);
+  }
+  fromArgs( argv.size() - 1, &argv[0], true );
+}
+
+void LastdbArguments::fromString( const std::string& s ){
+  std::string trigger = "#lastdb";
+  std::istringstream iss(s);
+  std::string line;
+  while( getline( iss, line ) )
+    if( line.compare( 0, trigger.size(), trigger ) == 0 )
+      fromLine( line );
 }
