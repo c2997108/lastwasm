@@ -3,12 +3,12 @@
 #include "CyclicSubsetSeed.hh"
 #include "io.hh"
 #include "stringify.hh"
-#include <fstream>
-#include <sstream>
 #include <algorithm>  // sort
+#include <sstream>
 #include <stdexcept>
 #include <cassert>
 #include <cctype>  // toupper, tolower
+#include <stddef.h>  // size_t
 //#include <iostream>  // for debugging
 
 #define ERR(x) throw std::runtime_error(x)
@@ -138,14 +138,13 @@ std::vector<std::string> CyclicSubsetSeed::fromMask( const char* seedAlph[],
   return v;
 }
 
-void CyclicSubsetSeed::addLetter( std::vector<uchar>& numbersToSubsets,
-				  uchar letter, uchar subsetNum,
-				  const uchar letterCode[] ){
+static void addLetter( uchar numbersToSubsets[], uchar letter, uchar subsetNum,
+		       const uchar letterCode[] ){
   uchar number = letterCode[letter];
   if( number >= CyclicSubsetSeed::MAX_LETTERS )
     ERR( "bad symbol in subset-seed: " + stringify(letter) );
   if( numbersToSubsets[number] < CyclicSubsetSeed::DELIMITER )
-    ERR( "repeated symbol in subset-seed: "  + stringify(letter) );
+    ERR( "repeated symbol in subset-seed: " + stringify(letter) );
   numbersToSubsets[number] = subsetNum;
 }
 
@@ -160,17 +159,17 @@ void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
     assert( subsetNum < DELIMITER );
     std::string subset;
 
-    for( unsigned i = 0; i < inputWord.size(); ++i ){
+    for( size_t i = 0; i < inputWord.size(); ++i ){
       uchar upper = std::toupper( inputWord[i] );
       uchar lower = std::tolower( inputWord[i] );
-      addLetter( numbersToSubsets, upper, subsetNum, letterCode );
+      addLetter( &numbersToSubsets[0], upper, subsetNum, letterCode );
       subset += upper;
       if( !isMaskLowercase && lower != upper ){
-	addLetter( numbersToSubsets, lower, subsetNum, letterCode );
+	addLetter( &numbersToSubsets[0], lower, subsetNum, letterCode );
       }
     }
 
-    std::sort( subset.begin(), subset.end() );  // canonicalize
+    sort( subset.begin(), subset.end() );  // canonicalize
     subsetList.push_back( subset );
   }
 
@@ -182,7 +181,7 @@ void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
 void CyclicSubsetSeed::writePosition( std::ostream& out,
 				      unsigned position ) const{
   assert( position < subsetLists.size() );
-  for( unsigned i = 0; i < subsetLists[position].size(); ++i ){
+  for( size_t i = 0; i < subsetLists[position].size(); ++i ){
     if( i > 0 ) out << ' ';
     out << subsetLists[position][i];
   }

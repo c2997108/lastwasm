@@ -28,9 +28,9 @@
 #ifndef CYCLIC_SUBSET_SEED_HH
 #define CYCLIC_SUBSET_SEED_HH
 
+#include <iosfwd>
 #include <string>
 #include <vector>
-#include <iosfwd>
 
 namespace cbrc{
 
@@ -107,11 +107,8 @@ public:
 private:
   std::vector< std::vector<std::string> > subsetLists;
   std::vector<uchar> subsetMaps;
-
-  static void addLetter( std::vector<uchar>& numbersToSubsets,
-			 uchar letter, uchar subsetNum,
-			 const uchar letterCode[] );
 };
 
-}  // end namespace
+}
+
 #endif
