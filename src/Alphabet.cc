@@ -1,11 +1,15 @@
 // Copyright 2008, 2009, 2010, 2012, 2014 Martin C. Frith
 
 #include "Alphabet.hh"
+#include <algorithm>
 #include <istream>
 #include <ostream>
-#include <algorithm>
 #include <stdexcept>
 #include <cctype>  // toupper, tolower
+
+static void err(const std::string& s) {
+  throw std::runtime_error(s);
+}
 
 using namespace cbrc;
 
@@ -34,7 +38,7 @@ void Alphabet::tr( uchar* beg, uchar* end, bool isKeepLowercase ) const{
   for( /* noop */; beg < end; ++beg ){
     uchar code = x[ *beg ];
     if( code == dummyCode ){
-      throw std::runtime_error( std::string("bad symbol: ") + char(*beg) );
+      err( std::string("bad symbol in sequence: ") + char(*beg) );
     }
     *beg = code;
   }
@@ -66,9 +70,7 @@ void Alphabet::init(){
   size = code;
   addLetters( " ", code );  // add space as a delimiter symbol
 
-  if( code - 1 != letters.size() ){
-    throw std::runtime_error( "bad alphabet: " + letters );
-  }
+  if( code - 1 != letters.size() ) err( "bad alphabet: " + letters );
 
   addLetters( "ABCDEFGHIJKLMNOPQRSTUVWXYZ", code );
   addLetters( "*", code );  // sometimes appears in protein sequences

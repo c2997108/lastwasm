@@ -63,5 +63,6 @@ struct Alphabet{
 std::ostream& operator<<( std::ostream& s, const Alphabet& a );
 std::istream& operator>>( std::istream& s, Alphabet& a );
 
-}  // end namespace
+}
+
 #endif
