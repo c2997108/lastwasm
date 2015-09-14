@@ -12,7 +12,6 @@ dnaSeq=galGal3-M-32.fa
 protSeq=Q2LCP8.fa
 fastq=SRR001981-1k.fastq
 gc=../examples/vertebrateMito.gc
-seed=../examples/yass.seed
 db=/tmp/last-test
 
 {
@@ -40,7 +39,7 @@ db=/tmp/last-test
     echo
 
     echo TEST 6  # subset seed file, soft-masking
-    lastdb -c -u $seed $db $dnaSeq
+    lastdb -c -u ../data/YASS.seed $db $dnaSeq
     lastal -s0 -f0 -e18 $db $dnaSeq
     echo
 

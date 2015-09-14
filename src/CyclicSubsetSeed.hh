@@ -40,7 +40,6 @@ public:
   // If the name isn't known, it assumes it's a file and tries to read it.
   static std::string stringFromName( const std::string& name );
 
-
   // Converts patterns to a text string defining one or more seeds.
   // "patterns" should be something like: "1110TT,1001T1".  The "1"s
   // are must-match positions, the "0"s are don't care positions, and

@@ -81,7 +81,7 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
   }
   else{
     std::string s = (alph.letters == alph.dna)
-      ? CyclicSubsetSeed::stringFromPatterns( "1T1001100101", a )  // YASS
+      ? CyclicSubsetSeed::stringFromName( "YASS" )
       : CyclicSubsetSeed::stringFromPatterns( "1", a );
     addSeeds( indexes, numOfIndexes, s, args, alph );
   }

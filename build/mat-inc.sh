@@ -25,7 +25,6 @@ const struct {
 EOF
 for i in "$@"
 do
-
     basename $i .mat | sed 's/.*/{"&", "\\/'
     grep -v '^#[n ]' $i | awk NF | sed 's/$/\\n\\/'
     echo '"},'

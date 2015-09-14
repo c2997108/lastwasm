@@ -60,8 +60,8 @@ Advanced Options (default settings):\n\
 -Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina ("
       + stringify(inputFormat) + ")\n\
 -s: volume size (unlimited)\n\
--m: seed pattern\n\
--u: subset seed (yass.seed)\n\
+-m: seed pattern (non-DNA: 1)\n\
+-u: seeding scheme (DNA: YASS)\n\
 -w: index step ("
     + stringify(indexStep) + ")\n\
 -a: user-defined alphabet\n\
