@@ -123,7 +123,7 @@ Advanced Options
       and/or using "-m" multiple times.
 
   -u NAME
-      Specify a seeding scheme.
+      Specify a seeding scheme.  The -m option will then be ignored.
 
       BISF: for aligning bisulfite-converted DNA forward strands to a
       closely-related genome (MC Frith et al. NAR 2012 40:e100).

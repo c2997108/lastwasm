@@ -72,25 +72,21 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
     std::string s = CyclicSubsetSeed::stringFromName( args.subsetSeedFile );
     addSeeds( indexes, numOfIndexes, s, args, alph );
   }
-
-  for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
-    const std::string& mask = args.seedPatterns[x];
-    std::string s = CyclicSubsetSeed::stringFromPatterns( mask, a );
+  else if( !args.seedPatterns.empty() ){
+    for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
+      const std::string& p = args.seedPatterns[x];
+      std::string s = CyclicSubsetSeed::stringFromPatterns( p, a );
+      addSeeds( indexes, numOfIndexes, s, args, alph );
+    }
+  }
+  else{
+    std::string s = (alph.letters == alph.dna)
+      ? CyclicSubsetSeed::stringFromPatterns( "1T1001100101", a )  // YASS
+      : CyclicSubsetSeed::stringFromPatterns( "1", a );
     addSeeds( indexes, numOfIndexes, s, args, alph );
   }
 
-  if( numOfIndexes == 0 ){
-    if( alph.letters == alph.dna ){
-      const char* mask = "1T1001100101";  // YASS
-      std::string s = CyclicSubsetSeed::stringFromPatterns( mask, a );
-      addSeeds( indexes, numOfIndexes, s, args, alph );
-    }
-    else{
-      std::string s = CyclicSubsetSeed::stringFromPatterns( "1", a );
-      addSeeds( indexes, numOfIndexes, s, args, alph );
-    }
-  }
-
+  if( !numOfIndexes ) ERR( "no seed patterns" );
   return numOfIndexes;
 }
 
