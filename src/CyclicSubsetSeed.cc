@@ -1,6 +1,7 @@
 // Copyright 2009, 2010, 2013, 2014 Martin C. Frith
 
 #include "CyclicSubsetSeed.hh"
+#include "CyclicSubsetSeedData.hh"
 #include "io.hh"
 #include "stringify.hh"
 #include <algorithm>  // sort
@@ -13,53 +14,14 @@
 
 #define ERR(x) throw std::runtime_error(x)
 
+#define COUNTOF(a) (sizeof (a) / sizeof *(a))
+
 using namespace cbrc;
 
 std::string CyclicSubsetSeed::stringFromName( const std::string& name ){
-  if( name == "BISF" ) return "\
-1  CT A G\n\
-0  ACGT\n\
-1111110101100\n\
-";
-
-  if( name == "BISR" ) return "\
-1  AG C T\n\
-0  ACGT\n\
-1111110101100\n\
-";
-
-  // From MC Frith & L Noe (2014) Nucleic Acids Research,
-  // Supplementary Table 11, row 12.
-  if( name == "MAM4" ) return "\
-1  A C G T\n\
-0  ACGT\n\
-T  AG CT\n\
-11100TT01T00T10TTTT\n\
-TTTT110TT0T001T0T1T1\n\
-11TT010T01TT0001T\n\
-11TT10T1T101TT\n\
-";
-
-  // From MC Frith & L Noe (2014) Nucleic Acids Research,
-  // Supplementary Table 12, second-last row.
-  if( name == "MAM8" ) return "\
-1  A C G T\n\
-0  ACGT\n\
-T  AG CT\n\
-1101T1T0T1T00TT1TT\n\
-1TTTTT010TT0TT01011TTT\n\
-1TTTT10010T011T0TTTT1\n\
-111T011T0T01T100\n\
-1T10T100TT01000TT01TT11\n\
-111T101TT000T0T10T00T1T\n\
-111100T011TTT00T0TT01T\n\
-1T1T10T1101101\n\
-";
-
-  if( name == "MURPHY10" ) return "\
-1  ILMV FWY A C G H P KR ST DENQ\n\
-1\n\
-";
+  for( std::size_t i = 0; i < COUNTOF(subsetSeeds); ++i )
+    if( name == subsetSeeds[i].name )
+      return subsetSeeds[i].text;
 
   return slurp( name );
 }

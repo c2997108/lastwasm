@@ -74,6 +74,9 @@ last-merge-batches: $(MBOBJ)
 clean:
 	rm -f $(ALL) *.o */*.o
 
+CyclicSubsetSeedData.hh: ../data/*.seed
+	../build/seed-inc.sh ../data/*.seed > $@
+
 ScoreMatrixData.hh: ../data/*.mat
 	../build/mat-inc.sh ../data/*.mat > $@
 
@@ -114,8 +117,8 @@ Alphabet.o: Alphabet.cc Alphabet.hh
 Centroid.o: Centroid.cc Centroid.hh GappedXdropAligner.hh \
  ScoreMatrixRow.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
  OneQualityScoreMatrix.hh GappedXdropAlignerInl.hh
-CyclicSubsetSeed.o: CyclicSubsetSeed.cc CyclicSubsetSeed.hh io.hh \
- stringify.hh
+CyclicSubsetSeed.o: CyclicSubsetSeed.cc CyclicSubsetSeed.hh \
+ CyclicSubsetSeedData.hh io.hh stringify.hh
 DiagonalTable.o: DiagonalTable.cc DiagonalTable.hh
 GappedXdropAligner.o: GappedXdropAligner.cc GappedXdropAligner.hh \
  ScoreMatrixRow.hh GappedXdropAlignerInl.hh
@@ -149,7 +152,7 @@ OneQualityScoreMatrix.o: OneQualityScoreMatrix.cc \
  stringify.hh
 QualityPssmMaker.o: QualityPssmMaker.cc QualityPssmMaker.hh \
  ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
-ScoreMatrix.o: ScoreMatrix.cc ScoreMatrix.hh io.hh ScoreMatrixData.hh
+ScoreMatrix.o: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixData.hh io.hh
 SegmentPair.o: SegmentPair.cc SegmentPair.hh
 SegmentPairPot.o: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh
 SubsetSuffixArray.o: SubsetSuffixArray.cc SubsetSuffixArray.hh \
