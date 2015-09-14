@@ -25,10 +25,6 @@ static int myGetopt( int argc, char** argv, const char* optstring ){
 
 using namespace cbrc;
 
-static bool isBisulfite( const std::string& subsetSeedFile ){
-  return subsetSeedFile == "BISF" || subsetSeedFile == "BISR";
-}
-
 LastdbArguments::LastdbArguments() :
   isProtein(false),
   isKeepLowercase(true),
@@ -36,7 +32,7 @@ LastdbArguments::LastdbArguments() :
   isCaseSensitive(false),
   seedPatterns(0),
   volumeSize(-1),
-  indexStep(0),  // depends on the subset seed
+  indexStep(1),
   subsetSeedFile(""),
   userAlphabet(""),
   minSeedLimit(0),
@@ -66,7 +62,8 @@ Advanced Options (default settings):\n\
 -s: volume size (unlimited)\n\
 -m: seed pattern\n\
 -u: subset seed (yass.seed)\n\
--w: index step\n\
+-w: index step ("
+    + stringify(indexStep) + ")\n\
 -a: user-defined alphabet\n\
 -i: minimum limit on initial matches per query position ("
     + stringify(minSeedLimit) + ")\n\
@@ -146,11 +143,6 @@ LAST home page: http://last.cbrc.jp/\n\
       ERR( "bad option" );
     }
   }
-
-  if( indexStep == 0 ) indexStep = isBisulfite( subsetSeedFile ) ? 2 : 1;
-  // This is because the bisulfite recipe uses two indexes at once, so
-  // it's more important to save memory.  In a test, this did not harm
-  // sensitivity, and even seemed to improve it.
 
   if( isOptionsOnly ) return;
   if( optind >= argc )

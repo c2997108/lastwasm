@@ -64,13 +64,13 @@ static void addSeeds( SubsetSuffixArray indexes[], unsigned& numOfIndexes,
 
 // Set up the seed pattern(s), and return how many of them there are
 unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
+			  const std::string& subsetSeeds,
 			  const LastdbArguments& args, const Alphabet& alph ){
   unsigned numOfIndexes = 0;
   const std::string& a = alph.letters;
 
   if( !args.subsetSeedFile.empty() ){
-    std::string s = CyclicSubsetSeed::stringFromName( args.subsetSeedFile );
-    addSeeds( indexes, numOfIndexes, s, args, alph );
+    addSeeds( indexes, numOfIndexes, subsetSeeds, args, alph );
   }
   else if( !args.seedPatterns.empty() ){
     for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
@@ -216,6 +216,15 @@ appendFromFasta( MultiSequence& multi, unsigned numOfIndexes,
 void lastdb( int argc, char** argv ){
   LastdbArguments args;
   args.fromArgs( argc, argv );
+
+  std::string subsetSeeds;
+  if( !args.subsetSeedFile.empty() ){
+    subsetSeeds = CyclicSubsetSeed::stringFromName( args.subsetSeedFile );
+    args.resetCumulativeOptions();
+    args.fromString( subsetSeeds );  // read options from the seed file
+    args.fromArgs( argc, argv );  // command line overrides seed file
+  }
+
   Alphabet alph;
   MultiSequence multi;
   SubsetSuffixArray indexes[maxNumOfIndexes];
@@ -224,7 +233,7 @@ void lastdb( int argc, char** argv ){
   if( args.tantanSetting )
     tantanMasker.init( alph.isProtein(), args.tantanSetting > 1,
 		       alph.letters, alph.encode );
-  unsigned numOfIndexes = makeSubsetSeeds( indexes, args, alph );
+  unsigned numOfIndexes = makeSubsetSeeds( indexes, subsetSeeds, args, alph );
   multi.initForAppending(1);
   alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
   unsigned volumeNumber = 0;
