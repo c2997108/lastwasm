@@ -15,127 +15,127 @@
 
 using namespace cbrc;
 
-std::vector<std::string> CyclicSubsetSeed::fromName( const std::string& name ){
-  const char* seedAlph[256] = {0};
-  seedAlph['1'] = "A C G T";
-  seedAlph['0'] = "ACGT";
-  seedAlph['T'] = "AG CT";
+std::string CyclicSubsetSeed::stringFromName( const std::string& name ){
+  if( name == "BISF" ) return "\
+1  CT A G\n\
+0  ACGT\n\
+1111110101100\n\
+";
 
-  if( name == "BISF" ){
-    seedAlph['1'] = "CT A G";
-    return fromMask( seedAlph, "1111110101100" );
-  }
+  if( name == "BISR" ) return "\
+1  AG C T\n\
+0  ACGT\n\
+1111110101100\n\
+";
 
-  if( name == "BISR" ){
-    seedAlph['1'] = "AG C T";
-    return fromMask( seedAlph, "1111110101100" );
-  }
+  // From MC Frith & L Noe (2014) Nucleic Acids Research,
+  // Supplementary Table 11, row 12.
+  if( name == "MAM4" ) return "\
+1  A C G T\n\
+0  ACGT\n\
+T  AG CT\n\
+11100TT01T00T10TTTT\n\
+TTTT110TT0T001T0T1T1\n\
+11TT010T01TT0001T\n\
+11TT10T1T101TT\n\
+";
 
-  if( name == "MAM4" ){
-    // From MC Frith & L Noe (2014) Nucleic Acids Research,
-    // Supplementary Table 11, row 12.
-    return fromMask( seedAlph,
-		     "11100TT01T00T10TTTT,"
-		     "TTTT110TT0T001T0T1T1,"
-		     "11TT010T01TT0001T,"
-		     "11TT10T1T101TT" );
-  }
+  // From MC Frith & L Noe (2014) Nucleic Acids Research,
+  // Supplementary Table 12, second-last row.
+  if( name == "MAM8" ) return "\
+1  A C G T\n\
+0  ACGT\n\
+T  AG CT\n\
+1101T1T0T1T00TT1TT\n\
+1TTTTT010TT0TT01011TTT\n\
+1TTTT10010T011T0TTTT1\n\
+111T011T0T01T100\n\
+1T10T100TT01000TT01TT11\n\
+111T101TT000T0T10T00T1T\n\
+111100T011TTT00T0TT01T\n\
+1T1T10T1101101\n\
+";
 
-  if( name == "MAM8" ){
-    // From MC Frith & L Noe (2014) Nucleic Acids Research,
-    // Supplementary Table 12, second-last row.
-    return fromMask( seedAlph,
-		     "1101T1T0T1T00TT1TT,"
-		     "1TTTTT010TT0TT01011TTT,"
-		     "1TTTT10010T011T0TTTT1,"
-		     "111T011T0T01T100,"
-		     "1T10T100TT01000TT01TT11,"
-		     "111T101TT000T0T10T00T1T,"
-		     "111100T011TTT00T0TT01T,"
-		     "1T1T10T1101101" );
-  }
+  if( name == "MURPHY10" ) return "\
+1  ILMV FWY A C G H P KR ST DENQ\n\
+1\n\
+";
 
-  if( name == "MURPHY10" ){
-    seedAlph['1'] = "ILMV FWY A C G H P KR ST DENQ";
-    return fromMask( seedAlph, "1" );
-  }
-
-  std::string s = slurp( name );
-  std::vector<std::string> v( 1, s );
-  return v;
+  return slurp( name );
 }
 
-void CyclicSubsetSeed::fromString( const std::string& s,
-				   bool isMaskLowercase,
-				   const uchar letterCode[] ){
-  std::istringstream iss(s);
-  fromStream( iss, isMaskLowercase, letterCode );
+std::string
+CyclicSubsetSeed::stringFromPatterns( const std::string& patterns,
+				      const std::string& sequenceLetters ){
+  std::string spacedLetters;
+  for( size_t i = 0; i < sequenceLetters.size(); ++i ){
+    if( i > 0 ) spacedLetters += ' ';
+    spacedLetters += sequenceLetters[i];
+  }
+
+  std::string p = patterns;
+  for( size_t i = 0; i < p.size(); ++i )
+    switch( p[i] ){
+    case ',':
+      p[i] = '\n'; break;
+    case '#':
+      p[i] = '1'; break;
+    case '_':
+    case '-':
+      p[i] = '0'; break;
+    case 't':
+    case '@':
+      p[i] = 'T'; break;
+    }
+
+  return "\
+1  " + spacedLetters + "\n\
+0  " + sequenceLetters + "\n\
+T  AG CT\n\
+" + p;
 }
 
-static bool isBlankOrComment( std::string line ){
-  std::istringstream iss(line);
-  char c;
-  if( !(iss >> c) ) return true;
-  if( c == '#' ) return true;
+bool CyclicSubsetSeed::nextPattern( std::istream& in,
+				    std::vector< std::string >& seedAlphabet,
+				    std::string& pattern ){
+  while ( getline( in, pattern ) ){
+    std::istringstream iss( pattern );
+    std::string x, y;
+    iss >> x;
+    if( x.empty() || x[0] == '#' ) continue;
+    iss >> y;
+    if( y.empty() ) return true;
+    if( x.size() > 1 ) ERR( "bad seed line: " + pattern );
+    seedAlphabet.push_back( pattern );
+  }
   return false;
 }
 
-void CyclicSubsetSeed::fromStream( std::istream& stream,
-				   bool isMaskLowercase,
-				   const uchar letterCode[] ){
+static size_t findSeedLetter( const std::vector< std::string >& seedAlphabet,
+			      char seedLetter ){
+  // go backwards, so that newer definitions override older ones:
+  for( size_t j = seedAlphabet.size(); j > 0; ){
+    --j;
+    const std::string& s = seedAlphabet[j];
+    assert( !s.empty() );
+    if( s[0] == seedLetter ) return j;
+  }
+  ERR( "unknown symbol in seed pattern: " + stringify(seedLetter) );
+}
+
+void CyclicSubsetSeed::init( const std::vector< std::string >& seedAlphabet,
+			     const std::string& pattern,
+			     bool isMaskLowercase,
+			     const uchar letterCode[] ){
   clear();
-  std::string line;
-  while( std::getline( stream, line ) ){
-    if( isBlankOrComment(line) ) continue;
-    std::istringstream iss(line);
+  for( size_t i = 0; i < pattern.size(); ++i ){
+    char seedLetter = pattern[i];
+    if( std::isspace(seedLetter) ) continue;
+    size_t j = findSeedLetter( seedAlphabet, seedLetter );
+    std::istringstream iss( seedAlphabet[j] );
+    iss >> seedLetter;
     appendPosition( iss, isMaskLowercase, letterCode );
   }
-  if( span() && stream.eof() ) stream.clear( std::ios::eofbit );
-}
-
-static std::string exactSeed( const std::string& letters ){
-  std::string result;
-  for( unsigned i = 0; i < letters.size(); ++i ){
-    if( i > 0 ) result += ' ';
-    result += letters[i];
-  }
-  return result;
-}
-
-std::vector<std::string> CyclicSubsetSeed::fromMask( const std::string& alph,
-						     const std::string& mask ){
-  std::string es = exactSeed(alph);
-  const char* seedAlph[256] = {0};
-  seedAlph['1'] = es.c_str();
-  seedAlph['#'] = es.c_str();
-  seedAlph['0'] = alph.c_str();
-  seedAlph['_'] = alph.c_str();
-  seedAlph['-'] = alph.c_str();
-  seedAlph['T'] = "AG CT";
-  seedAlph['t'] = "AG CT";
-  seedAlph['@'] = "AG CT";
-  return fromMask( seedAlph, mask );
-}
-
-std::vector<std::string> CyclicSubsetSeed::fromMask( const char* seedAlph[],
-						     const std::string& mask ){
-  std::vector<std::string> v;
-  int n = 0;
-
-  for( unsigned i = 0; i < mask.size(); ++i ){
-    uchar c = mask[i];
-    if( c == ',' ){
-      n = 0;
-    }else{
-      const char* x = seedAlph[c];
-      if( !x ) ERR( "bad seed pattern: " + mask );
-      if( !n++ ) v.push_back("");
-      v.back() += x;
-      v.back() += "\n";
-    }
-  }
-
-  return v;
 }
 
 static void addLetter( uchar numbersToSubsets[], uchar letter, uchar subsetNum,

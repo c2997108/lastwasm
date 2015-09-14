@@ -50,12 +50,15 @@ bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
 const unsigned maxNumOfIndexes = 16;
 
 static void addSeeds( SubsetSuffixArray indexes[], unsigned& numOfIndexes,
-		      const std::vector<std::string>& seedStrings,
+		      const std::string& subsetSeeds,
 		      const LastdbArguments& args, const Alphabet& alph ){
-  for( unsigned x = 0; x < seedStrings.size(); ++x ){
+  std::istringstream iss( subsetSeeds );
+  std::vector< std::string > seedAlphabet;
+  std::string pattern;
+  while( CyclicSubsetSeed::nextPattern( iss, seedAlphabet, pattern ) ){
     if( numOfIndexes >= maxNumOfIndexes ) ERR( "too many seed patterns" );
     CyclicSubsetSeed& seed = indexes[ numOfIndexes++ ].getSeed();
-    seed.fromString( seedStrings[x], args.isCaseSensitive, alph.encode );
+    seed.init( seedAlphabet, pattern, args.isCaseSensitive, alph.encode );
   }
 }
 
@@ -67,24 +70,24 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
 
   for( unsigned x = 0; x < args.subsetSeedFiles.size(); ++x ){
     const std::string& name = args.subsetSeedFiles[x];
-    std::vector<std::string> s = CyclicSubsetSeed::fromName( name );
+    std::string s = CyclicSubsetSeed::stringFromName( name );
     addSeeds( indexes, numOfIndexes, s, args, alph );
   }
 
   for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
     const std::string& mask = args.seedPatterns[x];
-    std::vector<std::string> s = CyclicSubsetSeed::fromMask( a, mask );
+    std::string s = CyclicSubsetSeed::stringFromPatterns( mask, a );
     addSeeds( indexes, numOfIndexes, s, args, alph );
   }
 
   if( numOfIndexes == 0 ){
     if( alph.letters == alph.dna ){
       const char* mask = "1T1001100101";  // YASS
-      std::vector<std::string> s = CyclicSubsetSeed::fromMask( a, mask );
+      std::string s = CyclicSubsetSeed::stringFromPatterns( mask, a );
       addSeeds( indexes, numOfIndexes, s, args, alph );
     }
     else{
-      std::vector<std::string> s = CyclicSubsetSeed::fromMask( a, "1" );
+      std::string s = CyclicSubsetSeed::stringFromPatterns( "1", a );
       addSeeds( indexes, numOfIndexes, s, args, alph );
     }
   }

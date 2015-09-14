@@ -11,18 +11,13 @@
 // "Cyclic" means that the seed can cover arbitrary-size ranges, by
 // cyclically repeating.
 
-// The INPUT/OUTPUT FORMAT looks like this:
-//   A C G T
-//   AG CT
-//   ACGT
-// Each line represents one position, and each letter-group (separated
-// by whitespace) is one subset.  In each position, any letters not
-// specified will get mapped to the special DELIMITER subset.  Blank
-// lines and comment lines starting with # are ignored.
+// At each seed position, the subsets are defined by a grouping of
+// sequence letters, such as "AG CT".  Any other sequence letters
+// (such as "N" in this case) will get mapped to the special DELIMITER
+// subset.
 
-// The input format is always case-insensitive.  If the
-// isMaskLowercase argument of the reading routines is true, then all
-// lowercase letters will get mapped to the DELIMITER subset,
+// If the isMaskLowercase argument of the reading routines is true,
+// then all lowercase letters will get mapped to the DELIMITER subset,
 // otherwise they will be treated like their uppercase equivalents.
 
 #ifndef CYCLIC_SUBSET_SEED_HH
@@ -41,38 +36,46 @@ public:
   enum { MAX_LETTERS = 64 };
   enum { DELIMITER = 255 };
 
-  // This converts a seed name to a set of strings in the I/O format.
+  // Converts a name to a text string defining one or more seeds.
   // If the name isn't known, it assumes it's a file and tries to read it.
-  static std::vector<std::string> fromName( const std::string& name );
+  static std::string stringFromName( const std::string& name );
 
-  // This converts a mask to a set of strings in the I/O format.
-  // The mask is something like: "1110TT,1001T1".  The "1"s are
-  // must-match positions, the "0"s are don't care positions, and "T"
-  // or "t" allows transitions but not transversions.  For consistency
-  // with YASS/Iedera, you can also use "#" for match, "@" for
-  // transition, and "_" or "-" for don't care.  You can have multiple
-  // seed patterns separated by commas, which get returned as separate
-  // strings.  The alph indicates the letters that can occur in "1"
-  // and "0" positions.
-  static std::vector<std::string> fromMask( const std::string& alph,
-					    const std::string& mask );
 
-  // This is a more general version, where seedAlph maps mask
-  // characters to lines in the I/O format.
-  static std::vector<std::string> fromMask( const char* seedAlph[],
-					    const std::string& mask );
+  // Converts patterns to a text string defining one or more seeds.
+  // "patterns" should be something like: "1110TT,1001T1".  The "1"s
+  // are must-match positions, the "0"s are don't care positions, and
+  // "T" or "t" allows transitions but not transversions.  For
+  // consistency with YASS/Iedera, you can also use "#" for match, "@"
+  // for transition, and "_" or "-" for don't care.  You can have
+  // multiple seed patterns separated by commas.  "sequenceLetters"
+  // indicates the letters that can occur in "1" and "0" positions.
+  static std::string stringFromPatterns( const std::string& patterns,
+					 const std::string& sequenceLetters );
+
+  // Reads lines from "in" until it finds a pattern line.  Any seed
+  // alphabet lines are appended to "seedAlphabet".  If it finds a
+  // pattern line, it stores it in "pattern" and returns true, else it
+  // returns false.  Blank lines and comment lines starting with # are
+  // ignored.
+  static bool nextPattern( std::istream& in,
+			   std::vector< std::string >& seedAlphabet,
+			   std::string& pattern );
 
   void clear() { subsetLists.clear(); subsetMaps.clear(); }
 
-  void fromString( const std::string& s,
-		   bool isMaskLowercase, const uchar letterCode[] );
+  // Seed letters are case-sensitive.
+  void init( const std::vector< std::string >& seedAlphabet,
+	     const std::string& pattern,
+	     bool isMaskLowercase,
+	     const uchar letterCode[] );
 
-  void fromStream( std::istream& stream,
-		   bool isMaskLowercase, const uchar letterCode[] );
-
+  // "inputLine" should be a grouping of sequence letters.
   void appendPosition( std::istream& inputLine,
-		       bool isMaskLowercase, const uchar letterCode[] );
+		       bool isMaskLowercase,
+		       const uchar letterCode[] );
 
+  // Writes the grouping of sequence letters at the given position.
+  // The position must be less than the span.
   void writePosition( std::ostream& out, unsigned position ) const;
 
   unsigned span() const{
