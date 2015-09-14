@@ -68,9 +68,8 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
   unsigned numOfIndexes = 0;
   const std::string& a = alph.letters;
 
-  for( unsigned x = 0; x < args.subsetSeedFiles.size(); ++x ){
-    const std::string& name = args.subsetSeedFiles[x];
-    std::string s = CyclicSubsetSeed::stringFromName( name );
+  if( !args.subsetSeedFile.empty() ){
+    std::string s = CyclicSubsetSeed::stringFromName( args.subsetSeedFile );
     addSeeds( indexes, numOfIndexes, s, args, alph );
   }
 

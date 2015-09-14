@@ -123,7 +123,7 @@ Advanced Options
       and/or using "-m" multiple times.
 
   -u NAME
-      Specify a subset seed.
+      Specify a seeding scheme.
 
       BISF: for aligning bisulfite-converted DNA forward strands to a
       closely-related genome (MC Frith et al. NAR 2012 40:e100).
@@ -147,7 +147,6 @@ Advanced Options
 
       Any other NAME is assumed to be a file name.  For an example of
       the format, see the ".seed" files in the examples directory.
-      You can specify multiple seeds by using "-u" multiple times.
 
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)

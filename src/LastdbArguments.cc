@@ -24,8 +24,8 @@ static int myGetopt( int argc, char** argv, const char* optstring ){
 
 using namespace cbrc;
 
-static bool isBisulfite( const std::vector< std::string >& seeds ){
-  return seeds.size() == 1 && (seeds[0] == "BISF" || seeds[0] == "BISR");
+static bool isBisulfite( const std::string& subsetSeedFile ){
+  return subsetSeedFile == "BISF" || subsetSeedFile == "BISR";
 }
 
 LastdbArguments::LastdbArguments() :
@@ -36,7 +36,7 @@ LastdbArguments::LastdbArguments() :
   seedPatterns(0),
   volumeSize(-1),
   indexStep(0),  // depends on the subset seed
-  subsetSeedFiles(0),
+  subsetSeedFile(""),
   userAlphabet(""),
   minSeedLimit(0),
   bucketDepth(indexT(-1)),  // means: use the default (adapts to the data)
@@ -115,7 +115,7 @@ LAST home page: http://last.cbrc.jp/\n\
       if( indexStep < 1 ) badopt( c, optarg );
       break;
     case 'u':
-      subsetSeedFiles.push_back(optarg);
+      subsetSeedFile = optarg;
       break;
     case 'a':
       userAlphabet = optarg;
@@ -145,7 +145,7 @@ LAST home page: http://last.cbrc.jp/\n\
     }
   }
 
-  if( indexStep == 0 ) indexStep = isBisulfite( subsetSeedFiles ) ? 2 : 1;
+  if( indexStep == 0 ) indexStep = isBisulfite( subsetSeedFile ) ? 2 : 1;
   // This is because the bisulfite recipe uses two indexes at once, so
   // it's more important to save memory.  In a test, this did not harm
   // sensitivity, and even seemed to improve it.

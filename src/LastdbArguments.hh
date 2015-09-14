@@ -30,7 +30,7 @@ struct LastdbArguments{
   std::vector< std::string > seedPatterns;
   size_t volumeSize;  // type?
   indexT indexStep;
-  std::vector< std::string > subsetSeedFiles;
+  std::string subsetSeedFile;
   std::string userAlphabet;
   indexT minSeedLimit;
   indexT bucketDepth;
