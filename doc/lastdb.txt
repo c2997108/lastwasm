@@ -124,29 +124,12 @@ Advanced Options
 
   -u NAME
       Specify a seeding scheme.  The -m option will then be ignored.
-
-      BISF: for aligning bisulfite-converted DNA forward strands to a
-      closely-related genome (MC Frith et al. NAR 2012 40:e100).
-
-      BISR: for aligning bisulfite-converted DNA reverse strands to a
-      closely-related genome (MC Frith et al. NAR 2012 40:e100).
-
-      MAM8: for finding weak DNA similarities with high sensitivity,
-      but slow and high memory usage (e.g. ~50 GB for mammal genomes).
-      [From Frith & Noé 2014 NAR 42:e59 Table S12, row 15.]
-
-      MAM4: like MAM8, but a bit less sensitive, and uses about half
-      as much memory.  [From Frith & Noé 2014 NAR 42:e59 Table S11,
-      row 12.]
-
-      MURPHY10: popular for finding long-and-weak protein
-      similarities.  It consists of this 10-letter reduced alphabet
-      (LR Murphy et al. Protein Eng. 2000 13:149)::
-
-        ILMV FWY A C G H P KR ST DENQ
+      The built-in schemes are described in `<last-seeds.html>`_.
 
       Any other NAME is assumed to be a file name.  For an example of
-      the format, see the ".seed" files in the examples directory.
+      the format, see the seed files in the data directory.  You can
+      set other lastdb options on lines starting with ``#lastdb``, but
+      command line options override them.
 
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)
