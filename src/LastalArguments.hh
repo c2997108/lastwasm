@@ -23,13 +23,12 @@ struct LastalArguments{
   void fromArgs( int argc, char** argv, bool optionsOnly = false );
 
   // set parameters from a command line (by splitting it into arguments):
-  void fromLine( const std::string& line, bool optionsOnly = true );
+  void fromLine( const std::string& line );
 
   // set parameters from lines beginning with "#last":
-  void fromStream( std::istream& is, bool optionsOnly = true );
+  void fromString( const std::string& s );
 
-  // set parameters from lines beginning with "#last":
-  void fromString( const std::string& s, bool optionsOnly = true );
+  void resetCumulativeOptions() { verbosity = 0; }
 
   // get the name of the substitution score matrix:
   const char* matrixName( bool isProtein ) const;

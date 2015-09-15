@@ -321,29 +321,27 @@ LAST home page: http://last.cbrc.jp/\n\
   inputStart = optind;
 }
 
-void LastalArguments::fromLine( const std::string& line, bool optionsOnly ){
-  std::vector<char> args( line.begin(), line.end() );
-  args.push_back(0);  // don't forget the NUL terminator!
+void LastalArguments::fromLine( const std::string& line ){
+  const char* delimiters = " \t";
+  const char* s = line.c_str();
+  std::vector<char> args( s, s + line.size() + 1 );
   std::vector<char*> argv;
-  char* i = std::strtok( &args[0], " \t" );
+  char* i = std::strtok( &args[0], delimiters );
   argv.push_back(i);
-  while( i != NULL ){
-    i = std::strtok( NULL, " \t" );
+  while( i ){
+    i = std::strtok( 0, delimiters );
     argv.push_back(i);
   }
-  fromArgs( argv.size()-1, &argv[0], optionsOnly );
+  fromArgs( argv.size() - 1, &argv[0], true );
 }
 
-void LastalArguments::fromStream( std::istream& is, bool optionsOnly ){
+void LastalArguments::fromString( const std::string& s ){
   std::string trigger = "#last";
-  for( std::string line; std::getline( is, line ); /* noop */ )
-    if( line.compare( 0, trigger.size(), trigger ) == 0 )
-      fromLine( line, optionsOnly );
-}
-
-void LastalArguments::fromString( const std::string& s, bool optionsOnly ){
   std::istringstream iss(s);
-  fromStream( iss, optionsOnly );
+  std::string line;
+  while( std::getline( iss, line ) )
+    if( line.compare( 0, trigger.size(), trigger ) == 0 )
+      fromLine( line );
 }
 
 const char* LastalArguments::matrixName( bool isProtein ) const{
