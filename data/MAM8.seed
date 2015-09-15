@@ -1,5 +1,5 @@
-# This seeding scheme is for for finding weak DNA similarities with
-# high sensitivity, but slow and high memory usage (e.g. ~50 GB for
+# This DNA seeding scheme finds weak similarities with high
+# sensitivity, but low speed and high memory usage (e.g. ~50 GB for
 # mammal genomes).  [From Frith & Noé 2014 NAR 42:e59 Table S12, row
 # 15.]
 

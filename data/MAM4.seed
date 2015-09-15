@@ -1,6 +1,6 @@
-# This seeding scheme is like MAM8, but a bit less sensitive, and uses
-# about half as much memory.  [From Frith & Noé 2014 NAR 42:e59 Table
-# S11, row 12.]
+# This DNA seeding scheme is like MAM8, but a bit less sensitive, and
+# uses about half as much memory.  [From Frith & Noé 2014 NAR 42:e59
+# Table S11, row 12.]
 
 1  A C G T
 0  ACGT

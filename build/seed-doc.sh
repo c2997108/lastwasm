@@ -11,24 +11,26 @@ between query and reference sequences.  It can use various seeding
 schemes, which allow different kinds of mismatches at different seed
 positions.
 
-A seeding scheme consists of a seed alphabet, such as::
+.. Note::
 
-  1  A C G T
-  0  ACGT
-  T  AG CT
+   A seeding scheme consists of a seed alphabet, such as::
 
-and one or more patterns, such as this one::
+     1  A C G T
+     0  ACGT
+     T  AG CT
 
-  1T1T10T1101101
+   and one or more patterns, such as this one::
 
-Each symbol in a pattern represents a grouping of sequence letters: in
-this example, ``T`` represents the grouping ``AG CT``.  At each
-position in an initial match, mismatches are allowed between letters
-that are grouped at that position in the pattern.
+     1T1T10T1101101
 
-Although the patterns have fixed lengths, LAST's initial matches do
-not.  LAST finds shorter matches by using a prefix of the pattern, and
-longer matches by cyclically repeating the pattern.
+   Each symbol in a pattern represents a grouping of sequence letters:
+   in this example, ``T`` represents the grouping ``AG CT``.  At each
+   position in an initial match, mismatches are allowed between
+   letters that are grouped at that position in the pattern.
+
+   Although the patterns have fixed lengths, LAST's initial matches do
+   not.  LAST finds shorter matches by using a prefix of the pattern,
+   and longer matches by cyclically repeating the pattern.
 
 EOF
 
