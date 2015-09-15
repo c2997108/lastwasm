@@ -90,10 +90,20 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
   return numOfIndexes;
 }
 
+void writeLastalOptions( std::ostream& out, const std::string& subsetSeeds ){
+  std::string trigger = "#lastal";
+  std::istringstream iss( subsetSeeds );
+  std::string line;
+  while( getline( iss, line ) )
+    if( line.compare( 0, trigger.size(), trigger ) == 0 )
+      out << line << '\n';
+}
+
 void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const Alphabet& alph, countT sequenceCount,
 		   const std::vector<countT>& letterCounts,
-		   unsigned volumes, unsigned numOfIndexes ){
+		   unsigned volumes, unsigned numOfIndexes,
+		   const std::string& subsetSeeds ){
   countT letterTotal = std::accumulate( letterCounts.begin(),
                                         letterCounts.end(), countT(0) );
 
@@ -127,6 +137,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     else{
       f << "numofindexes=" << numOfIndexes << '\n';
     }
+    writeLastalOptions( f, subsetSeeds );
   }
 
   f.close();
@@ -137,10 +148,10 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
 		 const MultiSequence& multi, const LastdbArguments& args,
 		 const Alphabet& alph, const std::vector<countT>& letterCounts,
-		 const std::string& baseName ){
+		 const std::string& subsetSeeds, const std::string& baseName ){
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, multi.finishedSequences(),
-		letterCounts, -1, numOfIndexes );
+		letterCounts, -1, numOfIndexes, subsetSeeds );
   multi.toFiles( baseName );
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
@@ -278,8 +289,8 @@ void lastdb( int argc, char** argv ){
       }
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
-	makeVolume( indexes, numOfIndexes,
-		    multi, args, alph, letterCounts, baseName );
+	makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
+		    subsetSeeds, baseName );
 	for( unsigned c = 0; c < alph.size; ++c )
 	  letterTotals[c] += letterCounts[c];
 	letterCounts.assign( alph.size, 0 );
@@ -290,19 +301,19 @@ void lastdb( int argc, char** argv ){
 
   if( multi.finishedSequences() > 0 ){
     if( volumeNumber == 0 ){
-      makeVolume( indexes, numOfIndexes,
-		  multi, args, alph, letterCounts, args.lastdbName );
+      makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
+		  subsetSeeds, args.lastdbName );
       return;
     }
     std::string baseName = args.lastdbName + stringify(volumeNumber++);
-    makeVolume( indexes, numOfIndexes,
-		multi, args, alph, letterCounts, baseName );
+    makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
+		subsetSeeds, baseName );
   }
 
   for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
 
-  writePrjFile( args.lastdbName + ".prj", args, alph,
-		sequenceCount, letterTotals, volumeNumber, numOfIndexes );
+  writePrjFile( args.lastdbName + ".prj", args, alph, sequenceCount,
+		letterTotals, volumeNumber, numOfIndexes, subsetSeeds );
 }
 
 int main( int argc, char** argv )

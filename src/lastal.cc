@@ -223,9 +223,14 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
+  std::string trigger = "#lastal";
 
   std::string line, word;
   while( getline( f, line ) ){
+    if( line.compare( 0, trigger.size(), trigger ) == 0 ){
+      args.fromLine( line );
+      continue;
+    }
     std::istringstream iss(line);
     getline( iss, word, '=' );
     if( word == "version" ) iss >> version;
@@ -833,6 +838,7 @@ std::istream& appendFromFasta( std::istream& in ){
 
 void lastal( int argc, char** argv ){
   args.fromArgs( argc, argv );
+  args.resetCumulativeOptions();  // because we will do fromArgs again
 
   unsigned volumes = unsigned(-1);
   indexT minSeedLimit = 0;
@@ -846,11 +852,13 @@ void lastal( int argc, char** argv ){
   bool isDna = (alph.letters == alph.dna);
   bool isProtein = alph.isProtein();
 
+  args.fromArgs( argc, argv );  // command line overrides prj file
+
   std::string matrixName = args.matrixName( isProtein );
   std::string matrixFile;
   if( !matrixName.empty() ){
     matrixFile = ScoreMatrix::stringFromName( matrixName );
-    args.verbosity = 0;  // reset it
+    args.resetCumulativeOptions();
     args.fromString( matrixFile );  // read options from the matrix file
     args.fromArgs( argc, argv );  // command line overrides matrix file
   }
