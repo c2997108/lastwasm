@@ -15,7 +15,7 @@ Typical usage
 
 These commands map DNA reads to the human genome::
 
-  lastdb -m1111110 hu human/chr*.fa
+  lastdb -uNEAR hu human/chr*.fa
   lastal -Q1 -e120 hu reads.fastq | last-map-probs > myalns.maf
 
 Options

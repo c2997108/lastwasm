@@ -53,8 +53,13 @@ do
     awk 'NF == 1' $i | sed 's/^/  /'
     echo
     grep -q '^#lastdb' $i && {
-	echo It sets this default lastdb parameter:
+	echo It sets this lastdb default:
 	grep '^#lastdb' $i | cut -d' ' -f2-
+	echo
+    }
+    grep -q '^#lastal' $i && {
+	echo It sets this lastal default:
+	grep '^#lastal' $i | cut -d' ' -f2-
 	echo
     }
 done

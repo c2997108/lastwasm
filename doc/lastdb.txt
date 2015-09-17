@@ -129,7 +129,10 @@ Advanced Options
       Any other NAME is assumed to be a file name.  For an example of
       the format, see the seed files in the data directory.  You can
       set other lastdb options on lines starting with ``#lastdb``, but
-      command line options override them.
+      command line options override them.  You can also set lastal
+      options on lines starting with ``#lastal``, which are overridden
+      by options from a `scoring scheme <last-matrices.html>`_ or the
+      lastal command line.
 
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)
