@@ -119,6 +119,8 @@ private:
 
   void makeBucketSteps( indexT bucketDepth );
 
+  void sort2( const uchar* text, indexT* beg, const uchar* subsetMap );
+
   void radixSort1( const uchar* text, const uchar* subsetMap,
 		   indexT* beg, indexT* end, indexT depth );
   void radixSort2( const uchar* text, const uchar* subsetMap,

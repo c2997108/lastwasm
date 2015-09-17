@@ -39,6 +39,32 @@ static void insertionSort( const uchar* text, const CyclicSubsetSeed& seed,
   }
 }
 
+void SubsetSuffixArray::sort2( const uchar* text, indexT* beg,
+			       const uchar* subsetMap ){
+  indexT* mid = beg + 1;
+
+  const uchar* s = text + *beg;
+  const uchar* t = text + *mid;
+  while( true ){
+    uchar x = subsetMap[ *s ];
+    uchar y = subsetMap[ *t ];
+    if( x != y ){
+      if( x > y ) std::iter_swap( beg, mid );
+      break;
+    }
+    if( x == CyclicSubsetSeed::DELIMITER ) return;
+    ++s;
+    ++t;
+    subsetMap = seed.nextMap(subsetMap);
+  }
+
+  if( isChildDirectionForward( beg ) ){
+    setChildForward( beg + 0, mid );
+  }else{
+    setChildReverse( beg + 2, mid );
+  }
+}
+
 // Specialized sort for 1 symbol + 1 delimiter.
 // E.g. wildcard positions in spaced seeds.
 void SubsetSuffixArray::radixSort1( const uchar* text, const uchar* subsetMap,
@@ -310,9 +336,16 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
     const uchar* textBase = text + depth;
     const uchar* subsetMap = seed.subsetMap(depth);
 
-    if( end - beg < 10 && childTableType == 0 ){  // ???
-      insertionSort( textBase, seed, beg, end, subsetMap );
-      continue;
+    if( childTableType == 0 ){
+      if( end - beg < 10 ){  // ???
+	insertionSort( textBase, seed, beg, end, subsetMap );
+	continue;
+      }
+    }else{
+      if( end - beg == 2 ){
+	sort2( textBase, beg, subsetMap );
+	continue;
+      }
     }
 
     unsigned subsetCount = seed.subsetCount(depth);
