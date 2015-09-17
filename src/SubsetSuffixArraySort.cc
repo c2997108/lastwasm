@@ -20,14 +20,11 @@ namespace{
 #define  POP(b, e, d) b = (--sp)->beg, e = sp->end, d = sp->depth
 
 static void insertionSort( const uchar* text, const CyclicSubsetSeed& seed,
-			   indexT* beg, indexT* end, indexT depth ){
-  const uchar* textBase = text + depth;
-  const uchar* subsetMap = seed.subsetMap(depth);
-
+			   indexT* beg, indexT* end, const uchar* subsetMap ){
   for( indexT* i = beg+1; i < end; ++i ){
     for( indexT* j = i; j > beg; --j ){
-      const uchar* s = textBase + *(j-1);
-      const uchar* t = textBase + *j;
+      const uchar* s = text + *(j-1);
+      const uchar* t = text + *j;
       const uchar* m = subsetMap;
 
       while( m[ *s ] == m[ *t ] && m[ *s ] < CyclicSubsetSeed::DELIMITER ){
@@ -310,13 +307,14 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 
     if( end - beg <= maxUnsortedInterval && depth >= minLength ) continue;
 
+    const uchar* textBase = text + depth;
+    const uchar* subsetMap = seed.subsetMap(depth);
+
     if( end - beg < 10 && childTableType == 0 ){  // ???
-      insertionSort( text, seed, beg, end, depth );
+      insertionSort( textBase, seed, beg, end, subsetMap );
       continue;
     }
 
-    const uchar* textBase = text + depth;
-    const uchar* subsetMap = seed.subsetMap(depth);
     unsigned subsetCount = seed.subsetCount(depth);
 
     ++depth;
