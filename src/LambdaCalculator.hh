@@ -35,12 +35,12 @@ class LambdaCalculator{
   double lambda() const { return lambda_; }
 
   // The probabilities of letters corresponding to matrix rows (1st index).
-  // In the bad/undefined state, it is an empty vector.
-  const std::vector<double>& letterProbs1() const { return letterProbs1_; }
+  // In the bad/undefined state, it is a null pointer.
+  const double *letterProbs1() const {return isBad() ? 0 : &letterProbs1_[0];}
 
   // The probabilities of letters corresponding to matrix columns (2nd index).
-  // In the bad/undefined state, it is an empty vector.
-  const std::vector<double>& letterProbs2() const { return letterProbs2_; }
+  // In the bad/undefined state, it is a null pointer.
+  const double *letterProbs2() const {return isBad() ? 0 : &letterProbs2_[0];}
 
  private:
   double lambda_;

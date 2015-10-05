@@ -104,10 +104,10 @@ void makeQualityScorers(){
 
   const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
   double lambda = lambdaCalculator.lambda();
-  const std::vector<double>& lp1 = lambdaCalculator.letterProbs1();
+  const double* lp1 = lambdaCalculator.letterProbs1();
   bool isPhred1 = isPhred( referenceFormat );
   int offset1 = qualityOffset( referenceFormat );
-  const std::vector<double>& lp2 = lambdaCalculator.letterProbs2();
+  const double* lp2 = lambdaCalculator.letterProbs2();
   bool isPhred2 = isPhred( args.inputFormat );
   int offset2 = qualityOffset( args.inputFormat );
 
@@ -116,11 +116,11 @@ void makeQualityScorers(){
       LOG( "calculating per-quality scores..." );
       if( args.maskLowercase > 0 )
         oneQualityScoreMatrixMasked.init( m, alph.size, lambda,
-                                          &lp2[0], isPhred2, offset2,
+                                          lp2, isPhred2, offset2,
                                           alph.numbersToUppercase, true );
       if( args.maskLowercase < 3 )
         oneQualityScoreMatrix.init( m, alph.size, lambda,
-                                    &lp2[0], isPhred2, offset2,
+                                    lp2, isPhred2, offset2,
                                     alph.numbersToUppercase, false );
       const OneQualityScoreMatrix &q = (args.maskLowercase < 3) ?
 	oneQualityScoreMatrix : oneQualityScoreMatrixMasked;
@@ -140,11 +140,11 @@ void makeQualityScorers(){
   else{
     if( isFastq( args.inputFormat ) ){
       if( args.maskLowercase > 0 )
-        twoQualityScoreMatrixMasked.init( m, lambda, &lp1[0], &lp2[0],
+        twoQualityScoreMatrixMasked.init( m, lambda, lp1, lp2,
                                           isPhred1, offset1, isPhred2, offset2,
                                           alph.numbersToUppercase, true);
       if( args.maskLowercase < 3 )
-        twoQualityScoreMatrix.init( m, lambda, &lp1[0], &lp2[0],
+        twoQualityScoreMatrix.init( m, lambda, lp1, lp2,
                                     isPhred1, offset1, isPhred2, offset2,
                                     alph.numbersToUppercase, false );
       if( args.outputType > 3 ){
@@ -176,8 +176,8 @@ void calculateScoreStatistics( const std::string& matrixName,
     return;
   }
 
-  const double *p1 = &lambdaCalculator.letterProbs1()[0];
-  const double *p2 = &lambdaCalculator.letterProbs2()[0];
+  const double *p1 = lambdaCalculator.letterProbs1();
+  const double *p2 = lambdaCalculator.letterProbs2();
 
   LOG( "matrix lambda=" << lambdaCalculator.lambda() );
   LOG( "matrix letter frequencies (upper=reference, lower=query):" );
