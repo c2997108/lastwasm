@@ -147,9 +147,8 @@ void makeQualityScorers(){
 	twoQualityMatrix.init( m, lambda, lp1, lp2,
 			       isPhred1, offset1, isPhred2, offset2,
 			       alph.numbersToUppercase, false );
-      if( args.outputType > 3 ){
+      if( args.outputType > 3 )
         ERR( "fastq-versus-fastq column probabilities not implemented" );
-      }
     }
     else{
       warn("quality data not used for non-fastq query versus fastq reference");
