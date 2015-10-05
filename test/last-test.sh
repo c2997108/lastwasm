@@ -172,6 +172,11 @@ db=/tmp/last-test
     lastdb -pcR00 $db Q2LCP8.fa
     lastal -Q1 -pBL62 -F12 -D1000 $db sd-ccs-100.fq
     echo
+
+    echo TEST 35  # strand asymmetry
+    lastdb $db hg19-M.fa
+    lastal -S1 -pBISF -Q1 -e120 -f0 -j4 $db bs100.fastq
+    echo
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff last-test.out -
