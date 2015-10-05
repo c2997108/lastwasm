@@ -528,7 +528,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " i=" << batchSize;
   stream << " w=" << maxRepeatDistance;
   stream << " t=" << temperature;
-  stream << " g=" << gamma;
+  if( outputType > 4 && outputType < 7 )
+    stream << " g=" << gamma;
   stream << " j=" << outputType;
   stream << " Q=" << inputFormat;
   stream << '\n';

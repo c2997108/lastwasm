@@ -95,7 +95,7 @@ p                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TEST 2
 #
 # a=7 b=1 A=7 B=1 e=40 d=-1 x=39 y=9 z=39 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=1 w=0 t=0.910239 g=1 j=3 Q=0
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=1 w=0 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -132,7 +132,7 @@ TEST 2
 TEST 3
 #
 # a=7 b=1 A=7 B=1 e=-1 d=-1 x=0 y=0 z=0 D=1e+06 E=5.61703e+07
-# R=10 u=0 s=0 T=0 m=10 l=1 n=10 k=1 i=1 w=1000 t=-1 g=1 j=0 Q=0
+# R=10 u=0 s=0 T=0 m=10 l=1 n=10 k=1 i=1 w=1000 t=-1 j=0 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -175,7 +175,7 @@ chr32
 TEST 4
 #
 # a=9 b=9 A=9 B=9 e=90 d=-1 x=89 y=44 z=89 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=1048576 w=1000 t=4.36661 g=1 j=3 Q=1
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=1048576 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
@@ -262,7 +262,7 @@ q SRR001981.279                5(&%5.&%*$&-,7)+,*)-***2$I25D$37$II
 TEST 5
 #
 # a=11 b=2 A=11 B=2 F=12 e=40 d=40 x=39 y=31 z=39 D=1e+06 E=1.01833e+09
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=1 Q=0
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=1 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.354842 K=0.156005
@@ -346,7 +346,7 @@ s chrM   196 102 - 16775 LVSLGVSFVSLALFLVYLGGMLVVFVYSVSLAAD
 TEST 6
 #
 # a=7 b=1 A=7 B=1 e=18 d=13 x=17 y=9 z=17 D=1e+06 E=5.61703e+07
-# R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -373,7 +373,7 @@ TEST 6
 TEST 7
 #
 # a=500 b=50 A=500 B=50 e=2000 d=1428 x=1999 y=992 z=1999 D=1e+06 E=5.61703e+07
-# R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=99.2157 g=1 j=3 Q=0
+# R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=99.2157 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.00991067 K=0.062759
@@ -400,7 +400,7 @@ TEST 7
 TEST 8
 #
 # a=21 b=9 A=21 B=9 e=110 d=63 x=109 y=44 z=109 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3 Q=3
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.228526 K=0.433378
@@ -432,7 +432,7 @@ q HWW-E2:1:1:10:1477#0/1              aaaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^aaS\RMX]\
 TEST 9
 #
 # a=21 b=9 A=21 B=9 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3 Q=4
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=4
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.228526 K=0.433378
@@ -577,7 +577,7 @@ p                              $$$$$$%&&&&~~~~~~~~~~~~~~~
 TEST 11
 #
 # a=21 b=1 A=21 B=1 c=2 e=60 d=39 x=59 y=27 z=59 D=1e+06 E=2.80852e+07
-# R=10 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=2.73072 g=1 j=3 Q=0
+# R=10 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=2.73072 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.365408 K=0.245627
@@ -610,7 +610,7 @@ TEST 11
 TEST 12
 #
 # a=11 b=2 A=11 B=2 c=2 F=12 e=40 d=33 x=39 y=31 z=39 D=1e+06 E=1.01833e+09
-# R=10 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=3 Q=0
+# R=10 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.327048 K=0.105437
@@ -668,7 +668,7 @@ TEST 12
 TEST 13
 #
 # a=11 b=2 A=11 B=2 e=37 d=37 x=36 y=31 z=36 D=1e+06 E=2.03666e+09
-# R=10 u=2 s=1 T=0 m=100 l=1 n=100 k=1 i=8192 w=1000 t=3.08611 g=1 j=1 Q=0
+# R=10 u=2 s=1 T=0 m=100 l=1 n=100 k=1 i=8192 w=1000 t=3.08611 j=1 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.324032 K=0.140288
@@ -726,7 +726,7 @@ TEST 13
 TEST 14
 #
 # a=1 b=1 A=1 B=1 e=44 d=10 x=43 y=8 z=43 D=1e+06 E=2.18336e+07
-# R=10 u=0 s=0 T=0 m=100 l=1 n=100 k=1 i=8192 w=1000 t=0.750353 g=1 j=3 Q=1
+# R=10 u=0 s=0 T=0 m=100 l=1 n=100 k=1 i=8192 w=1000 t=0.750353 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
 # lambda=1.13866 K=0.257584
@@ -765,7 +765,7 @@ q S1_100              <i~'a;><q<f*`kduZ-LNlIBn@-2KH*~aLG44oC+H9]-A@9;WJ7.P~L?1h~
 TEST 15
 #
 # a=9 b=9 A=9 B=9 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.98063e+07
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3 Q=1
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test0
 # Reference sequences=1 normal letters=16775
 # lambda=0.22361 K=0.374766
@@ -804,7 +804,7 @@ TEST 15
 TEST 16
 #
 # a=7 b=1 A=7 B=1 e=18 d=12 x=17 y=9 z=17 D=1e+06 E=5.61703e+07
-# R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -831,7 +831,7 @@ TEST 16
 TEST 17
 #
 # a=7 b=1 A=7 B=1 e=18 d=13 x=17 y=9 z=17 D=1e+06 E=5.61703e+07
-# R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# R=10 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -858,7 +858,7 @@ TEST 17
 TEST 18
 #
 # a=9 b=9 A=9 B=9 e=60 d=60 x=59 y=44 z=59 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 T=1 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3 Q=1
+# R=10 u=0 s=2 T=1 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
@@ -888,7 +888,7 @@ TEST 18
 TEST 19
 #
 # a=9 b=9 A=9 B=9 e=60 d=60 x=59 y=44 z=59 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 T=1 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=4 Q=1
+# R=10 u=0 s=2 T=1 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=4 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
@@ -938,7 +938,7 @@ p                              ))*++,111.,()+,,,,,0/~~~~~~~~~~(&&&%).)
 TEST 20
 #
 # a=7 b=1 A=7 B=1 e=18 d=13 x=17 y=9 z=17 D=1e+06 E=5.61703e+07
-# R=10 u=0 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=7 Q=0
+# R=10 u=0 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=7 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -991,7 +991,7 @@ c 4.89 0.00223 0.25 0.93 2.08 8.23 2 0.247 0.963 3.26e-07 8.23 0.00218 0.711 0.9
 TEST 21
 #
 # a=7 b=1 A=7 B=1 e=34 d=11 x=33 y=9 z=33 D=1e+06 E=3.01732e+07
-# R=10 u=2 s=2 T=0 m=10 l=1 n=10 k=128 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# R=10 u=2 s=2 T=0 m=10 l=1 n=10 k=128 i=8192 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -1022,7 +1022,7 @@ TEST 21
 TEST 22
 #
 # a=400 b=30 A=400 B=30 e=4500 d=1177 x=4499 y=962 z=4499 D=1e+06 E=3.01732e+07
-# R=10 u=2 s=2 T=0 m=10 l=1 n=10 k=128 i=8192 w=1000 t=96.1735 g=1 j=3 Q=0
+# R=10 u=2 s=2 T=0 m=10 l=1 n=10 k=128 i=8192 w=1000 t=96.1735 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=0.00944633 K=0.095059
@@ -1049,7 +1049,7 @@ TEST 22
 TEST 23
 #
 # a=7 b=1 A=7 B=1 e=34 d=12 x=33 y=9 z=33 D=1e+06 E=3.01732e+07
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 C=2 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 C=2 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -1080,7 +1080,7 @@ TEST 23
 TEST 24
 #
 # a=7 b=1 A=7 B=1 e=34 d=12 x=33 y=9 z=33 D=1e+06 E=3.01732e+07
-# R=10 u=0 s=2 T=0 m=10 l=30 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# R=10 u=0 s=2 T=0 m=10 l=30 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -1110,7 +1110,7 @@ TEST 24
 TEST 25
 #
 # a=7 b=1 A=7 B=1 e=-1 d=-1 x=0 y=0 z=0 D=1e+06 E=5.61703e+07
-# R=10 u=0 s=0 T=0 m=10 l=4 L=11 n=10 k=1 i=8192 w=1000 t=-1 g=1 j=0 Q=0
+# R=10 u=0 s=0 T=0 m=10 l=4 L=11 n=10 k=1 i=8192 w=1000 t=-1 j=0 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -1146,7 +1146,7 @@ TEST 26
 TEST 27
 #
 # a=7 b=1 A=7 B=1 e=40 d=13 x=39 y=9 z=39 D=1e+06 E=2.80852e+07
-# R=01 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# R=01 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -1192,7 +1192,7 @@ s chrM 1742 281 + 16571 AGTATAGGCGATAGAAATTGAAACCT-GGCGCAATAGAT----ATAGTACCGCAAG
 TEST 28
 #
 # a=11 b=2 A=11 B=2 e=100 d=33 x=99 y=31 z=99 D=1e+06 E=2.03666e+09
-# R=01 u=2 s=1 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=3 Q=0
+# R=01 u=2 s=1 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.305935 K=0.102404
@@ -1239,7 +1239,7 @@ s sp|Q5GS15|NUON_WOLTR 16 405 + 465 LVLLLLGIVFNRRTINLLALGCTVITLIILI-LSAKDSGFFPFN
 TEST 29
 #
 # a=11 b=2 A=11 B=2 F=15 e=100 d=33 x=99 y=31 z=99 D=1e+06 E=1.01833e+09
-# R=01 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=3 Q=0
+# R=01 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.333888 K=0.115325
@@ -1287,7 +1287,7 @@ s chrM   5258 870 + 16775 LICTVSLIMGTSITISSNH*ILA*TGLEINTLAIIPLISKSHHPRAIEATIKYF
 TEST 30
 #
 # a=15 b=2 A=15 B=2 e=100 d=46 x=99 y=29 z=99 D=1e+06 E=1.66834e+07
-# R=02 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=2.9408 g=1 j=3 Q=0
+# R=02 u=2 s=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=2.9408 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=59940
 # lambda=0.336172 K=0.189772
@@ -1389,7 +1389,7 @@ s Pf3D7_01_v3  8300 748 - 59940 ATATTTATTCTTCTAATAATTTTATATATTGGAGTTTTTTCTTCAATT
 TEST 31
 #
 # a=15 b=3 A=15 B=3 e=80 d=63 x=79 y=44 z=79 D=1e+06 E=2.80852e+07
-# R=01 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3 Q=1
+# R=01 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.219611 K=0.335483
@@ -1418,7 +1418,7 @@ TEST 32
 lastal: quality data not used for non-fastq query versus fastq reference
 #
 # a=1 b=1 A=1 B=1 e=23 d=14 x=22 y=9 z=22 D=1000 E=1.09168e+10
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 g=1 j=3 Q=0
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
 # lambda=0.661467 K=0.0260716
@@ -1457,7 +1457,7 @@ TEST 33
 lastal: quality data not used for non-fastq query versus fastq reference
 #
 # a=1 b=9 A=1 B=9 e=75 d=67 x=74 y=44 z=74 D=100 E=1.09168e+11
-# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=3 Q=4
+# R=10 u=0 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=4
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
 # lambda=0.192713 K=0.203529
@@ -1516,7 +1516,7 @@ TEST 34
 lastal: quality data not used for DNA-versus-protein alignment
 #
 # a=11 b=2 A=11 B=2 F=12 e=36 d=33 x=35 y=31 z=35 D=1000 E=1.01833e+12
-# R=00 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 g=1 j=3 Q=1
+# R=00 u=2 s=2 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.327048 K=0.105437
