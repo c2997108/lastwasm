@@ -32,14 +32,6 @@ static double** makematrix(int m, int n, double val)
   return mat;
 }
 
-static double* makevector(int n, double val)
-{
-  double* vec = new double [n];
-  for (int i=0; i<n; i++)
-    vec[i] = val;
-  return vec;
-}
-
 static void deletematrix(double** a, int m)
 {
   for (int i=0; i<m; i++)
@@ -362,36 +354,32 @@ bool LambdaCalculator::check_lambda(double** matrix, double lambda, int alpha_si
 
   invert(m, y, alpha_size);
 
-  double *p = makevector(alpha_size, 0);
-  double *q = makevector(alpha_size, 0);
-
   for (int i=0; i<alpha_size; i++)
     {
+      double p = 0;
       for (int j=0;j<alpha_size; j++)
-        p[i] += y[i][j];
-      if (p[i] < 0 || p[i] > 1)
+        p += y[i][j];
+      if (p < 0 || p > 1)
         {
           letprob2.clear();
           return false;
         }
-      letprob2.push_back(roundToFewDigits(p[i]));
+      letprob2.push_back(roundToFewDigits(p));
     }
 
   for (int j=0; j<alpha_size; j++)
     {
+      double q = 0;
       for (int i=0; i<alpha_size; i++)
-        q[j] += y[i][j];
-      if (q[j] < 0 || q[j] > 1)
+        q += y[i][j];
+      if (q < 0 || q > 1)
         {
           letprob2.clear();
           letprob1.clear();
           return false;
         }
-      letprob1.push_back(roundToFewDigits(q[j]));
+      letprob1.push_back(roundToFewDigits(q));
     }
-
-  delete[] p;
-  delete[] q;
 
   deletematrix(m, alpha_size);
   deletematrix(y, alpha_size);

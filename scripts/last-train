@@ -27,7 +27,7 @@ def scaledMatrix(matrix, scaleIncrease):
     return matrix[0:1] + [i[0:1] + [int(j) * scaleIncrease for j in i[1:]]
                           for i in matrix[1:]]
 
-def countsFromLastOutput(lines, maxIdentity):
+def countsFromLastOutput(lines, opts):
     matrix = []
     matches = 0.0
     deletes = 0.0
@@ -45,7 +45,7 @@ def countsFromLastOutput(lines, maxIdentity):
                 matrix = [[0.0] * matrixSize for i in range(matrixSize)]
             identities = sum(c[i * matrixSize + i] for i in range(matrixSize))
             alignmentLength = c[-10] + c[-9] + c[-8]
-            if 100 * identities > maxIdentity * alignmentLength: continue
+            if 100 * identities > opts.pid * alignmentLength: continue
             for i in range(matrixSize):
                 for j in range(matrixSize):
                     if strand == "+":
@@ -234,7 +234,7 @@ def lastTrain(opts, args):
     while True:
         print "#", " ".join(x)
         print
-        matCounts, gapCounts = countsFromLastOutput(q.stdout, opts.pid)
+        matCounts, gapCounts = countsFromLastOutput(q.stdout, opts)
         gapProbs = gapProbsFromCounts(gapCounts, opts)
         gapCosts = gapCostsFromProbs(internalScale, gapProbs)
         printGapCosts(gapCosts)
