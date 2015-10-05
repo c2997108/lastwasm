@@ -3,6 +3,12 @@
 # Exercise LAST programs, and compare the output to a reference
 # output.  More tests should be added!
 
+try () {
+    echo TEST "$@"
+    eval "$@"
+    echo
+}
+
 cd $(dirname $0)
 
 # Make sure we use this version of LAST:
@@ -15,171 +21,135 @@ gc=../examples/vertebrateMito.gc
 db=/tmp/last-test
 
 {
-    echo TEST 1  # spaced seeds, soft-masking, centroid alignment, matrix file
+    # spaced seeds, soft-masking, centroid alignment, matrix file
     lastdb -c -m110 $db $dnaSeq
-    lastal -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 $db $dnaSeq
-    echo
+    try lastal -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 $db $dnaSeq
 
-    echo TEST 2  # multiple volumes & query batches
+    # multiple volumes & query batches
     lastdb -m1 -s1 $db $dnaSeq
-    lastal -f0 -i1 -w0 -e40 $db $dnaSeq
-    echo
+    try lastal -f0 -i1 -w0 -e40 $db $dnaSeq
 
-    echo TEST 3  # match-counting, with multiple query batches
-    lastal -j0 -i1 -s0 $db $dnaSeq
-    echo
+    # match-counting, with multiple query batches
+    try lastal -j0 -i1 -s0 $db $dnaSeq
 
-    echo TEST 4  # FASTQ quality scores
-    lastal -Q1 -e90 -a9 $db $fastq
-    echo
+    # FASTQ quality scores
+    try lastal -Q1 -e90 -a9 $db $fastq
 
-    echo TEST 5  # gapless translated alignment & genetic code file
+    # gapless translated alignment & genetic code file
     lastdb -p $db $protSeq
-    lastal -F12 -pBL62 -e40 -G $gc -j1 $db $dnaSeq
-    echo
+    try lastal -F12 -pBL62 -e40 -G $gc -j1 $db $dnaSeq
 
-    echo TEST 6  # subset seed file, soft-masking
+    # subset seed file, soft-masking
     lastdb -c -u ../data/YASS.seed $db $dnaSeq
-    lastal -s0 -f0 -e18 $db $dnaSeq
-    echo
+    try lastal -s0 -f0 -e18 $db $dnaSeq
 
-    echo TEST 7  # asymmetric scoring matrix
-    lastal -s0 -f0 -p asymmetric.mat -e2000 $db $dnaSeq
-    echo
+    # asymmetric scoring matrix
+    try lastal -s0 -f0 -p asymmetric.mat -e2000 $db $dnaSeq
 
-    echo TEST 8  # FASTQ-Illumina quality scores
+    # FASTQ-Illumina quality scores
     lastdb -m1111110 $db $dnaSeq
-    lastal -Q3 -e110 $db illumina100.txt
-    echo
+    try lastal -Q3 -e110 $db illumina100.txt
 
-    echo TEST 9  # PRB-format quality data
-    lastal -Q4 -e90 $db mouse_tss_prb.txt
-    echo
+    # PRB-format quality data
+    try lastal -Q4 -e90 $db mouse_tss_prb.txt
 
-    echo TEST 10  # probabilistic alignment with quality scores
-    lastal -Q1 -j6 -e90 -a9 $db $fastq
-    echo
+    # probabilistic alignment with quality scores
+    try lastal -Q1 -j6 -e90 -a9 $db $fastq
 
-    echo TEST 11  # sparse index, generalized affine gap costs
+    # sparse index, generalized affine gap costs
     lastdb -w2 -c $db $dnaSeq
-    lastal -r3 -q3 -a21 -c2 -e60 -f0 $db $dnaSeq
-    echo
+    try lastal -r3 -q3 -a21 -c2 -e60 -f0 $db $dnaSeq
 
-    echo TEST 12  # generalized affine gaps, frameshifts, tabular output
+    # generalized affine gaps, frameshifts, tabular output
     lastdb -p -c $db $protSeq
-    lastal -F12 -pBL62 -c2 -e40 -f0 $db $dnaSeq
-    echo
+    try lastal -F12 -pBL62 -c2 -e40 -f0 $db $dnaSeq
 
-    echo TEST 13  # gapless alignment, protein-protein alignment, seed freq
-    lastal -j1 -f0 -e37 -m100 $db $protSeq
-    echo
+    # gapless alignment, protein-protein alignment, seed freq
+    try lastal -j1 -f0 -e37 -m100 $db $protSeq
 
-    echo TEST 14  # fastq-versus-fastq, seed freq
+    # fastq-versus-fastq, seed freq
     lastdb -Q1 $db sd-ccs-100.fq
-    lastal -Q1 -r1 -q2 -a1 -b1 -e44 -m100 -s0 $db sd-ccs-100.fq
-    echo
+    try lastal -Q1 -r1 -q2 -a1 -b1 -e44 -m100 -s0 $db sd-ccs-100.fq
 
-    echo TEST 15  # incomplete sorting, lastal on one volume
+    # incomplete sorting, lastal on one volume
     lastdb -i10 -s1 $db $dnaSeq
-    lastal -Q1 -e90 -a9 -f0 ${db}0 $fastq
-    echo
+    try lastal -Q1 -e90 -a9 -f0 ${db}0 $fastq
 
-    echo TEST 16  # multiple seeds, transition constraints
+    # multiple seeds, transition constraints
     lastdb -c -m 11101T011T11,111001010010111 $db $dnaSeq
-    lastal -s0 -f0 -e18 $db $dnaSeq
-    echo
+    try lastal -s0 -f0 -e18 $db $dnaSeq
 
-    echo TEST 17  # Iedera notation
+    # Iedera notation
     lastdb -c -m '#@#--##--#-#' $db $dnaSeq
-    lastal -s0 -f0 -e18 $db $dnaSeq
-    echo
+    try lastal -s0 -f0 -e18 $db $dnaSeq
 
-    echo TEST 18  # overlap alignment, tabular output ending in gaps
+    # overlap alignment, tabular output ending in gaps
     lastdb -m1111110 $db $dnaSeq
-    lastal -T1 -Q1 -e60 -a9 -f0 $db $fastq
-    echo
+    try lastal -T1 -Q1 -e60 -a9 -f0 $db $fastq
 
-    echo TEST 19  # probabilistic overlap alignment
-    lastal -T1 -Q1 -e60 -a9 -j4 $db $fastq
-    echo
+    # probabilistic overlap alignment
+    try lastal -T1 -Q1 -e60 -a9 -j4 $db $fastq
 
-    echo TEST 20  # expected counts
-    lastal -s0 -e18 -j7 $db $dnaSeq
-    echo
+    # expected counts
+    try lastal -s0 -e18 -j7 $db $dnaSeq
 
-    echo TEST 21  # named multi-seed, sparse query seeding
+    # named multi-seed, sparse query seeding
     lastdb -c -uMAM8 $db hg19-M.fa
-    lastal -e34 -k128 -f0 $db galGal3-M-32.fa
-    echo
+    try lastal -e34 -k128 -f0 $db galGal3-M-32.fa
 
-    echo TEST 22  # named score matrix, sparse query seeding
-    lastal -pHOXD70 -e4500 -k128 -f0 $db galGal3-M-32.fa
-    echo
+    # named score matrix, sparse query seeding
+    try lastal -pHOXD70 -e4500 -k128 -f0 $db galGal3-M-32.fa
 
-    echo TEST 23  # MAM4, gapless alignment culling
+    # MAM4, gapless alignment culling
     lastdb -uMAM4 $db hg19-M.fa
-    lastal -e34 -C2 -f0 $db galGal3-M-32.fa
-    echo
+    try lastal -e34 -C2 -f0 $db galGal3-M-32.fa
 
-    echo TEST 24  # minimum seed length
-    lastal -e34 -f0 -l30 $db galGal3-M-32.fa
-    echo
+    # minimum seed length
+    try lastal -e34 -f0 -l30 $db galGal3-M-32.fa
 
-    echo TEST 25  # match-counting with min & max lengths
+    # match-counting with min & max lengths
     lastdb -m1 $db $dnaSeq
-    lastal -j0 -l4 -L11 -s0 $db $dnaSeq
-    echo
+    try lastal -j0 -l4 -L11 -s0 $db $dnaSeq
 
-    echo TEST 26
     lastdb -i10 $db tttttccccc.fa
-    lastal -e5 -f0 $db ttttt.fa | grep -v '^#'
-    echo
+    try lastal -e5 -f0 $db ttttt.fa | grep -v '^#'
 
-    echo TEST 27  # tantan masking on DNA
+    # tantan masking on DNA
     lastdb -cR01 $db galGal3-M-32.fa
-    lastal -e40 $db hg19-M.fa
-    echo
+    try lastal -e40 $db hg19-M.fa
 
-    echo TEST 28  # tantan masking on protein
+    # tantan masking on protein
     lastdb -pcR01 $db Q2LCP8.fa
-    lastal -e100 $db Q5GS15.fa
-    echo
+    try lastal -e100 $db Q5GS15.fa
 
-    echo TEST 29  # tantan masking for translated alignment
-    lastal -F15 -pBLOSUM62 -e100 $db galGal3-M-32.fa
-    echo
+    # tantan masking for translated alignment
+    try lastal -F15 -pBLOSUM62 -e100 $db galGal3-M-32.fa
 
-    echo TEST 30  # AT-rich DNA, tantan
+    # AT-rich DNA, tantan
     lastdb -cR02 $db at-rich.fa
-    lastal -pAT77 -e100 -s0 $db at-rich.fa
-    echo
+    try lastal -pAT77 -e100 -s0 $db at-rich.fa
 
-    echo TEST 31  # fastq + tantan
+    # fastq + tantan
     lastdb -R01 $db $dnaSeq
-    lastal -Q1 -a15 -b3 -e80 $db nano.fq
-    echo
+    try lastal -Q1 -a15 -b3 -e80 $db nano.fq
 
-    echo TEST 32  # fasta query versus fastq reference
+    # fasta query versus fastq reference
     lastdb -Q1 $db sd-ccs-100.fq
-    lastal -a1 -D1000 $db galGal3-M-32.fa
-    echo
+    try lastal -a1 -D1000 $db galGal3-M-32.fa
 
-    echo TEST 33  # prb query versus fastq reference
-    lastal -Q4 -a1 -D100 $db mouse_tss_prb.txt
-    echo
+    # prb query versus fastq reference
+    try lastal -Q4 -a1 -D100 $db mouse_tss_prb.txt
 
-    echo TEST 34  # fastq DNA versus protein
+    # fastq DNA versus protein
     lastdb -pcR00 $db Q2LCP8.fa
-    lastal -Q1 -pBL62 -F12 -D1000 $db sd-ccs-100.fq
-    echo
+    try lastal -Q1 -pBL62 -F12 -D1000 $db sd-ccs-100.fq
 
-    echo TEST 35  # strand asymmetry
+    # strand asymmetry
     lastdb $db hg19-M.fa
-    lastal -S1 -pBISF -Q1 -e120 -f0 -j4 $db bs100.fastq
-    echo
+    try lastal -S1 -pBISF -Q1 -e120 -f0 -j4 $db bs100.fastq
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
-diff last-test.out -
+diff -u last-test.out -
 
 # Test: last-bisulfite, last-merge-batches, last-split, named seeds
 lastdb -uBISF f hg19-M.fa
@@ -187,9 +157,9 @@ lastdb -uBISR r hg19-M.fa
 ../examples/last-bisulfite.sh f r bs100.fastq | grep -v '^#' | diff bs100.maf -
 rm f.* r.*
 
-./maf-convert-test.sh
-
 ./last-pair-test.sh
+./last-split-test.sh
+./maf-convert-test.sh
 
 # Test: lastdb, lastal, last-split, maf-sort, maf-join
 cd ../examples
