@@ -48,7 +48,7 @@ def countsFromLastOutput(lines, opts):
             if 100 * identities > opts.pid * alignmentLength: continue
             for i in range(matrixSize):
                 for j in range(matrixSize):
-                    if strand == "+":
+                    if strand == "+" or opts.S == "0":
                         matrix[i][j]       += c[i * matrixSize + j]
                     else:
                         matrix[-1-i][-1-j] += c[i * matrixSize + j]
@@ -200,6 +200,7 @@ def fixedLastalArgs(opts):
     x = ["lastal", "-j7"]
     if opts.D: x.append("-D" + opts.D)
     if opts.E: x.append("-E" + opts.E)
+    if opts.S: x.append("-S" + opts.S)
     if opts.T: x.append("-T" + opts.T)
     if opts.Q: x.append("-Q" + opts.Q)
     return x
@@ -261,6 +262,7 @@ def lastTrain(opts, args):
 
     gapCosts = gapCostsFromProbs(externalScale, gapProbs)
     writeGapCosts(gapCosts, sys.stdout)
+    writeLine(sys.stdout, "#last -S", opts.S)
     if not opts.Q:
         matScores = matScoresFromProbs(externalScale, matProbs)
         externalMatrix = matrixWithLetters(matScores)
@@ -300,6 +302,9 @@ if __name__ == "__main__":
     og.add_option("-E", metavar="EG2",
                   help="maximum expected alignments per square giga")
     # -s, -m: lastal or last-split ?
+    og.add_option("-S", metavar="NUMBER", default="1", help=
+                  "score matrix applies to forward strand of: " +
+                  "0=reference, 1=query (default: %default)")
     og.add_option("-T", metavar="NUMBER",
                   help="type of alignment: 0=local, 1=overlap (default: 0)")
     og.add_option("-Q", metavar="NUMBER",

@@ -192,6 +192,15 @@ Miscellaneous Options
       Specify which query strand should be used: 0 means reverse only,
       1 means forward only, and 2 means both.
 
+  -S NUMBER
+      Specify which DNA strand the score matrix applies to.  This
+      matters only for unusual matrices that lack strand symmetry
+      (e.g. if the a:g score differs from the t:c score).  0 means
+      that the matrix applies to the forward strand of the reference
+      aligned to either strand of the query.  1 means that the matrix
+      applies to either strand of the reference aligned to the forward
+      strand of the query.
+
   -T NUMBER
       Type of alignment: 0 means "local alignment" and 1 means
       "overlap alignment".  Local alignments can end anywhere in the

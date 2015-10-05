@@ -57,6 +57,9 @@ Alignment options
 
   -D LENGTH  Query letters per random alignment.
   -E EG2     Maximum expected alignments per square giga.
+  -S NUMBER  Score matrix applies to forward strand of: 0=reference,
+             1=query.  This matters only if the scores lack
+             reverse-complement symmetry.
   -T NUMBER  Type of alignment: 0=local, 1=overlap.
   -Q NUMBER  Query sequence format: 0=fasta, 1=fastq-sanger.
              **Important:** if you use option -Q, last-train will only
