@@ -63,13 +63,13 @@ namespace {
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
-  OneQualityScoreMatrix oneQualityScoreMatrix;
-  OneQualityScoreMatrix oneQualityScoreMatrixMasked;
+  OneQualityScoreMatrix oneQualityMatrix;
+  OneQualityScoreMatrix oneQualityMatrixMasked;
   OneQualityExpMatrix oneQualityExpMatrix;
   QualityPssmMaker qualityPssmMaker;
   sequenceFormat::Enum referenceFormat;  // defaults to 0
-  TwoQualityScoreMatrix twoQualityScoreMatrix;
-  TwoQualityScoreMatrix twoQualityScoreMatrixMasked;
+  TwoQualityScoreMatrix twoQualityMatrix;
+  TwoQualityScoreMatrix twoQualityMatrixMasked;
   int minScoreGapless;
   int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
   unsigned numOfIndexes = 1;  // assume this value, if unspecified
@@ -115,15 +115,15 @@ void makeQualityScorers(){
     if( isFastq( args.inputFormat ) ){
       LOG( "calculating per-quality scores..." );
       if( args.maskLowercase > 0 )
-        oneQualityScoreMatrixMasked.init( m, alph.size, lambda,
-                                          lp2, isPhred2, offset2,
-                                          alph.numbersToUppercase, true );
+	oneQualityMatrixMasked.init( m, alph.size, lambda,
+				     lp2, isPhred2, offset2,
+				     alph.numbersToUppercase, true );
       if( args.maskLowercase < 3 )
-        oneQualityScoreMatrix.init( m, alph.size, lambda,
-                                    lp2, isPhred2, offset2,
-                                    alph.numbersToUppercase, false );
+	oneQualityMatrix.init( m, alph.size, lambda,
+			       lp2, isPhred2, offset2,
+			       alph.numbersToUppercase, false );
       const OneQualityScoreMatrix &q = (args.maskLowercase < 3) ?
-	oneQualityScoreMatrix : oneQualityScoreMatrixMasked;
+	oneQualityMatrix : oneQualityMatrixMasked;
       if( args.outputType > 3 )
         oneQualityExpMatrix.init( q, args.temperature );
       if( args.verbosity > 0 )
@@ -140,13 +140,13 @@ void makeQualityScorers(){
   else{
     if( isFastq( args.inputFormat ) ){
       if( args.maskLowercase > 0 )
-        twoQualityScoreMatrixMasked.init( m, lambda, lp1, lp2,
-                                          isPhred1, offset1, isPhred2, offset2,
-                                          alph.numbersToUppercase, true);
+	twoQualityMatrixMasked.init( m, lambda, lp1, lp2,
+				     isPhred1, offset1, isPhred2, offset2,
+				     alph.numbersToUppercase, true);
       if( args.maskLowercase < 3 )
-        twoQualityScoreMatrix.init( m, lambda, lp1, lp2,
-                                    isPhred1, offset1, isPhred2, offset2,
-                                    alph.numbersToUppercase, false );
+	twoQualityMatrix.init( m, lambda, lp1, lp2,
+			       isPhred1, offset1, isPhred2, offset2,
+			       alph.numbersToUppercase, false );
       if( args.outputType > 3 ){
         ERR( "fastq-versus-fastq column probabilities not implemented" );
       }
@@ -348,7 +348,7 @@ struct Dispatcher{
       m( (e < args.maskLowercase) ?
          scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive ),
       t( (e < args.maskLowercase) ?
-         twoQualityScoreMatrixMasked : twoQualityScoreMatrix ),
+	 twoQualityMatrixMasked : twoQualityMatrix ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
          (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
       z( t ? 2 : p ? 1 : 0 ){}
@@ -584,7 +584,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
   }
 }
 
-void makeQualityPssm( bool isApplyMasking ){
+void makeQualityPssm( bool isMask ){
   if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
   if( args.isTranslated() ) return;
 
@@ -597,11 +597,11 @@ void makeQualityPssm( bool isApplyMasking ){
   int *pssm = *query.pssmWriter();
 
   if( args.inputFormat == sequenceFormat::prb ){
-    qualityPssmMaker.make( seqBeg, seqEnd, q, pssm, isApplyMasking );
+    qualityPssmMaker.make( seqBeg, seqEnd, q, pssm, isMask );
   }
   else {
     const OneQualityScoreMatrix &m =
-        isApplyMasking ? oneQualityScoreMatrixMasked : oneQualityScoreMatrix;
+      isMask ? oneQualityMatrixMasked : oneQualityMatrix;
     makePositionSpecificScoreMatrix( m, seqBeg, seqEnd, q, pssm );
   }
 }
@@ -613,8 +613,8 @@ void scan( char strand, std::ostream& out ){
     return;
   }
 
-  bool isApplyMasking = (args.maskLowercase > 0);
-  makeQualityPssm(isApplyMasking);
+  bool isMask = (args.maskLowercase > 0);
+  makeQualityPssm(isMask);
 
   LOG( "scanning..." );
 
