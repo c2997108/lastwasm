@@ -326,6 +326,18 @@ void countMatches( char strand ){
   }
 }
 
+const ScoreMatrixRow *getScoreMatrix(bool isMask) {
+  return isMask ? scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive;
+}
+
+const OneQualityScoreMatrix &getOneQualityMatrix(bool isMask) {
+  return isMask ? oneQualityMatrixMasked : oneQualityMatrix;
+}
+
+const TwoQualityScoreMatrix &getTwoQualityMatrix(bool isMask) {
+  return isMask ? twoQualityMatrixMasked : twoQualityMatrix;
+}
+
 namespace Phase{ enum Enum{ gapless, gapped, final }; }
 
 struct Dispatcher{
@@ -345,10 +357,8 @@ struct Dispatcher{
       i( text.qualityReader() ),
       j( query.qualityReader() ),
       p( query.pssmReader() ),
-      m( (e < args.maskLowercase) ?
-         scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive ),
-      t( (e < args.maskLowercase) ?
-	 twoQualityMatrixMasked : twoQualityMatrix ),
+      m( getScoreMatrix( e < args.maskLowercase ) ),
+      t( getTwoQualityMatrix( e < args.maskLowercase ) ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
          (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
       z( t ? 2 : p ? 1 : 0 ){}
@@ -600,8 +610,7 @@ void makeQualityPssm( bool isMask ){
     qualityPssmMaker.make( seqBeg, seqEnd, q, pssm, isMask );
   }
   else {
-    const OneQualityScoreMatrix &m =
-      isMask ? oneQualityMatrixMasked : oneQualityMatrix;
+    const OneQualityScoreMatrix &m = getOneQualityMatrix(isMask);
     makePositionSpecificScoreMatrix( m, seqBeg, seqEnd, q, pssm );
   }
 }
