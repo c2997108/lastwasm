@@ -526,6 +526,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " R=" << isKeepLowercase << tantanSetting;
   stream << " u=" << maskLowercase;
   stream << " s=" << strand;
+  stream << " S=" << isQueryStrandMatrix;
   stream << " T=" << globality;
   stream << " m=" << oneHitMultiplicity;
   stream << " l=" << minHitDepth;
