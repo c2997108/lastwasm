@@ -57,6 +57,7 @@ struct LastalArguments{
   int outputFormat;
   int outputType;
   int strand;
+  bool isQueryStrandMatrix;
   int globality;  // type of alignment: local, semi-global, etc.
   bool isKeepLowercase;
   int tantanSetting;

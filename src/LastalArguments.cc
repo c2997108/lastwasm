@@ -33,6 +33,7 @@ LastalArguments::LastalArguments() :
   outputFormat(1),
   outputType(3),
   strand(-1),  // depends on the alphabet
+  isQueryStrandMatrix(false),
   globality(0),
   isKeepLowercase(true),  // depends on the option used with lastdb
   tantanSetting(-1),  // depends on the option used with lastdb
@@ -104,6 +105,8 @@ Cosmetic options (default settings):\n\
 \n\
 Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
+-S: score matrix applies to forward strand of: 0=reference, 1=query ("
+    + stringify(isQueryStrandMatrix) + ")\n\
 -T: type of alignment: 0=local, 1=overlap ("
     + stringify(globality) + ")\n\
 -m: maximum initial matches per query position ("
@@ -140,7 +143,8 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] =
-    "hVR:u:s:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:D:E:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:";
+    "hVR:u:s:S:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:D:E:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:"
+    ;
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -165,6 +169,9 @@ LAST home page: http://last.cbrc.jp/\n\
     case 's':
       unstringify( strand, optarg );
       if( strand < 0 || strand > 2 ) badopt( c, optarg );
+      break;
+    case 'S':
+      unstringify( isQueryStrandMatrix, optarg );
       break;
     case 'f':
       unstringify( outputFormat, optarg );
@@ -310,6 +317,9 @@ LAST home page: http://last.cbrc.jp/\n\
 
   if( isTranslated() && globality == 1 )
     ERR( "can't combine option -F with option -T 1" );
+
+  if( isTranslated() && isQueryStrandMatrix )
+    ERR( "can't combine option -F with option -S 1" );
 
   if( globality == 1 && outputType == 1 )
     ERR( "can't combine option -T 1 with option -j 1" );

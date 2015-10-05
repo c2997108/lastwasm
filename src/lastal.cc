@@ -55,6 +55,8 @@ namespace {
   const unsigned maxNumOfIndexes = 16;
   SubsetSuffixArray suffixArrays[maxNumOfIndexes];
   ScoreMatrix scoreMatrix;
+  int scoreMatrixRev[scoreMatrixRowSize][scoreMatrixRowSize];
+  int scoreMatrixRevMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   GeneralizedAffineGapCosts gapCosts;
   GappedXdropAligner gappedXdropAligner;
   Centroid centroid( gappedXdropAligner );
@@ -65,14 +67,26 @@ namespace {
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   OneQualityScoreMatrix oneQualityMatrix;
   OneQualityScoreMatrix oneQualityMatrixMasked;
+  OneQualityScoreMatrix oneQualityMatrixRev;
+  OneQualityScoreMatrix oneQualityMatrixRevMasked;
   OneQualityExpMatrix oneQualityExpMatrix;
+  OneQualityExpMatrix oneQualityExpMatrixRev;
   QualityPssmMaker qualityPssmMaker;
+  QualityPssmMaker qualityPssmMakerRev;
   sequenceFormat::Enum referenceFormat;  // defaults to 0
   TwoQualityScoreMatrix twoQualityMatrix;
   TwoQualityScoreMatrix twoQualityMatrixMasked;
+  TwoQualityScoreMatrix twoQualityMatrixRev;
+  TwoQualityScoreMatrix twoQualityMatrixRevMasked;
   int minScoreGapless;
   int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
   unsigned numOfIndexes = 1;  // assume this value, if unspecified
+}
+
+void complementMatrix(const ScoreMatrixRow *from, ScoreMatrixRow *to) {
+  for (unsigned i = 0; i < scoreMatrixRowSize; ++i)
+    for (unsigned j = 0; j < scoreMatrixRowSize; ++j)
+      to[i][j] = from[alph.complement[i]][alph.complement[j]];
 }
 
 // Set up a scoring matrix, based on the user options
@@ -95,6 +109,17 @@ void makeScoreMatrix( const std::string& matrixName,
   if( args.inputFormat == sequenceFormat::pssm ) scoreMatrix.maxScore = 10000;
   // This would work, except the maxDrops aren't finalized yet:
   // maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
+
+  if( args.isQueryStrandMatrix && args.strand != 1 ){
+    complementMatrix( scoreMatrix.caseInsensitive, scoreMatrixRev );
+    complementMatrix( scoreMatrix.caseSensitive, scoreMatrixRevMasked );
+  }
+}
+
+void permuteComplement(const double *from, double *to) {
+  if (from)
+    for (unsigned i = 0; i < alph.size; ++i)
+      to[i] = from[alph.complement[i]];
 }
 
 void makeQualityScorers(){
@@ -110,6 +135,12 @@ void makeQualityScorers(){
   const double* lp2 = lambdaCalculator.letterProbs2();
   bool isPhred2 = isPhred( args.inputFormat );
   int offset2 = qualityOffset( args.inputFormat );
+
+  const ScoreMatrixRow* mRev = scoreMatrixRev;
+  double lp1rev[scoreMatrixRowSize];
+  permuteComplement( lp1, lp1rev );
+  double lp2rev[scoreMatrixRowSize];
+  permuteComplement( lp2, lp2rev );
 
   if( referenceFormat == sequenceFormat::fasta ){
     if( isFastq( args.inputFormat ) ){
@@ -129,12 +160,30 @@ void makeQualityScorers(){
       if( args.verbosity > 0 )
 	writeOneQualityScoreMatrix( q, alph.letters.c_str(),
 				    offset2, std::cerr );
+      if( args.isQueryStrandMatrix && args.strand != 1 ){
+	if( args.maskLowercase > 0 )
+	  oneQualityMatrixRevMasked.init( mRev, alph.size, lambda,
+					  lp2rev, isPhred2, offset2,
+					  alph.numbersToUppercase, true );
+	if( args.maskLowercase < 3 )
+	  oneQualityMatrixRev.init( mRev, alph.size, lambda,
+				    lp2rev, isPhred2, offset2,
+				    alph.numbersToUppercase, false );
+	const OneQualityScoreMatrix &qRev = (args.maskLowercase < 3) ?
+	  oneQualityMatrixRev : oneQualityMatrixRevMasked;
+	if( args.outputType > 3 )
+	  oneQualityExpMatrixRev.init( qRev, args.temperature );
+      }
     }
     else if( args.inputFormat == sequenceFormat::prb ){
       bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
       qualityPssmMaker.init( m, alph.size, lambda, isMatchMismatch,
                              args.matchScore, -args.mismatchCost,
                              offset2, alph.numbersToUppercase );
+      if( args.isQueryStrandMatrix && args.strand != 1 )
+	qualityPssmMakerRev.init( mRev, alph.size, lambda, isMatchMismatch,
+				  args.matchScore, -args.mismatchCost,
+				  offset2, alph.numbersToUppercase );
     }
   }
   else{
@@ -149,6 +198,16 @@ void makeQualityScorers(){
 			       alph.numbersToUppercase, false );
       if( args.outputType > 3 )
         ERR( "fastq-versus-fastq column probabilities not implemented" );
+      if( args.isQueryStrandMatrix && args.strand != 1 ){
+	if( args.maskLowercase > 0 )
+	  twoQualityMatrixRevMasked.init( mRev, lambda, lp1rev, lp2rev,
+					  isPhred1, offset1, isPhred2, offset2,
+					  alph.numbersToUppercase, true );
+	if( args.maskLowercase < 3 )
+	  twoQualityMatrixRev.init( mRev, lambda, lp1rev, lp2rev,
+				    isPhred1, offset1, isPhred2, offset2,
+				    alph.numbersToUppercase, false );
+      }
     }
     else{
       warn("quality data not used for non-fastq query versus fastq reference");
@@ -325,16 +384,39 @@ void countMatches( char strand ){
   }
 }
 
-const ScoreMatrixRow *getScoreMatrix(bool isMask) {
-  return isMask ? scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive;
+const ScoreMatrixRow *getScoreMatrix(char strand, bool isMask) {
+  if (strand == '+' || !args.isQueryStrandMatrix)
+    return isMask ? scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive;
+  else
+    return isMask ? scoreMatrixRevMasked : scoreMatrixRev;
 }
 
-const OneQualityScoreMatrix &getOneQualityMatrix(bool isMask) {
-  return isMask ? oneQualityMatrixMasked : oneQualityMatrix;
+const OneQualityScoreMatrix &getOneQualityMatrix(char strand, bool isMask) {
+  if (strand == '+' || !args.isQueryStrandMatrix)
+    return isMask ? oneQualityMatrixMasked : oneQualityMatrix;
+  else
+    return isMask ? oneQualityMatrixRevMasked : oneQualityMatrixRev;
 }
 
-const TwoQualityScoreMatrix &getTwoQualityMatrix(bool isMask) {
-  return isMask ? twoQualityMatrixMasked : twoQualityMatrix;
+const TwoQualityScoreMatrix &getTwoQualityMatrix(char strand, bool isMask) {
+  if (strand == '+' || !args.isQueryStrandMatrix)
+    return isMask ? twoQualityMatrixMasked : twoQualityMatrix;
+  else
+    return isMask ? twoQualityMatrixRevMasked : twoQualityMatrixRev;
+}
+
+const OneQualityExpMatrix &getOneQualityExpMatrix(char strand) {
+  if (strand == '+' || !args.isQueryStrandMatrix)
+    return oneQualityExpMatrix;
+  else
+    return oneQualityExpMatrixRev;
+}
+
+const QualityPssmMaker &getQualityPssmMaker(char strand) {
+  if (strand == '+' || !args.isQueryStrandMatrix)
+    return qualityPssmMaker;
+  else
+    return qualityPssmMakerRev;
 }
 
 namespace Phase{ enum Enum{ gapless, gapped, final }; }
@@ -350,14 +432,14 @@ struct Dispatcher{
   int d;  // the maximum score drop
   int z;
 
-  Dispatcher( Phase::Enum e ) :
+  Dispatcher( Phase::Enum e, char strand ) :
       a( text.seqReader() ),
       b( query.seqReader() ),
       i( text.qualityReader() ),
       j( query.qualityReader() ),
       p( query.pssmReader() ),
-      m( getScoreMatrix( e < args.maskLowercase ) ),
-      t( getTwoQualityMatrix( e < args.maskLowercase ) ),
+      m( getScoreMatrix( strand, e < args.maskLowercase ) ),
+      t( getTwoQualityMatrix( strand, e < args.maskLowercase ) ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
          (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
       z( t ? 2 : p ? 1 : 0 ){}
@@ -402,7 +484,7 @@ struct Dispatcher{
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( SegmentPairPot& gaplessAlns,
 		   char strand, std::ostream& out ){
-  Dispatcher dis( Phase::gapless );
+  Dispatcher dis( Phase::gapless, strand );
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
@@ -478,8 +560,8 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
 
 // Do gapped extensions of the gapless alignments
 void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
-                  Phase::Enum phase ){
-  Dispatcher dis(phase);
+                  char strand, Phase::Enum phase ){
+  Dispatcher dis( phase, strand );
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
@@ -553,14 +635,14 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( const AlignmentPot& gappedAlns,
 		  char strand, std::ostream& out ){
-  Dispatcher dis( Phase::final );
+  Dispatcher dis( Phase::final, strand );
   indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
 
   if( args.outputType > 3 ){
     if( dis.p ){
       LOG( "exponentiating PSSM..." );
       centroid.setPssm( dis.p, query.finishedSize(), args.temperature,
-                        oneQualityExpMatrix, dis.b, dis.j );
+                        getOneQualityExpMatrix(strand), dis.b, dis.j );
     }
     else{
       centroid.setScoreMatrix( dis.m, args.temperature );
@@ -593,7 +675,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
   }
 }
 
-void makeQualityPssm( bool isMask ){
+void makeQualityPssm( char strand, bool isMask ){
   if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
   if( args.isTranslated() ) return;
 
@@ -606,10 +688,11 @@ void makeQualityPssm( bool isMask ){
   int *pssm = *query.pssmWriter();
 
   if( args.inputFormat == sequenceFormat::prb ){
-    qualityPssmMaker.make( seqBeg, seqEnd, q, pssm, isMask );
+    const QualityPssmMaker &m = getQualityPssmMaker( strand );
+    m.make( seqBeg, seqEnd, q, pssm, isMask );
   }
   else {
-    const OneQualityScoreMatrix &m = getOneQualityMatrix(isMask);
+    const OneQualityScoreMatrix &m = getOneQualityMatrix( strand, isMask );
     makePositionSpecificScoreMatrix( m, seqBeg, seqEnd, q, pssm );
   }
 }
@@ -622,7 +705,7 @@ void scan( char strand, std::ostream& out ){
   }
 
   bool isMask = (args.maskLowercase > 0);
-  makeQualityPssm(isMask);
+  makeQualityPssm( strand, isMask );
 
   LOG( "scanning..." );
 
@@ -630,18 +713,18 @@ void scan( char strand, std::ostream& out ){
   alignGapless( gaplessAlns, strand, out );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
-  if( args.maskLowercase == 1 ) makeQualityPssm(false);
+  if( args.maskLowercase == 1 ) makeQualityPssm( strand, false );
 
   AlignmentPot gappedAlns;
 
   if( args.maskLowercase == 2 || args.maxDropFinal != args.maxDropGapped ){
-    alignGapped( gappedAlns, gaplessAlns, Phase::gapped );
+    alignGapped( gappedAlns, gaplessAlns, strand, Phase::gapped );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
-  if( args.maskLowercase == 2 ) makeQualityPssm(false);
+  if( args.maskLowercase == 2 ) makeQualityPssm( strand, false );
 
-  alignGapped( gappedAlns, gaplessAlns, Phase::final );
+  alignGapped( gappedAlns, gaplessAlns, strand, Phase::final );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
