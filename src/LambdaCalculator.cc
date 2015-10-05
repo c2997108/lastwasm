@@ -88,6 +88,7 @@ static bool lu_pivoting(double** a, int* idx, int n)
   for (int i=0; i<n; i++)
     {
       v = max_index(a, n, i);
+      assert(v >= 0);
       if (fabs(a[v][i]) < 1e-10)
         {
           return false; // singular matrix!
@@ -244,6 +245,8 @@ bool LambdaCalculator::find_ub(double **matrix, int alpha_size, double *ub)
         c_max_min = c_max;
     }
 
+  if (l_r == alpha_size) return false;
+
   // the multiplication by 1.1 is sometimes necessary, presumably to
   // prevent the upper bound from being too tight:
   if (r_max_min > c_max_min)
@@ -388,7 +391,8 @@ bool LambdaCalculator::check_lambda(double** matrix, double lambda, int alpha_si
 }
 
 void LambdaCalculator::calculate( const int matrix[MAT][MAT], int alphSize ){
-  assert( alphSize < MAT );
+  assert(alphSize >= 0);
+  assert(alphSize < MAT);
   setBad();
 
   int maxiter = 1000;
