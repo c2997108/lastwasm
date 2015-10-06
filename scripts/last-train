@@ -200,8 +200,10 @@ def fixedLastalArgs(opts):
     x = ["lastal", "-j7"]
     if opts.D: x.append("-D" + opts.D)
     if opts.E: x.append("-E" + opts.E)
+    if opts.s: x.append("-s" + opts.s)
     if opts.S: x.append("-S" + opts.S)
     if opts.T: x.append("-T" + opts.T)
+    if opts.m: x.append("-m" + opts.m)
     if opts.Q: x.append("-Q" + opts.Q)
     return x
 
@@ -262,7 +264,8 @@ def lastTrain(opts, args):
 
     gapCosts = gapCostsFromProbs(externalScale, gapProbs)
     writeGapCosts(gapCosts, sys.stdout)
-    writeLine(sys.stdout, "#last -S", opts.S)
+    if opts.s: writeLine(sys.stdout, "#last -s", opts.s)
+    if opts.S: writeLine(sys.stdout, "#last -S", opts.S)
     if not opts.Q:
         matScores = matScoresFromProbs(externalScale, matProbs)
         externalMatrix = matrixWithLetters(matScores)
@@ -301,12 +304,15 @@ if __name__ == "__main__":
                   help="query letters per random alignment (default: 1e6)")
     og.add_option("-E", metavar="EG2",
                   help="maximum expected alignments per square giga")
-    # -s, -m: lastal or last-split ?
+    og.add_option("-s", metavar="STRAND", help=
+                  "0=reverse, 1=forward, 2=both (default: 2 if DNA, else 1)")
     og.add_option("-S", metavar="NUMBER", default="1", help=
                   "score matrix applies to forward strand of: " +
                   "0=reference, 1=query (default: %default)")
     og.add_option("-T", metavar="NUMBER",
                   help="type of alignment: 0=local, 1=overlap (default: 0)")
+    og.add_option("-m", metavar="COUNT", help=
+                  "maximum initial matches per query position (default: 10)")
     og.add_option("-Q", metavar="NUMBER",
                   help="input format: 0=fasta, 1=fastq-sanger")
     op.add_option_group(og)
