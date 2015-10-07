@@ -62,7 +62,9 @@ def countsFromLastOutput(lines, opts):
     return matrix, gapCounts
 
 def scoreFromProb(scale, prob):
-    return int(round(scale * math.log(prob)))
+    if prob > 0: logProb = math.log(prob)
+    else:        logProb = -800  # exp(-800) is exactly zero, on my computer
+    return int(round(scale * logProb))
 
 def costFromProb(scale, prob):
     return -scoreFromProb(scale, prob)
@@ -105,13 +107,17 @@ def gapProbsFromCounts(counts, opts):
     if opts.gapsym:
         delOpenProb = gapOpens / denominator / 2
         insOpenProb = gapOpens / denominator / 2
-        delExtendProb = (gaps - gapOpens) / gaps
-        insExtendProb = (gaps - gapOpens) / gaps
+        if gaps > 0: delExtendProb = (gaps - gapOpens) / gaps
+        else:        delExtendProb = 0.5  # arbitrary
+        if gaps > 0: insExtendProb = (gaps - gapOpens) / gaps
+        else:        insExtendProb = 0.5  # arbitrary
     else:
         delOpenProb = delOpens / denominator
         insOpenProb = insOpens / denominator
-        delExtendProb = (deletes - delOpens) / deletes
-        insExtendProb = (inserts - insOpens) / inserts
+        if deletes > 0: delExtendProb = (deletes - delOpens) / deletes
+        else:           delExtendProb = 0.5  # arbitrary
+        if inserts > 0: insExtendProb = (inserts - insOpens) / inserts
+        else:           insExtendProb = 0.5  # arbitrary
 
     print "# aligned letter pairs:", matches
     print "# deletes:", deletes
@@ -119,8 +125,8 @@ def gapProbsFromCounts(counts, opts):
     print "# delOpens:", delOpens
     print "# insOpens:", insOpens
     print "# alignments:", alignments
-    print "# mean delete size: %g" % (deletes / delOpens)
-    print "# mean insert size: %g" % (inserts / insOpens)
+    if delOpens: print "# mean delete size: %g" % (deletes / delOpens)
+    if insOpens: print "# mean insert size: %g" % (inserts / insOpens)
     print "# delOpenProb: %g" % delOpenProb
     print "# insOpenProb: %g" % insOpenProb
     print "# delExtendProb: %g" % delExtendProb
