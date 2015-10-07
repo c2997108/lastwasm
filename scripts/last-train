@@ -193,8 +193,9 @@ def printGapCosts(gapCosts):
 
 def tryToMakeChildProgramsFindable():
     myDir = os.path.dirname(__file__)
-    srcDir = myDir + "/../src"
-    os.environ["PATH"] += ":" + srcDir
+    srcDir = os.path.join(myDir, os.pardir, "src")
+    # put srcDir first, to avoid getting older versions of LAST:
+    os.environ["PATH"] = srcDir + os.pathsep + os.environ["PATH"]
 
 def fixedLastalArgs(opts):
     x = ["lastal", "-j7"]
