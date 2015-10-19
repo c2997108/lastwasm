@@ -205,6 +205,30 @@ seq_pix1, seq_starts1, width  = get_pix_info(seq_sizes1, margin1)
 seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, margin2)
 seq_start_dic1 = dict(zip(seq_names1, seq_starts1))
 seq_start_dic2 = dict(zip(seq_names2, seq_starts2))
+
+def drawLineForward(hits, width, bp_per_pix, origin, beg1, beg2, size):
+    while True:
+        q1, r1 = divmod(beg1, bp_per_pix)
+        q2, r2 = divmod(beg2, bp_per_pix)
+        hits[origin + q2 * width + q1] |= 1
+        next_pix = min(bp_per_pix - r1, bp_per_pix - r2)
+        if next_pix >= size: break
+        beg1 += next_pix
+        beg2 += next_pix
+        size -= next_pix
+
+def drawLineReverse(hits, width, bp_per_pix, origin, beg1, beg2, size):
+    beg2 = -1 - beg2
+    while True:
+        q1, r1 = divmod(beg1, bp_per_pix)
+        q2, r2 = divmod(beg2, bp_per_pix)
+        hits[origin + q2 * width + q1] |= 2
+        next_pix = min(bp_per_pix - r1, r2 + 1)
+        if next_pix >= size: break
+        beg1 += next_pix
+        beg2 -= next_pix
+        size -= next_pix
+
 hits = [0] * (width * height)  # the image data
 
 sys.stderr.write(my_name + ": processing alignments...\n")
@@ -213,18 +237,15 @@ for seq1, seq2, blocks in alignments:
     seq_start2 = seq_start_dic2[seq2]
     my_start = seq_start2 * width + seq_start1
     for beg1, beg2, size in blocks:
-        end1 = beg1 + size
-        end2 = beg2 + size
-        if beg1 >= 0: j = xrange(beg1, end1)
-        else:         j = xrange(-1 - beg1, -1 - end1, -1)
-        if beg2 >= 0: k = xrange(beg2, end2)
-        else:         k = xrange(-1 - beg2, -1 - end2, -1)
-        if beg2 >= 0: store_value = 1
-        else:         store_value = 2
-        for real_pos1, real_pos2 in itertools.izip(j, k):
-            pix1 = real_pos1 // bp_per_pix
-            pix2 = real_pos2 // bp_per_pix
-            hits[my_start + pix2 * width + pix1] |= store_value
+        if beg1 < 0:
+            beg1 = -(beg1 + size)
+            beg2 = -(beg2 + size)
+        if beg2 >= 0:
+            drawLineForward(hits, width, bp_per_pix, my_start,
+                            beg1, beg2, size)
+        else:
+            drawLineReverse(hits, width, bp_per_pix, my_start,
+                            beg1, beg2, size)
 sys.stderr.write(my_name + ": done\n")
 
 def make_label(text, text_size, range_start, range_size):
