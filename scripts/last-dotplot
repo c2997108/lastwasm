@@ -228,38 +228,9 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix,
         draw.text(position, i[3], font=font, fill=opts.text_color)
     return im
 
-if __name__ == "__main__":
-    my_name = os.path.basename(sys.argv[0])
-    usage = """
-  %prog --help
-  %prog [options] last-tabular-output dotplot.png
-  %prog [options] last-tabular-output dotplot.gif
-  etc."""
-    op = optparse.OptionParser(usage=usage)
-    # Replace "width" & "height" with a single "length" option?
-    op.add_option("-x", "--width", type="int", default=1000,
-                  help="maximum width in pixels (default: %default)")
-    op.add_option("-y", "--height", type="int", default=1000,
-                  help="maximum height in pixels (default: %default)")
-    op.add_option("-f", "--fontfile",
-                  help="TrueType or OpenType font file")
-    op.add_option("-s", "--fontsize", type="int", default=11,
-                  help="TrueType or OpenType font size (default: %default)")
-    op.add_option("-c", "--forwardcolor", default="red",
-                  help="Color for forward alignments (default: %default)")
-    op.add_option("-r", "--reversecolor", default="blue",
-                  help="Color for reverse alignments (default: %default)")
-    (opts, args) = op.parse_args()
-    if len(args) != 2: op.error("2 arguments needed")
-
+def lastDotplot(opts, args):
     if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
     else:              font = ImageFont.load_default()
-
-    opts.text_color = "black"
-    opts.background_color = "white"
-    opts.pix_tween_seqs = 2  # number of border pixels between sequences
-    opts.border_shade = 239, 239, 239  # the shade of grey for border pixels
-    opts.label_space = 5     # minimum number of pixels between axis labels
 
     image_mode = 'RGB'
     forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
@@ -329,3 +300,35 @@ if __name__ == "__main__":
         im.paste(opts.border_shade, box)
 
     im.save(args[1])
+
+if __name__ == "__main__":
+    my_name = os.path.basename(sys.argv[0])
+    usage = """
+  %prog --help
+  %prog [options] last-tabular-output dotplot.png
+  %prog [options] last-tabular-output dotplot.gif
+  etc."""
+    op = optparse.OptionParser(usage=usage)
+    # Replace "width" & "height" with a single "length" option?
+    op.add_option("-x", "--width", type="int", default=1000,
+                  help="maximum width in pixels (default: %default)")
+    op.add_option("-y", "--height", type="int", default=1000,
+                  help="maximum height in pixels (default: %default)")
+    op.add_option("-f", "--fontfile",
+                  help="TrueType or OpenType font file")
+    op.add_option("-s", "--fontsize", type="int", default=11,
+                  help="TrueType or OpenType font size (default: %default)")
+    op.add_option("-c", "--forwardcolor", default="red",
+                  help="Color for forward alignments (default: %default)")
+    op.add_option("-r", "--reversecolor", default="blue",
+                  help="Color for reverse alignments (default: %default)")
+    (opts, args) = op.parse_args()
+    if len(args) != 2: op.error("2 arguments needed")
+
+    opts.text_color = "black"
+    opts.background_color = "white"
+    opts.pix_tween_seqs = 2  # number of border pixels between sequences
+    opts.border_shade = 239, 239, 239  # the shade of grey for border pixels
+    opts.label_space = 5     # minimum number of pixels between axis labels
+
+    lastDotplot(opts, args)
