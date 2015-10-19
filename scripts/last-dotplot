@@ -229,22 +229,22 @@ usage = """
   %prog [options] last-tabular-output dotplot.png
   %prog [options] last-tabular-output dotplot.gif
   etc."""
-parser = optparse.OptionParser(usage=usage)
+op = optparse.OptionParser(usage=usage)
 # Replace "width" & "height" with a single "length" option?
-parser.add_option("-x", "--width", type="int", dest="width", default=1000,
-                  help="maximum width in pixels (default: %default)")
-parser.add_option("-y", "--height", type="int", dest="height", default=1000,
-                  help="maximum height in pixels (default: %default)")
-parser.add_option("-f", "--fontfile", dest="fontfile",
-                  help="TrueType or OpenType font file")
-parser.add_option("-s", "--fontsize", type="int", dest="fontsize", default=11,
-                  help="TrueType or OpenType font size (default: %default)")
-parser.add_option("-c", "--forwardcolor", dest="forwardcolor", default="red",
-                  help="Color for forward alignments (default: %default)")
-parser.add_option("-r", "--reversecolor", dest="reversecolor", default="blue",
-                  help="Color for reverse alignments (default: %default)")
-(opts, args) = parser.parse_args()
-if len(args) != 2: parser.error("2 arguments needed")
+op.add_option("-x", "--width", type="int", default=1000,
+              help="maximum width in pixels (default: %default)")
+op.add_option("-y", "--height", type="int", default=1000,
+              help="maximum height in pixels (default: %default)")
+op.add_option("-f", "--fontfile",
+              help="TrueType or OpenType font file")
+op.add_option("-s", "--fontsize", type="int", default=11,
+              help="TrueType or OpenType font size (default: %default)")
+op.add_option("-c", "--forwardcolor", default="red",
+              help="Color for forward alignments (default: %default)")
+op.add_option("-r", "--reversecolor", default="blue",
+              help="Color for reverse alignments (default: %default)")
+(opts, args) = op.parse_args()
+if len(args) != 2: op.error("2 arguments needed")
 
 if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
 else:              font = ImageFont.load_default()
@@ -253,13 +253,14 @@ else:              font = ImageFont.load_default()
 text_color = "black"
 background_color = "white"
 pix_tween_seqs = 2  # number of border pixels between sequences
-border_shade = 239, 239, 239  # the shade of grey to use for border pixels
+border_shade = 239, 239, 239  # the shade of grey for border pixels
 label_space = 5     # minimum number of pixels between axis labels
 
 image_mode = 'RGB'
 forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
 reverse_color = ImageColor.getcolor(opts.reversecolor, image_mode)
-overlap_color = tuple([(i+j)//2 for i, j in zip(forward_color, reverse_color)])
+zipped_colors = zip(forward_color, reverse_color)
+overlap_color = tuple([(i + j) // 2 for i, j in zipped_colors])
 
 sys.stderr.write(my_name + ": reading alignments...\n")
 input = fileinput.input(args[0])
