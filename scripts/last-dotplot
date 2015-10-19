@@ -218,13 +218,13 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix):
               zip(seq_names, name_sizes, seq_starts, seq_pix)]
     labels = [i for i in labels if i[1] >= min_pos and i[2] <= max_pos]
     labels.sort()
-    labels = get_nonoverlapping_labels(labels, label_space)
+    labels = get_nonoverlapping_labels(labels, opts.label_space)
     image_size = max_pos, height
-    im = Image.new(image_mode, image_size, border_shade)
+    im = Image.new(image_mode, image_size, opts.border_shade)
     draw = ImageDraw.Draw(im)
     for i in labels:
         position = i[1], 0
-        draw.text(position, i[3], font=font, fill=text_color)
+        draw.text(position, i[3], font=font, fill=opts.text_color)
     return im
 
 if __name__ == "__main__":
@@ -254,12 +254,11 @@ if __name__ == "__main__":
     if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
     else:              font = ImageFont.load_default()
 
-    # Make these options too?
-    text_color = "black"
-    background_color = "white"
-    pix_tween_seqs = 2  # number of border pixels between sequences
-    border_shade = 239, 239, 239  # the shade of grey for border pixels
-    label_space = 5     # minimum number of pixels between axis labels
+    opts.text_color = "black"
+    opts.background_color = "white"
+    opts.pix_tween_seqs = 2  # number of border pixels between sequences
+    opts.border_shade = 239, 239, 239  # the shade of grey for border pixels
+    opts.label_space = 5     # minimum number of pixels between axis labels
 
     image_mode = 'RGB'
     forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
@@ -281,15 +280,15 @@ if __name__ == "__main__":
     warn("choosing bp per pixel...")
     pix_limit1 = opts.width  - margin1
     pix_limit2 = opts.height - margin2
-    bp_per_pix1 = get_bp_per_pix(seq_sizes1, pix_tween_seqs, pix_limit1)
-    bp_per_pix2 = get_bp_per_pix(seq_sizes2, pix_tween_seqs, pix_limit2)
+    bp_per_pix1 = get_bp_per_pix(seq_sizes1, opts.pix_tween_seqs, pix_limit1)
+    bp_per_pix2 = get_bp_per_pix(seq_sizes2, opts.pix_tween_seqs, pix_limit2)
     bp_per_pix = max(bp_per_pix1, bp_per_pix2)
     warn("bp per pixel = " + str(bp_per_pix))
 
     seq_pix1, seq_starts1, width  = get_pix_info(seq_sizes1, bp_per_pix,
-                                                 pix_tween_seqs, margin1)
+                                                 opts.pix_tween_seqs, margin1)
     seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, bp_per_pix,
-                                                 pix_tween_seqs, margin2)
+                                                 opts.pix_tween_seqs, margin2)
     seq_start_dic1 = dict(zip(seq_names1, seq_starts1))
     seq_start_dic2 = dict(zip(seq_names2, seq_starts2))
 
@@ -299,7 +298,7 @@ if __name__ == "__main__":
     warn("done")
 
     image_size = width, height
-    im = Image.new(image_mode, image_size, background_color)
+    im = Image.new(image_mode, image_size, opts.background_color)
 
     for i in range(height):
         for j in range(width):
@@ -317,11 +316,11 @@ if __name__ == "__main__":
         im.paste(axis2, (0, 0))
 
     for i in seq_starts1[1:]:
-        box = i - pix_tween_seqs, margin2, i, height
-        im.paste(border_shade, box)
+        box = i - opts.pix_tween_seqs, margin2, i, height
+        im.paste(opts.border_shade, box)
 
     for i in seq_starts2[1:]:
-        box = margin1, i - pix_tween_seqs, width, i
-        im.paste(border_shade, box)
+        box = margin1, i - opts.pix_tween_seqs, width, i
+        im.paste(opts.border_shade, box)
 
     im.save(args[1])
