@@ -96,20 +96,20 @@ def natural_sort_key(my_string):
     parts[1::2] = map(int, parts[1::2])
     return parts
 
-def get_text_sizes(my_strings):
+def get_text_sizes(my_strings, font, fontsize, image_mode):
     '''Get widths & heights, in pixels, of some strings.'''
-    if opts.fontsize == 0: return [(0, 0) for i in my_strings]
+    if fontsize == 0: return [(0, 0) for i in my_strings]
     image_size = 1, 1
     im = Image.new(image_mode, image_size)
     draw = ImageDraw.Draw(im)
     return [draw.textsize(i, font=font) for i in my_strings]
 
-def get_seq_info(seq_size_dic):
+def get_seq_info(seq_size_dic, font, fontsize, image_mode):
     '''Return miscellaneous information about the sequences.'''
     seq_names = seq_size_dic.keys()
     seq_names.sort(key=natural_sort_key)
     seq_sizes = [seq_size_dic[i] for i in seq_names]
-    name_sizes = get_text_sizes(seq_names)
+    name_sizes = get_text_sizes(seq_names, font, fontsize, image_mode)
     margin = max(zip(*name_sizes)[1])  # maximum text height
     return seq_names, seq_sizes, name_sizes, margin
 
@@ -209,7 +209,8 @@ def get_nonoverlapping_labels(labels, label_space):
             nonoverlapping_labels.append(i)
     return nonoverlapping_labels
 
-def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix):
+def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix,
+                   font, image_mode, opts):
     '''Make an image of axis labels.'''
     min_pos = seq_starts[0]
     max_pos = seq_starts[-1] + seq_pix[-1]
@@ -274,8 +275,10 @@ if __name__ == "__main__":
     if not alignments:
         sys.exit(my_name + ": there are no alignments")
 
-    seq_names1, seq_sizes1, name_sizes1, margin1 = get_seq_info(seq_size_dic1)
-    seq_names2, seq_sizes2, name_sizes2, margin2 = get_seq_info(seq_size_dic2)
+    seq_info1 = get_seq_info(seq_size_dic1, font, opts.fontsize, image_mode)
+    seq_info2 = get_seq_info(seq_size_dic2, font, opts.fontsize, image_mode)
+    seq_names1, seq_sizes1, name_sizes1, margin1 = seq_info1
+    seq_names2, seq_sizes2, name_sizes2, margin2 = seq_info2
 
     warn("choosing bp per pixel...")
     pix_limit1 = opts.width  - margin1
@@ -309,8 +312,10 @@ if __name__ == "__main__":
             elif store_value == 3: im.putpixel(xy, overlap_color)
 
     if opts.fontsize != 0:
-        axis1 = get_axis_image(seq_names1, name_sizes1, seq_starts1, seq_pix1)
-        axis2 = get_axis_image(seq_names2, name_sizes2, seq_starts2, seq_pix2)
+        axis1 = get_axis_image(seq_names1, name_sizes1, seq_starts1, seq_pix1,
+                               font, image_mode, opts)
+        axis2 = get_axis_image(seq_names2, name_sizes2, seq_starts2, seq_pix2,
+                               font, image_mode, opts)
         axis2 = axis2.rotate(270)
         im.paste(axis1, (0, 0))
         im.paste(axis2, (0, 0))
