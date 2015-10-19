@@ -229,23 +229,28 @@ def drawLineReverse(hits, width, bp_per_pix, origin, beg1, beg2, size):
         beg2 -= next_pix
         size -= next_pix
 
-hits = [0] * (width * height)  # the image data
+def alignmentPixels(width, height, alignments, bp_per_pix,
+                    seq_start_dic1, seq_start_dic2):
+    hits = [0] * (width * height)  # the image data
+    for seq1, seq2, blocks in alignments:
+        seq_start1 = seq_start_dic1[seq1]
+        seq_start2 = seq_start_dic2[seq2]
+        origin = seq_start2 * width + seq_start1
+        for beg1, beg2, size in blocks:
+            if beg1 < 0:
+                beg1 = -(beg1 + size)
+                beg2 = -(beg2 + size)
+            if beg2 >= 0:
+                drawLineForward(hits, width, bp_per_pix, origin,
+                                beg1, beg2, size)
+            else:
+                drawLineReverse(hits, width, bp_per_pix, origin,
+                                beg1, beg2, size)
+    return hits
 
 sys.stderr.write(my_name + ": processing alignments...\n")
-for seq1, seq2, blocks in alignments:
-    seq_start1 = seq_start_dic1[seq1]
-    seq_start2 = seq_start_dic2[seq2]
-    my_start = seq_start2 * width + seq_start1
-    for beg1, beg2, size in blocks:
-        if beg1 < 0:
-            beg1 = -(beg1 + size)
-            beg2 = -(beg2 + size)
-        if beg2 >= 0:
-            drawLineForward(hits, width, bp_per_pix, my_start,
-                            beg1, beg2, size)
-        else:
-            drawLineReverse(hits, width, bp_per_pix, my_start,
-                            beg1, beg2, size)
+hits = alignmentPixels(width, height, alignments, bp_per_pix,
+                       seq_start_dic1, seq_start_dic2)
 sys.stderr.write(my_name + ": done\n")
 
 def make_label(text, text_size, range_start, range_size):
