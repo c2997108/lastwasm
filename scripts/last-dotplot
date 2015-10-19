@@ -15,6 +15,10 @@ import fileinput, itertools, optparse, os, re, sys
 try: from PIL import Image, ImageDraw, ImageFont, ImageColor
 except ImportError: import Image, ImageDraw, ImageFont, ImageColor
 
+def warn(message):
+    prog = os.path.basename(sys.argv[0])
+    sys.stderr.write(prog + ": " + message + "\n")
+
 def tabBlocks(beg1, beg2, blocks):
     '''Get the gapless blocks of an alignment, from LAST tabular format.'''
     for i in blocks.split(","):
@@ -263,10 +267,10 @@ if __name__ == "__main__":
     zipped_colors = zip(forward_color, reverse_color)
     overlap_color = tuple([(i + j) // 2 for i, j in zipped_colors])
 
-    sys.stderr.write(my_name + ": reading alignments...\n")
+    warn("reading alignments...")
     input = fileinput.input(args[0])
     alignments, seq_size_dic1, seq_size_dic2 = readAlignments(input)
-    sys.stderr.write(my_name + ": done\n")
+    warn("done")
 
     if not alignments:
         sys.exit(my_name + ": there are no alignments")
@@ -274,21 +278,21 @@ if __name__ == "__main__":
     seq_names1, seq_sizes1, name_sizes1, margin1 = get_seq_info(seq_size_dic1)
     seq_names2, seq_sizes2, name_sizes2, margin2 = get_seq_info(seq_size_dic2)
 
-    sys.stderr.write(my_name + ": choosing bp per pixel...\n")
+    warn("choosing bp per pixel...")
     bp_per_pix1 = get_bp_per_pix(seq_sizes1, opts.width  - margin1)
     bp_per_pix2 = get_bp_per_pix(seq_sizes2, opts.height - margin2)
     bp_per_pix = max(bp_per_pix1, bp_per_pix2)
-    sys.stderr.write(my_name + ": bp per pixel = " + str(bp_per_pix) + "\n")
+    warn("bp per pixel = " + str(bp_per_pix))
 
     seq_pix1, seq_starts1, width  = get_pix_info(seq_sizes1, margin1)
     seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, margin2)
     seq_start_dic1 = dict(zip(seq_names1, seq_starts1))
     seq_start_dic2 = dict(zip(seq_names2, seq_starts2))
 
-    sys.stderr.write(my_name + ": processing alignments...\n")
+    warn("processing alignments...")
     hits = alignmentPixels(width, height, alignments, bp_per_pix,
                            seq_start_dic1, seq_start_dic2)
-    sys.stderr.write(my_name + ": done\n")
+    warn("done")
 
     image_size = width, height
     im = Image.new(image_mode, image_size, background_color)
