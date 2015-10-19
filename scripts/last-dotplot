@@ -223,96 +223,97 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix):
         draw.text(position, i[3], font=font, fill=text_color)
     return im
 
-my_name = os.path.basename(sys.argv[0])
-usage = """
+if __name__ == "__main__":
+    my_name = os.path.basename(sys.argv[0])
+    usage = """
   %prog --help
   %prog [options] last-tabular-output dotplot.png
   %prog [options] last-tabular-output dotplot.gif
   etc."""
-op = optparse.OptionParser(usage=usage)
-# Replace "width" & "height" with a single "length" option?
-op.add_option("-x", "--width", type="int", default=1000,
-              help="maximum width in pixels (default: %default)")
-op.add_option("-y", "--height", type="int", default=1000,
-              help="maximum height in pixels (default: %default)")
-op.add_option("-f", "--fontfile",
-              help="TrueType or OpenType font file")
-op.add_option("-s", "--fontsize", type="int", default=11,
-              help="TrueType or OpenType font size (default: %default)")
-op.add_option("-c", "--forwardcolor", default="red",
-              help="Color for forward alignments (default: %default)")
-op.add_option("-r", "--reversecolor", default="blue",
-              help="Color for reverse alignments (default: %default)")
-(opts, args) = op.parse_args()
-if len(args) != 2: op.error("2 arguments needed")
+    op = optparse.OptionParser(usage=usage)
+    # Replace "width" & "height" with a single "length" option?
+    op.add_option("-x", "--width", type="int", default=1000,
+                  help="maximum width in pixels (default: %default)")
+    op.add_option("-y", "--height", type="int", default=1000,
+                  help="maximum height in pixels (default: %default)")
+    op.add_option("-f", "--fontfile",
+                  help="TrueType or OpenType font file")
+    op.add_option("-s", "--fontsize", type="int", default=11,
+                  help="TrueType or OpenType font size (default: %default)")
+    op.add_option("-c", "--forwardcolor", default="red",
+                  help="Color for forward alignments (default: %default)")
+    op.add_option("-r", "--reversecolor", default="blue",
+                  help="Color for reverse alignments (default: %default)")
+    (opts, args) = op.parse_args()
+    if len(args) != 2: op.error("2 arguments needed")
 
-if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
-else:              font = ImageFont.load_default()
+    if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
+    else:              font = ImageFont.load_default()
 
-# Make these options too?
-text_color = "black"
-background_color = "white"
-pix_tween_seqs = 2  # number of border pixels between sequences
-border_shade = 239, 239, 239  # the shade of grey for border pixels
-label_space = 5     # minimum number of pixels between axis labels
+    # Make these options too?
+    text_color = "black"
+    background_color = "white"
+    pix_tween_seqs = 2  # number of border pixels between sequences
+    border_shade = 239, 239, 239  # the shade of grey for border pixels
+    label_space = 5     # minimum number of pixels between axis labels
 
-image_mode = 'RGB'
-forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
-reverse_color = ImageColor.getcolor(opts.reversecolor, image_mode)
-zipped_colors = zip(forward_color, reverse_color)
-overlap_color = tuple([(i + j) // 2 for i, j in zipped_colors])
+    image_mode = 'RGB'
+    forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
+    reverse_color = ImageColor.getcolor(opts.reversecolor, image_mode)
+    zipped_colors = zip(forward_color, reverse_color)
+    overlap_color = tuple([(i + j) // 2 for i, j in zipped_colors])
 
-sys.stderr.write(my_name + ": reading alignments...\n")
-input = fileinput.input(args[0])
-alignments, seq_size_dic1, seq_size_dic2 = readAlignments(input)
-sys.stderr.write(my_name + ": done\n")
+    sys.stderr.write(my_name + ": reading alignments...\n")
+    input = fileinput.input(args[0])
+    alignments, seq_size_dic1, seq_size_dic2 = readAlignments(input)
+    sys.stderr.write(my_name + ": done\n")
 
-if not alignments:
-    sys.exit(my_name + ": there are no alignments")
+    if not alignments:
+        sys.exit(my_name + ": there are no alignments")
 
-seq_names1, seq_sizes1, name_sizes1, margin1 = get_seq_info(seq_size_dic1)
-seq_names2, seq_sizes2, name_sizes2, margin2 = get_seq_info(seq_size_dic2)
+    seq_names1, seq_sizes1, name_sizes1, margin1 = get_seq_info(seq_size_dic1)
+    seq_names2, seq_sizes2, name_sizes2, margin2 = get_seq_info(seq_size_dic2)
 
-sys.stderr.write(my_name + ": choosing bp per pixel...\n")
-bp_per_pix1 = get_bp_per_pix(seq_sizes1, opts.width  - margin1)
-bp_per_pix2 = get_bp_per_pix(seq_sizes2, opts.height - margin2)
-bp_per_pix = max(bp_per_pix1, bp_per_pix2)
-sys.stderr.write(my_name + ": bp per pixel = " + str(bp_per_pix) + "\n")
+    sys.stderr.write(my_name + ": choosing bp per pixel...\n")
+    bp_per_pix1 = get_bp_per_pix(seq_sizes1, opts.width  - margin1)
+    bp_per_pix2 = get_bp_per_pix(seq_sizes2, opts.height - margin2)
+    bp_per_pix = max(bp_per_pix1, bp_per_pix2)
+    sys.stderr.write(my_name + ": bp per pixel = " + str(bp_per_pix) + "\n")
 
-seq_pix1, seq_starts1, width  = get_pix_info(seq_sizes1, margin1)
-seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, margin2)
-seq_start_dic1 = dict(zip(seq_names1, seq_starts1))
-seq_start_dic2 = dict(zip(seq_names2, seq_starts2))
+    seq_pix1, seq_starts1, width  = get_pix_info(seq_sizes1, margin1)
+    seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, margin2)
+    seq_start_dic1 = dict(zip(seq_names1, seq_starts1))
+    seq_start_dic2 = dict(zip(seq_names2, seq_starts2))
 
-sys.stderr.write(my_name + ": processing alignments...\n")
-hits = alignmentPixels(width, height, alignments, bp_per_pix,
-                       seq_start_dic1, seq_start_dic2)
-sys.stderr.write(my_name + ": done\n")
+    sys.stderr.write(my_name + ": processing alignments...\n")
+    hits = alignmentPixels(width, height, alignments, bp_per_pix,
+                           seq_start_dic1, seq_start_dic2)
+    sys.stderr.write(my_name + ": done\n")
 
-image_size = width, height
-im = Image.new(image_mode, image_size, background_color)
+    image_size = width, height
+    im = Image.new(image_mode, image_size, background_color)
 
-for i in range(height):
-    for j in range(width):
-        store_value = hits[i * width + j]
-        xy = j, i
-        if   store_value == 1: im.putpixel(xy, forward_color)
-        elif store_value == 2: im.putpixel(xy, reverse_color)
-        elif store_value == 3: im.putpixel(xy, overlap_color)
+    for i in range(height):
+        for j in range(width):
+            store_value = hits[i * width + j]
+            xy = j, i
+            if   store_value == 1: im.putpixel(xy, forward_color)
+            elif store_value == 2: im.putpixel(xy, reverse_color)
+            elif store_value == 3: im.putpixel(xy, overlap_color)
 
-if opts.fontsize != 0:
-    axis1 = get_axis_image(seq_names1, name_sizes1, seq_starts1, seq_pix1)
-    axis2 = get_axis_image(seq_names2, name_sizes2, seq_starts2, seq_pix2)
-    axis2 = axis2.rotate(270)
-    im.paste(axis1, (0, 0))
-    im.paste(axis2, (0, 0))
+    if opts.fontsize != 0:
+        axis1 = get_axis_image(seq_names1, name_sizes1, seq_starts1, seq_pix1)
+        axis2 = get_axis_image(seq_names2, name_sizes2, seq_starts2, seq_pix2)
+        axis2 = axis2.rotate(270)
+        im.paste(axis1, (0, 0))
+        im.paste(axis2, (0, 0))
 
-for i in seq_starts1[1:]:
-    box = i - pix_tween_seqs, margin2, i, height
-    im.paste(border_shade, box)
+    for i in seq_starts1[1:]:
+        box = i - pix_tween_seqs, margin2, i, height
+        im.paste(border_shade, box)
 
-for i in seq_starts2[1:]:
-    box = margin1, i - pix_tween_seqs, width, i
-    im.paste(border_shade, box)
+    for i in seq_starts2[1:]:
+        box = margin1, i - pix_tween_seqs, width, i
+        im.paste(border_shade, box)
 
-im.save(args[1])
+    im.save(args[1])
