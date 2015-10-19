@@ -127,7 +127,7 @@ def get_bp_per_pix(seq_sizes, pix_tween_seqs, pix_limit):
     seq_num = len(seq_sizes)
     seq_pix_limit = pix_limit - pix_tween_seqs * (seq_num - 1)
     if seq_pix_limit < seq_num:
-        sys.exit(my_name + ": can't fit the image: too many sequences?")
+        raise Exception("can't fit the image: too many sequences?")
     lower_bound = div_ceil(sum(seq_sizes), seq_pix_limit)
     for bp_per_pix in itertools.count(lower_bound):  # slow linear search
         if tot_seq_pix(seq_sizes, bp_per_pix) <= seq_pix_limit: break
@@ -243,8 +243,7 @@ def lastDotplot(opts, args):
     alignments, seq_size_dic1, seq_size_dic2 = readAlignments(input)
     warn("done")
 
-    if not alignments:
-        sys.exit(my_name + ": there are no alignments")
+    if not alignments: raise Exception("there are no alignments")
 
     seq_info1 = get_seq_info(seq_size_dic1, font, opts.fontsize, image_mode)
     seq_info2 = get_seq_info(seq_size_dic2, font, opts.fontsize, image_mode)
@@ -302,26 +301,25 @@ def lastDotplot(opts, args):
     im.save(args[1])
 
 if __name__ == "__main__":
-    my_name = os.path.basename(sys.argv[0])
-    usage = """
-  %prog --help
-  %prog [options] last-tabular-output dotplot.png
-  %prog [options] last-tabular-output dotplot.gif
-  etc."""
-    op = optparse.OptionParser(usage=usage)
+    usage = """%prog --help
+   or: %prog [options] maf-or-tab-alignments dotplot.png
+   or: %prog [options] maf-or-tab-alignments dotplot.gif
+   or: ..."""
+    description = "Draw a dotplot of pair-wise sequence alignments in MAF or tabular format."
+    op = optparse.OptionParser(usage=usage, description=description)
     # Replace "width" & "height" with a single "length" option?
     op.add_option("-x", "--width", type="int", default=1000,
                   help="maximum width in pixels (default: %default)")
     op.add_option("-y", "--height", type="int", default=1000,
                   help="maximum height in pixels (default: %default)")
-    op.add_option("-f", "--fontfile",
+    op.add_option("-f", "--fontfile", metavar="FILE",
                   help="TrueType or OpenType font file")
-    op.add_option("-s", "--fontsize", type="int", default=11,
+    op.add_option("-s", "--fontsize", metavar="SIZE", type="int", default=11,
                   help="TrueType or OpenType font size (default: %default)")
-    op.add_option("-c", "--forwardcolor", default="red",
-                  help="Color for forward alignments (default: %default)")
-    op.add_option("-r", "--reversecolor", default="blue",
-                  help="Color for reverse alignments (default: %default)")
+    op.add_option("-c", "--forwardcolor", metavar="COLOR", default="red",
+                  help="color for forward alignments (default: %default)")
+    op.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
+                  help="color for reverse alignments (default: %default)")
     (opts, args) = op.parse_args()
     if len(args) != 2: op.error("2 arguments needed")
 
@@ -331,4 +329,8 @@ if __name__ == "__main__":
     opts.border_shade = 239, 239, 239  # the shade of grey for border pixels
     opts.label_space = 5     # minimum number of pixels between axis labels
 
-    lastDotplot(opts, args)
+    try: lastDotplot(opts, args)
+    except KeyboardInterrupt: pass  # avoid silly error message
+    except Exception, e:
+        prog = os.path.basename(sys.argv[0])
+        sys.exit(prog + ": error: " + str(e))
