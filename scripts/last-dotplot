@@ -9,7 +9,7 @@
 # according to the number of aligned nt-pairs within it, but the
 # result is too faint.  How can this be done better?
 
-import fileinput, itertools, optparse, os, re, sys
+import fileinput, fnmatch, itertools, optparse, os, re, sys
 
 # Try to make PIL/PILLOW work:
 try: from PIL import Image, ImageDraw, ImageFont, ImageColor
@@ -78,12 +78,23 @@ def alignmentInput(lines):
                 yield chr1, seqlen1, chr2, seqlen2, blocks
                 mafCount = 0
 
-def readAlignments(lines):
+def isWantedSequenceName(name, patterns):
+    if not patterns: return True
+    base = name.split(".")[-1]  # allow for names like hg19.chr7
+    for i in patterns:
+        if fnmatch.fnmatchcase(name, i): return True
+        if fnmatch.fnmatchcase(base, i): return True
+    return False
+
+def readAlignments(fileName, opts):
     '''Get alignments and sequence lengths, from MAF or tabular format.'''
     alignments = []
     seqLengths1 = {}
     seqLengths2 = {}
+    lines = fileinput.input(fileName)
     for chr1, seqlen1, chr2, seqlen2, blocks in alignmentInput(lines):
+        if not isWantedSequenceName(chr1, opts.seq1): continue
+        if not isWantedSequenceName(chr2, opts.seq2): continue
         aln = chr1, chr2, blocks
         alignments.append(aln)
         seqLengths1[chr1] = seqlen1
@@ -279,8 +290,7 @@ def lastDotplot(opts, args):
     overlap_color = tuple([(i + j) // 2 for i, j in zipped_colors])
 
     warn("reading alignments...")
-    input = fileinput.input(args[0])
-    alignments, seq_size_dic1, seq_size_dic2 = readAlignments(input)
+    alignments, seq_size_dic1, seq_size_dic2 = readAlignments(args[0], opts)
     warn("done")
 
     if not alignments: raise Exception("there are no alignments")
@@ -361,6 +371,10 @@ if __name__ == "__main__":
    or: ..."""
     description = "Draw a dotplot of pair-wise sequence alignments in MAF or tabular format."
     op = optparse.OptionParser(usage=usage, description=description)
+    op.add_option("-1", "--seq1", metavar="PATTERN", action="append",
+                  help="which sequences to show from the 1st genome")
+    op.add_option("-2", "--seq2", metavar="PATTERN", action="append",
+                  help="which sequences to show from the 2nd genome")
     # Replace "width" & "height" with a single "length" option?
     op.add_option("-x", "--width", type="int", default=1000,
                   help="maximum width in pixels (default: %default)")
