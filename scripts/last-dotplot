@@ -192,6 +192,46 @@ def alignmentPixels(width, height, alignments, bp_per_pix,
                                 beg1, beg2, size)
     return hits
 
+def expandedSeqDict(seqDict):
+    '''Allow lookup by short sequence names, e.g. chr7 as well as hg19.chr7.'''
+    newDict = {}
+    for name, x in seqDict.items():
+        base = name.split(".")[-1]
+        newDict[name] = x
+        newDict[base] = x
+    return newDict
+
+def isExtraFirstGapField(fields):
+    return fields[4].isdigit()
+
+def readGaps(fileName):
+    '''Read locations of unsequenced gaps, from an agp or gap file.'''
+    if not fileName: return
+    for line in fileinput.input(fileName):
+        w = line.split()
+        if not w or w[0][0] == "#": continue
+        if isExtraFirstGapField(w): w = w[1:]
+        if w[4] not in "NU": continue
+        seqName = w[0]
+        end = int(w[2])
+        beg = end - int(w[5])  # zero-based coordinate
+        bridgedText = w[7]
+        yield seqName, beg, end, bridgedText
+
+def drawUnsequencedGaps(im, gaps, start_dic, margin, limit, isTop, bridgedText,
+                        bp_per_pix, color):
+    '''Draw rectangles representing unsequenced gaps.'''
+    for seqName, beg, end, b in gaps:
+        if b != bridgedText: continue
+        if seqName not in start_dic: continue
+        origin = start_dic[seqName]
+        b = div_ceil(beg, bp_per_pix)  # use fully-covered pixels only
+        e = end // bp_per_pix
+        if e <= b: continue
+        if isTop: box = origin + b, margin, origin + e, limit
+        else:     box = margin, origin + b, limit, origin + e
+        im.paste(color, box)
+
 def make_label(text, text_size, range_start, range_size):
     '''Return an axis label with endpoint & sort-order information.'''
     text_width  = text_size[0]
@@ -273,6 +313,20 @@ def lastDotplot(opts, args):
     image_size = width, height
     im = Image.new(image_mode, image_size, opts.background_color)
 
+    start_dic1 = expandedSeqDict(seq_start_dic1)
+    start_dic2 = expandedSeqDict(seq_start_dic2)
+    gaps1 = list(readGaps(opts.gap1))
+    gaps2 = list(readGaps(opts.gap2))
+    # draw bridged gaps first, then unbridged gaps on top:
+    drawUnsequencedGaps(im, gaps1, start_dic1, margin2, height, True, "yes",
+                        bp_per_pix, opts.bridged_color)
+    drawUnsequencedGaps(im, gaps2, start_dic2, margin1, width, False, "yes",
+                        bp_per_pix, opts.bridged_color)
+    drawUnsequencedGaps(im, gaps1, start_dic1, margin2, height, True, "no",
+                        bp_per_pix, opts.unbridged_color)
+    drawUnsequencedGaps(im, gaps2, start_dic2, margin1, width, False, "no",
+                        bp_per_pix, opts.unbridged_color)
+
     for i in range(height):
         for j in range(width):
             store_value = hits[i * width + j]
@@ -320,6 +374,16 @@ if __name__ == "__main__":
                   help="color for forward alignments (default: %default)")
     op.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
                   help="color for reverse alignments (default: %default)")
+    og = optparse.OptionGroup(op, "Unsequenced gap options")
+    og.add_option("--gap1", metavar="FILE",
+                  help="read genome1 unsequenced gaps from agp or gap file")
+    og.add_option("--gap2", metavar="FILE",
+                  help="read genome2 unsequenced gaps from agp or gap file")
+    og.add_option("--bridged-color", metavar="COLOR", default="yellow",
+                  help="color for bridged gaps (default: %default)")
+    og.add_option("--unbridged-color", metavar="COLOR", default="pink",
+                  help="color for unbridged gaps (default: %default)")
+    op.add_option_group(og)
     (opts, args) = op.parse_args()
     if len(args) != 2: op.error("2 arguments needed")
 
