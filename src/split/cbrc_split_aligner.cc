@@ -839,23 +839,28 @@ void SplitAligner::initDpBounds() {
   size_t oldDiv = -insExtensionScore;
   size_t newDiv = maxMatchScore - insExtensionScore;
 
-  size_t minScore = -1;
+  size_t minScore1 = -1;
+  size_t minScore2 = -1;
   if (jumpProb > 0.0 || splicePrior > 0.0) {
     int m = maxJumpScore();
     assert(m + insExistenceScore <= 0);
-    minScore = 1 - (m + insExistenceScore);
+    minScore1 = 1 - (m + insExistenceScore);
+    minScore2 = 1 - (m + m + insExistenceScore);
   }
 
   for (unsigned i = 0; i < numAlns; ++i) {
     size_t b = alns[i].qstart;
-    size_t bo = dpExtension(maxMatchScore * (maxEnd - b), minScore, oldDiv);
-    size_t bn = dpExtension(maxMatchScore * (b - minBeg), minScore, newDiv);
-    dpBegs[i] = b - std::min(bo, bn);
-
     size_t e = alns[i].qend;
-    size_t eo = dpExtension(maxMatchScore * (e - minBeg), minScore, oldDiv);
-    size_t en = dpExtension(maxMatchScore * (maxEnd - e), minScore, newDiv);
-    dpEnds[i] = e + std::min(eo, en);
+
+    size_t bo = dpExtension(maxMatchScore * (e - b), minScore1, oldDiv);
+    size_t bj = dpExtension(maxMatchScore * (maxEnd - b), minScore2, oldDiv);
+    size_t bn = dpExtension(maxMatchScore * (b - minBeg), minScore1, newDiv);
+    dpBegs[i] = b - std::min(std::max(bo, bj), bn);
+
+    size_t eo = dpExtension(maxMatchScore * (e - b), minScore1, oldDiv);
+    size_t ej = dpExtension(maxMatchScore * (e - minBeg), minScore2, oldDiv);
+    size_t en = dpExtension(maxMatchScore * (maxEnd - e), minScore1, newDiv);
+    dpEnds[i] = e + std::min(std::max(eo, ej), en);
   }
 
   // This sets the coordinate system for a ragged matrix, with numAlns
