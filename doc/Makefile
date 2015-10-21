@@ -1,10 +1,10 @@
 # Rules for converting the txt documents to html.
 
-DOCS = FAQ.html bisulfite.html last-evalues.html last-map-probs.html	\
-last-matrices.html last-pair-probs.html last-papers.html		\
-last-postmask.html last-repeats.html last-seeds.html last-split.html	\
-last-train.html last-tuning.html last-tutorial.html last.html		\
-lastal.html lastdb.html maf-convert.html maf-cull.html
+DOCS = FAQ.html bisulfite.html last-dotplot.html last-evalues.html	\
+last-map-probs.html last-matrices.html last-pair-probs.html		\
+last-papers.html last-postmask.html last-repeats.html last-seeds.html	\
+last-split.html last-train.html last-tuning.html last-tutorial.html	\
+last.html lastal.html lastdb.html maf-convert.html maf-cull.html
 
 all: ${DOCS}
 

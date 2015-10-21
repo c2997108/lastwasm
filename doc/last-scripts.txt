@@ -1,42 +1,6 @@
 Description of scripts that accompany LAST
 ==========================================
 
-last-dotplot
-------------
-
-This script makes a dotplot, a.k.a. Oxford Grid, of pair-wise
-alignments in MAF or LAST tabular format.  It requires the Python
-Imaging Library to be installed.  To get a usage message::
-
-  last-dotplot --help
-
-To make a png-format dotplot of alignments in a file called "al"::
-
-  last-dotplot al al.png
-
-To get a nicer font, try something like::
-
-  last-dotplot -f /usr/share/fonts/truetype/freefont/FreeSans.ttf al al.png
-
-If the fonts are located somewhere different on your computer, change
-this as appropriate.  To turn off the text and margins completely::
-
-  last-dotplot -s0 al al.png
-
-To limit the plot to 500x500 pixels::
-
-  last-dotplot -x500 -y500 al al.png
-
-If there are too many chromosomes, the dotplot will be very cluttered,
-or the script might give up with an error message.  So you may want to
-remove alignments involving fragmentary chromosomes first.  For
-example, you could use "grep -v" to remove alignments involving
-chromosomes with names like "chr1_random"::
-
-  grep -v 'random' al > plotme
-  last-dotplot plotme plotme.png
-
-
 maf-join
 --------
 
