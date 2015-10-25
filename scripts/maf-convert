@@ -479,6 +479,16 @@ def writeBlast(maf, opts, oldQueryName):
         print "Sbjct: %-*s %s %s" % (startWidth, starts[0], rows[0], ends[0])
         print
 
+def blastEndsFromMafLine(fields):
+    beg = int(fields[2])
+    span = int(fields[3])
+    if fields[4] == "+":
+        return beg + 1, beg + span
+    else:
+        seqSize = int(fields[5])
+        beg2 = seqSize - beg
+        return beg2, beg2 - span + 1
+
 def writeBlastTab(maf, opts):
     aLine, sLines, qLines, pLines = maf
 
@@ -498,12 +508,10 @@ def writeBlastTab(maf, opts):
     gapOpens = sum(map(gapRunCount, alnStrings))
 
     qName = qLine[1]
-    qBeg = int(qLine[2]) + 1
-    qEnd = qBeg + int(qLine[3]) - 1
+    qBeg, qEnd = blastEndsFromMafLine(qLine)
 
     sName = sLine[1]
-    sBeg = int(sLine[2]) + 1
-    sEnd = sBeg + int(sLine[3]) - 1
+    sBeg, sEnd = blastEndsFromMafLine(sLine)
 
     out = [qName, sName, matchPercent, alnSize, mismatches, gapOpens,
            qBeg, qEnd, sBeg, sEnd]

@@ -16,6 +16,7 @@ maf2=bs100.maf
     head -n999 $maf1 | $r axt
     head -n999 $maf1 | $r blast
     head -n999 $maf1 | $r -l100 blast
+    $r blasttab $maf2
     $r html -l100 $maf2
     head -n999 $maf1 | $r -n html
     head -n999 $maf1 | $r psl
