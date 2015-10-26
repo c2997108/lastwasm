@@ -868,7 +868,8 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
   out << "#\n";
 
   if( args.outputType == 0 ){  // we just want hit counts
-    out << "# length\tcount\n";
+    out << "# length\tcount\n"
+	<< "#\n";
   }
   else{  // we want alignments
     if( args.inputFormat != sequenceFormat::pssm || !args.matrixFile.empty() ){
@@ -889,7 +890,8 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
 	  << "name2\tstart2\talnSize2\tstrand2\tseqSize2\tblocks\n";
     }
     if( args.outputFormat == 'm' ){
-      out << "# name start alnSize strand seqSize alignment\n";
+      out << "# name start alnSize strand seqSize alignment\n"
+	  << "#\n";
     }
     if( args.outputFormat == 'b' ){
       out << "# Fields: query id, subject id, % identity, alignment length, "
@@ -897,8 +899,6 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
 	  << "evalue, bit score\n";
     }
   }
-
-  out << "#\n";
 }
 
 // Read the next sequence, adding it to the MultiSequence

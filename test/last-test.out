@@ -110,7 +110,6 @@ TEST lastal -fTAB -i1 -w0 -e40 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 16775	chrM	0	16775	+	16775	chrM	0	16775	+	16775	16775	EG2=0	E=0
 43	chrM	246	65	+	16775	chrM	307	65	+	16775	65	EG2=0.0011	E=6.8e-13
@@ -361,7 +360,6 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 26	chrM	3996	46	+	16775	chrM	10159	46	-	16775	46	EG2=1.4e+05	E=4.2e-05
 26	chrM	6570	46	+	16775	chrM	12733	46	-	16775	46	EG2=1.4e+05	E=4.2e-05
@@ -388,7 +386,6 @@ TEST lastal -s0 -f0 -p asymmetric.mat -e2000 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 2475	chrM	3957	91	+	16775	chrM	10123	88	-	16775	31,3:0,57	EG2=1.4e+06	E=0.00041
 2122	chrM	6564	57	+	16775	chrM	12727	57	-	16775	57	EG2=4.6e+07	E=0.014
@@ -592,7 +589,6 @@ TEST lastal -r3 -q3 -a21 -c2 -e60 -f0 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 50325	chrM	0	16775	+	16775	chrM	0	16775	+	16775	16775	EG2=0	E=0
 63	chrM	5579	63	+	16775	chrM	13763	63	+	16775	63	EG2=2.5e+07	E=0.015
@@ -646,7 +642,6 @@ TEST lastal -F12 -pBL62 -c2 -e40 -f0 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 118	Q2LCP8	110	232	+	491	chrM	5258	639	+	16775	83,6:0,15,5:0,45,4:0,6,3:0,14,1:0,50	EG2=1.8	E=2.4e-11
 72	Q2LCP8	379	52	+	491	chrM	5972	156	+	16775	52	EG2=6.3e+06	E=9e-05
@@ -704,7 +699,6 @@ TEST lastal -j1 -f0 -e37 -m100 /tmp/last-test Q2LCP8.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 2399	Q2LCP8	0	491	+	491	Q2LCP8	0	491	+	491	491	EG2=0	E=0
 37	Q2LCP8	256	31	+	491	Q2LCP8	0	31	+	491	31	EG2=8.7e+11	E=0.19
@@ -780,7 +774,6 @@ TEST lastal -Q1 -e90 -a9 -f0 /tmp/last-test0 SRR001981-1k.fastq
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 102	chrM	973	17	+	16775	SRR001981.107	7	17	+	36	17	EG2=4.7e+07	E=2.6e-05
 91	chrM	963	25	+	16775	SRR001981.67	6	24	+	36	18,1:0,6	EG2=5.5e+08	E=0.00035
@@ -819,7 +812,6 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 26	chrM	3996	46	+	16775	chrM	10159	46	-	16775	46	EG2=1.4e+05	E=4.2e-05
 26	chrM	6570	46	+	16775	chrM	12733	46	-	16775	46	EG2=1.4e+05	E=4.2e-05
@@ -846,7 +838,6 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 26	chrM	3996	46	+	16775	chrM	10159	46	-	16775	46	EG2=1.4e+05	E=4.2e-05
 26	chrM	6570	46	+	16775	chrM	12733	46	-	16775	46	EG2=1.4e+05	E=4.2e-05
@@ -873,7 +864,6 @@ TEST lastal -T1 -Q1 -e60 -a9 -f0 /tmp/last-test SRR001981-1k.fastq
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 # batch 1
 98	chrM	952	34	+	16775	SRR001981.279	0	36	-	36	33,0:2,1	EG2=1.1e+08	E=7.1e-05
@@ -1006,7 +996,6 @@ TEST lastal -e34 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 1522	chrM	8638	5211	+	16571	chrM	9353	5229	+	16775	1414,0:1,14,0:3,340,0:3,49,0:3,1756,0:8,110,6:0,91,0:9,553,3:0,875	EG2=0	E=0
 1107	chrM	5764	2482	+	16571	chrM	6510	2477	+	16775	78,0:2,35,0:3,17,8:0,450,3:0,1085,3:0,67,0:5,57,0:1,19,0:1,152,3:0,505	EG2=0	E=0
@@ -1038,7 +1027,6 @@ TEST lastal -pHOXD70 -e4500 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 473071	chrM	554	13599	+	16571	chrM	1195	13697	+	16775	23,0:8,17,1:0,56,1:0,82,0:3,35,0:2,4,2:0,22,0:1,19,0:1,55,1:0,58,0:1,20,1:0,18,0:1,37,0:1,16,2:0,18,0:9,110,1:0,3,0:3,95,0:4,30,0:1,34,0:1,38,1:0,33,1:0,60,0:6,57,0:5,34,7:0,55,1:0,13,0:1,5,0:1,28,0:3,6,0:13,16,9:0,7,0:2,12,0:12,11,3:0,19,7:0,5,0:8,20,0:1,17,0:4,25,0:4,11,0:2,56,1:0,40,0:1,27,0:3,93,0:1,41,4:0,11,0:16,38,1:0,29,3:0,7,0:6,31,0:1,17,7:0,22,1:0,15,1:0,24,2:0,37,0:1,11,0:1,11,5:0,11,9:0,8,0:2,17,0:1,13,0:3,41,2:0,37,0:1,33,0:2,37,0:3,184,6:0,9,2:0,17,0:11,5,0:9,6,1:0,13,5:0,43,1:0,14,0:2,7,0:10,7,1:0,14,3:0,9,0:1,148,0:1,53,1:0,67,0:6,20,0:5,19,0:3,16,0:1,44,1:0,29,0:7,20,0:21,930,2:0,22,0:2,27,1:0,11,0:10,70,3:0,63,0:1,36,3:0,11,0:3,167,0:3,13,3:0,44,0:1,18,1:0,377,0:4,20,0:2,10,2:0,7,4:0,22,0:3,14,3:0,78,0:2,13,2:0,17,0:2,9,2:0,60,0:3,20,3:0,4,5:0,15,0:5,5,3:0,79,0:1,7,0:4,37,0:3,15,1:0,68,0:2,80,30:0,81,0:2,35,0:3,17,8:0,450,3:0,1085,3:0,56,0:4,16,0:1,53,0:1,18,0:1,150,2:0,4,1:0,503,5:0,5,15:0,12,0:1,9,2:0,14,0:2,28,2:0,20,2:0,41,9:0,33,5:0,49,2:0,13,0:8,15,0:2,54,9:0,31,0:8,16,0:4,243,0:7,10,7:0,151,0:9,24,1:0,19,0:4,8,12:0,932,0:1,21,1:0,12,9:0,8,0:1,16,0:9,11,0:3,283,0:3,49,0:3,35,0:6,23,6:0,78,4:0,9,0:3,6,0:1,181,0:1,20,0:2,10,3:0,49,1:0,17,0:9,7,14:0,12,0:6,1099,0:2,13,2:0,168,0:8,136,1:0,7,0:1,14,0:12,45,6:0,8,4:0,7,8:0,17,0:9,76,0:7,22,1:0,8,6:0,389,3:0,165,13:0,11,0:7,10,0:6,513,0:3,8,3:0,42,0:5,13,4:0,21,1:0,96,0:8,17,1:0,6,7:0,17,3:0,13,0:3,132,0:3,78,0:3,10	EG2=0	E=0
 58424	chrM	14729	1565	+	16571	chrM	14874	1560	+	16775	23,0:1,7,0:2,1121,0:2,25,1:0,31,0:6,14,4:0,20,0:2,49,17:0,19,2:0,8,0:8,18,1:0,18,0:14,35,3:0,31,0:1,21,9:0,2,3:0,9,1:0,24,0:1,19,0:4,15,5:0,10	EG2=2e-223	E=8.2e-233
@@ -1064,7 +1052,6 @@ TEST lastal -e34 -C2 -f0 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 1522	chrM	8638	5211	+	16571	chrM	9353	5229	+	16775	1414,0:1,14,0:3,340,0:3,49,0:3,1756,0:8,110,6:0,91,0:9,553,3:0,875	EG2=0	E=0
 1107	chrM	5764	2482	+	16571	chrM	6510	2477	+	16775	78,0:2,35,0:3,17,8:0,450,3:0,1085,3:0,67,0:5,57,0:1,19,0:1,152,3:0,505	EG2=0	E=0
@@ -1095,7 +1082,6 @@ TEST lastal -e34 -f0 -l30 /tmp/last-test galGal3-M-32.fa
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 1522	chrM	8638	5211	+	16571	chrM	9353	5229	+	16775	1414,0:1,14,0:3,340,0:3,49,0:3,1756,0:8,110,6:0,91,0:9,553,3:0,875	EG2=0	E=0
 1107	chrM	5764	2482	+	16571	chrM	6510	2477	+	16775	78,0:2,35,0:3,17,8:0,450,3:0,1085,3:0,67,0:5,57,0:1,19,0:1,152,3:0,505	EG2=0	E=0
@@ -1701,7 +1687,6 @@ TEST lastal -fBlastTab -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 # * -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4  1
 #
 # Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
-#
 # batch 0
 chrM	Q2LCP8	24.22	322	211	8	5259	6128	111	431	2.6e-19	84.9
 chrM	Q2LCP8	27.27	88	60	2	11753	12007	102	188	0.0097	30.5
@@ -1760,7 +1745,6 @@ TEST lastal -S1 -pBISF -Q1 -e120 -f0 -j4 /tmp/last-test bs100.fastq
 # in the reverse complement of the 2nd sequence are used.
 #
 # score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
-#
 # batch 0
 432	chrM	5737	87	+	16571	4	0	87	+	87	87	EG2=5.1e-26	E=3.7e-41	fullScore=435
 429	chrM	1543	87	+	16571	1	0	87	+	87	87	EG2=1e-25	E=1e-40	fullScore=432
