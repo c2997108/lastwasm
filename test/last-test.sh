@@ -23,11 +23,11 @@ db=/tmp/last-test
 {
     # spaced seeds, soft-masking, centroid alignment, matrix file
     lastdb -c -m110 $db $dnaSeq
-    try lastal -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 $db $dnaSeq
+    try lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 $db $dnaSeq
 
     # multiple volumes & query batches
     lastdb -m1 -s1 $db $dnaSeq
-    try lastal -f0 -i1 -w0 -e40 $db $dnaSeq
+    try lastal -fTAB -i1 -w0 -e40 $db $dnaSeq
 
     # match-counting, with multiple query batches
     try lastal -j0 -i1 -s0 $db $dnaSeq

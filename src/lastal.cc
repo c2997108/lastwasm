@@ -881,11 +881,11 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
     out << "# in the reverse complement of the 2nd sequence are used.\n";
     out << "#\n";
 
-    if( args.outputFormat == 0 ){  // tabular format
+    if( args.outputFormat == 't' ){
       out << "# score\tname1\tstart1\talnSize1\tstrand1\tseqSize1\t"
 	  << "name2\tstart2\talnSize2\tstrand2\tseqSize2\tblocks\n";
     }
-    else{  // MAF format
+    if( args.outputFormat == 'm' ){
       out << "# name start alnSize strand seqSize alignment\n";
     }
   }

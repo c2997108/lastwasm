@@ -8,6 +8,7 @@
 #include <sstream>
 #include <vector>
 #include <stdexcept>
+#include <cctype>
 #include <cmath>  // log
 #include <cstring>  // strtok
 #include <cstdlib>  // EXIT_SUCCESS
@@ -27,10 +28,20 @@ static int myGetopt( int argc, char** argv, const char* optstring ){
   return getopt( argc, argv, optstring );
 }
 
+static char parseOutputFormat( const char* text ){
+  std::string s = text;
+  for( size_t i = 0; i < s.size(); ++i ){
+    s[i] = std::tolower( s[i] );
+  }
+  if( s == "tab" || s == "0" ) return 't';
+  if( s == "maf" || s == "1" ) return 'm';
+  return 0;
+}
+
 namespace cbrc{
 
 LastalArguments::LastalArguments() :
-  outputFormat(1),
+  outputFormat('m'),
   outputType(3),
   strand(-1),  // depends on the alphabet
   isQueryStrandMatrix(false),
@@ -100,8 +111,7 @@ Cosmetic options (default settings):\n\
 -h, --help: show all options and their default settings, and exit\n\
 -V, --version: show version information, and exit\n\
 -v: be verbose: write messages about what lastal is doing\n\
--f: output format: 0=tabular, 1=maf ("
-    + stringify(outputFormat) + ")\n\
+-f: output format: TAB or MAF (MAF)\n\
 \n\
 Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
@@ -174,8 +184,8 @@ LAST home page: http://last.cbrc.jp/\n\
       unstringify( isQueryStrandMatrix, optarg );
       break;
     case 'f':
-      unstringify( outputFormat, optarg );
-      if( outputFormat < 0 || outputFormat > 1 ) badopt( c, optarg );
+      outputFormat = parseOutputFormat( optarg );
+      if( !outputFormat ) badopt( c, optarg );
       break;
 
     case 'r':

@@ -98,7 +98,7 @@ faster because it skips the gapping phase entirely.)
 lastal -f
 ---------
 
-Option -f0 **reduces the output size**, which can improve speed.
+Option -fTAB **reduces the output size**, which can improve speed.
 
 Repeat masking
 --------------

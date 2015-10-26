@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# This generates text documentation from substitution score matrices.
+# This generates text documentation from subset seeds.
 
 cat <<'EOF'
 LAST seeding schemes

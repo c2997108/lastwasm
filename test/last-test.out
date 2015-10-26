@@ -1,4 +1,4 @@
-TEST lastal -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 /tmp/last-test galGal3-M-32.fa
+TEST lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 /tmp/last-test galGal3-M-32.fa
 #
 # a=400 b=30 A=400 B=30 e=2500 d=1384 x=3400 y=962 z=3400 D=1e+06 E=2.80852e+07
 # R=10 u=1 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=96.1735 g=1 j=5 Q=0
@@ -92,7 +92,7 @@ p                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Query sequences=2
 
-TEST lastal -f0 -i1 -w0 -e40 /tmp/last-test galGal3-M-32.fa
+TEST lastal -fTAB -i1 -w0 -e40 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=40 d=-1 x=39 y=9 z=39 D=1e+06 E=2.80852e+07
 # R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=1 w=0 t=0.910239 j=3 Q=0

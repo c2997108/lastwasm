@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# This generates source code from substitution score matrices.
+# This generates source code from subset seeds.
 
 cat <<EOF
 const struct {

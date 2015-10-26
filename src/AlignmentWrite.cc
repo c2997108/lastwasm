@@ -26,10 +26,10 @@ void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 		       const LastEvaluer& evaluer, int format,
 		       std::ostream& os, const AlignmentExtras& extras ) const{
   assert( !blocks.empty() );
-  if( format == 0 ) writeTab( seq1, seq2, strand, isTranslated,
-			      evaluer, os, extras );
-  else              writeMaf( seq1, seq2, strand, isTranslated, alph,
-			      evaluer, os, extras );
+  if( format == 't' )
+    writeTab( seq1, seq2, strand, isTranslated, evaluer, os, extras );
+  if( format == 'm' )
+    writeMaf( seq1, seq2, strand, isTranslated, alph, evaluer, os, extras );
 }
 
 static char* writeTaggedItems( const LastEvaluer& evaluer, double queryLength,
