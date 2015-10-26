@@ -35,6 +35,7 @@ static char parseOutputFormat( const char* text ){
   }
   if( s == "tab" || s == "0" ) return 't';
   if( s == "maf" || s == "1" ) return 'm';
+  if( s == "blasttab" )        return 'b';
   return 0;
 }
 
@@ -111,7 +112,7 @@ Cosmetic options (default settings):\n\
 -h, --help: show all options and their default settings, and exit\n\
 -V, --version: show version information, and exit\n\
 -v: be verbose: write messages about what lastal is doing\n\
--f: output format: TAB or MAF (MAF)\n\
+-f: output format: TAB, MAF, BlastTab (MAF)\n\
 \n\
 Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\

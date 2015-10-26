@@ -877,9 +877,12 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
       // Write lambda?
       out << "#\n";
     }
-    out << "# Coordinates are 0-based.  For - strand matches, coordinates\n";
-    out << "# in the reverse complement of the 2nd sequence are used.\n";
-    out << "#\n";
+
+    if( args.outputFormat != 'b' ) {
+      out << "# Coordinates are 0-based.  For - strand matches, coordinates\n";
+      out << "# in the reverse complement of the 2nd sequence are used.\n";
+      out << "#\n";
+    }
 
     if( args.outputFormat == 't' ){
       out << "# score\tname1\tstart1\talnSize1\tstrand1\tseqSize1\t"
@@ -887,6 +890,11 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
     }
     if( args.outputFormat == 'm' ){
       out << "# name start alnSize strand seqSize alignment\n";
+    }
+    if( args.outputFormat == 'b' ){
+      out << "# Fields: query id, subject id, % identity, alignment length, "
+	  << "mismatches, gap opens, q. start, q. end, s. start, s. end, "
+	  << "evalue, bit score\n";
     }
   }
 

@@ -104,6 +104,10 @@ struct Alignment{
 		 const LastEvaluer& evaluer, std::ostream& os,
 		 const AlignmentExtras& extras ) const;
 
+  void writeBlastTab( const MultiSequence& seq1, const MultiSequence& seq2,
+		      char strand, bool isTranslated, const Alphabet& alph,
+		      const LastEvaluer& evaluer, std::ostream& os ) const;
+
   size_t numColumns( size_t frameSize ) const;
 
   char* writeTopSeq( const uchar* seq, const Alphabet& alph,

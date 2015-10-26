@@ -74,6 +74,12 @@ public:
        : frameshiftEvaluer.area(score, queryLength, databaseLength));
   }
 
+  // Don't call this in the "bad" state:
+  double bitScore(double score) const {
+    return evaluer.isGood() ?
+      evaluer.bitScore(score) : frameshiftEvaluer.bitScore(score);
+  }
+
   // In the "good" state: returns the minimum score with E-value >=
   // "evalue", which is always > 0.  Otherwise: returns -1.
   int minScore(double evalue, double area) const;

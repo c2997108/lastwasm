@@ -30,6 +30,31 @@ void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
     writeTab( seq1, seq2, strand, isTranslated, evaluer, os, extras );
   if( format == 'm' )
     writeMaf( seq1, seq2, strand, isTranslated, alph, evaluer, os, extras );
+  if( format == 'b' )
+    writeBlastTab( seq1, seq2, strand, isTranslated, alph, evaluer, os );
+}
+
+static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
+  size_t c = 0;
+  for (size_t i = 0; i < blocks.size(); ++i)
+    c += blocks[i].size;
+  return c;
+}
+
+static size_t matchCount(const std::vector<SegmentPair> &blocks,
+			 const uchar *seq1, const uchar *seq2,
+			 const uchar *numbersToUppercase) {
+  // no special treatment of ambiguous bases/residues: same as NCBI BLAST
+  size_t matches = 0;
+  for (size_t i = 0; i < blocks.size(); ++i) {
+    const SegmentPair &b = blocks[i];
+    const uchar *x = seq1 + b.beg1();
+    const uchar *y = seq2 + b.beg2();
+    for (size_t j = 0; j < b.size; ++j)
+      if (numbersToUppercase[x[j]] == numbersToUppercase[y[j]])
+	++matches;
+  }
+  return matches;
 }
 
 static char* writeTaggedItems( const LastEvaluer& evaluer, double queryLength,
@@ -248,6 +273,71 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   }
 
   os << '\n';  // blank line afterwards
+}
+
+void Alignment::writeBlastTab( const MultiSequence& seq1,
+			       const MultiSequence& seq2,
+			       char strand, bool isTranslated,
+			       const Alphabet& alph,
+			       const LastEvaluer& evaluer,
+			       std::ostream& os ) const{
+  size_t alnBeg1 = beg1();
+  size_t alnEnd1 = end1();
+  size_t w1 = seq1.whichSequence(alnBeg1);
+  size_t seqStart1 = seq1.seqBeg(w1);
+
+  size_t size2 = seq2.finishedSize();
+  size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
+  size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
+  size_t alnEnd2 = aaToDna( end2(), frameSize2 );
+  if( strand == '-' ){
+    alnBeg2 = size2 - alnBeg2;
+    alnEnd2 = size2 - alnEnd2;
+  }
+  size_t w2 = seq2.whichSequence( alnBeg2 );
+  size_t seqStart2 = seq2.seqBeg(w2);
+
+  size_t alnSize = numColumns( frameSize2 );
+  size_t matches = matchCount( blocks, seq1.seqReader(), seq2.seqReader(),
+			       alph.numbersToUppercase );
+  size_t mismatches = alignedColumnCount(blocks) - matches;
+
+  char matchPercent[16];
+  std::sprintf(matchPercent, "%.2f", 100.0 * matches / alnSize);
+
+  // 1-based coordinates:
+  ++alnBeg1;
+  ++(strand == '+' ? alnBeg2 : alnEnd2);
+
+  /*
+  if( strand == '-' && !isTranslated ){  // xxx this makes it more like BLAST
+    std::swap( alnBeg1, alnEnd1 );
+    std::swap( alnBeg2, alnEnd2 );
+  }
+  */
+
+  os << seq2.seqName(w2) << '\t'
+     << seq1.seqName(w1) << '\t'
+     << matchPercent << '\t'
+     << alnSize << '\t'
+     << mismatches << '\t'
+     << blocks.size() - 1 << '\t'
+     << alnBeg2 - seqStart2 << '\t'
+     << alnEnd2 - seqStart2 << '\t'
+     << alnBeg1 - seqStart1 << '\t'
+     << alnEnd1 - seqStart1;
+
+  if( evaluer.isGood() ){
+    size_t s2 = seq2.seqLen(w2);
+    double area = evaluer.area( score, s2 );
+    double epa = evaluer.evaluePerArea( score );
+    double b = evaluer.bitScore( score );
+    char evalue[16];
+    std::sprintf(evalue, "%.2g", area * epa);
+    os << '\t' << evalue << '\t' << b;
+  }
+
+  os << '\n';
 }
 
 size_t Alignment::numColumns( size_t frameSize ) const{

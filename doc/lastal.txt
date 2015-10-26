@@ -89,6 +89,17 @@ Cosmetic Options
       an offset of size 2 in the upper sequence and 0 in the lower
       sequence, then a block of size 4.
 
+      The same alignment in BlastTab format looks like this::
+
+        seqA chr3 86.96 23 1 1 3 23 10 32 2.6e-05 44.3
+
+      The fields are: query name, reference name, percent identity,
+      alignment length, mismatches, gap opens, query start, query end,
+      reference start, reference end, E-value, bit score.  The start
+      coordinates are one-based.  **Warning:** this is a lossy format,
+      because it does not show gap positions.  **Warning:** the other
+      LAST programs cannot read this format.
+
       For backwards compatibility, a NAME of 0 means TAB and 1 means
       MAF.
 
