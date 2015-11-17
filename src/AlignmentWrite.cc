@@ -39,6 +39,18 @@ private:
   unsigned char s;
 };
 
+class FloatText {  // a text representation of a floating-point number
+public:
+  FloatText() {}
+  FloatText(const char *format, double x) { set(format, x); }
+  void set(const char *format, double x) { s = std::sprintf(b, format, x); }
+  const char *begin() const { return b; }
+  size_t size() const { return s; }
+private:
+  char b[31];
+  unsigned char s;
+};
+
 class Writer {  // writes characters to an output buffer
 public:
   explicit Writer(char *startOfOutput) : p(startOfOutput) {}
@@ -47,6 +59,11 @@ public:
     return *this;
   }
   Writer &operator<<(const IntText &t) {
+    std::memcpy(p, t.begin(), t.size());
+    p += t.size();
+    return *this;
+  }
+  Writer &operator<<(const FloatText &t) {
     std::memcpy(p, t.begin(), t.size());
     p += t.size();
     return *this;
@@ -364,30 +381,40 @@ void Alignment::writeBlastTab( const MultiSequence& seq1,
   }
   */
 
-  char mp[16];
-  std::sprintf(mp, "%.2f", matchPercent);
-
-  size_t b1 = alnBeg1 - seqStart1;
-  size_t b2 = alnBeg2 - seqStart2;
-  size_t e1 = alnEnd1 - seqStart1;
-  size_t e2 = alnEnd2 - seqStart2;
-
-  const char t = '\t';
-  os << seq2.seqName(w2) << t << seq1.seqName(w1) << t
-     << mp << t << alnSize << t << mismatches << t << gapOpens << t
-     << b2 << t << e2 << t << b1 << t << e1;
-
+  std::string n1 = seq1.seqName(w1);
+  std::string n2 = seq2.seqName(w2);
+  FloatText mp("%.2f", matchPercent);
+  IntText as(alnSize);
+  IntText mm(mismatches);
+  IntText go(gapOpens);
+  IntText b1(alnBeg1 - seqStart1);
+  IntText b2(alnBeg2 - seqStart2);
+  IntText e1(alnEnd1 - seqStart1);
+  IntText e2(alnEnd2 - seqStart2);
+  FloatText ev;
+  FloatText bs;
   if( evaluer.isGood() ){
-    size_t s2 = seq2.seqLen(w2);
-    double area = evaluer.area( score, s2 );
+    size_t seqLen2 = seq2.seqLen(w2);
+    double area = evaluer.area( score, seqLen2 );
     double epa = evaluer.evaluePerArea( score );
     double bitScore = evaluer.bitScore( score );
-    char evalue[16];
-    std::sprintf(evalue, "%.2g", area * epa);
-    os << t << evalue << t << bitScore;
+    ev.set("%.2g", area * epa);
+    bs.set("%.3g", bitScore);
   }
 
-  os << '\n';
+  size_t s =
+    n2.size() + n1.size() + mp.size() + as.size() + mm.size() + go.size() +
+    b2.size() + e2.size() + b1.size() + e1.size() + 10;
+  if (evaluer.isGood()) s += ev.size() + bs.size() + 2;
+
+  std::vector<char> v(s);
+  Writer w(&v[0]);
+  const char t = '\t';
+  w << n2 << t << n1 << t << mp << t << as << t << mm << t << go << t
+    << b2 << t << e2 << t << b1 << t << e1;
+  if (evaluer.isGood()) w << t << ev << t << bs;
+  w << '\n';
+  os.write(&v[0], s);
 }
 
 size_t Alignment::numColumns( size_t frameSize ) const{
