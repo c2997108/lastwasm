@@ -73,6 +73,10 @@ public:
     p += t.size();
     return *this;
   }
+  void fill(size_t n, char c) {  // write n copies of character c
+    std::memset(p, c, n);
+    p += n;
+  }
 private:
   char *p;
 };
@@ -199,46 +203,31 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   os.write( line, end - line );
 }
 
-static int numDigits( size_t x ){
-  int n = 0;
-  do{
-    ++n;
-    x /= 10;
-  }while(x);
-  return n;
+static void putLeft(Writer &w, const std::string &t, size_t width) {
+  w << t;
+  w.fill(width - t.size(), ' ');
+  w << ' ';
 }
 
-// Printing with either C++ streams or sprintf can be noticeably slow.
-// So the next 3 functions are used instead.
-
-static char* sprintLeft( char* dest, const char* src, int width ){
-  char* end = dest + width;
-  while( *src ) *dest++ = *src++;
-  while( dest < end ) *dest++ = ' ';
-  *dest++ = ' ';
-  return dest;
+static void putRight(Writer &w, const IntText &t, size_t width) {
+  w.fill(width - t.size(), ' ');
+  w << t;
+  w << ' ';
 }
 
-static char* sprintSize( char* dest, size_t size, int width ){
-  char* end = dest + width;
-  char* beg = end;
-
-  do{
-    --beg;
-    *beg = '0' + size % 10;
-    size /= 10;
-  }while( size );
-
-  while( dest < beg ) *dest++ = ' ';
-
-  *end++ = ' ';
-  return end;
-}
-
-static char* sprintChar( char* dest, char c ){
-  *dest++ = c;
-  *dest++ = ' ';
-  return dest;
+static void writeMafData(char *out,
+			 const std::string &n, size_t nw,
+			 const IntText &b, size_t bw,
+			 const IntText &r, size_t rw,
+			 char strand,
+			 const IntText &s, size_t sw) {
+  Writer w(out);
+  w << 's' << ' ';
+  putLeft(w, n, nw);
+  putRight(w, b, bw);
+  putRight(w, r, rw);
+  w << strand << ' ';
+  putRight(w, s, sw);
 }
 
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
@@ -253,6 +242,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t alnEnd1 = end1();
   size_t w1 = seq1.whichSequence(alnBeg1);
   size_t seqStart1 = seq1.seqBeg(w1);
+  size_t seqLen1 = seq1.seqLen(w1);
 
   size_t size2 = seq2.finishedSize();
   size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
@@ -260,20 +250,21 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t alnEnd2 = aaToDna( end2(), frameSize2 );
   size_t w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
   size_t seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
+  size_t seqLen2 = seq2.seqLen(w2);
 
   const std::string n1 = seq1.seqName(w1);
   const std::string n2 = seq2.seqName(w2);
-  size_t b1 = alnBeg1 - seqStart1;
-  size_t b2 = alnBeg2 - seqStart2;
-  size_t r1 = alnEnd1 - alnBeg1;
-  size_t r2 = alnEnd2 - alnBeg2;
-  size_t s1 = seq1.seqLen(w1);
-  size_t s2 = seq2.seqLen(w2);
+  IntText b1(alnBeg1 - seqStart1);
+  IntText b2(alnBeg2 - seqStart2);
+  IntText r1(alnEnd1 - alnBeg1);
+  IntText r2(alnEnd2 - alnBeg2);
+  IntText s1(seqLen1);
+  IntText s2(seqLen2);
 
-  const int nw = std::max( n1.size(), n2.size() );
-  const int bw = std::max( numDigits(b1), numDigits(b2) );
-  const int rw = std::max( numDigits(r1), numDigits(r2) );
-  const int sw = std::max( numDigits(s1), numDigits(s2) );
+  const size_t nw = std::max( n1.size(), n2.size() );
+  const size_t bw = std::max( b1.size(), b2.size() );
+  const size_t rw = std::max( r1.size(), r2.size() );
+  const size_t sw = std::max( s1.size(), s2.size() );
 
   size_t headLen = 2 + nw + 1 + bw + 1 + rw + 3 + sw + 1;
   size_t lineLen = headLen + numColumns( frameSize2 ) + 1;
@@ -281,20 +272,14 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   char* line = &lineVector[0];
   char* tail = line + headLen;
   line[ lineLen - 1 ] = '\n';
-  char* dest;
 
   char aLine[256];
-  dest = sprintChar( aLine, 'a' );
-  dest += std::sprintf( dest, "score=%d", score );
-  dest = writeTaggedItems( evaluer, s2, score, fullScore, ' ', dest );
+  char* dest = aLine;
+  dest += std::sprintf( dest, "a score=%d", score );
+  dest = writeTaggedItems( evaluer, seqLen2, score, fullScore, ' ', dest );
   os.write( aLine, dest - aLine );
 
-  dest = sprintChar( line, 's' );
-  dest = sprintLeft( dest, n1.c_str(), nw );
-  dest = sprintSize( dest, b1, bw );
-  dest = sprintSize( dest, r1, rw );
-  dest = sprintChar( dest, '+' );
-  dest = sprintSize( dest, s1, sw );
+  writeMafData( line, n1, nw, b1, bw, r1, rw, '+', s1, sw );
   writeTopSeq( seq1.seqReader(), alph, 0, frameSize2, tail );
   os.write( line, lineLen );
 
@@ -306,12 +291,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
     os.write( line, lineLen );
   }
 
-  dest = sprintChar( line, 's' );
-  dest = sprintLeft( dest, n2.c_str(), nw );
-  dest = sprintSize( dest, b2, bw );
-  dest = sprintSize( dest, r2, rw );
-  dest = sprintChar( dest, strand );
-  dest = sprintSize( dest, s2, sw );
+  writeMafData( line, n2, nw, b2, bw, r2, rw, strand, s2, sw );
   writeBotSeq( seq2.seqReader(), alph, 0, frameSize2, tail );
   os.write( line, lineLen );
 
