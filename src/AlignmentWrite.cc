@@ -92,22 +92,17 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t w2 = seq2.whichSequence( strand == '+' ? alnBeg2 : size2 - alnBeg2 );
   size_t seqStart2 = strand == '+' ? seq2.seqBeg(w2) : size2 - seq2.seqEnd(w2);
 
+  size_t b1 = alnBeg1 - seqStart1;
+  size_t b2 = alnBeg2 - seqStart2;
+  size_t r1 = alnEnd1 - alnBeg1;
+  size_t r2 = alnEnd2 - alnBeg2;
   size_t s1 = seq1.seqLen(w1);
   size_t s2 = seq2.seqLen(w2);
 
-  os << score << '\t';
-
-  os << seq1.seqName(w1) << '\t'
-     << alnBeg1 - seqStart1 << '\t'
-     << alnEnd1 - alnBeg1 << '\t'
-     << '+' << '\t'
-     << s1 << '\t';
-
-  os << seq2.seqName(w2) << '\t'
-     << alnBeg2 - seqStart2 << '\t'
-     << alnEnd2 - alnBeg2 << '\t'
-     << strand << '\t'
-     << s2 << '\t';
+  const char t = '\t';
+  os << score << t;
+  os << seq1.seqName(w1) << t << b1 << t << r1 << t << '+'    << t << s1 << t;
+  os << seq2.seqName(w2) << t << b2 << t << r2 << t << strand << t << s2 << t;
 
   for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     if( i > blocks.begin() ){  // between each pair of aligned blocks:
@@ -127,7 +122,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 
   double fullScore = extras.fullScore;
   char line[256];
-  char* end = writeTaggedItems( evaluer, s2, score, fullScore, '\t', line );
+  char* end = writeTaggedItems( evaluer, s2, score, fullScore, t, line );
   os.write( line, end - line );
 }
 
@@ -227,14 +222,13 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   dest = sprintSize( dest, r1, rw );
   dest = sprintChar( dest, '+' );
   dest = sprintSize( dest, s1, sw );
-  writeTopSeq( seq1.seqReader(), alph, 0, frameSize2, dest );
+  writeTopSeq( seq1.seqReader(), alph, 0, frameSize2, tail );
   os.write( line, lineLen );
 
   size_t qualsPerBase1 = seq1.qualsPerLetter();
   if( qualsPerBase1 ){
-    dest = sprintChar( line, 'q' );
-    dest += nw + 1;
-    std::fill( dest, tail, ' ' );
+    *line = 'q';
+    std::fill( line + 2 + nw + 1, tail, ' ' );
     writeTopSeq( seq1.qualityReader(), alph, qualsPerBase1, frameSize2, tail );
     os.write( line, lineLen );
   }
@@ -245,22 +239,21 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   dest = sprintSize( dest, r2, rw );
   dest = sprintChar( dest, strand );
   dest = sprintSize( dest, s2, sw );
-  writeBotSeq( seq2.seqReader(), alph, 0, frameSize2, dest );
+  writeBotSeq( seq2.seqReader(), alph, 0, frameSize2, tail );
   os.write( line, lineLen );
 
   size_t qualsPerBase2 = seq2.qualsPerLetter();
   if( qualsPerBase2 && !isTranslated ){
     // for translated alignment: don't write untranslated quality data
-    dest = sprintChar( line, 'q' );
-    dest += nw + 1;
-    std::fill( dest, tail, ' ' );
+    *line = 'q';
+    std::fill( line + 2 + nw + 1, tail, ' ' );
     writeBotSeq( seq2.qualityReader(), alph, qualsPerBase2, frameSize2, tail );
     os.write( line, lineLen );
   }
 
   if( columnAmbiguityCodes.size() > 0 ){
-    dest = sprintChar( line, 'p' );
-    std::fill( dest, tail, ' ' );
+    *line = 'p';
+    std::fill( line + 2, tail, ' ' );
     copy( columnAmbiguityCodes.begin(), columnAmbiguityCodes.end(), tail );
     os.write( line, lineLen );
   }
@@ -301,9 +294,8 @@ void Alignment::writeBlastTab( const MultiSequence& seq1,
   size_t matches = matchCount( blocks, seq1.seqReader(), seq2.seqReader(),
 			       alph.numbersToUppercase );
   size_t mismatches = alignedColumnCount(blocks) - matches;
-
-  char matchPercent[16];
-  std::sprintf(matchPercent, "%.2f", 100.0 * matches / alnSize);
+  size_t gapOpens = blocks.size() - 1;
+  double matchPercent = 100.0 * matches / alnSize;
 
   // 1-based coordinates:
   ++alnBeg1;
@@ -316,25 +308,27 @@ void Alignment::writeBlastTab( const MultiSequence& seq1,
   }
   */
 
-  os << seq2.seqName(w2) << '\t'
-     << seq1.seqName(w1) << '\t'
-     << matchPercent << '\t'
-     << alnSize << '\t'
-     << mismatches << '\t'
-     << blocks.size() - 1 << '\t'
-     << alnBeg2 - seqStart2 << '\t'
-     << alnEnd2 - seqStart2 << '\t'
-     << alnBeg1 - seqStart1 << '\t'
-     << alnEnd1 - seqStart1;
+  char mp[16];
+  std::sprintf(mp, "%.2f", matchPercent);
+
+  size_t b1 = alnBeg1 - seqStart1;
+  size_t b2 = alnBeg2 - seqStart2;
+  size_t e1 = alnEnd1 - seqStart1;
+  size_t e2 = alnEnd2 - seqStart2;
+
+  const char t = '\t';
+  os << seq2.seqName(w2) << t << seq1.seqName(w1) << t
+     << mp << t << alnSize << t << mismatches << t << gapOpens << t
+     << b2 << t << e2 << t << b1 << t << e1;
 
   if( evaluer.isGood() ){
     size_t s2 = seq2.seqLen(w2);
     double area = evaluer.area( score, s2 );
     double epa = evaluer.evaluePerArea( score );
-    double b = evaluer.bitScore( score );
+    double bitScore = evaluer.bitScore( score );
     char evalue[16];
     std::sprintf(evalue, "%.2g", area * epa);
-    os << '\t' << evalue << '\t' << b;
+    os << t << evalue << t << bitScore;
   }
 
   os << '\n';
