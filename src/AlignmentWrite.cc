@@ -10,9 +10,6 @@
 #include <cstdio>  // sprintf
 #include <iostream>
 
-// make C++ tolerable:
-#define CI(type) std::vector<type>::const_iterator
-
 using namespace cbrc;
 
 // This writes a "size_t" integer into a char buffer ending at "end".
@@ -182,20 +179,21 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   w << n2 << t << b2 << t << r2 << t << strand << t << s2 << t;
   os.write(&v[0], s);
 
-  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    if( i > blocks.begin() ){  // between each pair of aligned blocks:
-      CI(SegmentPair) j = i - 1;
-      if( j->size ) os << ',';
-      size_t gapBeg1 = j->end1();
-      size_t gapEnd1 = i->beg1();
+  for( size_t i = 0; i < blocks.size(); ++i ){
+    const SegmentPair& y = blocks[i];
+    if( i > 0 ){  // between each pair of aligned blocks:
+      const SegmentPair& x = blocks[i - 1];
+      if( x.size ) os << ',';
+      size_t gapBeg1 = x.end1();
+      size_t gapEnd1 = y.beg1();
       writeSignedDifference( gapEnd1, gapBeg1, os );  // allow -1 frameshift
       os << ':';
-      size_t gapBeg2 = aaToDna( j->end2(), frameSize2 );
-      size_t gapEnd2 = aaToDna( i->beg2(), frameSize2 );
+      size_t gapBeg2 = aaToDna( x.end2(), frameSize2 );
+      size_t gapEnd2 = aaToDna( y.beg2(), frameSize2 );
       writeSignedDifference( gapEnd2, gapBeg2, os );  // allow -1 frameshift
-      if( i->size ) os << ',';
+      if( y.size ) os << ',';
     }
-    if( i->size ) os << i->size;
+    if( y.size ) os << y.size;
   }
 
   double fullScore = extras.fullScore;
@@ -406,21 +404,22 @@ void Alignment::writeBlastTab( const MultiSequence& seq1,
 size_t Alignment::numColumns( size_t frameSize ) const{
   size_t num = 0;
 
-  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    if( i > blocks.begin() ){  // between each pair of aligned blocks:
-      CI(SegmentPair) j = i - 1;
+  for( size_t i = 0; i < blocks.size(); ++i ){
+    const SegmentPair& y = blocks[i];
+    if( i > 0 ){  // between each pair of aligned blocks:
+      const SegmentPair& x = blocks[i - 1];
 
       // length of unaligned chunk of top sequence (gaps in bottom sequence):
-      num += i->beg1() - j->end1();
+      num += y.beg1() - x.end1();
 
       // length of unaligned chunk of bottom sequence (gaps in top sequence):
       size_t gap2, frameshift2;
-      sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
+      sizeAndFrameshift( x.end2(), y.beg2(), frameSize, gap2, frameshift2 );
       if( frameshift2 ) ++num;
       num += gap2;
     }
 
-    num += i->size;  // length of aligned chunk
+    num += y.size;  // length of aligned chunk
   }
 
   return num;
@@ -452,22 +451,23 @@ static char* writeSeq( const uchar* seq, size_t beg, size_t end,
 char* Alignment::writeTopSeq( const uchar* seq, const Alphabet& alph,
 			      size_t qualsPerBase, size_t frameSize,
 			      char* dest ) const{
-  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    if( i > blocks.begin() ){  // between each pair of aligned blocks:
-      CI(SegmentPair) j = i - 1;
+  for( size_t i = 0; i < blocks.size(); ++i ){
+    const SegmentPair& y = blocks[i];
+    if( i > 0 ){  // between each pair of aligned blocks:
+      const SegmentPair& x = blocks[i - 1];
 
       // append unaligned chunk of top sequence:
-      dest = writeSeq( seq, j->end1(), i->beg1(), alph, qualsPerBase, dest );
+      dest = writeSeq( seq, x.end1(), y.beg1(), alph, qualsPerBase, dest );
 
       // append gaps for unaligned chunk of bottom sequence:
       size_t gap2, frameshift2;
-      sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
+      sizeAndFrameshift( x.end2(), y.beg2(), frameSize, gap2, frameshift2 );
       if( frameshift2 ) *dest++ = '-';
       dest = writeGaps( dest, gap2 );
     }
 
     // append aligned chunk of top sequence:
-    dest = writeSeq( seq, i->beg1(), i->end1(), alph, qualsPerBase, dest);
+    dest = writeSeq( seq, y.beg1(), y.end1(), alph, qualsPerBase, dest);
   }
 
   return dest;
@@ -476,24 +476,25 @@ char* Alignment::writeTopSeq( const uchar* seq, const Alphabet& alph,
 char* Alignment::writeBotSeq( const uchar* seq, const Alphabet& alph,
 			      size_t qualsPerBase, size_t frameSize,
 			      char* dest ) const{
-  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    if( i > blocks.begin() ){  // between each pair of aligned blocks:
-      CI(SegmentPair) j = i - 1;
+  for( size_t i = 0; i < blocks.size(); ++i ){
+    const SegmentPair& y = blocks[i];
+    if( i > 0 ){  // between each pair of aligned blocks:
+      const SegmentPair& x = blocks[i - 1];
 
       // append gaps for unaligned chunk of top sequence:
-      dest = writeGaps( dest, i->beg1() - j->end1() );
+      dest = writeGaps( dest, y.beg1() - x.end1() );
 
       //append unaligned chunk of bottom sequence:
       size_t gap2, frameshift2;
-      sizeAndFrameshift( j->end2(), i->beg2(), frameSize, gap2, frameshift2 );
+      sizeAndFrameshift( x.end2(), y.beg2(), frameSize, gap2, frameshift2 );
       if( frameshift2 == 1 ) *dest++ = '\\';
       if( frameshift2 == 2 ) *dest++ = '/';
-      size_t chunkBeg2 = i->beg2() - gap2;
-      dest = writeSeq( seq, chunkBeg2, i->beg2(), alph, qualsPerBase, dest );
+      size_t chunkBeg2 = y.beg2() - gap2;
+      dest = writeSeq( seq, chunkBeg2, y.beg2(), alph, qualsPerBase, dest );
     }
 
     // append aligned chunk of bottom sequence:
-    dest = writeSeq( seq, i->beg2(), i->end2(), alph, qualsPerBase, dest );
+    dest = writeSeq( seq, y.beg2(), y.end2(), alph, qualsPerBase, dest );
   }
 
   return dest;

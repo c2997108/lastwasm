@@ -11,7 +11,6 @@
 
 // make C++ tolerable:
 #define IT(type) std::vector<type>::iterator
-#define CI(type) std::vector<type>::const_iterator
 
 using namespace cbrc;
 
@@ -179,14 +178,16 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
   int maxScore = 0;
   int runningScore = 0;
 
-  for( CI(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    if( i > blocks.begin() ){  // between each pair of aligned blocks:
-      size_t gapBeg1 = (i-1)->end1();
-      size_t gapEnd1 = i->beg1();
+  for( size_t i = 0; i < blocks.size(); ++i ){
+    const SegmentPair& y = blocks[i];
+    if( i > 0 ){  // between each pair of aligned blocks:
+      const SegmentPair& x = blocks[i - 1];
+      size_t gapBeg1 = x.end1();
+      size_t gapEnd1 = y.beg1();
       size_t gapSize1 = gapEnd1 - gapBeg1;
 
-      size_t gapBeg2 = (i-1)->end2();
-      size_t gapEnd2 = i->beg2();
+      size_t gapBeg2 = x.end2();
+      size_t gapEnd2 = y.beg2();
       size_t gapSize2, frameshift2;
       sizeAndFrameshift( gapBeg2, gapEnd2, frameSize, gapSize2, frameshift2 );
       if( frameshift2 ) runningScore -= frameshiftCost;
@@ -196,12 +197,12 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
       if( runningScore < maxScore - maxDrop ) return false;
     }
 
-    const uchar* s1 = seq1 + i->beg1();
-    const uchar* s2 = seq2 + i->beg2();
-    const uchar* e1 = seq1 + i->end1();
-    const ScoreMatrixRow* p2 = pssm2 ? pssm2 + i->beg2() : 0;
-    const uchar* q1 = qual1 ? qual1 + i->beg1() : 0;
-    const uchar* q2 = qual2 ? qual2 + i->beg2() : 0;
+    const uchar* s1 = seq1 + y.beg1();
+    const uchar* s2 = seq2 + y.beg2();
+    const uchar* e1 = seq1 + y.end1();
+    const ScoreMatrixRow* p2 = pssm2 ? pssm2 + y.beg2() : 0;
+    const uchar* q1 = qual1 ? qual1 + y.beg1() : 0;
+    const uchar* q2 = qual2 ? qual2 + y.beg2() : 0;
 
     while( s1 < e1 ){
       /**/ if( sm2qual ) runningScore += sm2qual( *s1++, *s2++, *q1++, *q2++ );
@@ -210,7 +211,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 
       if( runningScore > maxScore ) maxScore = runningScore;
       else if( !globality && runningScore <= 0 ) return false;
-      else if( !globality && (s1 == e1 && i+1 == blocks.end()) ) return false;
+      else if( !globality && (s1 == e1 && i+1 == blocks.size()) ) return false;
       else if( runningScore < maxScore - maxDrop ) return false;
     }
   }
