@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <iosfwd>
+#include <cstring>
 
 namespace cbrc{
 
@@ -22,6 +23,23 @@ class MultiSequence;
 class Alphabet;
 class Centroid;
 class TwoQualityScoreMatrix;
+
+struct AlignmentText {
+  // This holds the final text representation of an alignment, along
+  // with data for sorting it.
+  SegmentPair::indexT queryNum;
+  int score;
+  char *text;  // seems to be a bit faster than std::vector<char>
+
+  bool operator<(const AlignmentText& r) const {
+    // Order by query number (ascending), then score (descending):
+    if (queryNum != r.queryNum) return queryNum < r.queryNum;
+    if (score != r.score)       return score > r.score;
+
+    // Break ties, to make the sort order exactly reproducible:
+    return std::strcmp(text, r.text) < 0;
+  }
+};
 
 struct AlignmentExtras {
   // Optional (probabilistic) attributes of an alignment.
@@ -66,7 +84,8 @@ struct Alignment{
 
   void write( const MultiSequence& seq1, const MultiSequence& seq2,
 	      char strand, bool isTranslated, const Alphabet& alph,
-	      const LastEvaluer& evaluer, int format, std::ostream& os,
+	      const LastEvaluer& evaluer, int format,
+	      std::vector<AlignmentText>& textAlns,
 	      const AlignmentExtras& extras = AlignmentExtras() ) const;
 
   // data:
@@ -106,7 +125,8 @@ struct Alignment{
 
   void writeBlastTab( const MultiSequence& seq1, const MultiSequence& seq2,
 		      char strand, bool isTranslated, const Alphabet& alph,
-		      const LastEvaluer& evaluer, std::ostream& os ) const;
+		      const LastEvaluer& evaluer,
+		      std::vector<AlignmentText>& textAlns ) const;
 
   size_t numColumns( size_t frameSize ) const;
 

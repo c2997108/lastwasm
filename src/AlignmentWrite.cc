@@ -5,11 +5,10 @@
 #include "LastEvaluer.hh"
 #include "MultiSequence.hh"
 #include "Alphabet.hh"
-#include <iomanip>
 #include <algorithm>
 #include <cassert>
 #include <cstdio>  // sprintf
-#include <cstring>
+#include <iostream>
 
 // make C++ tolerable:
 #define CI(type) std::vector<type>::const_iterator
@@ -90,14 +89,16 @@ static void writeSignedDifference( size_t x, size_t y, std::ostream& os ){
 void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 		       char strand, bool isTranslated, const Alphabet& alph,
 		       const LastEvaluer& evaluer, int format,
-		       std::ostream& os, const AlignmentExtras& extras ) const{
+		       std::vector<AlignmentText>& textAlns,
+		       const AlignmentExtras& extras ) const{
   assert( !blocks.empty() );
+  std::ostream& os = std::cout;
   if( format == 't' )
     writeTab( seq1, seq2, strand, isTranslated, evaluer, os, extras );
   if( format == 'm' )
     writeMaf( seq1, seq2, strand, isTranslated, alph, evaluer, os, extras );
   if( format == 'b' )
-    writeBlastTab( seq1, seq2, strand, isTranslated, alph, evaluer, os );
+    writeBlastTab( seq1, seq2, strand, isTranslated, alph, evaluer, textAlns );
 }
 
 static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
@@ -326,7 +327,7 @@ void Alignment::writeBlastTab( const MultiSequence& seq1,
 			       char strand, bool isTranslated,
 			       const Alphabet& alph,
 			       const LastEvaluer& evaluer,
-			       std::ostream& os ) const{
+			       std::vector<AlignmentText>& textAlns ) const{
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
   size_t w1 = seq1.whichSequence(alnBeg1);
@@ -387,14 +388,19 @@ void Alignment::writeBlastTab( const MultiSequence& seq1,
     b2.size() + e2.size() + b1.size() + e1.size() + 10;
   if (evaluer.isGood()) s += ev.size() + bs.size() + 2;
 
-  std::vector<char> v(s);
-  Writer w(&v[0]);
+  char *text = new char[s + 1];
+  Writer w(text);
   const char t = '\t';
   w << n2 << t << n1 << t << mp << t << as << t << mm << t << go << t
     << b2 << t << e2 << t << b1 << t << e1;
   if (evaluer.isGood()) w << t << ev << t << bs;
-  w << '\n';
-  os.write(&v[0], s);
+  w << '\n' << '\0';
+
+  AlignmentText at;
+  at.queryNum = w2;
+  at.score = score;
+  at.text = text;
+  textAlns.push_back(at);
 }
 
 size_t Alignment::numColumns( size_t frameSize ) const{
