@@ -50,7 +50,8 @@ strand.
 This alignment format is called `MAF (multiple alignment format)
 <http://genome.ucsc.edu/FAQ/FAQformat.html#format5>`_.  You can
 convert it to several other formats using `maf-convert
-<maf-convert.html>`_.
+<maf-convert.html>`_.  You can make lastal produce a few other formats
+with option -f (see `<lastal.html>`_).
 
 Example 2: Compare vertebrate proteins to invertebrate proteins
 ---------------------------------------------------------------
