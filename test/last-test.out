@@ -174,7 +174,7 @@ chr32
 TEST lastal -Q1 -e90 -a9 /tmp/last-test SRR001981-1k.fastq
 #
 # a=9 b=9 A=9 B=9 e=90 d=-1 x=89 y=44 z=89 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=1048576 w=1000 t=4.36661 j=3 Q=1
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=134217728 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766

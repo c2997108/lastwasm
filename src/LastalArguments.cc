@@ -433,10 +433,12 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // disk once per batch.
     if( !isVolumes )
       batchSize = 0x2000;  // 8 Kbytes (?)
-    else if( inputFormat != sequenceFormat::fasta )
+    else if( inputFormat == sequenceFormat::pssm )
       batchSize = 0x100000;   // 1 Mbyte
     else if( outputType == 0 )
       batchSize = 0x1000000;  // 16 Mbytes
+    else if( inputFormat == sequenceFormat::prb )
+      batchSize = 0x2000000;  // 32 Mbytes (?)
     else
       batchSize = 0x8000000;  // 128 Mbytes
     // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
