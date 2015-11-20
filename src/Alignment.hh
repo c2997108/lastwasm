@@ -83,7 +83,8 @@ struct Alignment{
                   const uchar* qual1, const uchar* qual2 );
 
   void write( const MultiSequence& seq1, const MultiSequence& seq2,
-	      char strand, bool isTranslated, const Alphabet& alph,
+	      char strand, const uchar* seqData2,
+	      bool isTranslated, const Alphabet& alph,
 	      const LastEvaluer& evaluer, int format,
 	      std::vector<AlignmentText>& textAlns,
 	      const AlignmentExtras& extras = AlignmentExtras() ) const;
@@ -119,12 +120,14 @@ struct Alignment{
 		 const AlignmentExtras& extras ) const;
 
   void writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
-		 char strand, bool isTranslated, const Alphabet& alph,
+		 char strand, const uchar* seqData2,
+		 bool isTranslated, const Alphabet& alph,
 		 const LastEvaluer& evaluer, std::ostream& os,
 		 const AlignmentExtras& extras ) const;
 
   void writeBlastTab( const MultiSequence& seq1, const MultiSequence& seq2,
-		      char strand, bool isTranslated, const Alphabet& alph,
+		      char strand, const uchar* seqData2,
+		      bool isTranslated, const Alphabet& alph,
 		      const LastEvaluer& evaluer,
 		      std::vector<AlignmentText>& textAlns ) const;
 

@@ -84,18 +84,22 @@ static void writeSignedDifference( size_t x, size_t y, std::ostream& os ){
 }
 
 void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
-		       char strand, bool isTranslated, const Alphabet& alph,
+		       char strand, const uchar* seqData2,
+		       bool isTranslated, const Alphabet& alph,
 		       const LastEvaluer& evaluer, int format,
 		       std::vector<AlignmentText>& textAlns,
 		       const AlignmentExtras& extras ) const{
   assert( !blocks.empty() );
   std::ostream& os = std::cout;
   if( format == 't' )
-    writeTab( seq1, seq2, strand, isTranslated, evaluer, os, extras );
+    writeTab( seq1, seq2, strand,
+	      isTranslated, evaluer, os, extras );
   if( format == 'm' )
-    writeMaf( seq1, seq2, strand, isTranslated, alph, evaluer, os, extras );
+    writeMaf( seq1, seq2, strand, seqData2,
+	      isTranslated, alph, evaluer, os, extras );
   if( format == 'b' )
-    writeBlastTab( seq1, seq2, strand, isTranslated, alph, evaluer, textAlns );
+    writeBlastTab( seq1, seq2, strand, seqData2,
+		   isTranslated, alph, evaluer, textAlns );
 }
 
 static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
@@ -230,7 +234,8 @@ static void writeMafData(char *out,
 }
 
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
-			  char strand, bool isTranslated, const Alphabet& alph,
+			  char strand, const uchar* seqData2,
+			  bool isTranslated, const Alphabet& alph,
 			  const LastEvaluer& evaluer, std::ostream& os,
 			  const AlignmentExtras& extras ) const{
   double fullScore = extras.fullScore;
@@ -291,7 +296,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   }
 
   writeMafData( line, n2, nw, b2, bw, r2, rw, strand, s2, sw );
-  writeBotSeq( seq2.seqReader(), alph, 0, frameSize2, tail );
+  writeBotSeq( seqData2, alph, 0, frameSize2, tail );
   os.write( line, lineLen );
 
   size_t qualsPerBase2 = seq2.qualsPerLetter();
@@ -322,8 +327,8 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 
 void Alignment::writeBlastTab( const MultiSequence& seq1,
 			       const MultiSequence& seq2,
-			       char strand, bool isTranslated,
-			       const Alphabet& alph,
+			       char strand, const uchar* seqData2,
+			       bool isTranslated, const Alphabet& alph,
 			       const LastEvaluer& evaluer,
 			       std::vector<AlignmentText>& textAlns ) const{
   size_t alnBeg1 = beg1();
@@ -343,7 +348,7 @@ void Alignment::writeBlastTab( const MultiSequence& seq1,
   size_t seqStart2 = seq2.seqBeg(w2);
 
   size_t alnSize = numColumns( frameSize2 );
-  size_t matches = matchCount( blocks, seq1.seqReader(), seq2.seqReader(),
+  size_t matches = matchCount( blocks, seq1.seqReader(), seqData2,
 			       alph.numbersToUppercase );
   size_t mismatches = alignedColumnCount(blocks) - matches;
   size_t gapOpens = blocks.size() - 1;

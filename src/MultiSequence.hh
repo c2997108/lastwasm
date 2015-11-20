@@ -82,9 +82,6 @@ class MultiSequence{
   const uchar* seqReader() const{ return seq.begin(); }
   /***/ uchar* seqWriter()      { return &seq.v[0]; }
 
-  // swap the sequence data with some other sequence data
-  void swapSeq( std::vector<uchar>& otherSeq ){ seq.v.swap(otherSeq); }
-
   // make the PSSM have the same length as the sequence
   void resizePssm()
   { pssm.resize( finishedSize() * std::size_t(scoreMatrixRowSize) ); }
