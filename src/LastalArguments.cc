@@ -323,9 +323,6 @@ LAST home page: http://last.cbrc.jp/\n\
   if( isTranslated() && outputType > 3 )
     ERR( "can't combine option -F with option -j > 3" );
 
-  if( isTranslated() && outputType == 0 )
-    ERR( "can't combine option -F with option -j 0" );
-
   if( isTranslated() && globality == 1 )
     ERR( "can't combine option -F with option -T 1" );
 
