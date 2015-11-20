@@ -352,34 +352,16 @@ void writeCounts( std::ostream& out ){
   }
 }
 
-// Count all matches, of all sizes, of a query batch against a suffix array
-void countMatches( char strand, const uchar* querySeq ){
+// Count all matches, of all sizes, of a query sequence against a suffix array
+void countMatches( size_t queryNum, const uchar* querySeq ){
   LOG( "counting..." );
-  indexT seqNum = strand == '+' ? 0 : query.finishedSequences() - 1;
 
-  for( indexT i = 0; i < query.finishedSize(); i += args.queryStep ){
-    if( strand == '+' ){
-      for( ;; ){
-	if( seqNum == query.finishedSequences() ) return;
-	if( query.seqEnd(seqNum) > i ) break;
-	++seqNum;
-      }
-      // speed-up:
-      if( args.minHitDepth > query.seqEnd(seqNum) - i ) continue;
-    }
-    else{
-      indexT j = query.finishedSize() - i;
-      for( ;; ){
-	if( seqNum+1 == 0 ) return;
-	if( query.seqBeg(seqNum) < j ) break;
-	--seqNum;
-      }
-      // speed-up:
-      if( args.minHitDepth > j - query.seqBeg(seqNum) ) continue;
-    }
+  indexT e = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  if( args.minHitDepth > 1 ) e -= std::min( args.minHitDepth - 1, e );
 
+  for( indexT i = 0; i < e; i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x )
-      suffixArrays[x].countMatches( matchCounts[seqNum], querySeq + i,
+      suffixArrays[x].countMatches( matchCounts[queryNum], querySeq + i,
 				    text.seqReader(), args.maxHitDepth );
   }
 }
@@ -419,6 +401,18 @@ const QualityPssmMaker &getQualityPssmMaker(char strand) {
     return qualityPssmMakerRev;
 }
 
+const uchar *getQueryQual(size_t queryNum) {
+  const uchar *q = query.qualityReader();
+  if (q) q += query.padBeg(queryNum) * query.qualsPerLetter();
+  return q;
+}
+
+const ScoreMatrixRow *getQueryPssm(size_t queryNum) {
+  const ScoreMatrixRow* p = query.pssmReader();
+  if( args.inputFormat == sequenceFormat::pssm ) p += query.padBeg(queryNum);
+  return p;
+}
+
 namespace Phase{ enum Enum{ gapless, gapped, final }; }
 
 struct Dispatcher{
@@ -432,12 +426,13 @@ struct Dispatcher{
   int d;  // the maximum score drop
   int z;
 
-  Dispatcher( Phase::Enum e, char strand, const uchar* querySeq ) :
+  Dispatcher( Phase::Enum e,
+	      size_t queryNum, char strand, const uchar* querySeq ) :
       a( text.seqReader() ),
       b( querySeq ),
       i( text.qualityReader() ),
-      j( query.qualityReader() ),
-      p( query.pssmReader() ),
+      j( getQueryQual(queryNum) ),
+      p( getQueryPssm(queryNum) ),
       m( getScoreMatrix( strand, e < args.maskLowercase ) ),
       t( getTwoQualityMatrix( strand, e < args.maskLowercase ) ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
@@ -482,14 +477,14 @@ struct Dispatcher{
 };
 
 // Find query matches to the suffix array, and do gapless extensions
-void alignGapless( SegmentPairPot& gaplessAlns, char strand,
-		   const uchar* querySeq,
+void alignGapless( SegmentPairPot& gaplessAlns,
+		   size_t queryNum, char strand, const uchar* querySeq,
 		   std::vector<AlignmentText>& textAlns ){
-  Dispatcher dis( Phase::gapless, strand, querySeq );
+  Dispatcher dis( Phase::gapless, queryNum, strand, querySeq );
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
-  for( indexT i = 0; i < query.finishedSize(); i += args.queryStep ){
+  for( indexT i = 0; i < query.padLen(queryNum); i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x ){
       const indexT* beg;
       const indexT* end;
@@ -531,8 +526,9 @@ void alignGapless( SegmentPairPot& gaplessAlns, char strand,
 	if( args.outputType == 1 ){  // we just want gapless alignments
 	  Alignment aln;
 	  aln.fromSegmentPair(sp);
-	  aln.write( text, query, strand, querySeq, args.isTranslated(),
-		     alph, evaluer, args.outputFormat, textAlns );
+	  aln.write( text, query, queryNum, strand, querySeq,
+		     args.isTranslated(), alph, evaluer,
+		     args.outputFormat, textAlns );
 	}
 	else{
 	  gaplessAlns.add(sp);  // add the gapless alignment to the pot
@@ -561,9 +557,10 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
 
 // Do gapped extensions of the gapless alignments
 void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
-                  char strand, const uchar* querySeq, Phase::Enum phase ){
-  Dispatcher dis( phase, strand, querySeq );
-  indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
+                  size_t queryNum, char strand, const uchar* querySeq,
+		  Phase::Enum phase ){
+  Dispatcher dis( phase, queryNum, strand, querySeq );
+  indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
   // Redo the gapless extensions, using gapped score parameters.
@@ -634,16 +631,16 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
-void alignFinish( const AlignmentPot& gappedAlns, char strand,
-		  const uchar* querySeq,
+void alignFinish( const AlignmentPot& gappedAlns,
+		  size_t queryNum, char strand, const uchar* querySeq,
 		  std::vector<AlignmentText>& textAlns ){
-  Dispatcher dis( Phase::final, strand, querySeq );
-  indexT frameSize = args.isTranslated() ? (query.finishedSize() / 3) : 0;
+  Dispatcher dis( Phase::final, queryNum, strand, querySeq );
+  indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
 
   if( args.outputType > 3 ){
     if( dis.p ){
       LOG( "exponentiating PSSM..." );
-      centroid.setPssm( dis.p, query.finishedSize(), args.temperature,
+      centroid.setPssm( dis.p, query.padLen(queryNum), args.temperature,
                         getOneQualityExpMatrix(strand), dis.b, dis.j );
     }
     else{
@@ -657,8 +654,9 @@ void alignFinish( const AlignmentPot& gappedAlns, char strand,
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
-      aln.write( text, query, strand, querySeq, args.isTranslated(),
-		 alph, evaluer, args.outputFormat, textAlns );
+      aln.write( text, query, queryNum, strand, querySeq,
+		 args.isTranslated(), alph, evaluer,
+		 args.outputFormat, textAlns );
     }
     else{  // calculate match probabilities:
       Alignment probAln;
@@ -671,22 +669,25 @@ void alignFinish( const AlignmentPot& gappedAlns, char strand,
 			 dis.i, dis.j, alph, extras,
 			 args.gamma, args.outputType );
       assert( aln.score != -INF );
-      probAln.write( text, query, strand, querySeq, args.isTranslated(),
-		     alph, evaluer, args.outputFormat, textAlns, extras );
+      probAln.write( text, query, queryNum, strand, querySeq,
+		     args.isTranslated(), alph, evaluer,
+		     args.outputFormat, textAlns, extras );
     }
   }
 }
 
-void makeQualityPssm( char strand, const uchar* querySeq, bool isMask ){
+void makeQualityPssm( size_t queryNum, char strand, const uchar* querySeq,
+		      bool isMask ){
   if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
   if( args.isTranslated() ) return;
 
   LOG( "making PSSM..." );
-  query.resizePssm();
+  query.resizePssm(queryNum);
 
   const uchar *seqBeg = querySeq;
-  const uchar *seqEnd = seqBeg + query.finishedSize();
-  const uchar *q = query.qualityReader();
+  const uchar *seqEnd = seqBeg + query.padLen(queryNum);
+  const uchar *q =
+    query.qualityReader() + query.padBeg(queryNum) * query.qualsPerLetter();
   int *pssm = *query.pssmWriter();
 
   if( args.inputFormat == sequenceFormat::prb ){
@@ -699,35 +700,39 @@ void makeQualityPssm( char strand, const uchar* querySeq, bool isMask ){
   }
 }
 
-// Scan one batch of query sequences against one database volume
-void scan( char strand, const uchar* querySeq,
+// Scan one query sequence against one database volume
+void scan( size_t queryNum, char strand, const uchar* querySeq,
 	   std::vector<AlignmentText>& textAlns ){
   if( args.outputType == 0 ){  // we just want match counts
-    countMatches( strand, querySeq );
+    countMatches( queryNum, querySeq );
     return;
   }
 
   bool isMask = (args.maskLowercase > 0);
-  makeQualityPssm( strand, querySeq, isMask );
+  makeQualityPssm( queryNum, strand, querySeq, isMask );
 
   LOG( "scanning..." );
 
   SegmentPairPot gaplessAlns;
-  alignGapless( gaplessAlns, strand, querySeq, textAlns );
+  alignGapless( gaplessAlns, queryNum, strand, querySeq, textAlns );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
-  if( args.maskLowercase == 1 ) makeQualityPssm( strand, querySeq, false );
+  if( args.maskLowercase == 1 )
+    makeQualityPssm( queryNum, strand, querySeq, false );
 
   AlignmentPot gappedAlns;
 
   if( args.maskLowercase == 2 || args.maxDropFinal != args.maxDropGapped ){
-    alignGapped( gappedAlns, gaplessAlns, strand, querySeq, Phase::gapped );
+    alignGapped( gappedAlns, gaplessAlns,
+		 queryNum, strand, querySeq, Phase::gapped );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
-  if( args.maskLowercase == 2 ) makeQualityPssm( strand, querySeq, false );
+  if( args.maskLowercase == 2 )
+    makeQualityPssm( queryNum, strand, querySeq, false );
 
-  alignGapped( gappedAlns, gaplessAlns, strand, querySeq, Phase::final );
+  alignGapped( gappedAlns, gaplessAlns,
+	       queryNum, strand, querySeq, Phase::final );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
@@ -735,14 +740,16 @@ void scan( char strand, const uchar* querySeq,
   }
 
   if( args.outputFormat != 'b' ) gappedAlns.sort();  // sort by score
-  alignFinish( gappedAlns, strand, querySeq, textAlns );
+  alignFinish( gappedAlns, queryNum, strand, querySeq, textAlns );
 }
 
-// Scan one batch of query sequences against one database volume,
+// Scan one query sequence against one database volume,
 // after optionally translating the query
-void translateAndScan( char strand, std::vector<AlignmentText>& textAlns ){
-  const uchar* seq = query.seqReader();
-  size_t size = query.finishedSize();
+void translateAndScan( size_t queryNum, char strand,
+		       std::vector<AlignmentText>& textAlns ){
+  size_t size = query.padLen(queryNum);
+  size_t padBeg = query.padBeg(queryNum);
+  const uchar* seq = query.seqReader() + padBeg;
   if( args.isTranslated() ){
     LOG( "translating..." );
     std::vector<uchar> translation( size );
@@ -750,31 +757,28 @@ void translateAndScan( char strand, std::vector<AlignmentText>& textAlns ){
     if( args.tantanSetting ){
       LOG( "masking..." );
       size_t frameSize = size / 3;
-      for( size_t i = 0; i < query.finishedSequences(); ++i ){
-	size_t dnaBeg = query.seqBeg(i);
-	size_t dnaLen = query.seqLen(i);
-	for( int frame = 0; frame < 3; ++frame ){
-	  if( dnaLen < 3 ) break;
-	  size_t aaBeg = dnaToAa( dnaBeg++, frameSize );
-	  size_t aaLen = dnaLen-- / 3;
-	  size_t aaEnd = aaBeg + aaLen;
-	  tantanMasker.mask( &translation[aaBeg], &translation[aaEnd],
-			     alph.numbersToLowercase );
-	}
+      size_t dnaBeg = query.seqBeg(queryNum) - padBeg;
+      size_t dnaLen = query.seqLen(queryNum);
+      for( int frame = 0; frame < 3; ++frame ){
+	if( dnaLen < 3 ) break;
+	size_t aaBeg = dnaToAa( dnaBeg++, frameSize );
+	size_t aaLen = dnaLen-- / 3;
+	size_t aaEnd = aaBeg + aaLen;
+	tantanMasker.mask( &translation[aaBeg], &translation[aaEnd],
+			   alph.numbersToLowercase );
       }
     }
-    scan( strand, &translation[0], textAlns );
+    scan( queryNum, strand, &translation[0], textAlns );
   }else{
     if( args.tantanSetting ){
       LOG( "masking..." );
       std::vector<uchar> s( seq, seq + size );
-      for( size_t i = 0; i < query.finishedSequences(); ++i ){
-	tantanMasker.mask( &s[query.seqBeg(i)], &s[query.seqEnd(i)],
-			   alph.numbersToLowercase );
-      }
-      scan( strand, &s[0], textAlns );
+      tantanMasker.mask( &s[query.seqBeg(queryNum) - padBeg],
+			 &s[query.seqEnd(queryNum) - padBeg],
+			 alph.numbersToLowercase );
+      scan( queryNum, strand, &s[0], textAlns );
     }else{
-      scan( strand, seq, textAlns );
+      scan( queryNum, strand, seq, textAlns );
     }
   }
 }
@@ -802,9 +806,9 @@ void readVolume( unsigned volumeNumber ){
   readIndex( baseName, seqCount );
 }
 
-void reverseComplementPssm(){
-  ScoreMatrixRow* beg = query.pssmWriter();
-  ScoreMatrixRow* end = beg + query.finishedSize();
+void reverseComplementPssm( size_t queryNum ){
+  ScoreMatrixRow* beg = query.pssmWriter() + query.seqBeg(queryNum);
+  ScoreMatrixRow* end = query.pssmWriter() + query.seqEnd(queryNum);
 
   while( beg < end ){
     --end;
@@ -816,15 +820,16 @@ void reverseComplementPssm(){
   }
 }
 
-void reverseComplementQuery(){
+void reverseComplementQuery( size_t queryNum ){
   LOG( "reverse complementing..." );
-  queryAlph.rc( query.seqWriter(), query.seqWriter() + query.finishedSize() );
+  size_t b = query.seqBeg(queryNum);
+  size_t e = query.seqEnd(queryNum);
+  queryAlph.rc( query.seqWriter() + b, query.seqWriter() + e );
   if( isQuality( args.inputFormat ) ){
-    std::reverse( query.qualityWriter(),
-		  query.qualityWriter() +
-                  query.finishedSize() * query.qualsPerLetter() );
+    std::reverse( query.qualityWriter() + b * query.qualsPerLetter(),
+		  query.qualityWriter() + e * query.qualsPerLetter() );
   }else if( args.inputFormat == sequenceFormat::pssm ){
-    reverseComplementPssm();
+    reverseComplementPssm(queryNum);
   }
 }
 
@@ -842,14 +847,16 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || volumes > 1 ) readVolume( i );
 
-    if( args.strand == 2 && i > 0 ) reverseComplementQuery();
+    for( size_t j = 0; j < query.finishedSequences(); ++j ){
+      if( args.strand == 2 && i > 0 ) reverseComplementQuery(j);
 
-    if( args.strand != 0 ) translateAndScan( '+', textAlns );
+      if( args.strand != 0 ) translateAndScan( j, '+', textAlns );
 
-    if( args.strand == 2 || (args.strand == 0 && i == 0) )
-      reverseComplementQuery();
+      if( args.strand == 2 || (args.strand == 0 && i == 0) )
+	reverseComplementQuery(j);
 
-    if( args.strand != 1 ) translateAndScan( '-', textAlns );
+      if( args.strand != 1 ) translateAndScan( j, '-', textAlns );
+    }
   }
 
   if( args.outputType == 0 ) writeCounts( out );

@@ -73,9 +73,12 @@ class MultiSequence{
   // which sequence is the coordinate in?
   indexT whichSequence( indexT coordinate ) const;
 
+  indexT padBeg( indexT seqNum ) const{ return ends[seqNum] - padSize; }
   indexT seqBeg( indexT seqNum ) const{ return ends[seqNum]; }
   indexT seqEnd( indexT seqNum ) const{ return ends[seqNum+1] - padSize; }
-  indexT seqLen( indexT seqNum ) const{ return seqEnd(seqNum) - ends[seqNum]; }
+  indexT padEnd( indexT seqNum ) const{ return ends[seqNum+1]; }
+  indexT seqLen( indexT seqNum ) const{ return seqEnd(seqNum)-seqBeg(seqNum); }
+  indexT padLen( indexT seqNum ) const{ return padEnd(seqNum)-padBeg(seqNum); }
   std::string seqName( indexT seqNum ) const;
 
   // get a pointer to the start of the sequence data
@@ -83,8 +86,8 @@ class MultiSequence{
   /***/ uchar* seqWriter()      { return &seq.v[0]; }
 
   // make the PSSM have the same length as the sequence
-  void resizePssm()
-  { pssm.resize( finishedSize() * std::size_t(scoreMatrixRowSize) ); }
+  void resizePssm( size_t seqNum )
+  { pssm.resize( padLen(seqNum) * std::size_t(scoreMatrixRowSize) ); }
 
   // get a pointer to the start of the PSSM, or NULL if there is no PSSM
   // I am not totally sure about the reinterpret_cast...
