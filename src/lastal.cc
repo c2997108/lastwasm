@@ -356,10 +356,12 @@ void writeCounts( std::ostream& out ){
 void countMatches( size_t queryNum, const uchar* querySeq ){
   LOG( "counting..." );
 
-  indexT e = query.seqEnd(queryNum) - query.padBeg(queryNum);
-  if( args.minHitDepth > 1 ) e -= std::min( args.minHitDepth - 1, e );
+  indexT loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
+  indexT loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  if( args.minHitDepth > 1 )
+    loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
 
-  for( indexT i = 0; i < e; i += args.queryStep ){
+  for( indexT i = loopBeg; i < loopEnd; i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x )
       suffixArrays[x].countMatches( matchCounts[queryNum], querySeq + i,
 				    text.seqReader(), args.maxHitDepth );
@@ -484,7 +486,12 @@ void alignGapless( SegmentPairPot& gaplessAlns,
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
-  for( indexT i = 0; i < query.padLen(queryNum); i += args.queryStep ){
+  indexT loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
+  indexT loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  if( args.minHitDepth > 1 )
+    loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
+
+  for( indexT i = loopBeg; i < loopEnd; i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x ){
       const indexT* beg;
       const indexT* end;
