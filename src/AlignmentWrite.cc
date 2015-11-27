@@ -315,6 +315,10 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t seqStart2 = seq2.seqBeg(w2) - seq2.padBeg(w2);
   size_t seqLen2 = seq2.seqLen(w2);
 
+  char aLine[256];
+  char *aLineEnd = writeMafLineA(aLine, score, evaluer, seqLen2, fullScore);
+  size_t aLineLen = aLineEnd - aLine;
+
   const std::string n1 = seq1.seqName(w1);
   const std::string n2 = seq2.seqName(w2);
   IntText b1(alnBeg1 - seqStart1);
@@ -334,22 +338,27 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t headLen = 2 + pLineBlankLen;
   size_t sLineLen = headLen + numColumns( frameSize2 ) + 1;
 
+  std::vector<char> cLine;
+  writeMafLineC(cLine, extras.expectedCounts);
+
+  size_t qualsPerBase1 = seq1.qualsPerLetter();
+  size_t qualsPerBase2 = seq2.qualsPerLetter();
+  bool isQuals1 = qualsPerBase1;
+  bool isQuals2 = qualsPerBase2 && !isTranslated;
+  // for translated alignment: don't write untranslated quality data
+
   std::vector<char> lineVector( sLineLen );
   char* line = &lineVector[0];
   char* tail = line + headLen;
   line[ sLineLen - 1 ] = '\n';
 
-  char aLine[256];
-  char* aLineEnd = writeMafLineA(aLine, score, evaluer, seqLen2, fullScore);
-  size_t aLineLen = aLineEnd - aLine;
   os.write( aLine, aLineLen );
 
   writeMafHeadS( line, n1, nw, b1, bw, r1, rw, '+', s1, sw );
   writeTopSeq( seq1.seqReader(), alph, 0, frameSize2, tail );
   os.write( line, sLineLen );
 
-  size_t qualsPerBase1 = seq1.qualsPerLetter();
-  if( qualsPerBase1 ){
+  if (isQuals1) {
     writeMafHeadQ(line, n1, nw, qLineBlankLen);
     const uchar *q = seq1.qualityReader();
     writeTopSeq( q, alph, qualsPerBase1, frameSize2, tail );
@@ -360,9 +369,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   writeBotSeq( seqData2, alph, 0, frameSize2, tail );
   os.write( line, sLineLen );
 
-  size_t qualsPerBase2 = seq2.qualsPerLetter();
-  if( qualsPerBase2 && !isTranslated ){
-    // for translated alignment: don't write untranslated quality data
+  if (isQuals2) {
     writeMafHeadQ(line, n2, nw, qLineBlankLen);
     const uchar *q = seq2.qualityReader() + seq2.padBeg(w2) * qualsPerBase2;
     writeBotSeq( q, alph, qualsPerBase2, frameSize2, tail );
@@ -375,8 +382,6 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
     os.write( line, sLineLen );
   }
 
-  std::vector<char> cLine;
-  writeMafLineC(cLine, extras.expectedCounts);
   os.write(&cLine[0], cLine.size());
 
   os << '\n';  // blank line afterwards
