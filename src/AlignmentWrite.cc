@@ -23,6 +23,17 @@ static char *writeSize(char *end, size_t x) {
   return end;
 }
 
+// write x - y as a signed integer
+static char *writeSignedDifference(char *end, size_t x, size_t y) {
+  if (x >= y) {
+    end = writeSize(end, x - y);
+  } else {
+    end = writeSize(end, y - x);
+    *--end = '-';
+  }
+  return end;
+}
+
 class IntText {  // a text representation of an integer
 public:
   IntText() {}
@@ -78,12 +89,6 @@ private:
   char *p;
 };
 
-// write x - y as a signed integer
-static void writeSignedDifference( size_t x, size_t y, std::ostream& os ){
-  if( x >= y )  os << x - y;
-  else          os << '-' << y - x;
-}
-
 void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 		       size_t seqNum2, char strand, const uchar* seqData2,
 		       bool isTranslated, const Alphabet& alph,
@@ -124,6 +129,32 @@ static size_t matchCount(const std::vector<SegmentPair> &blocks,
 	++matches;
   }
   return matches;
+}
+
+static size_t writeBlocks(std::vector<char> &text,
+			  const std::vector<SegmentPair> &blocks,
+			  size_t frameSize2) {
+  size_t s = blocks.size();
+  text.resize(32 * 3 * s);
+  char *end = &text[0] + text.size();
+  char *e = end;
+  for (size_t i = s; i --> 0; ) {
+    const SegmentPair &y = blocks[i];
+    if (y.size) e = writeSize(e, y.size);
+    if (i > 0) {  // between each pair of aligned blocks:
+      const SegmentPair &x = blocks[i - 1];
+      if (y.size) *--e = ',';
+      size_t gapBeg2 = aaToDna(x.end2(), frameSize2);
+      size_t gapEnd2 = aaToDna(y.beg2(), frameSize2);
+      e = writeSignedDifference(e, gapEnd2, gapBeg2);  // allow -1 frameshift
+      *--e = ':';
+      size_t gapBeg1 = x.end1();
+      size_t gapEnd1 = y.beg1();
+      e = writeSignedDifference(e, gapEnd1, gapBeg1);  // allow -1 frameshift
+      if (x.size) *--e = ',';
+    }
+  }
+  return end - e;
 }
 
 static char* writeTags( const LastEvaluer& evaluer, double queryLength,
@@ -183,22 +214,9 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   w << n2 << t << b2 << t << r2 << t << strand << t << s2 << t;
   os.write(&v[0], s);
 
-  for( size_t i = 0; i < blocks.size(); ++i ){
-    const SegmentPair& y = blocks[i];
-    if( i > 0 ){  // between each pair of aligned blocks:
-      const SegmentPair& x = blocks[i - 1];
-      if( x.size ) os << ',';
-      size_t gapBeg1 = x.end1();
-      size_t gapEnd1 = y.beg1();
-      writeSignedDifference( gapEnd1, gapBeg1, os );  // allow -1 frameshift
-      os << ':';
-      size_t gapBeg2 = aaToDna( x.end2(), frameSize2 );
-      size_t gapEnd2 = aaToDna( y.beg2(), frameSize2 );
-      writeSignedDifference( gapEnd2, gapBeg2, os );  // allow -1 frameshift
-      if( y.size ) os << ',';
-    }
-    if( y.size ) os << y.size;
-  }
+  std::vector<char> blockText;
+  size_t blockLen = writeBlocks(blockText, blocks, frameSize2);
+  os.write(&blockText[0] + blockText.size() - blockLen, blockLen);
 
   double fullScore = extras.fullScore;
   char line[256];
