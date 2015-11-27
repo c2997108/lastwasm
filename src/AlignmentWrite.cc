@@ -301,7 +301,6 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  const AlignmentExtras& extras ) const{
   double fullScore = extras.fullScore;
   const std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
-  const std::vector<double>& expectedCounts = extras.expectedCounts;
 
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
@@ -333,11 +332,12 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t qLineBlankLen = bw + 1 + rw + 3 + sw + 1;
   size_t pLineBlankLen = nw + 1 + qLineBlankLen;
   size_t headLen = 2 + pLineBlankLen;
-  size_t lineLen = headLen + numColumns( frameSize2 ) + 1;
-  std::vector<char> lineVector( lineLen );
+  size_t sLineLen = headLen + numColumns( frameSize2 ) + 1;
+
+  std::vector<char> lineVector( sLineLen );
   char* line = &lineVector[0];
   char* tail = line + headLen;
-  line[ lineLen - 1 ] = '\n';
+  line[ sLineLen - 1 ] = '\n';
 
   char aLine[256];
   char* aLineEnd = writeMafLineA(aLine, score, evaluer, seqLen2, fullScore);
@@ -346,36 +346,37 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 
   writeMafHeadS( line, n1, nw, b1, bw, r1, rw, '+', s1, sw );
   writeTopSeq( seq1.seqReader(), alph, 0, frameSize2, tail );
-  os.write( line, lineLen );
+  os.write( line, sLineLen );
 
   size_t qualsPerBase1 = seq1.qualsPerLetter();
   if( qualsPerBase1 ){
     writeMafHeadQ(line, n1, nw, qLineBlankLen);
-    writeTopSeq( seq1.qualityReader(), alph, qualsPerBase1, frameSize2, tail );
-    os.write( line, lineLen );
+    const uchar *q = seq1.qualityReader();
+    writeTopSeq( q, alph, qualsPerBase1, frameSize2, tail );
+    os.write( line, sLineLen );
   }
 
   writeMafHeadS( line, n2, nw, b2, bw, r2, rw, strand, s2, sw );
   writeBotSeq( seqData2, alph, 0, frameSize2, tail );
-  os.write( line, lineLen );
+  os.write( line, sLineLen );
 
   size_t qualsPerBase2 = seq2.qualsPerLetter();
   if( qualsPerBase2 && !isTranslated ){
     // for translated alignment: don't write untranslated quality data
     writeMafHeadQ(line, n2, nw, qLineBlankLen);
-    writeBotSeq( seq2.qualityReader() + seq2.padBeg(w2) * qualsPerBase2,
-		 alph, qualsPerBase2, frameSize2, tail );
-    os.write( line, lineLen );
+    const uchar *q = seq2.qualityReader() + seq2.padBeg(w2) * qualsPerBase2;
+    writeBotSeq( q, alph, qualsPerBase2, frameSize2, tail );
+    os.write( line, sLineLen );
   }
 
-  if( columnAmbiguityCodes.size() > 0 ){
+  if (!columnAmbiguityCodes.empty()) {
     writeMafHeadP(line, pLineBlankLen);
     copy( columnAmbiguityCodes.begin(), columnAmbiguityCodes.end(), tail );
-    os.write( line, lineLen );
+    os.write( line, sLineLen );
   }
 
   std::vector<char> cLine;
-  writeMafLineC(cLine, expectedCounts);
+  writeMafLineC(cLine, extras.expectedCounts);
   os.write(&cLine[0], cLine.size());
 
   os << '\n';  // blank line afterwards
