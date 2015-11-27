@@ -240,6 +240,13 @@ static void putRight(Writer &w, const IntText &t, size_t width) {
   w << ' ';
 }
 
+// Write an "a" line
+static char *writeMafLineA(char *out, int score, const LastEvaluer& evaluer,
+			   double queryLength, double fullScore) {
+  out += std::sprintf(out, "a score=%d", score);
+  return writeTags(evaluer, queryLength, score, fullScore, ' ', out);
+}
+
 // Write the first part of an "s" line:
 static void writeMafHeadS(char *out,
 			  const std::string &n, size_t nw,
@@ -254,6 +261,20 @@ static void writeMafHeadS(char *out,
   putRight(w, r, rw);
   w << strand << ' ';
   putRight(w, s, sw);
+}
+
+// Write a "c" line
+static void writeMafLineC(std::vector<char> &cLine,
+			  const std::vector<double> &counts) {
+  size_t s = counts.size();
+  if (s == 0) return;
+  cLine.resize(2 + 32 * s);
+  char *e = &cLine[0];
+  *e++ = 'c';
+  for (size_t i = 0; i < s; ++i)
+    e += std::sprintf(e, " %.3g", counts[i]);
+  *e++ = '\n';
+  cLine.resize(e - &cLine[0]);
 }
 
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
@@ -300,10 +321,9 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   line[ lineLen - 1 ] = '\n';
 
   char aLine[256];
-  char* dest = aLine;
-  dest += std::sprintf( dest, "a score=%d", score );
-  dest = writeTags( evaluer, seqLen2, score, fullScore, ' ', dest );
-  os.write( aLine, dest - aLine );
+  char* aLineEnd = writeMafLineA(aLine, score, evaluer, seqLen2, fullScore);
+  size_t aLineLen = aLineEnd - aLine;
+  os.write( aLine, aLineLen );
 
   writeMafHeadS( line, n1, nw, b1, bw, r1, rw, '+', s1, sw );
   writeTopSeq( seq1.seqReader(), alph, 0, frameSize2, tail );
@@ -338,12 +358,9 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
     os.write( line, lineLen );
   }
 
-  if( expectedCounts.size() > 0 ){
-    os << 'c';
-    for( unsigned i = 0; i < expectedCounts.size(); ++i )
-      os << ' ' << expectedCounts[i];
-    os << '\n';
-  }
+  std::vector<char> cLine;
+  writeMafLineC(cLine, expectedCounts);
+  os.write(&cLine[0], cLine.size());
 
   os << '\n';  // blank line afterwards
 }
