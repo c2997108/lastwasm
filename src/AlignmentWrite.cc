@@ -96,13 +96,13 @@ void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
 		       std::vector<AlignmentText>& textAlns,
 		       const AlignmentExtras& extras ) const{
   assert( !blocks.empty() );
-  std::ostream& os = std::cout;
+
   if( format == 't' )
     writeTab( seq1, seq2, seqNum2, strand,
-	      isTranslated, evaluer, os, extras );
+	      isTranslated, evaluer, extras );
   if( format == 'm' )
     writeMaf( seq1, seq2, seqNum2, strand, seqData2,
-	      isTranslated, alph, evaluer, os, extras );
+	      isTranslated, alph, evaluer, extras );
   if( format == 'b' )
     writeBlastTab( seq1, seq2, seqNum2, strand, seqData2,
 		   isTranslated, alph, evaluer, textAlns );
@@ -178,7 +178,7 @@ static char* writeTags( const LastEvaluer& evaluer, double queryLength,
 
 void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 			  size_t w2, char strand, bool isTranslated,
-			  const LastEvaluer& evaluer, std::ostream& os,
+			  const LastEvaluer& evaluer,
 			  const AlignmentExtras& extras ) const{
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
@@ -224,7 +224,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   w.copy(tags, tagLen);
   w << '\0';
 
-  os << text;
+  std::cout << text;
   delete[] text;
 }
 
@@ -297,7 +297,7 @@ static void writeMafLineC(std::vector<char> &cLine,
 void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 			  size_t w2, char strand, const uchar* seqData2,
 			  bool isTranslated, const Alphabet& alph,
-			  const LastEvaluer& evaluer, std::ostream& os,
+			  const LastEvaluer& evaluer,
 			  const AlignmentExtras& extras ) const{
   double fullScore = extras.fullScore;
   const std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
@@ -387,7 +387,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   *dest++ = '\n';  // blank line afterwards
   *dest++ = '\0';
 
-  os << text;
+  std::cout << text;
   delete[] text;
 }
 

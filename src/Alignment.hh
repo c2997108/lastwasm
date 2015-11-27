@@ -9,7 +9,6 @@
 #include <stddef.h>  // size_t
 #include <string>
 #include <vector>
-#include <iosfwd>
 #include <cstring>
 
 namespace cbrc{
@@ -116,13 +115,13 @@ struct Alignment{
 
   void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 		 size_t w2, char strand, bool isTranslated,
-		 const LastEvaluer& evaluer, std::ostream& os,
+		 const LastEvaluer& evaluer,
 		 const AlignmentExtras& extras ) const;
 
   void writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 		 size_t w2, char strand, const uchar* seqData2,
 		 bool isTranslated, const Alphabet& alph,
-		 const LastEvaluer& evaluer, std::ostream& os,
+		 const LastEvaluer& evaluer,
 		 const AlignmentExtras& extras ) const;
 
   void writeBlastTab( const MultiSequence& seq1, const MultiSequence& seq2,
