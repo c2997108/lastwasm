@@ -263,6 +263,23 @@ static void writeMafHeadS(char *out,
   putRight(w, s, sw);
 }
 
+// Write the first part of a "q" line:
+static void writeMafHeadQ(char *out,
+			  const std::string &n, size_t nw,
+			  size_t qLineBlankLen) {
+  Writer w(out);
+  w << 'q' << ' ';
+  putLeft(w, n, nw);
+  w.fill(qLineBlankLen, ' ');
+}
+
+// Write the first part of a "p" line:
+static void writeMafHeadP(char *out, size_t pLineBlankLen) {
+  Writer w(out);
+  w << 'p' << ' ';
+  w.fill(pLineBlankLen, ' ');
+}
+
 // Write a "c" line
 static void writeMafLineC(std::vector<char> &cLine,
 			  const std::vector<double> &counts) {
@@ -313,7 +330,9 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   const size_t rw = std::max( r1.size(), r2.size() );
   const size_t sw = std::max( s1.size(), s2.size() );
 
-  size_t headLen = 2 + nw + 1 + bw + 1 + rw + 3 + sw + 1;
+  size_t qLineBlankLen = bw + 1 + rw + 3 + sw + 1;
+  size_t pLineBlankLen = nw + 1 + qLineBlankLen;
+  size_t headLen = 2 + pLineBlankLen;
   size_t lineLen = headLen + numColumns( frameSize2 ) + 1;
   std::vector<char> lineVector( lineLen );
   char* line = &lineVector[0];
@@ -331,8 +350,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
 
   size_t qualsPerBase1 = seq1.qualsPerLetter();
   if( qualsPerBase1 ){
-    *line = 'q';
-    std::fill( line + 2 + nw + 1, tail, ' ' );
+    writeMafHeadQ(line, n1, nw, qLineBlankLen);
     writeTopSeq( seq1.qualityReader(), alph, qualsPerBase1, frameSize2, tail );
     os.write( line, lineLen );
   }
@@ -344,16 +362,14 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   size_t qualsPerBase2 = seq2.qualsPerLetter();
   if( qualsPerBase2 && !isTranslated ){
     // for translated alignment: don't write untranslated quality data
-    *line = 'q';
-    std::fill( line + 2 + nw + 1, tail, ' ' );
+    writeMafHeadQ(line, n2, nw, qLineBlankLen);
     writeBotSeq( seq2.qualityReader() + seq2.padBeg(w2) * qualsPerBase2,
 		 alph, qualsPerBase2, frameSize2, tail );
     os.write( line, lineLen );
   }
 
   if( columnAmbiguityCodes.size() > 0 ){
-    *line = 'p';
-    std::fill( line + 2, tail, ' ' );
+    writeMafHeadP(line, pLineBlankLen);
     copy( columnAmbiguityCodes.begin(), columnAmbiguityCodes.end(), tail );
     os.write( line, lineLen );
   }
