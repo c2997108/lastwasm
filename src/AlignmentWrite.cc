@@ -50,28 +50,29 @@ private:
 class Writer {  // writes characters to an output buffer
 public:
   explicit Writer(char *startOfOutput) : p(startOfOutput) {}
+  void fill(size_t n, char c) {  // write n copies of character c
+    std::memset(p, c, n);
+    p += n;
+  }
+  void copy(const char *from, size_t size) {
+    std::memcpy(p, from, size);
+    p += size;
+  }
   Writer &operator<<(char c) {
     *p++ = c;
     return *this;
   }
   Writer &operator<<(const IntText &t) {
-    std::memcpy(p, t.begin(), t.size());
-    p += t.size();
+    copy(t.begin(), t.size());
     return *this;
   }
   Writer &operator<<(const FloatText &t) {
-    std::memcpy(p, t.begin(), t.size());
-    p += t.size();
+    copy(t.begin(), t.size());
     return *this;
   }
   Writer &operator<<(const std::string &t) {
-    std::memcpy(p, t.c_str(), t.size());
-    p += t.size();
+    copy(t.c_str(), t.size());
     return *this;
-  }
-  void fill(size_t n, char c) {  // write n copies of character c
-    std::memset(p, c, n);
-    p += n;
   }
 private:
   char *p;
@@ -125,9 +126,9 @@ static size_t matchCount(const std::vector<SegmentPair> &blocks,
   return matches;
 }
 
-static char* writeTaggedItems( const LastEvaluer& evaluer, double queryLength,
-			       int score, double fullScore,
-			       char separator, char* out ){
+static char* writeTags( const LastEvaluer& evaluer, double queryLength,
+			int score, double fullScore,
+			char separator, char* out ){
   if( evaluer.isGood() ){
     double epa = evaluer.evaluePerArea( score );
     double area = evaluer.area( score, queryLength );
@@ -201,7 +202,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
 
   double fullScore = extras.fullScore;
   char line[256];
-  char* end = writeTaggedItems( evaluer, seqLen2, score, fullScore, t, line );
+  char* end = writeTags( evaluer, seqLen2, score, fullScore, t, line );
   os.write( line, end - line );
 }
 
@@ -217,12 +218,13 @@ static void putRight(Writer &w, const IntText &t, size_t width) {
   w << ' ';
 }
 
-static void writeMafData(char *out,
-			 const std::string &n, size_t nw,
-			 const IntText &b, size_t bw,
-			 const IntText &r, size_t rw,
-			 char strand,
-			 const IntText &s, size_t sw) {
+// Write the first part of an "s" line:
+static void writeMafHeadS(char *out,
+			  const std::string &n, size_t nw,
+			  const IntText &b, size_t bw,
+			  const IntText &r, size_t rw,
+			  char strand,
+			  const IntText &s, size_t sw) {
   Writer w(out);
   w << 's' << ' ';
   putLeft(w, n, nw);
@@ -278,10 +280,10 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   char aLine[256];
   char* dest = aLine;
   dest += std::sprintf( dest, "a score=%d", score );
-  dest = writeTaggedItems( evaluer, seqLen2, score, fullScore, ' ', dest );
+  dest = writeTags( evaluer, seqLen2, score, fullScore, ' ', dest );
   os.write( aLine, dest - aLine );
 
-  writeMafData( line, n1, nw, b1, bw, r1, rw, '+', s1, sw );
+  writeMafHeadS( line, n1, nw, b1, bw, r1, rw, '+', s1, sw );
   writeTopSeq( seq1.seqReader(), alph, 0, frameSize2, tail );
   os.write( line, lineLen );
 
@@ -293,7 +295,7 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
     os.write( line, lineLen );
   }
 
-  writeMafData( line, n2, nw, b2, bw, r2, rw, strand, s2, sw );
+  writeMafHeadS( line, n2, nw, b2, bw, r2, rw, strand, s2, sw );
   writeBotSeq( seqData2, alph, 0, frameSize2, tail );
   os.write( line, lineLen );
 
