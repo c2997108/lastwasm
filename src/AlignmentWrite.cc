@@ -203,25 +203,29 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   IntText s1(seqLen1);
   IntText s2(seqLen2);
 
-  size_t s = sc.size() +
-    n1.size() + b1.size() + r1.size() + 1 + s1.size() +
-    n2.size() + b2.size() + r2.size() + 1 + s2.size() + 11;
-  std::vector<char> v(s);
-  Writer w(&v[0]);
+  std::vector<char> blockText;
+  size_t blockLen = writeBlocks(blockText, blocks, frameSize2);
+
   const char t = '\t';
+  char tags[256];
+  char *tagEnd = writeTags(evaluer, seqLen2, score, extras.fullScore, t, tags);
+  size_t tagLen = tagEnd - tags;
+
+  size_t textLen = sc.size() + 1 +
+    n1.size() + b1.size() + r1.size() + 1 + s1.size() + 5 +
+    n2.size() + b2.size() + r2.size() + 1 + s2.size() + 5 + blockLen + tagLen;
+
+  char *text = new char[textLen + 1];
+  Writer w(text);
   w << sc << t;
   w << n1 << t << b1 << t << r1 << t << '+'    << t << s1 << t;
   w << n2 << t << b2 << t << r2 << t << strand << t << s2 << t;
-  os.write(&v[0], s);
+  w.copy(&blockText[0] + blockText.size() - blockLen, blockLen);
+  w.copy(tags, tagLen);
+  w << '\0';
 
-  std::vector<char> blockText;
-  size_t blockLen = writeBlocks(blockText, blocks, frameSize2);
-  os.write(&blockText[0] + blockText.size() - blockLen, blockLen);
-
-  double fullScore = extras.fullScore;
-  char line[256];
-  char* end = writeTags( evaluer, seqLen2, score, fullScore, t, line );
-  os.write( line, end - line );
+  os << text;
+  delete[] text;
 }
 
 static void putLeft(Writer &w, const std::string &t, size_t width) {
