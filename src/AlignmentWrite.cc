@@ -347,44 +347,48 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   bool isQuals2 = qualsPerBase2 && !isTranslated;
   // for translated alignment: don't write untranslated quality data
 
-  std::vector<char> lineVector( sLineLen );
-  char* line = &lineVector[0];
-  char* tail = line + headLen;
-  line[ sLineLen - 1 ] = '\n';
+  size_t sLineNum = 2 + isQuals1 + isQuals2 + !columnAmbiguityCodes.empty();
+  size_t textLen = aLineLen + sLineLen * sLineNum + cLine.size() + 1;
+  char *text = new char[textLen + 1];
 
-  os.write( aLine, aLineLen );
+  char *dest = std::copy(aLine, aLineEnd, text);
 
-  writeMafHeadS( line, n1, nw, b1, bw, r1, rw, '+', s1, sw );
-  writeTopSeq( seq1.seqReader(), alph, 0, frameSize2, tail );
-  os.write( line, sLineLen );
+  writeMafHeadS(dest, n1, nw, b1, bw, r1, rw, '+', s1, sw);
+  dest = writeTopSeq(seq1.seqReader(), alph, 0, frameSize2, dest + headLen);
+  *dest++ = '\n';
 
   if (isQuals1) {
-    writeMafHeadQ(line, n1, nw, qLineBlankLen);
+    writeMafHeadQ(dest, n1, nw, qLineBlankLen);
     const uchar *q = seq1.qualityReader();
-    writeTopSeq( q, alph, qualsPerBase1, frameSize2, tail );
-    os.write( line, sLineLen );
+    dest = writeTopSeq(q, alph, qualsPerBase1, frameSize2, dest + headLen);
+    *dest++ = '\n';
   }
 
-  writeMafHeadS( line, n2, nw, b2, bw, r2, rw, strand, s2, sw );
-  writeBotSeq( seqData2, alph, 0, frameSize2, tail );
-  os.write( line, sLineLen );
+  writeMafHeadS(dest, n2, nw, b2, bw, r2, rw, strand, s2, sw);
+  dest = writeBotSeq(seqData2, alph, 0, frameSize2, dest + headLen);
+  *dest++ = '\n';
 
   if (isQuals2) {
-    writeMafHeadQ(line, n2, nw, qLineBlankLen);
+    writeMafHeadQ(dest, n2, nw, qLineBlankLen);
     const uchar *q = seq2.qualityReader() + seq2.padBeg(w2) * qualsPerBase2;
-    writeBotSeq( q, alph, qualsPerBase2, frameSize2, tail );
-    os.write( line, sLineLen );
+    dest = writeBotSeq(q, alph, qualsPerBase2, frameSize2, dest + headLen);
+    *dest++ = '\n';
   }
 
   if (!columnAmbiguityCodes.empty()) {
-    writeMafHeadP(line, pLineBlankLen);
-    copy( columnAmbiguityCodes.begin(), columnAmbiguityCodes.end(), tail );
-    os.write( line, sLineLen );
+    writeMafHeadP(dest, pLineBlankLen);
+    dest = copy(columnAmbiguityCodes.begin(),
+		columnAmbiguityCodes.end(), dest + headLen);
+    *dest++ = '\n';
   }
 
-  os.write(&cLine[0], cLine.size());
+  dest = copy(cLine.begin(), cLine.end(), dest);
 
-  os << '\n';  // blank line afterwards
+  *dest++ = '\n';  // blank line afterwards
+  *dest++ = '\0';
+
+  os << text;
+  delete[] text;
 }
 
 void Alignment::writeBlastTab( const MultiSequence& seq1,
