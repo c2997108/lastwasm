@@ -81,12 +81,11 @@ struct Alignment{
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2 );
 
-  void write( const MultiSequence& seq1, const MultiSequence& seq2,
-	      size_t seqNum2, char strand, const uchar* seqData2,
-	      bool isTranslated, const Alphabet& alph,
-	      const LastEvaluer& evaluer, int format,
-	      std::vector<AlignmentText>& textAlns,
-	      const AlignmentExtras& extras ) const;
+  AlignmentText write(const MultiSequence& seq1, const MultiSequence& seq2,
+		      size_t seqNum2, char strand, const uchar* seqData2,
+		      bool isTranslated, const Alphabet& alph,
+		      const LastEvaluer& evaluer, int format,
+		      const AlignmentExtras& extras) const;
 
   // data:
   std::vector<SegmentPair> blocks;  // the gapless blocks of the alignment
@@ -113,22 +112,21 @@ struct Alignment{
 	       const Alphabet& alph, AlignmentExtras& extras,
 	       double gamma, int outputType );
 
-  void writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
+  char *writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
 		 size_t w2, char strand, bool isTranslated,
 		 const LastEvaluer& evaluer,
-		 const AlignmentExtras& extras ) const;
+		 const AlignmentExtras& extras) const;
 
-  void writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
+  char *writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
 		 size_t w2, char strand, const uchar* seqData2,
 		 bool isTranslated, const Alphabet& alph,
 		 const LastEvaluer& evaluer,
-		 const AlignmentExtras& extras ) const;
+		 const AlignmentExtras& extras) const;
 
-  void writeBlastTab( const MultiSequence& seq1, const MultiSequence& seq2,
+  char *writeBlastTab(const MultiSequence& seq1, const MultiSequence& seq2,
 		      size_t w2, char strand, const uchar* seqData2,
 		      bool isTranslated, const Alphabet& alph,
-		      const LastEvaluer& evaluer,
-		      std::vector<AlignmentText>& textAlns ) const;
+		      const LastEvaluer& evaluer) const;
 
   size_t numColumns( size_t frameSize ) const;
 

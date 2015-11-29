@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>  // sprintf
-#include <iostream>
 
 using namespace cbrc;
 
@@ -89,23 +88,30 @@ private:
   char *p;
 };
 
-void Alignment::write( const MultiSequence& seq1, const MultiSequence& seq2,
-		       size_t seqNum2, char strand, const uchar* seqData2,
-		       bool isTranslated, const Alphabet& alph,
-		       const LastEvaluer& evaluer, int format,
-		       std::vector<AlignmentText>& textAlns,
-		       const AlignmentExtras& extras ) const{
+AlignmentText Alignment::write(const MultiSequence& seq1,
+			       const MultiSequence& seq2,
+			       size_t seqNum2, char strand,
+			       const uchar* seqData2,
+			       bool isTranslated, const Alphabet& alph,
+			       const LastEvaluer& evaluer, int format,
+			       const AlignmentExtras& extras) const {
   assert( !blocks.empty() );
 
+  AlignmentText a;
+  a.queryNum = seqNum2;
+  a.score = score;
+
   if( format == 't' )
-    writeTab( seq1, seq2, seqNum2, strand,
-	      isTranslated, evaluer, extras );
+    a.text = writeTab( seq1, seq2, seqNum2, strand,
+		       isTranslated, evaluer, extras );
   if( format == 'm' )
-    writeMaf( seq1, seq2, seqNum2, strand, seqData2,
-	      isTranslated, alph, evaluer, extras );
+    a.text = writeMaf( seq1, seq2, seqNum2, strand, seqData2,
+		       isTranslated, alph, evaluer, extras );
   if( format == 'b' )
-    writeBlastTab( seq1, seq2, seqNum2, strand, seqData2,
-		   isTranslated, alph, evaluer, textAlns );
+    a.text = writeBlastTab( seq1, seq2, seqNum2, strand, seqData2,
+			    isTranslated, alph, evaluer );
+
+  return a;
 }
 
 static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
@@ -176,10 +182,10 @@ static char* writeTags( const LastEvaluer& evaluer, double queryLength,
   return out;
 }
 
-void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
+char *Alignment::writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
 			  size_t w2, char strand, bool isTranslated,
 			  const LastEvaluer& evaluer,
-			  const AlignmentExtras& extras ) const{
+			  const AlignmentExtras& extras) const {
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
   size_t w1 = seq1.whichSequence(alnBeg1);
@@ -224,8 +230,7 @@ void Alignment::writeTab( const MultiSequence& seq1, const MultiSequence& seq2,
   w.copy(tags, tagLen);
   w << '\0';
 
-  std::cout << text;
-  delete[] text;
+  return text;
 }
 
 static void putLeft(Writer &w, const std::string &t, size_t width) {
@@ -294,11 +299,11 @@ static void writeMafLineC(std::vector<char> &cLine,
   cLine.resize(e - &cLine[0]);
 }
 
-void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
+char *Alignment::writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
 			  size_t w2, char strand, const uchar* seqData2,
 			  bool isTranslated, const Alphabet& alph,
 			  const LastEvaluer& evaluer,
-			  const AlignmentExtras& extras ) const{
+			  const AlignmentExtras& extras) const {
   double fullScore = extras.fullScore;
   const std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
 
@@ -387,16 +392,14 @@ void Alignment::writeMaf( const MultiSequence& seq1, const MultiSequence& seq2,
   *dest++ = '\n';  // blank line afterwards
   *dest++ = '\0';
 
-  std::cout << text;
-  delete[] text;
+  return text;
 }
 
-void Alignment::writeBlastTab( const MultiSequence& seq1,
+char *Alignment::writeBlastTab(const MultiSequence& seq1,
 			       const MultiSequence& seq2,
 			       size_t w2, char strand, const uchar* seqData2,
 			       bool isTranslated, const Alphabet& alph,
-			       const LastEvaluer& evaluer,
-			       std::vector<AlignmentText>& textAlns ) const{
+			       const LastEvaluer& evaluer) const {
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
   size_t w1 = seq1.whichSequence(alnBeg1);
@@ -464,11 +467,7 @@ void Alignment::writeBlastTab( const MultiSequence& seq1,
   if (evaluer.isGood()) w << t << ev << t << bs;
   w << '\n' << '\0';
 
-  AlignmentText at;
-  at.queryNum = w2;
-  at.score = score;
-  at.text = text;
-  textAlns.push_back(at);
+  return text;
 }
 
 size_t Alignment::numColumns( size_t frameSize ) const{

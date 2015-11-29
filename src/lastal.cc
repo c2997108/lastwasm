@@ -487,8 +487,13 @@ static void writeAlignment(const Alignment &aln,
 			   size_t queryNum, char strand, const uchar* querySeq,
 			   std::vector<AlignmentText> &textAlns,
 			   const AlignmentExtras &extras = AlignmentExtras()) {
-  aln.write(text, query, queryNum, strand, querySeq, args.isTranslated(),
-	    alph, evaluer, args.outputFormat, textAlns, extras);
+  AlignmentText a = aln.write(text, query, queryNum, strand, querySeq,
+			      args.isTranslated(), alph, evaluer,
+			      args.outputFormat, extras);
+  if (args.outputFormat == 'b')
+    textAlns.push_back(a);
+  else
+    printAndDelete(a.text);
 }
 
 // Find query matches to the suffix array, and do gapless extensions
