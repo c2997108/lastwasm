@@ -478,6 +478,19 @@ struct Dispatcher{
   }
 };
 
+static void printAndDelete(char *text) {
+  std::cout << text;
+  delete[] text;
+}
+
+static void writeAlignment(const Alignment &aln,
+			   size_t queryNum, char strand, const uchar* querySeq,
+			   std::vector<AlignmentText> &textAlns,
+			   const AlignmentExtras &extras = AlignmentExtras()) {
+  aln.write(text, query, queryNum, strand, querySeq, args.isTranslated(),
+	    alph, evaluer, args.outputFormat, textAlns, extras);
+}
+
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( SegmentPairPot& gaplessAlns,
 		   size_t queryNum, char strand, const uchar* querySeq,
@@ -533,9 +546,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 	if( args.outputType == 1 ){  // we just want gapless alignments
 	  Alignment aln;
 	  aln.fromSegmentPair(sp);
-	  aln.write( text, query, queryNum, strand, querySeq,
-		     args.isTranslated(), alph, evaluer,
-		     args.outputFormat, textAlns );
+	  writeAlignment( aln, queryNum, strand, querySeq, textAlns );
 	}
 	else{
 	  gaplessAlns.add(sp);  // add the gapless alignment to the pot
@@ -661,9 +672,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
-      aln.write( text, query, queryNum, strand, querySeq,
-		 args.isTranslated(), alph, evaluer,
-		 args.outputFormat, textAlns );
+      writeAlignment( aln, queryNum, strand, querySeq, textAlns );
     }
     else{  // calculate match probabilities:
       Alignment probAln;
@@ -676,9 +685,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
 			 dis.i, dis.j, alph, extras,
 			 args.gamma, args.outputType );
       assert( aln.score != -INF );
-      probAln.write( text, query, queryNum, strand, querySeq,
-		     args.isTranslated(), alph, evaluer,
-		     args.outputFormat, textAlns, extras );
+      writeAlignment( probAln, queryNum, strand, querySeq, textAlns, extras );
     }
   }
 }
@@ -870,8 +877,7 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
 
   sort( textAlns.begin(), textAlns.end() );
   for( size_t i = 0; i < textAlns.size(); ++i ){
-    out << textAlns[i].text;
-    delete[] textAlns[i].text;
+    printAndDelete( textAlns[i].text );
   }
 
   LOG( "query batch done!" );

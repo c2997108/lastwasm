@@ -86,7 +86,7 @@ struct Alignment{
 	      bool isTranslated, const Alphabet& alph,
 	      const LastEvaluer& evaluer, int format,
 	      std::vector<AlignmentText>& textAlns,
-	      const AlignmentExtras& extras = AlignmentExtras() ) const;
+	      const AlignmentExtras& extras ) const;
 
   // data:
   std::vector<SegmentPair> blocks;  // the gapless blocks of the alignment
