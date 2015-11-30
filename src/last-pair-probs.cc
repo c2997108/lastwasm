@@ -498,7 +498,7 @@ static bool readBatch(std::istream& input,
 
   stable_sort(alns.begin(), alns.end());
 
-  return input;
+  return !input.fail();
 }
 
 static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in2,
