@@ -59,6 +59,7 @@ namespace {
   int scoreMatrixRevMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   GeneralizedAffineGapCosts gapCosts;
   Centroid centroid;
+  std::vector<int> qualityPssm;
   LambdaCalculator lambdaCalculator;
   LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
@@ -402,16 +403,18 @@ const QualityPssmMaker &getQualityPssmMaker(char strand) {
     return qualityPssmMakerRev;
 }
 
-const uchar *getQueryQual(size_t queryNum) {
+static const uchar *getQueryQual(size_t queryNum) {
   const uchar *q = query.qualityReader();
   if (q) q += query.padBeg(queryNum) * query.qualsPerLetter();
   return q;
 }
 
-const ScoreMatrixRow *getQueryPssm(size_t queryNum) {
-  const ScoreMatrixRow* p = query.pssmReader();
-  if( args.inputFormat == sequenceFormat::pssm ) p += query.padBeg(queryNum);
-  return p;
+static const ScoreMatrixRow *getQueryPssm(size_t queryNum) {
+  if (args.inputFormat == sequenceFormat::pssm)
+    return query.pssmReader() + query.padBeg(queryNum);
+  if (qualityPssm.empty())
+    return 0;
+  return reinterpret_cast<const ScoreMatrixRow *>(&qualityPssm[0]);
 }
 
 namespace Phase{ enum Enum{ gapless, gapped, final }; }
@@ -700,13 +703,13 @@ void makeQualityPssm( size_t queryNum, char strand, const uchar* querySeq,
   if( args.isTranslated() ) return;
 
   LOG( "making PSSM..." );
-  query.resizePssm(queryNum);
+  size_t queryLen = query.padLen(queryNum);
+  qualityPssm.resize(queryLen * scoreMatrixRowSize);
 
   const uchar *seqBeg = querySeq;
-  const uchar *seqEnd = seqBeg + query.padLen(queryNum);
-  const uchar *q =
-    query.qualityReader() + query.padBeg(queryNum) * query.qualsPerLetter();
-  int *pssm = *query.pssmWriter();
+  const uchar *seqEnd = seqBeg + queryLen;
+  const uchar *q = getQueryQual(queryNum);
+  int *pssm = &qualityPssm[0];
 
   if( args.inputFormat == sequenceFormat::prb ){
     const QualityPssmMaker &m = getQualityPssmMaker( strand );

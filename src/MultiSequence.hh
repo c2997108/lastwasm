@@ -85,10 +85,6 @@ class MultiSequence{
   const uchar* seqReader() const{ return seq.begin(); }
   /***/ uchar* seqWriter()      { return &seq.v[0]; }
 
-  // make the PSSM have the same length as the sequence
-  void resizePssm( size_t seqNum )
-  { pssm.resize( padLen(seqNum) * std::size_t(scoreMatrixRowSize) ); }
-
   // get a pointer to the start of the PSSM, or NULL if there is no PSSM
   // I am not totally sure about the reinterpret_cast...
 
