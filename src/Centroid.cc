@@ -65,10 +65,6 @@ namespace cbrc{
     return os;
   }
 
-  Centroid::Centroid( const GappedXdropAligner& xa_ )
-    : xa( xa_ ), numAntidiagonals ( xa_.numAntidiagonals () ), bestScore ( 0 ), bestAntiDiagonal (0), bestPos1 (0)  {
-  }
-
   void Centroid::setScoreMatrix( const ScoreMatrixRow* sm, double T ) {
     this -> T = T;
     this -> isPssm = false;

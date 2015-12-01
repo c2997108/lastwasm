@@ -32,7 +32,7 @@ namespace cbrc{
    */
   class Centroid{
   public:
-    Centroid( const GappedXdropAligner& xa_ );
+    GappedXdropAligner& aligner() { return xa; }
 
     // Setters
     void setScoreMatrix( const ScoreMatrixRow* sm, double T );
@@ -81,7 +81,7 @@ namespace cbrc{
   private:
     typedef double ExpMatrixRow[scoreMatrixRowSize];
 
-    const GappedXdropAligner& xa;
+    GappedXdropAligner xa;
     double T; // temperature
     size_t numAntidiagonals;
     double match_score[scoreMatrixRowSize][scoreMatrixRowSize];

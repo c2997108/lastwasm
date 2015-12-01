@@ -58,8 +58,7 @@ namespace {
   int scoreMatrixRev[scoreMatrixRowSize][scoreMatrixRowSize];
   int scoreMatrixRevMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   GeneralizedAffineGapCosts gapCosts;
-  GappedXdropAligner gappedXdropAligner;
-  Centroid centroid( gappedXdropAligner );
+  Centroid centroid;
   LambdaCalculator lambdaCalculator;
   LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
@@ -623,7 +622,7 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( gappedXdropAligner, centroid, dis.a, dis.b, args.globality,
+    aln.makeXdrop( centroid.aligner(), centroid, dis.a, dis.b, args.globality,
 		   dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
                    args.frameshiftCost, frameSize, dis.p,
                    dis.t, dis.i, dis.j, alph, extras );
@@ -683,7 +682,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
       Alignment probAln;
       AlignmentExtras extras;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( gappedXdropAligner, centroid,
+      probAln.makeXdrop( centroid.aligner(), centroid,
 			 dis.a, dis.b, args.globality,
 			 dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
                          args.frameshiftCost, frameSize, dis.p, dis.t,
