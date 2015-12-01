@@ -153,9 +153,8 @@ LAST home page: http://last.cbrc.jp/\n\
 
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
-  const char optionString[] =
-    "hVR:u:s:S:f:r:q:p:a:b:A:B:c:F:x:y:z:d:e:D:E:Q:T:m:l:L:n:C:k:i:w:t:g:G:vj:"
-    ;
+  const char optionString[] = "hVvf:" "r:q:p:a:b:A:B:c:F:x:y:z:d:e:" "D:E:"
+    "s:S:T:m:l:L:n:C:k:i:R:u:w:t:g:G:j:Q:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -166,23 +165,8 @@ LAST home page: http://last.cbrc.jp/\n\
 #include "version.hh"
 	"\n";
       throw EXIT_SUCCESS;
-    case 'R':
-      if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );
-      if( optarg[1] < '0' || optarg[1] > '2' ) badopt( c, optarg );
-      if( optarg[2] ) badopt( c, optarg );
-      isKeepLowercase = optarg[0] - '0';
-      tantanSetting = optarg[1] - '0';
-      break;
-    case 'u':
-      unstringify( maskLowercase, optarg );
-      if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );
-      break;
-    case 's':
-      unstringify( strand, optarg );
-      if( strand < 0 || strand > 2 ) badopt( c, optarg );
-      break;
-    case 'S':
-      unstringify( isQueryStrandMatrix, optarg );
+    case 'v':
+      ++verbosity;
       break;
     case 'f':
       outputFormat = parseOutputFormat( optarg );
@@ -254,8 +238,12 @@ LAST home page: http://last.cbrc.jp/\n\
       if( maxEvalue <= 0 ) badopt( c, optarg );
       break;
 
-    case 'Q':
-      unstringify( inputFormat, optarg );
+    case 's':
+      unstringify( strand, optarg );
+      if( strand < 0 || strand > 2 ) badopt( c, optarg );
+      break;
+    case 'S':
+      unstringify( isQueryStrandMatrix, optarg );
       break;
     case 'T':
       unstringify( globality, optarg );
@@ -285,6 +273,17 @@ LAST home page: http://last.cbrc.jp/\n\
       unstringifySize( batchSize, optarg );
       if( batchSize <= 0 ) badopt( c, optarg );  // 0 means "not specified"
       break;
+    case 'R':
+      if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );
+      if( optarg[1] < '0' || optarg[1] > '2' ) badopt( c, optarg );
+      if( optarg[2] ) badopt( c, optarg );
+      isKeepLowercase = optarg[0] - '0';
+      tantanSetting = optarg[1] - '0';
+      break;
+    case 'u':
+      unstringify( maskLowercase, optarg );
+      if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );
+      break;
     case 'w':
       unstringify( maxRepeatDistance, optarg );
       break;
@@ -299,13 +298,14 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'G':
       geneticCodeFile = optarg;
       break;
-    case 'v':
-      ++verbosity;
-      break;
     case 'j':
       unstringify( outputType, optarg );
       if( outputType < 0 || outputType > 7 ) badopt( c, optarg );
       break;
+    case 'Q':
+      unstringify( inputFormat, optarg );
+      break;
+
     case '?':
       ERR( "bad option" );
     }
