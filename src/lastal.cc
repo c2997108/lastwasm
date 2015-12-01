@@ -43,6 +43,12 @@ static void warn( const char* s ){
 
 using namespace cbrc;
 
+struct LastAligner {  // data that changes between queries
+  Centroid centroid;
+  std::vector<int> qualityPssm;
+  std::vector<AlignmentText> textAlns;
+};
+
 namespace {
   typedef MultiSequence::indexT indexT;
   typedef unsigned long long countT;
@@ -58,9 +64,7 @@ namespace {
   int scoreMatrixRev[scoreMatrixRowSize][scoreMatrixRowSize];
   int scoreMatrixRevMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   GeneralizedAffineGapCosts gapCosts;
-  Centroid centroid;
-  std::vector<int> qualityPssm;
-  std::vector<AlignmentText> textAlns;
+  LastAligner lastAligner;
   LambdaCalculator lambdaCalculator;
   LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
@@ -410,9 +414,11 @@ static const uchar *getQueryQual(size_t queryNum) {
   return q;
 }
 
-static const ScoreMatrixRow *getQueryPssm(size_t queryNum) {
+static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
+					  size_t queryNum) {
   if (args.inputFormat == sequenceFormat::pssm)
     return query.pssmReader() + query.padBeg(queryNum);
+  const std::vector<int> &qualityPssm = aligner.qualityPssm;
   if (qualityPssm.empty())
     return 0;
   return reinterpret_cast<const ScoreMatrixRow *>(&qualityPssm[0]);
@@ -431,13 +437,13 @@ struct Dispatcher{
   int d;  // the maximum score drop
   int z;
 
-  Dispatcher( Phase::Enum e,
+  Dispatcher( Phase::Enum e, const LastAligner& aligner,
 	      size_t queryNum, char strand, const uchar* querySeq ) :
       a( text.seqReader() ),
       b( querySeq ),
       i( text.qualityReader() ),
       j( getQueryQual(queryNum) ),
-      p( getQueryPssm(queryNum) ),
+      p( getQueryPssm(aligner, queryNum) ),
       m( getScoreMatrix( strand, e < args.maskLowercase ) ),
       t( getTwoQualityMatrix( strand, e < args.maskLowercase ) ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
@@ -486,22 +492,22 @@ static void printAndDelete(char *text) {
   delete[] text;
 }
 
-static void writeAlignment(const Alignment &aln,
+static void writeAlignment(LastAligner &aligner, const Alignment &aln,
 			   size_t queryNum, char strand, const uchar* querySeq,
 			   const AlignmentExtras &extras = AlignmentExtras()) {
   AlignmentText a = aln.write(text, query, queryNum, strand, querySeq,
 			      args.isTranslated(), alph, evaluer,
 			      args.outputFormat, extras);
   if (args.outputFormat == 'b')
-    textAlns.push_back(a);
+    aligner.textAlns.push_back(a);
   else
     printAndDelete(a.text);
 }
 
 // Find query matches to the suffix array, and do gapless extensions
-void alignGapless( SegmentPairPot& gaplessAlns,
+void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 		   size_t queryNum, char strand, const uchar* querySeq ){
-  Dispatcher dis( Phase::gapless, queryNum, strand, querySeq );
+  Dispatcher dis( Phase::gapless, aligner, queryNum, strand, querySeq );
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
@@ -552,7 +558,7 @@ void alignGapless( SegmentPairPot& gaplessAlns,
 	if( args.outputType == 1 ){  // we just want gapless alignments
 	  Alignment aln;
 	  aln.fromSegmentPair(sp);
-	  writeAlignment( aln, queryNum, strand, querySeq );
+	  writeAlignment( aligner, aln, queryNum, strand, querySeq );
 	}
 	else{
 	  gaplessAlns.add(sp);  // add the gapless alignment to the pot
@@ -580,10 +586,12 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
 }
 
 // Do gapped extensions of the gapless alignments
-void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
+void alignGapped( LastAligner& aligner,
+		  AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
                   size_t queryNum, char strand, const uchar* querySeq,
 		  Phase::Enum phase ){
-  Dispatcher dis( phase, queryNum, strand, querySeq );
+  Centroid& centroid = aligner.centroid;
+  Dispatcher dis( phase, aligner, queryNum, strand, querySeq );
   indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
@@ -655,9 +663,10 @@ void alignGapped( AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
 
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
-void alignFinish( const AlignmentPot& gappedAlns,
+void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, char strand, const uchar* querySeq ){
-  Dispatcher dis( Phase::final, queryNum, strand, querySeq );
+  Centroid& centroid = aligner.centroid;
+  Dispatcher dis( Phase::final, aligner, queryNum, strand, querySeq );
   indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
 
   if( args.outputType > 3 ){
@@ -677,7 +686,7 @@ void alignFinish( const AlignmentPot& gappedAlns,
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
-      writeAlignment( aln, queryNum, strand, querySeq );
+      writeAlignment( aligner, aln, queryNum, strand, querySeq );
     }
     else{  // calculate match probabilities:
       Alignment probAln;
@@ -690,17 +699,19 @@ void alignFinish( const AlignmentPot& gappedAlns,
 			 dis.i, dis.j, alph, extras,
 			 args.gamma, args.outputType );
       assert( aln.score != -INF );
-      writeAlignment( probAln, queryNum, strand, querySeq, extras );
+      writeAlignment( aligner, probAln, queryNum, strand, querySeq, extras );
     }
   }
 }
 
-void makeQualityPssm( size_t queryNum, char strand, const uchar* querySeq,
+void makeQualityPssm( LastAligner& aligner,
+		      size_t queryNum, char strand, const uchar* querySeq,
 		      bool isMask ){
   if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
   if( args.isTranslated() ) return;
 
   LOG( "making PSSM..." );
+  std::vector<int> &qualityPssm = aligner.qualityPssm;
   size_t queryLen = query.padLen(queryNum);
   qualityPssm.resize(queryLen * scoreMatrixRowSize);
 
@@ -720,36 +731,37 @@ void makeQualityPssm( size_t queryNum, char strand, const uchar* querySeq,
 }
 
 // Scan one query sequence against one database volume
-void scan( size_t queryNum, char strand, const uchar* querySeq ){
+void scan( LastAligner& aligner,
+	   size_t queryNum, char strand, const uchar* querySeq ){
   if( args.outputType == 0 ){  // we just want match counts
     countMatches( queryNum, querySeq );
     return;
   }
 
   bool isMask = (args.maskLowercase > 0);
-  makeQualityPssm( queryNum, strand, querySeq, isMask );
+  makeQualityPssm( aligner, queryNum, strand, querySeq, isMask );
 
   LOG( "scanning..." );
 
   SegmentPairPot gaplessAlns;
-  alignGapless( gaplessAlns, queryNum, strand, querySeq );
+  alignGapless( aligner, gaplessAlns, queryNum, strand, querySeq );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
   if( args.maskLowercase == 1 )
-    makeQualityPssm( queryNum, strand, querySeq, false );
+    makeQualityPssm( aligner, queryNum, strand, querySeq, false );
 
   AlignmentPot gappedAlns;
 
   if( args.maskLowercase == 2 || args.maxDropFinal != args.maxDropGapped ){
-    alignGapped( gappedAlns, gaplessAlns,
+    alignGapped( aligner, gappedAlns, gaplessAlns,
 		 queryNum, strand, querySeq, Phase::gapped );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
   if( args.maskLowercase == 2 )
-    makeQualityPssm( queryNum, strand, querySeq, false );
+    makeQualityPssm( aligner, queryNum, strand, querySeq, false );
 
-  alignGapped( gappedAlns, gaplessAlns,
+  alignGapped( aligner, gappedAlns, gaplessAlns,
 	       queryNum, strand, querySeq, Phase::final );
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
@@ -758,7 +770,7 @@ void scan( size_t queryNum, char strand, const uchar* querySeq ){
   }
 
   if( args.outputFormat != 'b' ) gappedAlns.sort();  // sort by score
-  alignFinish( gappedAlns, queryNum, strand, querySeq );
+  alignFinish( aligner, gappedAlns, queryNum, strand, querySeq );
 }
 
 static void tantanMaskOneQuery(size_t queryNum, uchar *querySeq) {
@@ -783,7 +795,7 @@ static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
 
 // Scan one query sequence against one database volume,
 // after optionally translating the query
-void translateAndScan( size_t queryNum, char strand ){
+void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
   size_t size = query.padLen(queryNum);
   const uchar* seq = query.seqReader() + query.padBeg(queryNum);
   if( args.isTranslated() ){
@@ -794,15 +806,15 @@ void translateAndScan( size_t queryNum, char strand ){
       LOG( "masking..." );
       tantanMaskTranslatedQuery( queryNum, &translation[0] );
     }
-    scan( queryNum, strand, &translation[0] );
+    scan( aligner, queryNum, strand, &translation[0] );
   }else{
     if( args.tantanSetting ){
       LOG( "masking..." );
       std::vector<uchar> s( seq, seq + size );
       tantanMaskOneQuery( queryNum, &s[0] );
-      scan( queryNum, strand, &s[0] );
+      scan( aligner, queryNum, strand, &s[0] );
     }else{
-      scan( queryNum, strand, seq );
+      scan( aligner, queryNum, strand, seq );
     }
   }
 }
@@ -834,26 +846,28 @@ static void reverseComplementQuery( size_t queryNum ){
   }
 }
 
-static void alignOneQuery(size_t queryNum, bool isFirstVolume) {
+static void alignOneQuery(LastAligner &aligner,
+			  size_t queryNum, bool isFirstVolume) {
   if (args.strand == 2 && !isFirstVolume)
     reverseComplementQuery(queryNum);
 
   if (args.strand != 0)
-    translateAndScan(queryNum, '+');
+    translateAndScan(aligner, queryNum, '+');
 
   if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
     reverseComplementQuery(queryNum);
 
   if (args.strand != 1)
-    translateAndScan(queryNum, '-');
+    translateAndScan(aligner, queryNum, '-');
 }
 
 static void scanOneVolume(bool isFirstVolume) {
   for (size_t i = 0; i < query.finishedSequences(); ++i)
-    alignOneQuery(i, isFirstVolume);
+    alignOneQuery(lastAligner, i, isFirstVolume);
 }
 
 static void printAndClear() {
+  std::vector<AlignmentText> &textAlns = lastAligner.textAlns;
   sort(textAlns.begin(), textAlns.end());
   for (size_t i = 0; i < textAlns.size(); ++i) {
     printAndDelete(textAlns[i].text);
