@@ -804,6 +804,54 @@ void translateAndScan( size_t queryNum, char strand,
   }
 }
 
+static void reverseComplementPssm( size_t queryNum ){
+  ScoreMatrixRow* beg = query.pssmWriter() + query.seqBeg(queryNum);
+  ScoreMatrixRow* end = query.pssmWriter() + query.seqEnd(queryNum);
+
+  while( beg < end ){
+    --end;
+    for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
+      unsigned j = queryAlph.complement[i];
+      if( beg < end || i < j ) std::swap( (*beg)[i], (*end)[j] );
+    }
+    ++beg;
+  }
+}
+
+static void reverseComplementQuery( size_t queryNum ){
+  LOG( "reverse complementing..." );
+  size_t b = query.seqBeg(queryNum);
+  size_t e = query.seqEnd(queryNum);
+  queryAlph.rc( query.seqWriter() + b, query.seqWriter() + e );
+  if( isQuality( args.inputFormat ) ){
+    std::reverse( query.qualityWriter() + b * query.qualsPerLetter(),
+		  query.qualityWriter() + e * query.qualsPerLetter() );
+  }else if( args.inputFormat == sequenceFormat::pssm ){
+    reverseComplementPssm(queryNum);
+  }
+}
+
+static void alignOneQuery(size_t queryNum, bool isFirstVolume,
+			  std::vector<AlignmentText> &textAlns) {
+  if (args.strand == 2 && !isFirstVolume)
+    reverseComplementQuery(queryNum);
+
+  if (args.strand != 0)
+    translateAndScan(queryNum, '+', textAlns);
+
+  if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
+    reverseComplementQuery(queryNum);
+
+  if (args.strand != 1)
+    translateAndScan(queryNum, '-', textAlns);
+}
+
+static void scanOneVolume(bool isFirstVolume,
+			  std::vector<AlignmentText> &textAlns) {
+  for (size_t i = 0; i < query.finishedSequences(); ++i)
+    alignOneQuery(i, isFirstVolume, textAlns);
+}
+
 void readIndex( const std::string& baseName, indexT seqCount ) {
   LOG( "reading " << baseName << "..." );
   text.fromFiles( baseName, seqCount, isFastq( referenceFormat ) );
@@ -827,33 +875,6 @@ void readVolume( unsigned volumeNumber ){
   readIndex( baseName, seqCount );
 }
 
-void reverseComplementPssm( size_t queryNum ){
-  ScoreMatrixRow* beg = query.pssmWriter() + query.seqBeg(queryNum);
-  ScoreMatrixRow* end = query.pssmWriter() + query.seqEnd(queryNum);
-
-  while( beg < end ){
-    --end;
-    for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
-      unsigned j = queryAlph.complement[i];
-      if( beg < end || i < j ) std::swap( (*beg)[i], (*end)[j] );
-    }
-    ++beg;
-  }
-}
-
-void reverseComplementQuery( size_t queryNum ){
-  LOG( "reverse complementing..." );
-  size_t b = query.seqBeg(queryNum);
-  size_t e = query.seqEnd(queryNum);
-  queryAlph.rc( query.seqWriter() + b, query.seqWriter() + e );
-  if( isQuality( args.inputFormat ) ){
-    std::reverse( query.qualityWriter() + b * query.qualsPerLetter(),
-		  query.qualityWriter() + e * query.qualsPerLetter() );
-  }else if( args.inputFormat == sequenceFormat::pssm ){
-    reverseComplementPssm(queryNum);
-  }
-}
-
 // Scan one batch of query sequences against all database volumes
 void scanAllVolumes( unsigned volumes, std::ostream& out ){
   if( args.outputType == 0 ){
@@ -867,17 +888,7 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
 
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || volumes > 1 ) readVolume( i );
-
-    for( size_t j = 0; j < query.finishedSequences(); ++j ){
-      if( args.strand == 2 && i > 0 ) reverseComplementQuery(j);
-
-      if( args.strand != 0 ) translateAndScan( j, '+', textAlns );
-
-      if( args.strand == 2 || (args.strand == 0 && i == 0) )
-	reverseComplementQuery(j);
-
-      if( args.strand != 1 ) translateAndScan( j, '-', textAlns );
-    }
+    scanOneVolume( i == 0, textAlns );
   }
 
   if( args.outputType == 0 ) writeCounts( out );
