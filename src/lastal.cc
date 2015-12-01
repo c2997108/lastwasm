@@ -764,39 +764,46 @@ void scan( size_t queryNum, char strand, const uchar* querySeq,
   alignFinish( gappedAlns, queryNum, strand, querySeq, textAlns );
 }
 
+static void tantanMaskOneQuery(size_t queryNum, uchar *querySeq) {
+  size_t beg = query.seqBeg(queryNum) - query.padBeg(queryNum);
+  size_t end = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  tantanMasker.mask(querySeq + beg, querySeq + end, alph.numbersToLowercase);
+}
+
+static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
+  size_t frameSize = query.padLen(queryNum) / 3;
+  size_t dnaBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
+  size_t dnaLen = query.seqLen(queryNum);
+  for (int frame = 0; frame < 3; ++frame) {
+    if (dnaLen < 3) break;
+    size_t aaBeg = dnaToAa(dnaBeg++, frameSize);
+    size_t aaLen = dnaLen-- / 3;
+    size_t aaEnd = aaBeg + aaLen;
+    tantanMasker.mask(querySeq + aaBeg, querySeq + aaEnd,
+		      alph.numbersToLowercase);
+  }
+}
+
 // Scan one query sequence against one database volume,
 // after optionally translating the query
 void translateAndScan( size_t queryNum, char strand,
 		       std::vector<AlignmentText>& textAlns ){
   size_t size = query.padLen(queryNum);
-  size_t padBeg = query.padBeg(queryNum);
-  const uchar* seq = query.seqReader() + padBeg;
+  const uchar* seq = query.seqReader() + query.padBeg(queryNum);
   if( args.isTranslated() ){
     LOG( "translating..." );
     std::vector<uchar> translation( size );
     geneticCode.translate( seq, seq + size, &translation[0] );
     if( args.tantanSetting ){
       LOG( "masking..." );
-      size_t frameSize = size / 3;
-      size_t dnaBeg = query.seqBeg(queryNum) - padBeg;
-      size_t dnaLen = query.seqLen(queryNum);
-      for( int frame = 0; frame < 3; ++frame ){
-	if( dnaLen < 3 ) break;
-	size_t aaBeg = dnaToAa( dnaBeg++, frameSize );
-	size_t aaLen = dnaLen-- / 3;
-	size_t aaEnd = aaBeg + aaLen;
-	tantanMasker.mask( &translation[aaBeg], &translation[aaEnd],
-			   alph.numbersToLowercase );
-      }
+      tantanMaskTranslatedQuery( queryNum, &translation[0] );
     }
     scan( queryNum, strand, &translation[0], textAlns );
   }else{
     if( args.tantanSetting ){
       LOG( "masking..." );
       std::vector<uchar> s( seq, seq + size );
-      tantanMasker.mask( &s[query.seqBeg(queryNum) - padBeg],
-			 &s[query.seqEnd(queryNum) - padBeg],
-			 alph.numbersToLowercase );
+      tantanMaskOneQuery( queryNum, &s[0] );
       scan( queryNum, strand, &s[0], textAlns );
     }else{
       scan( queryNum, strand, seq, textAlns );
