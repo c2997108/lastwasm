@@ -178,13 +178,14 @@ score threshold (-e) or increase last-split's error threshold (-m).
 If the score threshold is too low, you will get meaningless, random
 alignments.
 
-Trading speed for sensitivity
------------------------------
+Tuning speed, sensitivity, memory and disk usage
+------------------------------------------------
 
-You can make LAST more sensitive, at the expense of speed, by
-increasing lastal's m parameter.  The default value is 10.  So -m100
-makes it more slow and sensitive, and -m1000 makes it much more slow
-and sensitive.
+* You can make LAST faster by `using multiple CPUs
+  <last-parallel.html>`_.
+
+* You can `trade off speed, sensitivity, memory and disk usage
+  <last-tuning.html>`_.
 
 Example 8: Compare the cat and rat genomes
 ------------------------------------------
@@ -214,52 +215,6 @@ is more appropriate::
 
   lastdb -cR11 -uNEAR human human.fa
   lastal -m50 -E0.05 human chimp.fa | last-split -m1 > out.maf
-
-Going faster by using multiple CPUs
------------------------------------
-
-If you have more than one query sequence, you can go faster by
-aligning them in parallel.  This can be done with parallel-fasta and
-parallel-fastq (which accompany LAST, but require GNU parallel to be
-installed: http://www.gnu.org/software/parallel/).  These commands
-read sequence data, split it into blocks (with a whole number of
-sequences per block), and run the blocks in parallel through any
-command or pipeline you specify, using all your CPU cores.  Here are
-some examples.
-
-Instead of this::
-
-  lastal mydb queries.fa > myalns.maf
-
-try this::
-
-  parallel-fasta "lastal mydb" < queries.fa > myalns.maf
-
-Instead of this::
-
-  lastal -Q1 -e120 db q.fastq | last-split > out.maf
-
-try this::
-
-  parallel-fastq "lastal -Q1 -e120 db | last-split" < q.fastq > out.maf
-
-Instead of this::
-
-  zcat queries.fa.gz | lastal mydb > myalns.maf
-
-try this::
-
-  zcat queries.fa.gz | parallel-fasta "lastal mydb" > myalns.maf
-
-Notes:
-
-* parallel-fasta and parallel-fastq simply execute GNU parallel with a
-  few options for fasta or fastq: you can specify other GNU parallel
-  options to control the number of simultaneous jobs, use remote
-  computers, get the output in the same order as the input, etc.
-
-* parallel-fastq assumes that each fastq record is 4 lines, so there
-  should be no line wrapping or blank lines.
 
 Example 10: Ambiguity of alignment columns
 ------------------------------------------
@@ -315,9 +270,3 @@ core is indicated by "~" symbols, and it contains exact matches only.
 
 LAST has options to find alignments with optimal column probabilities,
 instead of optimal score: see `<lastal.html>`_.
-
-Next steps
-----------
-
-* Need more speed, more sensitivity, less memory or disk usage?  See
-  `<last-tuning.html>`_.

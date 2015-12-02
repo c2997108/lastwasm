@@ -53,7 +53,7 @@ Steps in lastal
 Options
 -------
 
-Cosmetic Options
+Cosmetic options
 ~~~~~~~~~~~~~~~~
 
   -h, --help
@@ -103,7 +103,7 @@ Cosmetic Options
       For backwards compatibility, a NAME of 0 means TAB and 1 means
       MAF.
 
-Score Options
+Score options
 ~~~~~~~~~~~~~
 
   -r SCORE
@@ -200,7 +200,7 @@ E-value options
       only affects the default value of -e, so if you specify -e then
       -E has no effect.
 
-Miscellaneous Options
+Miscellaneous options
 ~~~~~~~~~~~~~~~~~~~~~
 
   -s STRAND
@@ -462,12 +462,12 @@ Miscellaneous Options
       PSSM is "constructed to the same scale" as the match/mismatch
       scores (SF Altschul et al. 1997, NAR 25(17):3389-402).
 
-Parallelization and Memory Sharing
-----------------------------------
+Parallel processes and memory sharing
+-------------------------------------
 
-If you run several lastal jobs at the same time on the same computer,
-using the same set of reference files prepared by lastdb, then they
-will share memory for the reference files.
+If you run several lastal commands (i.e. processes) at the same time
+on the same computer, using the same set of reference files prepared
+by lastdb, then they will share memory for the reference files.
 
 Multiple volumes
 ----------------
@@ -487,10 +487,11 @@ Or on one volume at a time::
   lastal hugeDb2 queries.fasta > myalns2.maf
 
 The former method reads the queries in large batches, and aligns each
-batch to one volume at a time.  If you run several jobs in parallel,
-they will not necessarily use the same volume at the same time.
+batch to one volume at a time.  If you run several processes in
+parallel, they will not necessarily use the same volume at the same
+time.
 
-Therefore, for parallelization, you should either ensure you have
+Therefore, with parallel processes, you should either ensure you have
 enough memory to hold several volumes simultaneously, or run lastal on
 one volume at a time.  An efficient scheme is to use a different
 computer for each volume.

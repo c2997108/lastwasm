@@ -130,7 +130,7 @@ Miscellaneous options (default settings):\n\
 -C: culling limit for gapless alignments (off)\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
--i: query batch size (8 KiB, unless there are multiple lastdb volumes)\n\
+-i: query batch size (8 KiB, unless there is > 1 thread or lastdb volume)\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
 -R: repeat-marking options (the same as was used for lastdb)\n\
