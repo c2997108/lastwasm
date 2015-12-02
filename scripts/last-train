@@ -208,6 +208,7 @@ def fixedLastalArgs(opts):
     if opts.S: x.append("-S" + opts.S)
     if opts.T: x.append("-T" + opts.T)
     if opts.m: x.append("-m" + opts.m)
+    if opts.P: x.append("-P" + opts.P)
     if opts.Q: x.append("-Q" + opts.Q)
     return x
 
@@ -317,6 +318,8 @@ if __name__ == "__main__":
                   help="type of alignment: 0=local, 1=overlap (default: 0)")
     og.add_option("-m", metavar="COUNT", help=
                   "maximum initial matches per query position (default: 10)")
+    og.add_option("-P", metavar="THREADS",
+                  help="number of parallel threads")
     og.add_option("-Q", metavar="NUMBER",
                   help="input format: 0=fasta, 1=fastq-sanger")
     op.add_option_group(og)
