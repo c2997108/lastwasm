@@ -74,6 +74,7 @@ LastalArguments::LastalArguments() :
   cullingLimitForGaplessAlignments(0),
   queryStep(1),
   batchSize(0),  // depends on the outputType, and voluming
+  numOfThreads(1),
   maxRepeatDistance(1000),  // sufficiently conservative?
   temperature(-1),  // depends on the score matrix
   gamma(1),
@@ -130,6 +131,8 @@ Miscellaneous options (default settings):\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
 -i: query batch size (8 KiB, unless there are multiple lastdb volumes)\n\
+-P: number of parallel threads ("
+    + stringify(numOfThreads) + ")\n\
 -R: repeat-marking options (the same as was used for lastdb)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
     2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q<5, else 0)\n\
@@ -154,7 +157,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] = "hVvf:" "r:q:p:a:b:A:B:c:F:x:y:z:d:e:" "D:E:"
-    "s:S:T:m:l:L:n:C:k:i:R:u:w:t:g:G:j:Q:";
+    "s:S:T:m:l:L:n:C:k:i:P:R:u:w:t:g:G:j:Q:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -273,6 +276,9 @@ LAST home page: http://last.cbrc.jp/\n\
       unstringifySize( batchSize, optarg );
       if( batchSize <= 0 ) badopt( c, optarg );  // 0 means "not specified"
       break;
+    case 'P':
+      unstringify( numOfThreads, optarg );
+      break;
     case 'R':
       if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );
       if( optarg[1] < '0' || optarg[1] > '2' ) badopt( c, optarg );
@@ -373,7 +379,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 					       bool isKeepRefLowercase,
 					       int refTantanSetting,
                                                bool isCaseSensitiveSeeds,
-					       bool isVolumes ){
+					       bool isVolumes,
+					       unsigned realNumOfThreads ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
   if( isProtein ){
@@ -423,12 +430,10 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   }
 
   if( batchSize == 0 ){
-    // Without lastdb voluming, smaller batches can be faster,
-    // probably because of the sorts done for gapped alignment.  With
-    // voluming, we want the batches to be as large as will
+    // With voluming, we want the batches to be as large as will
     // comfortably fit into memory, because each volume gets read from
     // disk once per batch.
-    if( !isVolumes )
+    if( !isVolumes && realNumOfThreads == 1 )
       batchSize = 0x2000;  // 8 Kbytes (?)
     else if( inputFormat == sequenceFormat::pssm )
       batchSize = 0x100000;   // 1 Mbyte

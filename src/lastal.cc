@@ -498,7 +498,7 @@ static void writeAlignment(LastAligner &aligner, const Alignment &aln,
   AlignmentText a = aln.write(text, query, queryNum, strand, querySeq,
 			      args.isTranslated(), alph, evaluer,
 			      args.outputFormat, extras);
-  if (args.outputFormat == 'b')
+  if (args.outputFormat == 'b' || aligners.size() > 1)
     aligner.textAlns.push_back(a);
   else
     printAndDelete(a.text);
@@ -890,10 +890,16 @@ static void scanOneVolume(bool isFirstVolume) {
   }
 }
 
+static unsigned decideNumOfThreads() {
+  if (args.numOfThreads) return args.numOfThreads;
+  warn("can't determine how many threads to use: falling back to 1 thread");
+  return 1;
+}
+
 static void printAndClear() {
   for (size_t i = 0; i < aligners.size(); ++i) {
     std::vector<AlignmentText> &textAlns = aligners[i].textAlns;
-    sort(textAlns.begin(), textAlns.end());
+    if (args.outputFormat == 'b') sort(textAlns.begin(), textAlns.end());
     for (size_t j = 0; j < textAlns.size(); ++j) {
       printAndDelete(textAlns[j].text);
     }
@@ -936,6 +942,7 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || volumes > 1 ) readVolume( i );
     scanOneVolume( i == 0 );
+    if( args.outputFormat != 'b' ) printAndClear();
   }
 
   if( args.outputType == 0 ) writeCounts( out );
@@ -1062,11 +1069,12 @@ void lastal( int argc, char** argv ){
       ERR( "can't use option -l > 1: need to re-run lastdb with i <= 1" );
   }
 
-  aligners.resize(1);
+  aligners.resize( decideNumOfThreads() );
   bool isMultiVolume = (volumes+1 > 0 && volumes > 1);
   args.setDefaultsFromAlphabet( isDna, isProtein, refLetters,
 				isKeepRefLowercase, refTantanSetting,
-                                isCaseSensitiveSeeds, isMultiVolume );
+                                isCaseSensitiveSeeds, isMultiVolume,
+				aligners.size() );
   if( args.tantanSetting )
     tantanMasker.init( isProtein, args.tantanSetting > 1,
 		       alph.letters, alph.encode );

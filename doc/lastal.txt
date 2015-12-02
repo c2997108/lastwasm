@@ -268,6 +268,12 @@ Miscellaneous Options
       If the reference was split into volumes by lastdb, then each
       volume will be read into memory once per query batch.
 
+  -P THREADS
+      Divide the work between this number of threads running in
+      parallel.  0 means use a number suggested by your computer.
+      Single query sequences are not divided between threads, so you
+      need multiple queries per batch for this option to take effect.
+
   -R DIGITS
       Specify lowercase-marking of repeats, by two digits (e.g. "-R 01"),
       with the following meanings.

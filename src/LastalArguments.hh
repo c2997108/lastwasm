@@ -37,7 +37,8 @@ struct LastalArguments{
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
 				double numLettersInReference,
 				bool isKeepRefLowercase, int refTantanSetting,
-                                bool isCaseSensitiveSeeds, bool isVolumes );
+                                bool isCaseSensitiveSeeds, bool isVolumes,
+				unsigned realNumOfThreads );
   void setDefaultsFromMatrix( double lambda, int minScore );
 
   // get minScoreGapless, or calculate a default value if it is unspecified:
@@ -86,6 +87,7 @@ struct LastalArguments{
   size_t cullingLimitForGaplessAlignments;
   indexT queryStep;
   indexT batchSize;  // approx size of query sequences to scan in 1 batch
+  unsigned numOfThreads;
   indexT maxRepeatDistance;  // suppress repeats <= this distance apart
   double temperature;  // probability = exp( score / temperature ) / Z
   double gamma;        // parameter for gamma-centroid alignment
