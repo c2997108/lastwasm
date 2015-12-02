@@ -34,6 +34,8 @@
 #include <stdexcept>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 
+#include <thread>
+
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
 
@@ -885,13 +887,26 @@ static void alignSomeQueries(size_t chunkNum, bool isFirstVolume) {
 
 static void scanOneVolume(bool isFirstVolume) {
   size_t numOfChunks = aligners.size();
-  for (size_t i = 0; i < numOfChunks; ++i) {
-    alignSomeQueries(i, isFirstVolume);
+  if (numOfChunks == 1) {
+    alignSomeQueries(0, isFirstVolume);
+  } else {
+    std::vector<std::thread> threads(numOfChunks);
+    for (size_t i = 0; i < numOfChunks; ++i)
+      threads[i] = std::thread(alignSomeQueries, i, isFirstVolume);
+    // Exceptions from threads are not handled nicely, but I don't
+    // think it matters much.
+    for (size_t i = 0; i < numOfChunks; ++i)
+      threads[i].join();
   }
 }
 
 static unsigned decideNumOfThreads() {
   if (args.numOfThreads) return args.numOfThreads;
+  unsigned x = std::thread::hardware_concurrency();
+  if (x) {
+    LOG("threads=" << x);
+    return x;
+  }
   warn("can't determine how many threads to use: falling back to 1 thread");
   return 1;
 }
