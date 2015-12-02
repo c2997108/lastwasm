@@ -64,7 +64,7 @@ namespace {
   int scoreMatrixRev[scoreMatrixRowSize][scoreMatrixRowSize];
   int scoreMatrixRevMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   GeneralizedAffineGapCosts gapCosts;
-  LastAligner lastAligner;
+  std::vector<LastAligner> aligners;
   LambdaCalculator lambdaCalculator;
   LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
@@ -861,18 +861,44 @@ static void alignOneQuery(LastAligner &aligner,
     translateAndScan(aligner, queryNum, '-');
 }
 
+static size_t firstQuerySequenceInChunk(size_t chunkNum) {
+  size_t numOfQueries = query.finishedSequences();
+  size_t numOfChunks = aligners.size();
+  size_t beg = query.seqBeg(0);
+  size_t end = query.padEnd(numOfQueries - 1) - 1;
+  countT len = end - beg;  // try to avoid overflow
+  size_t pos = beg + len * chunkNum / numOfChunks;
+  size_t seqNum = query.whichSequence(pos);
+  size_t begDistance = pos - query.seqBeg(seqNum);
+  size_t endDistance = query.padEnd(seqNum) - pos;
+  return (begDistance < endDistance) ? seqNum : seqNum + 1;
+}
+
+static void alignSomeQueries(size_t chunkNum, bool isFirstVolume) {
+  LastAligner &aligner = aligners[chunkNum];
+  size_t beg = firstQuerySequenceInChunk(chunkNum);
+  size_t end = firstQuerySequenceInChunk(chunkNum + 1);
+  for (size_t i = beg; i < end; ++i) {
+    alignOneQuery(aligner, i, isFirstVolume);
+  }
+}
+
 static void scanOneVolume(bool isFirstVolume) {
-  for (size_t i = 0; i < query.finishedSequences(); ++i)
-    alignOneQuery(lastAligner, i, isFirstVolume);
+  size_t numOfChunks = aligners.size();
+  for (size_t i = 0; i < numOfChunks; ++i) {
+    alignSomeQueries(i, isFirstVolume);
+  }
 }
 
 static void printAndClear() {
-  std::vector<AlignmentText> &textAlns = lastAligner.textAlns;
-  sort(textAlns.begin(), textAlns.end());
-  for (size_t i = 0; i < textAlns.size(); ++i) {
-    printAndDelete(textAlns[i].text);
+  for (size_t i = 0; i < aligners.size(); ++i) {
+    std::vector<AlignmentText> &textAlns = aligners[i].textAlns;
+    sort(textAlns.begin(), textAlns.end());
+    for (size_t j = 0; j < textAlns.size(); ++j) {
+      printAndDelete(textAlns[j].text);
+    }
+    textAlns.clear();
   }
-  textAlns.clear();
 }
 
 void readIndex( const std::string& baseName, indexT seqCount ) {
@@ -1036,6 +1062,7 @@ void lastal( int argc, char** argv ){
       ERR( "can't use option -l > 1: need to re-run lastdb with i <= 1" );
   }
 
+  aligners.resize(1);
   bool isMultiVolume = (volumes+1 > 0 && volumes > 1);
   args.setDefaultsFromAlphabet( isDna, isProtein, refLetters,
 				isKeepRefLowercase, refTantanSetting,
