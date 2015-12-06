@@ -113,18 +113,18 @@ struct Alignment{
 	       double gamma, int outputType );
 
   char *writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
-		 size_t w2, char strand, bool isTranslated,
+		 size_t seqNum2, char strand, bool isTranslated,
 		 const LastEvaluer& evaluer,
 		 const AlignmentExtras& extras) const;
 
   char *writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
-		 size_t w2, char strand, const uchar* seqData2,
+		 size_t seqNum2, char strand, const uchar* seqData2,
 		 bool isTranslated, const Alphabet& alph,
 		 const LastEvaluer& evaluer,
 		 const AlignmentExtras& extras) const;
 
   char *writeBlastTab(const MultiSequence& seq1, const MultiSequence& seq2,
-		      size_t w2, char strand, const uchar* seqData2,
+		      size_t seqNum2, char strand, const uchar* seqData2,
 		      bool isTranslated, const Alphabet& alph,
 		      const LastEvaluer& evaluer) const;
 

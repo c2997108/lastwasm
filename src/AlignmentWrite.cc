@@ -183,25 +183,25 @@ static char* writeTags( const LastEvaluer& evaluer, double queryLength,
 }
 
 char *Alignment::writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
-			  size_t w2, char strand, bool isTranslated,
+			  size_t seqNum2, char strand, bool isTranslated,
 			  const LastEvaluer& evaluer,
 			  const AlignmentExtras& extras) const {
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
-  size_t w1 = seq1.whichSequence(alnBeg1);
-  size_t seqStart1 = seq1.seqBeg(w1);
-  size_t seqLen1 = seq1.seqLen(w1);
+  size_t seqNum1 = seq1.whichSequence(alnBeg1);
+  size_t seqStart1 = seq1.seqBeg(seqNum1);
+  size_t seqLen1 = seq1.seqLen(seqNum1);
 
-  size_t size2 = seq2.padLen(w2);
+  size_t size2 = seq2.padLen(seqNum2);
   size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
   size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
   size_t alnEnd2 = aaToDna( end2(), frameSize2 );
-  size_t seqStart2 = seq2.seqBeg(w2) - seq2.padBeg(w2);
-  size_t seqLen2 = seq2.seqLen(w2);
+  size_t seqStart2 = seq2.seqBeg(seqNum2) - seq2.padBeg(seqNum2);
+  size_t seqLen2 = seq2.seqLen(seqNum2);
 
   IntText sc(score);
-  std::string n1 = seq1.seqName(w1);
-  std::string n2 = seq2.seqName(w2);
+  std::string n1 = seq1.seqName(seqNum1);
+  std::string n2 = seq2.seqName(seqNum2);
   IntText b1(alnBeg1 - seqStart1);
   IntText b2(alnBeg2 - seqStart2);
   IntText r1(alnEnd1 - alnBeg1);
@@ -300,7 +300,7 @@ static void writeMafLineC(std::vector<char> &cLine,
 }
 
 char *Alignment::writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
-			  size_t w2, char strand, const uchar* seqData2,
+			  size_t seqNum2, char strand, const uchar* seqData2,
 			  bool isTranslated, const Alphabet& alph,
 			  const LastEvaluer& evaluer,
 			  const AlignmentExtras& extras) const {
@@ -309,23 +309,23 @@ char *Alignment::writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
 
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
-  size_t w1 = seq1.whichSequence(alnBeg1);
-  size_t seqStart1 = seq1.seqBeg(w1);
-  size_t seqLen1 = seq1.seqLen(w1);
+  size_t seqNum1 = seq1.whichSequence(alnBeg1);
+  size_t seqStart1 = seq1.seqBeg(seqNum1);
+  size_t seqLen1 = seq1.seqLen(seqNum1);
 
-  size_t size2 = seq2.padLen(w2);
+  size_t size2 = seq2.padLen(seqNum2);
   size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
   size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
   size_t alnEnd2 = aaToDna( end2(), frameSize2 );
-  size_t seqStart2 = seq2.seqBeg(w2) - seq2.padBeg(w2);
-  size_t seqLen2 = seq2.seqLen(w2);
+  size_t seqStart2 = seq2.seqBeg(seqNum2) - seq2.padBeg(seqNum2);
+  size_t seqLen2 = seq2.seqLen(seqNum2);
 
   char aLine[256];
   char *aLineEnd = writeMafLineA(aLine, score, evaluer, seqLen2, fullScore);
   size_t aLineLen = aLineEnd - aLine;
 
-  const std::string n1 = seq1.seqName(w1);
-  const std::string n2 = seq2.seqName(w2);
+  const std::string n1 = seq1.seqName(seqNum1);
+  const std::string n2 = seq2.seqName(seqNum2);
   IntText b1(alnBeg1 - seqStart1);
   IntText b2(alnBeg2 - seqStart2);
   IntText r1(alnEnd1 - alnBeg1);
@@ -375,7 +375,8 @@ char *Alignment::writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
 
   if (isQuals2) {
     writeMafHeadQ(dest, n2, nw, qLineBlankLen);
-    const uchar *q = seq2.qualityReader() + seq2.padBeg(w2) * qualsPerBase2;
+    const uchar *q =
+      seq2.qualityReader() + seq2.padBeg(seqNum2) * qualsPerBase2;
     dest = writeBotSeq(q, alph, qualsPerBase2, frameSize2, dest + headLen);
     *dest++ = '\n';
   }
@@ -397,15 +398,16 @@ char *Alignment::writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
 
 char *Alignment::writeBlastTab(const MultiSequence& seq1,
 			       const MultiSequence& seq2,
-			       size_t w2, char strand, const uchar* seqData2,
+			       size_t seqNum2, char strand,
+			       const uchar* seqData2,
 			       bool isTranslated, const Alphabet& alph,
 			       const LastEvaluer& evaluer) const {
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
-  size_t w1 = seq1.whichSequence(alnBeg1);
-  size_t seqStart1 = seq1.seqBeg(w1);
+  size_t seqNum1 = seq1.whichSequence(alnBeg1);
+  size_t seqStart1 = seq1.seqBeg(seqNum1);
 
-  size_t size2 = seq2.padLen(w2);
+  size_t size2 = seq2.padLen(seqNum2);
   size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
   size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
   size_t alnEnd2 = aaToDna( end2(), frameSize2 );
@@ -413,7 +415,7 @@ char *Alignment::writeBlastTab(const MultiSequence& seq1,
     alnBeg2 = size2 - alnBeg2;
     alnEnd2 = size2 - alnEnd2;
   }
-  size_t seqStart2 = seq2.seqBeg(w2) - seq2.padBeg(w2);
+  size_t seqStart2 = seq2.seqBeg(seqNum2) - seq2.padBeg(seqNum2);
 
   size_t alnSize = numColumns( frameSize2 );
   size_t matches = matchCount( blocks, seq1.seqReader(), seqData2,
@@ -433,8 +435,8 @@ char *Alignment::writeBlastTab(const MultiSequence& seq1,
   }
   */
 
-  std::string n1 = seq1.seqName(w1);
-  std::string n2 = seq2.seqName(w2);
+  std::string n1 = seq1.seqName(seqNum1);
+  std::string n2 = seq2.seqName(seqNum2);
   FloatText mp("%.2f", matchPercent);
   IntText as(alnSize);
   IntText mm(mismatches);
@@ -446,7 +448,7 @@ char *Alignment::writeBlastTab(const MultiSequence& seq1,
   FloatText ev;
   FloatText bs;
   if( evaluer.isGood() ){
-    size_t seqLen2 = seq2.seqLen(w2);
+    size_t seqLen2 = seq2.seqLen(seqNum2);
     double area = evaluer.area( score, seqLen2 );
     double epa = evaluer.evaluePerArea( score );
     double bitScore = evaluer.bitScore( score );
