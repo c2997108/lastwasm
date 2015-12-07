@@ -150,6 +150,9 @@ db=/tmp/last-test
     # strand asymmetry
     lastdb $db hg19-M.fa
     try lastal -S1 -pBISF -Q1 -e120 -f0 -j4 $db bs100.fastq
+
+    # culling
+    try lastal -D1000 -fTAB -K2 $db galGal3-M-32.fa
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff -u last-test.out -

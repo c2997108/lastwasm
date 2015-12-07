@@ -249,10 +249,17 @@ Miscellaneous options
       that position.
 
   -C LIMIT
-      Culling limit for gapless alignments.  Before extending gapped
-      alignments, discard any gapless alignment whose query
-      coordinates lie in those of LIMIT or more others with higher
-      score-per-length.
+      Before extending gapped alignments, discard any gapless
+      alignment whose query range lies in LIMIT or more others (for
+      the same strand and volume) with higher score-per-length.  This
+      can reduce run time and output size (MC Frith & R Kawaguchi
+      2015, Genome Biol 16:106).
+
+  -K LIMIT
+      Omit any alignment whose query range lies in LIMIT or more other
+      alignments with higher score (and on the same strand).  This is
+      a useful way to get just the top few hits to each part of each
+      query (P Berman et al. 2000, J Comput Biol 7:293-302).
 
   -k STEP
       Look for initial matches starting only at every STEP-th position
