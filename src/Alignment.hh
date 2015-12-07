@@ -26,19 +26,25 @@ class TwoQualityScoreMatrix;
 struct AlignmentText {
   // This holds the final text representation of an alignment, along
   // with data for sorting it.
-  SegmentPair::indexT queryNum;
+  SegmentPair::indexT strandNum;
+  SegmentPair::indexT queryBeg;
+  SegmentPair::indexT queryEnd;
   int score;
   char *text;  // seems to be a bit faster than std::vector<char>
 
   AlignmentText() {}
 
-  AlignmentText(size_t queryNumIn, int scoreIn, char *textIn)
-    : queryNum(queryNumIn), score(scoreIn), text(textIn) {}
+  AlignmentText(size_t queryNumIn, size_t queryBegIn, size_t queryEndIn,
+		char strandIn, int scoreIn, char *textIn) :
+    strandNum(queryNumIn * 2 + (strandIn == '-')),
+    queryBeg(queryBegIn), queryEnd(queryEndIn), score(scoreIn), text(textIn) {}
+
+  size_t queryNum() const { return strandNum / 2; }
 
   bool operator<(const AlignmentText& r) const {
     // Order by query number (ascending), then score (descending):
-    if (queryNum != r.queryNum) return queryNum < r.queryNum;
-    if (score != r.score)       return score > r.score;
+    if (queryNum() != r.queryNum()) return queryNum() < r.queryNum();
+    if (score      != r.score     ) return score      > r.score;
 
     // Break ties, to make the sort order exactly reproducible:
     return std::strcmp(text, r.text) < 0;
