@@ -489,6 +489,10 @@ struct Dispatcher{
   }
 };
 
+static bool isCollatedAlignments() {
+  return args.outputFormat == 'b';
+}
+
 static void printAndDelete(char *text) {
   std::cout << text;
   delete[] text;
@@ -500,7 +504,7 @@ static void writeAlignment(LastAligner &aligner, const Alignment &aln,
   AlignmentText a = aln.write(text, query, queryNum, strand, querySeq,
 			      args.isTranslated(), alph, evaluer,
 			      args.outputFormat, extras);
-  if (args.outputFormat == 'b' || aligners.size() > 1)
+  if (isCollatedAlignments() || aligners.size() > 1)
     aligner.textAlns.push_back(a);
   else
     printAndDelete(a.text);
@@ -771,7 +775,7 @@ void scan( LastAligner& aligner,
     LOG( "nonredundant gapped alignments=" << gappedAlns.size() );
   }
 
-  if( args.outputFormat != 'b' ) gappedAlns.sort();  // sort by score
+  if( !isCollatedAlignments() ) gappedAlns.sort();  // sort by score
   alignFinish( aligner, gappedAlns, queryNum, strand, querySeq );
 }
 
@@ -914,7 +918,7 @@ static unsigned decideNumOfThreads() {
 static void printAndClear() {
   for (size_t i = 0; i < aligners.size(); ++i) {
     std::vector<AlignmentText> &textAlns = aligners[i].textAlns;
-    if (args.outputFormat == 'b') sort(textAlns.begin(), textAlns.end());
+    if (isCollatedAlignments()) sort(textAlns.begin(), textAlns.end());
     for (size_t j = 0; j < textAlns.size(); ++j) {
       printAndDelete(textAlns[j].text);
     }
@@ -957,13 +961,11 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || volumes > 1 ) readVolume( i );
     scanOneVolume( i == 0 );
-    if( args.outputFormat != 'b' ) printAndClear();
+    if( !isCollatedAlignments() ) printAndClear();
   }
 
   if( args.outputType == 0 ) writeCounts( out );
-
   printAndClear();
-
   LOG( "query batch done!" );
 }
 
