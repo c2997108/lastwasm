@@ -30,6 +30,11 @@ struct AlignmentText {
   int score;
   char *text;  // seems to be a bit faster than std::vector<char>
 
+  AlignmentText() {}
+
+  AlignmentText(size_t queryNumIn, int scoreIn, char *textIn)
+    : queryNum(queryNumIn), score(scoreIn), text(textIn) {}
+
   bool operator<(const AlignmentText& r) const {
     // Order by query number (ascending), then score (descending):
     if (queryNum != r.queryNum) return queryNum < r.queryNum;
@@ -112,21 +117,23 @@ struct Alignment{
 	       const Alphabet& alph, AlignmentExtras& extras,
 	       double gamma, int outputType );
 
-  char *writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
-		 size_t seqNum2, char strand, bool isTranslated,
-		 const LastEvaluer& evaluer,
-		 const AlignmentExtras& extras) const;
+  AlignmentText writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
+			 size_t seqNum2, char strand, bool isTranslated,
+			 const LastEvaluer& evaluer,
+			 const AlignmentExtras& extras) const;
 
-  char *writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
-		 size_t seqNum2, char strand, const uchar* seqData2,
-		 bool isTranslated, const Alphabet& alph,
-		 const LastEvaluer& evaluer,
-		 const AlignmentExtras& extras) const;
+  AlignmentText writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
+			 size_t seqNum2, char strand, const uchar* seqData2,
+			 bool isTranslated, const Alphabet& alph,
+			 const LastEvaluer& evaluer,
+			 const AlignmentExtras& extras) const;
 
-  char *writeBlastTab(const MultiSequence& seq1, const MultiSequence& seq2,
-		      size_t seqNum2, char strand, const uchar* seqData2,
-		      bool isTranslated, const Alphabet& alph,
-		      const LastEvaluer& evaluer) const;
+  AlignmentText writeBlastTab(const MultiSequence& seq1,
+			      const MultiSequence& seq2,
+			      size_t seqNum2, char strand,
+			      const uchar* seqData2,
+			      bool isTranslated, const Alphabet& alph,
+			      const LastEvaluer& evaluer) const;
 
   size_t numColumns( size_t frameSize ) const;
 

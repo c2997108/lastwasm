@@ -97,21 +97,15 @@ AlignmentText Alignment::write(const MultiSequence& seq1,
 			       const AlignmentExtras& extras) const {
   assert( !blocks.empty() );
 
-  AlignmentText a;
-  a.queryNum = seqNum2;
-  a.score = score;
-
-  if( format == 't' )
-    a.text = writeTab( seq1, seq2, seqNum2, strand,
-		       isTranslated, evaluer, extras );
   if( format == 'm' )
-    a.text = writeMaf( seq1, seq2, seqNum2, strand, seqData2,
-		       isTranslated, alph, evaluer, extras );
+    return writeMaf( seq1, seq2, seqNum2, strand, seqData2,
+		     isTranslated, alph, evaluer, extras );
   if( format == 'b' )
-    a.text = writeBlastTab( seq1, seq2, seqNum2, strand, seqData2,
-			    isTranslated, alph, evaluer );
-
-  return a;
+    return writeBlastTab( seq1, seq2, seqNum2, strand, seqData2,
+			  isTranslated, alph, evaluer );
+  else
+    return writeTab( seq1, seq2, seqNum2, strand,
+		     isTranslated, evaluer, extras );
 }
 
 static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
@@ -182,10 +176,12 @@ static char* writeTags( const LastEvaluer& evaluer, double queryLength,
   return out;
 }
 
-char *Alignment::writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
-			  size_t seqNum2, char strand, bool isTranslated,
-			  const LastEvaluer& evaluer,
-			  const AlignmentExtras& extras) const {
+AlignmentText Alignment::writeTab(const MultiSequence& seq1,
+				  const MultiSequence& seq2,
+				  size_t seqNum2, char strand,
+				  bool isTranslated,
+				  const LastEvaluer& evaluer,
+				  const AlignmentExtras& extras) const {
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
   size_t seqNum1 = seq1.whichSequence(alnBeg1);
@@ -230,7 +226,7 @@ char *Alignment::writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
   w.copy(tags, tagLen);
   w << '\0';
 
-  return text;
+  return AlignmentText(seqNum2, score, text);
 }
 
 static void putLeft(Writer &w, const std::string &t, size_t width) {
@@ -299,11 +295,13 @@ static void writeMafLineC(std::vector<char> &cLine,
   cLine.resize(e - &cLine[0]);
 }
 
-char *Alignment::writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
-			  size_t seqNum2, char strand, const uchar* seqData2,
-			  bool isTranslated, const Alphabet& alph,
-			  const LastEvaluer& evaluer,
-			  const AlignmentExtras& extras) const {
+AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
+				  const MultiSequence& seq2,
+				  size_t seqNum2, char strand,
+				  const uchar* seqData2,
+				  bool isTranslated, const Alphabet& alph,
+				  const LastEvaluer& evaluer,
+				  const AlignmentExtras& extras) const {
   double fullScore = extras.fullScore;
   const std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
 
@@ -393,15 +391,15 @@ char *Alignment::writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
   *dest++ = '\n';  // blank line afterwards
   *dest++ = '\0';
 
-  return text;
+  return AlignmentText(seqNum2, score, text);
 }
 
-char *Alignment::writeBlastTab(const MultiSequence& seq1,
-			       const MultiSequence& seq2,
-			       size_t seqNum2, char strand,
-			       const uchar* seqData2,
-			       bool isTranslated, const Alphabet& alph,
-			       const LastEvaluer& evaluer) const {
+AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
+				       const MultiSequence& seq2,
+				       size_t seqNum2, char strand,
+				       const uchar* seqData2,
+				       bool isTranslated, const Alphabet& alph,
+				       const LastEvaluer& evaluer) const {
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
   size_t seqNum1 = seq1.whichSequence(alnBeg1);
@@ -469,7 +467,7 @@ char *Alignment::writeBlastTab(const MultiSequence& seq1,
   if (evaluer.isGood()) w << t << ev << t << bs;
   w << '\n' << '\0';
 
-  return text;
+  return AlignmentText(seqNum2, score, text);
 }
 
 size_t Alignment::numColumns( size_t frameSize ) const{
