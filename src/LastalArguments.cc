@@ -72,6 +72,7 @@ LastalArguments::LastalArguments() :
   oneHitMultiplicity(10),
   maxGaplessAlignmentsPerQueryPosition(0),  // depends on oneHitMultiplicity
   cullingLimitForGaplessAlignments(0),
+  cullingLimitForFinalAlignments(0),
   queryStep(1),
   batchSize(0),  // depends on the outputType, and voluming
   numOfThreads(1),
@@ -127,7 +128,8 @@ Miscellaneous options (default settings):\n\
     + stringify(minHitDepth) + ")\n\
 -L: maximum length for initial matches (infinity)\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
--C: culling limit for gapless alignments (off)\n\
+-C: omit gapless alignments in >= C others with > score-per-length (off)\n\
+-K: omit alignments whose query range lies in >= K others with > score (off)\n\
 -k: step-size along the query sequence ("
     + stringify(queryStep) + ")\n\
 -i: query batch size (8 KiB, unless there is > 1 thread or lastdb volume)\n\
@@ -157,7 +159,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] = "hVvf:" "r:q:p:a:b:A:B:c:F:x:y:z:d:e:" "D:E:"
-    "s:S:T:m:l:L:n:C:k:i:P:R:u:w:t:g:G:j:Q:";
+    "s:S:T:m:l:L:n:C:K:k:i:P:R:u:w:t:g:G:j:Q:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -267,6 +269,9 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'C':
       unstringify( cullingLimitForGaplessAlignments, optarg );
+      break;
+    case 'K':
+      unstringify( cullingLimitForFinalAlignments, optarg );
       break;
     case 'k':
       unstringify( queryStep, optarg );
@@ -550,6 +555,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " n=" << maxGaplessAlignmentsPerQueryPosition;
   if( cullingLimitForGaplessAlignments )
     stream << " C=" << cullingLimitForGaplessAlignments;
+  if( cullingLimitForFinalAlignments )
+    stream << " K=" << cullingLimitForFinalAlignments;
   stream << " k=" << queryStep;
   stream << " i=" << batchSize;
   stream << " w=" << maxRepeatDistance;

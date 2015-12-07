@@ -490,7 +490,7 @@ struct Dispatcher{
 };
 
 static bool isCollatedAlignments() {
-  return args.outputFormat == 'b';
+  return args.outputFormat == 'b' || args.cullingLimitForFinalAlignments;
 }
 
 static void printAndDelete(char *text) {
@@ -915,9 +915,45 @@ static unsigned decideNumOfThreads() {
   return 1;
 }
 
+static bool lessForCulling(const AlignmentText &x, const AlignmentText &y) {
+  if (x.strandNum != y.strandNum) return x.strandNum < y.strandNum;
+  if (x.queryBeg  != y.queryBeg ) return x.queryBeg  < y.queryBeg;
+  else                            return x.score     > y.score;
+}
+
+// Remove any alignment whose query range lies in LIMIT or more other
+// alignments with higher score (and on the same strand):
+static void cullFinalAlignments(std::vector<AlignmentText> &textAlns) {
+  sort(textAlns.begin(), textAlns.end(), lessForCulling);
+  std::vector<size_t> stash;  // alignments that might dominate subsequent ones
+  size_t i = 0;  // number of kept alignments so far
+  for (size_t j = 0; j < textAlns.size(); ++j) {
+    AlignmentText &x = textAlns[j];
+    size_t numOfDominators = 0;  // number of alignments that dominate x
+    size_t a = 0;  // number of kept stash-items so far
+    for (size_t b = 0; b < stash.size(); ++b) {
+      size_t k = stash[b];
+      AlignmentText &y = textAlns[k];
+      if (y.strandNum < x.strandNum) break;  // drop the stash
+      if (y.queryEnd <= x.queryBeg) continue;  // drop this stash-item
+      stash[a++] = k;  // keep this stash-item
+      if (y.queryEnd >= x.queryEnd && y.score > x.score) ++numOfDominators;
+    }
+    stash.resize(a);
+    if (numOfDominators >= args.cullingLimitForFinalAlignments) {
+      delete[] x.text;
+    } else {
+      stash.push_back(i);
+      textAlns[i++] = x;  // keep this alignment
+    }
+  }
+  textAlns.resize(i);
+}
+
 static void printAndClear() {
   for (size_t i = 0; i < aligners.size(); ++i) {
     std::vector<AlignmentText> &textAlns = aligners[i].textAlns;
+    if (args.cullingLimitForFinalAlignments) cullFinalAlignments(textAlns);
     if (isCollatedAlignments()) sort(textAlns.begin(), textAlns.end());
     for (size_t j = 0; j < textAlns.size(); ++j) {
       printAndDelete(textAlns[j].text);

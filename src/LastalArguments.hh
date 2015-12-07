@@ -85,6 +85,7 @@ struct LastalArguments{
   indexT oneHitMultiplicity;
   indexT maxGaplessAlignmentsPerQueryPosition;
   size_t cullingLimitForGaplessAlignments;
+  size_t cullingLimitForFinalAlignments;
   indexT queryStep;
   indexT batchSize;  // approx size of query sequences to scan in 1 batch
   unsigned numOfThreads;
