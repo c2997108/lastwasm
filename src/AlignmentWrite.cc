@@ -411,10 +411,6 @@ char *Alignment::writeBlastTab(const MultiSequence& seq1,
   size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
   size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
   size_t alnEnd2 = aaToDna( end2(), frameSize2 );
-  if( strand == '-' ){
-    alnBeg2 = size2 - alnBeg2;
-    alnEnd2 = size2 - alnEnd2;
-  }
   size_t seqStart2 = seq2.seqBeg(seqNum2) - seq2.padBeg(seqNum2);
 
   size_t alnSize = numColumns( frameSize2 );
@@ -424,16 +420,20 @@ char *Alignment::writeBlastTab(const MultiSequence& seq1,
   size_t gapOpens = blocks.size() - 1;
   double matchPercent = 100.0 * matches / alnSize;
 
-  // 1-based coordinates:
-  ++alnBeg1;
-  ++(strand == '+' ? alnBeg2 : alnEnd2);
-
-  /*
-  if( strand == '-' && !isTranslated ){  // xxx this makes it more like BLAST
-    std::swap( alnBeg1, alnEnd1 );
-    std::swap( alnBeg2, alnEnd2 );
+  size_t blastAlnBeg1 = alnBeg1 + 1;  // 1-based coordinate
+  size_t blastAlnEnd1 = alnEnd1;
+  size_t blastAlnBeg2 = alnBeg2 + 1;  // 1-based coordinate
+  size_t blastAlnEnd2 = alnEnd2;
+  if (strand == '-') {
+    blastAlnBeg2 = size2 - alnBeg2;
+    blastAlnEnd2 = size2 - alnEnd2 + 1;  // 1-based coordinate
+    /*
+    if (!isTranslated) {  // xxx this makes it more like BLAST
+      std::swap(blastAlnBeg1, blastAlnEnd1);
+      std::swap(blastAlnBeg2, blastAlnEnd2);
+    }
+    */
   }
-  */
 
   std::string n1 = seq1.seqName(seqNum1);
   std::string n2 = seq2.seqName(seqNum2);
@@ -441,10 +441,10 @@ char *Alignment::writeBlastTab(const MultiSequence& seq1,
   IntText as(alnSize);
   IntText mm(mismatches);
   IntText go(gapOpens);
-  IntText b1(alnBeg1 - seqStart1);
-  IntText b2(alnBeg2 - seqStart2);
-  IntText e1(alnEnd1 - seqStart1);
-  IntText e2(alnEnd2 - seqStart2);
+  IntText b1(blastAlnBeg1 - seqStart1);
+  IntText b2(blastAlnBeg2 - seqStart2);
+  IntText e1(blastAlnEnd1 - seqStart1);
+  IntText e2(blastAlnEnd2 - seqStart2);
   FloatText ev;
   FloatText bs;
   if( evaluer.isGood() ){
