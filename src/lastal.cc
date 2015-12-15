@@ -718,12 +718,13 @@ static bool lessForCulling(const AlignmentText &x, const AlignmentText &y) {
 
 // Remove any alignment whose query range lies in LIMIT or more other
 // alignments with higher score (and on the same strand):
-static void cullFinalAlignments(std::vector<AlignmentText> &textAlns) {
+static void cullFinalAlignments(std::vector<AlignmentText> &textAlns,
+				size_t start) {
   if (!args.cullingLimitForFinalAlignments) return;
-  sort(textAlns.begin(), textAlns.end(), lessForCulling);
+  sort(textAlns.begin() + start, textAlns.end(), lessForCulling);
   std::vector<size_t> stash;  // alignments that might dominate subsequent ones
-  size_t i = 0;  // number of kept alignments so far
-  for (size_t j = 0; j < textAlns.size(); ++j) {
+  size_t i = start;  // number of kept alignments so far
+  for (size_t j = start; j < textAlns.size(); ++j) {
     AlignmentText &x = textAlns[j];
     size_t numOfDominators = 0;  // number of alignments that dominate x
     size_t a = 0;  // number of kept stash-items so far
@@ -746,10 +747,10 @@ static void cullFinalAlignments(std::vector<AlignmentText> &textAlns) {
   textAlns.resize(i);
 }
 
-static void printAndClear() {
+static void printAndClear(bool isMultiVolume) {
   for (size_t i = 0; i < aligners.size(); ++i) {
     std::vector<AlignmentText> &textAlns = aligners[i].textAlns;
-    cullFinalAlignments(textAlns);
+    if (isMultiVolume) cullFinalAlignments(textAlns, 0);
     if (isCollatedAlignments()) sort(textAlns.begin(), textAlns.end());
     for (size_t j = 0; j < textAlns.size(); ++j) {
       printAndDelete(textAlns[j].text);
@@ -872,7 +873,9 @@ void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
     }
   }
 
+  size_t oldNumOfAlns = aligner.textAlns.size();
   scan( aligner, queryNum, strand, querySeq );
+  cullFinalAlignments( aligner.textAlns, oldNumOfAlns );
 }
 
 static void reverseComplementPssm( size_t queryNum ){
@@ -996,15 +999,16 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
   }
 
   if( volumes+1 == 0 ) volumes = 1;
+  bool isMultiVolume = (volumes > 1);
 
   for( unsigned i = 0; i < volumes; ++i ){
-    if( text.unfinishedSize() == 0 || volumes > 1 ) readVolume( i );
+    if( text.unfinishedSize() == 0 || isMultiVolume ) readVolume( i );
     scanOneVolume( i == 0 );
-    if( !isCollatedAlignments() ) printAndClear();
+    if( !isCollatedAlignments() ) printAndClear( isMultiVolume );
   }
 
   if( args.outputType == 0 ) writeCounts( out );
-  printAndClear();
+  printAndClear( isMultiVolume );
   LOG( "query batch done!" );
 }
 
