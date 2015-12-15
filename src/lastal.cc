@@ -719,6 +719,7 @@ static bool lessForCulling(const AlignmentText &x, const AlignmentText &y) {
 // Remove any alignment whose query range lies in LIMIT or more other
 // alignments with higher score (and on the same strand):
 static void cullFinalAlignments(std::vector<AlignmentText> &textAlns) {
+  if (!args.cullingLimitForFinalAlignments) return;
   sort(textAlns.begin(), textAlns.end(), lessForCulling);
   std::vector<size_t> stash;  // alignments that might dominate subsequent ones
   size_t i = 0;  // number of kept alignments so far
@@ -748,7 +749,7 @@ static void cullFinalAlignments(std::vector<AlignmentText> &textAlns) {
 static void printAndClear() {
   for (size_t i = 0; i < aligners.size(); ++i) {
     std::vector<AlignmentText> &textAlns = aligners[i].textAlns;
-    if (args.cullingLimitForFinalAlignments) cullFinalAlignments(textAlns);
+    cullFinalAlignments(textAlns);
     if (isCollatedAlignments()) sort(textAlns.begin(), textAlns.end());
     for (size_t j = 0; j < textAlns.size(); ++j) {
       printAndDelete(textAlns[j].text);
@@ -846,15 +847,16 @@ static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
   }
 }
 
-// Scan one query sequence against one database volume,
-// after optionally translating the query
+// Scan one query sequence strand against one database volume,
+// after optionally translating and/or masking the query
 void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
+  const uchar* querySeq = query.seqReader() + query.padBeg(queryNum);
   size_t size = query.padLen(queryNum);
-  const uchar* seq = query.seqReader() + query.padBeg(queryNum);
+
   if( args.isTranslated() ){
     LOG( "translating..." );
     std::vector<uchar> translation( size );
-    geneticCode.translate( seq, seq + size, &translation[0] );
+    geneticCode.translate( querySeq, querySeq + size, &translation[0] );
     if( args.tantanSetting ){
       LOG( "masking..." );
       tantanMaskTranslatedQuery( queryNum, &translation[0] );
@@ -863,11 +865,11 @@ void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
   }else{
     if( args.tantanSetting ){
       LOG( "masking..." );
-      std::vector<uchar> s( seq, seq + size );
+      std::vector<uchar> s( querySeq, querySeq + size );
       tantanMaskOneQuery( queryNum, &s[0] );
       scan( aligner, queryNum, strand, &s[0] );
     }else{
-      scan( aligner, queryNum, strand, seq );
+      scan( aligner, queryNum, strand, querySeq );
     }
   }
 }
