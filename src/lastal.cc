@@ -851,27 +851,28 @@ static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
 // after optionally translating and/or masking the query
 void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
   const uchar* querySeq = query.seqReader() + query.padBeg(queryNum);
+  std::vector<uchar> modifiedQuery;
   size_t size = query.padLen(queryNum);
 
   if( args.isTranslated() ){
     LOG( "translating..." );
-    std::vector<uchar> translation( size );
-    geneticCode.translate( querySeq, querySeq + size, &translation[0] );
+    modifiedQuery.resize( size );
+    geneticCode.translate( querySeq, querySeq + size, &modifiedQuery[0] );
     if( args.tantanSetting ){
       LOG( "masking..." );
-      tantanMaskTranslatedQuery( queryNum, &translation[0] );
+      tantanMaskTranslatedQuery( queryNum, &modifiedQuery[0] );
     }
-    scan( aligner, queryNum, strand, &translation[0] );
+    querySeq = &modifiedQuery[0];
   }else{
     if( args.tantanSetting ){
       LOG( "masking..." );
-      std::vector<uchar> s( querySeq, querySeq + size );
-      tantanMaskOneQuery( queryNum, &s[0] );
-      scan( aligner, queryNum, strand, &s[0] );
-    }else{
-      scan( aligner, queryNum, strand, querySeq );
+      modifiedQuery.assign( querySeq, querySeq + size );
+      tantanMaskOneQuery( queryNum, &modifiedQuery[0] );
+      querySeq = &modifiedQuery[0];
     }
   }
+
+  scan( aligner, queryNum, strand, querySeq );
 }
 
 static void reverseComplementPssm( size_t queryNum ){
