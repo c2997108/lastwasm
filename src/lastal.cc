@@ -747,11 +747,9 @@ static void cullFinalAlignments(std::vector<AlignmentText> &textAlns,
   textAlns.resize(i);
 }
 
-static void printAndClear(bool isMultiVolume) {
+static void printAndClear() {
   for (size_t i = 0; i < aligners.size(); ++i) {
     std::vector<AlignmentText> &textAlns = aligners[i].textAlns;
-    if (isMultiVolume) cullFinalAlignments(textAlns, 0);
-    if (isCollatedAlignments()) sort(textAlns.begin(), textAlns.end());
     for (size_t j = 0; j < textAlns.size(); ++j) {
       printAndDelete(textAlns[j].text);
     }
@@ -933,23 +931,30 @@ static size_t firstQuerySequenceInChunk(size_t chunkNum) {
   return (begDistance < endDistance) ? seqNum : seqNum + 1;
 }
 
-static void alignSomeQueries(size_t chunkNum, bool isFirstVolume) {
+static void alignSomeQueries(size_t chunkNum,
+			     unsigned volume, unsigned volumeCount) {
   LastAligner &aligner = aligners[chunkNum];
+  std::vector<AlignmentText> &textAlns = aligner.textAlns;
   size_t beg = firstQuerySequenceInChunk(chunkNum);
   size_t end = firstQuerySequenceInChunk(chunkNum + 1);
+  bool isFirstVolume = (volume == 0);
   for (size_t i = beg; i < end; ++i) {
     alignOneQuery(aligner, i, isFirstVolume);
   }
+  if (volume + 1 == volumeCount) {
+    if (volumeCount > 1) cullFinalAlignments(textAlns, 0);
+    if (isCollatedAlignments()) sort(textAlns.begin(), textAlns.end());
+  }
 }
 
-static void scanOneVolume(bool isFirstVolume) {
+static void scanOneVolume(unsigned volume, unsigned volumeCount) {
   size_t numOfChunks = aligners.size();
   if (numOfChunks == 1) {
-    alignSomeQueries(0, isFirstVolume);
+    alignSomeQueries(0, volume, volumeCount);
   } else {
     std::vector<std::thread> threads(numOfChunks);
     for (size_t i = 0; i < numOfChunks; ++i)
-      threads[i] = std::thread(alignSomeQueries, i, isFirstVolume);
+      threads[i] = std::thread(alignSomeQueries, i, volume, volumeCount);
     // Exceptions from threads are not handled nicely, but I don't
     // think it matters much.
     for (size_t i = 0; i < numOfChunks; ++i)
@@ -1003,12 +1008,12 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
 
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || isMultiVolume ) readVolume( i );
-    scanOneVolume( i == 0 );
-    if( !isCollatedAlignments() ) printAndClear( isMultiVolume );
+    scanOneVolume( i, volumes );
+    if( !isCollatedAlignments() ) printAndClear();
   }
 
   if( args.outputType == 0 ) writeCounts( out );
-  printAndClear( isMultiVolume );
+  printAndClear();
   LOG( "query batch done!" );
 }
 
