@@ -937,12 +937,18 @@ static void alignSomeQueries(size_t chunkNum,
   std::vector<AlignmentText> &textAlns = aligner.textAlns;
   size_t beg = firstQuerySequenceInChunk(chunkNum);
   size_t end = firstQuerySequenceInChunk(chunkNum + 1);
+  bool isMultiVolume = (volumeCount > 1);
   bool isFirstVolume = (volume == 0);
+  bool isFinalVolume = (volume + 1 == volumeCount);
   for (size_t i = beg; i < end; ++i) {
+    size_t oldNumOfAlns = textAlns.size();
     alignOneQuery(aligner, i, isFirstVolume);
+    if (!isMultiVolume && isCollatedAlignments()) {
+      sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
+    }
   }
-  if (volume + 1 == volumeCount) {
-    if (volumeCount > 1) cullFinalAlignments(textAlns, 0);
+  if (isFinalVolume && isMultiVolume) {
+    cullFinalAlignments(textAlns, 0);
     if (isCollatedAlignments()) sort(textAlns.begin(), textAlns.end());
   }
 }
