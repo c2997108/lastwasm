@@ -747,14 +747,15 @@ static void cullFinalAlignments(std::vector<AlignmentText> &textAlns,
   textAlns.resize(i);
 }
 
-static void printAndClear() {
-  for (size_t i = 0; i < aligners.size(); ++i) {
-    std::vector<AlignmentText> &textAlns = aligners[i].textAlns;
-    for (size_t j = 0; j < textAlns.size(); ++j) {
-      printAndDelete(textAlns[j].text);
-    }
-    textAlns.clear();
-  }
+static void printAndClear(std::vector<AlignmentText> &textAlns) {
+  for (size_t i = 0; i < textAlns.size(); ++i)
+    printAndDelete(textAlns[i].text);
+  textAlns.clear();
+}
+
+static void printAndClearAll() {
+  for (size_t i = 0; i < aligners.size(); ++i)
+    printAndClear(aligners[i].textAlns);
 }
 
 void makeQualityPssm( LastAligner& aligner,
@@ -940,11 +941,13 @@ static void alignSomeQueries(size_t chunkNum,
   bool isMultiVolume = (volumeCount > 1);
   bool isFirstVolume = (volume == 0);
   bool isFinalVolume = (volume + 1 == volumeCount);
+  bool isMultiThread = (aligners.size() > 1);
   for (size_t i = beg; i < end; ++i) {
     size_t oldNumOfAlns = textAlns.size();
     alignOneQuery(aligner, i, isFirstVolume);
     if (!isMultiVolume && isCollatedAlignments()) {
       sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
+      if (!isMultiThread) printAndClear(textAlns);
     }
   }
   if (isFinalVolume && isMultiVolume) {
@@ -1015,11 +1018,11 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || isMultiVolume ) readVolume( i );
     scanOneVolume( i, volumes );
-    if( !isCollatedAlignments() ) printAndClear();
+    if( !isCollatedAlignments() ) printAndClearAll();
   }
 
   if( args.outputType == 0 ) writeCounts( out );
-  printAndClear();
+  printAndClearAll();
   LOG( "query batch done!" );
 }
 
