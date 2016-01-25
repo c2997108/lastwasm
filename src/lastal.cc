@@ -943,18 +943,20 @@ static void alignSomeQueries(size_t chunkNum,
   bool isMultiVolume = (volumeCount > 1);
   bool isFirstVolume = (volume == 0);
   bool isFinalVolume = (volume + 1 == volumeCount);
-  bool isMultiThread = (aligners.size() > 1);
+  bool isFirstThread = (chunkNum == 0);
+  bool isSort = isCollatedAlignments();
+  bool isSortPerQuery = (isSort && !isMultiVolume);
+  bool isPrintPerQuery = (isFirstThread && !(isSort && isMultiVolume));
   for (size_t i = beg; i < end; ++i) {
     size_t oldNumOfAlns = textAlns.size();
     alignOneQuery(aligner, i, isFirstVolume);
-    if (!isMultiVolume && isCollatedAlignments()) {
-      sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
-      if (!isMultiThread) printAndClear(textAlns);
-    }
+    if (isSortPerQuery) sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
+    if (isPrintPerQuery) printAndClear(textAlns);
   }
   if (isFinalVolume && isMultiVolume) {
     cullFinalAlignments(textAlns, 0);
-    if (isCollatedAlignments()) sort(textAlns.begin(), textAlns.end());
+    if (isSort) sort(textAlns.begin(), textAlns.end());
+    if (isFirstThread) printAndClear(textAlns);
   }
 }
 
