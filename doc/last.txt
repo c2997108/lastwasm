@@ -12,6 +12,7 @@ genomes and/or large numbers of DNA reads).  It can:
 * Calculate the likelihood of chance similarities between random
   sequences.
 * Do split and spliced alignment.
+* Train alignment parameters for unusual kinds of sequence (e.g. nanopore).
 
 Requirements
 ------------
@@ -32,8 +33,21 @@ compile the programs, type::
 
   make
 
-Optionally, copy the programs and scripts to a standard "bin"
-directory (using "sudo" to request administrator permissions)::
+If your compiler is really old, you might get an error message like
+this::
+
+  unrecognized command line option "-std=c++11"
+
+In that case, you can compile like this (which will disable
+multi-threading)::
+
+  make CXXFLAGS=-O3
+
+Install (optional)
+------------------
+
+You can copy the programs and scripts to a standard "bin" directory
+(using "sudo" to request administrator permissions)::
 
   sudo make install
 

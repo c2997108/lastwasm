@@ -34,7 +34,9 @@
 #include <stdexcept>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 
+#ifdef HAS_CXX_THREADS
 #include <thread>
+#endif
 
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
@@ -957,21 +959,23 @@ static void alignSomeQueries(size_t chunkNum,
 }
 
 static void scanOneVolume(unsigned volume, unsigned volumeCount) {
+#ifdef HAS_CXX_THREADS
   size_t numOfChunks = aligners.size();
-  if (numOfChunks == 1) {
-    alignSomeQueries(0, volume, volumeCount);
-  } else {
-    std::vector<std::thread> threads(numOfChunks);
-    for (size_t i = 0; i < numOfChunks; ++i)
-      threads[i] = std::thread(alignSomeQueries, i, volume, volumeCount);
-    // Exceptions from threads are not handled nicely, but I don't
-    // think it matters much.
-    for (size_t i = 0; i < numOfChunks; ++i)
-      threads[i].join();
-  }
+  std::vector<std::thread> threads(numOfChunks - 1);
+  for (size_t i = 1; i < numOfChunks; ++i)
+    threads[i - 1] = std::thread(alignSomeQueries, i, volume, volumeCount);
+  // Exceptions from threads are not handled nicely, but I don't
+  // think it matters much.
+#endif
+  alignSomeQueries(0, volume, volumeCount);
+#ifdef HAS_CXX_THREADS
+  for (size_t i = 1; i < numOfChunks; ++i)
+    threads[i - 1].join();
+#endif
 }
 
 static unsigned decideNumOfThreads() {
+#ifdef HAS_CXX_THREADS
   if (args.numOfThreads) return args.numOfThreads;
   unsigned x = std::thread::hardware_concurrency();
   if (x) {
@@ -979,6 +983,10 @@ static unsigned decideNumOfThreads() {
     return x;
   }
   warn("can't determine how many threads to use: falling back to 1 thread");
+#else
+  if (args.numOfThreads != 1)
+    ERR("I was installed here with multi-threading disabled");
+#endif
   return 1;
 }
 

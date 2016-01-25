@@ -277,9 +277,10 @@ Miscellaneous options
 
   -P THREADS
       Divide the work between this number of threads running in
-      parallel.  0 means use a number suggested by your computer.
-      Single query sequences are not divided between threads, so you
-      need multiple queries per batch for this option to take effect.
+      parallel.  0 means use as many threads as your computer claims
+      it can handle simultaneously.  Single query sequences are not
+      divided between threads, so you need multiple queries per batch
+      for this option to take effect.
 
   -R DIGITS
       Specify lowercase-marking of repeats, by two digits (e.g. "-R 01"),
