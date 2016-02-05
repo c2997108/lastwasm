@@ -67,7 +67,7 @@ Cosmetic options
   -f NAME
       Choose the output format.  The NAME is not case-sensitive.
 
-      MAF format looks like this::
+      **MAF** format looks like this::
 
         a score=15 EG2=4.7e+04 E=2.6e-05
         s chr3 9 23 + 939557 TTTGGGAGTTGAAGTTTTCGCCC
@@ -80,7 +80,7 @@ Cosmetic options
       the strand is "-", the start coordinate is in the reverse
       strand.
 
-      The same alignment in TAB format looks like this::
+      The same alignment in **TAB** format looks like this::
 
         15 chr3 9 23 + 939557 seqA 2 21 + 25 17,2:0,4 EG2=4.7e+04 E=2.6e-05
 
@@ -89,16 +89,20 @@ Cosmetic options
       an offset of size 2 in the upper sequence and 0 in the lower
       sequence, then a block of size 4.
 
-      The same alignment in BlastTab format looks like this::
+      The same alignment in **BlastTab** format looks like this::
 
         seqA chr3 86.96 23 1 1 3 23 10 32 2.6e-05 44.3
 
       The fields are: query name, reference name, percent identity,
       alignment length, mismatches, gap opens, query start, query end,
       reference start, reference end, E-value, bit score.  The start
-      coordinates are one-based.  **Warning:** this is a lossy format,
-      because it does not show gap positions.  **Warning:** the other
+      coordinates are one-based.  *Warning:* this is a lossy format,
+      because it does not show gap positions.  *Warning:* the other
       LAST programs cannot read this format.
+
+      **BlastTab+** format is the same as BlastTab, with 2 extra
+      columns at the end: length of query sequence and length of
+      reference sequence.  More columns might be added in future.
 
       For backwards compatibility, a NAME of 0 means TAB and 1 means
       MAF.
@@ -414,7 +418,7 @@ Miscellaneous options
       PSSMs, for the queries.  0 means read queries in fasta format
       (without quality scores); 1 means fastq-sanger format; 2 means
       fastq-solexa format; 3 means fastq-illumina format; 4 means prb
-      format; 5 means read PSSMs.  (Warning: Illumina data is not
+      format; 5 means read PSSMs.  (*Warning*: Illumina data is not
       necessarily in fastq-illumina format; it is often in
       fastq-sanger format.)
 
@@ -463,7 +467,7 @@ Miscellaneous options
       format is a simplified version of PSI-BLAST's ASCII format: the
       non-simplified version is allowed too.
 
-      Warning: lastal cannot directly calculate E-values for PSSMs.
+      *Warning*: lastal cannot directly calculate E-values for PSSMs.
       The E-values (and the default value of -y) are determined by the
       otherwise-unused match and mismatch scores (options -r -q and
       -p).  There is evidence these E-values will be accurate if the

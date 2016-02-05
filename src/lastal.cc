@@ -492,7 +492,8 @@ struct Dispatcher{
 };
 
 static bool isCollatedAlignments() {
-  return args.outputFormat == 'b' || args.cullingLimitForFinalAlignments;
+  return args.outputFormat == 'b' || args.outputFormat == 'B' ||
+    args.cullingLimitForFinalAlignments;
 }
 
 static void printAndDelete(char *text) {
@@ -1059,7 +1060,7 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
       out << "#\n";
     }
 
-    if( args.outputFormat != 'b' ) {
+    if( args.outputFormat != 'b' && args.outputFormat != 'B' ) {
       out << "# Coordinates are 0-based.  For - strand matches, coordinates\n";
       out << "# in the reverse complement of the 2nd sequence are used.\n";
       out << "#\n";
@@ -1073,10 +1074,12 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
       out << "# name start alnSize strand seqSize alignment\n"
 	  << "#\n";
     }
-    if( args.outputFormat == 'b' ){
+    if( args.outputFormat == 'b' || args.outputFormat == 'B' ){
       out << "# Fields: query id, subject id, % identity, alignment length, "
-	  << "mismatches, gap opens, q. start, q. end, s. start, s. end, "
-	  << "evalue, bit score\n";
+	  << "mismatches, gap opens, q. start, q. end, s. start, s. end";
+      if( evaluer.isGood() ) out << ", evalue, bit score";
+      if( args.outputFormat == 'B' ) out << ", query length, subject length";
+      out << '\n';
     }
   }
 }

@@ -100,12 +100,12 @@ AlignmentText Alignment::write(const MultiSequence& seq1,
   if( format == 'm' )
     return writeMaf( seq1, seq2, seqNum2, strand, seqData2,
 		     isTranslated, alph, evaluer, extras );
-  if( format == 'b' )
-    return writeBlastTab( seq1, seq2, seqNum2, strand, seqData2,
-			  isTranslated, alph, evaluer );
-  else
+  if( format == 't' )
     return writeTab( seq1, seq2, seqNum2, strand,
 		     isTranslated, evaluer, extras );
+  else
+    return writeBlastTab( seq1, seq2, seqNum2, strand, seqData2,
+			  isTranslated, alph, evaluer, format == 'B' );
 }
 
 static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
@@ -399,17 +399,20 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
 				       size_t seqNum2, char strand,
 				       const uchar* seqData2,
 				       bool isTranslated, const Alphabet& alph,
-				       const LastEvaluer& evaluer) const {
+				       const LastEvaluer& evaluer,
+				       bool isExtraColumns) const {
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
   size_t seqNum1 = seq1.whichSequence(alnBeg1);
   size_t seqStart1 = seq1.seqBeg(seqNum1);
+  size_t seqLen1 = seq1.seqLen(seqNum1);
 
   size_t size2 = seq2.padLen(seqNum2);
   size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
   size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
   size_t alnEnd2 = aaToDna( end2(), frameSize2 );
   size_t seqStart2 = seq2.seqBeg(seqNum2) - seq2.padBeg(seqNum2);
+  size_t seqLen2 = seq2.seqLen(seqNum2);
 
   size_t alnSize = numColumns( frameSize2 );
   size_t matches = matchCount( blocks, seq1.seqReader(), seqData2,
@@ -446,18 +449,20 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
   FloatText ev;
   FloatText bs;
   if( evaluer.isGood() ){
-    size_t seqLen2 = seq2.seqLen(seqNum2);
     double area = evaluer.area( score, seqLen2 );
     double epa = evaluer.evaluePerArea( score );
     double bitScore = evaluer.bitScore( score );
     ev.set("%.2g", area * epa);
     bs.set("%.3g", bitScore);
   }
+  IntText s1(seqLen1);
+  IntText s2(seqLen2);
 
   size_t s =
     n2.size() + n1.size() + mp.size() + as.size() + mm.size() + go.size() +
     b2.size() + e2.size() + b1.size() + e1.size() + 10;
   if (evaluer.isGood()) s += ev.size() + bs.size() + 2;
+  if (isExtraColumns)   s += s1.size() + s2.size() + 2;
 
   char *text = new char[s + 1];
   Writer w(text);
@@ -465,6 +470,7 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
   w << n2 << t << n1 << t << mp << t << as << t << mm << t << go << t
     << b2 << t << e2 << t << b1 << t << e1;
   if (evaluer.isGood()) w << t << ev << t << bs;
+  if (isExtraColumns)   w << t << s2 << t << s1;
   w << '\n' << '\0';
 
   return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand, score,

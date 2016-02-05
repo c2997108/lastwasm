@@ -147,7 +147,8 @@ struct Alignment{
 			      size_t seqNum2, char strand,
 			      const uchar* seqData2,
 			      bool isTranslated, const Alphabet& alph,
-			      const LastEvaluer& evaluer) const;
+			      const LastEvaluer& evaluer,
+			      bool isExtraColumns) const;
 
   size_t numColumns( size_t frameSize ) const;
 

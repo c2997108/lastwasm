@@ -147,6 +147,9 @@ db=/tmp/last-test
     # BlastTab format
     try lastal -fBlastTab -pBL62 -b1 -F15 -D1e3 $db galGal3-M-32.fa
 
+    # BlastTab+ format
+    try lastal -fBlastTab+ -pBL62 -b1 -F15 -D1e3 $db galGal3-M-32.fa
+
     # strand asymmetry
     lastdb $db hg19-M.fa
     try lastal -S1 -pBISF -Q1 -e120 -f0 -j4 $db bs100.fastq
