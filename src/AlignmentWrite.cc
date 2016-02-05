@@ -226,7 +226,7 @@ AlignmentText Alignment::writeTab(const MultiSequence& seq1,
   w.copy(tags, tagLen);
   w << '\0';
 
-  return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand, score, text);
+  return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand, score, 0, 0, text);
 }
 
 static void putLeft(Writer &w, const std::string &t, size_t width) {
@@ -391,7 +391,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   *dest++ = '\n';  // blank line afterwards
   *dest++ = '\0';
 
-  return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand, score, text);
+  return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand, score, 0, 0, text);
 }
 
 AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
@@ -467,7 +467,8 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
   if (evaluer.isGood()) w << t << ev << t << bs;
   w << '\n' << '\0';
 
-  return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand, score, text);
+  return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand, score,
+		       alnSize, matches, text);
 }
 
 size_t Alignment::numColumns( size_t frameSize ) const{
