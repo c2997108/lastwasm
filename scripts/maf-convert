@@ -305,12 +305,19 @@ def cigarParts(beg, alignmentColumns, end):
     if beg: yield str(beg) + "H"
 
     # (doesn't handle translated alignments)
+    # uses "read-ahead" technique, aiming to be as fast as possible:
     isActive = True
     for x, y in alignmentColumns: break
     else: isActive = False
     while isActive:
         size = 1
-        if x == "-":
+        if x == y:  # xxx assumes no gap-gap columns, ignores ambiguous bases
+            for x, y in alignmentColumns:
+                if x != y: break
+                size += 1
+            else: isActive = False
+            yield str(size) + "="
+        elif x == "-":
             for x, y in alignmentColumns:
                 if x != "-": break
                 size += 1
@@ -324,10 +331,10 @@ def cigarParts(beg, alignmentColumns, end):
             yield str(size) + "D"
         else:
             for x, y in alignmentColumns:
-                if x == "-" or y == "-": break
+                if x == y or x == "-" or y == "-": break
                 size += 1
             else: isActive = False
-            yield str(size) + "M"
+            yield str(size) + "X"
 
     if end: yield str(end) + "H"
 
