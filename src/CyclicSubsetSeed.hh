@@ -106,6 +106,22 @@ public:
     return x - MAX_LETTERS;
   }
 
+  // Checks whether text1 is lexicographically less than text2, when
+  // applying the cyclic subset seed pattern to both.  The "startMap"
+  // argument enables us to start in the middle of the seed pattern.
+  bool isLess(const uchar *text1, const uchar *text2,
+	      const uchar *startMap) const {
+    while (true) {
+      uchar x = startMap[*text1];
+      uchar y = startMap[*text2];
+      if (x != y) return x < y;
+      if (x == DELIMITER) return false;
+      ++text1;
+      ++text2;
+      startMap = nextMap(startMap);
+    }
+  }
+
 private:
   std::vector< std::vector<std::string> > subsetLists;
   std::vector<uchar> subsetMaps;

@@ -22,19 +22,12 @@ namespace{
 static void insertionSort( const uchar* text, const CyclicSubsetSeed& seed,
 			   indexT* beg, indexT* end, const uchar* subsetMap ){
   for( indexT* i = beg+1; i < end; ++i ){
+    const uchar* newText = text + *i;
     for( indexT* j = i; j > beg; --j ){
-      const uchar* s = text + *(j-1);
-      const uchar* t = text + *j;
-      const uchar* m = subsetMap;
-
-      while( m[ *s ] == m[ *t ] && m[ *s ] < CyclicSubsetSeed::DELIMITER ){
-        ++s;
-        ++t;
-        m = seed.nextMap(m);
-      }
-
-      if( m[ *s ] <= m[ *t ] ) break;
-      std::iter_swap( j, j-1 );
+      indexT* k = j - 1;
+      const uchar* oldText = text + *k;
+      if( !seed.isLess( newText, oldText, subsetMap ) ) break;
+      std::iter_swap( j, k );
     }
   }
 }
