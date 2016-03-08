@@ -1,8 +1,8 @@
 LAST Performance Tuning
 =======================
 
-This document tells you how to make LAST **faster**, at a cost in
-sensitivity or memory use, or **more sensitive**, at a cost in speed.
+This document tells you how to trade-off **speed**, **sensitivity**,
+and **memory and disk usage**.
 
 Ideally, the default settings would always work well.  Unfortunately,
 there is too great a variety of challenging alignment tasks, and the
@@ -16,12 +16,17 @@ defaults.
 lastdb -w
 ---------
 
-This option **reduces memory and disk usage**.  It makes lastdb and
-probably lastal **faster**.  By default lastdb indexes every position
-in the sequence(s), but -w2 makes it index every 2nd position, -w3
-every 3rd position, etc.  This may **reduce sensitivity**, but not
-necessarily, because LAST uses initial matches that are sufficiently
-rare, and by ignoring some matches the remaining ones become rarer.
+This option **reduces memory and disk usage**, and makes lastdb
+faster.  By default lastdb indexes every position in the sequence(s),
+but -w2 makes it index every 2nd position, -w3 every 3rd position,
+etc.
+
+This has a complex effect on the speed and sensitivity of lastal.
+LAST uses initial matches that are sufficiently rare: this option
+makes it lose some matches (because those positions are not indexed),
+but gain others (because they are rarer).  In practice, small values
+of w (e.g. 2) sometimes make lastal slower and more sensitive, but
+very large values will eventually reduce sensitivity.
 
 Among other aligners, MegaBLAST indexes every 5th position, and BLAT
 indexes every 11th position.

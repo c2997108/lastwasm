@@ -153,14 +153,14 @@ void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
   writePrjFile( baseName + ".prj", args, alph, multi.finishedSequences(),
 		letterCounts, -1, numOfIndexes, subsetSeeds );
   multi.toFiles( baseName );
+  const uchar* seq = multi.seqReader();
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     LOG( "sorting..." );
-    indexes[x].sortIndex( multi.seqReader(),
-			  args.minSeedLimit, args.childTableType );
+    indexes[x].sortIndex( seq, args.minSeedLimit, args.childTableType );
 
     LOG( "bucketing..." );
-    indexes[x].makeBuckets( multi.seqReader(), args.bucketDepth );
+    indexes[x].makeBuckets( seq, args.bucketDepth );
 
     LOG( "writing..." );
     indexT textLength = multi.finishedSize();

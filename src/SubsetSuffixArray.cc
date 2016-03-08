@@ -10,14 +10,15 @@ using namespace cbrc;
 
 void SubsetSuffixArray::addPositions( const uchar* text,
 				      indexT beg, indexT end, indexT step ){
-  assert( step > 0 );
-  const uchar* subsetMap = seed.firstMap();
+  if (beg >= end) return;
+  assert(step > 0);
+  const uchar *subsetMap = seed.firstMap();
 
-  for( indexT i = beg; i < end; i += step ){
-    if( subsetMap[ text[i] ] < CyclicSubsetSeed::DELIMITER ){
-      suffixArray.v.push_back(i);
-    }
-    if( i + step < i ) break;  // avoid overflow
+  while (true) {
+    if (subsetMap[text[beg]] < CyclicSubsetSeed::DELIMITER)
+      suffixArray.v.push_back(beg);
+    if (end - beg <= step) break;  // avoid overflow
+    beg += step;
   }
 }
 

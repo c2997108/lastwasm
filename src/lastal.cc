@@ -527,11 +527,11 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 
   for( indexT i = loopBeg; i < loopEnd; i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x ){
+      const SubsetSuffixArray& sax = suffixArrays[x];
       const indexT* beg;
       const indexT* end;
-      suffixArrays[x].match( beg, end, dis.b + i, dis.a,
-			     args.oneHitMultiplicity,
-			     args.minHitDepth, args.maxHitDepth );
+      sax.match( beg, end, dis.b + i, dis.a,
+		 args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth );
       matchCount += end - beg;
 
       // Tried: if we hit a delimiter when using contiguous seeds, then
