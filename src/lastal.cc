@@ -932,25 +932,13 @@ static void alignOneQuery(LastAligner &aligner,
     translateAndScan(aligner, queryNum, '-');
 }
 
-static size_t firstQuerySequenceInChunk(size_t chunkNum) {
-  size_t numOfQueries = query.finishedSequences();
-  size_t numOfChunks = aligners.size();
-  size_t beg = query.seqBeg(0);
-  size_t end = query.padEnd(numOfQueries - 1) - 1;
-  countT len = end - beg;  // try to avoid overflow
-  size_t pos = beg + len * chunkNum / numOfChunks;
-  size_t seqNum = query.whichSequence(pos);
-  size_t begDistance = pos - query.seqBeg(seqNum);
-  size_t endDistance = query.padEnd(seqNum) - pos;
-  return (begDistance < endDistance) ? seqNum : seqNum + 1;
-}
-
 static void alignSomeQueries(size_t chunkNum,
 			     unsigned volume, unsigned volumeCount) {
+  size_t numOfChunks = aligners.size();
   LastAligner &aligner = aligners[chunkNum];
   std::vector<AlignmentText> &textAlns = aligner.textAlns;
-  size_t beg = firstQuerySequenceInChunk(chunkNum);
-  size_t end = firstQuerySequenceInChunk(chunkNum + 1);
+  size_t beg = firstSequenceInChunk(query, numOfChunks, chunkNum);
+  size_t end = firstSequenceInChunk(query, numOfChunks, chunkNum + 1);
   bool isMultiVolume = (volumeCount > 1);
   bool isFirstVolume = (volume == 0);
   bool isFinalVolume = (volume + 1 == volumeCount);

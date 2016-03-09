@@ -137,5 +137,20 @@ class MultiSequence{
   bool isFinishable( indexT maxSeqLen ) const;
 };
 
+// Divide the sequences into a given number of roughly-equally-sized
+// chunks, and return the first sequence in the Nth chunk.
+inline size_t firstSequenceInChunk(const MultiSequence &m,
+				   size_t numOfChunks, size_t chunkNum) {
+  size_t numOfSeqs = m.finishedSequences();
+  size_t beg = m.seqBeg(0);
+  size_t end = m.padEnd(numOfSeqs - 1) - 1;
+  unsigned long long len = end - beg;  // try to avoid overflow
+  size_t pos = beg + len * chunkNum / numOfChunks;
+  size_t seqNum = m.whichSequence(pos);
+  size_t begDistance = pos - m.seqBeg(seqNum);
+  size_t endDistance = m.padEnd(seqNum) - pos;
+  return (begDistance < endDistance) ? seqNum : seqNum + 1;
+}
+
 }  // end namespace cbrc
 #endif  // MULTISEQUENCE_HH
