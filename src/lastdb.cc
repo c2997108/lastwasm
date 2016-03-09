@@ -151,16 +151,35 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 
 // Make one database volume, from one batch of sequences
 void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
-		 const MultiSequence& multi, const LastdbArguments& args,
+		 MultiSequence& multi, const LastdbArguments& args,
 		 const Alphabet& alph, const std::vector<countT>& letterCounts,
+		 const TantanMasker& tantanMasker,
 		 const std::string& subsetSeeds, const std::string& baseName ){
+  size_t numOfSequences = multi.finishedSequences();
+  size_t textLength = multi.finishedSize();
+
+  if( args.tantanSetting ){
+    LOG( "masking..." );
+    uchar* w = multi.seqWriter();
+    for( size_t i = 0; i < numOfSequences; ++i ){
+      tantanMasker.mask( w + multi.seqBeg(i),
+			 w + multi.seqEnd(i), alph.numbersToLowercase );
+    }
+  }
+
   LOG( "writing..." );
-  writePrjFile( baseName + ".prj", args, alph, multi.finishedSequences(),
+  writePrjFile( baseName + ".prj", args, alph, numOfSequences,
 		letterCounts, -1, numOfIndexes, subsetSeeds );
   multi.toFiles( baseName );
   const uchar* seq = multi.seqReader();
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
+    LOG( "gathering..." );
+    for( size_t i = 0; i < numOfSequences; ++i ){
+      indexes[x].addPositions( seq, multi.seqBeg(i), multi.seqEnd(i),
+			       args.indexStep, args.minimizerWindow );
+    }
+
     LOG( "sorting..." );
     indexes[x].sortIndex( seq, args.minSeedLimit, args.childTableType );
 
@@ -168,7 +187,6 @@ void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
     indexes[x].makeBuckets( seq, args.bucketDepth );
 
     LOG( "writing..." );
-    indexT textLength = multi.finishedSize();
     if( numOfIndexes > 1 ){
       indexes[x].toFiles( baseName + char('a' + x), false, textLength );
     }
@@ -282,21 +300,12 @@ void lastdb( int argc, char** argv ){
 	if( args.isCountsOnly ){
 	  // memory-saving, which seems to be important on 32-bit systems:
 	  multi.reinitForAppending();
-	}else{
-	  if( args.tantanSetting ){
-	    uchar* w = multi.seqWriter();
-	    tantanMasker.mask( w + beg, w + end, alph.numbersToLowercase );
-	  }
-	  for( unsigned x = 0; x < numOfIndexes; ++x ){
-	    indexes[x].addPositions( seq, beg, end,
-				     args.indexStep, args.minimizerWindow );
-	  }
 	}
       }
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
 	makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		    subsetSeeds, baseName );
+		    tantanMasker, subsetSeeds, baseName );
 	for( unsigned c = 0; c < alph.size; ++c )
 	  letterTotals[c] += letterCounts[c];
 	letterCounts.assign( alph.size, 0 );
@@ -308,12 +317,12 @@ void lastdb( int argc, char** argv ){
   if( multi.finishedSequences() > 0 ){
     if( volumeNumber == 0 ){
       makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		  subsetSeeds, args.lastdbName );
+		  tantanMasker, subsetSeeds, args.lastdbName );
       return;
     }
     std::string baseName = args.lastdbName + stringify(volumeNumber++);
     makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		subsetSeeds, baseName );
+		tantanMasker, subsetSeeds, baseName );
   }
 
   for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
