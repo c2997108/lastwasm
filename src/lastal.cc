@@ -10,6 +10,7 @@
 #include "LambdaCalculator.hh"
 #include "LastEvaluer.hh"
 #include "GeneticCode.hh"
+#include "SubsetMinimizerFinder.hh"
 #include "SubsetSuffixArray.hh"
 #include "Centroid.hh"
 #include "GappedXdropAligner.hh"
@@ -284,7 +285,7 @@ void calculateScoreStatistics( const std::string& matrixName,
 
 // Read the .prj file for the whole database
 void readOuterPrj( const std::string& fileName, unsigned& volumes,
-                   indexT& minSeedLimit,
+                   indexT& refMinimizerWindow, indexT& minSeedLimit,
 		   bool& isKeepRefLowercase, int& refTantanSetting,
                    countT& refSequences, countT& refLetters ){
   std::ifstream f( fileName.c_str() );
@@ -309,6 +310,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "tantansetting" ) iss >> refTantanSetting;
     if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
+    if( word == "minimizerwindow" ) iss >> refMinimizerWindow;
     if( word == "volumes" ) iss >> volumes;
     if( word == "numofindexes" ) iss >> numOfIndexes;
   }
@@ -525,9 +527,17 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
   if( args.minHitDepth > 1 )
     loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
 
+  std::vector< SubsetMinimizerFinder > minFinders( numOfIndexes );
+  for( unsigned x = 0; x < numOfIndexes; ++x ){
+    minFinders[x].init( suffixArrays[x].getSeed(), dis.b, loopBeg, loopEnd );
+  }
+
   for( indexT i = loopBeg; i < loopEnd; i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x ){
       const SubsetSuffixArray& sax = suffixArrays[x];
+      if( args.minimizerWindow > 1 &&
+	  !minFinders[x].isMinimizer( sax.getSeed(), dis.b, i, loopEnd,
+				      args.minimizerWindow ) ) continue;
       const indexT* beg;
       const indexT* end;
       sax.match( beg, end, dis.b + i, dis.a,
@@ -1123,12 +1133,14 @@ void lastal( int argc, char** argv ){
   args.resetCumulativeOptions();  // because we will do fromArgs again
 
   unsigned volumes = unsigned(-1);
+  indexT refMinimizerWindow = 1;  // assume this value, if not specified
   indexT minSeedLimit = 0;
   countT refSequences = -1;
   countT refLetters = -1;
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
-  readOuterPrj( args.lastdbName + ".prj", volumes, minSeedLimit,
+  readOuterPrj( args.lastdbName + ".prj", volumes,
+		refMinimizerWindow, minSeedLimit,
 		isKeepRefLowercase, refTantanSetting,
 		refSequences, refLetters );
   bool isDna = (alph.letters == alph.dna);
@@ -1161,7 +1173,7 @@ void lastal( int argc, char** argv ){
   args.setDefaultsFromAlphabet( isDna, isProtein, refLetters,
 				isKeepRefLowercase, refTantanSetting,
                                 isCaseSensitiveSeeds, isMultiVolume,
-				aligners.size() );
+				refMinimizerWindow, aligners.size() );
   if( args.tantanSetting )
     tantanMasker.init( isProtein, args.tantanSetting > 1,
 		       alph.letters, alph.encode );

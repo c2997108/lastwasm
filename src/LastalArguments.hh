@@ -38,6 +38,7 @@ struct LastalArguments{
 				double numLettersInReference,
 				bool isKeepRefLowercase, int refTantanSetting,
                                 bool isCaseSensitiveSeeds, bool isVolumes,
+				indexT refMinimizerWindow,
 				unsigned realNumOfThreads );
   void setDefaultsFromMatrix( double lambda, int minScore );
 
@@ -87,6 +88,7 @@ struct LastalArguments{
   size_t cullingLimitForGaplessAlignments;
   size_t cullingLimitForFinalAlignments;
   indexT queryStep;
+  indexT minimizerWindow;
   indexT batchSize;  // approx size of query sequences to scan in 1 batch
   unsigned numOfThreads;
   indexT maxRepeatDistance;  // suppress repeats <= this distance apart

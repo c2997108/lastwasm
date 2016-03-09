@@ -75,6 +75,7 @@ LastalArguments::LastalArguments() :
   cullingLimitForGaplessAlignments(0),
   cullingLimitForFinalAlignments(0),
   queryStep(1),
+  minimizerWindow(0),  // depends on the reference's minimizer window
   batchSize(0),  // depends on the outputType, and voluming
   numOfThreads(1),
   maxRepeatDistance(1000),  // sufficiently conservative?
@@ -160,7 +161,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] = "hVvf:" "r:q:p:a:b:A:B:c:F:x:y:z:d:e:" "D:E:"
-    "s:S:T:m:l:L:n:C:K:k:i:P:R:u:w:t:g:G:j:Q:";
+    "s:S:T:m:l:L:n:C:K:k:W:i:P:R:u:w:t:g:G:j:Q:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -278,6 +279,9 @@ LAST home page: http://last.cbrc.jp/\n\
       unstringify( queryStep, optarg );
       if( queryStep <= 0 ) badopt( c, optarg );
       break;
+    case 'W':
+      unstringify( minimizerWindow, optarg );  // allow 0, meaning "default"
+      break;
     case 'i':
       unstringifySize( batchSize, optarg );
       if( batchSize <= 0 ) badopt( c, optarg );  // 0 means "not specified"
@@ -386,6 +390,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 					       int refTantanSetting,
                                                bool isCaseSensitiveSeeds,
 					       bool isVolumes,
+					       indexT refMinimizerWindow,
 					       unsigned realNumOfThreads ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
@@ -455,6 +460,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   if( maxGaplessAlignmentsPerQueryPosition == 0 )
     maxGaplessAlignmentsPerQueryPosition =
       (oneHitMultiplicity > 0) ? oneHitMultiplicity : -1;
+
+  if( minimizerWindow == 0 ) minimizerWindow = refMinimizerWindow;
 
   if( isTranslated() && frameshiftCost < gapExtendCost )
     ERR( "the frameshift cost must not be less than the gap extension cost" );
@@ -559,6 +566,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   if( cullingLimitForFinalAlignments )
     stream << " K=" << cullingLimitForFinalAlignments;
   stream << " k=" << queryStep;
+  if( minimizerWindow > 1 )
+    stream << " W=" << minimizerWindow;
   stream << " i=" << batchSize;
   stream << " w=" << maxRepeatDistance;
   stream << " t=" << temperature;

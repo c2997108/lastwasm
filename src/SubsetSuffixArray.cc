@@ -1,6 +1,7 @@
 // Copyright 2008, 2009, 2010, 2013, 2014 Martin C. Frith
 
 #include "SubsetSuffixArray.hh"
+#include "SubsetMinimizerFinder.hh"
 #include "io.hh"
 #include <cassert>
 #include <cstdio>  // remove
@@ -8,15 +9,22 @@
 
 using namespace cbrc;
 
-void SubsetSuffixArray::addPositions( const uchar* text,
-				      indexT beg, indexT end, indexT step ){
+void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
+				     indexT step, indexT minimizerWindow) {
   if (beg >= end) return;
   assert(step > 0);
   const uchar *subsetMap = seed.firstMap();
+  SubsetMinimizerFinder f;
+  f.init(seed, text, beg, end);
 
   while (true) {
-    if (subsetMap[text[beg]] < CyclicSubsetSeed::DELIMITER)
-      suffixArray.v.push_back(beg);
+    if (minimizerWindow > 1) {
+      if (f.isMinimizer(seed, text, beg, end, minimizerWindow))
+	suffixArray.v.push_back(beg);
+    } else {
+      if (subsetMap[text[beg]] < CyclicSubsetSeed::DELIMITER)
+	suffixArray.v.push_back(beg);
+    }
     if (end - beg <= step) break;  // avoid overflow
     beg += step;
   }

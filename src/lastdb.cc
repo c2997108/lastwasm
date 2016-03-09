@@ -131,6 +131,11 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     if( args.inputFormat != sequenceFormat::fasta ){
       f << "sequenceformat=" << args.inputFormat << '\n';
     }
+    if( args.minimizerWindow > 1 ){
+      // Maybe this should be written (and read) by the indexes, so
+      // each index can have a different window?
+      f << "minimizerwindow=" << args.minimizerWindow << '\n';
+    }
     if( volumes+1 > 0 ){
       f << "volumes=" << volumes << '\n';
     }
@@ -283,7 +288,8 @@ void lastdb( int argc, char** argv ){
 	    tantanMasker.mask( w + beg, w + end, alph.numbersToLowercase );
 	  }
 	  for( unsigned x = 0; x < numOfIndexes; ++x ){
-	    indexes[x].addPositions( seq, beg, end, args.indexStep );
+	    indexes[x].addPositions( seq, beg, end,
+				     args.indexStep, args.minimizerWindow );
 	  }
 	}
       }

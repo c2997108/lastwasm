@@ -38,6 +38,7 @@ struct LastdbArguments{
   std::vector< std::string > seedPatterns;
   size_t volumeSize;  // type?
   indexT indexStep;
+  indexT minimizerWindow;
   std::string subsetSeedFile;
   std::string userAlphabet;
   indexT minSeedLimit;

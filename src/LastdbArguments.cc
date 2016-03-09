@@ -33,6 +33,7 @@ LastdbArguments::LastdbArguments() :
   seedPatterns(0),
   volumeSize(-1),
   indexStep(1),
+  minimizerWindow(1),
   subsetSeedFile(""),
   userAlphabet(""),
   minSeedLimit(0),
@@ -80,7 +81,7 @@ LAST home page: http://last.cbrc.jp/\n\
 
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
-  while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:u:a:i:b:C:xvQ:")) != -1 ) {
+  while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:W:u:a:i:b:C:xvQ:")) != -1 ) {
     switch(c){
     case 'h':
       std::cout << help;
@@ -112,6 +113,10 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'w':
       unstringify( indexStep, optarg );
       if( indexStep < 1 ) badopt( c, optarg );
+      break;
+    case 'W':
+      unstringify( minimizerWindow, optarg );
+      if( minimizerWindow < 1 ) badopt( c, optarg );
       break;
     case 'u':
       subsetSeedFile = optarg;

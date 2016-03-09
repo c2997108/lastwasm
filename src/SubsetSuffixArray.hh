@@ -38,7 +38,10 @@ public:
   // Add every step-th text position in the range [beg,end).
   // Positions starting with delimiters aren't added.
   // The positions aren't sorted.
-  void addPositions( const uchar* text, indexT beg, indexT end, indexT step );
+  // If minimizerWindow > 1 then the positions are added only if they
+  // are "minimizers" for the given window and seed pattern.
+  void addPositions( const uchar* text, indexT beg, indexT end,
+		     indexT step, indexT minimizerWindow );
 
   // Sort the suffix array (but don't make the buckets).
   void sortIndex( const uchar* text,
