@@ -256,7 +256,7 @@ void SubsetSuffixArray::radixSortN( const uchar* text, const uchar* subsetMap,
   for( indexT* i = beg; i < end; /* noop */ ){
     uchar oracle[256];
     uchar* oracleEnd =
-      oracle + std::min( sizeof(oracle), std::size_t(end - i) );
+      oracle + std::min( sizeof(oracle), size_t(end - i) );
     for( uchar* j = oracle; j < oracleEnd; ++j )
       *j = subsetMap[ text[ *i++ ] ];
     for( uchar* j = oracle; j < oracleEnd; ++j )

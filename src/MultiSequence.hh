@@ -30,7 +30,7 @@ class MultiSequence{
 
   // read seqCount finished sequences, and their names, from binary files
   void fromFiles( const std::string& baseName, indexT seqCount,
-                  std::size_t qualitiesPerLetter );
+                  size_t qualitiesPerLetter );
 
   // write all the finished sequences and their names to binary files
   void toFiles( const std::string& baseName ) const;
@@ -68,7 +68,7 @@ class MultiSequence{
   indexT finishedSize() const{ return ends.back(); }
 
   // total length of finished and unfinished sequences plus delimiters
-  std::size_t unfinishedSize() const{ return seq.size(); }
+  size_t unfinishedSize() const{ return seq.size(); }
 
   // which sequence is the coordinate in?
   indexT whichSequence( indexT coordinate ) const;
@@ -104,7 +104,7 @@ class MultiSequence{
 
   // How many quality scores are there per letter?  There might be
   // none at all, one per letter, or several (e.g. 4) per letter.
-  std::size_t qualsPerLetter() const { return qualityScoresPerLetter; }
+  size_t qualsPerLetter() const { return qualityScoresPerLetter; }
 
  private:
   indexT padSize;  // number of delimiter chars between sequences
@@ -122,7 +122,7 @@ class MultiSequence{
   // Qphred = -10*log10(p)
   // Qsolexa = -10*log10(p/(1-p))
   VectorOrMmap<uchar> qualityScores;
-  std::size_t qualityScoresPerLetter;
+  size_t qualityScoresPerLetter;
 
   // read a FASTA header: read the whole line but store just the first word
   std::istream& readFastaName( std::istream& stream );

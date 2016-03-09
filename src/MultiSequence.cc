@@ -29,7 +29,7 @@ void MultiSequence::reinitForAppending(){
 }
 
 void MultiSequence::fromFiles( const std::string& baseName, indexT seqCount,
-                               std::size_t qualitiesPerLetter ){
+                               size_t qualitiesPerLetter ){
   ends.m.open( baseName + ".ssp", seqCount + 1 );
   seq.m.open( baseName + ".tis", ends.m.back() );
   nameEnds.m.open( baseName + ".sds", seqCount + 1 );
