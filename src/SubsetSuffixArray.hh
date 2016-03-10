@@ -53,9 +53,6 @@ public:
   // the number of suffix array entries.
   void makeBuckets( const uchar* text, indexT bucketDepth );
 
-  // Clear the positions, so we can add new positions from scratch.
-  void clearPositions();
-
   void fromFiles( const std::string& baseName,
 		  bool isMaskLowercase, const uchar letterCode[] );
 

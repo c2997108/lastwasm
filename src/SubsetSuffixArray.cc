@@ -30,10 +30,6 @@ void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
   }
 }
 
-void SubsetSuffixArray::clearPositions(){
-  suffixArray.v.clear();
-}
-
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
 				   bool isMaskLowercase,
 				   const uchar letterCode[] ){
