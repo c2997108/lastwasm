@@ -29,15 +29,12 @@
 #include "gaplessTwoQualityXdrop.hh"
 #include "io.hh"
 #include "stringify.hh"
+#include "threadUtil.hh"
 #include <iomanip>  // setw
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
-
-#ifdef HAS_CXX_THREADS
-#include <thread>
-#endif
 
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << args.programName << ": " << x << '\n'
@@ -977,23 +974,6 @@ static void scanOneVolume(unsigned volume, unsigned volumeCount) {
 #endif
 }
 
-static unsigned decideNumOfThreads() {
-#ifdef HAS_CXX_THREADS
-  if (args.numOfThreads) return args.numOfThreads;
-  unsigned x = std::thread::hardware_concurrency();
-  if (x) {
-    LOG("threads=" << x);
-    return x;
-  }
-  warn(args.programName,
-       "can't determine how many threads to use: falling back to 1 thread");
-#else
-  if (args.numOfThreads != 1)
-    ERR("I was installed here with multi-threading disabled");
-#endif
-  return 1;
-}
-
 void readIndex( const std::string& baseName, indexT seqCount ) {
   LOG( "reading " << baseName << "..." );
   text.fromFiles( baseName, seqCount, isFastq( referenceFormat ) );
@@ -1159,7 +1139,8 @@ void lastal( int argc, char** argv ){
       ERR( "can't use option -l > 1: need to re-run lastdb with i <= 1" );
   }
 
-  aligners.resize( decideNumOfThreads() );
+  aligners.resize( decideNumberOfThreads( args.numOfThreads,
+					  args.programName, args.verbosity ) );
   bool isMultiVolume = (volumes+1 > 0 && volumes > 1);
   args.setDefaultsFromAlphabet( isDna, isProtein, refLetters,
 				isKeepRefLowercase, refTantanSetting,

@@ -192,7 +192,8 @@ lastal.o: lastal.cc LastalArguments.hh SequenceFormat.hh \
  GeneralizedAffineGapCosts.hh SegmentPair.hh AlignmentPot.hh Alignment.hh \
  SegmentPairPot.hh ScoreMatrix.hh Alphabet.hh MultiSequence.hh \
  TantanMasker.hh tantan.hh DiagonalTable.hh gaplessXdrop.hh \
- gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh version.hh
+ gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh threadUtil.hh \
+ version.hh
 lastdb.o: lastdb.cc LastdbArguments.hh SequenceFormat.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
  fileMap.hh stringify.hh Alphabet.hh MultiSequence.hh ScoreMatrixRow.hh \
