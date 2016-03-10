@@ -51,9 +51,9 @@ bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
 const unsigned maxNumOfIndexes = 16;
 
 static void addSeeds( SubsetSuffixArray indexes[], unsigned& numOfIndexes,
-		      const std::string& subsetSeeds,
+		      const std::string& seedText,
 		      const LastdbArguments& args, const Alphabet& alph ){
-  std::istringstream iss( subsetSeeds );
+  std::istringstream iss( seedText );
   std::vector< std::string > seedAlphabet;
   std::string pattern;
   while( CyclicSubsetSeed::nextPattern( iss, seedAlphabet, pattern ) ){
@@ -65,13 +65,13 @@ static void addSeeds( SubsetSuffixArray indexes[], unsigned& numOfIndexes,
 
 // Set up the seed pattern(s), and return how many of them there are
 unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
-			  const std::string& subsetSeeds,
+			  const std::string& seedText,
 			  const LastdbArguments& args, const Alphabet& alph ){
   unsigned numOfIndexes = 0;
   const std::string& a = alph.letters;
 
   if( !args.subsetSeedFile.empty() ){
-    addSeeds( indexes, numOfIndexes, subsetSeeds, args, alph );
+    addSeeds( indexes, numOfIndexes, seedText, args, alph );
   }
   else if( !args.seedPatterns.empty() ){
     for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
@@ -91,9 +91,9 @@ unsigned makeSubsetSeeds( SubsetSuffixArray indexes[],
   return numOfIndexes;
 }
 
-void writeLastalOptions( std::ostream& out, const std::string& subsetSeeds ){
+void writeLastalOptions( std::ostream& out, const std::string& seedText ){
   std::string trigger = "#lastal";
-  std::istringstream iss( subsetSeeds );
+  std::istringstream iss( seedText );
   std::string line;
   while( getline( iss, line ) )
     if( line.compare( 0, trigger.size(), trigger ) == 0 )
@@ -104,7 +104,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const Alphabet& alph, countT sequenceCount,
 		   const std::vector<countT>& letterCounts,
 		   unsigned volumes, unsigned numOfIndexes,
-		   const std::string& subsetSeeds ){
+		   const std::string& seedText ){
   countT letterTotal = std::accumulate( letterCounts.begin(),
                                         letterCounts.end(), countT(0) );
 
@@ -143,7 +143,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     else{
       f << "numofindexes=" << numOfIndexes << '\n';
     }
-    writeLastalOptions( f, subsetSeeds );
+    writeLastalOptions( f, seedText );
   }
 
   f.close();
@@ -184,7 +184,7 @@ void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
 		 MultiSequence& multi, const LastdbArguments& args,
 		 const Alphabet& alph, const std::vector<countT>& letterCounts,
 		 const TantanMasker& masker, unsigned numOfThreads,
-		 const std::string& subsetSeeds, const std::string& baseName ){
+		 const std::string& seedText, const std::string& baseName ){
   size_t numOfSequences = multi.finishedSequences();
   size_t textLength = multi.finishedSize();
 
@@ -195,7 +195,7 @@ void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
 
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
-		letterCounts, -1, numOfIndexes, subsetSeeds );
+		letterCounts, -1, numOfIndexes, seedText );
   multi.toFiles( baseName );
   const uchar* seq = multi.seqReader();
 
@@ -277,11 +277,11 @@ void lastdb( int argc, char** argv ){
   LastdbArguments args;
   args.fromArgs( argc, argv );
 
-  std::string subsetSeeds;
+  std::string seedText;
   if( !args.subsetSeedFile.empty() ){
-    subsetSeeds = CyclicSubsetSeed::stringFromName( args.subsetSeedFile );
+    seedText = CyclicSubsetSeed::stringFromName( args.subsetSeedFile );
     args.resetCumulativeOptions();
-    args.fromString( subsetSeeds );  // read options from the seed file
+    args.fromString( seedText );  // read options from the seed file
     args.fromArgs( argc, argv );  // command line overrides seed file
   }
 
@@ -295,7 +295,7 @@ void lastdb( int argc, char** argv ){
   if( args.tantanSetting )
     tantanMasker.init( alph.isProtein(), args.tantanSetting > 1,
 		       alph.letters, alph.encode );
-  unsigned numOfIndexes = makeSubsetSeeds( indexes, subsetSeeds, args, alph );
+  unsigned numOfIndexes = makeSubsetSeeds( indexes, seedText, args, alph );
   multi.initForAppending(1);
   alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
   unsigned volumeNumber = 0;
@@ -333,7 +333,7 @@ void lastdb( int argc, char** argv ){
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
 	makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		    tantanMasker, numOfThreads, subsetSeeds, baseName );
+		    tantanMasker, numOfThreads, seedText, baseName );
 	for( unsigned c = 0; c < alph.size; ++c )
 	  letterTotals[c] += letterCounts[c];
 	letterCounts.assign( alph.size, 0 );
@@ -345,18 +345,18 @@ void lastdb( int argc, char** argv ){
   if( multi.finishedSequences() > 0 ){
     if( volumeNumber == 0 ){
       makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		  tantanMasker, numOfThreads, subsetSeeds, args.lastdbName );
+		  tantanMasker, numOfThreads, seedText, args.lastdbName );
       return;
     }
     std::string baseName = args.lastdbName + stringify(volumeNumber++);
     makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		tantanMasker, numOfThreads, subsetSeeds, baseName );
+		tantanMasker, numOfThreads, seedText, baseName );
   }
 
   for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
 
   writePrjFile( args.lastdbName + ".prj", args, alph, sequenceCount,
-		letterTotals, volumeNumber, numOfIndexes, subsetSeeds );
+		letterTotals, volumeNumber, numOfIndexes, seedText );
 }
 
 int main( int argc, char** argv )
