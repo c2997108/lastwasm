@@ -39,6 +39,7 @@ struct LastdbArguments{
   size_t volumeSize;  // type?
   indexT indexStep;
   indexT minimizerWindow;
+  unsigned numOfThreads;
   std::string subsetSeedFile;
   std::string userAlphabet;
   indexT minSeedLimit;

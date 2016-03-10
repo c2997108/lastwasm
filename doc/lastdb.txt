@@ -134,6 +134,12 @@ Advanced Options
       by options from a `scoring scheme <last-matrices.html>`_ or the
       lastal command line.
 
+  -P THREADS
+      Divide the work between this number of threads running in
+      parallel.  0 means use as many threads as your computer claims
+      it can handle simultaneously.  Currently, multi-threading is
+      used for tantan masking only.
+
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)
       alphabet is equivalent to "-a ACGT".  The protein alphabet (-p)

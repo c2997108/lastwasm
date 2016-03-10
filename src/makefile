@@ -197,7 +197,8 @@ lastal.o: lastal.cc LastalArguments.hh SequenceFormat.hh \
 lastdb.o: lastdb.cc LastdbArguments.hh SequenceFormat.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
  fileMap.hh stringify.hh Alphabet.hh MultiSequence.hh ScoreMatrixRow.hh \
- TantanMasker.hh tantan.hh io.hh qualityScoreUtil.hh version.hh
+ TantanMasker.hh tantan.hh io.hh qualityScoreUtil.hh threadUtil.hh \
+ version.hh
 tantan.o: tantan.cc tantan.hh
 last-merge-batches.o: last-merge-batches.c version.hh
 alp/njn_dynprogprob.o: alp/njn_dynprogprob.cpp alp/njn_dynprogprob.hpp \

@@ -34,6 +34,7 @@ LastdbArguments::LastdbArguments() :
   volumeSize(-1),
   indexStep(1),
   minimizerWindow(1),
+  numOfThreads(1),
   subsetSeedFile(""),
   userAlphabet(""),
   minSeedLimit(0),
@@ -67,6 +68,8 @@ Advanced Options (default settings):\n\
 -u: seeding scheme (DNA: YASS)\n\
 -w: index step ("
     + stringify(indexStep) + ")\n\
+-P: number of parallel threads ("
+    + stringify(numOfThreads) + ")\n\
 -a: user-defined alphabet\n\
 -i: minimum limit on initial matches per query position ("
     + stringify(minSeedLimit) + ")\n\
@@ -83,7 +86,7 @@ LAST home page: http://last.cbrc.jp/\n\
 
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
-  while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:W:u:a:i:b:C:xvQ:")) != -1 ) {
+  while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:W:P:u:a:i:b:C:xvQ:")) != -1 ) {
     switch(c){
     case 'h':
       std::cout << help;
@@ -119,6 +122,9 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'W':
       unstringify( minimizerWindow, optarg );
       if( minimizerWindow < 1 ) badopt( c, optarg );
+      break;
+    case 'P':
+      unstringify( numOfThreads, optarg );
       break;
     case 'u':
       subsetSeedFile = optarg;

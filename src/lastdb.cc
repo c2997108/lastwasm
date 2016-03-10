@@ -11,6 +11,7 @@
 #include "io.hh"
 #include "qualityScoreUtil.hh"
 #include "stringify.hh"
+#include "threadUtil.hh"
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
@@ -149,22 +150,47 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
   if( !f ) ERR( "can't write file: " + fileName );
 }
 
+static void preprocessSomeSeqs(MultiSequence *multi,
+			       const TantanMasker *masker,
+			       const uchar *maskTable,
+			       size_t numOfChunks,
+			       size_t chunkNum) {
+  size_t beg = firstSequenceInChunk(*multi, numOfChunks, chunkNum);
+  size_t end = firstSequenceInChunk(*multi, numOfChunks, chunkNum + 1);
+  uchar *w = multi->seqWriter();
+  for (size_t i = beg; i < end; ++i)
+    masker->mask(w + multi->seqBeg(i), w + multi->seqEnd(i), maskTable);
+}
+
+static void preprocessSeqs(MultiSequence &multi,
+			   const TantanMasker &masker,
+			   const uchar *maskTable,
+			   size_t numOfChunks) {
+#ifdef HAS_CXX_THREADS
+  std::vector<std::thread> threads(numOfChunks - 1);
+  for (size_t i = 1; i < numOfChunks; ++i)
+    threads[i - 1] = std::thread(preprocessSomeSeqs,
+				 &multi, &masker, maskTable, numOfChunks, i);
+#endif
+  preprocessSomeSeqs(&multi, &masker, maskTable, numOfChunks, 0);
+#ifdef HAS_CXX_THREADS
+  for (size_t i = 1; i < numOfChunks; ++i)
+    threads[i - 1].join();
+#endif
+}
+
 // Make one database volume, from one batch of sequences
 void makeVolume( SubsetSuffixArray indexes[], unsigned numOfIndexes,
 		 MultiSequence& multi, const LastdbArguments& args,
 		 const Alphabet& alph, const std::vector<countT>& letterCounts,
-		 const TantanMasker& tantanMasker,
+		 const TantanMasker& masker, unsigned numOfThreads,
 		 const std::string& subsetSeeds, const std::string& baseName ){
   size_t numOfSequences = multi.finishedSequences();
   size_t textLength = multi.finishedSize();
 
   if( args.tantanSetting ){
     LOG( "masking..." );
-    uchar* w = multi.seqWriter();
-    for( size_t i = 0; i < numOfSequences; ++i ){
-      tantanMasker.mask( w + multi.seqBeg(i),
-			 w + multi.seqEnd(i), alph.numbersToLowercase );
-    }
+    preprocessSeqs( multi, masker, alph.numbersToLowercase, numOfThreads );
   }
 
   LOG( "writing..." );
@@ -259,6 +285,8 @@ void lastdb( int argc, char** argv ){
     args.fromArgs( argc, argv );  // command line overrides seed file
   }
 
+  unsigned numOfThreads =
+    decideNumberOfThreads(args.numOfThreads, args.programName, args.verbosity);
   Alphabet alph;
   MultiSequence multi;
   SubsetSuffixArray indexes[maxNumOfIndexes];
@@ -305,7 +333,7 @@ void lastdb( int argc, char** argv ){
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
 	makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		    tantanMasker, subsetSeeds, baseName );
+		    tantanMasker, numOfThreads, subsetSeeds, baseName );
 	for( unsigned c = 0; c < alph.size; ++c )
 	  letterTotals[c] += letterCounts[c];
 	letterCounts.assign( alph.size, 0 );
@@ -317,12 +345,12 @@ void lastdb( int argc, char** argv ){
   if( multi.finishedSequences() > 0 ){
     if( volumeNumber == 0 ){
       makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		  tantanMasker, subsetSeeds, args.lastdbName );
+		  tantanMasker, numOfThreads, subsetSeeds, args.lastdbName );
       return;
     }
     std::string baseName = args.lastdbName + stringify(volumeNumber++);
     makeVolume( indexes, numOfIndexes, multi, args, alph, letterCounts,
-		tantanMasker, subsetSeeds, baseName );
+		tantanMasker, numOfThreads, subsetSeeds, baseName );
   }
 
   for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
