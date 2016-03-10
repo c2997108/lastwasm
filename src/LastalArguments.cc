@@ -85,8 +85,9 @@ LastalArguments::LastalArguments() :
   verbosity(0){}
 
 void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
-  std::string usage =
-      "Usage: lastal [options] lastdb-name fasta-sequence-file(s)";
+  programName = argv[0];
+  std::string usage = "Usage: " + std::string(programName) +
+    " [options] lastdb-name fasta-sequence-file(s)";
 
   std::string help = usage + "\n\
 Find local sequence alignments.\n\

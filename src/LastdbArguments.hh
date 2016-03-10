@@ -49,6 +49,7 @@ struct LastdbArguments{
   sequenceFormat::Enum inputFormat;
 
   // positional arguments:
+  const char* programName;
   std::string lastdbName;
   int inputStart;  // index in argv of first input filename
 };

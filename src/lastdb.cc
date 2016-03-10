@@ -18,7 +18,7 @@
 #include <numeric>  // accumulate
 
 #define ERR(x) throw std::runtime_error(x)
-#define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastdb: " << x << '\n'
+#define LOG(x) if( args.verbosity > 0 ) std::cerr << args.programName << ": " << x << '\n'
 
 using namespace cbrc;
 
@@ -287,7 +287,7 @@ void lastdb( int argc, char** argv ){
     while( appendFromFasta( multi, numOfIndexes, args, alph, in ) ){
       if( !args.isProtein && args.userAlphabet.empty() &&
           sequenceCount == 0 && isDubiousDna( alph, multi ) ){
-        std::cerr << "lastdb: that's some funny-lookin DNA\n";
+        std::cerr << args.programName << ": that's some funny-lookin DNA\n";
       }
 
       if( multi.isFinished() ){
@@ -337,11 +337,11 @@ try{
   return EXIT_SUCCESS;
 }
 catch( const std::bad_alloc& e ) {  // bad_alloc::what() may be unfriendly
-  std::cerr << "lastdb: out of memory\n";
+  std::cerr << argv[0] << ": out of memory\n";
   return EXIT_FAILURE;
 }
 catch( const std::exception& e ) {
-  std::cerr << "lastdb: " << e.what() << '\n';
+  std::cerr << argv[0] << ": " << e.what() << '\n';
   return EXIT_FAILURE;
 }
 catch( int i ) {

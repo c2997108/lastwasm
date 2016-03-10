@@ -98,6 +98,7 @@ struct LastalArguments{
   int verbosity;
 
   // positional arguments:
+  const char* programName;
   std::string lastdbName;
   int inputStart;  // index in argv of first input filename
 };

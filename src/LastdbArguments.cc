@@ -44,8 +44,10 @@ LastdbArguments::LastdbArguments() :
   inputFormat(sequenceFormat::fasta){}
 
 void LastdbArguments::fromArgs( int argc, char** argv, bool isOptionsOnly ){
+  programName = argv[0];
   std::string usage = "\
-Usage: lastdb [options] output-name fasta-sequence-file(s)\n\
+Usage: " + std::string(programName) +
+    " [options] output-name fasta-sequence-file(s)\n\
 Prepare sequences for subsequent alignment with lastal.\n\
 \n\
 Main Options:\n\

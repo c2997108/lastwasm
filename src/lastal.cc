@@ -40,10 +40,10 @@
 #endif
 
 #define ERR(x) throw std::runtime_error(x)
-#define LOG(x) if( args.verbosity > 0 ) std::cerr << "lastal: " << x << '\n'
+#define LOG(x) if( args.verbosity > 0 ) std::cerr << args.programName << ": " << x << '\n'
 
-static void warn( const char* s ){
-  std::cerr << "lastal: " << s << '\n';
+static void warn( const char* programName, const char* s ){
+  std::cerr << programName << ": " << s << '\n';
 }
 
 using namespace cbrc;
@@ -135,7 +135,8 @@ void permuteComplement(const double *from, double *to) {
 void makeQualityScorers(){
   if( args.isTranslated() )
     if( isQuality( args.inputFormat ) || isQuality( referenceFormat ) )
-      return warn( "quality data not used for DNA-versus-protein alignment" );
+      return warn( args.programName,
+		   "quality data not used for DNA-versus-protein alignment" );
 
   const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
   double lambda = lambdaCalculator.lambda();
@@ -220,7 +221,8 @@ void makeQualityScorers(){
       }
     }
     else{
-      warn("quality data not used for non-fastq query versus fastq reference");
+      warn(args.programName,
+	   "quality data not used for non-fastq query versus fastq reference");
     }
   }
 }
@@ -983,7 +985,8 @@ static unsigned decideNumOfThreads() {
     LOG("threads=" << x);
     return x;
   }
-  warn("can't determine how many threads to use: falling back to 1 thread");
+  warn(args.programName,
+       "can't determine how many threads to use: falling back to 1 thread");
 #else
   if (args.numOfThreads != 1)
     ERR("I was installed here with multi-threading disabled");
@@ -1239,11 +1242,11 @@ try{
   return EXIT_SUCCESS;
 }
 catch( const std::bad_alloc& e ) {  // bad_alloc::what() may be unfriendly
-  std::cerr << "lastal: out of memory\n";
+  std::cerr << argv[0] << ": out of memory\n";
   return EXIT_FAILURE;
 }
 catch( const std::exception& e ) {
-  std::cerr << "lastal: " << e.what() << '\n';
+  std::cerr << argv[0] << ": " << e.what() << '\n';
   return EXIT_FAILURE;
 }
 catch( int i ) {
