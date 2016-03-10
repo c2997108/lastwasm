@@ -1,7 +1,7 @@
 TEST lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 /tmp/last-test galGal3-M-32.fa
 #
 # a=400 b=30 A=400 B=30 e=2500 d=1384 x=3400 y=962 z=3400 D=1e+06 E=2.80852e+07
-# R=10 u=1 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=96.1735 g=1 j=5 Q=0
+# R=10 u=1 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=96.1735 g=1 j=5 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.00944633 K=0.095059
@@ -95,7 +95,7 @@ p                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TEST lastal -fTAB -i1 -w0 -e40 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=40 d=-1 x=39 y=9 z=39 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=1 w=0 t=0.910239 j=3 Q=0
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=0 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -131,7 +131,7 @@ TEST lastal -fTAB -i1 -w0 -e40 /tmp/last-test galGal3-M-32.fa
 TEST lastal -j0 -i1 -s0 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=-1 d=-1 x=0 y=0 z=0 D=1e+06 E=5.61703e+07
-# R=10 u=0 s=0 S=0 T=0 m=10 l=1 n=10 k=1 i=1 w=1000 t=-1 j=0 Q=0
+# R=10 u=0 s=0 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=-1 j=0 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -174,7 +174,7 @@ chr32
 TEST lastal -Q1 -e90 -a9 /tmp/last-test SRR001981-1k.fastq
 #
 # a=9 b=9 A=9 B=9 e=90 d=-1 x=89 y=44 z=89 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=134217728 w=1000 t=4.36661 j=3 Q=1
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
@@ -261,7 +261,7 @@ q SRR001981.815                23+)03/+<I--G,I'9I/D3+IEII7
 TEST lastal -F12 -pBL62 -e40 -G ../examples/vertebrateMito.gc -j1 /tmp/last-test galGal3-M-32.fa
 #
 # a=11 b=2 A=11 B=2 F=12 e=40 d=40 x=39 y=31 z=39 D=1e+06 E=1.01833e+09
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=1 Q=0
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=1 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.354842 K=0.156005
@@ -345,7 +345,7 @@ s chrM   196 102 - 16775 LVSLGVSFVSLALFLVYLGGMLVVFVYSVSLAAD
 TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=18 d=13 x=17 y=9 z=17 D=1e+06 E=5.61703e+07
-# R=10 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=10 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -371,7 +371,7 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 TEST lastal -s0 -f0 -p asymmetric.mat -e2000 /tmp/last-test galGal3-M-32.fa
 #
 # a=500 b=50 A=500 B=50 e=2000 d=1428 x=1999 y=992 z=1999 D=1e+06 E=5.61703e+07
-# R=10 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=99.2157 j=3 Q=0
+# R=10 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=99.2157 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.00991067 K=0.062759
@@ -397,7 +397,7 @@ TEST lastal -s0 -f0 -p asymmetric.mat -e2000 /tmp/last-test galGal3-M-32.fa
 TEST lastal -Q3 -e110 /tmp/last-test illumina100.txt
 #
 # a=21 b=9 A=21 B=9 e=110 d=63 x=109 y=44 z=109 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=3
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.228526 K=0.433378
@@ -429,7 +429,7 @@ q HWW-E2:1:1:10:1477#0/1              aaaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^aaS\RMX]\
 TEST lastal -Q4 -e90 /tmp/last-test mouse_tss_prb.txt
 #
 # a=21 b=9 A=21 B=9 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=4
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=4
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.228526 K=0.433378
@@ -476,7 +476,7 @@ q 36                   hhhhhhhhhhhhhhhhhhhhhhhhhhh
 TEST lastal -Q1 -j6 -e90 -a9 /tmp/last-test SRR001981-1k.fastq
 #
 # a=9 b=9 A=9 B=9 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 g=1 j=6 Q=1
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 g=1 j=6 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
@@ -574,7 +574,7 @@ p                              $$$$$$%&&&&~~~~~~~~~~~~~~~
 TEST lastal -r3 -q3 -a21 -c2 -e60 -f0 /tmp/last-test galGal3-M-32.fa
 #
 # a=21 b=1 A=21 B=1 c=2 e=60 d=39 x=59 y=27 z=59 D=1e+06 E=2.80852e+07
-# R=10 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=2.73072 j=3 Q=0
+# R=10 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=2.73072 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.365408 K=0.245627
@@ -606,7 +606,7 @@ TEST lastal -r3 -q3 -a21 -c2 -e60 -f0 /tmp/last-test galGal3-M-32.fa
 TEST lastal -F12 -pBL62 -c2 -e40 -f0 /tmp/last-test galGal3-M-32.fa
 #
 # a=11 b=2 A=11 B=2 c=2 F=12 e=40 d=33 x=39 y=31 z=39 D=1e+06 E=1.01833e+09
-# R=10 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=0
+# R=10 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.327048 K=0.105437
@@ -663,7 +663,7 @@ TEST lastal -F12 -pBL62 -c2 -e40 -f0 /tmp/last-test galGal3-M-32.fa
 TEST lastal -j1 -f0 -e37 -m100 /tmp/last-test Q2LCP8.fa
 #
 # a=11 b=2 A=11 B=2 e=37 d=37 x=36 y=31 z=36 D=1e+06 E=2.03666e+09
-# R=10 u=2 s=1 S=0 T=0 m=100 l=1 n=100 k=1 i=8192 w=1000 t=3.08611 j=1 Q=0
+# R=10 u=2 s=1 S=0 T=0 m=100 l=1 n=100 k=1 w=1000 t=3.08611 j=1 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.324032 K=0.140288
@@ -720,7 +720,7 @@ TEST lastal -j1 -f0 -e37 -m100 /tmp/last-test Q2LCP8.fa
 TEST lastal -Q1 -r1 -q2 -a1 -b1 -e44 -m100 -s0 /tmp/last-test sd-ccs-100.fq
 #
 # a=1 b=1 A=1 B=1 e=44 d=10 x=43 y=8 z=43 D=1e+06 E=2.18336e+07
-# R=10 u=0 s=0 S=0 T=0 m=100 l=1 n=100 k=1 i=8192 w=1000 t=0.750353 j=3 Q=1
+# R=10 u=0 s=0 S=0 T=0 m=100 l=1 n=100 k=1 w=1000 t=0.750353 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
 # lambda=1.13866 K=0.257584
@@ -759,7 +759,7 @@ q S1_100              <i~'a;><q<f*`kduZ-LNlIBn@-2KH*~aLG44oC+H9]-A@9;WJ7.P~L?1h~
 TEST lastal -Q1 -e90 -a9 -f0 /tmp/last-test0 SRR001981-1k.fastq
 #
 # a=9 b=9 A=9 B=9 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.98063e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=1
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test0
 # Reference sequences=1 normal letters=16775
 # lambda=0.22361 K=0.374766
@@ -797,7 +797,7 @@ TEST lastal -Q1 -e90 -a9 -f0 /tmp/last-test0 SRR001981-1k.fastq
 TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=18 d=12 x=17 y=9 z=17 D=1e+06 E=5.61703e+07
-# R=10 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=10 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -823,7 +823,7 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=18 d=13 x=17 y=9 z=17 D=1e+06 E=5.61703e+07
-# R=10 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=10 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -849,7 +849,7 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 TEST lastal -T1 -Q1 -e60 -a9 -f0 /tmp/last-test SRR001981-1k.fastq
 #
 # a=9 b=9 A=9 B=9 e=60 d=60 x=59 y=44 z=59 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 S=0 T=1 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=1
+# R=10 u=0 s=2 S=0 T=1 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
@@ -878,7 +878,7 @@ TEST lastal -T1 -Q1 -e60 -a9 -f0 /tmp/last-test SRR001981-1k.fastq
 TEST lastal -T1 -Q1 -e60 -a9 -j4 /tmp/last-test SRR001981-1k.fastq
 #
 # a=9 b=9 A=9 B=9 e=60 d=60 x=59 y=44 z=59 D=1e+06 E=2.80852e+07
-# R=10 u=0 s=2 S=0 T=1 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=4 Q=1
+# R=10 u=0 s=2 S=0 T=1 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=4 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
@@ -928,7 +928,7 @@ p                              ))*++,111.,()+,,,,,0/~~~~~~~~~~(&&&%).)
 TEST lastal -s0 -e18 -j7 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=18 d=13 x=17 y=9 z=17 D=1e+06 E=5.61703e+07
-# R=10 u=0 s=0 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=7 Q=0
+# R=10 u=0 s=0 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=7 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -981,7 +981,7 @@ c 4.89 0.00223 0.25 0.93 2.08 8.23 2 0.247 0.963 3.26e-07 8.23 0.00218 0.711 0.9
 TEST lastal -e34 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=34 d=11 x=33 y=9 z=33 D=1e+06 E=3.01732e+07
-# R=10 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=128 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=10 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=128 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -1011,7 +1011,7 @@ TEST lastal -e34 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 TEST lastal -pHOXD70 -e4500 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 #
 # a=400 b=30 A=400 B=30 e=4500 d=1177 x=4499 y=962 z=4499 D=1e+06 E=3.01732e+07
-# R=10 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=128 i=8192 w=1000 t=96.1735 j=3 Q=0
+# R=10 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=128 w=1000 t=96.1735 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=0.00944633 K=0.095059
@@ -1037,7 +1037,7 @@ TEST lastal -pHOXD70 -e4500 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 TEST lastal -e34 -C2 -f0 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=34 d=12 x=33 y=9 z=33 D=1e+06 E=3.01732e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 C=2 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 C=2 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -1067,7 +1067,7 @@ TEST lastal -e34 -C2 -f0 /tmp/last-test galGal3-M-32.fa
 TEST lastal -e34 -f0 -l30 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=34 d=12 x=33 y=9 z=33 D=1e+06 E=3.01732e+07
-# R=10 u=0 s=2 S=0 T=0 m=10 l=30 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=10 u=0 s=2 S=0 T=0 m=10 l=30 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -1096,7 +1096,7 @@ TEST lastal -e34 -f0 -l30 /tmp/last-test galGal3-M-32.fa
 TEST lastal -j0 -l4 -L11 -s0 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=-1 d=-1 x=0 y=0 z=0 D=1e+06 E=5.61703e+07
-# R=10 u=0 s=0 S=0 T=0 m=10 l=4 L=11 n=10 k=1 i=8192 w=1000 t=-1 j=0 Q=0
+# R=10 u=0 s=0 S=0 T=0 m=10 l=4 L=11 n=10 k=1 w=1000 t=-1 j=0 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -1132,7 +1132,7 @@ TEST lastal -e5 -f0 /tmp/last-test ttttt.fa
 TEST lastal -e40 /tmp/last-test hg19-M.fa
 #
 # a=7 b=1 A=7 B=1 e=40 d=13 x=39 y=9 z=39 D=1e+06 E=2.80852e+07
-# R=01 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=01 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
@@ -1178,7 +1178,7 @@ s chrM 1742 281 + 16571 AGTATAGGCGATAGAAATTGAAACCT-GGCGCAATAGAT----ATAGTACCGCAAG
 TEST lastal -e100 /tmp/last-test Q5GS15.fa
 #
 # a=11 b=2 A=11 B=2 e=100 d=33 x=99 y=31 z=99 D=1e+06 E=2.03666e+09
-# R=01 u=2 s=1 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=0
+# R=01 u=2 s=1 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.305935 K=0.102404
@@ -1225,7 +1225,7 @@ s sp|Q5GS15|NUON_WOLTR 16 405 + 465 LVLLLLGIVFNRRTINLLALGCTVITLIILI-LSAKDSGFFPFN
 TEST lastal -F15 -pBLOSUM62 -e100 /tmp/last-test galGal3-M-32.fa
 #
 # a=11 b=2 A=11 B=2 F=15 e=100 d=33 x=99 y=31 z=99 D=1e+06 E=1.01833e+09
-# R=01 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=0
+# R=01 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.333888 K=0.115325
@@ -1273,7 +1273,7 @@ s chrM   5258 870 + 16775 LICTVSLIMGTSITISSNH*ILA*TGLEINTLAIIPLISKSHHPRAIEATIKYF
 TEST lastal -pAT77 -e100 -s0 /tmp/last-test at-rich.fa
 #
 # a=15 b=2 A=15 B=2 e=100 d=46 x=99 y=29 z=99 D=1e+06 E=1.66834e+07
-# R=02 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=2.9408 j=3 Q=0
+# R=02 u=2 s=0 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=2.9408 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=59940
 # lambda=0.336172 K=0.189772
@@ -1375,7 +1375,7 @@ s Pf3D7_01_v3  8300 748 - 59940 ATATTTATTCTTCTAATAATTTTATATATTGGAGTTTTTTCTTCAATT
 TEST lastal -Q1 -a15 -b3 -e80 /tmp/last-test nano.fq
 #
 # a=15 b=3 A=15 B=3 e=80 d=63 x=79 y=44 z=79 D=1e+06 E=2.80852e+07
-# R=01 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=1
+# R=01 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=0.219611 K=0.335483
@@ -1404,7 +1404,7 @@ TEST lastal -a1 -D1000 /tmp/last-test galGal3-M-32.fa
 lastal: quality data not used for non-fastq query versus fastq reference
 #
 # a=1 b=1 A=1 B=1 e=23 d=14 x=22 y=9 z=22 D=1000 E=1.09168e+10
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
 # lambda=0.661467 K=0.0260716
@@ -1443,7 +1443,7 @@ TEST lastal -Q4 -a1 -D100 /tmp/last-test mouse_tss_prb.txt
 lastal: quality data not used for non-fastq query versus fastq reference
 #
 # a=1 b=9 A=1 B=9 e=75 d=67 x=74 y=44 z=74 D=100 E=1.09168e+11
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.36661 j=3 Q=4
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=4
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
 # lambda=0.192713 K=0.203529
@@ -1502,7 +1502,7 @@ TEST lastal -Q1 -pBL62 -F12 -D1000 /tmp/last-test sd-ccs-100.fq
 lastal: quality data not used for DNA-versus-protein alignment
 #
 # a=11 b=2 A=11 B=2 F=12 e=36 d=33 x=35 y=31 z=35 D=1000 E=1.01833e+12
-# R=00 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=1
+# R=00 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.327048 K=0.105437
@@ -1654,7 +1654,7 @@ s S1_99  437 45 + 621 TLTMGFMPVNPRATI
 TEST lastal -fBlastTab -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 #
 # a=11 b=1 A=11 B=1 F=15 e=36 d=33 x=35 y=31 z=35 D=1000 E=1.01833e+12
-# R=00 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=0
+# R=00 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.314572 K=0.0770249
@@ -1730,7 +1730,7 @@ chr32	Q2LCP8	23.21	56	42	1	43	210	8	62	0.59	20.5
 TEST lastal -fBlastTab+ -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 #
 # a=11 b=1 A=11 B=1 F=15 e=36 d=33 x=35 y=31 z=35 D=1000 E=1.01833e+12
-# R=00 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=3.08611 j=3 Q=0
+# R=00 u=2 s=2 S=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
 # lambda=0.314572 K=0.0770249
@@ -1806,7 +1806,7 @@ chr32	Q2LCP8	23.21	56	42	1	43	210	8	62	0.59	20.5	1028	491
 TEST lastal -S1 -pBISF -Q1 -e120 -f0 -j4 /tmp/last-test bs100.fastq
 #
 # a=21 b=9 A=21 B=9 e=120 d=63 x=119 y=44 z=119 D=1e+06 E=3.01732e+07
-# R=10 u=0 s=2 S=1 T=0 m=10 l=1 n=10 k=1 i=8192 w=1000 t=4.37109 j=4 Q=1
+# R=10 u=0 s=2 S=1 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.37109 j=4 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=0.22862 K=0.399124
@@ -1923,7 +1923,7 @@ TEST lastal -S1 -pBISF -Q1 -e120 -f0 -j4 /tmp/last-test bs100.fastq
 TEST lastal -D1000 -fTAB -K2 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=15 d=13 x=14 y=9 z=14 D=1000 E=3.01732e+10
-# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 K=2 k=1 i=8192 w=1000 t=0.910239 j=3 Q=0
+# R=10 u=0 s=2 S=0 T=0 m=10 l=1 n=10 K=2 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388

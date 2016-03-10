@@ -569,7 +569,6 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " k=" << queryStep;
   if( minimizerWindow > 1 )
     stream << " W=" << minimizerWindow;
-  stream << " i=" << batchSize;
   stream << " w=" << maxRepeatDistance;
   stream << " t=" << temperature;
   if( outputType > 4 && outputType < 7 )

@@ -38,6 +38,7 @@
 
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << args.programName << ": " << x << '\n'
+#define LOG2(x) if( args.verbosity > 1 ) std::cerr << args.programName << ": " << x << '\n'
 
 static void warn( const char* programName, const char* s ){
   std::cerr << programName << ": " << s << '\n';
@@ -364,8 +365,6 @@ void writeCounts( std::ostream& out ){
 
 // Count all matches, of all sizes, of a query sequence against a suffix array
 void countMatches( size_t queryNum, const uchar* querySeq ){
-  LOG( "counting..." );
-
   indexT loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
   indexT loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
   if( args.minHitDepth > 1 )
@@ -589,9 +588,9 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
     }
   }
 
-  LOG( "initial matches=" << matchCount );
-  LOG( "gapless extensions=" << gaplessExtensionCount );
-  LOG( "gapless alignments=" << gaplessAlignmentCount );
+  LOG2( "initial matches=" << matchCount );
+  LOG2( "gapless extensions=" << gaplessExtensionCount );
+  LOG2( "gapless alignments=" << gaplessAlignmentCount );
 }
 
 // Shrink the SegmentPair to its longest run of identical matches.
@@ -636,7 +635,7 @@ void alignGapped( LastAligner& aligner,
   gaplessAlns.cull( args.cullingLimitForGaplessAlignments );
   gaplessAlns.sort();  // sort by score descending, and remove duplicates
 
-  LOG( "redone gapless alignments=" << gaplessAlns.size() );
+  LOG2( "redone gapless alignments=" << gaplessAlns.size() );
 
   for( size_t i = 0; i < gaplessAlns.size(); ++i ){
     SegmentPair& sp = gaplessAlns.get(i);
@@ -675,8 +674,8 @@ void alignGapped( LastAligner& aligner,
     ++gappedAlignmentCount;
   }
 
-  LOG( "gapped extensions=" << gappedExtensionCount );
-  LOG( "gapped alignments=" << gappedAlignmentCount );
+  LOG2( "gapped extensions=" << gappedExtensionCount );
+  LOG2( "gapped alignments=" << gappedAlignmentCount );
 }
 
 // Print the gapped alignments, after optionally calculating match
@@ -689,7 +688,6 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 
   if( args.outputType > 3 ){
     if( dis.p ){
-      LOG( "exponentiating PSSM..." );
       centroid.setPssm( dis.p, query.padLen(queryNum), args.temperature,
                         getOneQualityExpMatrix(strand), dis.b, dis.j );
     }
@@ -698,8 +696,6 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
     }
     centroid.setOutputType( args.outputType );
   }
-
-  LOG( "finishing..." );
 
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
@@ -776,7 +772,6 @@ void makeQualityPssm( LastAligner& aligner,
   if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
   if( args.isTranslated() ) return;
 
-  LOG( "making PSSM..." );
   std::vector<int> &qualityPssm = aligner.qualityPssm;
   size_t queryLen = query.padLen(queryNum);
   qualityPssm.resize(queryLen * scoreMatrixRowSize);
@@ -807,8 +802,6 @@ void scan( LastAligner& aligner,
   bool isMask = (args.maskLowercase > 0);
   makeQualityPssm( aligner, queryNum, strand, querySeq, isMask );
 
-  LOG( "scanning..." );
-
   SegmentPairPot gaplessAlns;
   alignGapless( aligner, gaplessAlns, queryNum, strand, querySeq );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
@@ -832,7 +825,7 @@ void scan( LastAligner& aligner,
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
-    LOG( "nonredundant gapped alignments=" << gappedAlns.size() );
+    LOG2( "nonredundant gapped alignments=" << gappedAlns.size() );
   }
 
   if( !isCollatedAlignments() ) gappedAlns.sort();  // sort by score
@@ -867,17 +860,14 @@ void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
   size_t size = query.padLen(queryNum);
 
   if( args.isTranslated() ){
-    LOG( "translating..." );
     modifiedQuery.resize( size );
     geneticCode.translate( querySeq, querySeq + size, &modifiedQuery[0] );
     if( args.tantanSetting ){
-      LOG( "masking..." );
       tantanMaskTranslatedQuery( queryNum, &modifiedQuery[0] );
     }
     querySeq = &modifiedQuery[0];
   }else{
     if( args.tantanSetting ){
-      LOG( "masking..." );
       modifiedQuery.assign( querySeq, querySeq + size );
       tantanMaskOneQuery( queryNum, &modifiedQuery[0] );
       querySeq = &modifiedQuery[0];
@@ -904,7 +894,6 @@ static void reverseComplementPssm( size_t queryNum ){
 }
 
 static void reverseComplementQuery( size_t queryNum ){
-  LOG( "reverse complementing..." );
   size_t b = query.seqBeg(queryNum);
   size_t e = query.seqEnd(queryNum);
   queryAlph.rc( query.seqWriter() + b, query.seqWriter() + e );
@@ -1009,6 +998,7 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
 
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || isMultiVolume ) readVolume( i );
+    LOG( "scanning..." );
     scanOneVolume( i, volumes );
     if( !isCollatedAlignments() ) printAndClearAll();
   }
