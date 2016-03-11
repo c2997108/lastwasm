@@ -156,6 +156,10 @@ db=/tmp/last-test
 
     # culling
     try lastal -D1000 -fTAB -K2 $db galGal3-M-32.fa
+
+    # minimizers
+    lastdb -W3 $db galGal3-M-32.fa
+    try lastal -W19 -fTAB $db hg19-M.fa
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff -u last-test.out -

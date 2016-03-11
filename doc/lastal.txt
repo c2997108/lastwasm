@@ -269,6 +269,12 @@ Miscellaneous options
       Look for initial matches starting only at every STEP-th position
       in the query.  This makes lastal faster but less sensitive.
 
+  -W SIZE
+      Look for initial matches starting only at query positions that
+      are "minimum" in any window of SIZE consecutive positions (see
+      `<lastdb.html>`_).  By default, this parameter takes the same
+      value as was used for lastdb -W.
+
   -i BYTES
       Search queries in batches of at most this many bytes.  If a
       single sequence exceeds this amount, however, it is not split.

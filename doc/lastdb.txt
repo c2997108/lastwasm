@@ -78,6 +78,20 @@ Advanced Options
       effect on the speed and sensitivity of lastal is not entirely
       clear.
 
+  -W SIZE
+      Allow initial matches to start only at positions that are
+      "minimum" in any window of SIZE consecutive positions.
+      "Minimum" means that the sequence starting here is
+      alphabetically earliest.
+
+      The "alphabetical" order depends on the `seed pattern
+      <last-seeds.html>`_.  The letter order is determined by the
+      order of the letter groups, and letters in the same group are
+      considered equivalent.
+
+      The fraction of positions that are "minimum" is roughly: 2 /
+      (SIZE + 1).
+
   -s BYTES      
       Limit memory usage, by splitting the output files into smaller
       "volumes" if necessary.  This will limit the memory usage of

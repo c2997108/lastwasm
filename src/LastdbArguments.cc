@@ -66,8 +66,10 @@ Advanced Options (default settings):\n\
 -s: volume size (unlimited)\n\
 -m: seed pattern (non-DNA: 1)\n\
 -u: seeding scheme (DNA: YASS)\n\
--w: index step ("
+-w: use initial matches starting at every w-th position in each sequence ("
     + stringify(indexStep) + ")\n\
+-W: use \"minimum\" positions in sliding windows of W consecutive positions ("
+    + stringify(minimizerWindow) + ")\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
 -a: user-defined alphabet\n\

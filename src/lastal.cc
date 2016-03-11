@@ -350,8 +350,6 @@ void readInnerPrj( const std::string& fileName,
 
 // Write match counts for each query sequence
 void writeCounts( std::ostream& out ){
-  LOG( "writing..." );
-
   for( indexT i = 0; i < matchCounts.size(); ++i ){
     out << query.seqName(i) << '\n';
 
@@ -998,14 +996,12 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
 
   for( unsigned i = 0; i < volumes; ++i ){
     if( text.unfinishedSize() == 0 || isMultiVolume ) readVolume( i );
-    LOG( "scanning..." );
     scanOneVolume( i, volumes );
     if( !isCollatedAlignments() ) printAndClearAll();
   }
 
   if( args.outputType == 0 ) writeCounts( out );
   printAndClearAll();
-  LOG( "query batch done!" );
 }
 
 void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){

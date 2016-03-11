@@ -133,8 +133,9 @@ Miscellaneous options (default settings):\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
 -C: omit gapless alignments in >= C others with > score-per-length (off)\n\
 -K: omit alignments whose query range lies in >= K others with > score (off)\n\
--k: step-size along the query sequence ("
+-k: use initial matches starting at every k-th position in each query ("
     + stringify(queryStep) + ")\n\
+-W: use \"minimum\" positions in sliding windows of W consecutive positions\n\
 -i: query batch size (8 KiB, unless there is > 1 thread or lastdb volume)\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
@@ -456,6 +457,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     else
       batchSize = 0x8000000;  // 128 Mbytes
     // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
+    if( verbosity )
+      std::cerr << programName << ": batch size=" << batchSize << '\n';
   }
 
   if( maxGaplessAlignmentsPerQueryPosition == 0 )
