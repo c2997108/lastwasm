@@ -13,7 +13,6 @@
 #include "SubsetMinimizerFinder.hh"
 #include "SubsetSuffixArray.hh"
 #include "Centroid.hh"
-#include "GappedXdropAligner.hh"
 #include "AlignmentPot.hh"
 #include "Alignment.hh"
 #include "SegmentPairPot.hh"
@@ -428,6 +427,10 @@ static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
 
 namespace Phase{ enum Enum{ gapless, gapped, final }; }
 
+static bool isMaskLowercase(Phase::Enum e) {
+  return e < args.maskLowercase;
+}
+
 struct Dispatcher{
   const uchar* a;  // the reference sequence
   const uchar* b;  // the query sequence
@@ -446,8 +449,8 @@ struct Dispatcher{
       i( text.qualityReader() ),
       j( getQueryQual(queryNum) ),
       p( getQueryPssm(aligner, queryNum) ),
-      m( getScoreMatrix( strand, e < args.maskLowercase ) ),
-      t( getTwoQualityMatrix( strand, e < args.maskLowercase ) ),
+      m( getScoreMatrix( strand, isMaskLowercase(e) ) ),
+      t( getTwoQualityMatrix( strand, isMaskLowercase(e) ) ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
          (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
       z( t ? 2 : p ? 1 : 0 ){}
@@ -605,7 +608,6 @@ void alignGapped( LastAligner& aligner,
 		  AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
                   size_t queryNum, char strand, const uchar* querySeq,
 		  Phase::Enum phase ){
-  Centroid& centroid = aligner.centroid;
   Dispatcher dis( phase, aligner, queryNum, strand, querySeq );
   indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
@@ -647,10 +649,10 @@ void alignGapped( LastAligner& aligner,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( centroid.aligner(), centroid, dis.a, dis.b, args.globality,
-		   dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
-                   args.frameshiftCost, frameSize, dis.p,
-                   dis.t, dis.i, dis.j, alph, extras );
+    aln.makeXdrop( aligner.centroid,
+		   dis.a, dis.b, args.globality, dis.m, scoreMatrix.maxScore,
+		   gapCosts, dis.d, args.frameshiftCost, frameSize,
+		   dis.p, dis.t, dis.i, dis.j, alph, extras );
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
@@ -704,11 +706,11 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       Alignment probAln;
       AlignmentExtras extras;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( centroid.aligner(), centroid,
+      probAln.makeXdrop( centroid,
 			 dis.a, dis.b, args.globality,
 			 dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
-                         args.frameshiftCost, frameSize, dis.p, dis.t,
-			 dis.i, dis.j, alph, extras,
+                         args.frameshiftCost, frameSize,
+			 dis.p, dis.t, dis.i, dis.j, alph, extras,
 			 args.gamma, args.outputType );
       assert( aln.score != -INF );
       writeAlignment( aligner, probAln, queryNum, strand, querySeq, extras );
