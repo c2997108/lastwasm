@@ -222,6 +222,44 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
   return true;
 }
 
+bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
+			       int minScore, const ScoreMatrixRow *scoreMatrix,
+			       const GeneralizedAffineGapCosts &gapCosts,
+			       int frameshiftCost, size_t frameSize,
+			       const ScoreMatrixRow *pssm2,
+			       const TwoQualityScoreMatrix &sm2qual,
+			       const uchar *qual1, const uchar *qual2) const {
+  int score = 0;
+
+  for (size_t i = 0; i < blocks.size(); ++i) {
+    const SegmentPair& y = blocks[i];
+
+    if (i > 0) {  // between each pair of aligned blocks:
+      score -= gapCost(blocks[i - 1], y, gapCosts, frameshiftCost, frameSize);
+      if (score < 0) score = 0;
+    }
+
+    const uchar *s1 = seq1 + y.beg1();
+    const uchar *s2 = seq2 + y.beg2();
+    const uchar *e1 = seq1 + y.end1();
+
+    const ScoreMatrixRow *p2 = pssm2 ? pssm2 + y.beg2() : 0;
+    const uchar *q1 = qual1 ? qual1 + y.beg1() : 0;
+    const uchar *q2 = qual2 ? qual2 + y.beg2() : 0;
+
+    while (s1 < e1) {
+      /**/ if (sm2qual) score += sm2qual(*s1++, *s2++, *q1++, *q2++);
+      else if (pssm2)   score += (*p2++)[*s1++];
+      else              score += scoreMatrix[*s1++][*s2++];
+
+      if (score >= minScore) return true;
+      if (score < 0) score = 0;
+    }
+  }
+
+  return false;
+}
+
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< uchar >& ambiguityCodes,
 			Centroid& centroid,

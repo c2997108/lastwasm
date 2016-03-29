@@ -428,7 +428,7 @@ static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
 namespace Phase{ enum Enum{ gapless, gapped, final }; }
 
 static bool isMaskLowercase(Phase::Enum e) {
-  return e < args.maskLowercase;
+  return (e < 1 && args.maskLowercase > 0) || args.maskLowercase > 2;
 }
 
 struct Dispatcher{
@@ -718,6 +718,22 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
   }
 }
 
+static void eraseWeakAlignments(LastAligner &aligner, AlignmentPot &gappedAlns,
+				size_t queryNum, char strand,
+				const uchar *querySeq) {
+  indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
+  Dispatcher dis(Phase::gapless, aligner, queryNum, strand, querySeq);
+  for (size_t i = 0; i < gappedAlns.size(); ++i) {
+    Alignment &a = gappedAlns.items[i];
+    if (!a.hasGoodSegment(dis.a, dis.b, args.minScoreGapped, dis.m, gapCosts,
+			  args.frameshiftCost, frameSize,
+			  dis.p, dis.t, dis.i, dis.j)) {
+      AlignmentPot::mark(a);
+    }
+  }
+  erase_if(gappedAlns.items, AlignmentPot::isMarked);
+}
+
 static bool lessForCulling(const AlignmentText &x, const AlignmentText &y) {
   if (x.strandNum != y.strandNum) return x.strandNum < y.strandNum;
   if (x.queryBeg  != y.queryBeg ) return x.queryBeg  < y.queryBeg;
@@ -806,22 +822,27 @@ void scan( LastAligner& aligner,
   alignGapless( aligner, gaplessAlns, queryNum, strand, querySeq );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
 
-  if( args.maskLowercase == 1 )
+  if( args.maskLowercase == 1 || args.maskLowercase == 2 )
     makeQualityPssm( aligner, queryNum, strand, querySeq, false );
 
   AlignmentPot gappedAlns;
 
-  if( args.maskLowercase == 2 || args.maxDropFinal != args.maxDropGapped ){
+  if( args.maxDropFinal != args.maxDropGapped ){
     alignGapped( aligner, gappedAlns, gaplessAlns,
 		 queryNum, strand, querySeq, Phase::gapped );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
-  if( args.maskLowercase == 2 )
-    makeQualityPssm( aligner, queryNum, strand, querySeq, false );
-
   alignGapped( aligner, gappedAlns, gaplessAlns,
 	       queryNum, strand, querySeq, Phase::final );
+
+  if (args.maskLowercase == 2) {
+    makeQualityPssm(aligner, queryNum, strand, querySeq, true);
+    eraseWeakAlignments(aligner, gappedAlns, queryNum, strand, querySeq);
+    LOG2("lowercase-filtered alignments=" << gappedAlns.size());
+    if (args.outputType > 3)
+      makeQualityPssm(aligner, queryNum, strand, querySeq, false);
+  }
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();

@@ -99,6 +99,15 @@ struct Alignment{
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2 ) const;
 
+  // Does the Alignment have any segment with score >= minScore?
+  bool hasGoodSegment(const uchar *seq1, const uchar *seq2,
+		      int minScore, const ScoreMatrixRow *scoreMatrix,
+		      const GeneralizedAffineGapCosts &gapCosts,
+		      int frameshiftCost, size_t frameSize,
+		      const ScoreMatrixRow *pssm2,
+		      const TwoQualityScoreMatrix &sm2qual,
+		      const uchar *qual1, const uchar *qual2) const;
+
   AlignmentText write(const MultiSequence& seq1, const MultiSequence& seq2,
 		      size_t seqNum2, char strand, const uchar* seqData2,
 		      bool isTranslated, const Alphabet& alph,

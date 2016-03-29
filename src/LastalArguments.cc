@@ -141,7 +141,7 @@ Miscellaneous options (default settings):\n\
     + stringify(numOfThreads) + ")\n\
 -R: repeat-marking options (the same as was used for lastdb)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
-    2=gapless+gapped but not final, 3=always (2 if lastdb -c and Q<5, else 0)\n\
+    2=gapless+postmask, 3=always (2 if lastdb -c and Q<5, else 0)\n\
 -w: suppress repeats inside exact matches, offset by <= this distance ("
     + stringify(maxRepeatDistance) + ")\n\
 -G: genetic code file\n\
