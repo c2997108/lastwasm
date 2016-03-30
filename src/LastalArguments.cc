@@ -215,7 +215,7 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'F':
       unstringify( frameshiftCost, optarg );
-      if( frameshiftCost <= 0 ) badopt( c, optarg );
+      if( frameshiftCost < 0 ) badopt( c, optarg );
       break;
     case 'x':
       unstringify( maxDropGapped, optarg );
@@ -338,11 +338,11 @@ LAST home page: http://last.cbrc.jp/\n\
   if( isTranslated() && inputFormat == 5 )
     ERR( "can't combine option -F with option -Q 5" );
 
-  if( isTranslated() && outputType > 3 )
-    ERR( "can't combine option -F with option -j > 3" );
+  if( isFrameshift() && outputType > 3 )
+    ERR( "can't combine option -F > 0 with option -j > 3" );
 
-  if( isTranslated() && globality == 1 )
-    ERR( "can't combine option -F with option -T 1" );
+  if( isFrameshift() && globality == 1 )
+    ERR( "can't combine option -F > 0 with option -T 1" );
 
   if( isTranslated() && isQueryStrandMatrix )
     ERR( "can't combine option -F with option -S 1" );
@@ -467,12 +467,12 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 
   if( minimizerWindow == 0 ) minimizerWindow = refMinimizerWindow;
 
-  if( isTranslated() && frameshiftCost < gapExtendCost )
+  if( isFrameshift() && frameshiftCost < gapExtendCost )
     ERR( "the frameshift cost must not be less than the gap extension cost" );
 
   if( insExistCost != gapExistCost || insExtendCost != gapExtendCost ){
-    if( isTranslated() )
-      ERR( "can't combine option -F with option -A or -B" );
+    if( isFrameshift() )
+      ERR( "can't combine option -F > 0 with option -A or -B" );
   }
 }
 

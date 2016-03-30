@@ -609,7 +609,7 @@ void alignGapped( LastAligner& aligner,
                   size_t queryNum, char strand, const uchar* querySeq,
 		  Phase::Enum phase ){
   Dispatcher dis( phase, aligner, queryNum, strand, querySeq );
-  indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
+  indexT frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
   // Redo the gapless extensions, using gapped score parameters.
@@ -684,7 +684,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, char strand, const uchar* querySeq ){
   Centroid& centroid = aligner.centroid;
   Dispatcher dis( Phase::final, aligner, queryNum, strand, querySeq );
-  indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
+  indexT frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
 
   if( args.outputType > 3 ){
     if( dis.p ){
@@ -721,7 +721,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 static void eraseWeakAlignments(LastAligner &aligner, AlignmentPot &gappedAlns,
 				size_t queryNum, char strand,
 				const uchar *querySeq) {
-  indexT frameSize = args.isTranslated() ? (query.padLen(queryNum) / 3) : 0;
+  indexT frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   Dispatcher dis(Phase::gapless, aligner, queryNum, strand, querySeq);
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &a = gappedAlns.items[i];

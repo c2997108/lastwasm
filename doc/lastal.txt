@@ -148,7 +148,9 @@ Score options
   -F COST
       Align DNA queries to protein reference sequences, using the
       specified frameshift cost.  A value of 15 seems to be
-      reasonable.  The output looks like this::
+      reasonable.  (As a special case, -F0 means DNA-versus-protein
+      alignment without frameshifts, which is faster.)  The output
+      looks like this::
 
         a score=108
         s prot 2  40 + 649 FLLQAVKLQDP-STPHQIVPSP-VSDLIATHTLCPRMKYQDD

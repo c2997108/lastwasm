@@ -50,7 +50,10 @@ struct LastalArguments{
   void writeCommented( std::ostream& stream ) const;
 
   // are we doing translated alignment (DNA versus protein)?
-  bool isTranslated() const{ return frameshiftCost > 0; }
+  bool isTranslated() const{ return frameshiftCost >= 0; }
+
+  // are we doing translated alignment with frameshifts?
+  bool isFrameshift() const{ return frameshiftCost > 0; }
 
   // how many strands are we scanning (1 or 2)?
   int numOfStrands() const{ return (strand == 2) ? 2 : 1; }
