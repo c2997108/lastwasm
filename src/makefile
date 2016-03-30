@@ -19,13 +19,14 @@ ScoreMatrix.o SubsetMinimizerFinder.o tantan.o DiagonalTable.o		\
 SegmentPair.o Alignment.o GappedXdropAligner.o SegmentPairPot.o		\
 AlignmentPot.o GeneralizedAffineGapCosts.o Centroid.o			\
 LambdaCalculator.o TwoQualityScoreMatrix.o OneQualityScoreMatrix.o	\
-QualityPssmMaker.o GeneticCode.o LastEvaluer.o gaplessXdrop.o		\
-gaplessPssmXdrop.o gaplessTwoQualityXdrop.o SubsetSuffixArraySearch.o	\
-AlignmentWrite.o MultiSequenceQual.o GappedXdropAlignerPssm.o		\
-GappedXdropAligner2qual.o GappedXdropAligner3frame.o lastal.o		\
-alp/sls_alignment_evaluer.o alp/sls_pvalues.o alp/sls_alp_sim.o		\
-alp/sls_alp_regression.o alp/sls_alp_data.o alp/sls_alp.o		\
-alp/sls_basic.o alp/njn_localmaxstatmatrix.o alp/njn_localmaxstat.o	\
+QualityPssmMaker.o GeneticCode.o LastEvaluer.o GreedyXdropAligner.o	\
+gaplessXdrop.o gaplessPssmXdrop.o gaplessTwoQualityXdrop.o		\
+SubsetSuffixArraySearch.o AlignmentWrite.o MultiSequenceQual.o		\
+GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
+GappedXdropAligner3frame.o lastal.o alp/sls_alignment_evaluer.o		\
+alp/sls_pvalues.o alp/sls_alp_sim.o alp/sls_alp_regression.o		\
+alp/sls_alp_data.o alp/sls_alp.o alp/sls_basic.o			\
+alp/njn_localmaxstatmatrix.o alp/njn_localmaxstat.o			\
 alp/njn_localmaxstatutil.o alp/njn_dynprogprob.o			\
 alp/njn_dynprogprobproto.o alp/njn_dynprogproblim.o alp/njn_ioutil.o	\
 alp/njn_random.o alp/sls_falp_alignment_evaluer.o			\
@@ -104,7 +105,7 @@ depend:
 Alignment.o: Alignment.cc Alignment.hh ScoreMatrixRow.hh SegmentPair.hh \
  Alphabet.hh Centroid.hh GappedXdropAligner.hh \
  GeneralizedAffineGapCosts.hh OneQualityScoreMatrix.hh GeneticCode.hh \
- TwoQualityScoreMatrix.hh
+ GreedyXdropAligner.hh TwoQualityScoreMatrix.hh
 AlignmentPot.o: AlignmentPot.cc AlignmentPot.hh Alignment.hh \
  ScoreMatrixRow.hh SegmentPair.hh
 AlignmentWrite.o: AlignmentWrite.cc Alignment.hh ScoreMatrixRow.hh \
@@ -134,6 +135,8 @@ GappedXdropAlignerPssm.o: GappedXdropAlignerPssm.cc GappedXdropAligner.hh \
 GeneralizedAffineGapCosts.o: GeneralizedAffineGapCosts.cc \
  GeneralizedAffineGapCosts.hh
 GeneticCode.o: GeneticCode.cc GeneticCode.hh Alphabet.hh
+GreedyXdropAligner.o: GreedyXdropAligner.cc GreedyXdropAligner.hh \
+ ScoreMatrixRow.hh
 LambdaCalculator.o: LambdaCalculator.cc LambdaCalculator.hh
 LastEvaluer.o: LastEvaluer.cc LastEvaluer.hh ScoreMatrixRow.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
@@ -191,9 +194,9 @@ lastal.o: lastal.cc LastalArguments.hh SequenceFormat.hh \
  fileMap.hh Centroid.hh GappedXdropAligner.hh \
  GeneralizedAffineGapCosts.hh SegmentPair.hh AlignmentPot.hh Alignment.hh \
  SegmentPairPot.hh ScoreMatrix.hh Alphabet.hh MultiSequence.hh \
- TantanMasker.hh tantan.hh DiagonalTable.hh gaplessXdrop.hh \
- gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh threadUtil.hh \
- version.hh
+ TantanMasker.hh tantan.hh DiagonalTable.hh GreedyXdropAligner.hh \
+ gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh \
+ threadUtil.hh version.hh
 lastdb.o: lastdb.cc LastdbArguments.hh SequenceFormat.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
  fileMap.hh stringify.hh Alphabet.hh MultiSequence.hh ScoreMatrixRow.hh \

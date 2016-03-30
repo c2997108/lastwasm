@@ -217,6 +217,18 @@ Miscellaneous options
       applies to either strand of the reference aligned to the forward
       strand of the query.
 
+  -M  Find minimum-difference alignments, which is faster but cruder.
+      This treats all matches the same, and minimizes the number of
+      differences (mismatches plus gaps).
+
+      * Any substitution score matrix will be ignored.  The
+        substitution scores are set by the match score (r) and the
+        mismatch cost (q).
+      * The gap cost parameters will be ignored.  The gap existence
+        cost will be 0 and the gap extension cost will be q + r/2.
+      * The match score (r) must be an even number.
+      * Any sequence quality data (e.g. fastq) will be ignored.
+
   -T NUMBER
       Type of alignment: 0 means "local alignment" and 1 means
       "overlap alignment".  Local alignments can end anywhere in the

@@ -5,6 +5,7 @@
 #include "Centroid.hh"
 #include "GeneticCode.hh"
 #include "GeneralizedAffineGapCosts.hh"
+#include "GreedyXdropAligner.hh"
 #include "TwoQualityScoreMatrix.hh"
 #include <cassert>
 
@@ -69,6 +70,7 @@ static bool isNext( const SegmentPair& x, const SegmentPair& y ){
 }
 
 void Alignment::makeXdrop( Centroid& centroid,
+			   GreedyXdropAligner& greedyAligner, bool isGreedy,
 			   const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix, int smMax,
 			   const GeneralizedAffineGapCosts& gap, int maxDrop,
@@ -95,7 +97,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 
   // extend a gapped alignment in the left/reverse direction from the seed:
   std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
-  extend( blocks, columnAmbiguityCodes, centroid,
+  extend( blocks, columnAmbiguityCodes, centroid, greedyAligner, isGreedy,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -115,7 +117,7 @@ void Alignment::makeXdrop( Centroid& centroid,
   // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
   std::vector<uchar> forwardAmbiguities;
-  extend( forwardBlocks, forwardAmbiguities, centroid,
+  extend( forwardBlocks, forwardAmbiguities, centroid, greedyAligner, isGreedy,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -263,6 +265,7 @@ bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< uchar >& ambiguityCodes,
 			Centroid& centroid,
+			GreedyXdropAligner& greedyAligner, bool isGreedy,
 			const uchar* seq1, const uchar* seq2,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
@@ -278,6 +281,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
   if( frameSize ){
     assert( outputType < 4 );
+    assert( !isGreedy );
     assert( !globality );
     assert( !pssm2 );
     assert( !sm2qual );
@@ -305,22 +309,24 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   }
 
   int extensionScore =
-    sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
-				  seq2 + start2, qual2 + start2,
-				  isForward, globality, sm2qual,
-				  gap.delExist, gap.delExtend,
-				  gap.insExist, gap.insExtend,
-				  gap.pairExtend, maxDrop, smMax )
-    : pssm2 ? aligner.alignPssm( seq1 + start1, pssm2 + start2,
-				 isForward, globality,
-				 gap.delExist, gap.delExtend,
-				 gap.insExist, gap.insExtend,
-				 gap.pairExtend, maxDrop, smMax )
-    :         aligner.align( seq1 + start1, seq2 + start2,
-			     isForward, globality, sm,
-			     gap.delExist, gap.delExtend,
-			     gap.insExist, gap.insExtend,
-			     gap.pairExtend, maxDrop, smMax );
+    isGreedy  ? greedyAligner.align( seq1 + start1, seq2 + start2,
+				     isForward, sm, maxDrop, alph.size )
+    : sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
+				    seq2 + start2, qual2 + start2,
+				    isForward, globality, sm2qual,
+				    gap.delExist, gap.delExtend,
+				    gap.insExist, gap.insExtend,
+				    gap.pairExtend, maxDrop, smMax )
+    : pssm2   ? aligner.alignPssm( seq1 + start1, pssm2 + start2,
+				   isForward, globality,
+				   gap.delExist, gap.delExtend,
+				   gap.insExist, gap.insExtend,
+				   gap.pairExtend, maxDrop, smMax )
+    :           aligner.align( seq1 + start1, seq2 + start2,
+			       isForward, globality, sm,
+			       gap.delExist, gap.delExtend,
+			       gap.insExist, gap.insExtend,
+			       gap.pairExtend, maxDrop, smMax );
 
   if( extensionScore == -INF ){
     score = -INF;  // avoid score overflow
@@ -331,14 +337,20 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
   if( outputType < 5 || outputType == 7 ){  // ordinary max-score alignment
     size_t end1, end2, size;
-    while( aligner.getNextChunk( end1, end2, size,
-				 gap.delExist, gap.delExtend,
-				 gap.insExist, gap.insExtend,
-				 gap.pairExtend ) )
-      chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
+    if( isGreedy ){
+      while( greedyAligner.getNextChunk( end1, end2, size ) )
+	chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
+    }else{
+      while( aligner.getNextChunk( end1, end2, size,
+				   gap.delExist, gap.delExtend,
+				   gap.insExist, gap.insExtend,
+				   gap.pairExtend ) )
+	chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
+    }
   }
 
   if( outputType > 3 ){  // calculate match probabilities
+    assert( !isGreedy );
     assert( !sm2qual );
     centroid.reset();
     centroid.forward( seq1, seq2, start1, start2, isForward, globality, gap );

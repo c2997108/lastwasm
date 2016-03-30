@@ -47,6 +47,7 @@ LastalArguments::LastalArguments() :
   outputType(3),
   strand(-1),  // depends on the alphabet
   isQueryStrandMatrix(false),
+  isGreedy(false),
   globality(0),
   isKeepLowercase(true),  // depends on the option used with lastdb
   tantanSetting(-1),  // depends on the option used with lastdb
@@ -93,8 +94,8 @@ void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
 Find local sequence alignments.\n\
 \n\
 Score options (default settings):\n\
--r: match score   (DNA: 1, 0<Q<5:  6)\n\
--q: mismatch cost (DNA: 1, 0<Q<5: 18)\n\
+-r: match score   (2 if -M, else  6 if 0<Q<5, else 1 if DNA)\n\
+-q: mismatch cost (3 if -M, else 18 if 0<Q<5, else 1 if DNA)\n\
 -p: match/mismatch score matrix (protein-protein: BL62, DNA-protein: BL80)\n\
 -a: gap existence cost (DNA: 7, protein: 11, 0<Q<5: 21)\n\
 -b: gap extension cost (DNA: 1, protein:  2, 0<Q<5:  9)\n\
@@ -123,6 +124,7 @@ Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -S: score matrix applies to forward strand of: 0=reference, 1=query ("
     + stringify(isQueryStrandMatrix) + ")\n\
+-M: find minimum-difference alignments (faster but cruder)\n\
 -T: type of alignment: 0=local, 1=overlap ("
     + stringify(globality) + ")\n\
 -m: maximum initial matches per query position ("
@@ -163,7 +165,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] = "hVvf:" "r:q:p:a:b:A:B:c:F:x:y:z:d:e:" "D:E:"
-    "s:S:T:m:l:L:n:C:K:k:W:i:P:R:u:w:t:g:G:j:Q:";
+    "s:S:MT:m:l:L:n:C:K:k:W:i:P:R:u:w:t:g:G:j:Q:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -253,6 +255,9 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'S':
       unstringify( isQueryStrandMatrix, optarg );
+      break;
+    case 'M':
+      isGreedy = true;
       break;
     case 'T':
       unstringify( globality, optarg );
@@ -350,6 +355,15 @@ LAST home page: http://last.cbrc.jp/\n\
   if( globality == 1 && outputType == 1 )
     ERR( "can't combine option -T 1 with option -j 1" );
 
+  if( isGreedy && outputType > 3 )
+    ERR( "can't combine option -M with option -j > 3" );
+
+  if( isGreedy && globality == 1 )
+    ERR( "can't combine option -M with option -T 1" );
+
+  if( isGreedy && maskLowercase == 3 )
+    ERR( "can't combine option -M with option -u 3" );
+
   if( optionsOnly ) return;
   if( optind >= argc )
     ERR( "please give me a database name and sequence file(s)\n\n" + usage );
@@ -396,7 +410,18 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 					       unsigned realNumOfThreads ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
-  if( isProtein ){
+  if( isGreedy ){
+    if( matchScore     < 0 ) matchScore     =   2;
+    if( mismatchCost   < 0 ) mismatchCost   =   3;
+    gapExistCost = 0;
+    gapExtendCost = mismatchCost + matchScore / 2;
+    insExistCost = gapExistCost;
+    insExtendCost = gapExtendCost;
+    if( frameshiftCost > 0 ) frameshiftCost =   0;
+    if( matchScore % 2 )
+      ERR( "with option -M, the match score (option -r) must be even" );
+  }
+  else if( isProtein ){
     // default match & mismatch scores: Blosum62 matrix
     if( matchScore < 0 && mismatchCost >= 0 ) matchScore   = 1;  // idiot-proof
     if( mismatchCost < 0 && matchScore >= 0 ) mismatchCost = 1;  // idiot-proof
@@ -559,6 +584,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " u=" << maskLowercase;
   stream << " s=" << strand;
   stream << " S=" << isQueryStrandMatrix;
+  stream << " M=" << isGreedy;
   stream << " T=" << globality;
   stream << " m=" << oneHitMultiplicity;
   stream << " l=" << minHitDepth;

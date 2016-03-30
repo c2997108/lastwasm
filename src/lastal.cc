@@ -23,6 +23,7 @@
 #include "TantanMasker.hh"
 #include "DiagonalTable.hh"
 #include "GeneralizedAffineGapCosts.hh"
+#include "GreedyXdropAligner.hh"
 #include "gaplessXdrop.hh"
 #include "gaplessPssmXdrop.hh"
 #include "gaplessTwoQualityXdrop.hh"
@@ -47,6 +48,7 @@ using namespace cbrc;
 
 struct LastAligner {  // data that changes between queries
   Centroid centroid;
+  GreedyXdropAligner greedyAligner;
   std::vector<int> qualityPssm;
   std::vector<AlignmentText> textAlns;
 };
@@ -99,7 +101,7 @@ void complementMatrix(const ScoreMatrixRow *from, ScoreMatrixRow *to) {
 // Set up a scoring matrix, based on the user options
 void makeScoreMatrix( const std::string& matrixName,
 		      const std::string& matrixFile ){
-  if( !matrixName.empty() ){
+  if( !matrixName.empty() && !args.isGreedy ){
     scoreMatrix.fromString( matrixFile );
   }
   else{
@@ -130,6 +132,8 @@ void permuteComplement(const double *from, double *to) {
 }
 
 void makeQualityScorers(){
+  if( args.isGreedy ) return;
+
   if( args.isTranslated() )
     if( isQuality( args.inputFormat ) || isQuality( referenceFormat ) )
       return warn( args.programName,
@@ -417,6 +421,7 @@ static const uchar *getQueryQual(size_t queryNum) {
 
 static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
 					  size_t queryNum) {
+  if (args.isGreedy) return 0;
   if (args.inputFormat == sequenceFormat::pssm)
     return query.pssmReader() + query.padBeg(queryNum);
   const std::vector<int> &qualityPssm = aligner.qualityPssm;
@@ -649,7 +654,7 @@ void alignGapped( LastAligner& aligner,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( aligner.centroid,
+    aln.makeXdrop( aligner.centroid, aligner.greedyAligner, args.isGreedy,
 		   dis.a, dis.b, args.globality, dis.m, scoreMatrix.maxScore,
 		   gapCosts, dis.d, args.frameshiftCost, frameSize,
 		   dis.p, dis.t, dis.i, dis.j, alph, extras );
@@ -706,7 +711,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       Alignment probAln;
       AlignmentExtras extras;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( centroid,
+      probAln.makeXdrop( centroid, aligner.greedyAligner, args.isGreedy,
 			 dis.a, dis.b, args.globality,
 			 dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
                          args.frameshiftCost, frameSize,
@@ -786,7 +791,7 @@ void makeQualityPssm( LastAligner& aligner,
 		      size_t queryNum, char strand, const uchar* querySeq,
 		      bool isMask ){
   if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
-  if( args.isTranslated() ) return;
+  if( args.isTranslated() || args.isGreedy ) return;
 
   std::vector<int> &qualityPssm = aligner.qualityPssm;
   size_t queryLen = query.padLen(queryNum);

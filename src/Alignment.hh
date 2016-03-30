@@ -16,6 +16,7 @@ namespace cbrc{
 typedef unsigned char uchar;
 
 class GeneralizedAffineGapCosts;
+class GreedyXdropAligner;
 class LastEvaluer;
 class MultiSequence;
 class Alphabet;
@@ -77,6 +78,7 @@ struct Alignment{
   // If outputType > 3: calculates match probabilities.
   // If outputType > 4: does gamma-centroid alignment.
   void makeXdrop( Centroid& centroid,
+		  GreedyXdropAligner& greedyAligner, bool isGreedy,
 		  const uchar* seq1, const uchar* seq2, int globality,
 		  const ScoreMatrixRow* scoreMatrix, int smMax,
 		  const GeneralizedAffineGapCosts& gap, int maxDrop,
@@ -127,6 +129,7 @@ struct Alignment{
   void extend( std::vector< SegmentPair >& chunks,
 	       std::vector< uchar >& ambiguityCodes,
 	       Centroid& centroid,
+	       GreedyXdropAligner& greedyAligner, bool isGreedy,
 	       const uchar* seq1, const uchar* seq2,
 	       size_t start1, size_t start2,
 	       bool isForward, int globality,

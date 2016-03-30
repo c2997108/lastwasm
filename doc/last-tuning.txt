@@ -117,12 +117,20 @@ This option (gapless alignment culling) can make lastal **faster** but
 example, -C2 makes it discard alignments (before gapped extension)
 whose query coordinates lie in those of 2 or more stronger alignments.
 
+lastal -M
+---------
+
+This option requests "minimum-difference" alignment, which is **faster
+but cruder** than standard gapped alignment.  This treats all matches
+the same, and minimizes the number of differences (mismatches plus
+gaps).
+
 lastal -j1
 ----------
 
-This option requests **gapless** alignment, which is **faster**.  (You
-could get the same effect by using very high gap costs, but -j1 is
-faster because it skips the gapping phase entirely.)
+This option requests **gapless** alignment, which is even **faster**.
+(You could get the same effect by using very high gap costs, but -j1
+is faster because it skips the gapping phase entirely.)
 
 lastal -f
 ---------
