@@ -150,7 +150,7 @@ db=/tmp/last-test
     # BlastTab+ format
     try lastal -fBlastTab+ -pBL62 -b1 -F15 -D1e3 $db galGal3-M-32.fa
 
-    # DNA-versus-protein alignment without frameshifts:
+    # DNA-versus-protein alignment without frameshifts
     try lastal -fTAB -pBL62 -b1 -F0 -D1e3 $db galGal3-M-32.fa
 
     # strand asymmetry
@@ -163,6 +163,9 @@ db=/tmp/last-test
     # minimizers
     lastdb -W3 $db galGal3-M-32.fa
     try lastal -W19 -fTAB $db hg19-M.fa
+
+    # minimum-difference alignment
+    try lastal -W1 -M -fTAB $db hg19-M.fa
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff -u last-test.out -
