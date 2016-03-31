@@ -201,6 +201,36 @@ E-value options
       only affects the default value of -e, so if you specify -e then
       -E has no effect.
 
+Initial-match options
+~~~~~~~~~~~~~~~~~~~~~
+
+  -m MULTIPLICITY
+      Maximum multiplicity for initial matches.  Each initial match is
+      lengthened until it occurs at most this many times in the
+      reference.
+
+      If the reference was split into volumes by lastdb, then lastal
+      uses one volume at a time.  The maximum multiplicity then
+      applies to each volume, not the whole reference.  This is why
+      voluming changes the results.
+
+  -l LENGTH
+      Minimum length for initial matches.  Length means the number of
+      letters spanned by the match.
+
+  -L LENGTH
+      Maximum length for initial matches.
+
+  -k STEP
+      Look for initial matches starting only at every STEP-th position
+      in the query.  This makes lastal faster but less sensitive.
+
+  -W SIZE
+      Look for initial matches starting only at query positions that
+      are "minimum" in any window of SIZE consecutive positions (see
+      `<lastdb.html>`_).  By default, this parameter takes the same
+      value as was used for lastdb -W.
+
 Miscellaneous options
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -242,23 +272,6 @@ Miscellaneous options
       alignments, so if an alignment cannot be extended to the end of
       a sequence without exceeding this drop, it will be discarded.
 
-  -m MULTIPLICITY
-      Maximum multiplicity for initial matches.  Each initial match is
-      lengthened until it occurs at most this many times in the
-      reference.
-
-      If the reference was split into volumes by lastdb, then lastal
-      uses one volume at a time.  The maximum multiplicity then
-      applies to each volume, not the whole reference.  This is why
-      voluming changes the results.
-
-  -l LENGTH
-      Minimum length for initial matches.  Length means the number of
-      letters spanned by the match.
-
-  -L LENGTH
-      Maximum length for initial matches.
-
   -n COUNT
       Maximum number of gapless alignments per query position.  When
       lastal extends gapless alignments from initial matches that
@@ -278,16 +291,6 @@ Miscellaneous options
       alignments with higher score (and on the same strand).  This is
       a useful way to get just the top few hits to each part of each
       query (P Berman et al. 2000, J Comput Biol 7:293-302).
-
-  -k STEP
-      Look for initial matches starting only at every STEP-th position
-      in the query.  This makes lastal faster but less sensitive.
-
-  -W SIZE
-      Look for initial matches starting only at query positions that
-      are "minimum" in any window of SIZE consecutive positions (see
-      `<lastdb.html>`_).  By default, this parameter takes the same
-      value as was used for lastdb -W.
 
   -i BYTES
       Search queries in batches of at most this many bytes.  If a

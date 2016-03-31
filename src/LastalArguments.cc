@@ -120,6 +120,16 @@ Cosmetic options (default settings):\n\
 -v: be verbose: write messages about what lastal is doing\n\
 -f: output format: TAB, MAF, BlastTab, BlastTab+ (MAF)\n\
 \n\
+Initial-match options (default settings):\n\
+-m: maximum initial matches per query position ("
+    + stringify(oneHitMultiplicity) + ")\n\
+-l: minimum length for initial matches ("
+    + stringify(minHitDepth) + ")\n\
+-L: maximum length for initial matches (infinity)\n\
+-k: use initial matches starting at every k-th position in each query ("
+    + stringify(queryStep) + ")\n\
+-W: use \"minimum\" positions in sliding windows of W consecutive positions\n\
+\n\
 Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -S: score matrix applies to forward strand of: 0=reference, 1=query ("
@@ -127,17 +137,9 @@ Miscellaneous options (default settings):\n\
 -M: find minimum-difference alignments (faster but cruder)\n\
 -T: type of alignment: 0=local, 1=overlap ("
     + stringify(globality) + ")\n\
--m: maximum initial matches per query position ("
-    + stringify(oneHitMultiplicity) + ")\n\
--l: minimum length for initial matches ("
-    + stringify(minHitDepth) + ")\n\
--L: maximum length for initial matches (infinity)\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
 -C: omit gapless alignments in >= C others with > score-per-length (off)\n\
 -K: omit alignments whose query range lies in >= K others with > score (off)\n\
--k: use initial matches starting at every k-th position in each query ("
-    + stringify(queryStep) + ")\n\
--W: use \"minimum\" positions in sliding windows of W consecutive positions\n\
 -i: query batch size (8 KiB, unless there is > 1 thread or lastdb volume)\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
@@ -249,6 +251,23 @@ LAST home page: http://last.cbrc.jp/\n\
       if( maxEvalue <= 0 ) badopt( c, optarg );
       break;
 
+    case 'm':
+      unstringify( oneHitMultiplicity, optarg );
+      break;
+    case 'l':
+      unstringify( minHitDepth, optarg );
+      break;
+    case 'L':
+      unstringify( maxHitDepth, optarg );
+      break;
+    case 'k':
+      unstringify( queryStep, optarg );
+      if( queryStep <= 0 ) badopt( c, optarg );
+      break;
+    case 'W':
+      unstringify( minimizerWindow, optarg );  // allow 0, meaning "default"
+      break;
+
     case 's':
       unstringify( strand, optarg );
       if( strand < 0 || strand > 2 ) badopt( c, optarg );
@@ -263,15 +282,6 @@ LAST home page: http://last.cbrc.jp/\n\
       unstringify( globality, optarg );
       if( globality < 0 || globality > 1 ) badopt( c, optarg );
       break;
-    case 'm':
-      unstringify( oneHitMultiplicity, optarg );
-      break;
-    case 'l':
-      unstringify( minHitDepth, optarg );
-      break;
-    case 'L':
-      unstringify( maxHitDepth, optarg );
-      break;
     case 'n':
       unstringify( maxGaplessAlignmentsPerQueryPosition, optarg );
       if( maxGaplessAlignmentsPerQueryPosition <= 0 ) badopt( c, optarg );
@@ -281,13 +291,6 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'K':
       unstringify( cullingLimitForFinalAlignments, optarg );
-      break;
-    case 'k':
-      unstringify( queryStep, optarg );
-      if( queryStep <= 0 ) badopt( c, optarg );
-      break;
-    case 'W':
-      unstringify( minimizerWindow, optarg );  // allow 0, meaning "default"
       break;
     case 'i':
       unstringifySize( batchSize, optarg );
