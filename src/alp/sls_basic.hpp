@@ -30,7 +30,7 @@
 
 File name: sls_basic.hpp
 
-Author: Sergey Sheetlin
+Author: Sergey Sheetlin, Martin Frith
 
 Contents: Some basic functions and types
 
@@ -183,6 +183,8 @@ namespace Sls {
 
 		static void get_current_time(
 		double &seconds_);
+
+		static long int random_seed_from_time();
 
 		static double one_minus_exp_function(
 		double y_);
