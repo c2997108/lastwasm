@@ -167,10 +167,10 @@ class GappedXdropAligner {
 
   // The number of antidiagonals, including dummy ones at the beginning.
   std::size_t numAntidiagonals() const
-  { return seq1starts.size(); }
+  { return scoreOrigins.size(); }
 
-  std::size_t seq1start(std::size_t antidiagonal) const
-  { return seq1starts[antidiagonal]; }
+  std::size_t scoreOrigin(std::size_t antidiagonal) const
+  { return scoreOrigins[antidiagonal]; }
 
   std::size_t numCellsAndPads(std::size_t antidiagonal) const
   { return scoreEnds[antidiagonal + 1] - scoreEnds[antidiagonal]; }
@@ -180,42 +180,39 @@ class GappedXdropAligner {
 
   // The index in the score vectors, of the previous "horizontal" cell.
   std::size_t hori(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreBase(antidiagonal - 1) + seq1coordinate; }
+  { return scoreOrigins[antidiagonal - 1] + seq1coordinate; }
 
   // The index in the score vectors, of the previous "vertical" cell.
   std::size_t vert(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreBase(antidiagonal - 1) + seq1coordinate + 1; }
+  { return scoreOrigins[antidiagonal - 1] + seq1coordinate + 1; }
 
   // The index in the score vectors, of the previous "diagonal" cell.
   std::size_t diag(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreBase(antidiagonal - 2) + seq1coordinate; }
+  { return scoreOrigins[antidiagonal - 2] + seq1coordinate; }
 
   // The index in the score vectors, of the previous in-frame horizontal cell.
   std::size_t hori3(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreBase(antidiagonal - 3) + seq1coordinate + 1; }
+  { return scoreOrigins[antidiagonal - 3] + seq1coordinate + 1; }
 
   // The index in the score vectors, of the previous in-frame vertical cell.
   std::size_t vert3(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreBase(antidiagonal - 3) + seq1coordinate + 2; }
+  { return scoreOrigins[antidiagonal - 3] + seq1coordinate + 2; }
 
   // The index in the score vectors, of the previous in-frame diagonal cell.
   std::size_t diag3(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreBase(antidiagonal - 6) + seq1coordinate + 1; }
+  { return scoreOrigins[antidiagonal - 6] + seq1coordinate + 1; }
 
  private:
   std::vector<int> xScores;  // best score ending with aligned letters
   std::vector<int> yScores;  // best score ending with insertion in seq1
   std::vector<int> zScores;  // best score ending with insertion in seq2
 
-  std::vector<std::size_t> seq1starts;  // seq1 start pos for each antidiagonal
+  std::vector<std::size_t> scoreOrigins;  // score origin for each antidiagonal
   std::vector<std::size_t> scoreEnds;  // score end pos for each antidiagonal
 
   // Our position during the trace-back:
   std::size_t bestAntidiagonal;
   std::size_t bestSeq1position;
-
-  std::size_t scoreBase(std::size_t antidiagonal) const
-  { return scoreEnds[antidiagonal] - seq1starts[antidiagonal]; }
 
   void init();
 

@@ -123,10 +123,16 @@ namespace cbrc{
 
     void updateScore( double score, size_t antiDiagonal, size_t cur );
 
+    // start of the x-drop region (i.e. number of skipped seq1 letters
+    // before the x-drop region) for this antidiagonal
+    size_t seq1start( size_t antidiagonal ) const {
+      return xa.scoreEndIndex( antidiagonal ) - xa.scoreOrigin( antidiagonal );
+    }
+
     // get DP matrix value at the given position
     double cellx( const dvec_t& matrix,
                   size_t antiDiagonal, size_t seq1pos ) const{
-      return matrix[ xa.scoreEndIndex( antiDiagonal ) + seq1pos - xa.seq1start( antiDiagonal ) ];
+      return matrix[ xa.scoreOrigin( antiDiagonal ) + seq1pos ];
     }
 
     // get DP matrix value "left of" the given position

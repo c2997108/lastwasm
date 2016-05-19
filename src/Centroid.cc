@@ -171,7 +171,7 @@ namespace cbrc{
 
     for( size_t k = 2; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       double sum_f = 0.0; // sum of forward values
-      const size_t seq1beg = xa.seq1start( k );
+      const size_t seq1beg = seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
       const double scale1  = 1.0 / scale[k-1];
@@ -310,7 +310,7 @@ namespace cbrc{
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
     for( size_t k = numAntidiagonals-1; k > 1; --k ){
-      const size_t seq1beg = xa.seq1start( k );
+      const size_t seq1beg = seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
       const double scale1  = 1.0 / scale[k-1];
@@ -507,7 +507,7 @@ namespace cbrc{
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
-      size_t cur = xa.seq1start( k );
+      size_t cur = seq1start( k );
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
       const double* X1 = &X[xa.hori(k, cur)];
@@ -564,7 +564,7 @@ namespace cbrc{
       const std::size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
-      size_t cur = xa.seq1start( k );
+      size_t cur = seq1start( k );
       size_t seq2pos = k - 2 - cur;
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
@@ -709,7 +709,7 @@ namespace cbrc{
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
     for( size_t k = 2; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const size_t seq1beg = xa.seq1start( k );
+      const size_t seq1beg = seq1start( k );
       const std::size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
       const double scale1  = 1.0 / scale[k-1];
