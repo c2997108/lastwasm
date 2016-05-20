@@ -68,7 +68,7 @@ void GappedXdropAligner::init() {
   yScores[1] = -INF;
   zScores[1] = -INF;
 
-  bestAntidiagonal = 2;
+  bestAntidiagonal = 0;
 }
 
 void GappedXdropAligner::initAntidiagonal(std::size_t seq1beg,
@@ -102,12 +102,12 @@ int GappedXdropAligner::align(const uchar *seq1,
 
   int bestScore = 0;
   int bestEdgeScore = -INF;
-  std::size_t bestEdgeAntidiagonal = 2;
+  std::size_t bestEdgeAntidiagonal = 0;
   std::size_t bestEdgeSeq1position = 0;
 
   init();
 
-  for (std::size_t antidiagonal = 2; /* noop */; ++antidiagonal) {
+  for (std::size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
     std::size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
     std::size_t seq1end = std::max(minSeq1ends[0], minSeq1ends[1]);
 
@@ -118,7 +118,7 @@ int GappedXdropAligner::align(const uchar *seq1,
 
     initAntidiagonal(seq1beg, scoreEnd, numCells);
 
-    std::size_t seq2pos = antidiagonal - 2 - seq1beg;
+    std::size_t seq2pos = antidiagonal - seq1beg;
 
     const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg - 1;
     const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos - 1;
@@ -237,18 +237,17 @@ bool GappedXdropAligner::getNextChunk(std::size_t &end1,
 				      int insExistenceCost,
 				      int insExtensionCost,
                                       int gapUnalignedCost) {
-  if (bestAntidiagonal == 2) return false;
+  if (bestAntidiagonal == 0) return false;
 
   end1 = bestSeq1position;
-  end2 = bestAntidiagonal - 2 - bestSeq1position;
+  end2 = bestAntidiagonal - bestSeq1position;
   const std::size_t undefined = -1;
   length = undefined;
 
   int state = 0;
 
   while (1) {
-    assert(bestAntidiagonal >= 2);
-    assert(bestSeq1position <= bestAntidiagonal - 2);
+    assert(bestSeq1position <= bestAntidiagonal);
 
     std::size_t h = hori(bestAntidiagonal, bestSeq1position);
     std::size_t v = vert(bestAntidiagonal, bestSeq1position);
@@ -272,7 +271,7 @@ bool GappedXdropAligner::getNextChunk(std::size_t &end1,
 
     state = maxIndex(x, y, z, a, b);
 
-    if (length == undefined && (state > 0 || bestAntidiagonal == 2)) {
+    if (length == undefined && (state > 0 || bestAntidiagonal == 0)) {
       length = end1 - bestSeq1position;
       assert(length != undefined);
     }

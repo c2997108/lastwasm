@@ -34,12 +34,12 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 
   int bestScore = 0;
   int bestEdgeScore = -INF;
-  std::size_t bestEdgeAntidiagonal = 2;
+  std::size_t bestEdgeAntidiagonal = 0;
   std::size_t bestEdgeSeq1position = 0;
 
   init();
 
-  for (std::size_t antidiagonal = 2; /* noop */; ++antidiagonal) {
+  for (std::size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
     std::size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
     std::size_t seq1end = std::max(minSeq1ends[0], minSeq1ends[1]);
 
@@ -50,7 +50,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 
     initAntidiagonal(seq1beg, scoreEnd, numCells);
 
-    std::size_t seq2pos = antidiagonal - 2 - seq1beg;
+    std::size_t seq2pos = antidiagonal - seq1beg;
 
     const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg - 1;
     const uchar *q1 = isForward ? qual1 + seq1beg : qual1 - seq1beg - 1;

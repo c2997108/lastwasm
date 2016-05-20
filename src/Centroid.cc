@@ -96,7 +96,7 @@ namespace cbrc{
   }
 
   void Centroid::initForwardMatrix(){
-    scale.assign ( numAntidiagonals, 1.0 ); // scaling
+    scale.assign ( numAntidiagonals + 2, 1.0 ); // scaling
     size_t n = xa.scoreEndIndex( numAntidiagonals );
 
     if ( fM.size() < n ) {
@@ -111,10 +111,10 @@ namespace cbrc{
 
   void Centroid::initBackwardMatrix(){
     pp.resize( fM.size() );
-    mD.assign( numAntidiagonals, 0.0 );
-    mI.assign( numAntidiagonals, 0.0 );
-    mX1.assign ( numAntidiagonals, 1.0 );
-    mX2.assign ( numAntidiagonals, 1.0 );
+    mD.assign( numAntidiagonals + 2, 0.0 );
+    mI.assign( numAntidiagonals + 2, 0.0 );
+    mX1.assign ( numAntidiagonals + 2, 1.0 );
+    mX2.assign ( numAntidiagonals + 2, 1.0 );
 
     size_t n = xa.scoreEndIndex( numAntidiagonals );
     bM.assign( n, 0.0 );
@@ -169,12 +169,12 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
-    for( size_t k = 2; k < numAntidiagonals; ++k ){  // loop over antidiagonals
+    for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       double sum_f = 0.0; // sum of forward values
       const size_t seq1beg = seq1start( k );
-      const size_t seq2pos = k - 2 - seq1beg;
-      const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
-      const double scale1  = 1.0 / scale[k-1];
+      const size_t seq2pos = k - seq1beg;
+      const double scale12 = 1.0 / ( scale[k+1] * scale[k] );
+      const double scale1  = 1.0 / scale[k+1];
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
@@ -270,12 +270,12 @@ namespace cbrc{
 	}
       }
       if( !globality ) Z += sum_f;
-      scale[k] = sum_f + 1.0;  // seems ugly
-      Z /= scale[k]; // scaling
+      scale[k+2] = sum_f + 1.0;  // seems ugly
+      Z /= scale[k+2]; // scaling
     } // k
     //std::cout << "# Z=" << Z << std::endl;
     assert( Z > 0.0 );
-    scale[ numAntidiagonals - 1 ] *= Z;  // this causes scaled Z to equal 1
+    scale[ numAntidiagonals + 1 ] *= Z;  // this causes scaled Z to equal 1
   }
 
   // added by M. Hamada
@@ -309,12 +309,12 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
-    for( size_t k = numAntidiagonals-1; k > 1; --k ){
+    for( size_t k = numAntidiagonals; k-- > 0; ){
       const size_t seq1beg = seq1start( k );
-      const size_t seq2pos = k - 2 - seq1beg;
-      const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
-      const double scale1  = 1.0 / scale[k-1];
-      scaledUnit /= scale[k];
+      const size_t seq2pos = k - seq1beg;
+      const double scale12 = 1.0 / ( scale[k+1] * scale[k] );
+      const double scale1  = 1.0 / scale[k+1];
+      scaledUnit /= scale[k+2];
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
@@ -503,7 +503,7 @@ namespace cbrc{
 
     initDecodingMatrix();
 
-    for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
+    for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
@@ -536,7 +536,7 @@ namespace cbrc{
     size_t i = bestPos1;
     size_t oldPos1 = i;
 
-    while( k > 2 ){
+    while( k > 0 ){
       const int m =
 	maxIndex( diagx( X, k, i ) + ( gamma + 1 ) * cellx( pp, k, i ) - 1,
                   horix( X, k, i ),
@@ -545,8 +545,8 @@ namespace cbrc{
 	k -= 2;
 	i -= 1;
       }
-      if( (m > 0 && oldPos1 != i) || k == 2 ){
-	chunks.push_back( SegmentPair( i, k - i - 2, oldPos1 - i ) );
+      if( (m > 0 && oldPos1 != i) || k == 0 ){
+	chunks.push_back( SegmentPair( i, k - i, oldPos1 - i ) );
       }
       if( m > 0 ){
 	k -= 1;
@@ -560,12 +560,12 @@ namespace cbrc{
 
     initDecodingMatrix();
 
-    for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
+    for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
       size_t cur = seq1start( k );
-      size_t seq2pos = k - 2 - cur;
+      size_t seq2pos = k - cur;
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
       const double* X1 = &X[ xa.hori(k, cur) ];
@@ -597,8 +597,8 @@ namespace cbrc{
     size_t i = bestPos1;
     size_t oldPos1 = i;
 
-    while( k > 2 ){
-      const size_t j = k - i - 2;
+    while( k > 0 ){
+      const size_t j = k - i;
       const double s = 2 * gamma * cellx( pp, k, i ) - ( mX1[ i ] + mX2[ j ] );
       const double t = gamma * mI[ j ] - mX2[ j ];
       const double u = gamma * mD[ i ] - mX1[ i ];
@@ -610,8 +610,8 @@ namespace cbrc{
 	k -= 2;
 	i -= 1;
       }
-      if( (m > 0 && oldPos1 != i) || k == 2 ){
-	chunks.push_back( SegmentPair( i, k - i - 2, oldPos1 - i ) );
+      if( (m > 0 && oldPos1 != i) || k == 0 ){
+	chunks.push_back( SegmentPair( i, k - i, oldPos1 - i ) );
       }
       if( m > 0 ){
 	k -= 1;
@@ -653,7 +653,7 @@ namespace cbrc{
       size_t seq2pos = i->end2();
 
       for( size_t j = 0; j < i->size; ++j ){
-	double p = cellx( pp, seq1pos + seq2pos + 2, seq1pos );
+	double p = cellx( pp, seq1pos + seq2pos, seq1pos );
 	ambiguityCodes.push_back( asciiProbability(p) );
 	--seq1pos;
 	--seq2pos;
@@ -678,8 +678,8 @@ namespace cbrc{
 
   double Centroid::logPartitionFunction() const{
     double x = 0.0;
-    for( size_t k = 2; k < numAntidiagonals; ++k ){
-      x += std::log( scale[k] );
+    for( size_t k = 0; k < numAntidiagonals; ++k ){
+      x += std::log( scale[k+2] );
     }
     return T * x;
   }
@@ -708,11 +708,11 @@ namespace cbrc{
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
-    for( size_t k = 2; k < numAntidiagonals; ++k ){  // loop over antidiagonals
+    for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = seq1start( k );
-      const size_t seq2pos = k - 2 - seq1beg;
-      const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
-      const double scale1  = 1.0 / scale[k-1];
+      const size_t seq2pos = k - seq1beg;
+      const double scale12 = 1.0 / ( scale[k+1] * scale[k] );
+      const double scale1  = 1.0 / scale[k+1];
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;

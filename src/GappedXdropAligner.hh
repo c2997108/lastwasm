@@ -165,30 +165,30 @@ class GappedXdropAligner {
   // The next 4 functions are for use by Centroid.  If the Centroid
   // code gets updated, it might make sense to change these functions too.
 
-  // The number of antidiagonals, including dummy ones at the beginning.
+  // The number of antidiagonals, excluding dummy ones at the beginning.
   std::size_t numAntidiagonals() const
-  { return scoreOrigins.size(); }
+  { return scoreOrigins.size() - 2; }
 
   std::size_t scoreOrigin(std::size_t antidiagonal) const
-  { return scoreOrigins[antidiagonal]; }
+  { return scoreOrigins[antidiagonal + 2]; }
 
   std::size_t numCellsAndPads(std::size_t antidiagonal) const
-  { return scoreEnds[antidiagonal + 1] - scoreEnds[antidiagonal]; }
+  { return scoreEnds[antidiagonal + 3] - scoreEnds[antidiagonal + 2]; }
 
   std::size_t scoreEndIndex(std::size_t antidiagonal) const
-  { return scoreEnds[antidiagonal]; }
+  { return scoreEnds[antidiagonal + 2]; }
 
   // The index in the score vectors, of the previous "horizontal" cell.
   std::size_t hori(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 1] + seq1coordinate; }
+  { return scoreOrigins[antidiagonal + 1] + seq1coordinate; }
 
   // The index in the score vectors, of the previous "vertical" cell.
   std::size_t vert(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 1] + seq1coordinate + 1; }
+  { return scoreOrigins[antidiagonal + 1] + seq1coordinate + 1; }
 
   // The index in the score vectors, of the previous "diagonal" cell.
   std::size_t diag(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 2] + seq1coordinate; }
+  { return scoreOrigins[antidiagonal] + seq1coordinate; }
 
   // The index in the score vectors, of the previous in-frame horizontal cell.
   std::size_t hori3(std::size_t antidiagonal, std::size_t seq1coordinate) const
