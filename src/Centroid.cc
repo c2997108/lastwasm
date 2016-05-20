@@ -97,7 +97,7 @@ namespace cbrc{
 
   void Centroid::initForwardMatrix(){
     scale.assign ( numAntidiagonals, 1.0 ); // scaling
-    std::size_t n = xa.scoreEndIndex( numAntidiagonals );
+    size_t n = xa.scoreEndIndex( numAntidiagonals );
 
     if ( fM.size() < n ) {
       fM.resize( n );
@@ -116,7 +116,7 @@ namespace cbrc{
     mX1.assign ( numAntidiagonals, 1.0 );
     mX2.assign ( numAntidiagonals, 1.0 );
 
-    std::size_t n = xa.scoreEndIndex( numAntidiagonals );
+    size_t n = xa.scoreEndIndex( numAntidiagonals );
     bM.assign( n, 0.0 );
     bD.assign( n, 0.0 );
     bI.assign( n, 0.0 );
@@ -172,7 +172,7 @@ namespace cbrc{
     for( size_t k = 2; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       double sum_f = 0.0; // sum of forward values
       const size_t seq1beg = seq1start( k );
-      const std::size_t seq2pos = k - 2 - seq1beg;
+      const size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
       const double scale1  = 1.0 / scale[k-1];
 
@@ -180,15 +180,15 @@ namespace cbrc{
       const double seEI = eEI * scale1;
       const double seP = eP * scale12;
 
-      const std::size_t scoreEnd = xa.scoreEndIndex( k );
+      const size_t scoreEnd = xa.scoreEndIndex( k );
       double* fM0 = &fM[ scoreEnd ];
       double* fD0 = &fD[ scoreEnd ];
       double* fI0 = &fI[ scoreEnd ];
       double* fP0 = &fP[ scoreEnd ];
 
-      const std::size_t horiBeg = xa.hori( k, seq1beg );
-      const std::size_t vertBeg = xa.vert( k, seq1beg );
-      const std::size_t diagBeg = xa.diag( k, seq1beg );
+      const size_t horiBeg = xa.hori( k, seq1beg );
+      const size_t vertBeg = xa.vert( k, seq1beg );
+      const size_t diagBeg = xa.diag( k, seq1beg );
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ vertBeg ];
       const double* fM2 = &fM[ diagBeg ];
@@ -311,7 +311,7 @@ namespace cbrc{
 
     for( size_t k = numAntidiagonals-1; k > 1; --k ){
       const size_t seq1beg = seq1start( k );
-      const std::size_t seq2pos = k - 2 - seq1beg;
+      const size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
       const double scale1  = 1.0 / scale[k-1];
       scaledUnit /= scale[k];
@@ -320,7 +320,7 @@ namespace cbrc{
       const double seEI = eEI * scale1;
       const double seP = eP * scale12;
 
-      const std::size_t scoreEnd = xa.scoreEndIndex( k );
+      const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + 1 ];
       const double* bD0 = &bD[ scoreEnd + 1 ];
       const double* bI0 = &bI[ scoreEnd + 1 ];
@@ -328,9 +328,9 @@ namespace cbrc{
 
       double* pp0 = &pp[ scoreEnd ];
 
-      const std::size_t horiBeg = xa.hori( k, seq1beg );
-      const std::size_t vertBeg = xa.vert( k, seq1beg );
-      const std::size_t diagBeg = xa.diag( k, seq1beg );
+      const size_t horiBeg = xa.hori( k, seq1beg );
+      const size_t vertBeg = xa.vert( k, seq1beg );
+      const size_t diagBeg = xa.diag( k, seq1beg );
       double* bD1 = &bD[ horiBeg ];
       double* bI1 = &bI[ vertBeg ];
       double* bM2 = &bM[ diagBeg ];
@@ -504,7 +504,7 @@ namespace cbrc{
     initDecodingMatrix();
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const std::size_t scoreEnd = xa.scoreEndIndex( k );
+      const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
       size_t cur = seq1start( k );
@@ -561,7 +561,7 @@ namespace cbrc{
     initDecodingMatrix();
 
     for( size_t k = 3; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const std::size_t scoreEnd = xa.scoreEndIndex( k );
+      const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
       size_t cur = seq1start( k );
@@ -678,7 +678,7 @@ namespace cbrc{
 
   double Centroid::logPartitionFunction() const{
     double x = 0.0;
-    for( std::size_t k = 2; k < numAntidiagonals; ++k ){
+    for( size_t k = 2; k < numAntidiagonals; ++k ){
       x += std::log( scale[k] );
     }
     return T * x;
@@ -710,7 +710,7 @@ namespace cbrc{
 
     for( size_t k = 2; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = seq1start( k );
-      const std::size_t seq2pos = k - 2 - seq1beg;
+      const size_t seq2pos = k - 2 - seq1beg;
       const double scale12 = 1.0 / ( scale[k-1] * scale[k-2] );
       const double scale1  = 1.0 / scale[k-1];
 
@@ -721,15 +721,15 @@ namespace cbrc{
       const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
       const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
-      const std::size_t scoreEnd = xa.scoreEndIndex( k );
+      const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + 1 ];
       const double* bD0 = &bD[ scoreEnd + 1 ];
       const double* bI0 = &bI[ scoreEnd + 1 ];
       const double* bP0 = &bP[ scoreEnd + 1 ];
 
-      const std::size_t horiBeg = xa.hori( k, seq1beg );
-      const std::size_t vertBeg = xa.vert( k, seq1beg );
-      const std::size_t diagBeg = xa.diag( k, seq1beg );
+      const size_t horiBeg = xa.hori( k, seq1beg );
+      const size_t vertBeg = xa.vert( k, seq1beg );
+      const size_t diagBeg = xa.diag( k, seq1beg );
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ vertBeg ];
       const double* fM2 = &fM[ diagBeg ];
