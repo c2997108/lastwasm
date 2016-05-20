@@ -826,6 +826,7 @@ void scan( LastAligner& aligner,
   SegmentPairPot gaplessAlns;
   alignGapless( aligner, gaplessAlns, queryNum, strand, querySeq );
   if( args.outputType == 1 ) return;  // we just want gapless alignments
+  if( gaplessAlns.size() == 0 ) return;
 
   if( args.maskLowercase == 1 || args.maskLowercase == 2 )
     makeQualityPssm( aligner, queryNum, strand, querySeq, false );
@@ -840,11 +841,13 @@ void scan( LastAligner& aligner,
 
   alignGapped( aligner, gappedAlns, gaplessAlns,
 	       queryNum, strand, querySeq, Phase::final );
+  if( gappedAlns.size() == 0 ) return;
 
   if (args.maskLowercase == 2) {
     makeQualityPssm(aligner, queryNum, strand, querySeq, true);
     eraseWeakAlignments(aligner, gappedAlns, queryNum, strand, querySeq);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
+    if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
       makeQualityPssm(aligner, queryNum, strand, querySeq, false);
   }
