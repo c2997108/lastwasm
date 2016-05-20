@@ -214,6 +214,14 @@ class GappedXdropAligner {
   std::size_t bestAntidiagonal;
   std::size_t bestSeq1position;
 
+  void resizeScoresIfSmaller(std::size_t size) {
+    if (xScores.size() < size) {
+      xScores.resize(size);
+      yScores.resize(size);
+      zScores.resize(size);
+    }
+  }
+
   void init();
 
   void initAntidiagonal(std::size_t seq1beg, std::size_t scoreEnd,

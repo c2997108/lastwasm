@@ -82,15 +82,9 @@ void GappedXdropAligner::init3() {
 void GappedXdropAligner::initAntidiagonal3(std::size_t seq1beg,
                                            std::size_t scoreEnd,
                                            std::size_t numCells) {
-  std::size_t newEnd = scoreEnd + numCells + 2;  // + 2 pad cells
-
-  if (xScores.size() < newEnd) {
-    xScores.resize(newEnd);
-    yScores.resize(newEnd);
-    zScores.resize(newEnd);
-  }
-
   scoreOrigins.push_back(scoreEnd - seq1beg);
+  std::size_t newEnd = scoreEnd + numCells + 2;  // + 2 pad cells
+  resizeScoresIfSmaller(newEnd);
   scoreEnds.push_back(newEnd);
 }
 

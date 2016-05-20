@@ -7,7 +7,6 @@
 #include "GeneralizedAffineGapCosts.hh"
 #include "SegmentPair.hh"
 #include "OneQualityScoreMatrix.hh"
-#include <cassert>
 #include <stddef.h>  // size_t
 #include <vector>
 #include <iostream> // for debug
@@ -138,21 +137,19 @@ namespace cbrc{
     // get DP matrix value "left of" the given position
     double horix( const dvec_t& matrix,
                   size_t antiDiagonal, size_t seq1pos ) const{
-      assert( antiDiagonal > 0 );
-      return cellx( matrix, antiDiagonal-1, seq1pos );
+      return matrix[ xa.hori( antiDiagonal, seq1pos ) ];
     }
 
     // get DP matrix value "above" the given position
     double vertx( const dvec_t& matrix,
                   size_t antiDiagonal, size_t seq1pos ) const{
-      assert( antiDiagonal > 0 );
-      return cellx( matrix, antiDiagonal-1, seq1pos+1 );
+      return matrix[ xa.vert( antiDiagonal, seq1pos ) ];
     }
 
     // get DP matrix value "diagonal from" the given position
     double diagx( const dvec_t& matrix,
                   size_t antiDiagonal, size_t seq1pos ) const{
-      return cellx( matrix, antiDiagonal-2, seq1pos );
+      return matrix[ xa.diag( antiDiagonal, seq1pos ) ];
     }
 
     // get a pointer into a sequence, taking start and direction into account
