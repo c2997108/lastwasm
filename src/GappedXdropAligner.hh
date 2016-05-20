@@ -192,15 +192,15 @@ class GappedXdropAligner {
 
   // The index in the score vectors, of the previous in-frame horizontal cell.
   std::size_t hori3(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 3] + seq1coordinate + 1; }
+  { return scoreOrigins[antidiagonal - 3] + seq1coordinate; }
 
   // The index in the score vectors, of the previous in-frame vertical cell.
   std::size_t vert3(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 3] + seq1coordinate + 2; }
+  { return scoreOrigins[antidiagonal - 3] + seq1coordinate + 1; }
 
   // The index in the score vectors, of the previous in-frame diagonal cell.
   std::size_t diag3(std::size_t antidiagonal, std::size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 6] + seq1coordinate + 1; }
+  { return scoreOrigins[antidiagonal - 6] + seq1coordinate; }
 
  private:
   std::vector<int> xScores;  // best score ending with aligned letters
