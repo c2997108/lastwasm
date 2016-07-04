@@ -9,6 +9,7 @@
 #include <vector>
 #include <stdexcept>
 #include <cctype>
+#include <climits>
 #include <cmath>  // log
 #include <cstring>  // strtok
 #include <cstdlib>  // EXIT_SUCCESS
@@ -58,9 +59,9 @@ LastalArguments::LastalArguments() :
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
   matchScore(-1),  // depends on the alphabet
   mismatchCost(-1),  // depends on the alphabet
-  gapExistCost(-1),  // depends on the alphabet
+  gapExistCost(INT_MIN),  // depends on the alphabet
   gapExtendCost(-1),  // depends on the alphabet
-  insExistCost(-1),  // depends on gapExistCost
+  insExistCost(INT_MIN),  // depends on gapExistCost
   insExtendCost(-1),  // depends on gapExtendCost
   gapPairCost(-1),  // this means: OFF
   frameshiftCost(-1),  // this means: ordinary, non-translated alignment
@@ -199,7 +200,6 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'a':
       unstringify( gapExistCost, optarg );
-      if( gapExistCost < 0 ) badopt( c, optarg );
       break;
     case 'b':
       unstringify( gapExtendCost, optarg );
@@ -207,7 +207,6 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'A':
       unstringify( insExistCost, optarg );
-      if( insExistCost < 0 ) badopt( c, optarg );
       break;
     case 'B':
       unstringify( insExtendCost, optarg );
@@ -428,19 +427,19 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // default match & mismatch scores: Blosum62 matrix
     if( matchScore < 0 && mismatchCost >= 0 ) matchScore   = 1;  // idiot-proof
     if( mismatchCost < 0 && matchScore >= 0 ) mismatchCost = 1;  // idiot-proof
-    if( gapExistCost   < 0 ) gapExistCost   =  11;
+    if( gapExistCost   == INT_MIN ) gapExistCost   =  11;
     if( gapExtendCost  < 0 ) gapExtendCost  =   2;
   }
   else if( !isQuality( inputFormat ) ){
     if( matchScore     < 0 ) matchScore     =   1;
     if( mismatchCost   < 0 ) mismatchCost   =   1;
-    if( gapExistCost   < 0 ) gapExistCost   =   7;
+    if( gapExistCost   == INT_MIN ) gapExistCost   =   7;
     if( gapExtendCost  < 0 ) gapExtendCost  =   1;
   }
   else{  // sequence quality scores will be used:
     if( matchScore     < 0 ) matchScore     =   6;
     if( mismatchCost   < 0 ) mismatchCost   =  18;
-    if( gapExistCost   < 0 ) gapExistCost   =  21;
+    if( gapExistCost   == INT_MIN ) gapExistCost   =  21;
     if( gapExtendCost  < 0 ) gapExtendCost  =   9;
     // With this scoring scheme for DNA, gapless lambda ~= ln(10)/10,
     // so these scores should be comparable to PHRED scores.
@@ -455,7 +454,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     maxEvalue = 1e18 / (numOfStrands() * r * queryLettersPerRandomAlignment);
   }
 
-  if( insExistCost < 0 ) insExistCost = gapExistCost;
+  if( insExistCost == INT_MIN ) insExistCost = gapExistCost;
   if( insExtendCost < 0 ) insExtendCost = gapExtendCost;
 
   if( tantanSetting < 0 ){
