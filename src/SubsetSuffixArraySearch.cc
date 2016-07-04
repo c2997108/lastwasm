@@ -39,7 +39,8 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
     uchar subset = oldMap[ queryPtr[depth-1] ];
     bucketPtr -= subset * bucketSteps[depth];
     indexT oldBeg = *bucketPtr;
-    indexT oldEnd = *(bucketPtr + bucketSteps[depth-1]);
+    indexT oldEnd =
+      (depth > 1) ? *(bucketPtr + bucketSteps[depth-1]) : suffixArray.size();
     if( oldEnd - oldBeg > maxHits ) break;
     subsetMap = oldMap;
     beg = oldBeg;
