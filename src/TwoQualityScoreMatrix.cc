@@ -75,11 +75,11 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
       for (int q1 = indexer.minQuality; q1 < end1; ++q1) {
         for (int q2 = indexer.minQuality; q2 < end2; ++q2) {
           if (isUseQuality) {
-            double p1 = letterProbs1[unmasked1];
-            double u1 = qualityUncertainty(q1, qualityOffset1, isPhred1, p1);
-            double p2 = letterProbs2[unmasked2];
-            double u2 = qualityUncertainty(q2, qualityOffset2, isPhred2, p2);
-            score = qualityPairScore(expScore, u1, u2, lambda);
+	    double e1 = errorProbFromQual(q1, qualityOffset1, isPhred1);
+            double c1 = qualityCertainty(e1, letterProbs1[unmasked1]);
+	    double e2 = errorProbFromQual(q2, qualityOffset2, isPhred2);
+            double c2 = qualityCertainty(e2, letterProbs2[unmasked2]);
+            score = qualityPairScore(expScore, c1, c2, lambda);
           }
 
           if (isMask) score = std::min(score, 0);
