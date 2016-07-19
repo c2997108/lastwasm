@@ -54,6 +54,19 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
   indexer.init(toUnmasked);
   data.resize(indexer.numSymbols * indexer.numSymbols);
 
+  typedef TwoQualityMatrixIndexer Indexer;
+  double certainties1[Indexer::numNormalLetters][Indexer::qualityCapacity];
+  double certainties2[Indexer::numNormalLetters][Indexer::qualityCapacity];
+
+  for (int q = indexer.minQuality; q < indexer.qualityCapacity; ++q) {
+    double e1 = errorProbFromQual(q, qualityOffset1, isPhred1);
+    double e2 = errorProbFromQual(q, qualityOffset2, isPhred2);
+    for (int i = 0; i < indexer.numNormalLetters; ++i) {
+      certainties1[i][q] = qualityCertainty(e1, letterProbs1[i]);
+      certainties2[i][q] = qualityCertainty(e2, letterProbs2[i]);
+    }
+  }
+
   for (int letter1 = 0; letter1 < scoreMatrixRowSize; ++letter1) {
     for (int letter2 = 0; letter2 < scoreMatrixRowSize; ++letter2) {
       int unmasked1 = toUnmasked[letter1];
@@ -75,10 +88,8 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
       for (int q1 = indexer.minQuality; q1 < end1; ++q1) {
         for (int q2 = indexer.minQuality; q2 < end2; ++q2) {
           if (isUseQuality) {
-	    double e1 = errorProbFromQual(q1, qualityOffset1, isPhred1);
-            double c1 = qualityCertainty(e1, letterProbs1[unmasked1]);
-	    double e2 = errorProbFromQual(q2, qualityOffset2, isPhred2);
-            double c2 = qualityCertainty(e2, letterProbs2[unmasked2]);
+            double c1 = certainties1[unmasked1][q1];
+            double c2 = certainties2[unmasked2][q2];
             score = qualityPairScore(expScore, c1, c2, lambda);
           }
 
