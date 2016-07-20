@@ -51,8 +51,6 @@ inline double qualityCertainty(double errorProb, double letterProb) {
 inline int qualityPairScore(double expScore, double certainty1,
 			    double certainty2, double lambda) {
   double x = certainty1 * certainty2 * (expScore - 1) + 1;
-  assert(lambda > 0);
-  assert(x > 0);
   return nearestInt(std::log(x) / lambda);
 }
 

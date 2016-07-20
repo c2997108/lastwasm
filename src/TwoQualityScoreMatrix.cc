@@ -69,15 +69,14 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
 
   for (int letter1 = 0; letter1 < scoreMatrixRowSize; ++letter1) {
     for (int letter2 = 0; letter2 < scoreMatrixRowSize; ++letter2) {
+      bool isNormal1 = (letter1 < indexer.numNormalLetters);
+      bool isNormal2 = (letter2 < indexer.numNormalLetters);
+      bool isNormal = (isNormal1 && isNormal2);
+
       int unmasked1 = toUnmasked[letter1];
       int unmasked2 = toUnmasked[letter2];
 
       bool isMasked = (unmasked1 != letter1 || unmasked2 != letter2);
-      bool isMask = (isApplyMasking && isMasked);
-
-      bool isNormal1 = (unmasked1 < indexer.numNormalLetters);
-      bool isNormal2 = (unmasked2 < indexer.numNormalLetters);
-      bool isUseQuality = (isNormal1 && isNormal2);
 
       int score = scoreMatrix[unmasked1][unmasked2];
       double expScore = std::exp(lambda * score);
@@ -87,14 +86,14 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
 
       for (int q1 = indexer.minQuality; q1 < end1; ++q1) {
         for (int q2 = indexer.minQuality; q2 < end2; ++q2) {
-          if (isUseQuality) {
-            double c1 = certainties1[unmasked1][q1];
-            double c2 = certainties2[unmasked2][q2];
+	  if (isMasked) {
+	    score = data[indexer(unmasked1, unmasked2, q1, q2)];
+	    if (isApplyMasking) score = std::min(score, 0);
+	  } else if (isNormal) {
+            double c1 = certainties1[letter1][q1];
+            double c2 = certainties2[letter2][q2];
             score = qualityPairScore(expScore, c1, c2, lambda);
           }
-
-          if (isMask) score = std::min(score, 0);
-
           data[indexer(letter1, letter2, q1, q2)] = score;
         }
       }
