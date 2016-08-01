@@ -134,9 +134,15 @@ def gapProbsFromCounts(counts, opts):
     insCloseProb = 1 - insExtendProb
     firstDelProb = delOpenProb * delCloseProb
     firstInsProb = insOpenProb * insCloseProb
-    # if we define "alignment" to mean "set of indistinguishable paths":
+
+    # If we define "an alignment" to mean "a set of indistinguishable
+    # paths", then:
     #delExtendProb += firstDelProb
     #insExtendProb += firstInsProb
+    # Else, this ensures gap existence cost >= 0:
+    delExtendProb = max(delExtendProb, firstDelProb)
+    insExtendProb = max(insExtendProb, firstInsProb)
+
     delExistProb = firstDelProb / delExtendProb
     insExistProb = firstInsProb / insExtendProb
 
