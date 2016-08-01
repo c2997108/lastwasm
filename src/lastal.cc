@@ -140,6 +140,7 @@ void makeQualityScorers(){
 		   "quality data not used for DNA-versus-protein alignment" );
 
   const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
+  bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
   double lambda = lambdaCalculator.lambda();
   const double* lp1 = lambdaCalculator.letterProbs1();
   bool isPhred1 = isPhred( referenceFormat );
@@ -188,7 +189,6 @@ void makeQualityScorers(){
       }
     }
     else if( args.inputFormat == sequenceFormat::prb ){
-      bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
       qualityPssmMaker.init( m, alph.size, lambda, isMatchMismatch,
                              args.matchScore, -args.mismatchCost,
                              offset2, alph.numbersToUppercase );
@@ -203,22 +203,26 @@ void makeQualityScorers(){
       if( args.maskLowercase > 0 )
 	twoQualityMatrixMasked.init( m, lambda, lp1, lp2,
 				     isPhred1, offset1, isPhred2, offset2,
-				     alph.numbersToUppercase, true);
+				     alph.numbersToUppercase, true,
+				     isMatchMismatch );
       if( args.maskLowercase < 3 )
 	twoQualityMatrix.init( m, lambda, lp1, lp2,
 			       isPhred1, offset1, isPhred2, offset2,
-			       alph.numbersToUppercase, false );
+			       alph.numbersToUppercase, false,
+			       isMatchMismatch );
       if( args.outputType > 3 )
         ERR( "fastq-versus-fastq column probabilities not implemented" );
       if( args.isQueryStrandMatrix && args.strand != 1 ){
 	if( args.maskLowercase > 0 )
 	  twoQualityMatrixRevMasked.init( mRev, lambda, lp1rev, lp2rev,
 					  isPhred1, offset1, isPhred2, offset2,
-					  alph.numbersToUppercase, true );
+					  alph.numbersToUppercase, true,
+					  isMatchMismatch );
 	if( args.maskLowercase < 3 )
 	  twoQualityMatrixRev.init( mRev, lambda, lp1rev, lp2rev,
 				    isPhred1, offset1, isPhred2, offset2,
-				    alph.numbersToUppercase, false );
+				    alph.numbersToUppercase, false,
+				    isMatchMismatch );
       }
     }
     else{
