@@ -90,7 +90,8 @@ Cosmetic options
       reference start, reference end, E-value, bit score.  The start
       coordinates are one-based.  *Warning:* this is a lossy format,
       because it does not show gap positions.  *Warning:* the other
-      LAST programs cannot read this format.
+      LAST programs cannot read this format.  *Warning:* `"bit score"
+      is not the same as "score" <last-evalues.html>`_.
 
       **BlastTab+** format is the same as BlastTab, with 2 extra
       columns at the end: length of query sequence and length of
@@ -98,6 +99,19 @@ Cosmetic options
 
       For backwards compatibility, a NAME of 0 means TAB and 1 means
       MAF.
+
+E-value options
+~~~~~~~~~~~~~~~
+
+  -D LENGTH
+      Report alignments that are expected by chance at most once per
+      LENGTH query letters.  This option only affects the default
+      value of -E, so if you specify -E then -D has no effect.
+
+  -E THRESHOLD
+      Maximum EG2 (`expected alignments per square giga
+      <last-evalues.html>`_).  This option only affects the default
+      value of -e, so if you specify -e then -E has no effect.
 
 Score options
 ~~~~~~~~~~~~~
@@ -188,19 +202,6 @@ Score options
       option -j1, then -d and -e mean the same thing.  If you set
       both, -e will prevail.)
 
-E-value options
-~~~~~~~~~~~~~~~
-
-  -D LENGTH
-      Report alignments that are expected by chance at most once per
-      LENGTH query letters.  This option only affects the default
-      value of -E, so if you specify -E then -D has no effect.
-
-  -E THRESHOLD
-      Maximum EG2 (expected alignments per square giga).  This option
-      only affects the default value of -e, so if you specify -e then
-      -E has no effect.
-
 Initial-match options
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -247,6 +248,36 @@ Miscellaneous options
       applies to either strand of the reference aligned to the forward
       strand of the query.
 
+  -K LIMIT
+      Omit any alignment whose query range lies in LIMIT or more other
+      alignments with higher score (and on the same strand).  This is
+      a useful way to get just the top few hits to each part of each
+      query (P Berman et al. 2000, J Comput Biol 7:293-302).
+
+  -C LIMIT
+      Before extending gapped alignments, discard any gapless
+      alignment whose query range lies in LIMIT or more others (for
+      the same strand and volume) with higher score-per-length.  This
+      can reduce run time and output size (MC Frith & R Kawaguchi
+      2015, Genome Biol 16:106).
+
+  -P THREADS
+      Divide the work between this number of threads running in
+      parallel.  0 means use as many threads as your computer claims
+      it can handle simultaneously.  Single query sequences are not
+      divided between threads, so you need multiple queries per batch
+      for this option to take effect.
+
+  -i BYTES
+      Search queries in batches of at most this many bytes.  If a
+      single sequence exceeds this amount, however, it is not split.
+      You can use suffixes K, M, and G to specify KibiBytes,
+      MebiBytes, and GibiBytes.  This option has no effect on the
+      results (apart from their order).
+
+      If the reference was split into volumes by lastdb, then each
+      volume will be read into memory once per query batch.
+
   -M  Find minimum-difference alignments, which is faster but cruder.
       This treats all matches the same, and minimizes the number of
       differences (mismatches plus gaps).
@@ -278,36 +309,6 @@ Miscellaneous options
       start at one query position, if it gets COUNT successful
       extensions, it skips any remaining initial matches starting at
       that position.
-
-  -C LIMIT
-      Before extending gapped alignments, discard any gapless
-      alignment whose query range lies in LIMIT or more others (for
-      the same strand and volume) with higher score-per-length.  This
-      can reduce run time and output size (MC Frith & R Kawaguchi
-      2015, Genome Biol 16:106).
-
-  -K LIMIT
-      Omit any alignment whose query range lies in LIMIT or more other
-      alignments with higher score (and on the same strand).  This is
-      a useful way to get just the top few hits to each part of each
-      query (P Berman et al. 2000, J Comput Biol 7:293-302).
-
-  -i BYTES
-      Search queries in batches of at most this many bytes.  If a
-      single sequence exceeds this amount, however, it is not split.
-      You can use suffixes K, M, and G to specify KibiBytes,
-      MebiBytes, and GibiBytes.  This option has no effect on the
-      results (apart from their order).
-
-      If the reference was split into volumes by lastdb, then each
-      volume will be read into memory once per query batch.
-
-  -P THREADS
-      Divide the work between this number of threads running in
-      parallel.  0 means use as many threads as your computer claims
-      it can handle simultaneously.  Single query sequences are not
-      divided between threads, so you need multiple queries per batch
-      for this option to take effect.
 
   -R DIGITS
       Specify lowercase-marking of repeats, by two digits (e.g. "-R 01"),

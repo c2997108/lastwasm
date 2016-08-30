@@ -89,10 +89,21 @@ LastalArguments::LastalArguments() :
 void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
   programName = argv[0];
   std::string usage = "Usage: " + std::string(programName) +
-    " [options] lastdb-name fasta-sequence-file(s)";
+    " [options] lastdb-name fasta-sequence-file(s)\n\
+Find and align similar sequences.\n\
+\n\
+Cosmetic options:\n\
+-h, --help: show all options and their default settings, and exit\n\
+-V, --version: show version information, and exit\n\
+-v: be verbose: write messages about what lastal is doing\n\
+-f: output format: TAB, MAF, BlastTab, BlastTab+ (default=MAF)";
 
   std::string help = usage + "\n\
-Find local sequence alignments.\n\
+\n\
+E-value options (default settings):\n\
+-D: query letters per random alignment ("
+    + stringify(queryLettersPerRandomAlignment) + ")\n\
+-E: maximum expected alignments per square giga (1e+18/D/refSize/numOfStrands)\n\
 \n\
 Score options (default settings):\n\
 -r: match score   (2 if -M, else  6 if 0<Q<5, else 1 if DNA)\n\
@@ -110,17 +121,6 @@ Score options (default settings):\n\
 -d: minimum score for gapless alignments (min[e, t*ln(1000*refSize/n)])\n\
 -e: minimum score for gapped alignments\n\
 \n\
-E-value options (default settings):\n\
--D: query letters per random alignment ("
-    + stringify(queryLettersPerRandomAlignment) + ")\n\
--E: maximum expected alignments per square giga (1e+18/D/refSize/numOfStrands)\n\
-\n\
-Cosmetic options (default settings):\n\
--h, --help: show all options and their default settings, and exit\n\
--V, --version: show version information, and exit\n\
--v: be verbose: write messages about what lastal is doing\n\
--f: output format: TAB, MAF, BlastTab, BlastTab+ (MAF)\n\
-\n\
 Initial-match options (default settings):\n\
 -m: maximum initial matches per query position ("
     + stringify(oneHitMultiplicity) + ")\n\
@@ -135,15 +135,15 @@ Miscellaneous options (default settings):\n\
 -s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
 -S: score matrix applies to forward strand of: 0=reference, 1=query ("
     + stringify(isQueryStrandMatrix) + ")\n\
+-K: omit alignments whose query range lies in >= K others with > score (off)\n\
+-C: omit gapless alignments in >= C others with > score-per-length (off)\n\
+-P: number of parallel threads ("
+    + stringify(numOfThreads) + ")\n\
+-i: query batch size (8 KiB, unless there is > 1 thread or lastdb volume)\n\
 -M: find minimum-difference alignments (faster but cruder)\n\
 -T: type of alignment: 0=local, 1=overlap ("
     + stringify(globality) + ")\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
--C: omit gapless alignments in >= C others with > score-per-length (off)\n\
--K: omit alignments whose query range lies in >= K others with > score (off)\n\
--i: query batch size (8 KiB, unless there is > 1 thread or lastdb volume)\n\
--P: number of parallel threads ("
-    + stringify(numOfThreads) + ")\n\
 -R: repeat-marking options (the same as was used for lastdb)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
     2=gapless+postmask, 3=always (2 if lastdb -c and Q<5, else 0)\n\
@@ -472,7 +472,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   if( batchSize == 0 ){
     // With voluming, we want the batches to be as large as will
     // comfortably fit into memory, because each volume gets read from
-    // disk once per batch.
+    // disk once per batch.  With multi-threads, we want large batches
+    // so that long query sequences can be processed in parallel.
     if( !isVolumes && realNumOfThreads == 1 )
       batchSize = 0x2000;  // 8 Kbytes (?)
     else if( inputFormat == sequenceFormat::pssm )
@@ -482,8 +483,10 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     else if( inputFormat == sequenceFormat::prb )
       batchSize = 0x2000000;  // 32 Mbytes (?)
     else
-      batchSize = 0x8000000;  // 128 Mbytes
-    // (should we reduce the 128 Mbytes, for fewer out-of-memory errors?)
+      batchSize = 0x4000000;  // 64 Mbytes (?)
+    // 128 Mbytes seemed to sometimes use excessive memory to store
+    // the alignments.  I suspect 64 Mbytes may still be too much
+    // sometimes.
     if( verbosity )
       std::cerr << programName << ": batch size=" << batchSize << '\n';
   }

@@ -56,22 +56,22 @@ Main Options:\n\
 -p: interpret the sequences as proteins\n\
 -R: repeat-marking options (default="
     + stringify(isKeepLowercase) + stringify(tantanSetting) + ")\n\
--c: soft-mask lowercase letters";
+-c: soft-mask lowercase letters\n\
+-u: seeding scheme (default: YASS for DNA, else exact-match seeds)";
 
   std::string help = usage + "\n\
 \n\
 Advanced Options (default settings):\n\
--Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina ("
-      + stringify(inputFormat) + ")\n\
--s: volume size (unlimited)\n\
--m: seed pattern (non-DNA: 1)\n\
--u: seeding scheme (DNA: YASS)\n\
 -w: use initial matches starting at every w-th position in each sequence ("
     + stringify(indexStep) + ")\n\
 -W: use \"minimum\" positions in sliding windows of W consecutive positions ("
     + stringify(minimizerWindow) + ")\n\
+-s: volume size (unlimited)\n\
+-Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina ("
+      + stringify(inputFormat) + ")\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
+-m: seed pattern\n\
 -a: user-defined alphabet\n\
 -i: minimum limit on initial matches per query position ("
     + stringify(minSeedLimit) + ")\n\

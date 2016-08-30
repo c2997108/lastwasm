@@ -64,20 +64,6 @@ The fraction of positions that are "minimum" is roughly: 2 / (W + 1).
 Other options
 ~~~~~~~~~~~~~
 
-lastdb -i
----------
-
-This option **makes lastdb faster**, but disables some lastal options.
-If lastdb is too slow, try -i10.
-
-lastdb -C
----------
-
-This option may make lastal a bit **faster**, but **uses more memory
-and disk**, and makes lastdb slower.  If these downsides are no
-problem, you may as well try it.  -C3 is fastest (at least sometimes)
-but uses most memory, -C2 is almost as fast.
-
 lastal -m
 ---------
 
@@ -96,6 +82,14 @@ the minimum length of initial matches, e.g. -l50 means length 50.
 sensitivity is adequate if the alignments contain long, gapless,
 high-identity matches.
 
+lastal -C
+---------
+
+This option (gapless alignment culling) can make lastal **faster** but
+**less sensitive**.  It can also **reduce redundant output**.  For
+example, -C2 makes it discard alignments (before gapped extension)
+whose query coordinates lie in those of 2 or more stronger alignments.
+
 lastal -x
 ---------
 
@@ -108,14 +102,6 @@ Unfortunately, the default is a complex function of the other
 parameters and the database size.  You can see it in the lastal header
 after "x=", e.g. by running lastal with no queries.  Then try, say,
 halving it.
-
-lastal -C
----------
-
-This option (gapless alignment culling) can make lastal **faster** but
-**less sensitive**.  It can also **reduce redundant output**.  For
-example, -C2 makes it discard alignments (before gapped extension)
-whose query coordinates lie in those of 2 or more stronger alignments.
 
 lastal -M
 ---------
@@ -136,6 +122,19 @@ lastal -f
 ---------
 
 Option -fTAB **reduces the output size**, which can improve speed.
+
+lastdb -i
+---------
+
+This option **makes lastdb faster**, but disables some lastal options.
+If lastdb is too slow, try -i10.
+
+lastdb -C2
+----------
+
+This option may make lastal a bit **faster**, but **uses more memory
+and disk**, and makes lastdb slower.  If these downsides are no
+problem, you may as well try it.
 
 Repeat masking
 --------------
