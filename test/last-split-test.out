@@ -13,7 +13,7 @@ Options:
  -M, --mean=MEAN    mean of ln[intron length] (default=7)
  -S, --sdev=SDEV    standard deviation of ln[intron length] (default=1.7)
  -m, --mismap=PROB  maximum mismap probability (default=0.01)
- -s, --score=INT    minimum alignment score (default=e OR e+t*ln[1000])
+ -s, --score=INT    minimum alignment score (default=e OR e+t*ln[100])
  -n, --no-split     write original, not split, alignments
  -v, --verbose      be verbose
  -V, --version      show version information and exit
@@ -5042,7 +5042,7 @@ p                                        &,1578888888888888888888888888888888888
 #
 # name start alnSize strand seqSize alignment
 #
-# m=0.01 s=150 d=1 c=0 t=1e-05 M=7 S=1.7
+# m=0.01 s=140 d=1 c=0 t=1e-05 M=7 S=1.7
 # trans=-148
 #
 a score=221 mismap=1e-10
@@ -6605,6 +6605,12 @@ s SRR359290.9305        1 74 +        75 CCCTGCCTACTTCTGACGCCTCTCCTGGCGTTTCAGAAT
 q SRR359290.9305                         <4>1(12-(:=2?-/3=)3;+?6;:.=1'<,9<>?B2?33<?5:=???B>=>@=????8??)????B?B#####
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=141 mismap=1e-10
+s chrM           15754 75 + 16571 CTGAATCGGAGGACAACCAGTAAGCTACCCTTTTACCATCATTGGACAAGTAGCATCCGTACTATACTTCACAAC
+s SRR359290.9307     0 75 +    75 CTGAATCGGAGGACAACGAGTAAGCTACCCTTTTACCATCATTGGACAAGGAGCATCCGTACCATACTTCACAAC
+q SRR359290.9307                  ###########################################################################
+p                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=340 mismap=1e-10
 s chr8           98656599 75 + 146364022 GCTCCGGCGCGAGGGACGGCCGCGATGCGCTCGGCCTGAGGTTACCCGGCCCGGCCCTTCCTCGCTTCCCTCGAC
 s SRR359290.9308        0 75 -        75 GCTCCGGCGCGCGGGACGGCCCCGATGCGCTCGGCCTGAGGTTACCCGGCCCGGCCCTTCCTCGCTTCCCTCGAC
@@ -7498,6 +7504,12 @@ s chr1           153910199 63 + 249250621 CAGTACTGGGGAGTGGATTCACTGCCCTCTGGTAAGGC
 s SRR359290.9486        12 63 -        75 CAGTACTGGGGAGTGGATTCACTGCCCTCTGGTAAGGCAGGCTCCTCGGGAGGTGTGATAAAG
 q SRR359290.9486                          FFDCGGGGBGGGGDFGGGFGGBGGDFGGGFGGEGGDGGFGGGGGGGGGGGEGGGGEGDGGGGG
 p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a score=143 mismap=1e-10
+s chr2           240952713 75 + 243199373 ttttacctgatgacagtattgaagactttacttggaaaaattaagaagttgacagctctactttagacctcagaa
+s SRR359290.9488         0 75 +        75 TTTTACCTGATGACAGTATTGGCAATTTTACTTGGAAAAATTAAGAAGATGACAGCTCTACTTTAGACCTCAGAA
+q SRR359290.9488                          6?#########################################################################
+p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 a score=441 mismap=8.73e-08
 s chrM           10922 75 + 16571 ACCTTTTCCTCCGACCCCCTAACAACCCCCCTCCTAATACTAACTACCTGACTCCTACCCCTCACAATCATGGCA
@@ -8417,6 +8429,12 @@ s SRR359290.9686       27 48 -        75 CTTATTACAGCCAAACTTACACAGATAAGTTCCAATATG
 q SRR359290.9686                         EEEBAA;5:C@CC:>A?A:?BDCCC:A=CBBAEEE?CED=DBC:DDDD
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=140 mismap=1e-10
+s chrM           6870 75 + 16571 TGACTCGCCACACTCCACGGAAGCAATATGAAATGATCTGCTGCAGTGCTCTGAGCCCTAGGATTCATCTTTCTT
+s SRR359290.9689    0 75 -    75 TGCCTCGCCGCGCTCCGCCGCAGCAATCTGAACTGGTCGCCGGCCGTGCTCCGAGCCCTAGGATTCATCTTTCTT
+q SRR359290.9689                 ###################################################################B5B0BB,B
+p                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=234 mismap=2.79e-09
 s chr19          35761985 39 + 59128983 AAAAATTGATGGAACCAGAACACCCCGAGATGAGAGGAG
 s SRR359290.9690       36 39 -       75 AAAAATTGATGGAACCAGAACACCCCGAGATGAGAGGAG
@@ -8783,6 +8801,12 @@ s SRR359290.9764         0 75 -        75 ATCAGGCTTTGAGCCCACGTCGGGCCTTGGGGGCGGCA
 q SRR359290.9764                          @FBEEAEEEDEDEGEBCDF=EGGEDEGEEEGEEGGFFEFGGGEGFGGCFGGDGFFGGGGGGGGGGGGFGGGGGGG
 p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=141 mismap=1e-10
+s chr17          26713249 73 + 81195210 ggaagttaaggccgcagtgaactgtgatcaggtcactacactccatccagcctaggcagcaggagtgagaccc
+s SRR359290.9765        2 73 +       75 GGAAGTTAAGGCCGCAGTGAATTGTGCCCAGGACACTGCACCCCACCGCGCCTAGGCAGAAGGAGCGAGACCC
+q SRR359290.9765                        55A?=5C##################################################################
+p                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=450 mismap=1.12e-09
 s chrM           1714 75 + 16571 ACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCG
 s SRR359290.9766    0 75 -    75 ACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCG
@@ -9131,6 +9155,12 @@ s SRR359290.9835        1 72 -        75 CTTGTGGGTCGGCTGTTGGATCATCCCGGGGAGGGCTGC
 q SRR359290.9835                         #######################################?:,<?838?B97B13@73+A;)>),+4631<,>
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=143 mismap=1e-10
+s chr1           8073706 75 + 249250621 TGGGAGGCCTGTCTTCATCACTATAGGTGCTCGAAGTAACTTCTGCTGACCATCTTCTATAATCTGGCTTTACTG
+s SRR359290.9836       0 75 -        75 TGGGAGGCCTGTCTTATTCACTATAGGTGCTCTAAGTTACTTCTGCTGACCATCTTCTATAATCTGGCTGTACTG
+q SRR359290.9836                        #########################################################################?@
+p                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=450 mismap=1e-10
 s chr2           178481057 75 + 243199373 CAGTGACCAAATGCAAACATACCCGTACTAACAGTGCTTTGGTCCATGACATACCCTTTTGACAGCCCAAAGCTG
 s SRR359290.9837         0 75 -        75 CAGTGACCAAATGCAAACATACCCGTACTAACAGTGCTTTGGTCCATGACATACCCTTTTGACAGCCCAAAGCTG
@@ -9148,6 +9178,12 @@ s chrM           1786 75 + 16571 CCGCAAGGGAAAGATGAAAAATTATAACCAAGCATAATATAGCAAGG
 s SRR359290.9840    0 75 +    75 CCGCAAGGGAAAGATGAAAAATTATAACCAAGCATAATATAGCAAGGACTAACCCCTATACCTTCTGCATAATGA
 q SRR359290.9840                 GGGGGGGGGGGGGDGFGGGGGGGGGGGGGGDGAD?EAEDAEDDECFBEE=FFFFFBBF?FF=FDBEFEF?EBC=E
 p                                888888888888888888888888888888888888888888888888888888888888888888888888888
+
+a score=140 mismap=1e-10
+s chrM           15392 75 + 16571 GATAAAATCACCTTCCACCCTTACTACACAATCAAAGACGCCCTCGGCTTACTTCTCTTCCTTCTCTCCTTAATG
+s SRR359290.9845     0 75 -    75 GCTAAACTCACCTTCCCCCCTTACTACACAATCAAAGACGCCCTCGGCTTACTCCTCTTCCTCCTCTCCATAATG
+q SRR359290.9845                  #########################################################################@@
+p                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 a score=446 mismap=1e-10
 s chr5           154179220 75 + 180915260 GGCCTCTTCCCCCAATAGTGGATTATTCACAGACTGATTTCTCCCAGCTTCTCAACTGCCCTGAATTTGTTCCCC
@@ -9635,6 +9671,12 @@ s SRR359290.9953        0 75 -        75 CCCTTTCATTTTCCTTCTACCCCCTCTAGGAATGGGAGT
 q SRR359290.9953                         GEBBEDG?EBEEFFEEGEEEGGFFAGGGGGFGGGGGGGGGDGGGDGGGGGGFFGGGDGFGGGGGGFGGGDGGGGG
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=148 mismap=0.00411
+s chr17          79477628 75 + 81195210 CTAGCATGAGGTGTGTGCATTTGCCAGGGGCAAATTTCTATTCTCAATTAACCCATGCAGCAAATGCTACGCATC
+s SRR359290.9954        0 75 +       75 CTAGCATGCGGTGTGTGCATTTGCCAGGGGCAAATTTCTATTCTCAATTAACCCATGCAGCACATGCTACGCATC
+q SRR359290.9954                        @##########################################################################
+p                                       888888888888888888888888888888888888888888888888888888888888888888888888888
+
 a score=450 mismap=1e-10
 s chr20          3019611 75 + 63025520 GGCTCAGCTTTGGGCTGAGGCCAGTCTGACCTCTCCAGTCTGTGGTGCTTTGCTACAAAACTGTCTGGATTGTGT
 s SRR359290.9955       0 75 -       75 GGCTCAGCTTTGGGCTGAGGCCAGTCTGACCTCTCCAGTCTGTGGTGCTTTGCTACAAAACTGTCTGGATTGTGT
@@ -9882,7 +9924,7 @@ p                                        888888888888888888888888888888888888888
 #
 # name start alnSize strand seqSize alignment
 #
-# m=0.01 s=150 d=1 c=0.004 t=0 M=7 S=1.7
+# m=0.01 s=140 d=1 c=0.004 t=0 M=7 S=1.7
 #
 a score=221 mismap=1e-10
 s chr1           160106735 75 + 249250621 TTCTTTGCCAGCATCGTGGTGGTGCAGTGGGCTGACCTCATCATCTGCAAGACCCGCCGCAACTCAGTCTTCCAG
@@ -10549,6 +10591,12 @@ s chr19          10284546 34 + 59128983 CGTTCTCTGGATGTAACTCTACGTCTCTTCTCAT
 s SRR359290.9129        6 34 +       75 CGTTCTCTGGATGTAACTCTACGTCTCTTCTCAT
 q SRR359290.9129                        5?C=CA:A?=-?=B55B9:ABCA=C4;>;=4CC6
 p                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~xiZK
+
+a score=147 mismap=2.16e-07
+s chr19          10286214 35 + 59128983 CCTGGTCTTTGTCTTCTTCCTTGATGGACTCATCC
+s SRR359290.9129       40 35 +       75 CCTGGTCTTTGGCTTCTTCGTTGATGGACTCATCC
+q SRR359290.9129                        ?B5A-C5:??B,>?B47)-9532.=C@:@######
+p                                       !#$'KZbcccccccccccccccccccccccccccc
 
 a score=437 mismap=1e-10
 s chrX           134227949 75 + 155270560 TGAGCAGAACCGGCCTTCCTGCCTTCCCTTCCTCTGTTGCAAGGATGGGCCTCTTCAGGAGGCCTTGGAGCCAGG
@@ -11462,6 +11510,12 @@ s SRR359290.9305        1 74 +        75 CCCTGCCTACTTCTGACGCCTCTCCTGGCGTTTCAGAAT
 q SRR359290.9305                         <4>1(12-(:=2?-/3=)3;+?6;:.=1'<,9<>?B2?33<?5:=???B>=>@=????8??)????B?B#####
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=141 mismap=1e-10
+s chrM           15754 75 + 16571 CTGAATCGGAGGACAACCAGTAAGCTACCCTTTTACCATCATTGGACAAGTAGCATCCGTACTATACTTCACAAC
+s SRR359290.9307     0 75 +    75 CTGAATCGGAGGACAACGAGTAAGCTACCCTTTTACCATCATTGGACAAGGAGCATCCGTACCATACTTCACAAC
+q SRR359290.9307                  ###########################################################################
+p                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=340 mismap=1e-10
 s chr8           98656599 75 + 146364022 GCTCCGGCGCGAGGGACGGCCGCGATGCGCTCGGCCTGAGGTTACCCGGCCCGGCCCTTCCTCGCTTCCCTCGAC
 s SRR359290.9308        0 75 -        75 GCTCCGGCGCGCGGGACGGCCCCGATGCGCTCGGCCTGAGGTTACCCGGCCCGGCCCTTCCTCGCTTCCCTCGAC
@@ -11491,6 +11545,12 @@ s chr9           131348027 51 + 141213431 CCATTTTGCTGCAGAGGATGTGAAGGCCAAGCTTCACG
 s SRR359290.9313        24 51 -        75 CCGTTTTGCTGCAGAGGATGTGAAGGCCAAGCTTCACGAGCTGAACCAAAA
 q SRR359290.9313                          27*:1B>>:=@C,D@CDC?DBB4C>@:A::AA=DBDACAC:DD==DDDDAD
 p                                         JW[jy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a score=144 mismap=6.82e-08
+s chr9           131347099 24 + 141213431 GGGGAATGCCATGGTGGAGGAAGG
+s SRR359290.9313         0 24 -        75 GGGGAATGCCATGGTGGAGGAAGG
+q SRR359290.9313                          BDBDB9<B:2>89C?CA=CC2=B>
+p                                         hhhhhhhhhhhhhhhhhheYJ'$"
 
 a score=446 mismap=1.1e-06
 s chrM           798 75 + 16571 CCACACCCCCACGGGAAACAGCAGTGATTAACCTTTAGCAATAAACGAAAGTTTAACTAAGCTATACTAACCCCA
@@ -12349,6 +12409,12 @@ s chr1           153910199 63 + 249250621 CAGTACTGGGGAGTGGATTCACTGCCCTCTGGTAAGGC
 s SRR359290.9486        12 63 -        75 CAGTACTGGGGAGTGGATTCACTGCCCTCTGGTAAGGCAGGCTCCTCGGGAGGTGTGATAAAG
 q SRR359290.9486                          FFDCGGGGBGGGGDFGGGFGGBGGDFGGGFGGEGGDGGFGGGGGGGGGGGEGGGGEGDGGGGG
 p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a score=143 mismap=1e-10
+s chr2           240952713 75 + 243199373 ttttacctgatgacagtattgaagactttacttggaaaaattaagaagttgacagctctactttagacctcagaa
+s SRR359290.9488         0 75 +        75 TTTTACCTGATGACAGTATTGGCAATTTTACTTGGAAAAATTAAGAAGATGACAGCTCTACTTTAGACCTCAGAA
+q SRR359290.9488                          6?#########################################################################
+p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 a score=441 mismap=8.73e-08
 s chrM           10922 75 + 16571 ACCTTTTCCTCCGACCCCCTAACAACCCCCCTCCTAATACTAACTACCTGACTCCTACCCCTCACAATCATGGCA
@@ -13286,6 +13352,12 @@ s SRR359290.9686        0 26 -        75 GGACAATTAAACTTAAAAGATAAATC
 q SRR359290.9686                         BE?BBE:?BCDEAEDEEBE?DEDED?
 p                                        iiiiiiiiiiiiiiiiiiiiii_PA2
 
+a score=140 mismap=1e-10
+s chrM           6870 75 + 16571 TGACTCGCCACACTCCACGGAAGCAATATGAAATGATCTGCTGCAGTGCTCTGAGCCCTAGGATTCATCTTTCTT
+s SRR359290.9689    0 75 -    75 TGCCTCGCCGCGCTCCGCCGCAGCAATCTGAACTGGTCGCCGGCCGTGCTCCGAGCCCTAGGATTCATCTTTCTT
+q SRR359290.9689                 ###################################################################B5B0BB,B
+p                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=234 mismap=1e-10
 s chr19          35761985 39 + 59128983 AAAAATTGATGGAACCAGAACACCCCGAGATGAGAGGAG
 s SRR359290.9690       36 39 -       75 AAAAATTGATGGAACCAGAACACCCCGAGATGAGAGGAG
@@ -13646,6 +13718,12 @@ s SRR359290.9764         0 75 -        75 ATCAGGCTTTGAGCCCACGTCGGGCCTTGGGGGCGGCA
 q SRR359290.9764                          @FBEEAEEEDEDEGEBCDF=EGGEDEGEEEGEEGGFFEFGGGEGFGGCFGGDGFFGGGGGGGGGGGGFGGGGGGG
 p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=141 mismap=1e-10
+s chr17          26713249 73 + 81195210 ggaagttaaggccgcagtgaactgtgatcaggtcactacactccatccagcctaggcagcaggagtgagaccc
+s SRR359290.9765        2 73 +       75 GGAAGTTAAGGCCGCAGTGAATTGTGCCCAGGACACTGCACCCCACCGCGCCTAGGCAGAAGGAGCGAGACCC
+q SRR359290.9765                        55A?=5C##################################################################
+p                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=450 mismap=1.12e-09
 s chrM           1714 75 + 16571 ACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCG
 s SRR359290.9766    0 75 -    75 ACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCG
@@ -13994,6 +14072,12 @@ s SRR359290.9835        1 72 -        75 CTTGTGGGTCGGCTGTTGGATCATCCCGGGGAGGGCTGC
 q SRR359290.9835                         #######################################?:,<?838?B97B13@73+A;)>),+4631<,>
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=143 mismap=1e-10
+s chr1           8073706 75 + 249250621 TGGGAGGCCTGTCTTCATCACTATAGGTGCTCGAAGTAACTTCTGCTGACCATCTTCTATAATCTGGCTTTACTG
+s SRR359290.9836       0 75 -        75 TGGGAGGCCTGTCTTATTCACTATAGGTGCTCTAAGTTACTTCTGCTGACCATCTTCTATAATCTGGCTGTACTG
+q SRR359290.9836                        #########################################################################?@
+p                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=450 mismap=1e-10
 s chr2           178481057 75 + 243199373 CAGTGACCAAATGCAAACATACCCGTACTAACAGTGCTTTGGTCCATGACATACCCTTTTGACAGCCCAAAGCTG
 s SRR359290.9837         0 75 -        75 CAGTGACCAAATGCAAACATACCCGTACTAACAGTGCTTTGGTCCATGACATACCCTTTTGACAGCCCAAAGCTG
@@ -14011,6 +14095,12 @@ s chrM           1786 75 + 16571 CCGCAAGGGAAAGATGAAAAATTATAACCAAGCATAATATAGCAAGG
 s SRR359290.9840    0 75 +    75 CCGCAAGGGAAAGATGAAAAATTATAACCAAGCATAATATAGCAAGGACTAACCCCTATACCTTCTGCATAATGA
 q SRR359290.9840                 GGGGGGGGGGGGGDGFGGGGGGGGGGGGGGDGAD?EAEDAEDDECFBEE=FFFFFBBF?FF=FDBEFEF?EBC=E
 p                                888888888888888888888888888888888888888888888888888888888888888888888888888
+
+a score=140 mismap=1e-10
+s chrM           15392 75 + 16571 GATAAAATCACCTTCCACCCTTACTACACAATCAAAGACGCCCTCGGCTTACTTCTCTTCCTTCTCTCCTTAATG
+s SRR359290.9845     0 75 -    75 GCTAAACTCACCTTCCCCCCTTACTACACAATCAAAGACGCCCTCGGCTTACTCCTCTTCCTCCTCTCCATAATG
+q SRR359290.9845                  #########################################################################@@
+p                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 a score=446 mismap=1e-10
 s chr5           154179220 75 + 180915260 GGCCTCTTCCCCCAATAGTGGATTATTCACAGACTGATTTCTCCCAGCTTCTCAACTGCCCTGAATTTGTTCCCC
@@ -14227,6 +14317,12 @@ s chr12          104308019 75 + 133851895 acatacatgtaaagcccctagtcatcttgttaaactgc
 s SRR359290.9885         0 75 -        75 ACATACATGTAAAGCCCCTAGTCATCTTGTTAAACTGCAAATTTTAATTCAGTTGACCTGGAATGGAGCTCAAGA
 q SRR359290.9885                          DAA?BDDBC:DDBDDDDDCBA=DD:DC=DDDDDADDDDDD??D-DDD=DDAADDDA?D:DCCCA:DD:D?D?DD:
 p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a score=144 mismap=1.4e-09
+s chr10          134016149 24 + 135534747 AACGTGGAGTACAACATCTTCGAG
+s SRR359290.9887        51 24 -        75 AACGTGGAGTACAACATCTTCGAG
+q SRR359290.9887                          DAFFFFFFFFFGFGFGFGFFFFFF
+p                                         GVesyyyyyyyyyyyyyyyyyyyy
 
 a score=306 mismap=1e-10
 s chr10          134015569 51 + 135534747 ATATGGAACCCCAAGGCCACCAAGATCATCTCTGCCAAGACCCACAATCTG
@@ -14516,6 +14612,12 @@ s SRR359290.9953        0 75 -        75 CCCTTTCATTTTCCTTCTACCCCCTCTAGGAATGGGAGT
 q SRR359290.9953                         GEBBEDG?EBEEFFEEGEEEGGFFAGGGGGFGGGGGGGGGDGGGDGGGGGGFFGGGDGFGGGGGGFGGGDGGGGG
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=148 mismap=0.00411
+s chr17          79477628 75 + 81195210 CTAGCATGAGGTGTGTGCATTTGCCAGGGGCAAATTTCTATTCTCAATTAACCCATGCAGCAAATGCTACGCATC
+s SRR359290.9954        0 75 +       75 CTAGCATGCGGTGTGTGCATTTGCCAGGGGCAAATTTCTATTCTCAATTAACCCATGCAGCACATGCTACGCATC
+q SRR359290.9954                        @##########################################################################
+p                                       888888888888888888888888888888888888888888888888888888888888888888888888888
+
 a score=450 mismap=1e-10
 s chr20          3019611 75 + 63025520 GGCTCAGCTTTGGGCTGAGGCCAGTCTGACCTCTCCAGTCTGTGGTGCTTTGCTACAAAACTGTCTGGATTGTGT
 s SRR359290.9955       0 75 -       75 GGCTCAGCTTTGGGCTGAGGCCAGTCTGACCTCTCCAGTCTGTGGTGCTTTGCTACAAAACTGTCTGGATTGTGT
@@ -14775,7 +14877,7 @@ p                                        888888888888888888888888888888888888888
 #
 # name start alnSize strand seqSize alignment
 #
-# m=0.01 s=150 d=1 c=0.004 t=1e-05 M=7.5 S=2
+# m=0.01 s=140 d=1 c=0.004 t=1e-05 M=7.5 S=2
 # trans=-148
 # cismax=15271201
 #
@@ -15450,6 +15552,12 @@ s chr19          10284546 34 + 59128983 CGTTCTCTGGATGTAACTCTACGTCTCTTCTCAT
 s SRR359290.9129        6 34 +       75 CGTTCTCTGGATGTAACTCTACGTCTCTTCTCAT
 q SRR359290.9129                        5?C=CA:A?=-?=B55B9:ABCA=C4;>;=4CC6
 p                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~xiZK
+
+a score=147 mismap=2.16e-07
+s chr19          10286214 35 + 59128983 CCTGGTCTTTGTCTTCTTCCTTGATGGACTCATCC
+s SRR359290.9129       40 35 +       75 CCTGGTCTTTGGCTTCTTCGTTGATGGACTCATCC
+q SRR359290.9129                        ?B5A-C5:??B,>?B47)-9532.=C@:@######
+p                                       !#$'KZbcccccccccccccccccccccccccccc
 
 a score=437 mismap=1e-10
 s chrX           134227949 75 + 155270560 TGAGCAGAACCGGCCTTCCTGCCTTCCCTTCCTCTGTTGCAAGGATGGGCCTCTTCAGGAGGCCTTGGAGCCAGG
@@ -16363,6 +16471,12 @@ s SRR359290.9305        1 74 +        75 CCCTGCCTACTTCTGACGCCTCTCCTGGCGTTTCAGAAT
 q SRR359290.9305                         <4>1(12-(:=2?-/3=)3;+?6;:.=1'<,9<>?B2?33<?5:=???B>=>@=????8??)????B?B#####
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=141 mismap=1e-10
+s chrM           15754 75 + 16571 CTGAATCGGAGGACAACCAGTAAGCTACCCTTTTACCATCATTGGACAAGTAGCATCCGTACTATACTTCACAAC
+s SRR359290.9307     0 75 +    75 CTGAATCGGAGGACAACGAGTAAGCTACCCTTTTACCATCATTGGACAAGGAGCATCCGTACCATACTTCACAAC
+q SRR359290.9307                  ###########################################################################
+p                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=340 mismap=1e-10
 s chr8           98656599 75 + 146364022 GCTCCGGCGCGAGGGACGGCCGCGATGCGCTCGGCCTGAGGTTACCCGGCCCGGCCCTTCCTCGCTTCCCTCGAC
 s SRR359290.9308        0 75 -        75 GCTCCGGCGCGCGGGACGGCCCCGATGCGCTCGGCCTGAGGTTACCCGGCCCGGCCCTTCCTCGCTTCCCTCGAC
@@ -16392,6 +16506,12 @@ s chr9           131348027 51 + 141213431 CCATTTTGCTGCAGAGGATGTGAAGGCCAAGCTTCACG
 s SRR359290.9313        24 51 -        75 CCGTTTTGCTGCAGAGGATGTGAAGGCCAAGCTTCACGAGCTGAACCAAAA
 q SRR359290.9313                          27*:1B>>:=@C,D@CDC?DBB4C>@:A::AA=DBDACAC:DD==DDDDAD
 p                                         JW[jy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a score=144 mismap=8.57e-08
+s chr9           131347099 24 + 141213431 GGGGAATGCCATGGTGGAGGAAGG
+s SRR359290.9313         0 24 -        75 GGGGAATGCCATGGTGGAGGAAGG
+q SRR359290.9313                          BDBDB9<B:2>89C?CA=CC2=B>
+p                                         ggggggggggggggggggeYJ'$"
 
 a score=446 mismap=1.1e-06
 s chrM           798 75 + 16571 CCACACCCCCACGGGAAACAGCAGTGATTAACCTTTAGCAATAAACGAAAGTTTAACTAAGCTATACTAACCCCA
@@ -17256,6 +17376,12 @@ s chr1           153910199 63 + 249250621 CAGTACTGGGGAGTGGATTCACTGCCCTCTGGTAAGGC
 s SRR359290.9486        12 63 -        75 CAGTACTGGGGAGTGGATTCACTGCCCTCTGGTAAGGCAGGCTCCTCGGGAGGTGTGATAAAG
 q SRR359290.9486                          FFDCGGGGBGGGGDFGGGFGGBGGDFGGGFGGEGGDGGFGGGGGGGGGGGEGGGGEGDGGGGG
 p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a score=143 mismap=1e-10
+s chr2           240952713 75 + 243199373 ttttacctgatgacagtattgaagactttacttggaaaaattaagaagttgacagctctactttagacctcagaa
+s SRR359290.9488         0 75 +        75 TTTTACCTGATGACAGTATTGGCAATTTTACTTGGAAAAATTAAGAAGATGACAGCTCTACTTTAGACCTCAGAA
+q SRR359290.9488                          6?#########################################################################
+p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 a score=441 mismap=8.73e-08
 s chrM           10922 75 + 16571 ACCTTTTCCTCCGACCCCCTAACAACCCCCCTCCTAATACTAACTACCTGACTCCTACCCCTCACAATCATGGCA
@@ -18199,6 +18325,12 @@ s SRR359290.9686        0 26 -        75 GGACAATTAAACTTAAAAGATAAATC
 q SRR359290.9686                         BE?BBE:?BCDEAEDEEBE?DEDED?
 p                                        ZZZZZZZZZZZZZZZZZZZZZZYPA2
 
+a score=140 mismap=1e-10
+s chrM           6870 75 + 16571 TGACTCGCCACACTCCACGGAAGCAATATGAAATGATCTGCTGCAGTGCTCTGAGCCCTAGGATTCATCTTTCTT
+s SRR359290.9689    0 75 -    75 TGCCTCGCCGCGCTCCGCCGCAGCAATCTGAACTGGTCGCCGGCCGTGCTCCGAGCCCTAGGATTCATCTTTCTT
+q SRR359290.9689                 ###################################################################B5B0BB,B
+p                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=234 mismap=1e-10
 s chr19          35761985 39 + 59128983 AAAAATTGATGGAACCAGAACACCCCGAGATGAGAGGAG
 s SRR359290.9690       36 39 -       75 AAAAATTGATGGAACCAGAACACCCCGAGATGAGAGGAG
@@ -18571,6 +18703,12 @@ s SRR359290.9764         0 75 -        75 ATCAGGCTTTGAGCCCACGTCGGGCCTTGGGGGCGGCA
 q SRR359290.9764                          @FBEEAEEEDEDEGEBCDF=EGGEDEGEEEGEEGGFFEFGGGEGFGGCFGGDGFFGGGGGGGGGGGGFGGGGGGG
 p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=141 mismap=1e-10
+s chr17          26713249 73 + 81195210 ggaagttaaggccgcagtgaactgtgatcaggtcactacactccatccagcctaggcagcaggagtgagaccc
+s SRR359290.9765        2 73 +       75 GGAAGTTAAGGCCGCAGTGAATTGTGCCCAGGACACTGCACCCCACCGCGCCTAGGCAGAAGGAGCGAGACCC
+q SRR359290.9765                        55A?=5C##################################################################
+p                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=450 mismap=1.12e-09
 s chrM           1714 75 + 16571 ACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCG
 s SRR359290.9766    0 75 -    75 ACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCG
@@ -18919,6 +19057,12 @@ s SRR359290.9835        1 72 -        75 CTTGTGGGTCGGCTGTTGGATCATCCCGGGGAGGGCTGC
 q SRR359290.9835                         #######################################?:,<?838?B97B13@73+A;)>),+4631<,>
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a score=143 mismap=1e-10
+s chr1           8073706 75 + 249250621 TGGGAGGCCTGTCTTCATCACTATAGGTGCTCGAAGTAACTTCTGCTGACCATCTTCTATAATCTGGCTTTACTG
+s SRR359290.9836       0 75 -        75 TGGGAGGCCTGTCTTATTCACTATAGGTGCTCTAAGTTACTTCTGCTGACCATCTTCTATAATCTGGCTGTACTG
+q SRR359290.9836                        #########################################################################?@
+p                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 a score=450 mismap=1e-10
 s chr2           178481057 75 + 243199373 CAGTGACCAAATGCAAACATACCCGTACTAACAGTGCTTTGGTCCATGACATACCCTTTTGACAGCCCAAAGCTG
 s SRR359290.9837         0 75 -        75 CAGTGACCAAATGCAAACATACCCGTACTAACAGTGCTTTGGTCCATGACATACCCTTTTGACAGCCCAAAGCTG
@@ -18936,6 +19080,12 @@ s chrM           1786 75 + 16571 CCGCAAGGGAAAGATGAAAAATTATAACCAAGCATAATATAGCAAGG
 s SRR359290.9840    0 75 +    75 CCGCAAGGGAAAGATGAAAAATTATAACCAAGCATAATATAGCAAGGACTAACCCCTATACCTTCTGCATAATGA
 q SRR359290.9840                 GGGGGGGGGGGGGDGFGGGGGGGGGGGGGGDGAD?EAEDAEDDECFBEE=FFFFFBBF?FF=FDBEFEF?EBC=E
 p                                888888888888888888888888888888888888888888888888888888888888888888888888888
+
+a score=140 mismap=1e-10
+s chrM           15392 75 + 16571 GATAAAATCACCTTCCACCCTTACTACACAATCAAAGACGCCCTCGGCTTACTTCTCTTCCTTCTCTCCTTAATG
+s SRR359290.9845     0 75 -    75 GCTAAACTCACCTTCCCCCCTTACTACACAATCAAAGACGCCCTCGGCTTACTCCTCTTCCTCCTCTCCATAATG
+q SRR359290.9845                  #########################################################################@@
+p                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 a score=446 mismap=1e-10
 s chr5           154179220 75 + 180915260 GGCCTCTTCCCCCAATAGTGGATTATTCACAGACTGATTTCTCCCAGCTTCTCAACTGCCCTGAATTTGTTCCCC
@@ -19152,6 +19302,12 @@ s chr12          104308019 75 + 133851895 acatacatgtaaagcccctagtcatcttgttaaactgc
 s SRR359290.9885         0 75 -        75 ACATACATGTAAAGCCCCTAGTCATCTTGTTAAACTGCAAATTTTAATTCAGTTGACCTGGAATGGAGCTCAAGA
 q SRR359290.9885                          DAA?BDDBC:DDBDDDDDCBA=DD:DC=DDDDDADDDDDD??D-DDD=DDAADDDA?D:DCCCA:DD:D?D?DD:
 p                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a score=144 mismap=1.76e-09
+s chr10          134016149 24 + 135534747 AACGTGGAGTACAACATCTTCGAG
+s SRR359290.9887        51 24 -        75 AACGTGGAGTACAACATCTTCGAG
+q SRR359290.9887                          DAFFFFFFFFFGFGFGFGFFFFFF
+p                                         GVesxxxxxxxxxxxxxxxxxxxx
 
 a score=306 mismap=1e-10
 s chr10          134015569 51 + 135534747 ATATGGAACCCCAAGGCCACCAAGATCATCTCTGCCAAGACCCACAATCTG
@@ -19440,6 +19596,12 @@ s chr11          45253895 75 + 135006516 CCCTTTCATTTTCCTTCTACCCCCTCTAGGAATGGGAGT
 s SRR359290.9953        0 75 -        75 CCCTTTCATTTTCCTTCTACCCCCTCTAGGAATGGGAGTTCTAGACCTAGGTCTGCTTTTGGCTTTCAGTCTGGG
 q SRR359290.9953                         GEBBEDG?EBEEFFEEGEEEGGFFAGGGGGFGGGGGGGGGDGGGDGGGGGGFFGGGDGFGGGGGGFGGGDGGGGG
 p                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a score=148 mismap=0.00411
+s chr17          79477628 75 + 81195210 CTAGCATGAGGTGTGTGCATTTGCCAGGGGCAAATTTCTATTCTCAATTAACCCATGCAGCAAATGCTACGCATC
+s SRR359290.9954        0 75 +       75 CTAGCATGCGGTGTGTGCATTTGCCAGGGGCAAATTTCTATTCTCAATTAACCCATGCAGCACATGCTACGCATC
+q SRR359290.9954                        @##########################################################################
+p                                       888888888888888888888888888888888888888888888888888888888888888888888888888
 
 a score=450 mismap=1e-10
 s chr20          3019611 75 + 63025520 GGCTCAGCTTTGGGCTGAGGCCAGTCTGACCTCTCCAGTCTGTGGTGCTTTGCTACAAAACTGTCTGGATTGTGT

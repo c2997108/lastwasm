@@ -213,11 +213,11 @@ Options
          threshold).  Alignments with score just above INT will get
          high mismap probabilities.
 
-         For SPLICED alignment, the default value is e + t * ln(1000),
+         For SPLICED alignment, the default value is e + t * ln(100),
          where t is a scale factor that is written in the lastal
          header.  This roughly means that, for every alignment it
          writes, it has considered alternative alignments with
-         one-thousandth the probability.  Alignments with score just
+         one-hundredth the probability.  Alignments with score just
          above INT will not necessarily get high mismap probabilities.
 
   -n, --no-split
