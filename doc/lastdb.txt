@@ -78,10 +78,10 @@ Advanced Options
 
   -w STEP
       Allow initial matches to start only at every STEP-th position in
-      each of the sequences given to lastdb.  This reduces the memory
-      usage of lastdb and lastal, and it makes lastdb faster.  Its
-      effect on the speed and sensitivity of lastal is not entirely
-      clear.
+      each of the sequences given to lastdb (positions 0, STEP,
+      2×STEP, etc).  This reduces the memory usage of lastdb and
+      lastal, and it makes lastdb faster.  Its effect on the speed and
+      sensitivity of lastal is not entirely clear.
 
   -W SIZE
       Allow initial matches to start only at positions that are

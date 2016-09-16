@@ -224,7 +224,8 @@ Initial-match options
 
   -k STEP
       Look for initial matches starting only at every STEP-th position
-      in the query.  This makes lastal faster but less sensitive.
+      in each query (positions 0, STEP, 2×STEP, etc).  This makes
+      lastal faster but less sensitive.
 
   -W SIZE
       Look for initial matches starting only at query positions that
