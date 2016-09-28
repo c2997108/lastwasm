@@ -523,6 +523,14 @@ static void writeAlignment(LastAligner &aligner, const Alignment &aln,
     printAndDelete(a.text);
 }
 
+static void writeSegmentPair(LastAligner &aligner, const SegmentPair &s,
+			     size_t queryNum, char strand,
+			     const uchar* querySeq) {
+  Alignment a;
+  a.fromSegmentPair(s);
+  writeAlignment(aligner, a, queryNum, strand, querySeq);
+}
+
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 		   size_t queryNum, char strand, const uchar* querySeq ){
@@ -563,13 +571,12 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	    args.maxGaplessAlignmentsPerQueryPosition ) break;
 
 	indexT j = *beg;  // coordinate in the reference sequence
-
 	if( dt.isCovered( i, j ) ) continue;
+	++gaplessExtensionCount;
 
 	int fs = dis.forwardGaplessScore( j, i );
 	int rs = dis.reverseGaplessScore( j, i );
 	int score = fs + rs;
-	++gaplessExtensionCount;
 
 	// Tried checking the score after isOptimal & addEndpoint, but
 	// the number of extensions decreased by < 10%, and it was
@@ -581,11 +588,10 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	indexT qBeg = i - (j - tBeg);
 	if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ) continue;
 	SegmentPair sp( tBeg, qBeg, tEnd - tBeg, score );
+	dt.addEndpoint( sp.end2(), sp.end1() );
 
 	if( args.outputType == 1 ){  // we just want gapless alignments
-	  Alignment aln;
-	  aln.fromSegmentPair(sp);
-	  writeAlignment( aligner, aln, queryNum, strand, querySeq );
+	  writeSegmentPair( aligner, sp, queryNum, strand, querySeq );
 	}
 	else{
 	  gaplessAlns.add(sp);  // add the gapless alignment to the pot
@@ -593,7 +599,6 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 
 	++gaplessAlignmentsPerQueryPosition;
 	++gaplessAlignmentCount;
-	dt.addEndpoint( sp.end2(), sp.end1() );
       }
     }
   }
