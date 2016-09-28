@@ -464,6 +464,12 @@ struct Dispatcher{
          (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
       z( t ? 2 : p ? 1 : 0 ){}
 
+  int gaplessOverlap( indexT x, indexT y, size_t &rev, size_t &fwd ) const{
+    if( z==0 ) return gaplessXdropOverlap( a+x, b+y, m, d, rev, fwd );
+    if( z==1 ) return gaplessPssmXdropOverlap( a+x, p+y, d, rev, fwd );
+    return gaplessTwoQualityXdropOverlap( a+x, i+x, b+y, j+y, t, d, rev, fwd );
+  }
+
   int forwardGaplessScore( indexT x, indexT y ) const{
     if( z==0 ) return forwardGaplessXdropScore( a+x, b+y, m, d );
     if( z==1 ) return forwardGaplessPssmXdropScore( a+x, p+y, d );
@@ -534,6 +540,7 @@ static void writeSegmentPair(LastAligner &aligner, const SegmentPair &s,
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 		   size_t queryNum, char strand, const uchar* querySeq ){
+  const bool isOverlap = (args.globality && args.outputType == 1);
   Dispatcher dis( Phase::gapless, aligner, queryNum, strand, querySeq );
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
@@ -574,27 +581,36 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	if( dt.isCovered( i, j ) ) continue;
 	++gaplessExtensionCount;
 
-	int fs = dis.forwardGaplessScore( j, i );
-	int rs = dis.reverseGaplessScore( j, i );
-	int score = fs + rs;
-
-	// Tried checking the score after isOptimal & addEndpoint, but
-	// the number of extensions decreased by < 10%, and it was
-	// slower overall.
-	if( score < minScoreGapless ) continue;
-
-	indexT tEnd = dis.forwardGaplessEnd( j, i, fs );
-	indexT tBeg = dis.reverseGaplessEnd( j, i, rs );
-	indexT qBeg = i - (j - tBeg);
-	if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ) continue;
-	SegmentPair sp( tBeg, qBeg, tEnd - tBeg, score );
-	dt.addEndpoint( sp.end2(), sp.end1() );
-
-	if( args.outputType == 1 ){  // we just want gapless alignments
+	if( isOverlap ){
+	  size_t revLen, fwdLen;
+	  int score = dis.gaplessOverlap( j, i, revLen, fwdLen );
+	  if( score < minScoreGapless ) continue;
+	  SegmentPair sp( j - revLen, i - revLen, revLen + fwdLen, score );
+	  dt.addEndpoint( sp.end2(), sp.end1() );
 	  writeSegmentPair( aligner, sp, queryNum, strand, querySeq );
-	}
-	else{
-	  gaplessAlns.add(sp);  // add the gapless alignment to the pot
+	}else{
+	  int fs = dis.forwardGaplessScore( j, i );
+	  int rs = dis.reverseGaplessScore( j, i );
+	  int score = fs + rs;
+
+	  // Tried checking the score after isOptimal & addEndpoint,
+	  // but the number of extensions decreased by < 10%, and it
+	  // was slower overall.
+	  if( score < minScoreGapless ) continue;
+
+	  indexT tEnd = dis.forwardGaplessEnd( j, i, fs );
+	  indexT tBeg = dis.reverseGaplessEnd( j, i, rs );
+	  indexT qBeg = i - (j - tBeg);
+	  if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ) continue;
+	  SegmentPair sp( tBeg, qBeg, tEnd - tBeg, score );
+	  dt.addEndpoint( sp.end2(), sp.end1() );
+
+	  if( args.outputType == 1 ){  // we just want gapless alignments
+	    writeSegmentPair( aligner, sp, queryNum, strand, querySeq );
+	  }
+	  else{
+	    gaplessAlns.add(sp);  // add the gapless alignment to the pot
+	  }
 	}
 
 	++gaplessAlignmentsPerQueryPosition;

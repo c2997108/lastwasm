@@ -354,9 +354,6 @@ LAST home page: http://last.cbrc.jp/\n\
   if( isTranslated() && isQueryStrandMatrix )
     ERR( "can't combine option -F with option -S 1" );
 
-  if( globality == 1 && outputType == 1 )
-    ERR( "can't combine option -T 1 with option -j 1" );
-
   if( isGreedy && outputType > 3 )
     ERR( "can't combine option -M with option -j > 3" );
 
