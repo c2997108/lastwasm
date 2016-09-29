@@ -90,6 +90,9 @@ db=/tmp/last-test
     # probabilistic overlap alignment
     try lastal -T1 -Q1 -e60 -a9 -j4 $db $fastq
 
+    # fastq-versus-fasta gapless overlap alignment
+    try lastal -T1 -Q1 -e60 -j1 -fTAB $db $fastq
+
     # expected counts
     try lastal -s0 -e18 -j7 $db $dnaSeq
 
@@ -166,6 +169,10 @@ db=/tmp/last-test
 
     # minimum-difference alignment
     try lastal -W1 -M -fTAB $db hg19-M.fa
+
+    # fastq-versus-fastq gapless overlap alignment
+    lastdb -Q1 -uNEAR -cR01 $db $fastq
+    try lastal -Q1 -T1 -j1 -s0 $db $fastq
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff -u last-test.out -
