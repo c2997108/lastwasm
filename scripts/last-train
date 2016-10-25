@@ -1,10 +1,74 @@
 #! /usr/bin/env python
 # Copyright 2015 Martin C. Frith
 
-import fileinput, math, optparse, os, signal, subprocess, sys
+import math, optparse, os, random, signal, subprocess, sys, tempfile
 
 def tabSeparatedString(things):
     return "\t".join(map(str, things))
+
+def seqInput(fileNames):
+    for name in fileNames:
+        with open(name) as file:
+            seqType = 0
+            for line in file:
+                if seqType == 0:
+                    if line[0] == ">":
+                        seqType = 1
+                        seq = []
+                    elif line[0] == "@":
+                        seqType = 2
+                        lineType = 1
+                elif seqType == 1:  # fasta
+                    if line[0] == ">":
+                        yield "".join(seq), ""
+                        seq = []
+                    else:
+                        seq.append(line.rstrip())
+                elif seqType == 2:  # fastq
+                    if lineType == 1:
+                        seq = line.rstrip()
+                    elif lineType == 3:
+                        yield seq, line.rstrip()
+                    lineType = (lineType + 1) % 4
+            if seqType == 1: yield "".join(seq), ""
+
+def randomNumbersAndLengths(lengths, sampleSize):
+    numbersAndLengths = list(enumerate(lengths))
+    random.shuffle(numbersAndLengths)
+    for i, x in numbersAndLengths:
+        if x < sampleSize:
+            yield i, x
+            sampleSize -= x
+        else:
+            yield i, sampleSize
+            break
+
+def writeLine(myFile, myString):
+    myFile.write(myString)
+    myFile.write("\n")
+
+def writeSeqSample(numbersAndLengths, seqInput, outfile):
+    j = 0
+    for i, x in enumerate(seqInput):
+        if j < len(numbersAndLengths) and numbersAndLengths[j][0] == i:
+            seqlen = numbersAndLengths[j][1]
+            seq, qual = x
+            if qual:
+                writeLine(outfile, "@" + str(i))
+                writeLine(outfile, seq[:seqlen])
+                writeLine(outfile, "+")
+                writeLine(outfile, qual[:seqlen])
+            else:
+                writeLine(outfile, ">" + str(i))
+                writeLine(outfile, seq[:seqlen])
+            j += 1
+
+def getSeqSample(opts, queryFiles, outfile):
+    lengths = (len(i[0]) for i in seqInput(queryFiles))
+    sampleSize = int(round(opts.sample))
+    numbersAndLengths = sorted(randomNumbersAndLengths(lengths, sampleSize))
+    writeSeqSample(numbersAndLengths, seqInput(queryFiles), outfile)
+    print "# sampled sequences:", len(numbersAndLengths)
 
 def scaleFromHeader(lines):
     for line in lines:
@@ -218,7 +282,7 @@ def fixedLastalArgs(opts):
     if opts.Q: x.append("-Q" + opts.Q)
     return x
 
-def lastTrain(opts, args):
+def doTraining(opts, args):
     tryToMakeChildProgramsFindable()
     scaleIncrease = 20  # while training, up-scale the scores by this amount
     x = fixedLastalArgs(opts)
@@ -282,9 +346,23 @@ def lastTrain(opts, args):
         externalMatrix = matrixWithLetters(matScores)
     writeMatrixWithLetters(externalMatrix, sys.stdout)
 
+def lastTrain(opts, args):
+    if opts.sample:
+        random.seed(math.pi)
+        refName = args[0]
+        queryFiles = args[1:]
+        try:
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                getSeqSample(opts, queryFiles, f)
+            doTraining(opts, [refName, f.name])
+        finally:
+            os.remove(f.name)
+    else:
+        doTraining(opts, args)
+
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
-    usage = "%prog lastdb-name sequence-file(s)"
+    usage = "%prog [options] lastdb-name sequence-file(s)"
     description = "Try to find suitable score parameters for aligning the given sequences."
     op = optparse.OptionParser(usage=usage, description=description)
     og = optparse.OptionGroup(op, "Training options")
@@ -296,6 +374,8 @@ if __name__ == "__main__":
                   help="force insertion/deletion symmetry")
     og.add_option("--pid", type="float", default=100, help=
                   "skip alignments with > PID% identity (default: %default)")
+    og.add_option("--sample", type="float", default=10000000, metavar="N",
+                  help="use a random sample of N letters (default: %default)")
     op.add_option_group(og)
     og = optparse.OptionGroup(op, "Initial parameter options")
     og.add_option("-r", metavar="SCORE",

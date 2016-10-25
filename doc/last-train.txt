@@ -40,6 +40,9 @@ Training options
          Ignore alignments with > PID% identity.  This aims to
          optimize the parameters for low-similarity alignments,
          similarly to the BLOSUM matrices.
+  --sample=N
+         Use only the first N query letters, after randomizing the
+         order of sequences.  0 means use all query letters.
 
 Initial parameter options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
