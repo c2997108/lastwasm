@@ -3,8 +3,8 @@
 
 import math, optparse, os, random, signal, subprocess, sys, tempfile
 
-def tabSeparatedString(things):
-    return "\t".join(map(str, things))
+def writeWords(outFile, words):
+    outFile.write(" ".join(words) + "\n")
 
 def seqInput(fileNames):
     for name in fileNames:
@@ -131,6 +131,45 @@ def scoreFromProb(scale, prob):
 def costFromProb(scale, prob):
     return -scoreFromProb(scale, prob)
 
+def guessAlphabet(matrixSize):
+    if matrixSize ==  4: return "ACGT"
+    if matrixSize == 20: return "ACDEFGHIKLMNPQRSTVWY"
+    raise Exception("can't handle unusual alphabets")
+
+def matrixWithLetters(matrix):
+    alphabet = guessAlphabet(len(matrix))
+    return [alphabet] + [[a] + i for a, i in zip(alphabet, matrix)]
+
+def writeMatrixHead(outFile, prefix, alphabet, formatString):
+    writeWords(outFile, [prefix + " "] + [formatString % k for k in alphabet])
+
+def writeMatrixBody(outFile, prefix, alphabet, matrix, formatString):
+    for i, j in zip(alphabet, matrix):
+        writeWords(outFile, [prefix + i] + [formatString % k for k in j])
+
+def writeCountMatrix(outFile, matrix, prefix):
+    alphabet = guessAlphabet(len(matrix))
+    writeMatrixHead(outFile, prefix, alphabet, "%-14s")
+    writeMatrixBody(outFile, prefix, alphabet, matrix, "%-14s")
+
+def writeProbMatrix(outFile, matrix, prefix):
+    alphabet = guessAlphabet(len(matrix))
+    writeMatrixHead(outFile, prefix, alphabet, "%-14s")
+    writeMatrixBody(outFile, prefix, alphabet, matrix, "%-14g")
+
+def writeScoreMatrix(outFile, matrix, prefix):
+    alphabet = guessAlphabet(len(matrix))
+    writeMatrixHead(outFile, prefix, alphabet, "%6s")
+    writeMatrixBody(outFile, prefix, alphabet, matrix, "%6s")
+
+def writeMatrixWithLetters(outFile, matrix, prefix):
+    head = matrix[0]
+    tail = matrix[1:]
+    left = [i[0] for i in tail]
+    body = [i[1:] for i in tail]
+    writeMatrixHead(outFile, prefix, head, "%6s")
+    writeMatrixBody(outFile, prefix, left, body, "%6s")
+
 def matProbsFromCounts(counts, opts):
     r = range(len(counts))
     if opts.revsym:  # add complement (reverse strand) substitutions
@@ -144,21 +183,13 @@ def matProbsFromCounts(counts, opts):
     print "# substitution percent identity: %g" % (100 * identities / total)
     print
     print "# count matrix:"
-    for i in counts:
-        print "#", tabSeparatedString(i)
+    writeCountMatrix(sys.stdout, counts, "# ")
     print
     print "# probability matrix:"
-    for i in probs:
-        print "#", tabSeparatedString("%g" % j for j in i)
+    writeProbMatrix(sys.stdout, probs, "# ")
     print
 
     return probs
-
-def printMatScores(scores):
-    print "# score matrix:"
-    for i in scores:
-        print "#", tabSeparatedString(i)
-    print
 
 def gapProbsFromCounts(counts, opts):
     matches, deletes, inserts, delOpens, insOpens, alignments = counts
@@ -229,22 +260,8 @@ def gapCostsFromProbs(scale, probs):
     if insExtendCost == 0: insExtendCost = 1
     return delExistCost, insExistCost, delExtendCost, insExtendCost
 
-def guessAlphabet(matrixSize):
-    if matrixSize ==  4: return "ACGT"
-    if matrixSize == 20: return "ACDEFGHIKLMNPQRSTVWY"
-    raise Exception("can't handle unusual alphabets")
-
-def matrixWithLetters(matrix):
-    alphabet = guessAlphabet(len(matrix))
-    return [alphabet] + [[a] + i for a, i in zip(alphabet, matrix)]
-
 def writeLine(out, *things):
     out.write(" ".join(map(str, things)) + "\n")
-
-def writeMatrixWithLetters(matrix, out):
-    writeLine(out, " ", tabSeparatedString(matrix[0]))
-    for i in matrix[1:]:
-        writeLine(out, i[0], tabSeparatedString(i[1:]))
 
 def writeGapCosts(gapCosts, out):
     delExistCost, insExistCost, delExtendCost, insExtendCost = gapCosts
@@ -320,7 +337,9 @@ def doTraining(opts, args):
         else:
             matProbs = matProbsFromCounts(matCounts, opts)
             matScores = matScoresFromProbs(internalScale, matProbs)
-            printMatScores(matScores)
+            print "# score matrix:"
+            writeScoreMatrix(sys.stdout, matScores, "# ")
+            print
             parameters = gapCosts, matScores
             if parameters in oldParameters: break
             oldParameters.append(parameters)
@@ -330,7 +349,7 @@ def doTraining(opts, args):
         x += args
         p = subprocess.Popen(x, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         writeGapCosts(gapCosts, p.stdin)
-        writeMatrixWithLetters(internalMatrix, p.stdin)
+        writeMatrixWithLetters(p.stdin, internalMatrix, "")
         p.stdin.close()
         # in python2.6, the next line must come after p.stdin.close()
         q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE)
@@ -342,7 +361,7 @@ def doTraining(opts, args):
     if not opts.Q:
         matScores = matScoresFromProbs(externalScale, matProbs)
         externalMatrix = matrixWithLetters(matScores)
-    writeMatrixWithLetters(externalMatrix, sys.stdout)
+    writeMatrixWithLetters(sys.stdout, externalMatrix, "")
 
 def lastTrain(opts, args):
     if opts.sample:
