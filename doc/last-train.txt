@@ -44,6 +44,9 @@ Training options
          Use only the first N query letters, after randomizing the
          order of sequences.  0 means use all query letters.
 
+All options below this point are passed to lastal to do the
+alignments: they are described in more detail in `<lastal.html>`_.
+
 Initial parameter options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -58,8 +61,10 @@ Initial parameter options
 Alignment options
 ~~~~~~~~~~~~~~~~~
 
-  -D LENGTH  Query letters per random alignment.
-  -E EG2     Maximum expected alignments per square giga.
+  -D LENGTH  Query letters per random alignment.  (See `here
+             <last-evalues.html>`_.)
+  -E EG2     Maximum expected alignments per square giga.  (See `here
+             <last-evalues.html>`_.)
   -s NUMBER  Which query strand to use: 0=reverse, 1=forward, 2=both.
   -S NUMBER  Score matrix applies to forward strand of: 0=reference,
              1=query.  This matters only if the scores lack
@@ -80,4 +85,7 @@ Bugs
   may be poor.
 
 * last-train can fail for various reasons, e.g. if the sequences are
-  too dissimilar.
+  too dissimilar.  If it fails to find any alignments, you could try
+  `reducing the alignment significance threshold
+  <last-tutorial.html#example-6-find-very-short-dna-alignments>`_ with
+  option -D.

@@ -43,10 +43,6 @@ def randomNumbersAndLengths(lengths, sampleSize):
             yield i, sampleSize
             break
 
-def writeLine(myFile, myString):
-    myFile.write(myString)
-    myFile.write("\n")
-
 def writeSeqSample(numbersAndLengths, seqInput, outfile):
     j = 0
     for i, x in enumerate(seqInput):
@@ -54,13 +50,14 @@ def writeSeqSample(numbersAndLengths, seqInput, outfile):
             seqlen = numbersAndLengths[j][1]
             seq, qual = x
             if qual:
-                writeLine(outfile, "@" + str(i))
-                writeLine(outfile, seq[:seqlen])
-                writeLine(outfile, "+")
-                writeLine(outfile, qual[:seqlen])
+                outfile.write("@" + str(i) + "\n")
+                outfile.write(seq[:seqlen])
+                outfile.write("\n+\n")
+                outfile.write(qual[:seqlen])
             else:
-                writeLine(outfile, ">" + str(i))
-                writeLine(outfile, seq[:seqlen])
+                outfile.write(">" + str(i) + "\n")
+                outfile.write(seq[:seqlen])
+            outfile.write("\n")
             j += 1
 
 def getSeqSample(opts, queryFiles, outfile):
@@ -312,6 +309,7 @@ def doTraining(opts, args):
     while True:
         print "#", " ".join(x)
         print
+        sys.stdout.flush()
         matCounts, gapCounts = countsFromLastOutput(q.stdout, opts)
         gapProbs = gapProbsFromCounts(gapCounts, opts)
         gapCosts = gapCostsFromProbs(internalScale, gapProbs)
