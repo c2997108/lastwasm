@@ -214,7 +214,8 @@ long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
     if (rnameAndStrandIds[k] < iSeq) continue;
     if (rnameAndStrandIds[k] > iSeq) return score;
     if (rBegs[k] >= iEnd) return score;
-    unsigned kBeg = cell(spliceBegCoords, k, j);
+    size_t kj = matrixRowOrigins[k] + j;
+    unsigned kBeg = spliceBegCoords[kj];
     if (kBeg >= rBegs[i] || rBegs[i] - kBeg <= maxSpliceDist) break;
   }
 
@@ -381,9 +382,9 @@ void SplitAligner::traceBack(long viterbiScore,
   queryEnds.push_back(j);
 
   for (;;) {
-    long score = cell(Vmat, i, j);
     --j;
-    score -= cell(Amat, i, j);
+    size_t ij = matrixRowOrigins[i] + j;
+    long score = Vmat[ij + 1] - Amat[ij];
     if (restartProb <= 0 && alns[i].qstart == j && score == 0) {
       queryBegs.push_back(j);
       return;
@@ -395,10 +396,9 @@ void SplitAligner::traceBack(long viterbiScore,
     // makes some other kinds of boundary less clean.  What's the best
     // procedure for tied scores?
 
-    bool isStay = (score == scoreIndel(i, j));
+    bool isStay = (score == Vmat[ij] + Dmat[ij]);
     if (isStay && alns[i].qstrand == '+') continue;
 
-    size_t ij = matrixRowOrigins[i] + j;
     long s = score - spliceEndScore(ij);
     long t = s - restartScore;
     if (t == cell(Vvec, j)) {
@@ -423,8 +423,9 @@ int SplitAligner::segmentScore(unsigned alnNum,
   int score = 0;
   unsigned i = alnNum;
   for (unsigned j = queryBeg; j < queryEnd; ++j) {
-    score += cell(Amat, i, j);
-    if (j > queryBeg) score += cell(Dmat, i, j);
+    size_t ij = matrixRowOrigins[i] + j;
+    score += Amat[ij];
+    if (j > queryBeg) score += Dmat[ij];
   }
   return score;
 }
@@ -442,7 +443,8 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
     if (rnameAndStrandIds[k] < iSeq) continue;
     if (rnameAndStrandIds[k] > iSeq) return sum;
     if (rBegs[k] >= iEnd) return sum;
-    unsigned kBeg = cell(spliceBegCoords, k, j);
+    size_t kj = matrixRowOrigins[k] + j;
+    unsigned kBeg = spliceBegCoords[kj];
     if (kBeg >= rBegs[i] || rBegs[i] - kBeg <= maxSpliceDist) break;
   }
 
@@ -476,7 +478,8 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
     if (rnameAndStrandIds[k] < iSeq) continue;
     if (rnameAndStrandIds[k] > iSeq) return sum;
     if (rEnds[k] <= iBeg) return sum;
-    unsigned kEnd = cell(spliceEndCoords, k, j);
+    size_t kj = matrixRowOrigins[k] + j;
+    unsigned kEnd = spliceEndCoords[kj];
     if (kEnd <= rEnds[i] || kEnd - rEnds[i] <= maxSpliceDist) break;
   }
 
@@ -597,11 +600,12 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
     unsigned i = alnNum;
     unsigned j = queryBeg;
     for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
+	size_t ij = matrixRowOrigins[i] + j;
         if (alns[i].qalign[pos] == '-') {
-            double value = cell(Fmat, i, j) * cell(Bmat, i, j) * cell(Dexp, i, j) / cell(rescales, j);
+            double value = Fmat[ij] * Bmat[ij] * Dexp[ij] / cell(rescales, j);
             output.push_back(value);
         } else {
-            double value = cell(Fmat, i, j+1) * cell(Bmat, i, j) / cell(Aexp, i, j);
+            double value = Fmat[ij + 1] * Bmat[ij] / Aexp[ij];
             if (value != value) value = 0.0;
             output.push_back(value);
             j++;

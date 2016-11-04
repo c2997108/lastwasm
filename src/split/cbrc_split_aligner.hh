@@ -257,10 +257,6 @@ private:
     void calcScoreMatrices();
     void initForwardBackward();
     void initDpBounds();
-
-    long scoreIndel(unsigned i, unsigned j) const {
-      return cell(Vmat, i, j) + cell(Dmat, i, j);
-    }
 };
 
 }
