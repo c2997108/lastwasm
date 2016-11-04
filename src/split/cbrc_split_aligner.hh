@@ -163,8 +163,6 @@ private:
     int spliceEndScores[4 * 4 + 1];  // acceptor score for any dinucleotide
     double spliceBegProbs[4 * 4 + 1];
     double spliceEndProbs[4 * 4 + 1];
-    unsigned spliceBegSignal(unsigned coordinate, char strand) const;
-    unsigned spliceEndSignal(unsigned coordinate, char strand) const;
     int spliceBegScore(size_t ij) const {
       if (chromosomeIndex.empty()) return 0;
       return spliceBegScores[spliceBegSignals[ij]];

@@ -129,48 +129,44 @@ int SplitAligner::calcSpliceScore(double dist) const {
     return std::floor(scale * s + 0.5);
 }
 
-// The dinucleotide immediately downstream of the given coordinate
-unsigned SplitAligner::spliceBegSignal(unsigned coordinate,
-				       char strand) const {
-  if (strand == '+') {
-    const uchar *genomeBeg = genome.seqReader();
-    const uchar *p = genomeBeg + coordinate;
-    unsigned n1 = alphabet.numbersToUppercase[*p];
-    if (n1 >= 4) return 16;
-    unsigned n2 = alphabet.numbersToUppercase[*(p + 1)];
-    if (n2 >= 4) return 16;
-    return n1 * 4 + n2;
-  } else {
-    const uchar *genomeEnd = genome.seqReader() + genome.finishedSize();
-    const uchar *p = genomeEnd - coordinate;
-    unsigned n1 = alphabet.numbersToUppercase[*(p - 1)];
-    if (n1 >= 4) return 16;
-    unsigned n2 = alphabet.numbersToUppercase[*(p - 2)];
-    if (n2 >= 4) return 16;
-    return 15 - (n1 * 4 + n2);  // reverse-complement
-  }
+// The dinucleotide immediately downstream on the forward strand
+static unsigned spliceBegSignalFwd(const uchar *seqPtr,
+				   const uchar *toUnmasked) {
+  unsigned n1 = toUnmasked[*seqPtr];
+  if (n1 >= 4) return 16;
+  unsigned n2 = toUnmasked[*(seqPtr + 1)];
+  if (n2 >= 4) return 16;
+  return n1 * 4 + n2;
 }
 
-// The dinucleotide immediately upstream of the given coordinate
-unsigned SplitAligner::spliceEndSignal(unsigned coordinate,
-				       char strand) const {
-  if (strand == '+') {
-    const uchar *genomeBeg = genome.seqReader();
-    const uchar *p = genomeBeg + coordinate;
-    unsigned n2 = alphabet.numbersToUppercase[*(p - 1)];
-    if (n2 >= 4) return 16;
-    unsigned n1 = alphabet.numbersToUppercase[*(p - 2)];
-    if (n1 >= 4) return 16;
-    return n1 * 4 + n2;
-  } else {
-    const uchar *genomeEnd = genome.seqReader() + genome.finishedSize();
-    const uchar *p = genomeEnd - coordinate;
-    unsigned n2 = alphabet.numbersToUppercase[*p];
-    if (n2 >= 4) return 16;
-    unsigned n1 = alphabet.numbersToUppercase[*(p + 1)];
-    if (n1 >= 4) return 16;
-    return 15 - (n1 * 4 + n2);  // reverse-complement
-  }
+// The dinucleotide immediately downstream on the reverse strand
+static unsigned spliceBegSignalRev(const uchar *seqPtr,
+				   const uchar *toUnmasked) {
+  unsigned n1 = toUnmasked[*(seqPtr - 1)];
+  if (n1 >= 4) return 16;
+  unsigned n2 = toUnmasked[*(seqPtr - 2)];
+  if (n2 >= 4) return 16;
+  return 15 - (n1 * 4 + n2);  // reverse-complement
+}
+
+// The dinucleotide immediately upstream on the forward strand
+static unsigned spliceEndSignalFwd(const uchar *seqPtr,
+				   const uchar *toUnmasked) {
+  unsigned n2 = toUnmasked[*(seqPtr - 1)];
+  if (n2 >= 4) return 16;
+  unsigned n1 = toUnmasked[*(seqPtr - 2)];
+  if (n1 >= 4) return 16;
+  return n1 * 4 + n2;
+}
+
+// The dinucleotide immediately upstream on the reverse strand
+static unsigned spliceEndSignalRev(const uchar *seqPtr,
+				   const uchar *toUnmasked) {
+  unsigned n2 = toUnmasked[*seqPtr];
+  if (n2 >= 4) return 16;
+  unsigned n1 = toUnmasked[*(seqPtr + 1)];
+  if (n1 >= 4) return 16;
+  return 15 - (n1 * 4 + n2);  // reverse-complement
 }
 
 unsigned SplitAligner::findScore(unsigned j, long score) const {
@@ -759,13 +755,28 @@ void SplitAligner::initSpliceSignals() {
   resizeMatrix(spliceBegSignals);
   resizeMatrix(spliceEndSignals);
 
+  const uchar *toUnmasked = alphabet.numbersToUppercase;
+  const uchar *genomeBeg = genome.seqReader();
+  const uchar *genomeEnd = genome.seqReader() + genome.finishedSize();
+
   for (unsigned i = 0; i < numAlns; ++i) {
-    char strand = alns[i].qstrand;
-    for (unsigned j = dpBeg(i); j <= dpEnd(i); ++j) {
-      cell(spliceBegSignals, i, j) =
-	spliceBegSignal(cell(spliceBegCoords, i, j), strand);
-      cell(spliceEndSignals, i, j) =
-	spliceEndSignal(cell(spliceEndCoords, i, j), strand);
+    size_t rowBeg = matrixRowOrigins[i] + dpBeg(i);
+    const unsigned *begCoords = &spliceBegCoords[rowBeg];
+    const unsigned *endCoords = &spliceEndCoords[rowBeg];
+    unsigned char *begSigs = &spliceBegSignals[rowBeg];
+    unsigned char *endSigs = &spliceEndSignals[rowBeg];
+    unsigned dpLen = dpEnd(i) - dpBeg(i);
+
+    if (alns[i].qstrand == '+') {
+      for (unsigned j = 0; j <= dpLen; ++j) {
+	begSigs[j] = spliceBegSignalFwd(genomeBeg + begCoords[j], toUnmasked);
+	endSigs[j] = spliceEndSignalFwd(genomeBeg + endCoords[j], toUnmasked);
+      }
+    } else {
+      for (unsigned j = 0; j <= dpLen; ++j) {
+	begSigs[j] = spliceBegSignalRev(genomeEnd - begCoords[j], toUnmasked);
+	endSigs[j] = spliceEndSignalRev(genomeEnd - endCoords[j], toUnmasked);
+      }
     }
   }
 }
