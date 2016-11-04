@@ -392,7 +392,7 @@ if __name__ == "__main__":
                   help="force insertion/deletion symmetry")
     og.add_option("--pid", type="float", default=100, help=
                   "skip alignments with > PID% identity (default: %default)")
-    og.add_option("--sample", type="float", default=10000000, metavar="N",
+    og.add_option("--sample", type="float", default=1000000, metavar="N",
                   help="use a random sample of N letters (default: %default)")
     op.add_option_group(og)
     og = optparse.OptionGroup(op, "Initial parameter options")
