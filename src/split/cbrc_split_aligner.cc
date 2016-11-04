@@ -710,6 +710,31 @@ void SplitAligner::calcScoreMatrices() {
   }
 }
 
+void SplitAligner::initRbegsAndEnds() {
+  rBegs.resize(numAlns);
+  rEnds.resize(numAlns);
+
+  for (unsigned i = 0; i < numAlns; ++i) {
+    const UnsplitAlignment& a = alns[i];
+    unsigned b = a.rstart;
+    unsigned e = a.rend;
+
+    if (!chromosomeIndex.empty()) {
+      StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
+      if (f == chromosomeIndex.end())
+	err("can't find " + std::string(a.rname) + " in the genome");
+      unsigned c = f->second;
+      unsigned offset = (a.qstrand == '+') ?
+	genome.seqBeg(c) : genome.finishedSize() - genome.seqEnd(c);
+      b += offset;
+      e += offset;
+    }
+
+    rBegs[i] = b;
+    rEnds[i] = e;
+  }
+}
+
 void SplitAligner::initSpliceCoords() {
   resizeMatrix(spliceBegCoords);
   resizeMatrix(spliceEndCoords);
@@ -717,18 +742,8 @@ void SplitAligner::initSpliceCoords() {
   for (unsigned i = 0; i < numAlns; ++i) {
     const UnsplitAlignment& a = alns[i];
     unsigned j = dpBeg(i);
-    unsigned k = a.rstart;
+    unsigned k = rBegs[i];
 
-    if (!chromosomeIndex.empty()) {
-      StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
-      if (f == chromosomeIndex.end())
-	err("can't find " + std::string(a.rname) + " in the genome");
-      unsigned c = f->second;
-      if (a.qstrand == '+') k += genome.seqBeg(c);
-      else                  k += genome.finishedSize() - genome.seqEnd(c);
-    }
-
-    rBegs[i] = k;
     cell(spliceBegCoords, i, j) = k;
     while (j < a.qstart) {
       cell(spliceEndCoords, i, j) = k;
@@ -747,7 +762,8 @@ void SplitAligner::initSpliceCoords() {
       cell(spliceBegCoords, i, j) = k;
     }
     cell(spliceEndCoords, i, j) = k;
-    rEnds[i] = k;
+
+    assert(k == rEnds[i]);  // xxx
   }
 }
 
@@ -905,9 +921,7 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
     oldInplayAlnIndices.resize(numAlns);
     newInplayAlnIndices.resize(numAlns);
 
-    rBegs.resize(numAlns);
-    rEnds.resize(numAlns);
-
+    initRbegsAndEnds();
     initRnameAndStrandIds();
     initDpBounds();
     calcScoreMatrices();

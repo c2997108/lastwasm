@@ -189,6 +189,7 @@ private:
     void initSpliceCoords();
     void initSpliceSignals();
     void initRnameAndStrandIds();
+    void initRbegsAndEnds();
 
     void dpExtensionMinScores(int maxJumpScore,
 			      size_t& minScore1, size_t& minScore2) const;
