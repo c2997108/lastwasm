@@ -192,7 +192,8 @@ private:
     void initSpliceSignals();
     void initRnameAndStrandIds();
 
-    int maxJumpScore() const;
+    void dpExtensionMinScores(int maxJumpScore,
+			      size_t& minScore1, size_t& minScore2) const;
 
     void updateInplayAlnIndicesF(unsigned& sortedAlnPos,
 				 unsigned& oldNumInplay,

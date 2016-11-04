@@ -319,17 +319,17 @@ long SplitAligner::viterbi() {
 	long sMax = INT_MIN/2;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
-	    size_t k = matrixRowOrigins[i] + j;
+	    size_t ij = matrixRowOrigins[i] + j;
 
-	    long s = std::max(Vmat[k] + Dmat[k],
+	    long s = std::max(Vmat[ij] + Dmat[ij],
 			      scoreFromJump + spliceEndScore(i, j));
 	    if (restartProb <= 0 && alns[i].qstart == j && s < 0) s = 0;
 	    if (splicePrior > 0.0)
 	      s = std::max(s,
 			   scoreFromSplice(i, j, oldNumInplay, oldInplayPos));
-	    s += Amat[k];
+	    s += Amat[ij];
 
-	    Vmat[k+1] = s;
+	    Vmat[ij + 1] = s;
 	    sMax = std::max(sMax, s + spliceBegScore(i, j+1));
 	}
 	maxScore = std::max(sMax, maxScore);
@@ -513,15 +513,15 @@ void SplitAligner::forward() {
 	double rNew = 1.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
-	    size_t k = matrixRowOrigins[i] + j;
+	    size_t ij = matrixRowOrigins[i] + j;
 
-	    double p = Fmat[k] * Dexp[k] + probFromJump * spliceEndProb(i, j);
+	    double p = Fmat[ij] * Dexp[ij] + probFromJump * spliceEndProb(i, j);
 	    if (restartProb <= 0 && alns[i].qstart == j) p += begprob;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceF(i, j, oldNumInplay, oldInplayPos);
-	    p = p * Aexp[k] / r;
+	    p = p * Aexp[ij] / r;
 
-	    Fmat[k+1] = p;
+	    Fmat[ij + 1] = p;
 	    if (alns[i].qend == j+1) zF += p;
 	    pSum += p * spliceBegProb(i, j+1);
 	    rNew += p;
@@ -559,15 +559,15 @@ void SplitAligner::backward() {
 	double pSum = 0.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
-	    size_t k = matrixRowOrigins[i] + j;
+	    size_t ij = matrixRowOrigins[i] + j;
 
-	    double p = Bmat[k] * Dexp[k] + probFromJump * spliceBegProb(i, j);
+	    double p = Bmat[ij] * Dexp[ij] + probFromJump * spliceBegProb(i, j);
 	    if (restartProb <= 0 && alns[i].qend == j) p += endprob;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceB(i, j, oldNumInplay, oldInplayPos);
-	    p = p * Aexp[k-1] / r;
+	    p = p * Aexp[ij - 1] / r;
 
-	    Bmat[k-1] = p;
+	    Bmat[ij - 1] = p;
 	    //if (alns[i].qstart == j-1) zB += p;
 	    pSum += p * spliceEndProb(i, j-1);
         }
@@ -790,13 +790,13 @@ void SplitAligner::initForwardBackward() {
   // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
-int SplitAligner::maxJumpScore() const {
-  int m = jumpScore;
-  if (splicePrior > 0.0) {
-    m = maxSpliceScore;
-  }
-  if (!chromosomeIndex.empty()) m += maxSpliceBegEndScore;
-  return m;
+void SplitAligner::dpExtensionMinScores(int maxJumpScore,
+					size_t& minScore1,
+					size_t& minScore2) const {
+  if (!chromosomeIndex.empty()) maxJumpScore += maxSpliceBegEndScore;
+  assert(maxJumpScore + insExistenceScore <= 0);
+  minScore1 = 1 - (maxJumpScore + insExistenceScore);
+  minScore2 = 1 - (maxJumpScore + maxJumpScore + insExistenceScore);
 }
 
 static size_t dpExtension(size_t maxScore, size_t minScore, size_t divisor) {
@@ -838,10 +838,8 @@ void SplitAligner::initDpBounds() {
   size_t minScore1 = -1;
   size_t minScore2 = -1;
   if (jumpProb > 0.0 || splicePrior > 0.0) {
-    int m = maxJumpScore();
-    assert(m + insExistenceScore <= 0);
-    minScore1 = 1 - (m + insExistenceScore);
-    minScore2 = 1 - (m + m + insExistenceScore);
+    int m = (splicePrior > 0.0) ? maxSpliceScore : jumpScore;
+    dpExtensionMinScores(m, minScore1, minScore2);
   }
 
   for (unsigned i = 0; i < numAlns; ++i) {
@@ -877,9 +875,6 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
     numAlns = end - beg;
     alns = beg;
 
-    initDpBounds();
-    calcScoreMatrices();
-
     sortedAlnIndices.resize(numAlns);
     for (unsigned i = 0; i < numAlns; ++i) sortedAlnIndices[i] = i;
     oldInplayAlnIndices.resize(numAlns);
@@ -888,12 +883,15 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
     rBegs.resize(numAlns);
     rEnds.resize(numAlns);
 
+    initRnameAndStrandIds();
+    initDpBounds();
+    calcScoreMatrices();
+
     if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
         initSpliceCoords();
 	if (!chromosomeIndex.empty()) initSpliceSignals();
 	//initRnameAndStrandIds();
     }
-    initRnameAndStrandIds();
 
     initForwardBackward();
 }
