@@ -182,10 +182,10 @@ def matProbsFromCounts(counts, opts):
 
     print "# substitution percent identity: %g" % (100 * identities / total)
     print
-    print "# count matrix:"
+    print "# count matrix (query letters = columns, reference letters = rows):"
     writeCountMatrix(sys.stdout, counts, "# ")
     print
-    print "# probability matrix:"
+    print "# probability matrix (query letters = columns, reference letters = rows):"
     writeProbMatrix(sys.stdout, probs, "# ")
     print
 
@@ -337,7 +337,7 @@ def doTraining(opts, args):
         else:
             matProbs = matProbsFromCounts(matCounts, opts)
             matScores = matScoresFromProbs(internalScale, matProbs)
-            print "# score matrix:"
+            print "# score matrix (query letters = columns, reference letters = rows):"
             writeScoreMatrix(sys.stdout, matScores, "# ")
             print
             parameters = gapCosts, matScores
@@ -361,6 +361,7 @@ def doTraining(opts, args):
     if not opts.Q:
         matScores = matScoresFromProbs(externalScale, matProbs)
         externalMatrix = matrixWithLetters(matScores)
+    print "# score matrix (query letters = columns, reference letters = rows):"
     writeMatrixWithLetters(sys.stdout, externalMatrix, "")
 
 def lastTrain(opts, args):

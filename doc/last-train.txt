@@ -15,8 +15,8 @@ The usage is like this::
   last-train mydb queries.fasta
 
 last-train prints a summary of each alignment step, followed by the
-final score parameters in a format that can be read by lastal's -p
-option.
+final score parameters in a format that can be read by `lastal's -p
+option <lastal.html#score-options>`_.
 
 Options
 -------

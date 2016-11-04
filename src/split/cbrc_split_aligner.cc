@@ -793,13 +793,9 @@ void SplitAligner::initForwardBackward() {
 int SplitAligner::maxJumpScore() const {
   int m = jumpScore;
   if (splicePrior > 0.0) {
-    double s = spliceTerm1 - meanLogDist + sdevLogDist * sdevLogDist / 2.0;
-    int maxSpliceScore = std::floor(scale * s + 0.5);
-    m = std::max(m, maxSpliceScore);
+    m = maxSpliceScore;
   }
-  if (!chromosomeIndex.empty()) {
-    m += arrayMax(spliceBegScores) + arrayMax(spliceEndScores);
-  }
+  if (!chromosomeIndex.empty()) m += maxSpliceBegEndScore;
   return m;
 }
 
@@ -951,14 +947,18 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
   if (splicePrior <= 0.0) return;
 
   const double rootTwoPi = std::sqrt(8.0 * std::atan(1.0));
+  double s2 = sdevLogDist * sdevLogDist;
   spliceTerm1 = -std::log(sdevLogDist * rootTwoPi / splicePrior);
-  spliceTerm2 = -1.0 / (2.0 * sdevLogDist * sdevLogDist);
+  spliceTerm2 = -0.5 / s2;
+
+  double max1 = spliceTerm1 - meanLogDist + s2 * 0.5;
+  int max2 = std::floor(scale * max1 + 0.5);
+  maxSpliceScore = std::max(max2, jumpScore);
 
   // Set maxSpliceDist so as to ignore splices whose score would be
   // less than jumpScore.  By solving this quadratic equation:
   // spliceTerm1 + spliceTerm2 * (logDist - meanLogDist)^2 - logDist =
   // jumpScore / scale
-  double s2 = sdevLogDist * sdevLogDist;
   double r = s2 + 2 * (spliceTerm1 - meanLogDist - jumpScore / scale);
   if (r < 0) {
     maxSpliceDist = 0;
@@ -1053,6 +1053,8 @@ void SplitAligner::setSpliceSignals() {
     spliceBegProbs[i] = scaledExp(spliceBegScores[i]);
     spliceEndProbs[i] = scaledExp(spliceEndScores[i]);
   }
+
+  maxSpliceBegEndScore = arrayMax(spliceBegScores) + arrayMax(spliceEndScores);
 }
 
 void SplitAligner::printParameters() const {

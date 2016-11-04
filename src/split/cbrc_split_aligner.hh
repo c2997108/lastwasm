@@ -143,6 +143,8 @@ private:
     double spliceTerm1;
     double spliceTerm2;
     unsigned maxSpliceDist;
+    int maxSpliceScore;
+    int maxSpliceBegEndScore;
     std::vector<unsigned> spliceBegCoords;
     std::vector<unsigned> spliceEndCoords;
     std::vector<unsigned char> spliceBegSignals;
