@@ -176,7 +176,8 @@ unsigned SplitAligner::spliceEndSignal(unsigned coordinate,
 unsigned SplitAligner::findScore(unsigned j, long score) const {
   for (unsigned i = 0; i < numAlns; ++i) {
     if (dpBeg(i) >= j || dpEnd(i) < j) continue;
-    if (cell(Vmat, i, j) + spliceBegScore(i, j) == score) return i;
+    size_t ij = matrixRowOrigins[i] + j;
+    if (Vmat[ij] + spliceBegScore(ij) == score) return i;
   }
   return numAlns;
 }
@@ -184,16 +185,18 @@ unsigned SplitAligner::findScore(unsigned j, long score) const {
 unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 				       long score) const {
     assert(splicePrior > 0.0);
+    size_t ij = matrixRowOrigins[i] + j;
     unsigned iSeq = rnameAndStrandIds[i];
-    unsigned iEnd = cell(spliceEndCoords, i, j);
-    int iScore = spliceEndScore(i, j);
+    unsigned iEnd = spliceEndCoords[ij];
+    int iScore = spliceEndScore(ij);
     for (unsigned k = 0; k < numAlns; k++) {
 	if (rnameAndStrandIds[k] != iSeq) continue;
 	if (dpBeg(k) >= j || dpEnd(k) < j) continue;
-	unsigned kBeg = cell(spliceBegCoords, k, j);
+	size_t kj = matrixRowOrigins[k] + j;
+	unsigned kBeg = spliceBegCoords[kj];
 	if (iEnd <= kBeg) continue;
-	int s = iScore + spliceBegScore(k, j) + spliceScore(iEnd - kBeg);
-	if (cell(Vmat, k, j) + s == score) return k;
+	int s = iScore + spliceBegScore(kj) + spliceScore(iEnd - kBeg);
+	if (Vmat[kj] + s == score) return k;
     }
     return numAlns;
 }
@@ -201,9 +204,10 @@ unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
 				   unsigned oldNumInplay,
 				   unsigned& oldInplayPos) const {
+  size_t ij = matrixRowOrigins[i] + j;
   long score = LONG_MIN;
   unsigned iSeq = rnameAndStrandIds[i];
-  unsigned iEnd = cell(spliceEndCoords, i, j);
+  unsigned iEnd = spliceEndCoords[ij];
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
@@ -214,17 +218,18 @@ long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
     if (kBeg >= rBegs[i] || rBegs[i] - kBeg <= maxSpliceDist) break;
   }
 
-  int iScore = spliceEndScore(i, j);
+  int iScore = spliceEndScore(ij);
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
     if (rnameAndStrandIds[k] > iSeq) break;
     if (rBegs[k] >= iEnd) break;
-    unsigned kBeg = cell(spliceBegCoords, k, j);
+    size_t kj = matrixRowOrigins[k] + j;
+    unsigned kBeg = spliceBegCoords[kj];
     if (iEnd <= kBeg) continue;
     if (iEnd - kBeg > maxSpliceDist) continue;
-    int s = iScore + spliceBegScore(k, j) + spliceScore(iEnd - kBeg);
-    score = std::max(score, cell(Vmat, k, j) + s);
+    int s = iScore + spliceBegScore(kj) + spliceScore(iEnd - kBeg);
+    score = std::max(score, Vmat[kj] + s);
   }
 
   return score;
@@ -322,7 +327,7 @@ long SplitAligner::viterbi() {
 	    size_t ij = matrixRowOrigins[i] + j;
 
 	    long s = std::max(Vmat[ij] + Dmat[ij],
-			      scoreFromJump + spliceEndScore(i, j));
+			      scoreFromJump + spliceEndScore(ij));
 	    if (restartProb <= 0 && alns[i].qstart == j && s < 0) s = 0;
 	    if (splicePrior > 0.0)
 	      s = std::max(s,
@@ -330,7 +335,7 @@ long SplitAligner::viterbi() {
 	    s += Amat[ij];
 
 	    Vmat[ij + 1] = s;
-	    sMax = std::max(sMax, s + spliceBegScore(i, j+1));
+	    sMax = std::max(sMax, s + spliceBegScore(ij + 1));
 	}
 	maxScore = std::max(sMax, maxScore);
 	cell(Vvec, j+1) = maxScore;
@@ -393,7 +398,8 @@ void SplitAligner::traceBack(long viterbiScore,
     bool isStay = (score == scoreIndel(i, j));
     if (isStay && alns[i].qstrand == '+') continue;
 
-    long s = score - spliceEndScore(i, j);
+    size_t ij = matrixRowOrigins[i] + j;
+    long s = score - spliceEndScore(ij);
     long t = s - restartScore;
     if (t == cell(Vvec, j)) {
       queryBegs.push_back(j);
@@ -426,9 +432,10 @@ int SplitAligner::segmentScore(unsigned alnNum,
 double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
+  size_t ij = matrixRowOrigins[i] + j;
   double sum = 0.0;
   unsigned iSeq = rnameAndStrandIds[i];
-  unsigned iEnd = cell(spliceEndCoords, i, j);
+  unsigned iEnd = spliceEndCoords[ij];
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
@@ -439,17 +446,18 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
     if (kBeg >= rBegs[i] || rBegs[i] - kBeg <= maxSpliceDist) break;
   }
 
-  double iProb = spliceEndProb(i, j);
+  double iProb = spliceEndProb(ij);
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
     if (rnameAndStrandIds[k] > iSeq) break;
     if (rBegs[k] >= iEnd) break;
-    unsigned kBeg = cell(spliceBegCoords, k, j);
+    size_t kj = matrixRowOrigins[k] + j;
+    unsigned kBeg = spliceBegCoords[kj];
     if (iEnd <= kBeg) continue;
     if (iEnd - kBeg > maxSpliceDist) continue;
-    double p = iProb * spliceBegProb(k, j) * spliceProb(iEnd - kBeg);
-    sum += cell(Fmat, k, j) * p;
+    double p = iProb * spliceBegProb(kj) * spliceProb(iEnd - kBeg);
+    sum += Fmat[kj] * p;
   }
 
   return sum;
@@ -458,9 +466,10 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
+  size_t ij = matrixRowOrigins[i] + j;
   double sum = 0.0;
   unsigned iSeq = rnameAndStrandIds[i];
-  unsigned iBeg = cell(spliceBegCoords, i, j);
+  unsigned iBeg = spliceBegCoords[ij];
 
   for (/* noop */; oldInplayPos < oldNumInplay; ++oldInplayPos) {
     unsigned k = oldInplayAlnIndices[oldInplayPos];
@@ -471,17 +480,18 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
     if (kEnd <= rEnds[i] || kEnd - rEnds[i] <= maxSpliceDist) break;
   }
 
-  double iProb = spliceBegProb(i, j);
+  double iProb = spliceBegProb(ij);
 
   for (unsigned y = oldInplayPos; y < oldNumInplay; ++y) {
     unsigned k = oldInplayAlnIndices[y];
     if (rnameAndStrandIds[k] > iSeq) break;
     if (rEnds[k] <= iBeg) break;
-    unsigned kEnd = cell(spliceEndCoords, k, j);
+    size_t kj = matrixRowOrigins[k] + j;
+    unsigned kEnd = spliceEndCoords[kj];
     if (kEnd <= iBeg) continue;
     if (kEnd - iBeg > maxSpliceDist) continue;
-    double p = iProb * spliceEndProb(k, j) * spliceProb(kEnd - iBeg);
-    sum += cell(Bmat, k, j) * p;
+    double p = iProb * spliceEndProb(kj) * spliceProb(kEnd - iBeg);
+    sum += Bmat[kj] * p;
   }
 
   return sum;
@@ -515,7 +525,7 @@ void SplitAligner::forward() {
 	    unsigned i = newInplayAlnIndices[x];
 	    size_t ij = matrixRowOrigins[i] + j;
 
-	    double p = Fmat[ij] * Dexp[ij] + probFromJump * spliceEndProb(i, j);
+	    double p = Fmat[ij] * Dexp[ij] + probFromJump * spliceEndProb(ij);
 	    if (restartProb <= 0 && alns[i].qstart == j) p += begprob;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceF(i, j, oldNumInplay, oldInplayPos);
@@ -523,7 +533,7 @@ void SplitAligner::forward() {
 
 	    Fmat[ij + 1] = p;
 	    if (alns[i].qend == j+1) zF += p;
-	    pSum += p * spliceBegProb(i, j+1);
+	    pSum += p * spliceBegProb(ij + 1);
 	    rNew += p;
         }
         begprob /= r;
@@ -561,7 +571,7 @@ void SplitAligner::backward() {
 	    unsigned i = newInplayAlnIndices[x];
 	    size_t ij = matrixRowOrigins[i] + j;
 
-	    double p = Bmat[ij] * Dexp[ij] + probFromJump * spliceBegProb(i, j);
+	    double p = Bmat[ij] * Dexp[ij] + probFromJump * spliceBegProb(ij);
 	    if (restartProb <= 0 && alns[i].qend == j) p += endprob;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceB(i, j, oldNumInplay, oldInplayPos);
@@ -569,7 +579,7 @@ void SplitAligner::backward() {
 
 	    Bmat[ij - 1] = p;
 	    //if (alns[i].qstart == j-1) zB += p;
-	    pSum += p * spliceEndProb(i, j-1);
+	    pSum += p * spliceEndProb(ij - 1);
         }
         endprob /= r;
 	sumProb = pSum * restartProb + sumProb / r;

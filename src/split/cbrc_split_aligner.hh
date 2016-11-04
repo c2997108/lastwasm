@@ -165,21 +165,21 @@ private:
     double spliceEndProbs[4 * 4 + 1];
     unsigned spliceBegSignal(unsigned coordinate, char strand) const;
     unsigned spliceEndSignal(unsigned coordinate, char strand) const;
-    int spliceBegScore(unsigned i, unsigned j) const {
+    int spliceBegScore(size_t ij) const {
       if (chromosomeIndex.empty()) return 0;
-      return spliceBegScores[cell(spliceBegSignals, i, j)];
+      return spliceBegScores[spliceBegSignals[ij]];
     }
-    int spliceEndScore(unsigned i, unsigned j) const {
+    int spliceEndScore(size_t ij) const {
       if (chromosomeIndex.empty()) return 0;
-      return spliceEndScores[cell(spliceEndSignals, i, j)];
+      return spliceEndScores[spliceEndSignals[ij]];
     }
-    double spliceBegProb(unsigned i, unsigned j) const {
+    double spliceBegProb(size_t ij) const {
       if (chromosomeIndex.empty()) return 1;
-      return spliceBegProbs[cell(spliceBegSignals, i, j)];
+      return spliceBegProbs[spliceBegSignals[ij]];
     }
-    double spliceEndProb(unsigned i, unsigned j) const {
+    double spliceEndProb(size_t ij) const {
       if (chromosomeIndex.empty()) return 1;
-      return spliceEndProbs[cell(spliceEndSignals, i, j)];
+      return spliceEndProbs[spliceEndSignals[ij]];
     }
     int calcSpliceScore(double dist) const;
     int spliceScore(unsigned d) const
