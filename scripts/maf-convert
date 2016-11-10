@@ -68,17 +68,6 @@ def isTranslated(sLines):
         if len(alnString) - alnString.count("-") < int(i[3]): return True
     return False
 
-def insertionSize(alnString, letterSize):
-    """Get the length of sequence included in the alnString."""
-    letters, forwardShifts, reverseShifts = insertionCounts(alnString)
-    return letters * letterSize + forwardShifts - reverseShifts
-
-def symbolSize(symbol, letterSize):
-    if symbol == "-": return 0
-    if symbol == "\\": return 1
-    if symbol == "/": return -1
-    return letterSize
-
 def isMatch(alignmentColumn):
     # No special treatment of ambiguous bases/residues: same as NCBI BLAST.
     first = alignmentColumn[0].upper()
@@ -88,6 +77,17 @@ def isMatch(alignmentColumn):
 
 def isGapless(alignmentColumn):
     return "-" not in alignmentColumn
+
+def symbolSize(symbol, letterSize):
+    if symbol == "-": return 0
+    if symbol == "\\": return 1
+    if symbol == "/": return -1
+    return letterSize
+
+def insertionSize(alnString, letterSize):
+    """Get the length of sequence included in the alnString."""
+    letters, forwardShifts, reverseShifts = insertionCounts(alnString)
+    return letters * letterSize + forwardShifts - reverseShifts
 
 def matchAndInsertSizes(alignmentColumns, letterSizes):
     """Get sizes of gapless blocks, and of the inserts between them."""
@@ -100,6 +100,38 @@ def matchAndInsertSizes(alignmentColumns, letterSizes):
             blockRows = imap(''.join, blockRows)
             insertSizes = imap(insertionSize, blockRows, letterSizes)
             yield joined(insertSizes, ":")
+
+def mafInput(lines, opts, isKeepComments):
+    a = []
+    s = []
+    q = []
+    p = []
+    for i in lines:
+        w = i.split()
+        if not w:
+            if a: yield a, s, q, p
+            a = []
+            s = []
+            q = []
+            p = []
+        elif w[0] == "a":
+            a = w
+        elif w[0] == "s":
+            s.append(w)
+        elif w[0] == "q":
+            q.append(w)
+        elif w[0] == "p":
+            p.append(w)
+        elif i[0] == "#":
+            for j in w:
+                try:
+                    k, v = j.split("=")
+                    x = float(v)
+                    if k == "lambda": opts.bitScoreA = x / math.log(2)
+                    if k == "K":      opts.bitScoreB = math.log(x, 2)
+                except ValueError: pass
+            if isKeepComments: print i,
+    if a: yield a, s, q, p
 
 ##### Routines for converting to AXT format: #####
 
@@ -622,39 +654,7 @@ def writeHtml(maf, lineSize):
         print
     print '</pre>'
 
-##### Routines for reading MAF format: #####
-
-def mafInput(lines, opts, isKeepComments):
-    a = []
-    s = []
-    q = []
-    p = []
-    for i in lines:
-        w = i.split()
-        if not w:
-            if a: yield a, s, q, p
-            a = []
-            s = []
-            q = []
-            p = []
-        elif w[0] == "a":
-            a = w
-        elif w[0] == "s":
-            s.append(w)
-        elif w[0] == "q":
-            q.append(w)
-        elif w[0] == "p":
-            p.append(w)
-        elif i[0] == "#":
-            for j in w:
-                try:
-                    k, v = j.split("=")
-                    x = float(v)
-                    if k == "lambda": opts.bitScoreA = x / math.log(2)
-                    if k == "K":      opts.bitScoreB = math.log(x, 2)
-                except ValueError: pass
-            if isKeepComments: print i,
-    if a: yield a, s, q, p
+##### Main program: #####
 
 def isFormat(myString, myFormat):
     return myFormat.startswith(myString)
