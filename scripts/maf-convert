@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # Copyright 2010, 2011, 2013, 2014 Martin C. Frith
 # Read MAF-format alignments: write them in other formats.
-# Seems to work with Python 2.x, x>=4
+# Seems to work with Python 2.x, x>=6
 
 # By "MAF" we mean "multiple alignment format" described in the UCSC
 # Genome FAQ, not e.g. "MIRA assembly format".
@@ -285,19 +285,19 @@ def readGroupId(readGroupItems):
             return i[3:]
     raise Exception("readgroup must include ID")
 
-def readSequenceLengths(lines):
+def readSequenceLengths(fileNames):
     """Read name & length of topmost sequence in each maf block."""
-    sequenceLengths = {}  # an OrderedDict might be nice
-    isSearching = True
-    for line in lines:
-        if line.isspace(): isSearching = True
-        elif isSearching:
-            w = line.split()
-            if w[0] == "s":
-                seqName, seqSize = w[1], w[5]
-                sequenceLengths[seqName] = seqSize
-                isSearching = False
-    return sequenceLengths
+    for i in fileNames:
+        with open(i) as f:
+            fields = None
+            for line in f:
+                if fields:
+                    if line.isspace():
+                        fields = None
+                else:
+                    if line[0] == "s":
+                        fields = line.split()
+                        yield fields[1], fields[5]
 
 def naturalSortKey(s):
     """Return a key that sorts strings in "natural" order."""
@@ -661,6 +661,7 @@ def isFormat(myString, myFormat):
 
 def mafConvert(opts, args):
     format = args[0].lower()
+    fileNames = args[1:]
 
     opts.isKeepComments = False
     opts.bitScoreA = None
@@ -673,7 +674,7 @@ def mafConvert(opts, args):
             opts.isKeepComments = True
 
     if isFormat(format, "sam"):
-        if opts.dictionary: d = readSequenceLengths(fileinput.input(args[1:]))
+        if opts.dictionary: d = dict(readSequenceLengths(fileNames))
         else: d = {}
         if opts.readgroup:
             readGroupItems = opts.readgroup.split()
@@ -682,7 +683,7 @@ def mafConvert(opts, args):
             readGroupItems = []
             rg = ""
         if not opts.noheader: writeSamHeader(d, opts.dictfile, readGroupItems)
-    inputLines = fileinput.input(args[1:])
+    inputLines = fileinput.input(fileNames)
 
     oldQueryName = ""
     for maf in mafInput(opts, inputLines):
@@ -730,7 +731,7 @@ if __name__ == "__main__":
                   help="read group info for sam format")
     op.add_option("-l", "--linesize", type="int", default=60, #metavar="CHARS",
                   help="line length for blast and html formats (default: %default)")
-    (opts, args) = op.parse_args()
+    opts, args = op.parse_args()
     if opts.linesize <= 0: op.error("option -l: should be >= 1")
     if opts.dictionary and opts.dictfile: op.error("can't use both -d and -f")
     if len(args) < 1: op.error("I need a format-name and some MAF alignments")
