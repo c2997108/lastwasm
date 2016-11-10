@@ -78,6 +78,9 @@ def gapRunCount(row):
     """Get the number of runs of gap characters."""
     return sum(k == "-" for k, v in groupby(row))
 
+def alignmentRowsFromColumns(columns):
+    return imap(''.join, izip(*columns))
+
 def symbolSize(symbol, letterSize):
     if symbol == "\\": return 1
     if symbol == "/": return -1
@@ -87,17 +90,17 @@ def insertSize(row, letterSize):
     """Get the length of sequence included in the row."""
     return (len(row) - row.count("-")) * letterSize - 4 * row.count("/") - 2 * row.count("\\")
 
+def insertSizeText(row, letterSize):
+    return str(insertSize(row, letterSize))
+
 def matchAndInsertSizes(alignmentColumns, letterSizes):
     """Get sizes of gapless blocks, and of the inserts between them."""
     for k, v in groupby(alignmentColumns, isGapless):
         if k:
-            sizeOfGaplessBlock = len(list(v))
-            yield str(sizeOfGaplessBlock)
+            yield str(sum(1 for i in v))
         else:
-            blockRows = izip(*v)
-            blockRows = imap(''.join, blockRows)
-            insertSizes = imap(insertSize, blockRows, letterSizes)
-            yield joined(insertSizes, ":")
+            yield ":".join(imap(insertSizeText,
+                                alignmentRowsFromColumns(v), letterSizes))
 
 def mafInput(opts, lines):
     a = []
@@ -440,10 +443,20 @@ def strandText(strand):
     if strand == "+": return "Plus"
     else: return "Minus"
 
-def blastCoordinate(oneBasedCoordinate, strand, seqSize):
-    if strand == "-":
-        oneBasedCoordinate = seqSize - oneBasedCoordinate + 1
-    return str(oneBasedCoordinate)
+def blastBegCoordinate(zeroBasedCoordinate, strand, seqLen):
+    if strand == "+":
+        return str(zeroBasedCoordinate + 1)
+    else:
+        return str(seqLen - zeroBasedCoordinate)
+
+def blastEndCoordinate(zeroBasedCoordinate, strand, seqLen):
+    if strand == "+":
+        return str(zeroBasedCoordinate)
+    else:
+        return str(seqLen - zeroBasedCoordinate + 1)
+
+def nextCoordinate(coordinate, row, letterSize):
+    return coordinate + insertSize(row, letterSize)
 
 def chunker(things, chunkSize):
     for i in range(0, len(things), chunkSize):
@@ -453,14 +466,11 @@ def blastChunker(maf, lineSize, alignmentColumns):
     letterSizes = mafLetterSizes(maf)
     coords = maf.alnStarts
     for chunkCols in chunker(alignmentColumns, lineSize):
-        chunkRows = zip(*chunkCols)
-        chunkRows = map(''.join, chunkRows)
-        starts = [i + 1 for i in coords]  # change to 1-based coordinates
-        starts = map(blastCoordinate, starts, maf.strands, maf.seqSizes)
-        increments = map(insertSize, chunkRows, letterSizes)
-        coords = map(operator.add, coords, increments)
-        ends = map(blastCoordinate, coords, maf.strands, maf.seqSizes)
-        yield chunkCols, chunkRows, starts, ends
+        chunkRows = list(alignmentRowsFromColumns(chunkCols))
+        begs = map(blastBegCoordinate, coords, maf.strands, maf.seqSizes)
+        coords = map(nextCoordinate, coords, chunkRows, letterSizes)
+        ends = map(blastEndCoordinate, coords, maf.strands, maf.seqSizes)
+        yield chunkCols, chunkRows, begs, ends
 
 def writeBlast(maf, opts, oldQueryName):
     dieUnlessPairwise(maf)
@@ -491,8 +501,9 @@ def writeBlast(maf, opts, oldQueryName):
     matchPercent = 100 * matches // alnSize  # round down, like BLAST
     identLine = " Identities = %s/%s (%s%%)" % (matches, alnSize, matchPercent)
     gaps = alnSize - quantify(alignmentColumns, isGapless)
-    gapPercent = 100 * gaps // alnSize  # round down, like BLAST
-    if gaps: identLine += ", Gaps = %s/%s (%s%%)" % (gaps, alnSize, gapPercent)
+    if gaps:
+        gapPercent = 100 * gaps // alnSize  # round down, like BLAST
+        identLine += ", Gaps = %s/%s (%s%%)" % (gaps, alnSize, gapPercent)
     print identLine
 
     strands = map(strandText, maf.strands)
@@ -500,13 +511,12 @@ def writeBlast(maf, opts, oldQueryName):
     print
 
     for chunk in blastChunker(maf, opts.linesize, alignmentColumns):
-        cols, rows, starts, ends = chunk
-        startWidth = maxlen(starts)
-        matchSymbols = map(pairwiseMatchSymbol, cols)
-        matchSymbols = ''.join(matchSymbols)
-        print "Query: %-*s %s %s" % (startWidth, starts[1], rows[1], ends[1])
-        print "       %-*s %s"    % (startWidth, " ", matchSymbols)
-        print "Sbjct: %-*s %s %s" % (startWidth, starts[0], rows[0], ends[0])
+        cols, rows, begs, ends = chunk
+        begWidth = maxlen(begs)
+        matchSymbols = ''.join(map(pairwiseMatchSymbol, cols))
+        print "Query: %-*s %s %s" % (begWidth, begs[1], rows[1], ends[1])
+        print "       %-*s %s"    % (begWidth, " ", matchSymbols)
+        print "Sbjct: %-*s %s %s" % (begWidth, begs[0], rows[0], ends[0])
         print
 
 def blastEndsFromMafLine(fields):
@@ -611,7 +621,7 @@ def multipleMatchSymbol(alignmentColumn):
     if isMatch(alignmentColumn): return "*"
     else: return " "
 
-def writeHtml(maf, lineSize):
+def writeHtml(opts, maf):
     scoreLine = "Alignment"
     try:
         scoreLine += " score=%s" % maf.namesAndValues["score"]
@@ -630,20 +640,19 @@ def writeHtml(maf, lineSize):
     alignmentColumns = zip(*maf.alnStrings)
 
     print '<pre>'
-    for chunk in blastChunker(maf, lineSize, alignmentColumns):
-        cols, rows, starts, ends = chunk
-        startWidth = maxlen(starts)
+    for chunk in blastChunker(maf, opts.linesize, alignmentColumns):
+        cols, rows, begs, ends = chunk
+        begWidth = maxlen(begs)
         endWidth = maxlen(ends)
-        matchSymbols = map(multipleMatchSymbol, cols)
-        matchSymbols = ''.join(matchSymbols)
-        classChunk = islice(classes, lineSize)
+        matchSymbols = ''.join(map(multipleMatchSymbol, cols))
+        classChunk = islice(classes, opts.linesize)
         classRuns = list(identicalRuns(classChunk))
-        for n, s, r, e in zip(maf.seqNames, starts, rows, ends):
+        for n, b, r, e in zip(maf.seqNames, begs, rows, ends):
             spans = [htmlSpan(r, i) for i in classRuns]
             spans = ''.join(spans)
-            formatParams = nameWidth, n, startWidth, s, spans, endWidth, e
+            formatParams = nameWidth, n, begWidth, b, spans, endWidth, e
             print '%-*s %*s %s %*s' % formatParams
-        print ' ' * nameWidth, ' ' * startWidth, matchSymbols
+        print ' ' * nameWidth, ' ' * begWidth, matchSymbols
         print
     print '</pre>'
 
@@ -686,7 +695,7 @@ def mafConvert(opts, args):
             writeBlast(maf, opts, oldQueryName)
             oldQueryName = maf.seqNames[1]
         elif isFormat(format, "blasttab"): writeBlastTab(maf, opts)
-        elif isFormat(format, "html"): writeHtml(Maf(*maf), opts.linesize)
+        elif isFormat(format, "html"): writeHtml(opts, Maf(*maf))
         elif isFormat(format, "psl"): writePsl(Maf(*maf), opts.protein)
         elif isFormat(format, "sam"): writeSam(maf, rg)
         elif isFormat(format, "tabular"): writeTab(maf)
