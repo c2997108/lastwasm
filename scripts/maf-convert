@@ -7,17 +7,13 @@
 # Genome FAQ, not e.g. "MIRA assembly format".
 
 from itertools import *
-import sys, os, fileinput, math, operator, optparse, signal, string
+import sys, os, fileinput, math, operator, optparse, signal
 
 def maxlen(s):
     return max(map(len, s))
 
 def joined(things, delimiter):
     return delimiter.join(map(str, things))
-
-identityTranslation = string.maketrans("", "")
-def deleted(myString, deleteChars):
-    return myString.translate(identityTranslation, deleteChars)
 
 def quantify(iterable, pred=bool):
     """Count how many times the predicate is true."""
@@ -78,16 +74,18 @@ def isMatch(alignmentColumn):
 def isGapless(alignmentColumn):
     return "-" not in alignmentColumn
 
+def gapRunCount(row):
+    """Get the number of runs of gap characters."""
+    return sum(k == "-" for k, v in groupby(row))
+
 def symbolSize(symbol, letterSize):
-    if symbol == "-": return 0
     if symbol == "\\": return 1
     if symbol == "/": return -1
     return letterSize
 
-def insertionSize(alnString, letterSize):
-    """Get the length of sequence included in the alnString."""
-    letters, forwardShifts, reverseShifts = insertionCounts(alnString)
-    return letters * letterSize + forwardShifts - reverseShifts
+def insertSize(row, letterSize):
+    """Get the length of sequence included in the row."""
+    return (len(row) - row.count("-")) * letterSize - 4 * row.count("/") - 2 * row.count("\\")
 
 def matchAndInsertSizes(alignmentColumns, letterSizes):
     """Get sizes of gapless blocks, and of the inserts between them."""
@@ -98,7 +96,7 @@ def matchAndInsertSizes(alignmentColumns, letterSizes):
         else:
             blockRows = izip(*v)
             blockRows = imap(''.join, blockRows)
-            insertSizes = imap(insertionSize, blockRows, letterSizes)
+            insertSizes = imap(insertSize, blockRows, letterSizes)
             yield joined(insertSizes, ":")
 
 def mafInput(opts, lines):
@@ -212,11 +210,6 @@ def pslBlocks(alignmentColumns, alnStarts, letterSizes):
 def pslCommaString(things):
     # UCSC software seems to prefer a trailing comma
     return joined(things, ",") + ","
-
-def gapRunCount(letters):
-    """Get the number of runs of gap characters."""
-    uniqLetters = map(operator.itemgetter(0), groupby(letters))
-    return uniqLetters.count("-")
 
 def pslEndpoints(alnStart, alnSize, strand, seqSize):
     alnEnd = alnStart + alnSize
@@ -403,7 +396,7 @@ def writeSam(maf, rg):
     qRevStart = int(qSeqSize) - qStart - int(qAlnSize)
     cigar = "".join(cigarParts(qStart, iter(alignmentColumns), qRevStart))
 
-    seq = deleted(qAlnString, "-")
+    seq = qAlnString.translate(None, "-")
 
     if qLines and qLines[-1][1] == qName:
         qual = ''.join(j
@@ -464,7 +457,7 @@ def blastChunker(maf, lineSize, alignmentColumns):
         chunkRows = map(''.join, chunkRows)
         starts = [i + 1 for i in coords]  # change to 1-based coordinates
         starts = map(blastCoordinate, starts, maf.strands, maf.seqSizes)
-        increments = map(insertionSize, chunkRows, letterSizes)
+        increments = map(insertSize, chunkRows, letterSizes)
         coords = map(operator.add, coords, increments)
         ends = map(blastCoordinate, coords, maf.strands, maf.seqSizes)
         yield chunkCols, chunkRows, starts, ends
