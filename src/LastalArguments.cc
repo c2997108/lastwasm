@@ -477,6 +477,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
       batchSize = 0x100000;   // 1 Mbyte
     else if( outputType == 0 )
       batchSize = 0x1000000;  // 16 Mbytes
+    else if( !isVolumes )
+      batchSize = 0x800000;   // 8 Mbytes
     else if( inputFormat == sequenceFormat::prb )
       batchSize = 0x2000000;  // 32 Mbytes (?)
     else
