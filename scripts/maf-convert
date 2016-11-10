@@ -101,7 +101,7 @@ def matchAndInsertSizes(alignmentColumns, letterSizes):
             insertSizes = imap(insertionSize, blockRows, letterSizes)
             yield joined(insertSizes, ":")
 
-def mafInput(lines, opts, isKeepComments):
+def mafInput(opts, lines):
     a = []
     s = []
     q = []
@@ -130,7 +130,7 @@ def mafInput(lines, opts, isKeepComments):
                     if k == "lambda": opts.bitScoreA = x / math.log(2)
                     if k == "K":      opts.bitScoreB = math.log(x, 2)
                 except ValueError: pass
-            if isKeepComments: print i,
+            if opts.isKeepComments: print i,
     if a: yield a, s, q, p
 
 ##### Routines for converting to AXT format: #####
@@ -661,6 +661,17 @@ def isFormat(myString, myFormat):
 
 def mafConvert(opts, args):
     format = args[0].lower()
+
+    opts.isKeepComments = False
+    opts.bitScoreA = None
+    opts.bitScoreB = None
+
+    if not opts.noheader:
+        if isFormat(format, "html"):
+            writeHtmlHeader()
+        if isFormat(format, "tabular"):
+            opts.isKeepComments = True
+
     if isFormat(format, "sam"):
         if opts.dictionary: d = readSequenceLengths(fileinput.input(args[1:]))
         else: d = {}
@@ -672,12 +683,9 @@ def mafConvert(opts, args):
             rg = ""
         if not opts.noheader: writeSamHeader(d, opts.dictfile, readGroupItems)
     inputLines = fileinput.input(args[1:])
-    if isFormat(format, "html") and not opts.noheader: writeHtmlHeader()
-    isKeepCommentLines = isFormat(format, "tabular") and not opts.noheader
-    opts.bitScoreA = None
-    opts.bitScoreB = None
+
     oldQueryName = ""
-    for maf in mafInput(inputLines, opts, isKeepCommentLines):
+    for maf in mafInput(opts, inputLines):
         if   isFormat(format, "axt"): writeAxt(Maf(*maf))
         elif isFormat(format, "blast"):
             maf = Maf(*maf)
@@ -689,7 +697,10 @@ def mafConvert(opts, args):
         elif isFormat(format, "sam"): writeSam(maf, rg)
         elif isFormat(format, "tabular"): writeTab(maf)
         else: raise Exception("unknown format: " + format)
-    if isFormat(format, "html") and not opts.noheader: print "</body></html>"
+
+    if not opts.noheader:
+        if isFormat(format, "html"):
+            print "</body></html>"
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
