@@ -45,7 +45,7 @@ Training options
          order of sequences.  0 means use all query letters.
 
 All options below this point are passed to lastal to do the
-alignments: they are described in more detail in `<lastal.html>`_.
+alignments: they are described in more detail at `<lastal.html>`_.
 
 Initial parameter options
 ~~~~~~~~~~~~~~~~~~~~~~~~~

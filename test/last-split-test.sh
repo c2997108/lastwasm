@@ -28,5 +28,7 @@ maf=SRR359290-1k.maf
     last-split -d2 -m0.001 -s180 $maf
 
     grep -v '^q' $maf | last-split -m0.001 -s180
+
+    last-split 102.maf
 } |
 diff last-split-test.out -

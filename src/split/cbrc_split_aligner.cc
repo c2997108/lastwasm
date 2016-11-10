@@ -711,9 +711,6 @@ void SplitAligner::calcScoreMatrices() {
 }
 
 void SplitAligner::initRbegsAndEnds() {
-  rBegs.resize(numAlns);
-  rEnds.resize(numAlns);
-
   for (unsigned i = 0; i < numAlns; ++i) {
     const UnsplitAlignment& a = alns[i];
     unsigned b = a.rstart;
@@ -921,15 +918,21 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
     oldInplayAlnIndices.resize(numAlns);
     newInplayAlnIndices.resize(numAlns);
 
-    initRbegsAndEnds();
+    rBegs.resize(numAlns);
+    rEnds.resize(numAlns);
+
+    if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
+	initRbegsAndEnds();
+	//initRnameAndStrandIds();
+    }
     initRnameAndStrandIds();
+
     initDpBounds();
     calcScoreMatrices();
 
     if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
         initSpliceCoords();
 	if (!chromosomeIndex.empty()) initSpliceSignals();
-	//initRnameAndStrandIds();
     }
 
     initForwardBackward();
