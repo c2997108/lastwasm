@@ -7,7 +7,7 @@
 # Genome FAQ, not e.g. "MIRA assembly format".
 
 from itertools import *
-import sys, os, math, operator, optparse, signal
+import math, optparse, os, signal, sys
 
 def maxlen(s):
     return max(map(len, s))
@@ -154,13 +154,13 @@ def mafInput(opts, lines):
 axtCounter = count()
 
 def writeAxt(maf):
-    if maf.strands[0] != "+":
+    aLine, sLines, qLines, pLines = maf
+
+    if sLines[0][2] != "+":
         raise Exception("for AXT, the 1st strand in each alignment must be +")
 
     # Convert to AXT's 1-based coordinates:
-    alnStarts = imap(operator.add, maf.alnStarts, repeat(1))
-    alnEnds = imap(operator.add, maf.alnStarts, maf.alnSizes)
-    ranges = zip(maf.seqNames, alnStarts, alnEnds, maf.strands)
+    ranges = [(i[0], i[4] + 1, i[4] + i[5], i[2]) for i in sLines]
 
     head, body = ranges[0], ranges[1:]
 
@@ -169,17 +169,18 @@ def writeAxt(maf):
     for i in body:
         outWords.extend(i)
 
-    score, evalue = scoreAndEvalue(maf.aLine)
+    score, evalue = scoreAndEvalue(aLine)
     if score:
         outWords.append(score)
 
     print joined(outWords, " ")
-    for i in maf.alnStrings: print i
+    for i in sLines:
+        print i[6]
     print  # print a blank line at the end
 
 def mafConvertToAxt(opts, lines):
     for maf in mafInput(opts, lines):
-        writeAxt(Maf(*maf))
+        writeAxt(maf)
 
 ##### Routines for converting to tabular format: #####
 
@@ -585,32 +586,25 @@ def mafConvertToBlast(opts, lines):
         writeBlast(maf, opts, oldQueryName)
         oldQueryName = maf.seqNames[1]
 
-def blastEndsFromMafLine(fields):
-    beg = fields[4]
-    end = beg + fields[5]
-    if fields[2] == "+":
+def blastDataFromMafFields(fields):
+    seqName, seqLen, strand, letterSize, beg, span, row = fields
+    end = beg + span
+    if strand == "+":
         beg += 1
     else:
-        seqLen = fields[1]
         beg = seqLen - beg
         end = seqLen - end + 1
-    return beg, end
+    return seqName, beg, end, row.upper()
 
 def writeBlastTab(opts, maf):
     aLine, sLines, qLines, pLines = maf
-
     fieldsA, fieldsB = sLines
+    seqNameA, begA, endA, rowA = blastDataFromMafFields(fieldsA)
+    seqNameB, begB, endB, rowB = blastDataFromMafFields(fieldsB)
 
-    seqNameA = fieldsA[0]
-    begA, endA = blastEndsFromMafLine(fieldsA)
-
-    seqNameB = fieldsB[0]
-    begB, endB = blastEndsFromMafLine(fieldsB)
-
-    rowA, rowB = [i[6] for i in sLines]
     alignmentColumns = zip(rowA, rowB)
     alnSize = len(alignmentColumns)
-    matches = quantify(alignmentColumns, isMatch)
+    matches = sum(x == y for x, y in alignmentColumns)
     matchPercent = "%.2f" % (100.0 * matches / alnSize)
     mismatches = quantify(alignmentColumns, isGapless) - matches
     gapOpens = gapRunCount(rowA) + gapRunCount(rowB)
