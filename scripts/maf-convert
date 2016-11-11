@@ -25,10 +25,10 @@ class Maf:
 
         cols = zip(*sLines)
         self.seqNames = cols[1]
-        self.alnStarts = map(int, cols[2])
-        self.alnSizes = map(int, cols[3])
+        self.alnStarts = cols[2]
+        self.alnSizes = cols[3]
         self.strands = cols[4]
-        self.seqSizes = map(int, cols[5])
+        self.seqSizes = cols[5]
         self.alnStrings = cols[6]
 
         self.qLines = qLines
@@ -54,13 +54,13 @@ def mafLetterSizes(maf):
     return map(coordinatesPerLetter, maf.alnStrings, maf.alnSizes)
 
 def alnLetterSizes(sLines):
-    return [coordinatesPerLetter(i[6], int(i[3])) for i in sLines]
+    return [coordinatesPerLetter(i[6], i[3]) for i in sLines]
 
 def isTranslated(sLines):
     for i in sLines:
         alnString = i[6]
         if "\\" in alnString or "/" in alnString: return True
-        if len(alnString) - alnString.count("-") < int(i[3]): return True
+        if len(alnString) - alnString.count("-") < i[3]: return True
     return False
 
 def isMatch(alignmentColumn):
@@ -131,7 +131,11 @@ def mafInput(opts, lines):
     pLines = []
     for line in lines:
         if line[0] == "s":
-            fields = line.split()
+            junk, seqName, beg, span, strand, seqLen, row = line.split()
+            beg = int(beg)
+            span = int(span)
+            seqLen = int(seqLen)
+            fields = junk, seqName, beg, span, strand, seqLen, row
             sLines.append(fields)
         elif line[0] == "a":
             aLine = line
@@ -198,7 +202,9 @@ def writeTab(maf):
 
     outWords = [score]
 
-    for i in sLines: outWords.extend(i[1:6])
+    for junk, seqName, beg, span, strand, seqLen, row in sLines:
+        x = seqName, str(beg), str(span), strand, str(seqLen)
+        outWords.extend(x)
 
     letterSizes = alnLetterSizes(sLines)
     rows = [i[6] for i in sLines]
@@ -441,12 +447,11 @@ def writeSam(readGroup, maf):
         elif i.startswith("mismap="):
             mapq = mapqFromProb(i[7:])
 
-    pos = str(int(begA) + 1)  # convert to 1-based coordinate
+    pos = str(begA + 1)  # convert to 1-based coordinate
 
     alignmentColumns = zip(rowA.upper(), rowB.upper())
 
-    begB = int(begB)
-    revBegB = int(seqLenB) - begB - int(spanB)
+    revBegB = seqLenB - begB - spanB
     cigar = "".join(cigarParts(begB, iter(alignmentColumns), revBegB))
 
     seq = rowB.translate(None, "-")
@@ -587,12 +592,12 @@ def mafConvertToBlast(opts, lines):
         oldQueryName = maf.seqNames[1]
 
 def blastEndsFromMafLine(fields):
-    beg = int(fields[2])
-    end = beg + int(fields[3])
+    beg = fields[2]
+    end = beg + fields[3]
     if fields[4] == "+":
         beg += 1
     else:
-        seqLen = int(fields[5])
+        seqLen = fields[5]
         beg = seqLen - beg
         end = seqLen - end + 1
     return beg, end
