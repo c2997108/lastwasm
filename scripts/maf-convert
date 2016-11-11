@@ -159,6 +159,10 @@ def writeAxt(maf):
     for i in maf.alnStrings: print i
     print  # print a blank line at the end
 
+def mafConvertToAxt(opts, lines):
+    for maf in mafInput(opts, lines):
+        writeAxt(Maf(*maf))
+
 ##### Routines for converting to tabular format: #####
 
 def writeTab(maf):
@@ -183,6 +187,10 @@ def writeTab(maf):
     outWords.append(gapWord)
 
     print "\t".join(outWords + endWords)
+
+def mafConvertToTab(opts, lines):
+    for maf in mafInput(opts, lines):
+        writeTab(maf)
 
 ##### Routines for converting to PSL format: #####
 
@@ -272,6 +280,10 @@ def writePsl(maf, isProtein):
                 qName, qSeqSize, qStart, qEnd, tName, tSeqSize, tStart, tEnd,
                 blockCount, blockSizes, qStarts, tStarts)
     print joined(outWords, "\t")
+
+def mafConvertToPsl(opts, lines):
+    for maf in mafInput(opts, lines):
+        writePsl(Maf(*maf), opts.protein)
 
 ##### Routines for converting to SAM format: #####
 
@@ -433,6 +445,13 @@ def writeSam(maf, rg):
     if rg: outWords.append(rg)
     print "\t".join(outWords)
 
+def mafConvertToSam(opts, lines):
+    readGroup = ""
+    if opts.readgroup:
+        readGroup = "RG:Z:" + readGroupId(opts.readgroup.split())
+    for maf in mafInput(opts, lines):
+        writeSam(maf, readGroup)
+
 ##### Routines for converting to BLAST-like format: #####
 
 def pairwiseMatchSymbol(alignmentColumn):
@@ -519,6 +538,13 @@ def writeBlast(maf, opts, oldQueryName):
         print "Sbjct: %-*s %s %s" % (begWidth, begs[0], rows[0], ends[0])
         print
 
+def mafConvertToBlast(opts, lines):
+    oldQueryName = ""
+    for maf in mafInput(opts, lines):
+        maf = Maf(*maf)
+        writeBlast(maf, opts, oldQueryName)
+        oldQueryName = maf.seqNames[1]
+
 def blastEndsFromMafLine(fields):
     beg = int(fields[2])
     span = int(fields[3])
@@ -561,6 +587,10 @@ def writeBlastTab(maf, opts):
             bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
             out.append("%.3g" % bitScore)
     print joined(out, "\t")
+
+def mafConvertToBlastTab(opts, lines):
+    for maf in mafInput(opts, lines):
+        writeBlastTab(maf, opts)
 
 ##### Routines for converting to HTML format: #####
 
@@ -656,10 +686,32 @@ def writeHtml(opts, maf):
         print
     print '</pre>'
 
+def mafConvertToHtml(opts, lines):
+    for maf in mafInput(opts, lines):
+        writeHtml(opts, Maf(*maf))
+
 ##### Main program: #####
 
 def isFormat(myString, myFormat):
     return myFormat.startswith(myString)
+
+def mafConvertOneFile(opts, formatName, lines):
+    if   isFormat(formatName, "axt"):
+        mafConvertToAxt(opts, lines)
+    elif isFormat(formatName, "blast"):
+        mafConvertToBlast(opts, lines)
+    elif isFormat(formatName, "blasttab"):
+        mafConvertToBlastTab(opts, lines)
+    elif isFormat(formatName, "html"):
+        mafConvertToHtml(opts, lines)
+    elif isFormat(formatName, "psl"):
+        mafConvertToPsl(opts, lines)
+    elif isFormat(formatName, "sam"):
+        mafConvertToSam(opts, lines)
+    elif isFormat(formatName, "tabular"):
+        mafConvertToTab(opts, lines)
+    else:
+        raise Exception("unknown format: " + formatName)
 
 def mafConvert(opts, args):
     format = args[0].lower()
@@ -680,26 +732,12 @@ def mafConvert(opts, args):
         else: d = {}
         if opts.readgroup:
             readGroupItems = opts.readgroup.split()
-            rg = "RG:Z:" + readGroupId(readGroupItems)
         else:
             readGroupItems = []
-            rg = ""
         if not opts.noheader: writeSamHeader(d, opts.dictfile, readGroupItems)
-    inputLines = fileinput.input(fileNames)
 
-    oldQueryName = ""
-    for maf in mafInput(opts, inputLines):
-        if   isFormat(format, "axt"): writeAxt(Maf(*maf))
-        elif isFormat(format, "blast"):
-            maf = Maf(*maf)
-            writeBlast(maf, opts, oldQueryName)
-            oldQueryName = maf.seqNames[1]
-        elif isFormat(format, "blasttab"): writeBlastTab(maf, opts)
-        elif isFormat(format, "html"): writeHtml(opts, Maf(*maf))
-        elif isFormat(format, "psl"): writePsl(Maf(*maf), opts.protein)
-        elif isFormat(format, "sam"): writeSam(maf, rg)
-        elif isFormat(format, "tabular"): writeTab(maf)
-        else: raise Exception("unknown format: " + format)
+    inputLines = fileinput.input(fileNames)
+    mafConvertOneFile(opts, format, inputLines)
 
     if not opts.noheader:
         if isFormat(format, "html"):
