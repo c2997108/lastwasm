@@ -181,29 +181,31 @@ def mafConvertToTab(opts, lines):
 
 ##### Routines for converting to PSL format: #####
 
-def pslBlocks(alignmentColumns, alnStarts, letterSizes):
+def pslBlocks(fieldsA, fieldsB):
     """Get sizes and start coordinates of gapless blocks in an alignment."""
-    start1, start2 = alnStarts
-    letterSize1, letterSize2 = letterSizes
+    letterSizeA, begA, endA, rowA = fieldsA[3:7]
+    letterSizeB, begB, endB, rowB = fieldsB[3:7]
+
     size = 0
-    for x, y in alignmentColumns:
+    for x, y in izip(rowA.upper(), rowB.upper()):
         if x == "-":
             if size:
-                yield size, start1, start2
-                start1 += size * letterSize1
-                start2 += size * letterSize2
+                yield size, begA, begB
+                begA += size * letterSizeA
+                begB += size * letterSizeB
                 size = 0
-            start2 += symbolSize(y, letterSize2)
+            begB += symbolSize(y, letterSizeB)
         elif y == "-":
             if size:
-                yield size, start1, start2
-                start1 += size * letterSize1
-                start2 += size * letterSize2
+                yield size, begA, begB
+                begA += size * letterSizeA
+                begB += size * letterSizeB
                 size = 0
-            start1 += symbolSize(x, letterSize1)
+            begA += symbolSize(x, letterSizeA)
         else:
             size += 1
-    if size: yield size, start1, start2
+    if size:
+        yield size, begA, begB
 
 def pslNumInserts(blocks, letterSizeA, letterSizeB):
     numInsertA = numInsertB = 0
@@ -222,10 +224,11 @@ def pslCommaString(things):
     # UCSC software seems to prefer a trailing comma
     return ",".join(map(str, things)) + ","
 
-def pslEndpoints(alnStart, alnSize, strand, seqSize):
-    alnEnd = alnStart + alnSize
-    if strand == "+": return alnStart, alnEnd
-    else: return seqSize - alnEnd, seqSize - alnStart
+def pslEndpoints(beg, span, strand, seqLen):
+    end = beg + span
+    if strand == "-":
+        beg, end = seqLen - end, seqLen - beg
+    return beg, end
 
 def caseSensitivePairwiseMatchCounts(columns, isProtein):
     # repMatches is always zero
@@ -247,19 +250,17 @@ def writePsl(maf, isProtein):
     seqNameA, seqLenA, strandA, letterSizeA, begA, spanA, rowA = fieldsA
     seqNameB, seqLenB, strandB, letterSizeB, begB, spanB, rowB = fieldsB
 
-    letterSizes = letterSizeA, letterSizeB
-    begs = begA, begB
     alignmentColumns = zip(rowA.upper(), rowB.upper())
 
-    blocks = list(pslBlocks(alignmentColumns, begs, letterSizes))
+    blocks = list(pslBlocks(fieldsA, fieldsB))
     matchCounts = caseSensitivePairwiseMatchCounts(alignmentColumns, isProtein)
     matches, mismatches, repMatches, nCount = matchCounts
     numGaplessColumns = sum(matchCounts)
 
     begA, endA = pslEndpoints(begA, spanA, strandA, seqLenA)
-    begB, endB = pslEndpoints(begB, spanB, strandB, seqLenB)
-
     baseInsertA = spanA - numGaplessColumns * letterSizeA
+
+    begB, endB = pslEndpoints(begB, spanB, strandB, seqLenB)
     baseInsertB = spanB - numGaplessColumns * letterSizeB
 
     numInsertA, numInsertB = pslNumInserts(blocks, letterSizeA, letterSizeB)
