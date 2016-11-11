@@ -181,13 +181,15 @@ def mafConvertToTab(opts, lines):
 
 ##### Routines for converting to PSL format: #####
 
-def pslBlocks(opts, fieldsA, fieldsB, outCounts):
+def pslBlocks(opts, maf, outCounts):
     """Get sizes and start coordinates of gapless blocks in an alignment."""
     # repMatches is always zero
     # for proteins, nCount is always zero, because that's what BLATv34 does
     normalBases = "ACGTU"
     matches = mismatches = repMatches = nCount = 0
 
+    sLines = maf[1]
+    fieldsA, fieldsB = pairOrDie(sLines, "PSL")
     letterSizeA, begA, endA, rowA = fieldsA[3:7]
     letterSizeB, begB, endB, rowB = fieldsB[3:7]
 
@@ -238,28 +240,26 @@ def pslCommaString(things):
     # UCSC software seems to prefer a trailing comma
     return ",".join(map(str, things)) + ","
 
-def pslEndpoints(beg, span, strand, seqLen):
+def pslEnds(mafFields):
+    seqName, seqLen, strand, letterSize, beg, span, row = mafFields
     end = beg + span
     if strand == "-":
         beg, end = seqLen - end, seqLen - beg
-    return beg, end
+    return seqName, seqLen, strand, letterSize, beg, end
 
 def writePsl(opts, maf):
-    aLine, sLines, qLines, pLines = maf
-    fieldsA, fieldsB = pairOrDie(sLines, "PSL")
-    seqNameA, seqLenA, strandA, letterSizeA, begA, spanA, rowA = fieldsA
-    seqNameB, seqLenB, strandB, letterSizeB, begB, spanB, rowB = fieldsB
-
     matchCounts = [0] * 4
-    blocks = list(pslBlocks(opts, fieldsA, fieldsB, matchCounts))
+    blocks = list(pslBlocks(opts, maf, matchCounts))
     matches, mismatches, repMatches, nCount = matchCounts
     numGaplessColumns = sum(matchCounts)
 
-    begA, endA = pslEndpoints(begA, spanA, strandA, seqLenA)
-    baseInsertA = spanA - numGaplessColumns * letterSizeA
+    fieldsA, fieldsB = maf[1]
 
-    begB, endB = pslEndpoints(begB, spanB, strandB, seqLenB)
-    baseInsertB = spanB - numGaplessColumns * letterSizeB
+    seqNameA, seqLenA, strandA, letterSizeA, begA, endA = pslEnds(fieldsA)
+    baseInsertA = endA - begA - numGaplessColumns * letterSizeA
+
+    seqNameB, seqLenB, strandB, letterSizeB, begB, endB = pslEnds(fieldsB)
+    baseInsertB = endB - begB - numGaplessColumns * letterSizeB
 
     numInsertA, numInsertB = pslNumInserts(blocks, letterSizeA, letterSizeB)
 
