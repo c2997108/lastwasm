@@ -254,11 +254,11 @@ def writePsl(maf, isProtein):
     matches, mismatches, repMatches, nCount = matchCounts
     numGaplessColumns = sum(matchCounts)
 
-    qNumInsert = gapRunCount(maf.alnStrings[0])
-    qBaseInsert = maf.alnSizes[1] - numGaplessColumns * letterSizes[1]
+    numInsertB = gapRunCount(maf.alnStrings[0])
+    baseInsertB = maf.alnSizes[1] - numGaplessColumns * letterSizes[1]
 
-    tNumInsert = gapRunCount(maf.alnStrings[1])
-    tBaseInsert = maf.alnSizes[0] - numGaplessColumns * letterSizes[0]
+    numInsertA = gapRunCount(maf.alnStrings[1])
+    baseInsertA = maf.alnSizes[0] - numGaplessColumns * letterSizes[0]
 
     strand = maf.strands[1]
     if max(letterSizes) > 1:
@@ -266,22 +266,22 @@ def writePsl(maf, isProtein):
     elif maf.strands[0] != "+":
         raise Exception("for non-translated PSL, the 1st strand in each alignment must be +")
 
-    tName, qName = maf.seqNames
-    tSeqSize, qSeqSize = maf.seqSizes
+    seqNameA, seqNameB = maf.seqNames
+    seqLenA, seqLenB = maf.seqSizes
 
     rows = zip(maf.alnStarts, maf.alnSizes, maf.strands, maf.seqSizes)
-    tStart, tEnd = pslEndpoints(*rows[0])
-    qStart, qEnd = pslEndpoints(*rows[1])
+    begA, endA = pslEndpoints(*rows[0])
+    begB, endB = pslEndpoints(*rows[1])
 
     blocks = list(pslBlocks(alignmentColumns, maf.alnStarts, letterSizes))
 
     blockCount = len(blocks)
-    blockSizes, tStarts, qStarts = map(pslCommaString, zip(*blocks))
+    blockSizes, blockStartsA, blockStartsB = map(pslCommaString, zip(*blocks))
 
     outWords = (matches, mismatches, repMatches, nCount,
-                qNumInsert, qBaseInsert, tNumInsert, tBaseInsert, strand,
-                qName, qSeqSize, qStart, qEnd, tName, tSeqSize, tStart, tEnd,
-                blockCount, blockSizes, qStarts, tStarts)
+                numInsertB, baseInsertB, numInsertA, baseInsertA, strand,
+                seqNameB, seqLenB, begB, endB, seqNameA, seqLenA, begA, endA,
+                blockCount, blockSizes, blockStartsB, blockStartsA)
 
     print "\t".join(map(str, outWords))
 
@@ -417,46 +417,45 @@ def writeSam(readGroup, maf):
     if len(sLines) != 2:
         raise Exception("for SAM, each alignment must have 2 sequences")
     rFields, qFields = sLines
-    s, rName, rStart, rAlnSize, rStrand, rSeqSize, rAlnString = rFields
-    s, qName, qStart, qAlnSize, qStrand, qSeqSize, qAlnString = qFields
-    if rStrand != "+":
+    s, seqNameA, begA, spanA, strandA, seqLenA, rowA = rFields
+    s, seqNameB, begB, spanB, strandB, seqLenB, rowB = qFields
+    if strandA != "+":
         raise Exception("for SAM, the 1st strand in each alignment must be +")
-    pos = str(int(rStart) + 1)  # convert to 1-based coordinate
+    pos = str(int(begA) + 1)  # convert to 1-based coordinate
 
-    alignmentColumns = zip(rAlnString.upper(), qAlnString.upper())
+    alignmentColumns = zip(rowA.upper(), rowB.upper())
 
-    qStart = int(qStart)
-    qRevStart = int(qSeqSize) - qStart - int(qAlnSize)
-    cigar = "".join(cigarParts(qStart, iter(alignmentColumns), qRevStart))
+    begB = int(begB)
+    revBegB = int(seqLenB) - begB - int(spanB)
+    cigar = "".join(cigarParts(begB, iter(alignmentColumns), revBegB))
 
-    seq = qAlnString.translate(None, "-")
+    seq = rowB.translate(None, "-")
 
-    if qLines and qLines[-1][1] == qName:
-        qual = ''.join(j
-                       for i, j in izip(qAlnString, qLines[-1][2]) if i != "-")
+    if qLines and qLines[-1][1] == seqNameB:
+        qual = ''.join(j for i, j in izip(rowB, qLines[-1][2]) if i != "-")
     else:
         qual = "*"
 
     # It's hard to get all the pair info, so this is very
     # incomplete, but hopefully good enough.
     # I'm not sure whether to add 2 and/or 8 to flag.
-    if qName.endswith("/1"):
-        qName = qName[:-2]
-        if qStrand == "+": flag = "99"  # 1 + 2 + 32 + 64
+    if seqNameB.endswith("/1"):
+        seqNameB = seqNameB[:-2]
+        if strandB == "+": flag = "99"  # 1 + 2 + 32 + 64
         else:              flag = "83"  # 1 + 2 + 16 + 64
-    elif qName.endswith("/2"):
-        qName = qName[:-2]
-        if qStrand == "+": flag = "163"  # 1 + 2 + 32 + 128
+    elif seqNameB.endswith("/2"):
+        seqNameB = seqNameB[:-2]
+        if strandB == "+": flag = "163"  # 1 + 2 + 32 + 128
         else:              flag = "147"  # 1 + 2 + 16 + 128
     else:
-        if qStrand == "+": flag = "0"
+        if strandB == "+": flag = "0"
         else:              flag = "16"
 
     editDistance = sum(1 for x, y in alignmentColumns if x != y)
     # no special treatment of ambiguous bases: might be a minor bug
     editDistance = "NM:i:" + str(editDistance)
 
-    out = [qName, flag, rName, pos, mapq, cigar, "*\t0\t0", seq, qual]
+    out = [seqNameB, flag, seqNameA, pos, mapq, cigar, "*\t0\t0", seq, qual]
     out.append(editDistance)
     if score: out.append(score)
     if evalue: out.append(evalue)
@@ -582,7 +581,7 @@ def writeBlastTab(opts, maf):
         if   i.startswith("score="): score = i[6:]
         elif i.startswith("E="):     evalue = i[2:]
 
-    sLine, qLine = sLines
+    fieldsA, fieldsB = sLines
     alnStrings = [i[6] for i in sLines]
     alignmentColumns = zip(*alnStrings)
     alnSize = len(alignmentColumns)
@@ -591,14 +590,14 @@ def writeBlastTab(opts, maf):
     mismatches = quantify(alignmentColumns, isGapless) - matches
     gapOpens = sum(map(gapRunCount, alnStrings))
 
-    qName = qLine[1]
-    qBeg, qEnd = blastEndsFromMafLine(qLine)
+    seqNameB = fieldsB[1]
+    begB, endB = blastEndsFromMafLine(fieldsB)
 
-    sName = sLine[1]
-    sBeg, sEnd = blastEndsFromMafLine(sLine)
+    seqNameA = fieldsA[1]
+    begA, endA = blastEndsFromMafLine(fieldsA)
 
-    out = [qName, sName, matchPercent, alnSize, mismatches, gapOpens,
-           qBeg, qEnd, sBeg, sEnd]
+    out = [seqNameB, seqNameA, matchPercent, alnSize, mismatches, gapOpens,
+           begB, endB, begA, endA]
     if evalue:
         out.append(evalue)
         if score and opts.bitScoreA is not None and opts.bitScoreB is not None:
