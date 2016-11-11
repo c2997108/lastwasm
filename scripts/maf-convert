@@ -38,6 +38,12 @@ def dieUnlessPairwise(maf):
     if len(maf.alnStrings) != 2:
         raise Exception("pairwise alignments only, please")
 
+def pairOrDie(sLines, formatName):
+    if len(sLines) != 2:
+        e = "for %s, each alignment must have 2 sequences" % formatName
+        raise Exception(e)
+    return sLines
+
 def insertionCounts(alnString):
     gaps = alnString.count("-")
     forwardFrameshifts = alnString.count("\\")
@@ -160,7 +166,7 @@ def writeAxt(maf):
         raise Exception("for AXT, the 1st strand in each alignment must be +")
 
     # Convert to AXT's 1-based coordinates:
-    ranges = [(i[0], i[4] + 1, i[4] + i[5], i[2]) for i in sLines]
+    ranges = [(i[0], str(i[4] + 1), str(i[4] + i[5]), i[2]) for i in sLines]
 
     head, body = ranges[0], ranges[1:]
 
@@ -173,7 +179,7 @@ def writeAxt(maf):
     if score:
         outWords.append(score)
 
-    print joined(outWords, " ")
+    print " ".join(outWords)
     for i in sLines:
         print i[6]
     print  # print a blank line at the end
@@ -275,24 +281,24 @@ def writePsl(maf, isProtein):
     matches, mismatches, repMatches, nCount = matchCounts
     numGaplessColumns = sum(matchCounts)
 
-    numInsertB = gapRunCount(maf.alnStrings[0])
-    baseInsertB = maf.alnSizes[1] - numGaplessColumns * letterSizes[1]
-
-    numInsertA = gapRunCount(maf.alnStrings[1])
-    baseInsertA = maf.alnSizes[0] - numGaplessColumns * letterSizes[0]
-
-    strand = maf.strands[1]
-    if max(letterSizes) > 1:
-        strand += maf.strands[0]
-    elif maf.strands[0] != "+":
-        raise Exception("for non-translated PSL, the 1st strand in each alignment must be +")
-
     seqNameA, seqNameB = maf.seqNames
     seqLenA, seqLenB = maf.seqSizes
 
     rows = zip(maf.alnStarts, maf.alnSizes, maf.strands, maf.seqSizes)
     begA, endA = pslEndpoints(*rows[0])
     begB, endB = pslEndpoints(*rows[1])
+
+    baseInsertA = maf.alnSizes[0] - numGaplessColumns * letterSizes[0]
+    baseInsertB = maf.alnSizes[1] - numGaplessColumns * letterSizes[1]
+
+    numInsertA = gapRunCount(maf.alnStrings[1])
+    numInsertB = gapRunCount(maf.alnStrings[0])
+
+    strand = maf.strands[1]
+    if max(letterSizes) > 1:
+        strand += maf.strands[0]
+    elif maf.strands[0] != "+":
+        raise Exception("for non-translated PSL, the 1st strand in each alignment must be +")
 
     blockCount = len(blocks)
     blockSizes, blockStartsA, blockStartsB = map(pslCommaString, zip(*blocks))
@@ -417,10 +423,7 @@ def cigarParts(beg, alignmentColumns, end):
 
 def writeSam(readGroup, maf):
     aLine, sLines, qLines, pLines = maf
-
-    if len(sLines) != 2:
-        raise Exception("for SAM, each alignment must have 2 sequences")
-    fieldsA, fieldsB = sLines
+    fieldsA, fieldsB = pairOrDie(sLines, "SAM")
     seqNameA, seqLenA, strandA, letterSizeA, begA, spanA, rowA = fieldsA
     seqNameB, seqLenB, strandB, letterSizeB, begB, spanB, rowB = fieldsB
 
@@ -598,7 +601,7 @@ def blastDataFromMafFields(fields):
 
 def writeBlastTab(opts, maf):
     aLine, sLines, qLines, pLines = maf
-    fieldsA, fieldsB = sLines
+    fieldsA, fieldsB = pairOrDie(sLines, "BlastTab")
     seqNameA, begA, endA, rowA = blastDataFromMafFields(fieldsA)
     seqNameB, begB, endB, rowB = blastDataFromMafFields(fieldsB)
 
