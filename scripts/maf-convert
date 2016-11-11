@@ -21,7 +21,7 @@ def quantify(iterable, pred=bool):
 
 class Maf:
     def __init__(self, aLine, sLines, qLines, pLines):
-        self.namesAndValues = dict(i.split("=") for i in aLine.split()[1:])
+        self.aLine = aLine
 
         cols = zip(*sLines)
         self.seqNames = cols[1]
@@ -171,7 +171,9 @@ def writeAxt(maf):
     for i in body:
         outWords.extend(i)
 
-    outWords.append(maf.namesAndValues["score"])
+    score, evalue = scoreAndEvalue(maf.aLine)
+    if score:
+        outWords.append(score)
 
     print joined(outWords, " ")
     for i in maf.alnStrings: print i
@@ -267,6 +269,7 @@ def writePsl(maf, isProtein):
     alignmentColumns = zip(*alnStrings)
     letterSizes = mafLetterSizes(maf)
 
+    blocks = list(pslBlocks(alignmentColumns, maf.alnStarts, letterSizes))
     matchCounts = caseSensitivePairwiseMatchCounts(alignmentColumns, isProtein)
     matches, mismatches, repMatches, nCount = matchCounts
     numGaplessColumns = sum(matchCounts)
@@ -289,8 +292,6 @@ def writePsl(maf, isProtein):
     rows = zip(maf.alnStarts, maf.alnSizes, maf.strands, maf.seqSizes)
     begA, endA = pslEndpoints(*rows[0])
     begB, endB = pslEndpoints(*rows[1])
-
-    blocks = list(pslBlocks(alignmentColumns, maf.alnStarts, letterSizes))
 
     blockCount = len(blocks)
     blockSizes, blockStartsA, blockStartsB = map(pslCommaString, zip(*blocks))
@@ -532,22 +533,25 @@ def writeBlast(maf, opts, oldQueryName):
     dieUnlessPairwise(maf)
 
     if maf.seqNames[1] != oldQueryName:
-        print "Query= %s" % maf.seqNames[1]
+        print "Query= " + maf.seqNames[1]
         print "         (%s letters)" % maf.seqSizes[1]
         print
 
-    print ">%s" % maf.seqNames[0]
+    print ">" + maf.seqNames[0]
     print "          Length = %s" % maf.seqSizes[0]
     print
 
-    score = maf.namesAndValues["score"]
-    if opts.bitScoreA is not None and opts.bitScoreB is not None:
+    score, evalue = scoreAndEvalue(maf.aLine)
+
+    if score and opts.bitScoreA is not None and opts.bitScoreB is not None:
         bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
         scoreLine = " Score = %.3g bits (%s)" % (bitScore, score)
     else:
         scoreLine = " Score = %s" % score
-    try: scoreLine += ", Expect = %s" % maf.namesAndValues["E"]
-    except KeyError: pass
+
+    if evalue:
+        scoreLine += ", Expect = %s" % evalue
+
     print scoreLine
 
     alignmentColumns = zip(*maf.alnStrings)
@@ -597,6 +601,13 @@ def writeBlastTab(opts, maf):
     aLine, sLines, qLines, pLines = maf
 
     fieldsA, fieldsB = sLines
+
+    seqNameA = fieldsA[1]
+    begA, endA = blastEndsFromMafLine(fieldsA)
+
+    seqNameB = fieldsB[1]
+    begB, endB = blastEndsFromMafLine(fieldsB)
+
     rowA, rowB = [i[6] for i in sLines]
     alignmentColumns = zip(rowA, rowB)
     alnSize = len(alignmentColumns)
@@ -604,12 +615,6 @@ def writeBlastTab(opts, maf):
     matchPercent = "%.2f" % (100.0 * matches / alnSize)
     mismatches = quantify(alignmentColumns, isGapless) - matches
     gapOpens = gapRunCount(rowA) + gapRunCount(rowB)
-
-    seqNameB = fieldsB[1]
-    begB, endB = blastEndsFromMafLine(fieldsB)
-
-    seqNameA = fieldsA[1]
-    begA, endA = blastEndsFromMafLine(fieldsA)
 
     out = [seqNameB, seqNameA, matchPercent, alnSize, mismatches, gapOpens,
            begB, endB, begA, endA]
@@ -688,10 +693,11 @@ def multipleMatchSymbol(alignmentColumn):
 
 def writeHtml(opts, maf):
     scoreLine = "Alignment"
-    try:
-        scoreLine += " score=%s" % maf.namesAndValues["score"]
-        scoreLine += ", expect=%s" % maf.namesAndValues["E"]
-    except KeyError: pass
+    score, evalue = scoreAndEvalue(maf.aLine)
+    if score:
+        scoreLine += " score=" + score
+        if evalue:
+            scoreLine += ", expect=" + evalue
     print "<h3>%s:</h3>" % scoreLine
 
     if maf.pLines:
