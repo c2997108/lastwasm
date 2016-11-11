@@ -115,27 +115,36 @@ def updateEvalueParameters(opts, line):
         except ValueError:
             pass
 
+def scoreAndEvalue(aLine):
+    score = evalue = None
+    for i in aLine.split():
+        if i.startswith("score="):
+            score = i[6:]
+        elif i.startswith("E="):
+            evalue = i[2:]
+    return score, evalue
+
 def mafInput(opts, lines):
     aLine = ""
     sLines = []
     qLines = []
     pLines = []
     for line in lines:
-        if line.isspace():
+        if line[0] == "s":
+            fields = line.split()
+            sLines.append(fields)
+        elif line[0] == "a":
+            aLine = line
+        elif line[0] == "q":
+            qLines.append(line)
+        elif line[0] == "p":
+            pLines.append(line)
+        elif line.isspace():
             if sLines: yield aLine, sLines, qLines, pLines
             aLine = ""
             sLines = []
             qLines = []
             pLines = []
-        elif line[0] == "a":
-            aLine = line
-        elif line[0] == "s":
-            fields = line.split()
-            sLines.append(fields)
-        elif line[0] == "q":
-            qLines.append(line)
-        elif line[0] == "p":
-            pLines.append(line)
         elif line[0] == "#":
             updateEvalueParameters(opts, line)
             if opts.isKeepComments:
@@ -240,12 +249,12 @@ def pslEndpoints(alnStart, alnSize, strand, seqSize):
 def caseSensitivePairwiseMatchCounts(columns, isProtein):
     # repMatches is always zero
     # for proteins, nCount is always zero, because that's what BLATv34 does
-    standardBases = "ACGTU"
+    normalBases = "ACGTU"
     matches = mismatches = repMatches = nCount = 0
     for i in columns:
         if "-" in i: continue
         x, y = i
-        if x in standardBases and y in standardBases or isProtein:
+        if x in normalBases and y in normalBases or isProtein:
             if x == y: matches += 1
             else: mismatches += 1
         else: nCount += 1
@@ -544,7 +553,7 @@ def writeBlast(maf, opts, oldQueryName):
     alignmentColumns = zip(*maf.alnStrings)
 
     alnSize = len(alignmentColumns)
-    matches = quantify(alignmentColumns, isMatch)
+    matches = sum(x.upper() == y.upper() for x, y in alignmentColumns)
     matchPercent = 100 * matches // alnSize  # round down, like BLAST
     identLine = " Identities = %s/%s (%s%%)" % (matches, alnSize, matchPercent)
     gaps = alnSize - quantify(alignmentColumns, isGapless)
@@ -575,31 +584,26 @@ def mafConvertToBlast(opts, lines):
 
 def blastEndsFromMafLine(fields):
     beg = int(fields[2])
-    span = int(fields[3])
+    end = beg + int(fields[3])
     if fields[4] == "+":
-        return beg + 1, beg + span
+        beg += 1
     else:
-        seqSize = int(fields[5])
-        beg2 = seqSize - beg
-        return beg2, beg2 - span + 1
+        seqLen = int(fields[5])
+        beg = seqLen - beg
+        end = seqLen - end + 1
+    return beg, end
 
 def writeBlastTab(opts, maf):
     aLine, sLines, qLines, pLines = maf
 
-    score = None
-    evalue = None
-    for i in aLine.split():
-        if   i.startswith("score="): score = i[6:]
-        elif i.startswith("E="):     evalue = i[2:]
-
     fieldsA, fieldsB = sLines
-    alnStrings = [i[6] for i in sLines]
-    alignmentColumns = zip(*alnStrings)
+    rowA, rowB = [i[6] for i in sLines]
+    alignmentColumns = zip(rowA, rowB)
     alnSize = len(alignmentColumns)
     matches = quantify(alignmentColumns, isMatch)
     matchPercent = "%.2f" % (100.0 * matches / alnSize)
     mismatches = quantify(alignmentColumns, isGapless) - matches
-    gapOpens = sum(map(gapRunCount, alnStrings))
+    gapOpens = gapRunCount(rowA) + gapRunCount(rowB)
 
     seqNameB = fieldsB[1]
     begB, endB = blastEndsFromMafLine(fieldsB)
@@ -609,11 +613,14 @@ def writeBlastTab(opts, maf):
 
     out = [seqNameB, seqNameA, matchPercent, alnSize, mismatches, gapOpens,
            begB, endB, begA, endA]
+
+    score, evalue = scoreAndEvalue(aLine)
     if evalue:
         out.append(evalue)
         if score and opts.bitScoreA is not None and opts.bitScoreB is not None:
             bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
             out.append("%.3g" % bitScore)
+
     print joined(out, "\t")
 
 def mafConvertToBlastTab(opts, lines):
