@@ -7,7 +7,7 @@
 # Genome FAQ, not e.g. "MIRA assembly format".
 
 from itertools import *
-import sys, os, fileinput, math, operator, optparse, signal
+import sys, os, math, operator, optparse, signal
 
 def maxlen(s):
     return max(map(len, s))
@@ -319,16 +319,30 @@ def karyotypicSortKey(s):
     if s == "MT": return ["~"]
     return naturalSortKey(s)
 
-def writeSamHeader(sequenceLengths, dictFile, readGroupItems):
+def copyDictFile(lines):
+    for line in lines:
+        if line.startswith("@SQ"):
+            sys.stdout.write(line)
+        elif not line[0] == "@":
+            break
+
+def writeSamHeader(opts, fileNames):
     print "@HD\tVN:1.3\tSO:unsorted"
-    for k in sorted(sequenceLengths, key=karyotypicSortKey):
-        print "@SQ\tSN:%s\tLN:%s" % (k, sequenceLengths[k])
-    if dictFile:
-        for i in fileinput.input(dictFile):
-            if i.startswith("@SQ"): print i,
-            elif not i.startswith("@"): break
-    if readGroupItems:
-        print "@RG\t" + "\t".join(readGroupItems)
+
+    if opts.dictionary:
+        sequenceLengths = dict(readSequenceLengths(fileNames))
+        for k in sorted(sequenceLengths, key=karyotypicSortKey):
+            print "@SQ\tSN:%s\tLN:%s" % (k, sequenceLengths[k])
+
+    if opts.dictfile:
+        if opts.dictfile == "-":
+            copyDictFile(sys.stdin)
+        else:
+            with open(opts.dictfile) as f:
+                copyDictFile(f)
+
+    if opts.readgroup:
+        print "@RG\t" + "\t".join(opts.readgroup.split())
 
 mapqMissing = "255"
 mapqMaximum = "254"
@@ -726,17 +740,10 @@ def mafConvert(opts, args):
     if not opts.noheader:
         if isFormat(formatName, "html"):
             writeHtmlHeader()
+        if isFormat(formatName, "sam"):
+            writeSamHeader(opts, fileNames)
         if isFormat(formatName, "tabular"):
             opts.isKeepComments = True
-
-    if isFormat(formatName, "sam"):
-        if opts.dictionary: d = dict(readSequenceLengths(fileNames))
-        else: d = {}
-        if opts.readgroup:
-            readGroupItems = opts.readgroup.split()
-        else:
-            readGroupItems = []
-        if not opts.noheader: writeSamHeader(d, opts.dictfile, readGroupItems)
 
     if fileNames:
         for i in fileNames:
