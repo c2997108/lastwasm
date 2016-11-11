@@ -222,7 +222,7 @@ def pslBlocks(alignmentColumns, alnStarts, letterSizes):
 
 def pslCommaString(things):
     # UCSC software seems to prefer a trailing comma
-    return joined(things, ",") + ","
+    return ",".join(map(str, things)) + ","
 
 def pslEndpoints(alnStart, alnSize, strand, seqSize):
     alnEnd = alnStart + alnSize
@@ -274,6 +274,7 @@ def writePsl(maf, isProtein):
     qStart, qEnd = pslEndpoints(*rows[1])
 
     blocks = list(pslBlocks(alignmentColumns, maf.alnStarts, letterSizes))
+
     blockCount = len(blocks)
     blockSizes, tStarts, qStarts = map(pslCommaString, zip(*blocks))
 
@@ -281,7 +282,8 @@ def writePsl(maf, isProtein):
                 qNumInsert, qBaseInsert, tNumInsert, tBaseInsert, strand,
                 qName, qSeqSize, qStart, qEnd, tName, tSeqSize, tStart, tEnd,
                 blockCount, blockSizes, qStarts, tStarts)
-    print joined(outWords, "\t")
+
+    print "\t".join(map(str, outWords))
 
 def mafConvertToPsl(opts, lines):
     for maf in mafInput(opts, lines):
@@ -394,7 +396,7 @@ def cigarParts(beg, alignmentColumns, end):
 
     if end: yield str(end) + "H"
 
-def writeSam(maf, rg):
+def writeSam(readGroup, maf):
     aLine, sLines, qLines, pLines = maf
 
     if isTranslated(sLines):
@@ -454,19 +456,19 @@ def writeSam(maf, rg):
     # no special treatment of ambiguous bases: might be a minor bug
     editDistance = "NM:i:" + str(editDistance)
 
-    outWords = [qName, flag, rName, pos, mapq, cigar, "*\t0\t0", seq, qual]
-    outWords.append(editDistance)
-    if score: outWords.append(score)
-    if evalue: outWords.append(evalue)
-    if rg: outWords.append(rg)
-    print "\t".join(outWords)
+    out = [qName, flag, rName, pos, mapq, cigar, "*\t0\t0", seq, qual]
+    out.append(editDistance)
+    if score: out.append(score)
+    if evalue: out.append(evalue)
+    if readGroup: out.append(readGroup)
+    print "\t".join(out)
 
 def mafConvertToSam(opts, lines):
     readGroup = ""
     if opts.readgroup:
         readGroup = "RG:Z:" + readGroupId(opts.readgroup.split())
     for maf in mafInput(opts, lines):
-        writeSam(maf, readGroup)
+        writeSam(readGroup, maf)
 
 ##### Routines for converting to BLAST-like format: #####
 
@@ -571,7 +573,7 @@ def blastEndsFromMafLine(fields):
         beg2 = seqSize - beg
         return beg2, beg2 - span + 1
 
-def writeBlastTab(maf, opts):
+def writeBlastTab(opts, maf):
     aLine, sLines, qLines, pLines = maf
 
     score = None
@@ -606,7 +608,7 @@ def writeBlastTab(maf, opts):
 
 def mafConvertToBlastTab(opts, lines):
     for maf in mafInput(opts, lines):
-        writeBlastTab(maf, opts)
+        writeBlastTab(opts, maf)
 
 ##### Routines for converting to HTML format: #####
 
