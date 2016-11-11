@@ -246,6 +246,19 @@ def pslBlocks(alignmentColumns, alnStarts, letterSizes):
             size += 1
     if size: yield size, start1, start2
 
+def pslNumInserts(blocks, letterSizeA, letterSizeB):
+    numInsertA = numInsertB = 0
+    for i, x in enumerate(blocks):
+        size, begA, begB = x
+        if i:
+            if begA > endA:
+                numInsertA += 1
+            if begB > endB:
+                numInsertB += 1
+        endA = begA + size * letterSizeA
+        endB = begB + size * letterSizeB
+    return numInsertA, numInsertB
+
 def pslCommaString(things):
     # UCSC software seems to prefer a trailing comma
     return ",".join(map(str, things)) + ","
@@ -275,6 +288,7 @@ def writePsl(maf, isProtein):
     alnStrings = map(str.upper, maf.alnStrings)
     alignmentColumns = zip(*alnStrings)
     letterSizes = mafLetterSizes(maf)
+    letterSizeA, letterSizeB = letterSizes
 
     blocks = list(pslBlocks(alignmentColumns, maf.alnStarts, letterSizes))
     matchCounts = caseSensitivePairwiseMatchCounts(alignmentColumns, isProtein)
@@ -283,21 +297,21 @@ def writePsl(maf, isProtein):
 
     seqNameA, seqNameB = maf.seqNames
     seqLenA, seqLenB = maf.seqSizes
+    strandA, strandB = maf.strands
 
     rows = zip(maf.alnStarts, maf.alnSizes, maf.strands, maf.seqSizes)
     begA, endA = pslEndpoints(*rows[0])
     begB, endB = pslEndpoints(*rows[1])
 
-    baseInsertA = maf.alnSizes[0] - numGaplessColumns * letterSizes[0]
-    baseInsertB = maf.alnSizes[1] - numGaplessColumns * letterSizes[1]
+    baseInsertA = maf.alnSizes[0] - numGaplessColumns * letterSizeA
+    baseInsertB = maf.alnSizes[1] - numGaplessColumns * letterSizeB
 
-    numInsertA = gapRunCount(maf.alnStrings[1])
-    numInsertB = gapRunCount(maf.alnStrings[0])
+    numInsertA, numInsertB = pslNumInserts(blocks, letterSizeA, letterSizeB)
 
-    strand = maf.strands[1]
-    if max(letterSizes) > 1:
-        strand += maf.strands[0]
-    elif maf.strands[0] != "+":
+    strand = strandB
+    if letterSizeA > 1 or letterSizeB > 1:
+        strand += strandA
+    elif strandA != "+":
         raise Exception("for non-translated PSL, the 1st strand in each alignment must be +")
 
     blockCount = len(blocks)
@@ -496,12 +510,16 @@ def mafConvertToSam(opts, lines):
 ##### Routines for converting to BLAST-like format: #####
 
 def pairwiseMatchSymbol(alignmentColumn):
-    if isMatch(alignmentColumn): return "|"
-    else: return " "
+    if isMatch(alignmentColumn):
+        return "|"
+    else:
+        return " "
 
 def strandText(strand):
-    if strand == "+": return "Plus"
-    else: return "Minus"
+    if strand == "+":
+        return "Plus"
+    else:
+        return "Minus"
 
 def blastBegCoordinate(zeroBasedCoordinate, strand, seqLen):
     if strand == "+":
@@ -534,7 +552,7 @@ def blastChunker(sLines, lineSize, alignmentColumns):
         ends = map(blastEndCoordinate, coords, strands, seqLens)
         yield chunkCols, chunkRows, begs, ends
 
-def writeBlast(maf, opts, oldQueryName):
+def writeBlast(opts, maf, oldQueryName):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "Blast")
     seqNameA, seqLenA, strandA, letterSizeA, begA, spanA, rowA = fieldsA
@@ -568,7 +586,7 @@ def writeBlast(maf, opts, oldQueryName):
     matches = sum(x.upper() == y.upper() for x, y in alignmentColumns)
     matchPercent = 100 * matches // alnSize  # round down, like BLAST
     identLine = " Identities = %s/%s (%s%%)" % (matches, alnSize, matchPercent)
-    gaps = alnSize - quantify(alignmentColumns, isGapless)
+    gaps = rowA.count("-") + rowB.count("-")
     if gaps:
         gapPercent = 100 * gaps // alnSize  # round down, like BLAST
         identLine += ", Gaps = %s/%s (%s%%)" % (gaps, alnSize, gapPercent)
@@ -589,7 +607,7 @@ def writeBlast(maf, opts, oldQueryName):
 def mafConvertToBlast(opts, lines):
     oldQueryName = ""
     for maf in mafInput(opts, lines):
-        writeBlast(maf, opts, oldQueryName)
+        writeBlast(opts, maf, oldQueryName)
         sLines = maf[1]
         oldQueryName = sLines[1][0]
 
@@ -601,7 +619,7 @@ def blastDataFromMafFields(fields):
     else:
         beg = seqLen - beg
         end = seqLen - end + 1
-    return seqName, beg, end, row.upper()
+    return seqName, str(beg), str(end), row.upper()
 
 def writeBlastTab(opts, maf):
     aLine, sLines, qLines, pLines = maf
@@ -613,11 +631,11 @@ def writeBlastTab(opts, maf):
     alnSize = len(alignmentColumns)
     matches = sum(x == y for x, y in alignmentColumns)
     matchPercent = "%.2f" % (100.0 * matches / alnSize)
-    mismatches = quantify(alignmentColumns, isGapless) - matches
+    mismatches = alnSize - matches - rowA.count("-") - rowB.count("-")
     gapOpens = gapRunCount(rowA) + gapRunCount(rowB)
 
-    out = [seqNameB, seqNameA, matchPercent, alnSize, mismatches, gapOpens,
-           begB, endB, begA, endA]
+    out = [seqNameB, seqNameA, matchPercent, str(alnSize), str(mismatches),
+           str(gapOpens), begB, endB, begA, endA]
 
     score, evalue = scoreAndEvalue(aLine)
     if evalue:
@@ -626,7 +644,7 @@ def writeBlastTab(opts, maf):
             bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
             out.append("%.3g" % bitScore)
 
-    print joined(out, "\t")
+    print "\t".join(out)
 
 def mafConvertToBlastTab(opts, lines):
     for maf in mafInput(opts, lines):
