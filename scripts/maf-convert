@@ -181,8 +181,13 @@ def mafConvertToTab(opts, lines):
 
 ##### Routines for converting to PSL format: #####
 
-def pslBlocks(fieldsA, fieldsB):
+def pslBlocks(opts, fieldsA, fieldsB, outCounts):
     """Get sizes and start coordinates of gapless blocks in an alignment."""
+    # repMatches is always zero
+    # for proteins, nCount is always zero, because that's what BLATv34 does
+    normalBases = "ACGTU"
+    matches = mismatches = repMatches = nCount = 0
+
     letterSizeA, begA, endA, rowA = fieldsA[3:7]
     letterSizeB, begB, endB, rowB = fieldsB[3:7]
 
@@ -204,8 +209,17 @@ def pslBlocks(fieldsA, fieldsB):
             begA += symbolSize(x, letterSizeA)
         else:
             size += 1
+            if x in normalBases and y in normalBases or opts.protein:
+                if x == y:
+                    matches += 1
+                else:
+                    mismatches += 1
+            else:
+                nCount += 1
     if size:
         yield size, begA, begB
+
+    outCounts[0:4] = matches, mismatches, repMatches, nCount
 
 def pslNumInserts(blocks, letterSizeA, letterSizeB):
     numInsertA = numInsertB = 0
@@ -230,30 +244,14 @@ def pslEndpoints(beg, span, strand, seqLen):
         beg, end = seqLen - end, seqLen - beg
     return beg, end
 
-def caseSensitivePairwiseMatchCounts(columns, isProtein):
-    # repMatches is always zero
-    # for proteins, nCount is always zero, because that's what BLATv34 does
-    normalBases = "ACGTU"
-    matches = mismatches = repMatches = nCount = 0
-    for i in columns:
-        if "-" in i: continue
-        x, y = i
-        if x in normalBases and y in normalBases or isProtein:
-            if x == y: matches += 1
-            else: mismatches += 1
-        else: nCount += 1
-    return matches, mismatches, repMatches, nCount
-
-def writePsl(maf, isProtein):
+def writePsl(opts, maf):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "PSL")
     seqNameA, seqLenA, strandA, letterSizeA, begA, spanA, rowA = fieldsA
     seqNameB, seqLenB, strandB, letterSizeB, begB, spanB, rowB = fieldsB
 
-    alignmentColumns = zip(rowA.upper(), rowB.upper())
-
-    blocks = list(pslBlocks(fieldsA, fieldsB))
-    matchCounts = caseSensitivePairwiseMatchCounts(alignmentColumns, isProtein)
+    matchCounts = [0] * 4
+    blocks = list(pslBlocks(opts, fieldsA, fieldsB, matchCounts))
     matches, mismatches, repMatches, nCount = matchCounts
     numGaplessColumns = sum(matchCounts)
 
@@ -283,7 +281,7 @@ def writePsl(maf, isProtein):
 
 def mafConvertToPsl(opts, lines):
     for maf in mafInput(opts, lines):
-        writePsl(maf, opts.protein)
+        writePsl(opts, maf)
 
 ##### Routines for converting to SAM format: #####
 
