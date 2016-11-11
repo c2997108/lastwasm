@@ -522,29 +522,34 @@ def chunker(things, chunkSize):
     for i in range(0, len(things), chunkSize):
         yield things[i:i+chunkSize]
 
-def blastChunker(maf, lineSize, alignmentColumns):
-    letterSizes = mafLetterSizes(maf)
-    coords = maf.alnStarts
+def blastChunker(sLines, lineSize, alignmentColumns):
+    seqLens = [i[1] for i in sLines]
+    strands = [i[2] for i in sLines]
+    letterSizes = [i[3] for i in sLines]
+    coords = [i[4] for i in sLines]
     for chunkCols in chunker(alignmentColumns, lineSize):
         chunkRows = list(alignmentRowsFromColumns(chunkCols))
-        begs = map(blastBegCoordinate, coords, maf.strands, maf.seqSizes)
+        begs = map(blastBegCoordinate, coords, strands, seqLens)
         coords = map(nextCoordinate, coords, chunkRows, letterSizes)
-        ends = map(blastEndCoordinate, coords, maf.strands, maf.seqSizes)
+        ends = map(blastEndCoordinate, coords, strands, seqLens)
         yield chunkCols, chunkRows, begs, ends
 
 def writeBlast(maf, opts, oldQueryName):
-    dieUnlessPairwise(maf)
+    aLine, sLines, qLines, pLines = maf
+    fieldsA, fieldsB = pairOrDie(sLines, "Blast")
+    seqNameA, seqLenA, strandA, letterSizeA, begA, spanA, rowA = fieldsA
+    seqNameB, seqLenB, strandB, letterSizeB, begB, spanB, rowB = fieldsB
 
-    if maf.seqNames[1] != oldQueryName:
-        print "Query= " + maf.seqNames[1]
-        print "         (%s letters)" % maf.seqSizes[1]
+    if seqNameB != oldQueryName:
+        print "Query= " + seqNameB
+        print "         (%s letters)" % seqLenB
         print
 
-    print ">" + maf.seqNames[0]
-    print "          Length = %s" % maf.seqSizes[0]
+    print ">" + seqNameA
+    print "          Length = %s" % seqLenA
     print
 
-    score, evalue = scoreAndEvalue(maf.aLine)
+    score, evalue = scoreAndEvalue(aLine)
 
     if score and opts.bitScoreA is not None and opts.bitScoreB is not None:
         bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
@@ -557,7 +562,7 @@ def writeBlast(maf, opts, oldQueryName):
 
     print scoreLine
 
-    alignmentColumns = zip(*maf.alnStrings)
+    alignmentColumns = zip(rowA, rowB)
 
     alnSize = len(alignmentColumns)
     matches = sum(x.upper() == y.upper() for x, y in alignmentColumns)
@@ -569,11 +574,10 @@ def writeBlast(maf, opts, oldQueryName):
         identLine += ", Gaps = %s/%s (%s%%)" % (gaps, alnSize, gapPercent)
     print identLine
 
-    strands = map(strandText, maf.strands)
-    print " Strand = %s / %s" % (strands[1], strands[0])
+    print " Strand = %s / %s" % (strandText(strandB), strandText(strandA))
     print
 
-    for chunk in blastChunker(maf, opts.linesize, alignmentColumns):
+    for chunk in blastChunker(sLines, opts.linesize, alignmentColumns):
         cols, rows, begs, ends = chunk
         begWidth = maxlen(begs)
         matchSymbols = ''.join(map(pairwiseMatchSymbol, cols))
@@ -585,9 +589,9 @@ def writeBlast(maf, opts, oldQueryName):
 def mafConvertToBlast(opts, lines):
     oldQueryName = ""
     for maf in mafInput(opts, lines):
-        maf = Maf(*maf)
         writeBlast(maf, opts, oldQueryName)
-        oldQueryName = maf.seqNames[1]
+        sLines = maf[1]
+        oldQueryName = sLines[1][0]
 
 def blastDataFromMafFields(fields):
     seqName, seqLen, strand, letterSize, beg, span, row = fields
@@ -688,33 +692,37 @@ def multipleMatchSymbol(alignmentColumn):
     else: return " "
 
 def writeHtml(opts, maf):
+    aLine, sLines, qLines, pLines = maf
+
     scoreLine = "Alignment"
-    score, evalue = scoreAndEvalue(maf.aLine)
+    score, evalue = scoreAndEvalue(aLine)
     if score:
         scoreLine += " score=" + score
         if evalue:
             scoreLine += ", expect=" + evalue
     print "<h3>%s:</h3>" % scoreLine
 
-    if maf.pLines:
-        probRows = [i.split()[1] for i in maf.pLines]
+    if pLines:
+        probRows = [i.split()[1] for i in pLines]
         probCols = izip(*probRows)
         classes = imap(probabilityClass, probCols)
     else:
         classes = repeat(None)
 
-    nameWidth = maxlen(maf.seqNames)
-    alignmentColumns = zip(*maf.alnStrings)
+    seqNames = [i[0] for i in sLines]
+    nameWidth = maxlen(seqNames)
+    rows = [i[6] for i in sLines]
+    alignmentColumns = zip(*rows)
 
     print '<pre>'
-    for chunk in blastChunker(maf, opts.linesize, alignmentColumns):
+    for chunk in blastChunker(sLines, opts.linesize, alignmentColumns):
         cols, rows, begs, ends = chunk
         begWidth = maxlen(begs)
         endWidth = maxlen(ends)
         matchSymbols = ''.join(map(multipleMatchSymbol, cols))
         classChunk = islice(classes, opts.linesize)
         classRuns = list(identicalRuns(classChunk))
-        for n, b, r, e in zip(maf.seqNames, begs, rows, ends):
+        for n, b, r, e in zip(seqNames, begs, rows, ends):
             spans = [htmlSpan(r, i) for i in classRuns]
             spans = ''.join(spans)
             formatParams = nameWidth, n, begWidth, b, spans, endWidth, e
@@ -725,7 +733,7 @@ def writeHtml(opts, maf):
 
 def mafConvertToHtml(opts, lines):
     for maf in mafInput(opts, lines):
-        writeHtml(opts, Maf(*maf))
+        writeHtml(opts, maf)
 
 ##### Main program: #####
 
