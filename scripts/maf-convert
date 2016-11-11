@@ -102,37 +102,46 @@ def matchAndInsertSizes(alignmentColumns, letterSizes):
             yield ":".join(imap(insertSizeText,
                                 alignmentRowsFromColumns(v), letterSizes))
 
+##### Routines for reading MAF format: #####
+
+def updateEvalueParameters(opts, line):
+    for field in line.split():
+        try:
+            k, v = field.split("=")
+            x = float(v)
+            if k == "lambda":
+                opts.bitScoreA = x / math.log(2)
+            if k == "K":
+                opts.bitScoreB = math.log(x, 2)
+        except ValueError:
+            pass
+
 def mafInput(opts, lines):
-    a = []
-    s = []
-    q = []
-    p = []
-    for i in lines:
-        w = i.split()
+    aLine = []
+    sLines = []
+    qLines = []
+    pLines = []
+    for line in lines:
+        w = line.split()
         if not w:
-            if a: yield a, s, q, p
-            a = []
-            s = []
-            q = []
-            p = []
+            if aLine: yield aLine, sLines, qLines, pLines
+            aLine = []
+            sLines = []
+            qLines = []
+            pLines = []
         elif w[0] == "a":
-            a = w
+            aLine = w
         elif w[0] == "s":
-            s.append(w)
+            sLines.append(w)
         elif w[0] == "q":
-            q.append(w)
+            qLines.append(w)
         elif w[0] == "p":
-            p.append(w)
-        elif i[0] == "#":
-            for j in w:
-                try:
-                    k, v = j.split("=")
-                    x = float(v)
-                    if k == "lambda": opts.bitScoreA = x / math.log(2)
-                    if k == "K":      opts.bitScoreB = math.log(x, 2)
-                except ValueError: pass
-            if opts.isKeepComments: print i,
-    if a: yield a, s, q, p
+            pLines.append(w)
+        elif line[0] == "#":
+            updateEvalueParameters(opts, line)
+            if opts.isKeepComments:
+                print line,
+    if aLine: yield aLine, sLines, qLines, pLines
 
 ##### Routines for converting to AXT format: #####
 
@@ -402,6 +411,15 @@ def writeSam(readGroup, maf):
     if isTranslated(sLines):
         raise Exception("this looks like translated DNA - can't convert to SAM format")
 
+    if len(sLines) != 2:
+        raise Exception("for SAM, each alignment must have 2 sequences")
+    fieldsA, fieldsB = sLines
+    s, seqNameA, begA, spanA, strandA, seqLenA, rowA = fieldsA
+    s, seqNameB, begB, spanB, strandB, seqLenB, rowB = fieldsB
+
+    if strandA != "+":
+        raise Exception("for SAM, the 1st strand in each alignment must be +")
+
     score = None
     evalue = None
     mapq = mapqMissing
@@ -414,13 +432,6 @@ def writeSam(readGroup, maf):
         elif i.startswith("mismap="):
             mapq = mapqFromProb(i[7:])
 
-    if len(sLines) != 2:
-        raise Exception("for SAM, each alignment must have 2 sequences")
-    rFields, qFields = sLines
-    s, seqNameA, begA, spanA, strandA, seqLenA, rowA = rFields
-    s, seqNameB, begB, spanB, strandB, seqLenB, rowB = qFields
-    if strandA != "+":
-        raise Exception("for SAM, the 1st strand in each alignment must be +")
     pos = str(int(begA) + 1)  # convert to 1-based coordinate
 
     alignmentColumns = zip(rowA.upper(), rowB.upper())
@@ -431,10 +442,11 @@ def writeSam(readGroup, maf):
 
     seq = rowB.translate(None, "-")
 
-    if qLines and qLines[-1][1] == seqNameB:
-        qual = ''.join(j for i, j in izip(rowB, qLines[-1][2]) if i != "-")
-    else:
-        qual = "*"
+    qual = "*"
+    if qLines:
+        qFields = qLines[-1]
+        if qFields[1] == seqNameB:
+            qual = ''.join(j for i, j in izip(rowB, qFields[2]) if i != "-")
 
     # It's hard to get all the pair info, so this is very
     # incomplete, but hopefully good enough.
@@ -451,7 +463,7 @@ def writeSam(readGroup, maf):
         if strandB == "+": flag = "0"
         else:              flag = "16"
 
-    editDistance = sum(1 for x, y in alignmentColumns if x != y)
+    editDistance = sum(x != y for x, y in alignmentColumns)
     # no special treatment of ambiguous bases: might be a minor bug
     editDistance = "NM:i:" + str(editDistance)
 
