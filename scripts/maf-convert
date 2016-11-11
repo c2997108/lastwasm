@@ -145,14 +145,15 @@ def writeAxt(maf):
     # Convert to AXT's 1-based coordinates:
     alnStarts = imap(operator.add, maf.alnStarts, repeat(1))
     alnEnds = imap(operator.add, maf.alnStarts, maf.alnSizes)
+    ranges = zip(maf.seqNames, alnStarts, alnEnds, maf.strands)
 
-    rows = zip(maf.seqNames, alnStarts, alnEnds, maf.strands)
-    head, tail = rows[0], rows[1:]
+    head, body = ranges[0], ranges[1:]
 
-    outWords = []
-    outWords.append(axtCounter.next())
+    outWords = [str(axtCounter.next())]
     outWords.extend(head[:3])
-    outWords.extend(chain(*tail))
+    for i in body:
+        outWords.extend(i)
+
     outWords.append(maf.namesAndValues["score"])
 
     print joined(outWords, " ")
@@ -171,17 +172,18 @@ def writeTab(maf):
     score = "0"
     endWords = []
     for i in aLine:
-        if   i.startswith("score="): score = i[6:]
-        elif len(i) > 1: endWords.append(i)
+        if   i.startswith("score="):
+            score = i[6:]
+        elif len(i) > 1:
+            endWords.append(i)
 
-    outWords = []
-    outWords.append(score)
+    outWords = [score]
 
     for i in sLines: outWords.extend(i[1:6])
 
-    alnStrings = [i[6] for i in sLines]
-    alignmentColumns = zip(*alnStrings)
     letterSizes = alnLetterSizes(sLines)
+    rows = [i[6] for i in sLines]
+    alignmentColumns = zip(*rows)
     gapStrings = matchAndInsertSizes(alignmentColumns, letterSizes)
     gapWord = ",".join(gapStrings)
     outWords.append(gapWord)
@@ -714,7 +716,7 @@ def mafConvertOneFile(opts, formatName, lines):
         raise Exception("unknown format: " + formatName)
 
 def mafConvert(opts, args):
-    format = args[0].lower()
+    formatName = args[0].lower()
     fileNames = args[1:]
 
     opts.isKeepComments = False
@@ -722,12 +724,12 @@ def mafConvert(opts, args):
     opts.bitScoreB = None
 
     if not opts.noheader:
-        if isFormat(format, "html"):
+        if isFormat(formatName, "html"):
             writeHtmlHeader()
-        if isFormat(format, "tabular"):
+        if isFormat(formatName, "tabular"):
             opts.isKeepComments = True
 
-    if isFormat(format, "sam"):
+    if isFormat(formatName, "sam"):
         if opts.dictionary: d = dict(readSequenceLengths(fileNames))
         else: d = {}
         if opts.readgroup:
@@ -736,11 +738,18 @@ def mafConvert(opts, args):
             readGroupItems = []
         if not opts.noheader: writeSamHeader(d, opts.dictfile, readGroupItems)
 
-    inputLines = fileinput.input(fileNames)
-    mafConvertOneFile(opts, format, inputLines)
+    if fileNames:
+        for i in fileNames:
+            if i == "-":
+                mafConvertOneFile(opts, formatName, sys.stdin)
+            else:
+                with open(i) as f:
+                    mafConvertOneFile(opts, formatName, f)
+    else:
+        mafConvertOneFile(opts, formatName, sys.stdin)
 
     if not opts.noheader:
-        if isFormat(format, "html"):
+        if isFormat(formatName, "html"):
             print "</body></html>"
 
 if __name__ == "__main__":
