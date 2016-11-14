@@ -94,7 +94,7 @@ def mafInput(opts, lines):
                 letterSize = 3
             else:
                 letterSize = 1
-            fields = seqName, seqLen, strand, letterSize, beg, span, row
+            fields = seqName, seqLen, strand, letterSize, beg, beg + span, row
             sLines.append(fields)
         elif line[0] == "a":
             aLine = line
@@ -125,7 +125,7 @@ def writeAxt(maf):
         raise Exception("for AXT, the 1st strand in each alignment must be +")
 
     # Convert to AXT's 1-based coordinates:
-    ranges = [(i[0], str(i[4] + 1), str(i[4] + i[5]), i[2]) for i in sLines]
+    ranges = [(i[0], str(i[4] + 1), str(i[5]), i[2]) for i in sLines]
 
     head, body = ranges[0], ranges[1:]
 
@@ -162,15 +162,14 @@ def writeTab(maf):
 
     outWords = [score]
 
-    for seqName, seqLen, strand, letterSize, beg, span, row in sLines:
-        x = seqName, str(beg), str(span), strand, str(seqLen)
+    for seqName, seqLen, strand, letterSize, beg, end, row in sLines:
+        x = seqName, str(beg), str(end - beg), strand, str(seqLen)
         outWords.extend(x)
 
     letterSizes = [i[3] for i in sLines]
     rows = [i[6] for i in sLines]
-    alignmentColumns = zip(*rows)
-    gapStrings = matchAndInsertSizes(alignmentColumns, letterSizes)
-    gapWord = ",".join(gapStrings)
+    alignmentColumns = izip(*rows)
+    gapWord = ",".join(matchAndInsertSizes(alignmentColumns, letterSizes))
     outWords.append(gapWord)
 
     print "\t".join(outWords + endWords)
@@ -241,8 +240,7 @@ def pslCommaString(things):
     return ",".join(map(str, things)) + ","
 
 def pslEnds(mafFields):
-    seqName, seqLen, strand, letterSize, beg, span, row = mafFields
-    end = beg + span
+    seqName, seqLen, strand, letterSize, beg, end, row = mafFields
     if strand == "-":
         beg, end = seqLen - end, seqLen - beg
     return seqName, seqLen, strand, letterSize, beg, end
@@ -393,8 +391,8 @@ def cigarParts(beg, alignmentColumns, end):
 def writeSam(readGroup, maf):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "SAM")
-    seqNameA, seqLenA, strandA, letterSizeA, begA, spanA, rowA = fieldsA
-    seqNameB, seqLenB, strandB, letterSizeB, begB, spanB, rowB = fieldsB
+    seqNameA, seqLenA, strandA, letterSizeA, begA, endA, rowA = fieldsA
+    seqNameB, seqLenB, strandB, letterSizeB, begB, endB, rowB = fieldsB
 
     if letterSizeA > 1 or letterSizeB > 1:
         raise Exception("this looks like translated DNA - can't convert to SAM format")
@@ -418,7 +416,7 @@ def writeSam(readGroup, maf):
 
     alignmentColumns = zip(rowA.upper(), rowB.upper())
 
-    revBegB = seqLenB - begB - spanB
+    revBegB = seqLenB - endB
     cigar = "".join(cigarParts(begB, iter(alignmentColumns), revBegB))
 
     seq = rowB.translate(None, "-")
@@ -510,8 +508,8 @@ def blastChunker(sLines, lineSize, alignmentColumns):
 def writeBlast(opts, maf, oldQueryName):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "Blast")
-    seqNameA, seqLenA, strandA, letterSizeA, begA, spanA, rowA = fieldsA
-    seqNameB, seqLenB, strandB, letterSizeB, begB, spanB, rowB = fieldsB
+    seqNameA, seqLenA, strandA, letterSizeA, begA, endA, rowA = fieldsA
+    seqNameB, seqLenB, strandB, letterSizeB, begB, endB, rowB = fieldsB
 
     if seqNameB != oldQueryName:
         print "Query= " + seqNameB
@@ -567,8 +565,7 @@ def mafConvertToBlast(opts, lines):
         oldQueryName = sLines[1][0]
 
 def blastDataFromMafFields(fields):
-    seqName, seqLen, strand, letterSize, beg, span, row = fields
-    end = beg + span
+    seqName, seqLen, strand, letterSize, beg, end, row = fields
     if strand == "+":
         beg += 1
     else:
