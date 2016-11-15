@@ -13,6 +13,7 @@ Read MAF-format alignments & write them in another format.
 Options:
   -h, --help            show this help message and exit
   -p, --protein         assume protein alignments, for psl match counts
+  -j N, --join=N        join co-linear alignments separated by <= N letters
   -n, --noheader        omit any header lines from the output
   -d, --dictionary      include dictionary of sequence lengths in sam format
   -f DICTFILE, --dictfile=DICTFILE
@@ -6509,6 +6510,1700 @@ Query: 1        CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA 42
                 |||||||||| ||||  |||||| ||||||||||||||||||
 Sbjct: 37456614 caaagtgctgagattataggcatgagccactgtgcgtggcca 37456655
 
+Query= 0
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 429
+ Identities = 81/87 (93%)
+ Strand = Minus / Plus
+
+Query: 87    TCGAATTCTACCCTAACATCACACACCGCACAATCCCCTATCTAAACCTTCTTACGAGCC 28
+             ||| ||||||||||| ||||||||||||||||||||||||||||  ||||||||||||||
+Sbjct: 13914 TCGGATTCTACCCTAGCATCACACACCGCACAATCCCCTATCTAGGCCTTCTTACGAGCC 13973
+
+Query: 27    AAAACCTACCCCTACTCCTCCTAAACC 1
+             ||||||| ||||||||||||||| |||
+Sbjct: 13974 AAAACCTGCCCCTACTCCTCCTAGACC 14000
+
+Query= 1
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 420
+ Identities = 74/87 (85%)
+ Strand = Plus / Plus
+
+Query: 1    TTATATAGAGGAGATAAGTCGTAATATGGTAAGTGTATTGGAAAGTGTATTTGGATGAAC 60
+            |||||||||||||| ||||||||| |||||||||||| ||||||||| | ||||| ||||
+Sbjct: 1544 TTATATAGAGGAGACAAGTCGTAACATGGTAAGTGTACTGGAAAGTGCACTTGGACGAAC 1603
+
+Query: 61   TAGAGTGTAGTTTAATATAAAGCATTT 87
+             ||||||||| |||| | ||||||   
+Sbjct: 1604 CAGAGTGTAGCTTAACACAAAGCACCC 1630
+
+Query= 10
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 207
+ Identities = 37/60 (61%)
+ Strand = Plus / Plus
+
+Query: 1    TTTTTTTTTTTAATCATATATTTATGGTTAATTTTTTATTTTTTATTGTATTTATTCTAA 60
+            ||  | || ||||  | |||   ||||  ||  |  || |  | ||||||   |||||||
+Sbjct: 3291 ttcctcttcttaacaacaTACCCATGGCCAACCTCCTACTCCTCATTGTACCCATTCTAA 3350
+
+Query= 11
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 403
+ Identities = 74/87 (85%)
+ Strand = Minus / Plus
+
+Query: 87    TAAAATTCTAATTTAAACTATTCTCTATTCTTTCATAAAAAAACAAATTTAAATACCACC 28
+             ||| |||||||||||||||||||||| |||||||||    || || ||||   |||||||
+Sbjct: 15998 TAAGATTCTAATTTAAACTATTCTCTGTTCTTTCATGGGGAAGCAGATTTGGGTACCACC 16057
+
+Query: 27    CAAATATTAACTCACCCATCAACAACC 1
+             ||| |||| ||||||||||||||||||
+Sbjct: 16058 CAAGTATTGACTCACCCATCAACAACC 16084
+
+Query= 12
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 366
+ Identities = 62/87 (71%)
+ Strand = Plus / Plus
+
+Query: 1    TCGTATAAAATTTAAAATTTTATAGTTAGAGGTTTAATTTTTTTTTTTAATAATATATTT 60
+            ||| |||||| |||||| |||| ||| ||||||| ||||  | || |||| || |||   
+Sbjct: 3254 tcgcataaaacttaaaactttacagtcagaggttcaattcctcttcttaacaacaTACCC 3313
+
+Query: 61   ATGGTTAATTTTTTATTTTTTATTGTA 87
+            ||||  ||  |  || |  | ||||||
+Sbjct: 3314 ATGGCCAACCTCCTACTCCTCATTGTA 3340
+
+Query= 13
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 375
+ Identities = 69/87 (79%)
+ Strand = Minus / Plus
+
+Query: 87   ATTTTCTACCCCAAAAAACTACGATAACCCTTATAAAACTTAAAAATCGAAAATAAATTT 28
+            ||||||||||||| |||||||||||| ||||||| ||||||||   |||||  |  ||||
+Sbjct: 1369 ATTTTCTACCCCAGAAAACTACGATAGCCCTTATGAAACTTAAGGGTCGAAGGTGGATTT 1428
+
+Query: 27   AACAATAAACTAAAAATAAAATACTTA 1
+            | || |||||| | | || | | ||||
+Sbjct: 1429 AGCAGTAAACTGAGAGTAGAGTGCTTA 1455
+
+Query= 14
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 367
+ Identities = 74/86 (86%)
+ Strand = Minus / Plus
+
+Query: 86   ATACAATAAAAATAAACGTAAACACACAAACATATTTCACCTCCGCTACCATAATCATCA 27
+             |||| ||  |||| ||||| |||||| | ||||||||||||||||||||||||||||| 
+Sbjct: 6782 TTACAGTAGGAATAGACGTAGACACACGAGCATATTTCACCTCCGCTACCATAATCATCG 6841
+
+Query: 26   CTATCCACACCGACGTCAAAATATTT 1
+            |||||| ||||| ||||||| |||||
+Sbjct: 6842 CTATCCCCACCGGCGTCAAAGTATTT 6867
+
+Query= 15
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 352
+ Identities = 57/86 (66%)
+ Strand = Plus / Plus
+
+Query: 2     TTATTTTTGTCTTAGTATGATTTATTTTATATTTTAATTTATGAGATTTATAATAAATAG 61
+             | ||  | | ||||| |||||||||  || | |  || | ||||||   | || ||||||
+Sbjct: 12882 TCATCCTCGCCTTAGCATGATTTATCCTACACTCCAACTCATGAGACCCACAACAAATAG 12941
+
+Query: 62    TTTTTTTAAATGTTAATTTAAGTTTC 87
+                || |||| | ||||  |||  ||
+Sbjct: 12942 CCCTTCTAAACGCTAATCCAAGCCTC 12967
+
+Query= 16
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 381
+ Identities = 78/87 (89%)
+ Strand = Minus / Plus
+
+Query: 87  AAACAAAAAACCCTAACACCAACCTAACCAAATTTCAAATTTTATCTTTTAACGATATAC 28
+           ||||||| ||||||||||||| |||||||| ||||||||||||||||||   || ||| |
+Sbjct: 361 AAACAAAGAACCCTAACACCAGCCTAACCAGATTTCAAATTTTATCTTTAGGCGGTATGC 420
+
+Query: 27  ACTTTTAACAATCACCCCCCAACTAAC 1
+           |||||||||| ||||||||||||||||
+Sbjct: 421 ACTTTTAACAGTCACCCCCCAACTAAC 447
+
+Query= 18
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 320
+ Identities = 58/87 (66%)
+ Strand = Plus / Plus
+
+Query: 1     GTTTATTATAGTTATTTTTATAATTTTCAATATTTATTTTTTTTTAGTCAATATTGGGTT 60
+             ||| ||||||| || | | ||||   |||| |   | |   | |||| |||||||| |  
+Sbjct: 10590 GTTCATTATAGCTACTCTCATAACCCTCAACACCCACTCCCTCTTAGCCAATATTGTGCC 10649
+
+Query: 61    TATTGTTATATCAGTTTTTTTCGTCTG 87
+             |||||  |||  ||| |||  || |||
+Sbjct: 10650 TATTGCCATACTAGTCTTTGCCGCCTG 10676
+
+Query= 19
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 366
+ Identities = 59/87 (67%)
+ Strand = Plus / Plus
+
+Query: 1     ACAATATATATTTTAATAAATAATGTTTAATTGGTAATTATTATTAATTAACGTTTATAA 60
+             ||||||||||    || ||| |||||| ||   ||||  | || |||| ||||   ||||
+Sbjct: 14175 ACAATATATACACCAACAAACAATGTTCAACCAGTAACCACTACTAATCAACGCCCATAA 14234
+
+Query: 61    TTATATAAAGTTTTTGTATTAATAGGA 87
+             | ||| ||||     | |  |||||||
+Sbjct: 14235 TCATACAAAGCCCCCGCACCAATAGGA 14261
+
+Query= 2
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 364
+ Identities = 60/84 (71%)
+ Strand = Plus / Plus
+
+Query: 4     GGTTTTAAAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAAT 63
+             ||    ||||||||||||| || |  |||||||||||||||  ||| | | || ||||| 
+Sbjct: 12301 GGCCCCAAAAATTTTGGTGCAACTCCAAATAAAAGTAATAACCATGCACACTACTATAAC 12360
+
+Query: 64    TATTCTAACTTTGATTTTTTTAAT 87
+              |  |||||  ||| ||   ||||
+Sbjct: 12361 CACCCTAACCCTGACTTCCCTAAT 12384
+
+Query= 20
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 329
+ Identities = 59/87 (67%)
+ Strand = Plus / Plus
+
+Query: 1    TTATAGTTTAATGTTTTATTTAGTTATTTTATTTTATTTTTACTGATGTTCGTCGATCGT 60
+            ||| |||  |||| || | | ||  ||||||  | |     ||||||||||| ||| |||
+Sbjct: 5860 TTACAGTCCAATGCTTCACTCAGCCATTTTACCTCACCCCCACTGATGTTCGCCGACCGT 5919
+
+Query: 61   TGATTATTATTTATAGATTATAAAGAT 87
+            ||| |||| | || | |  | ||||| 
+Sbjct: 5920 TGACTATTCTCTACAAACCACAAAGAC 5946
+
+Query= 21
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 369
+ Identities = 69/87 (79%)
+ Strand = Plus / Plus
+
+Query: 1  GATAGTATTGCGAGACGTTGGAGTCGGAGTATTCTATGTCGTAGTATTTGTTTTTGATTT 60
+          ||||| ||||||||||| ||||| ||||| |  |||||||| ||||| ||| ||||||| 
+Sbjct: 81 GATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTC 140
+
+Query: 61  TTGTTTTATTTTATTATTTATCGTATT 87
+            ||  | ||| |||||||||||| |  
+Sbjct: 141 CTGCCTCATTCTATTATTTATCGCACC 167
+
+Query= 22
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 383
+ Identities = 69/82 (84%)
+ Strand = Minus / Plus
+
+Query: 82    CTAAAACATCGACATTATCCTCCTACTTACAACTATAACAACAACCTTCATAAACTATAT 23
+             || |||||||| |||||||||||| ||| |||||||| ||||| ||||||||  |||| |
+Sbjct: 15083 CTGAAACATCGGCATTATCCTCCTGCTTGCAACTATAGCAACAGCCTTCATAGGCTATGT 15142
+
+Query: 22    CCTCCCATAAAACCAAATATCA 1
+             |||||| | |  ||||||||||
+Sbjct: 15143 CCTCCCGTGAGGCCAAATATCA 15164
+
+Query= 23
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 383
+ Identities = 73/87 (83%)
+ Strand = Minus / Plus
+
+Query: 87   AATAATATCATCTCAACTTAATATTATACCCACACCCACCCAAAAACAAAATTTATTAAA 28
+            ||| |||||||||||||||| |||||||||||||||||||||| ||||   ||| |||| 
+Sbjct: 3177 AATGATATCATCTCAACTTAGTATTATACCCACACCCACCCAAGAACAGGGTTTgttaag 3236
+
+Query: 27   ATAACAAAACCCGATAATCACATAAAA 1
+            ||  || | |||| ||||| |||||||
+Sbjct: 3237 atggcagagcccggtaatcgcataaaa 3263
+
+Query= 24
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 369
+ Identities = 63/87 (72%)
+ Strand = Plus / Plus
+
+Query: 1     TAATTAATATTTTTTTAGTTTTATTATTAATAATTATTATATTTTGACTATTATAATTTA 60
+             |||| || |   |  |||  ||| || |||||||||||| ||||||||||  | || | |
+Sbjct: 10082 TAATCAACACCCTCCTAGCCTTACTACTAATAATTATTACATTTTGACTACCACAACTCA 10141
+
+Query: 61    ACGGTTATATAGAAAAATTTATTTCTT 87
+             |||| || ||||||||||  |   |||
+Sbjct: 10142 ACGGCTACATAGAAAAATCCACCCCTT 10168
+
+Query= 25
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 337
+ Identities = 56/87 (64%)
+ Strand = Plus / Plus
+
+Query: 1    TTTTGTAATCGTTAAATTTTGATTAATCTTATTATTCTTTGTTTAGTTTAGATATCGTTA 60
+            || |||||||| ||||    ||| || || |  |    ||| | ||  || ||| ||  |
+Sbjct: 1209 TTCTGTAATCGATAAACCCCGATCAACCTCACCACCTCTTGCTCAGCCTATATACCGCCA 1268
+
+Query: 61   TTTTTAGTAAATTTTGATGAAGGTTAT 87
+            | || || |||   ||||||||| || 
+Sbjct: 1269 TCTTCAGCAAACCCTGATGAAGGCTAC 1295
+
+Query= 26
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 296
+ Identities = 53/75 (70%)
+ Strand = Plus / Plus
+
+Query: 1    TAACAGTATTTATAATTTTCTTAATAGTTATTTTTTTTAATAATATATTTTGCGGATAAT 60
+             ||| | ||  |||||  |  |||||| |||  | || || |||||| | | |||| |||
+Sbjct: 4661 CAACCGCATCCATAATCCTTCTAATAGCTATCCTCTTCAACAATATACTCTCCGGACAAT 4720
+
+Query: 61   GAATTATAACTAATA 75
+            |||  ||||| ||||
+Sbjct: 4721 GAACCATAACCAATA 4735
+
+Query= 27
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 375
+ Identities = 59/87 (67%)
+ Strand = Plus / Plus
+
+Query: 1     TTTAATTTTATTTTTAATTATATAATTTATTTTTTCGAGTAATTTTAATTATAATATATA 60
+               |||   || |  |||| | ||||  ||||    |||| ||| | ||||| ||||||||
+Sbjct: 14125 CCTAACCCTACTCCTAATCACATAACCTATTCCCCCGAGCAATCTCAATTACAATATATA 14184
+
+Query: 61    TATTAATAAATAATGTTTAATTAGTAA 87
+              |  || ||| |||||| ||  |||||
+Sbjct: 14185 CACCAACAAACAATGTTCAACCAGTAA 14211
+
+Query= 28
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 399
+ Identities = 66/87 (75%)
+ Strand = Plus / Plus
+
+Query: 1   TAAGTTAATAGAAGTCGGCGTAAAGAGTGTTTTAGATTATTTTTTTTTTAATAAAGTTAA 60
+            |||| |||||||| |||||||||||||||||||||| |     |    ||||||| |||
+Sbjct: 919 CAAGTCAATAGAAGCCGGCGTAAAGAGTGTTTTAGATCACCCCCTCCCCAATAAAGCTAA 978
+
+Query: 61  AATTTATTTGAGTTGTAAAAAATTTTA 87
+           || | |  |||||||||||||| |  |
+Sbjct: 979 AACTCACCTGAGTTGTAAAAAACTCCA 1005
+
+Query= 29
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 342
+ Identities = 54/81 (66%)
+ Strand = Plus / Plus
+
+Query: 1    AGTAATAAAATTAGGAATAGTTTTTTTTTATTTTTGAGTTTTAGAGGTTATTTAAGGTAT 60
+            || ||||||| |||||||||     ||| | || |||||   ||||||||   |||| | 
+Sbjct: 4776 AGCAATAAAACTAGGAATAGCCCCCTTTCACTTCTGAGTCCCAGAGGTTACCCAAGGCAC 4835
+
+Query: 61   TTTTTTGATATTCGGTTTGTT 81
+               | ||| || |||  || |
+Sbjct: 4836 CCCTCTGACATCCGGCCTGCT 4856
+
+Query= 3
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 258
+ Identities = 55/69 (79%)
+ Strand = Minus / Plus
+
+Query: 69    AATTGCATCCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACCA 10
+               | ||||||||| ||| ||||| |||||||||| ||||||||||||| | || | ||||
+Sbjct: 12454 TGTCGCATCCACCTTTATTATCAGTCTCTTCCCCACAACAATATTCATGTGCCTAGACCA 12513
+
+Query: 9     AAAAATGAT 1
+             | || | ||
+Sbjct: 12514 AGAAGTTAT 12522
+
+Query= 30
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 349
+ Identities = 65/87 (74%)
+ Strand = Plus / Plus
+
+Query: 1    ATTATATTTATAACGTTATCGTTATAGTTTATGTATTTGTAATAATTTTTTTTATAGTAA 60
+            |  | || || ||||||||||| | ||   ||| |||||||||||| || || |||||||
+Sbjct: 6056 ACCACATCTACAACGTTATCGTCACAGCCCATGCATTTGTAATAATCTTCTTCATAGTAA 6115
+
+Query: 61   TATTTATTAGAATCGGAGGTTTTGGTC 87
+            ||   || | ||||||||| |||||  
+Sbjct: 6116 TACCCATCATAATCGGAGGCTTTGGCA 6142
+
+Query= 31
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 378
+ Identities = 63/86 (73%)
+ Strand = Plus / Plus
+
+Query: 1    TTTGTCTTAAAAATTTTGGTTGGGGCGATTTCGGAGTAGAATTTAATTTTCGAGTAGTAT 60
+              ||  |||||||||| |||||||||||  |||||| ||||   ||  | |||| |||| 
+Sbjct: 2795 CCTGCATTAAAAATTTCGGTTGGGGCGACCTCGGAGCAGAACCCAACCTCCGAGCAGTAC 2854
+
+Query: 61   ATGTTAAGATTTTATTAGTTAAAGTG 86
+            ||| ||||| || |  ||| |||| |
+Sbjct: 2855 ATGCTAAGACTTCACCAGTCAAAGCG 2880
+
+Query= 32
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 360
+ Identities = 61/87 (70%)
+ Strand = Plus / Plus
+
+Query: 1    GTTTTGTATTTATGAGTTGTTTTTATATTAGGTTTAAAAATAGATGTAATTTTCGGACGT 60
+            || ||| | | ||||| |||    | |||||| ||||||| ||||| ||||  |||||||
+Sbjct: 8061 GTCTTGCACTCATGAGCTGTCCCCACATTAGGCTTAAAAACAGATGCAATTCCCGGACGT 8120
+
+Query: 61   TTAAATTAAATTATTTGTATCGTTATA 87
+             ||||  |||  | ||  | || || |
+Sbjct: 8121 CTAAACCAAACCACTTTCACCGCTACA 8147
+
+Query= 33
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 155
+ Identities = 34/44 (77%)
+ Strand = Plus / Plus
+
+Query: 1     ATAATCGTATCGGCCATATCGGTTTTATTTTTGCTTTAGTTTGA 44
+             | || ||||||||| |||||||||| ||  | || ||||  |||
+Sbjct: 12858 ACAACCGTATCGGCGATATCGGTTTCATCCTCGCCTTAGCATGA 12901
+
+Query= 34
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 423
+ Identities = 80/87 (91%)
+ Strand = Minus / Plus
+
+Query: 87   AAACTTAAAACTTTACAATCAAAAATTCAATTCCTCTTCTTAACAACATACCCATAACCA 28
+            ||||||||||||||||| ||| |  ||||||||||||||||||||||||||||||  |||
+Sbjct: 3261 aaacttaaaactttacagtcagaggttcaattcctcttcttaacaacaTACCCATGGCCA 3320
+
+Query: 27   ACCTCCTACTCCTCATTATACCCATTC 1
+            ||||||||||||||||| |||||||||
+Sbjct: 3321 ACCTCCTACTCCTCATTGTACCCATTC 3347
+
+Query= 35
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 357
+ Identities = 54/87 (62%)
+ Strand = Plus / Plus
+
+Query: 1    TTTCTTTTATTTTTGAGTTTTAGAGGTTATTTAAGGTATTTTTTTGATATTCGGTTTGTT 60
+               |||| | || |||||   ||||||||   |||| |    | ||| || |||  || |
+Sbjct: 4797 CCCCTTTCACTTCTGAGTCCCAGAGGTTACCCAAGGCACCCCTCTGACATCCGGCCTGCT 4856
+
+Query: 61   TTTTTTTATATGATAAAAATTAGTTTT 87
+            | || | | |||| ||||| |||    
+Sbjct: 4857 TCTTCTCACATGACAAAAACTAGCCCC 4883
+
+Query= 36
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 367
+ Identities = 61/87 (70%)
+ Strand = Plus / Plus
+
+Query: 1     GTTGTAGTATATTTAAAGATAATTATTATTTTTTTTAAATAAATTAAAAAAATTATTAAA 60
+             | ||||||||||  ||||| ||  || |||     ||||||||||||||||| |||||||
+Sbjct: 14460 GCTGTAGTATATCCAAAGACAACCATCATTCCCCCTAAATAAATTAAAAAAACTATTAAA 14519
+
+Query: 61    TTTATATAATTTTTTTTAAACTTTATA 87
+                ||||||  |     ||| || | |
+Sbjct: 14520 CCCATATAACCTCCCCCAAAATTCAGA 14546
+
+Query= 37
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 378
+ Identities = 65/87 (74%)
+ Strand = Plus / Plus
+
+Query: 1     TAGTTTTATTATTAATAATTATTATATTTTGATCATTATAATTTAATGGTTATATAGAAA 60
+             |||  ||| || |||||||||||| |||||||  |  | || | || || || |||||||
+Sbjct: 10097 TAGCCTTACTACTAATAATTATTACATTTTGACTACCACAACTCAACGGCTACATAGAAA 10156
+
+Query: 61    AATTTATTTTTTACGAGTGCGGTTTCG 87
+             |||  |    |||||||||||| ||||
+Sbjct: 10157 AATCCACCCCTTACGAGTGCGGCTTCG 10183
+
+Query= 38
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 206
+ Identities = 51/87 (58%)
+ Strand = Minus / Plus
+
+Query: 87   GAGAGTGTATCTCATGCATTGCATGACCGGTTAGACGCAAATAACCATCAAACTCAATCT 28
+                 | || |  |  | ||   | |    |  ||      | | |||||||||||| ||
+Sbjct: 3627 CCACCTCTAGCCTAGCCGTTTACTCAATCCTCTGATCAGGGTGAGCATCAAACTCAAACT 3686
+
+Query: 27   ACGCCCTAATCGACGCACTACGAACAA 1
+            ||||||| |||| |||||| ||| || 
+Sbjct: 3687 ACGCCCTGATCGGCGCACTGCGAGCAG 3713
+
+Query= 39
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 366
+ Identities = 63/87 (72%)
+ Strand = Plus / Plus
+
+Query: 1    AATGGTATTGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATAT 60
+            ||||||| ||||  |||||||| | ||| ||||| ||| |||| || || |  || ||| 
+Sbjct: 7894 AATGGTACTGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATAC 7953
+
+Query: 61   TTTTTTTATTATTTTTAGAATAAGGCG 87
+            ||     ||||||  |||||  |||||
+Sbjct: 7954 TTCCCCCATTATTCCTAGAACCAGGCG 7980
+
+Query= 4
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 408
+ Identities = 74/87 (85%)
+ Strand = Plus / Plus
+
+Query: 1    CGTCGTCGGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTT 60
+            || || |||||||||||||||||||||   ||| ||||||||||||| || |||||||||
+Sbjct: 5738 CGCCGCCGGGAAAAAAGGCGGGAGAAGCCCCGGCAGGTTTGAAGCTGCTTCTTCGAATTT 5797
+
+Query: 61   GTAATTTAATATGAAAATTATTTCGGA 87
+            | |||| ||||||||||| |  |||||
+Sbjct: 5798 GCAATTCAATATGAAAATCACCTCGGA 5824
+
+Query= 40
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 354
+ Identities = 55/87 (63%)
+ Strand = Plus / Plus
+
+Query: 1    ATTAATATTTTTAATTTTATTTATTTTTTTTTTTTTAGGAGGTTTGTTTTCGTTAATCGG 60
+            | ||| |   ||||||  ||  |   |  | |   |||||||  ||    || ||| |||
+Sbjct: 5187 ACTAACACCCTTAATTCCATCCACCCTCCTCTCCCTAGGAGGCCTGCCCCCGCTAACCGG 5246
+
+Query: 61   TTTTTTGTCTAAATGGGTTATTATTGA 87
+             |||||| | |||||||  ||||| ||
+Sbjct: 5247 CTTTTTGCCCAAATGGGCCATTATCGA 5273
+
+Query= 41
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 292
+ Identities = 62/87 (71%)
+ Strand = Plus / Plus
+
+Query: 1     TTTCGTTCGTTTTTTTTTCTTTATAAAATTTTTTTTAGTAGTTATTATTTTTTTATTATT 60
+                ||  ||  |   |||||  |||||||| || ||||||| |||||  || ||||||||
+Sbjct: 10194 CCCCGCCCGCGTCCCTTTCTCCATAAAATTCTTCTTAGTAGCTATTACCTTCTTATTATT 10253
+
+Query: 61    TGATATAGAAATTGATTTTCTTTTATT 87
+             |||| |||||||||   | ||||||  
+Sbjct: 10254 TGATCTAGAAATTGCCCTCCTTTTACC 10280
+
+Query= 42
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 397
+ Identities = 67/87 (77%)
+ Strand = Plus / Plus
+
+Query: 1    AGGTTAAATATAGATTAAGAGTTTTTAAAGCCTTTAGTAAGTTGTAATATTTAATTTTTG 60
+            |||||||||| |||  |||||  || |||||| | ||||||||| |||| ||||||| ||
+Sbjct: 5521 AGGTTAAATACAGACCAAGAGCCTTCAAAGCCCTCAGTAAGTTGCAATACTTAATTTCTG 5580
+
+Query: 61   TAATAGTTAAGGATTGTAAAACTTTAT 87
+             || || |||||| || |||||   | 
+Sbjct: 5581 CAACAGCTAAGGACTGCAAAACCCCAC 5607
+
+Query= 43
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 240
+ Identities = 52/75 (69%)
+ Strand = Minus / Plus
+
+Query: 75    CGTGCCTTCCAGCCCCAGCAATGCAGGACCTACACTATTAGAATTTACCACAACCACCAC 16
+             |    || |       |  | |      |||||||||||| | |||||||||||||||||
+Sbjct: 14282 CCCCTCTCCTTCATAAATTATTCAGCTTCCTACACTATTAAAGTTTACCACAACCACCAC 14341
+
+Query: 15    CCCATCATACTCTTT 1
+             |||||||||||||||
+Sbjct: 14342 CCCATCATACTCTTT 14356
+
+Query= 44
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 148
+ Identities = 43/86 (50%)
+ Strand = Minus / Plus
+
+Query: 86   AATAGCAGCCCAGATTCACGACCCACTGGCGGTCTGTACATGGGGATTCCTCTAATCCTA 27
+                 |  |  |      | |  ||| |  |  ||     |      ||  | | |||||
+Sbjct: 6451 CTCTTCGTCTGATCCGTCCTAATCACAGCAGTCCTACTTCTCCTATCTCTCCCAGTCCTA 6510
+
+Query: 26   ACTCCTAACATCACTACACTACTAAC 1
+             || ||  |||||||| |||||||||
+Sbjct: 6511 GCTGCTGGCATCACTATACTACTAAC 6536
+
+Query= 45
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 376
+ Identities = 68/79 (86%)
+ Strand = Minus / Plus
+
+Query: 79   ACTAAATCTCTATTTTACCATCCTACAAACCTCAAAATACTTCGAATCTCCCTTCACCAT 20
+            |||   ||||||||||||| |||||||| ||||| | |||||||| ||||||||||||||
+Sbjct: 9711 ACTGGGTCTCTATTTTACCCTCCTACAAGCCTCAGAGTACTTCGAGTCTCCCTTCACCAT 9770
+
+Query: 19   TTCCAACGACATCTACGAC 1
+            |||| ||| |||||||| |
+Sbjct: 9771 TTCCGACGGCATCTACGGC 9789
+
+Query= 46
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 384
+ Identities = 61/87 (70%)
+ Strand = Plus / Plus
+
+Query: 1     AGTTTTTTTTTTATAATAATATTTATGTGTTTAGATTAAGAAGTTATTATTTCGAATTGA 60
+             ||| | ||    | || |||||| |||||  ||||  ||||||||||||| ||||| |||
+Sbjct: 12476 AGTCTCTTCCCCACAACAATATTCATGTGCCTAGACCAAGAAGTTATTATCTCGAACTGA 12535
+
+Query: 61    TATTGAGTTATAATTTAAATAATTCAG 87
+              | ||||  | ||   ||| ||  |||
+Sbjct: 12536 CACTGAGCCACAACCCAAACAACCCAG 12562
+
+Query= 47
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 365
+ Identities = 62/87 (71%)
+ Strand = Plus / Plus
+
+Query: 1    GTAGATTTAATTATTTTTTTTTTATATTTAGTAGGTGTTTTTTTTATTTTAGGGGTTATT 60
+            |||||  |||  || || |  ||| |  ||| |||||| |  | ||| |||||||  || 
+Sbjct: 6331 GTAGACCTAACCATCTTCTCCTTACACCTAGCAGGTGTCTCCTCTATCTTAGGGGCCATC 6390
+
+Query: 61   AATTTTATTATAATAATTATTAATATA 87
+            ||||| || | || |||||| ||||||
+Sbjct: 6391 AATTTCATCACAACAATTATCAATATA 6417
+
+Query= 48
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 366
+ Identities = 61/86 (70%)
+ Strand = Plus / Plus
+
+Query: 1    TAAGTTTTTGACTTTTATTTTTTTTTTTTTTATTTTTGTTCGTATTTGTTATAGTGGAGG 60
+            |||| || ||||| |||  |   | | |  || |  || ||| || || |||||||||||
+Sbjct: 6203 TAAGCTTCTGACTCTTACCTCCCTCTCTCCTACTCCTGCTCGCATCTGCTATAGTGGAGG 6262
+
+Query: 61   TTGGAGTAGGAATAGGTTGAATAGTT 86
+              |||| ||||| |||||||| ||| 
+Sbjct: 6263 CCGGAGCAGGAACAGGTTGAACAGTC 6288
+
+Query= 49
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 369
+ Identities = 54/87 (62%)
+ Strand = Plus / Plus
+
+Query: 1     TATGATTTATTTTATATTTTAATTTATGAGATTTATAATAAATAGTTTTTTTAAATGTTA 60
+              |||||||||  || | |  || | ||||||   | || ||||||   || |||| | ||
+Sbjct: 12897 CATGATTTATCCTACACTCCAACTCATGAGACCCACAACAAATAGCCCTTCTAAACGCTA 12956
+
+Query: 61    ATTTAAGTTTTATTTTATTATTAGGTT 87
+             ||  |||  | |    | || ||||  
+Sbjct: 12957 ATCCAAGCCTCACCCCACTACTAGGCC 12983
+
+Query= 5
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 280
+ Identities = 62/87 (71%)
+ Strand = Minus / Plus
+
+Query: 87   TGGGTTCTTCTTAGCAACTGTTATAATAATACCCATCATAATCGAAAACTTTAACAACTA 28
+            ||  ||  |  ||       | ||| |||||||||||||||||| |  ||||  ||||| 
+Sbjct: 6087 TGCATTTGTAATAATCTTCTTCATAGTAATACCCATCATAATCGGAGGCTTTGGCAACTG 6146
+
+Query: 27   ACAAATTCCCCTAATAATCGATACCCC 1
+            || | ||||||||||||||| | ||||
+Sbjct: 6147 ACTAGTTCCCCTAATAATCGGTGCCCC 6173
+
+Query= 50
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 151
+ Identities = 25/36 (69%)
+ Strand = Plus / Plus
+
+Query: 1    TGGGTTAGTTAGGTAATTTTTTAGGTAACGATGATA 36
+            ||||  ||  ||| ||  || ||||||||||  | |
+Sbjct: 6026 TGGGCCAGCCAGGCAACCTTCTAGGTAACGACCACA 6061
+
+Query= 51
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 378
+ Identities = 64/87 (73%)
+ Strand = Plus / Plus
+
+Query: 1    AAAATAATTGAAATTAAATAATTTAAGTATTGTTTATTATAATTTTATTGGGTTTTTATT 60
+            |||| ||  ||||  |||||||| ||| | || |||||| ||||||| ||||| | ||||
+Sbjct: 9665 AAAACAACCGAAACCAAATAATTCAAGCACTGCTTATTACAATTTTACTGGGTCTCTATT 9724
+
+Query: 61   TTATTTTTTTATAAGTTTTAGAGTATT 87
+            |||   |  || |||  | |||||| |
+Sbjct: 9725 TTACCCTCCTACAAGCCTCAGAGTACT 9751
+
+Query= 52
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 147
+ Identities = 27/43 (62%)
+ Strand = Plus / Plus
+
+Query: 1     TTTATATTTTTTTTATAACGCTTAGAAGGAATCACCTTATCGT 43
+              | ||||  |   ||  | || |||||||||| |   ||||| 
+Sbjct: 10546 CTCATATCCTCCCTACTATGCCTAGAAGGAATAATACTATCGC 10588
+
+Query= 53
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 386
+ Identities = 62/87 (71%)
+ Strand = Plus / Plus
+
+Query: 1     TGTTGTAGTATATTTAAAGATAATTATTATTTTTTTTAAATAAATTAAAAAAATTATTAA 60
+              | ||||||||||  ||||| ||  || |||     ||||||||||||||||| ||||||
+Sbjct: 14459 CGCTGTAGTATATCCAAAGACAACCATCATTCCCCCTAAATAAATTAAAAAAACTATTAA 14518
+
+Query: 61    ATTTATATAATTTTTTTTAAAATTTAG 87
+             |   ||||||  |     |||||| ||
+Sbjct: 14519 ACCCATATAACCTCCCCCAAAATTCAG 14545
+
+Query= 54
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 382
+ Identities = 78/86 (90%)
+ Strand = Minus / Plus
+
+Query: 86   ACACAACAATTATCAATATAAAAACCCCTACCATAACCCAATACCAAACACCCCTCTTCG 27
+             |||||||||||||||||||||| ||||| ||||||||||||||||||| ||||||||||
+Sbjct: 6398 TCACAACAATTATCAATATAAAACCCCCTGCCATAACCCAATACCAAACGCCCCTCTTCG 6457
+
+Query: 26   TCTATTCCGTCCTAATCACAACAATC 1
+            |||  ||||||||||||||| || ||
+Sbjct: 6458 TCTGATCCGTCCTAATCACAGCAGTC 6483
+
+Query= 55
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 372
+ Identities = 74/87 (85%)
+ Strand = Plus / Plus
+
+Query: 1  AGCTTTTTATGTATTTGGTATTTTCGTTTGGGGGGTGTGTACGCGATAGTATTGCGAGAC 60
+          |||| |  ||| ||||||||||||||| ||||||||||| ||||||||| ||||||||||
+Sbjct: 37 AGCTCTCCATGCATTTGGTATTTTCGTCTGGGGGGTGTGCACGCGATAGCATTGCGAGAC 96
+
+Query: 61 GTTGGAGTCGGAGTAATCTATGTCGTA 87
+          | ||||| ||||| |  |||||||| |
+Sbjct: 97 GCTGGAGCCGGAGCACCCTATGTCGCA 123
+
+Query= 56
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 411
+ Identities = 78/87 (89%)
+ Strand = Minus / Plus
+
+Query: 87   CACCCCACTAAATCCCCTAAAAATCCCACTCCTAAACACATCCGTATTACTCGCATCAAA 28
+            |||||| |||||||||||| || |||||||||||||||||||||||||||||||||||  
+Sbjct: 9570 CACCCCGCTAAATCCCCTAGAAGTCCCACTCCTAAACACATCCGTATTACTCGCATCAGG 9629
+
+Query: 27   AATATCAATCACCTAAACTCACCATAA 1
+            | |||||||||||| | ||||||||| 
+Sbjct: 9630 AGTATCAATCACCTGAGCTCACCATAG 9656
+
+Query= 57
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 313
+ Identities = 51/85 (60%)
+ Strand = Plus / Plus
+
+Query: 1     TTAGTAGGTTTTTTTTTTTTATTTATTTTATTAATTTATATTTATAATATGTTAGGTTTA 60
+              ||||||| |   ||    || | ||   | ||||||| | | | || |   |||| | |
+Sbjct: 11220 CTAGTAGGCTCCCTTCCCCTACTCATCGCACTAATTTACACTCACAACACCCTAGGCTCA 11279
+
+Query: 61    TTAAATATTTTATTATTGATTTTTA 85
+              |||| ||| || || | | | | |
+Sbjct: 11280 CTAAACATTCTACTACTCACTCTCA 11304
+
+Query= 58
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 397
+ Identities = 76/85 (89%)
+ Strand = Minus / Plus
+
+Query: 85    AACAACCATTCAAACAATCCTATACAACCGTATCCACGATATCGATTTCATCCTCGCCTT 26
+             | || |||||||| || |||||||||||||||||  |||||||| |||||||||||||||
+Sbjct: 12835 AGCAGCCATTCAAGCAGTCCTATACAACCGTATCGGCGATATCGGTTTCATCCTCGCCTT 12894
+
+Query: 25    AACATAATTTATCCTACACTCCAAC 1
+             | ||| |||||||||||||||||||
+Sbjct: 12895 AGCATGATTTATCCTACACTCCAAC 12919
+
+Query= 59
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 361
+ Identities = 62/82 (75%)
+ Strand = Minus / Plus
+
+Query: 82   CTACGCCTAATACTAACATTCTATAAATATAATTTAGCTATTTCTATATATCTCCATCTA 23
+            |  ||||| |||||  |||| | || || |  |||  |||||||| ||| ||||||||||
+Sbjct: 9918 CGCCGCCTGATACTGGCATTTTGTAGATGTGGTTTGACTATTTCTGTATGTCTCCATCTA 9977
+
+Query: 22   TTAATAAAAATCTTACTCTTTT 1
+            || || |   ||||||||||||
+Sbjct: 9978 TTGATGAGGGTCTTACTCTTTT 9999
+
+Query= 6
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 368
+ Identities = 62/87 (71%)
+ Strand = Plus / Plus
+
+Query: 1     TTATATTTTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGAT 60
+             | ||||||||||| || |||||||  | | ||||    |  |||| ||| || |  ||||
+Sbjct: 11107 TCATATTTTATATCTTCTTCGAAACCACACTTATCCCCACCTTGGCTATCATCACCCGAT 11166
+
+Query: 61    GAGGTAATTAGTTAGAATGTCTGAACG 87
+             |||| ||  ||  |||| | |||||||
+Sbjct: 11167 GAGGCAACCAGCCAGAACGCCTGAACG 11193
+
+Query= 60
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 383
+ Identities = 78/87 (89%)
+ Strand = Minus / Plus
+
+Query: 87    CATTATTCGTTACATAATCCATCATAAAATTCTCACTATAATATATAAACTCAAACCCAA 28
+             |||| ||||||||||  ||||||||| |||||||||| | ||||||||||||| ||||||
+Sbjct: 12615 CATTGTTCGTTACATGGTCCATCATAGAATTCTCACTGTGATATATAAACTCAGACCCAA 12674
+
+Query: 27    ACATTAATCAATTCTTCAAATCTCTAC 1
+             |||||||||| |||||||||| |||||
+Sbjct: 12675 ACATTAATCAGTTCTTCAAATATCTAC 12701
+
+Query= 63
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 196
+ Identities = 50/78 (64%)
+ Strand = Plus / Plus
+
+Query: 1     ATTGATTTATTCTTTAATAATCGTTATGTATTTCGTATATTATTGTTAGTTGGTTAGAGT 60
+             ||||| | |  | | || || || ||||||||||||| |||| ||  ||       || |
+Sbjct: 16063 ATTGACTCACCCATCAACAACCGCTATGTATTTCGTACATTACTGCCAGCCACCATGAAT 16122
+
+Query: 61    ATTGTCCGGGACGCCATT 78
+             ||||| ||| ||   |  
+Sbjct: 16123 ATTGTACGGTACCATAAA 16140
+
+Query= 64
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 345
+ Identities = 49/87 (56%)
+ Strand = Plus / Plus
+
+Query: 1     TAGCTTAATTAGGTTTTTAGTTTTGATTTTTTTTAGTTATAGAAGGTTTTATTTTAGTTT 60
+              |||  |||||||| |  |    ||| |    | ||  ||||||||    |    ||| |
+Sbjct: 13008 CAGCCCAATTAGGTCTCCACCCCTGACTCCCCTCAGCCATAGAAGGCCCCACCCCAGTCT 13067
+
+Query: 61    TAGTTTTATTTTATTTAAGTATTATAG 87
+              ||   || |  | | ||| | |||||
+Sbjct: 13068 CAGCCCTACTCCACTCAAGCACTATAG 13094
+
+Query= 65
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 359
+ Identities = 53/86 (61%)
+ Strand = Plus / Plus
+
+Query: 1     TAATGGGGTTTATTTATTTATTATATTAATAATATAAAATTTTTATTTATACGAGAAAAT 60
+              ||||||| | | | |   |  | ||||| || ||||||   | ||| | ||||||||| 
+Sbjct: 12003 CAATGGGGCTCACTCACCCACCACATTAACAACATAAAACCCTCATTCACACGAGAAAAC 12062
+
+Query: 61    ATTTTTATTTTTATATATTTATTTTT 86
+             |   | || || ||| |  |||    
+Sbjct: 12063 ACCCTCATGTTCATACACCTATCCCC 12088
+
+Query= 66
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 363
+ Identities = 60/87 (68%)
+ Strand = Plus / Plus
+
+Query: 1     GTTTTAATCGTTTTTTTATTAATCGTTTATATTATTTGAGACGTAAATTATGGTTGAATT 60
+             |  | || ||  |||| || |||||   | || | | |||||||||||||||| ||||| 
+Sbjct: 14922 GCCTCAACCGCCTTTTCATCAATCGCCCACATCACTCGAGACGTAAATTATGGCTGAATC 14981
+
+Query: 61    ATTCGTTATTTTTATGTTAATGGCGTT 87
+             || || ||  || | |  |||||||  
+Sbjct: 14982 ATCCGCTACCTTCACGCCAATGGCGCC 15008
+
+Query= 67
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 398
+ Identities = 73/87 (83%)
+ Strand = Minus / Plus
+
+Query: 87   ACCTAACCCCTACCCCCCAACTAAAAAAACACTAGCCCCCAACAAACATCACCCCACTAA 28
+             |||| |||||||||||||||||  |   |||| ||||||||||  ||||||||| ||||
+Sbjct: 9521 GCCTAGCCCCTACCCCCCAACTAGGAGGGCACTGGCCCCCAACAGGCATCACCCCGCTAA 9580
+
+Query: 27   ATCCCCTAAAAATACCACTCCTAAACA 1
+            |||||||| || | |||||||||||||
+Sbjct: 9581 ATCCCCTAGAAGTCCCACTCCTAAACA 9607
+
+Query= 68
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 401
+ Identities = 80/87 (91%)
+ Strand = Minus / Plus
+
+Query: 87    CTTCACAACAATCCTAATCCTAATACCAACTATCTCCCTAATTAAAAACAAAATACTCAA 28
+             ||||||||||||||||||||||||||||||||||||||||||| ||||||||||||||||
+Sbjct: 15821 CTTCACAACAATCCTAATCCTAATACCAACTATCTCCCTAATTGAAAACAAAATACTCAA 15880
+
+Query: 27    ATAAACCTATCCTTATAATATAAACTA 1
+             ||   ||| ||||| || |||||||||
+Sbjct: 15881 ATGGGCCTGTCCTTGTAGTATAAACTA 15907
+
+Query= 69
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 349
+ Identities = 59/87 (67%)
+ Strand = Plus / Plus
+
+Query: 1    GATTAATGGGATTTAAATTTAAAAATATTTAGTTAATAGTTAAGTATTTTAATTAATTGG 60
+            ||  ||||||| |||||   | ||| | |||||||| || |||| |   |||| || |||
+Sbjct: 5661 GACCAATGGGACTTAAACCCACAAACACTTAGTTAACAGCTAAGCACCCTAATCAACTGG 5720
+
+Query: 61   TTTTAATTTATTTTTTTCGTCGTCTGT 87
+             || ||| || || |  || || | | 
+Sbjct: 5721 CTTCAATCTACTTCTCCCGCCGCCGGG 5747
+
+Query= 7
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 340
+ Identities = 72/85 (84%)
+ Strand = Minus / Plus
+
+Query: 85  CCTAATTCTCTTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAA 26
+           ||| ||||| |||| |||||| ||||| |||||||||||| || ||||||||||||||| 
+Sbjct: 144 CCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAG 203
+
+Query: 25  TATATTAATTAATTAATACTTATAA 1
+           | | ||||||||||||| ||| || 
+Sbjct: 204 TGTGTTAATTAATTAATGCTTGTAG 228
+
+Query= 70
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 340
+ Identities = 58/84 (69%)
+ Strand = Plus / Plus
+
+Query: 1    TATTTTTTTTATTTGTTTTTTAGTTTTGTATGTTTTTTTTTTAATATTTATAATAAAATT 60
+             |||||  |||| || ||  ||||  ||||||   ||||  ||| | | | || |||| |
+Sbjct: 7676 CATTTTCCTTATCTGCTTCCTAGTCCTGTATGCCCTTTTCCTAACACTCACAACAAAACT 7735
+
+Query: 61   AATTAATATTAATATTTTAGACGT 84
+            || ||||| ||| || | ||||| 
+Sbjct: 7736 AACTAATACTAACATCTCAGACGC 7759
+
+Query= 71
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 348
+ Identities = 56/87 (64%)
+ Strand = Plus / Plus
+
+Query: 1     TTTTTTTTTTTTTTTTTTTAATGATATTAATATTATTTTTATCAGATTTTTTAGGCGATT 60
+             || | ||  || | |  ||||||| ||||| | |||| | | ||||  |  |||||||  
+Sbjct: 15445 TTCTCTTCCTTCTCTCCTTAATGACATTAACACTATTCTCACCAGACCTCCTAGGCGACC 15504
+
+Query: 61    TAGATAATTATATTTTAGTTAATTTTT 87
+              ||| |||||||   |||  ||    |
+Sbjct: 15505 CAGACAATTATACCCTAGCCAACCCCT 15531
+
+Query= 72
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 280
+ Identities = 53/84 (63%)
+ Strand = Plus / Plus
+
+Query: 1     TTATTATTACAAACAAAATTTTATTTTTTTATAGTAATTTTTTTATAAATTTTTTCAATT 60
+               | ||| || || |||| | ||  | | |||| |||| |   || |||| |  | ||||
+Sbjct: 11022 CCACTATCACGAAAAAAACTCTACCTCTCTATACTAATCTCCCTACAAATCTCCTTAATT 11081
+
+Query: 61    TTAATATTTAGAGTAATAGATTTA 84
+              ||| ||| | ||  | |||  ||
+Sbjct: 11082 ATAACATTCACAGCCACAGAACTA 11105
+
+Query= 73
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 321
+ Identities = 74/86 (86%)
+ Strand = Minus / Plus
+
+Query: 86    TAAAAAAAAACCTAAAAAAAAACCCCACAAACCCCATTACTAAACCCACACTCAACAAAA 27
+             ||  | ||  | || || ||||||||||||||||||||||||||||||||||||||| ||
+Sbjct: 14599 TAGGAGAAGGCTTAGAAGAAAACCCCACAAACCCCATTACTAAACCCACACTCAACAGAA 14658
+
+Query: 26    ACAAAACATATATCATTATTCCCGCA 1
+             ||||| |||| |||||||||| ||||
+Sbjct: 14659 ACAAAGCATACATCATTATTCTCGCA 14684
+
+Query= 74
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 240
+ Identities = 59/84 (70%)
+ Strand = Minus / Plus
+
+Query: 84   CTTGGTGTAGATACTGAGCTGCCGAATAAACCCTCAAACCTAGGAAATATATCTAATAAA 25
+            ||   |    ||    | || | | ||   |||||||||||| ||||||| ||| |||||
+Sbjct: 4222 CTCCATACCCATTACAATCTCCAGCATTCCCCCTCAAACCTAAGAAATATGTCTGATAAA 4281
+
+Query: 24   AAAATTACTTTAATAGAATAAATA 1
+            | | ||||||| ||||| ||||||
+Sbjct: 4282 AGAGTTACTTTGATAGAGTAAATA 4305
+
+Query= 75
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 397
+ Identities = 77/85 (90%)
+ Strand = Minus / Plus
+
+Query: 85   AGTATCTCCTCTATCTTAAAAACCATCAATTTCATCACAACAATTATCAATATAAAACCC 26
+             || ||||||||||||||    ||||||||||||||||||||||||||||||||||||||
+Sbjct: 6364 GGTGTCTCCTCTATCTTAGGGGCCATCAATTTCATCACAACAATTATCAATATAAAACCC 6423
+
+Query: 25   CCTACCATAACCCAATACCAAACAC 1
+            ||| ||||||||||||||||||| |
+Sbjct: 6424 CCTGCCATAACCCAATACCAAACGC 6448
+
+Query= 76
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 355
+ Identities = 58/87 (66%)
+ Strand = Plus / Plus
+
+Query: 1    TTAATTTATATATTTTTTATGAAAAAATTTTTTATTATTTATTTTAGTATTATTTATATG 60
+              || | ||| |  |  |||||||||| ||  ||  | | |   ||| |||| |||||||
+Sbjct: 4156 CCAACTCATACACCTCCTATGAAAAAACTTCCTACCACTCACCCTAGCATTACTTATATG 4215
+
+Query: 61   ATATGTTTCTATATTTATTATAATTTT 87
+            |||||| || |||   |||| ||| | 
+Sbjct: 4216 ATATGTCTCCATACCCATTACAATCTC 4242
+
+Query= 77
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 381
+ Identities = 80/87 (91%)
+ Strand = Minus / Plus
+
+Query: 87    CCCAATAATTATATTACTACCACTAACATAACTTTCCAAAAAACACATAATTTAAATCAA 28
+             ||||| |||||||||||||||||| |||| |||||||||||| |||||||||| ||||||
+Sbjct: 10778 CCCAACAATTATATTACTACCACTGACATGACTTTCCAAAAAGCACATAATTTGAATCAA 10837
+
+Query: 27    CACAACCACCCACAACCTAATTATTAA 1
+             |||||||||||||| ||||||||||| 
+Sbjct: 10838 CACAACCACCCACAGCCTAATTATTAG 10864
+
+Query= 78
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 329
+ Identities = 58/85 (68%)
+ Strand = Plus / Plus
+
+Query: 1     TTTTTTGTGTTAGTAATTATGTTTTGTTGATTAAATATTATTCTTTTATTTATAGGATTT 60
+              | | |||| ||||||  | ||| |  |||| |||||| | |||  || ||| |||| | 
+Sbjct: 11895 CTCTCTGTGCTAGTAACCACGTTCTCCTGATCAAATATCACTCTCCTACTTACAGGACTC 11954
+
+Query: 61    AATATATTAGTTATAGTTTTATATT 85
+             || ||| |||| | ||   |||| |
+Sbjct: 11955 AACATACTAGTCACAGCCCTATACT 11979
+
+Query= 79
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 369
+ Identities = 60/87 (68%)
+ Strand = Plus / Plus
+
+Query: 1     ATTTGAATTAATATAATTATTTATAGTTTAATTATTAGTATTATTTTTTTATTATTTTTT 60
+             |||||||| || | ||  |   | ||  |||||||||| || ||     || ||||||||
+Sbjct: 10827 ATTTGAATCAACACAACCACCCACAGCCTAATTATTAGCATCATCCCCCTACTATTTTTT 10886
+
+Query: 61    AATTAAATTAATAATAATTTATTTAGT 87
+             ||  |||| || || ||  ||||||| 
+Sbjct: 10887 AACCAAATCAACAACAACCTATTTAGC 10913
+
+Query= 8
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 368
+ Identities = 67/87 (77%)
+ Strand = Plus / Plus
+
+Query: 1    AGTATATTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAA 60
+            || ||| || | |||||   | |||||||||||||||| |||| || |||| ||   |||
+Sbjct: 5007 AGCATACTCCTCAATTACCCACATAGGATGAATAATAGCAGTTCTACCGTACAACCCTAA 5066
+
+Query: 61   TATATCTATTTTTAATTTAATTATTTA 87
+             ||| | ||| ||||||||| ||||||
+Sbjct: 5067 CATAACCATTCTTAATTTAACTATTTA 5093
+
+Query= 81
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 359
+ Identities = 56/87 (64%)
+ Strand = Plus / Plus
+
+Query: 1    TTATAGTGAAATGTTTTAATTAAATATTATCGTATGGTTTATTATAATTATTTTTATATT 60
+            ||| |||||||||    || |||||| || |||||||   |  |||||||     ||| |
+Sbjct: 8357 TTACAGTGAAATGCCCCAACTAAATACTACCGTATGGCCCACCATAATTACCCCCATACT 8416
+
+Query: 61   TTTTATATTATTTTTTATTATTTAATT 87
+              ||| | ||||  | || |   || |
+Sbjct: 8417 CCTTACACTATTCCTCATCACCCAACT 8443
+
+Query= 82
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 422
+ Identities = 76/87 (87%)
+ Strand = Minus / Plus
+
+Query: 87   AAATCTCTATATTACCCTCCTACAAACCTCAAAATACTTCGAATCTCCCTTCACCATTTC 28
+               ||||||| |||||||||||||| ||||| | |||||||| |||||||||||||||||
+Sbjct: 9714 GGGTCTCTATTTTACCCTCCTACAAGCCTCAGAGTACTTCGAGTCTCCCTTCACCATTTC 9773
+
+Query: 27   CAACGACATCTACGACTCAACATTTTT 1
+            | ||| |||||||| ||||||||||||
+Sbjct: 9774 CGACGGCATCTACGGCTCAACATTTTT 9800
+
+Query= 83
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 332
+ Identities = 71/87 (81%)
+ Strand = Minus / Plus
+
+Query: 87   CCATTTACCCAAACAAAATATAAACAATAAAAATTGAAACCTAACGCAATAAATATAATA 28
+            ||||||||||||| ||| ||||  | ||| ||||||||||||  ||||||| ||||| ||
+Sbjct: 1727 CCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTA 1786
+
+Query: 27   CCACAAAAAAAAAATAAAAAATTATAA 1
+            || |||   ||| || |||||||||||
+Sbjct: 1787 CCGCAAGGGAAAGATGAAAAATTATAA 1813
+
+Query= 85
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 309
+ Identities = 59/86 (68%)
+ Strand = Plus / Plus
+
+Query: 1     AATTATAATAAGTTTTATTTGTTTATGATAAATAGATTAAAAATCGTTTATTGTATATTT 60
+             |||||||| ||| |  || ||  || || ||| |||   ||||||| | |||| ||| | 
+Sbjct: 11567 AATTATAACAAGCTCCATCTGCCTACGACAAACAGACCTAAAATCGCTCATTGCATACTC 11626
+
+Query: 61    TTTAATTGGTGATATAGGTCTCGTTG 86
+             || |||  |  | ||||  ||||| |
+Sbjct: 11627 TTCAATCAGCCACATAGCCCTCGTAG 11652
+
+Query= 86
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 357
+ Identities = 73/85 (85%)
+ Strand = Minus / Plus
+
+Query: 85   ATGCGCGGCAACACATAATAACCCACCAATCACATACCTATCATATAATAAAACCCAACC 26
+             ||| || ||||||||||| ||||||||||||||| ||||||||||| ||||||||| ||
+Sbjct: 9191 CTGCACGACAACACATAATGACCCACCAATCACATGCCTATCATATAGTAAAACCCAGCC 9250
+
+Query: 25   CATAACCCCTAACAAAAACCCTCTC 1
+            ||| ||||||||||    |||||||
+Sbjct: 9251 CATGACCCCTAACAGGGGCCCTCTC 9275
+
+Query= 87
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 366
+ Identities = 66/87 (75%)
+ Strand = Plus / Plus
+
+Query: 1     ATATTTTTTATTTGTTTTTTTTTATATATCGGGCGAGGTTTATATTATGGATTATTTTTT 60
+             ||||| ||||| ||  | ||  || | |||||||||||  ||||||| |||| |||| | 
+Sbjct: 15012 ATATTCTTTATCTGCCTCTTCCTACACATCGGGCGAGGCCTATATTACGGATCATTTCTC 15071
+
+Query: 61    TATTTAGAAATTTGAAATATCGGTATT 87
+             || | |||||  ||||| ||||| |||
+Sbjct: 15072 TACTCAGAAACCTGAAACATCGGCATT 15098
+
+Query= 88
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 354
+ Identities = 61/87 (70%)
+ Strand = Plus / Plus
+
+Query: 1   AGTGAGTTTATTTTTTAAATTATTATGATTAAAAGGGACAAGTATTAAGTACGTAATAAT 60
+           |||||||| |   | ||||| |  | ||| |||||||||||| || ||| ||| |  |||
+Sbjct: 716 AGTGAGTTCACCCTCTAAATCACCACGATCAAAAGGGACAAGCATCAAGCACGCAGCAAT 775
+
+Query: 61  GTAGTTTAAAACCTTTAGTTTAGTTAT 87
+           | || | |||||  ||||  |||  | 
+Sbjct: 776 GCAGCTCAAAACGCTTAGCCTAGCCAC 802
+
+Query= 89
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 358
+ Identities = 52/87 (59%)
+ Strand = Plus / Plus
+
+Query: 1    TTTTATATTTTTTATATTATTTTTTATTATTTAATTAAAAATATTAAATATAAATTATTA 60
+                ||| |  ||| | ||||  | || |   || ||||||||||||| | ||| ||  |
+Sbjct: 8408 CCCCATACTCCTTACACTATTCCTCATCACCCAACTAAAAATATTAAACACAAACTACCA 8467
+
+Query: 61   TTTATTTTTTTTATTAAAGTTTATAAA 87
+              ||  |   | |  ||||   |||||
+Sbjct: 8468 CCTACCTCCCTCACCAAAGCCCATAAA 8494
+
+Query= 9
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 375
+ Identities = 61/87 (70%)
+ Strand = Plus / Plus
+
+Query: 1    TGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTA 60
+            ||||  |||||||| | ||| ||||| ||| |||| || || |  || ||| ||     |
+Sbjct: 7902 TGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCA 7961
+
+Query: 61   TTATTTTTAGAATTAGGTGATTTGCGA 87
+            |||||  |||||  ||| ||  |||||
+Sbjct: 7962 TTATTCCTAGAACCAGGCGACCTGCGA 7988
+
+Query= 90
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 278
+ Identities = 56/66 (84%)
+ Strand = Minus / Plus
+
+Query: 66   CTAACCAAAATATAACTTAACACAAAACACCCAACTTACACTTAAAAAATTTCAACTTAA 7
+            | ||||| | | || ||||||||||| |||||||||||||||||  | ||||||||||||
+Sbjct: 1599 CGAACCAGAGTGTAGCTTAACACAAAGCACCCAACTTACACTTAGGAGATTTCAACTTAA 1658
+
+Query: 6    CTTAAC 1
+            ||| ||
+Sbjct: 1659 CTTGAC 1664
+
+Query= 91
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 421
+ Identities = 81/87 (93%)
+ Strand = Minus / Plus
+
+Query: 87   CCTAACCATCATTCTACTATCAACATTACTAATAAGTAACTCCTTTAACCTCTCCACCCT 28
+            |||| ||||||||||||||||||||||||||||||||  |||||||||||||||||||||
+Sbjct: 3742 CCTAGCCATCATTCTACTATCAACATTACTAATAAGTGGCTCCTTTAACCTCTCCACCCT 3801
+
+Query: 27   TGTCACAACACAAAAACACCTCTAATT 1
+            | ||||||||||| ||||||||| |||
+Sbjct: 3802 TATCACAACACAAGAACACCTCTGATT 3828
+
+Query= 92
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 360
+ Identities = 64/83 (77%)
+ Strand = Plus / Plus
+
+Query: 1    CGTCGATCGTTGATTATTTTTTATAAATTATAAAGATATTGGAATATTATATTTATTATT 60
+            || ||| |||||| |||| | || |||  | ||||| ||||||| | ||||  |||||||
+Sbjct: 5910 CGCCGACCGTTGACTATTCTCTACAAACCACAAAGACATTGGAACACTATACCTATTATT 5969
+
+Query: 61   CGGTGTATGAGTTGGAGTTTTAG 83
+            ||| | ||||| ||||||  |||
+Sbjct: 5970 CGGCGCATGAGCTGGAGTCCTAG 5992
+
+Query= 93
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 222
+ Identities = 55/85 (64%)
+ Strand = Minus / Plus
+
+Query: 85   GGGACAGCCAGATCGCCCACCTTATCAGGAACGTTCCTTTTAACCTCTCCACCCTTATCA 26
+                ||  |   |  |     |  | |  |  |   | ||||||||||||||||||||||
+Sbjct: 3747 CCATCATTCTACTATCAACATTACTAATAAGTGGCTCCTTTAACCTCTCCACCCTTATCA 3806
+
+Query: 25   CAACACATAAACACCTCTAATTACT 1
+            |||||||  ||||||||| ||||||
+Sbjct: 3807 CAACACAAGAACACCTCTGATTACT 3831
+
+Query= 94
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 326
+ Identities = 49/87 (56%)
+ Strand = Plus / Plus
+
+Query: 1     TTTATTATATTAATAATATAAAATTTTTATTTATACGAGAAAATATTTTTATGTTTATGT 60
+                |  | ||||| || ||||||   | ||| | ||||||||| |   | ||||| ||  
+Sbjct: 12019 CCCACCACATTAACAACATAAAACCCTCATTCACACGAGAAAACACCCTCATGTTCATAC 12078
+
+Query: 61    ATTTATTTTTTATTTTTTTTTGATTTT 87
+             |  |||     ||| |  |   ||   
+Sbjct: 12079 ACCTATCCCCCATTCTCCTCCTATCCC 12105
+
+Query= 95
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 279
+ Identities = 56/74 (75%)
+ Strand = Plus / Plus
+
+Query: 1   TTTTGATTTTTGTCTTATTTTATTATTTATCGTATTTACGTTTAATATTATAGGTGAATA 60
+            |||||||  || || ||| |||||||||||| |  |||||| ||||||| ||| ||| |
+Sbjct: 132 CTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACA 191
+
+Query: 61  TATTTATTGAAGAG 74
+           ||  || | ||| |
+Sbjct: 192 TACCTACTAAAGTG 205
+
+Query= 96
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 378
+ Identities = 59/87 (67%)
+ Strand = Plus / Plus
+
+Query: 1    ATAAATATTATTATAATAAATATTTTTATTATTATAATTTTTTTAGGAATAATATATGAC 60
+            | ||| |||||||||||||| |   | |  | || ||| ||  |||||| || |||||||
+Sbjct: 3992 ACAAACATTATTATAATAAACACCCTCACCACTACAATCTTCCTAGGAACAACATATGAC 4051
+
+Query: 61   GTATTTTTTTTTGAATTTTATATAATA 87
+            | | | |    |||| | || | || |
+Sbjct: 4052 GCACTCTCCCCTGAACTCTACACAACA 4078
+
+Query= 97
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 257
+ Identities = 51/86 (59%)
+ Strand = Plus / Plus
+
+Query: 1   TTTTTTACAGTTTATGTAGTTTATTTTTTTAAAGTAATATATTGAAAATGTTTAGACGCT 60
+                 ||||||||||||| |||  |  | |||| |||| | ||||||||||||||||  
+Sbjct: 570 CCCCCCACAGTTTATGTAGCTTACCTCCTCAAAGCAATACACTGAAAATGTTTAGACGGG 629
+
+Query: 61  TTGACCGAGGAGAACCCTTAATTACT 86
+            | ||        |     || ||  
+Sbjct: 630 CTCACATCACCCCATAAACAAATAGG 655
+
+Query= 98
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 230
+ Identities = 57/84 (67%)
+ Strand = Minus / Plus
+
+Query: 84   CACTTACACTGACCTGTATGATCGGAATGCATAACCTAACTAACACTATATTAACAAACT 25
+            | ||   | | | || | |  ||    |   |  ||| |||  || | ||||| ||||||
+Sbjct: 6926 CCCTAGGATTCATCTTTCTTTTCACCGTAGGTGGCCTGACTGGCATTGTATTAGCAAACT 6985
+
+Query: 24   CATCACTAAACATCGTACTACACG 1
+            |||||||| |||||||||||||||
+Sbjct: 6986 CATCACTAGACATCGTACTACACG 7009
+
+Query= 99
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 284
+ Identities = 69/87 (79%)
+ Strand = Minus / Plus
+
+Query: 87   ACGCCAAATAGTTTATTATCAAAACCATCAACCTACTCATTCAAACAATAACCCTAACCG 28
+             | ||| |    |||||||| ||||||||| ||||||||||||| ||||| ||||  |||
+Sbjct: 8940 TCCCCATACTAGTTATTATCGAAACCATCAGCCTACTCATTCAACCAATAGCCCTGGCCG 8999
+
+Query: 27   TACGCCTAACCGATAATATTATTACAA 1
+            |||||||||||| ||| |||| | || 
+Sbjct: 9000 TACGCCTAACCGCTAACATTACTGCAG 9026
+
 0	chrM	93.10	87	6	0	87	1	13914	14000
 1	chrM	85.06	87	13	0	1	87	1544	1630
 10	chrM	61.67	60	23	0	1	60	3291	3350
@@ -9542,6 +11237,171 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 41	5	0	0	0	0	0	0	+	SRR359290.9033	75	0	46	chr16	90354753	29595844	29595890	1	46,	0,	29595844,
 41	5	0	0	0	0	0	0	+	SRR359290.9033	75	0	46	chr16	90354753	30335586	30335632	1	46,	0,	30335586,
 38	4	0	0	0	0	0	0	+	SRR359290.9033	75	0	42	chr3	198022430	37456613	37456655	1	42,	0,	37456613,
+81	6	0	0	0	0	0	0	-	0	87	0	87	chrM	16571	13913	14000	1	87,	0,	13913,
+74	13	0	0	0	0	0	0	+	1	87	0	87	chrM	16571	1543	1630	1	87,	0,	1543,
+37	23	0	0	0	0	0	0	+	10	87	0	60	chrM	16571	3290	3350	1	60,	0,	3290,
+74	13	0	0	0	0	0	0	-	11	87	0	87	chrM	16571	15997	16084	1	87,	0,	15997,
+62	25	0	0	0	0	0	0	+	12	87	0	87	chrM	16571	3253	3340	1	87,	0,	3253,
+69	18	0	0	0	0	0	0	-	13	87	0	87	chrM	16571	1368	1455	1	87,	0,	1368,
+74	12	0	0	0	0	0	0	-	14	87	0	86	chrM	16571	6781	6867	1	86,	1,	6781,
+57	29	0	0	0	0	0	0	+	15	87	1	87	chrM	16571	12881	12967	1	86,	1,	12881,
+78	9	0	0	0	0	0	0	-	16	87	0	87	chrM	16571	360	447	1	87,	0,	360,
+58	29	0	0	0	0	0	0	+	18	87	0	87	chrM	16571	10589	10676	1	87,	0,	10589,
+59	28	0	0	0	0	0	0	+	19	87	0	87	chrM	16571	14174	14261	1	87,	0,	14174,
+60	24	0	0	0	0	0	0	+	2	87	3	87	chrM	16571	12300	12384	1	84,	3,	12300,
+59	28	0	0	0	0	0	0	+	20	87	0	87	chrM	16571	5859	5946	1	87,	0,	5859,
+69	18	0	0	0	0	0	0	+	21	87	0	87	chrM	16571	80	167	1	87,	0,	80,
+69	13	0	0	0	0	0	0	-	22	87	0	82	chrM	16571	15082	15164	1	82,	5,	15082,
+73	14	0	0	0	0	0	0	-	23	87	0	87	chrM	16571	3176	3263	1	87,	0,	3176,
+63	24	0	0	0	0	0	0	+	24	87	0	87	chrM	16571	10081	10168	1	87,	0,	10081,
+56	31	0	0	0	0	0	0	+	25	87	0	87	chrM	16571	1208	1295	1	87,	0,	1208,
+53	22	0	0	0	0	0	0	+	26	87	0	75	chrM	16571	4660	4735	1	75,	0,	4660,
+59	28	0	0	0	0	0	0	+	27	87	0	87	chrM	16571	14124	14211	1	87,	0,	14124,
+66	21	0	0	0	0	0	0	+	28	87	0	87	chrM	16571	918	1005	1	87,	0,	918,
+54	27	0	0	0	0	0	0	+	29	87	0	81	chrM	16571	4775	4856	1	81,	0,	4775,
+55	14	0	0	0	0	0	0	-	3	87	0	69	chrM	16571	12453	12522	1	69,	18,	12453,
+65	22	0	0	0	0	0	0	+	30	87	0	87	chrM	16571	6055	6142	1	87,	0,	6055,
+63	23	0	0	0	0	0	0	+	31	87	0	86	chrM	16571	2794	2880	1	86,	0,	2794,
+61	26	0	0	0	0	0	0	+	32	87	0	87	chrM	16571	8060	8147	1	87,	0,	8060,
+34	10	0	0	0	0	0	0	+	33	87	0	44	chrM	16571	12857	12901	1	44,	0,	12857,
+80	7	0	0	0	0	0	0	-	34	87	0	87	chrM	16571	3260	3347	1	87,	0,	3260,
+54	33	0	0	0	0	0	0	+	35	87	0	87	chrM	16571	4796	4883	1	87,	0,	4796,
+61	26	0	0	0	0	0	0	+	36	87	0	87	chrM	16571	14459	14546	1	87,	0,	14459,
+65	22	0	0	0	0	0	0	+	37	87	0	87	chrM	16571	10096	10183	1	87,	0,	10096,
+51	36	0	0	0	0	0	0	-	38	87	0	87	chrM	16571	3626	3713	1	87,	0,	3626,
+63	24	0	0	0	0	0	0	+	39	87	0	87	chrM	16571	7893	7980	1	87,	0,	7893,
+74	13	0	0	0	0	0	0	+	4	87	0	87	chrM	16571	5737	5824	1	87,	0,	5737,
+55	32	0	0	0	0	0	0	+	40	87	0	87	chrM	16571	5186	5273	1	87,	0,	5186,
+62	25	0	0	0	0	0	0	+	41	87	0	87	chrM	16571	10193	10280	1	87,	0,	10193,
+67	20	0	0	0	0	0	0	+	42	87	0	87	chrM	16571	5520	5607	1	87,	0,	5520,
+52	23	0	0	0	0	0	0	-	43	87	0	75	chrM	16571	14281	14356	1	75,	12,	14281,
+43	43	0	0	0	0	0	0	-	44	87	0	86	chrM	16571	6450	6536	1	86,	1,	6450,
+68	11	0	0	0	0	0	0	-	45	87	0	79	chrM	16571	9710	9789	1	79,	8,	9710,
+61	26	0	0	0	0	0	0	+	46	87	0	87	chrM	16571	12475	12562	1	87,	0,	12475,
+62	25	0	0	0	0	0	0	+	47	87	0	87	chrM	16571	6330	6417	1	87,	0,	6330,
+61	25	0	0	0	0	0	0	+	48	87	0	86	chrM	16571	6202	6288	1	86,	0,	6202,
+54	33	0	0	0	0	0	0	+	49	87	0	87	chrM	16571	12896	12983	1	87,	0,	12896,
+62	25	0	0	0	0	0	0	-	5	87	0	87	chrM	16571	6086	6173	1	87,	0,	6086,
+25	11	0	0	0	0	0	0	+	50	87	0	36	chrM	16571	6025	6061	1	36,	0,	6025,
+64	23	0	0	0	0	0	0	+	51	87	0	87	chrM	16571	9664	9751	1	87,	0,	9664,
+27	16	0	0	0	0	0	0	+	52	87	0	43	chrM	16571	10545	10588	1	43,	0,	10545,
+62	25	0	0	0	0	0	0	+	53	87	0	87	chrM	16571	14458	14545	1	87,	0,	14458,
+78	8	0	0	0	0	0	0	-	54	87	0	86	chrM	16571	6397	6483	1	86,	1,	6397,
+74	13	0	0	0	0	0	0	+	55	87	0	87	chrM	16571	36	123	1	87,	0,	36,
+78	9	0	0	0	0	0	0	-	56	87	0	87	chrM	16571	9569	9656	1	87,	0,	9569,
+51	34	0	0	0	0	0	0	+	57	87	0	85	chrM	16571	11219	11304	1	85,	0,	11219,
+76	9	0	0	0	0	0	0	-	58	87	0	85	chrM	16571	12834	12919	1	85,	2,	12834,
+62	20	0	0	0	0	0	0	-	59	87	0	82	chrM	16571	9917	9999	1	82,	5,	9917,
+62	25	0	0	0	0	0	0	+	6	87	0	87	chrM	16571	11106	11193	1	87,	0,	11106,
+78	9	0	0	0	0	0	0	-	60	87	0	87	chrM	16571	12614	12701	1	87,	0,	12614,
+50	28	0	0	0	0	0	0	+	63	87	0	78	chrM	16571	16062	16140	1	78,	0,	16062,
+49	38	0	0	0	0	0	0	+	64	87	0	87	chrM	16571	13007	13094	1	87,	0,	13007,
+53	33	0	0	0	0	0	0	+	65	87	0	86	chrM	16571	12002	12088	1	86,	0,	12002,
+60	27	0	0	0	0	0	0	+	66	87	0	87	chrM	16571	14921	15008	1	87,	0,	14921,
+73	14	0	0	0	0	0	0	-	67	87	0	87	chrM	16571	9520	9607	1	87,	0,	9520,
+80	7	0	0	0	0	0	0	-	68	87	0	87	chrM	16571	15820	15907	1	87,	0,	15820,
+59	28	0	0	0	0	0	0	+	69	87	0	87	chrM	16571	5660	5747	1	87,	0,	5660,
+72	13	0	0	0	0	0	0	-	7	87	0	85	chrM	16571	143	228	1	85,	2,	143,
+58	26	0	0	0	0	0	0	+	70	87	0	84	chrM	16571	7675	7759	1	84,	0,	7675,
+56	31	0	0	0	0	0	0	+	71	87	0	87	chrM	16571	15444	15531	1	87,	0,	15444,
+53	31	0	0	0	0	0	0	+	72	87	0	84	chrM	16571	11021	11105	1	84,	0,	11021,
+74	12	0	0	0	0	0	0	-	73	87	0	86	chrM	16571	14598	14684	1	86,	1,	14598,
+59	25	0	0	0	0	0	0	-	74	87	0	84	chrM	16571	4221	4305	1	84,	3,	4221,
+77	8	0	0	0	0	0	0	-	75	87	0	85	chrM	16571	6363	6448	1	85,	2,	6363,
+58	29	0	0	0	0	0	0	+	76	87	0	87	chrM	16571	4155	4242	1	87,	0,	4155,
+80	7	0	0	0	0	0	0	-	77	87	0	87	chrM	16571	10777	10864	1	87,	0,	10777,
+58	27	0	0	0	0	0	0	+	78	87	0	85	chrM	16571	11894	11979	1	85,	0,	11894,
+60	27	0	0	0	0	0	0	+	79	87	0	87	chrM	16571	10826	10913	1	87,	0,	10826,
+67	20	0	0	0	0	0	0	+	8	87	0	87	chrM	16571	5006	5093	1	87,	0,	5006,
+56	31	0	0	0	0	0	0	+	81	87	0	87	chrM	16571	8356	8443	1	87,	0,	8356,
+76	11	0	0	0	0	0	0	-	82	87	0	87	chrM	16571	9713	9800	1	87,	0,	9713,
+71	16	0	0	0	0	0	0	-	83	87	0	87	chrM	16571	1726	1813	1	87,	0,	1726,
+59	27	0	0	0	0	0	0	+	85	87	0	86	chrM	16571	11566	11652	1	86,	0,	11566,
+73	12	0	0	0	0	0	0	-	86	87	0	85	chrM	16571	9190	9275	1	85,	2,	9190,
+66	21	0	0	0	0	0	0	+	87	87	0	87	chrM	16571	15011	15098	1	87,	0,	15011,
+61	26	0	0	0	0	0	0	+	88	87	0	87	chrM	16571	715	802	1	87,	0,	715,
+52	35	0	0	0	0	0	0	+	89	87	0	87	chrM	16571	8407	8494	1	87,	0,	8407,
+61	26	0	0	0	0	0	0	+	9	87	0	87	chrM	16571	7901	7988	1	87,	0,	7901,
+56	10	0	0	0	0	0	0	-	90	87	0	66	chrM	16571	1598	1664	1	66,	21,	1598,
+81	6	0	0	0	0	0	0	-	91	87	0	87	chrM	16571	3741	3828	1	87,	0,	3741,
+64	19	0	0	0	0	0	0	+	92	87	0	83	chrM	16571	5909	5992	1	83,	0,	5909,
+55	30	0	0	0	0	0	0	-	93	87	0	85	chrM	16571	3746	3831	1	85,	2,	3746,
+49	38	0	0	0	0	0	0	+	94	87	0	87	chrM	16571	12018	12105	1	87,	0,	12018,
+56	18	0	0	0	0	0	0	+	95	87	0	74	chrM	16571	131	205	1	74,	0,	131,
+59	28	0	0	0	0	0	0	+	96	87	0	87	chrM	16571	3991	4078	1	87,	0,	3991,
+51	35	0	0	0	0	0	0	+	97	87	0	86	chrM	16571	569	655	1	86,	0,	569,
+57	27	0	0	0	0	0	0	-	98	87	0	84	chrM	16571	6925	7009	1	84,	3,	6925,
+69	18	0	0	0	0	0	0	-	99	87	0	87	chrM	16571	8939	9026	1	87,	0,	8939,
+23	0	0	0	0	0	0	0	+	102	699	673	696	chr3	198295559	23607556	23607579	1	23,	673,	23607556,
+28	1	0	0	0	0	2	2	+	102	699	479	508	chr14	107043718	104715672	104715703	3	23,2,4,	479,502,504,	104715672,104715696,104715699,
+25	0	0	0	1	2	0	0	+	102	699	91	118	chr2	242193529	240456631	240456656	2	19,6,	91,112,	240456631,240456650,
+22	1	0	0	0	0	0	0	+	102	699	476	499	chr11	135086622	67464146	67464169	1	23,	476,	67464146,
+36	1	0	0	0	0	3	15	+	102	699	467	504	chr1	248956422	21590630	21590682	4	13,6,1,17,	467,480,486,487,	21590630,21590645,21590657,21590665,
+45	1	0	0	2	120	1	1468334	+	102	699	472	638	chr10	133797422	122813034	124281414	3	17,9,20,	472,490,618,	122813034,122813051,124281394,
+31	1	0	0	0	0	2	6	+	102	699	458	490	chr1	248956422	161050905	161050943	3	10,2,20,	458,468,470,	161050905,161050918,161050923,
+21	1	0	0	0	0	0	0	+	102	699	6	28	chr5	181538259	93489542	93489564	1	22,	6,	93489542,
+25	2	0	0	0	0	0	0	+	102	699	640	667	chr14	107043718	80332129	80332156	1	27,	640,	80332129,
+23	1	0	0	0	0	0	0	+	102	699	467	491	chr15	101991189	45614749	45614773	1	24,	467,	45614749,
+38	1	0	0	1	1	3	12	+	102	699	425	465	chr8	145138636	76840858	76840909	5	16,5,6,5,7,	425,441,446,452,458,	76840858,76840875,76840887,76840897,76840902,
+25	0	0	0	0	0	2	2	+	102	699	87	112	chr3	198295559	152862893	152862920	3	16,3,6,	87,103,106,	152862893,152862910,152862914,
+19	0	0	0	0	0	0	0	+	102	699	140	159	chr1	248956422	145870017	145870036	1	19,	140,	145870017,
+19	0	0	0	0	0	0	0	+	102	699	472	491	chr5	181538259	4867425	4867444	1	19,	472,	4867425,
+19	0	0	0	0	0	0	0	+	102	699	10	29	chr5	181538259	74376577	74376596	1	19,	10,	74376577,
+21	1	0	0	0	0	0	0	+	102	699	493	515	chr7	159345973	157969523	157969545	1	22,	493,	157969523,
+19	0	0	0	0	0	0	0	+	102	699	470	489	chr13	114364328	113342215	113342234	1	19,	470,	113342215,
+19	0	0	0	0	0	0	0	+	102	699	470	489	chr17	83257441	19079609	19079628	1	19,	470,	19079609,
+38	0	0	0	1	57	1	8587829	+	102	699	470	565	chr17	83257441	19205791	27793658	2	19,19,	470,546,	19205791,27793639,
+30	1	0	0	0	0	2	6	+	102	699	459	490	chr18	80373285	8561208	8561245	3	6,2,23,	459,465,467,	8561208,8561215,8561222,
+26	1	0	0	0	0	2	2	+	102	699	666	693	chr21	46709983	14291180	14291209	3	18,1,8,	666,684,685,	14291180,14291199,14291201,
+19	0	0	0	0	0	0	0	+	102	699	470	489	chr22	50818468	23657490	23657509	1	19,	470,	23657490,
+19	0	0	0	0	0	0	0	+	102	699	680	699	chrX	156040895	83302601	83302620	1	19,	680,	83302601,
+23	0	0	0	1	2	0	0	+	102	699	508	533	chr5	181538259	173701199	173701222	2	16,7,	508,526,	173701199,173701215,
+23	0	0	0	0	0	1	4	+	102	699	485	508	chr3	198295559	127741375	127741402	2	5,18,	485,490,	127741375,127741384,
+20	1	0	0	0	0	0	0	+	102	699	433	454	chr4	190214555	3839062	3839083	1	21,	433,	3839062,
+20	1	0	0	0	0	0	0	+	102	699	256	277	chr18	80373285	55335092	55335113	1	21,	256,	55335092,
+25	1	0	0	1	4	0	0	+	102	699	464	494	chr17	83257441	28925929	28925955	2	9,17,	464,477,	28925929,28925938,
+20	1	0	0	0	0	0	0	+	102	699	442	463	chr3	198295559	186865651	186865672	1	21,	442,	186865651,
+25	0	0	0	0	0	2	4	+	102	699	487	512	chr5	181538259	169763615	169763644	3	16,1,8,	487,503,504,	169763615,169763634,169763636,
+20	1	0	0	0	0	0	0	+	102	699	442	463	chr7	159345973	65260306	65260327	1	21,	442,	65260306,
+30	2	0	0	0	0	2	4	+	102	699	371	403	chr19	58617616	47072201	47072237	3	3,21,8,	371,374,395,	47072201,47072205,47072229,
+20	1	0	0	0	0	0	0	+	102	699	442	463	chr20	64444167	4034147	4034168	1	21,	442,	4034147,
+184	2	0	0	1	3	5	11	-	102	699	221	410	chr19	58617616	1390855	1391052	7	5,3,88,4,56,21,9,	289,294,297,385,389,448,469,	1390855,1390864,1390869,1390959,1390965,1391021,1391043,
+102	4	0	0	2	2	1	3	-	102	699	401	509	chr19	58617616	1388829	1388938	4	22,5,38,41,	190,212,218,257,	1388829,1388854,1388859,1388897,
+67	0	0	0	2	2	2	3	-	102	699	506	575	chr19	58617616	1388523	1388593	5	13,31,3,7,13,	124,138,170,173,180,	1388523,1388536,1388567,1388572,1388580,
+77	3	0	0	0	0	5	11	-	102	699	98	178	chr19	58617616	1393240	1393331	6	37,2,9,24,3,5,	521,558,560,569,593,596,	1393240,1393278,1393283,1393296,1393322,1393326,
+171	5	0	0	7	437	7	7501	-	102	699	3	616	chr19	58617616	1387807	1395484	13	13,27,7,30,9,30,7,14,8,1,9,1,20,	83,98,474,482,512,597,628,635,649,657,659,675,676,	1387807,1387820,1391116,1391123,1391154,1395387,1395417,1395426,1395441,1395451,1395452,1395461,1395464,
+31	1	0	0	0	0	0	0	-	102	699	613	645	chr19	58617616	1383910	1383942	1	32,	54,	1383910,
+37	2	0	0	1	2	2	2	-	102	699	483	524	chr7	159345973	101590379	101590420	4	9,4,18,8,	175,184,188,208,	101590379,101590389,101590394,101590412,
+32	0	0	0	0	0	3	7	-	102	699	458	490	chr12	133275309	71544986	71545025	4	3,17,2,10,	209,212,229,231,	71544986,71544990,71545010,71545015,
+21	0	0	0	0	0	0	0	-	102	699	625	646	chr19	58617616	17615430	17615451	1	21,	53,	17615430,
+25	0	0	0	0	0	1	4	-	102	699	480	505	chr19	58617616	18430559	18430588	2	7,18,	194,201,	18430559,18430570,
+25	0	0	0	0	0	1	5	-	102	699	484	509	chr8	145138636	98433261	98433291	2	7,18,	190,197,	98433261,98433273,
+29	1	0	0	0	0	2	6	-	102	699	458	488	chr4	190214555	54783704	54783740	3	22,1,7,	211,233,234,	54783704,54783731,54783733,
+24	1	0	0	0	0	1	1	-	102	699	485	510	chr3	198295559	130609408	130609434	2	19,6,	189,208,	130609408,130609428,
+33	2	0	0	1	2	2	3	-	102	699	89	126	chr3	198295559	37588376	37588414	4	4,4,20,7,	573,577,583,603,	37588376,37588381,37588385,37588407,
+25	1	0	0	0	0	1	4	-	102	699	87	113	chr16	90338345	722483	722513	2	21,5,	586,607,	722483,722508,
+25	1	0	0	0	0	1	1	-	102	699	500	526	chr2	242193529	192414462	192414489	2	5,21,	173,178,	192414462,192414468,
+33	1	0	0	0	0	3	7	-	102	699	457	491	chr7	159345973	101723245	101723286	4	4,17,2,11,	208,212,229,231,	101723245,101723250,101723270,101723275,
+32	1	0	0	0	0	3	8	-	102	699	604	637	chr10	133797422	126932869	126932910	4	9,3,5,16,	62,71,74,79,	126932869,126932880,126932886,126932894,
+26	1	0	0	0	0	1	2	-	102	699	68	95	chr22	50818468	20726588	20726617	2	4,23,	604,608,	20726588,20726594,
+21	1	0	0	0	0	0	0	-	102	699	635	657	chr22	50818468	46458800	46458822	1	22,	42,	46458800,
+19	0	0	0	0	0	0	0	-	102	699	502	521	chr3	198295559	89815479	89815498	1	19,	178,	89815479,
+19	0	0	0	0	0	0	0	-	102	699	456	475	chr5	181538259	171574454	171574473	1	19,	224,	171574454,
+19	0	0	0	0	0	0	0	-	102	699	470	489	chr6	170805979	1842831	1842850	1	19,	210,	1842831,
+19	0	0	0	0	0	0	0	-	102	699	470	489	chr7	159345973	100370596	100370615	1	19,	210,	100370596,
+19	0	0	0	0	0	0	0	-	102	699	488	507	chr12	133275309	19357535	19357554	1	19,	192,	19357535,
+19	0	0	0	0	0	0	0	-	102	699	470	489	chr17	83257441	19172450	19172469	1	19,	210,	19172450,
+19	0	0	0	0	0	0	0	-	102	699	477	496	chr17	83257441	29190069	29190088	1	19,	203,	29190069,
+19	0	0	0	0	0	0	0	-	102	699	470	489	chr17	83257441	58670490	58670509	1	19,	210,	58670490,
+19	0	0	0	0	0	0	0	-	102	699	102	121	chr20	64444167	17684744	17684763	1	19,	578,	17684744,
+19	0	0	0	0	0	0	0	-	102	699	484	503	chr21	46709983	43027934	43027953	1	19,	196,	43027934,
+19	0	0	0	0	0	0	0	-	102	699	470	489	chrX	156040895	39928416	39928435	1	19,	210,	39928416,
+22	2	0	0	0	0	0	0	-	102	699	502	526	chr3	198295559	33026624	33026648	1	24,	173,	33026624,
+22	1	0	0	0	0	0	0	-	102	699	540	563	chr5	181538259	177958541	177958564	1	23,	136,	177958541,
+35	2	0	0	2	2	1	3	-	102	699	485	524	chr1	248956422	155997873	155997913	4	8,4,2,23,	175,184,189,191,	155997873,155997881,155997885,155997890,
+21	2	0	0	0	0	0	0	-	102	699	223	246	chr6	170805979	65786101	65786124	1	23,	453,	65786101,
+24	0	0	0	0	0	2	2	-	102	699	484	508	chr6	170805979	170257701	170257727	3	17,1,6,	191,208,209,	170257701,170257719,170257721,
+23	1	0	0	0	0	1	1	-	102	699	509	533	chr15	101991189	78230485	78230510	2	20,4,	166,186,	78230485,78230506,
 0	16	chrM	13914	71	3=1X11=1X28=2X21=1X15=1X3=	*	0	0	TCGAATTCTACCCTAACATCACACACCGCACAATCCCCTATCTAAACCTTCTTACGAGCCAAAACCTACCCCTACTCCTCCTAAACC	C@A=<3CC@@CBCCC8CBAC?BBBC?BB@BCCBBBCCCCBBBCBCABCBBBCCCCBCBBAC@CCBBCCACCACCCCCCBCCACCA?B	NM:i:6	AS:i:429
 1	0	chrM	1544	71	14=1X9=1X12=1X9=1X1=1X5=1X4=1X9=1X4=1X1=1X6=3X	*	0	0	TTATATAGAGGAGATAAGTCGTAATATGGTAAGTGTATTGGAAAGTGTATTTGGATGAACTAGAGTGTAGTTTAATATAAAGCATTT	BB@1;?@B@BBBC@BBBCACBBA>B??=?A@B?B?B=7@4BB;B>@@@A?>=B@A@>@7>BA>BA6BA?@@B@@?B?AABBAB=<>B	NM:i:13	AS:i:420
 10	0	chrM	3291	69	2=2X1=1X2=1X4=2X1=1X3=3X4=2X2=2X1=2X2=1X1=2X1=1X6=3X7=27H	*	0	0	TTTTTTTTTTTAATCATATATTTATGGTTAATTTTTTATTTTTTATTGTATTTATTCTAA	@6)>B+A9<)?>>A(?A=-(48/<5?=1>4>:B@@<-:@@5;/9==ABA47*5':B<###	NM:i:23	AS:i:207

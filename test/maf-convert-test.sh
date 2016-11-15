@@ -16,11 +16,14 @@ maf2=bs100.maf
     head -n999 $maf1 | $r axt
     head -n999 $maf1 | $r blast
     head -n999 $maf1 | $r -l100 blast
+    $r blast $maf2
     $r blasttab $maf2
     $r html -l100 $maf2
     head -n999 $maf1 | $r -n html
     head -n999 $maf1 | $r psl
     head -n999 $maf1 | $r -p psl
+    $r psl $maf2
+    $r -j1e9 psl 102.maf
     $r -n sam $maf2
     head -n999 $maf1 | $r -r 'ID:1 PL:ILLUMINA SM:x' sam
     $r -d sam $maf1
