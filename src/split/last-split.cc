@@ -128,6 +128,7 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
 		       bool isAlreadySplit) {
   if (opts.verbose) std::cerr << beg->qname << "\t" << (end - beg);
   sa.initForOneQuery(beg, end);
+  if (opts.verbose) std::cerr << "\tcells=" << sa.cellsPerDpMatrix();
 
   if (opts.direction != 0) {
     sa.forward();

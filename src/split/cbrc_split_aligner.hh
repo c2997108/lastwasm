@@ -95,6 +95,10 @@ public:
     // orientation currently set by flipSpliceSignals()
     double spliceSignalStrandProb() const;
 
+    // The number of cells in each dynamic programming matrix
+    size_t cellsPerDpMatrix() const
+    { return matrixRowOrigins[numAlns-1] + dpEnd(numAlns-1) + 1; }
+
 private:
     static const int numQualCodes = 64;
     static int score_mat[64][64][numQualCodes];
@@ -241,7 +245,7 @@ private:
       // stored in a flat vector.  There are numAlns rows, and row i
       // has dpEnd(i) - dpBeg(i) + 1 cells.  (The final cell per row
       // is used in some matrices but not others.)
-      m.resize(matrixRowOrigins[numAlns-1] + dpEnd(numAlns-1) + 1);
+      m.resize(cellsPerDpMatrix());
     }
 
     double probFromSpliceF(unsigned i, unsigned j, unsigned oldNumInplay,
