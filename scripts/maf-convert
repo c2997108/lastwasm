@@ -114,6 +114,31 @@ def mafInput(opts, lines):
                 print line,
     if sLines: yield aLine, sLines, qLines, pLines
 
+def isJoinable(opts, oldMaf, newMaf):
+    x = oldMaf[1]
+    y = newMaf[1]
+    if x[-1][2] == "-":
+        x, y = y, x
+    return all(i[:4] == j[:4] and i[5] <= j[4] and j[4] - i[5] <= opts.join
+               for i, j in zip(x, y))
+
+def fixOrder(mafs):
+    sLines = mafs[0][1]
+    if sLines[-1][2] == "-":
+        mafs.reverse()
+
+def mafGroupInput(opts, lines):
+    x = []
+    for i in mafInput(opts, lines):
+        if x and not isJoinable(opts, x[-1], i):
+            fixOrder(x)
+            yield x
+            x = []
+        x.append(i)
+    if x:
+        fixOrder(x)
+        yield x
+
 ##### Routines for converting to AXT format: #####
 
 axtCounter = count()
@@ -180,45 +205,46 @@ def mafConvertToTab(opts, lines):
 
 ##### Routines for converting to PSL format: #####
 
-def pslBlocks(opts, maf, outCounts):
+def pslBlocks(opts, mafs, outCounts):
     """Get sizes and start coordinates of gapless blocks in an alignment."""
     # repMatches is always zero
     # for proteins, nCount is always zero, because that's what BLATv34 does
     normalBases = "ACGTU"
     matches = mismatches = repMatches = nCount = 0
 
-    sLines = maf[1]
-    fieldsA, fieldsB = pairOrDie(sLines, "PSL")
-    letterSizeA, begA, endA, rowA = fieldsA[3:7]
-    letterSizeB, begB, endB, rowB = fieldsB[3:7]
+    for maf in mafs:
+        sLines = maf[1]
+        fieldsA, fieldsB = pairOrDie(sLines, "PSL")
+        letterSizeA, begA, endA, rowA = fieldsA[3:7]
+        letterSizeB, begB, endB, rowB = fieldsB[3:7]
 
-    size = 0
-    for x, y in izip(rowA.upper(), rowB.upper()):
-        if x == "-":
-            if size:
-                yield size, begA, begB
-                begA += size * letterSizeA
-                begB += size * letterSizeB
-                size = 0
-            begB += symbolSize(y, letterSizeB)
-        elif y == "-":
-            if size:
-                yield size, begA, begB
-                begA += size * letterSizeA
-                begB += size * letterSizeB
-                size = 0
-            begA += symbolSize(x, letterSizeA)
-        else:
-            size += 1
-            if x in normalBases and y in normalBases or opts.protein:
-                if x == y:
-                    matches += 1
-                else:
-                    mismatches += 1
+        size = 0
+        for x, y in izip(rowA.upper(), rowB.upper()):
+            if x == "-":
+                if size:
+                    yield size, begA, begB
+                    begA += size * letterSizeA
+                    begB += size * letterSizeB
+                    size = 0
+                begB += symbolSize(y, letterSizeB)
+            elif y == "-":
+                if size:
+                    yield size, begA, begB
+                    begA += size * letterSizeA
+                    begB += size * letterSizeB
+                    size = 0
+                begA += symbolSize(x, letterSizeA)
             else:
-                nCount += 1
-    if size:
-        yield size, begA, begB
+                size += 1
+                if x in normalBases and y in normalBases or opts.protein:
+                    if x == y:
+                        matches += 1
+                    else:
+                        mismatches += 1
+                else:
+                    nCount += 1
+        if size:
+            yield size, begA, begB
 
     outCounts[0:4] = matches, mismatches, repMatches, nCount
 
@@ -239,24 +265,26 @@ def pslCommaString(things):
     # UCSC software seems to prefer a trailing comma
     return ",".join(map(str, things)) + ","
 
-def pslEnds(mafFields):
-    seqName, seqLen, strand, letterSize, beg, end, row = mafFields
+def pslEnds(headMafFields, tailMafFields):
+    seqName, seqLen, strand, letterSize, beg = headMafFields[0:5]
+    end = tailMafFields[5]
     if strand == "-":
         beg, end = seqLen - end, seqLen - beg
     return seqName, seqLen, strand, letterSize, beg, end
 
-def writePsl(opts, maf):
+def writePsl(opts, mafs):
     matchCounts = [0] * 4
-    blocks = list(pslBlocks(opts, maf, matchCounts))
+    blocks = list(pslBlocks(opts, mafs, matchCounts))
     matches, mismatches, repMatches, nCount = matchCounts
     numGaplessColumns = sum(matchCounts)
 
-    fieldsA, fieldsB = maf[1]
+    headA, headB = mafs[0][1]
+    tailA, tailB = mafs[-1][1]
 
-    seqNameA, seqLenA, strandA, letterSizeA, begA, endA = pslEnds(fieldsA)
+    seqNameA, seqLenA, strandA, letterSizeA, begA, endA = pslEnds(headA, tailA)
     baseInsertA = endA - begA - numGaplessColumns * letterSizeA
 
-    seqNameB, seqLenB, strandB, letterSizeB, begB, endB = pslEnds(fieldsB)
+    seqNameB, seqLenB, strandB, letterSizeB, begB, endB = pslEnds(headB, tailB)
     baseInsertB = endB - begB - numGaplessColumns * letterSizeB
 
     numInsertA, numInsertB = pslNumInserts(blocks, letterSizeA, letterSizeB)
@@ -278,8 +306,12 @@ def writePsl(opts, maf):
     print "\t".join(map(str, outWords))
 
 def mafConvertToPsl(opts, lines):
-    for maf in mafInput(opts, lines):
-        writePsl(opts, maf)
+    if opts.join:
+        for i in mafGroupInput(opts, lines):
+            writePsl(opts, i)
+    else:
+        for i in mafInput(opts, lines):
+            writePsl(opts, [i])
 
 ##### Routines for converting to SAM format: #####
 
@@ -776,6 +808,8 @@ if __name__ == "__main__":
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-p", "--protein", action="store_true",
                   help="assume protein alignments, for psl match counts")
+    op.add_option("-j", "--join", type="float", metavar="N",
+                  help="join co-linear alignments separated by <= N letters")
     op.add_option("-n", "--noheader", action="store_true",
                   help="omit any header lines from the output")
     op.add_option("-d", "--dictionary", action="store_true",
