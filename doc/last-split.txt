@@ -231,6 +231,14 @@ Options
          probabilities.  Note that the mismap and score limits still
          apply.
 
+  -b, --bytes=B
+         Skip any query sequence that would require more than B bytes
+         of memory to process.  (This only limits the size of some
+         core data-structures: the total memory use will be greater.)
+         A warning is written for each skipped sequence.  You can use
+         suffixes such as K (KibiBytes), M (MebiBytes), G (GibiBytes),
+         T (TebiBytes), e.g. -b20G.
+
   -v, --verbose
          Show progress information on the screen.
 

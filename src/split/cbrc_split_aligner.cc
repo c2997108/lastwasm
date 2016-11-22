@@ -898,8 +898,8 @@ void SplitAligner::initDpBounds() {
   }
 }
 
-void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator beg,
-				   std::vector<UnsplitAlignment>::const_iterator end) {
+void SplitAligner::layout(std::vector<UnsplitAlignment>::const_iterator beg,
+			  std::vector<UnsplitAlignment>::const_iterator end) {
     assert(end > beg);
     numAlns = end - beg;
     alns = beg;
@@ -919,6 +919,19 @@ void SplitAligner::initForOneQuery(std::vector<UnsplitAlignment>::const_iterator
     initRnameAndStrandIds();
 
     initDpBounds();
+}
+
+size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
+  size_t numOfStrands = isBothSpliceStrands ? 2 : 1;
+  size_t x = 2 * sizeof(int) + 2 * sizeof(double);
+  if (splicePrior > 0 || !chromosomeIndex.empty()) x += 2 * sizeof(unsigned);
+  if (!chromosomeIndex.empty()) x += 2;
+  if (isViterbi) x += sizeof(long) * numOfStrands;
+  x += 2 * sizeof(double) * numOfStrands;
+  return x * cellsPerDpMatrix();
+}
+
+void SplitAligner::initMatricesForOneQuery() {
     calcScoreMatrices();
 
     if (splicePrior > 0.0 || !chromosomeIndex.empty()) {

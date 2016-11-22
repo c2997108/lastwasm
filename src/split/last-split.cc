@@ -127,8 +127,16 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
 		       cbrc::SplitAligner& sa, const LastSplitOptions& opts,
 		       bool isAlreadySplit) {
   if (opts.verbose) std::cerr << beg->qname << "\t" << (end - beg);
-  sa.initForOneQuery(beg, end);
+  sa.layout(beg, end);
   if (opts.verbose) std::cerr << "\tcells=" << sa.cellsPerDpMatrix();
+  size_t bytes = sa.memory(!opts.no_split, opts.direction == 2);
+  if (bytes > opts.bytes) {
+    if (opts.verbose) std::cerr << "\n";
+    std::cerr << "last-split: skipping sequence " << beg->qname
+	      << " (" << bytes << " bytes)\n";
+    return;
+  }
+  sa.initMatricesForOneQuery();
 
   if (opts.direction != 0) {
     sa.forward();

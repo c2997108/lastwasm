@@ -15,6 +15,7 @@ Options:
  -m, --mismap=PROB  maximum mismap probability (default=0.01)
  -s, --score=INT    minimum alignment score (default=e OR e+t*ln[100])
  -n, --no-split     write original, not split, alignments
+ -b, --bytes=B      maximum memory (default=8T for split, 8G for spliced)
  -v, --verbose      be verbose
  -V, --version      show version information and exit
 # LAST version 356

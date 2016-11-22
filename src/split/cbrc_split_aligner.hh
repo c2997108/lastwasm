@@ -59,9 +59,20 @@ public:
     // Outputs some algorithm parameters on lines starting with "#"
     void printParameters() const;
 
-    // Prepares to analyze some candidate alignments for one query sequence
-    void initForOneQuery(std::vector<UnsplitAlignment>::const_iterator beg,
-			 std::vector<UnsplitAlignment>::const_iterator end);
+    // Prepares to analyze some candidate alignments for one query
+    // sequence: sets the number of DP matrix cells (and thus memory)
+    void layout(std::vector<UnsplitAlignment>::const_iterator beg,
+		std::vector<UnsplitAlignment>::const_iterator end);
+
+    // The number of cells in each dynamic programming matrix
+    size_t cellsPerDpMatrix() const
+    { return matrixRowOrigins[numAlns-1] + dpEnd(numAlns-1) + 1; }
+
+    // Bytes of memory needed for the current query sequence (roughly)
+    size_t memory(bool isViterbi, bool isBothSpliceStrands) const;
+
+    // Call this before viterbi/forward/backward, and after layout
+    void initMatricesForOneQuery();
 
     long viterbi();  // returns the optimal split-alignment score
 
@@ -94,10 +105,6 @@ public:
     // The probability that the query uses splice signals in the
     // orientation currently set by flipSpliceSignals()
     double spliceSignalStrandProb() const;
-
-    // The number of cells in each dynamic programming matrix
-    size_t cellsPerDpMatrix() const
-    { return matrixRowOrigins[numAlns-1] + dpEnd(numAlns-1) + 1; }
 
 private:
     static const int numQualCodes = 64;
