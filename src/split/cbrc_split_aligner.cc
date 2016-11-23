@@ -1107,10 +1107,11 @@ void SplitAligner::printParameters() const {
   }
 }
 
-void SplitAligner::readGenome(const std::string& baseName) {
-  std::string alphabetLetters;
-  unsigned seqCount = -1;
-  unsigned volumes = -1;
+static void readPrjFile(const std::string& baseName,
+			std::string& alphabetLetters,
+			unsigned& seqCount,
+			unsigned& volumes) {
+  seqCount = volumes = -1;
 
   std::string fileName = baseName + ".prj";
   std::ifstream f(fileName.c_str());
@@ -1127,6 +1128,12 @@ void SplitAligner::readGenome(const std::string& baseName) {
 
   if (alphabetLetters != "ACGT" || seqCount+1 == 0)
     err("can't read file: " + fileName);
+}
+
+void SplitAligner::readGenome(const std::string& baseName) {
+  std::string alphabetLetters;
+  unsigned seqCount, volumes;
+  readPrjFile(baseName, alphabetLetters, seqCount, volumes);
 
   if (volumes+1 > 0 && volumes > 1)
     err("can't read multi-volume lastdb files, sorry");
