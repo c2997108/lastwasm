@@ -690,17 +690,6 @@ void SplitAligner::calcDelScores(unsigned i) {
   *b++ += delScore;
 }
 
-void SplitAligner::calcScoreMatrices() {
-  resizeMatrix(Amat);
-  resizeMatrix(Dmat);
-
-  for (unsigned i = 0; i < numAlns; i++) {
-    calcBaseScores(i);
-    calcInsScores(i);
-    calcDelScores(i);
-  }
-}
-
 void SplitAligner::initRbegsAndEnds() {
   for (unsigned i = 0; i < numAlns; ++i) {
     const UnsplitAlignment& a = alns[i];
@@ -723,64 +712,54 @@ void SplitAligner::initRbegsAndEnds() {
   }
 }
 
-void SplitAligner::initSpliceCoords() {
-  resizeMatrix(spliceBegCoords);
-  resizeMatrix(spliceEndCoords);
+void SplitAligner::initSpliceCoords(unsigned i) {
+  const UnsplitAlignment& a = alns[i];
+  unsigned j = dpBeg(i);
+  unsigned k = rBegs[i];
 
-  for (unsigned i = 0; i < numAlns; ++i) {
-    const UnsplitAlignment& a = alns[i];
-    unsigned j = dpBeg(i);
-    unsigned k = rBegs[i];
-
-    cell(spliceBegCoords, i, j) = k;
-    while (j < a.qstart) {
-      cell(spliceEndCoords, i, j) = k;
-      ++j;
-      cell(spliceBegCoords, i, j) = k;
-    }
-    for (unsigned x = 0; a.ralign[x]; ++x) {
-      if (a.qalign[x] != '-') cell(spliceEndCoords, i, j) = k;
-      if (a.qalign[x] != '-') ++j;
-      if (a.ralign[x] != '-') ++k;
-      if (a.qalign[x] != '-') cell(spliceBegCoords, i, j) = k;
-    }
-    while (j < dpEnd(i)) {
-      cell(spliceEndCoords, i, j) = k;
-      ++j;
-      cell(spliceBegCoords, i, j) = k;
-    }
+  cell(spliceBegCoords, i, j) = k;
+  while (j < a.qstart) {
     cell(spliceEndCoords, i, j) = k;
-
-    assert(k == rEnds[i]);  // xxx
+    ++j;
+    cell(spliceBegCoords, i, j) = k;
   }
+  for (unsigned x = 0; a.ralign[x]; ++x) {
+    if (a.qalign[x] != '-') cell(spliceEndCoords, i, j) = k;
+    if (a.qalign[x] != '-') ++j;
+    if (a.ralign[x] != '-') ++k;
+    if (a.qalign[x] != '-') cell(spliceBegCoords, i, j) = k;
+  }
+  while (j < dpEnd(i)) {
+    cell(spliceEndCoords, i, j) = k;
+    ++j;
+    cell(spliceBegCoords, i, j) = k;
+  }
+  cell(spliceEndCoords, i, j) = k;
+
+  assert(k == rEnds[i]);  // xxx
 }
 
-void SplitAligner::initSpliceSignals() {
-  resizeMatrix(spliceBegSignals);
-  resizeMatrix(spliceEndSignals);
-
+void SplitAligner::initSpliceSignals(unsigned i) {
   const uchar *toUnmasked = alphabet.numbersToUppercase;
   const uchar *genomeBeg = genome.seqReader();
   const uchar *genomeEnd = genome.seqReader() + genome.finishedSize();
 
-  for (unsigned i = 0; i < numAlns; ++i) {
-    size_t rowBeg = matrixRowOrigins[i] + dpBeg(i);
-    const unsigned *begCoords = &spliceBegCoords[rowBeg];
-    const unsigned *endCoords = &spliceEndCoords[rowBeg];
-    unsigned char *begSigs = &spliceBegSignals[rowBeg];
-    unsigned char *endSigs = &spliceEndSignals[rowBeg];
-    unsigned dpLen = dpEnd(i) - dpBeg(i);
+  size_t rowBeg = matrixRowOrigins[i] + dpBeg(i);
+  const unsigned *begCoords = &spliceBegCoords[rowBeg];
+  const unsigned *endCoords = &spliceEndCoords[rowBeg];
+  unsigned char *begSigs = &spliceBegSignals[rowBeg];
+  unsigned char *endSigs = &spliceEndSignals[rowBeg];
+  unsigned dpLen = dpEnd(i) - dpBeg(i);
 
-    if (alns[i].qstrand == '+') {
-      for (unsigned j = 0; j <= dpLen; ++j) {
-	begSigs[j] = spliceBegSignalFwd(genomeBeg + begCoords[j], toUnmasked);
-	endSigs[j] = spliceEndSignalFwd(genomeBeg + endCoords[j], toUnmasked);
-      }
-    } else {
-      for (unsigned j = 0; j <= dpLen; ++j) {
-	begSigs[j] = spliceBegSignalRev(genomeEnd - begCoords[j], toUnmasked);
-	endSigs[j] = spliceEndSignalRev(genomeEnd - endCoords[j], toUnmasked);
-      }
+  if (alns[i].qstrand == '+') {
+    for (unsigned j = 0; j <= dpLen; ++j) {
+      begSigs[j] = spliceBegSignalFwd(genomeBeg + begCoords[j], toUnmasked);
+      endSigs[j] = spliceEndSignalFwd(genomeBeg + endCoords[j], toUnmasked);
+    }
+  } else {
+    for (unsigned j = 0; j <= dpLen; ++j) {
+      begSigs[j] = spliceBegSignalRev(genomeEnd - begCoords[j], toUnmasked);
+      endSigs[j] = spliceEndSignalRev(genomeEnd - endCoords[j], toUnmasked);
     }
   }
 }
@@ -807,16 +786,6 @@ void SplitAligner::initRnameAndStrandIds() {
     if (i > 0 && less(sortedAlnIndices[i-1], k)) ++c;
     rnameAndStrandIds[k] = c;
   }
-}
-
-void SplitAligner::initForwardBackward() {
-  resizeMatrix(Aexp);
-  transform(Amat.begin(), Amat.end(), Aexp.begin(), scaledExp);
-
-  resizeMatrix(Dexp);
-  transform(Dmat.begin(), Dmat.end(), Dexp.begin(), scaledExp);
-
-  // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
 void SplitAligner::dpExtensionMinScores(int maxJumpScore,
@@ -932,14 +901,32 @@ size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
 }
 
 void SplitAligner::initMatricesForOneQuery() {
-    calcScoreMatrices();
+  resizeMatrix(Amat);
+  resizeMatrix(Dmat);
+  resizeMatrix(Aexp);
+  resizeMatrix(Dexp);
 
-    if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
-        initSpliceCoords();
-	if (!chromosomeIndex.empty()) initSpliceSignals();
-    }
+  for (unsigned i = 0; i < numAlns; i++) {
+    calcBaseScores(i);
+    calcInsScores(i);
+    calcDelScores(i);
+  }
 
-    initForwardBackward();
+  if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
+    resizeMatrix(spliceBegCoords);
+    resizeMatrix(spliceEndCoords);
+    for (unsigned i = 0; i < numAlns; ++i) initSpliceCoords(i);
+  }
+
+  if (!chromosomeIndex.empty()) {
+    resizeMatrix(spliceBegSignals);
+    resizeMatrix(spliceEndSignals);
+    for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(i);
+  }
+
+  transform(Amat.begin(), Amat.end(), Aexp.begin(), scaledExp);
+  transform(Dmat.begin(), Dmat.end(), Dexp.begin(), scaledExp);
+  // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
 void SplitAligner::flipSpliceSignals() {

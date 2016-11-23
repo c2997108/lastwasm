@@ -20,6 +20,8 @@ fastq=SRR001981-1k.fastq
 gc=../examples/vertebrateMito.gc
 db=/tmp/last-test
 
+trap 'rm -f $db*' EXIT
+
 {
     # spaced seeds, soft-masking, centroid alignment, matrix file
     lastdb -c -m110 $db $dnaSeq
@@ -190,5 +192,3 @@ rm f.* r.*
 # Test: lastdb, lastal, last-split, maf-sort, maf-join
 cd ../examples
 ./multiMito.sh | diff multiMito.maf -
-
-rm $db*

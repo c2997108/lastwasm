@@ -197,8 +197,8 @@ private:
     { return scaledExp(calcSpliceScore(dist)); }
     double spliceProb(unsigned d) const
     { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
-    void initSpliceCoords();
-    void initSpliceSignals();
+    void initSpliceCoords(unsigned i);
+    void initSpliceSignals(unsigned i);
     void initRnameAndStrandIds();
     void initRbegsAndEnds();
 
@@ -264,8 +264,6 @@ private:
     void calcBaseScores(unsigned i);
     void calcInsScores(unsigned i);
     void calcDelScores(unsigned i);
-    void calcScoreMatrices();
-    void initForwardBackward();
     void initDpBounds();
 };
 
