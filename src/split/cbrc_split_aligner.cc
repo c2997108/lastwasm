@@ -1130,20 +1130,27 @@ static void readPrjFile(const std::string& baseName,
     err("can't read file: " + fileName);
 }
 
-void SplitAligner::readGenome(const std::string& baseName) {
-  std::string alphabetLetters;
-  unsigned seqCount, volumes;
-  readPrjFile(baseName, alphabetLetters, seqCount, volumes);
-
-  if (volumes+1 > 0 && volumes > 1)
-    err("can't read multi-volume lastdb files, sorry");
-
+void SplitAligner::readGenomeVolume(const std::string& baseName,
+				    unsigned seqCount,
+				    unsigned volumeNumber) {
   genome.fromFiles(baseName, seqCount, 0);
 
   for (unsigned i = 0; i < seqCount; ++i) {
     std::string n = genome.seqName(i);
     if (!chromosomeIndex.insert(std::make_pair(n, i)).second)
       err("duplicate sequence name: " + n);
+  }
+}
+
+void SplitAligner::readGenome(const std::string& baseName) {
+  std::string alphabetLetters;
+  unsigned seqCount, volumes;
+  readPrjFile(baseName, alphabetLetters, seqCount, volumes);
+
+  if (volumes + 1 > 0 && volumes > 1) {
+    err("can't read multi-volume lastdb files, sorry");
+  } else {
+    readGenomeVolume(baseName, seqCount, 0);
   }
 
   alphabet.fromString(alphabetLetters);

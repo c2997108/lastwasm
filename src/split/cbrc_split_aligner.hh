@@ -201,6 +201,8 @@ private:
     void initSpliceSignals(unsigned i);
     void initRnameAndStrandIds();
     void initRbegsAndEnds();
+    void readGenomeVolume(const std::string& baseName,
+			  unsigned seqCount, unsigned volumeNumber);
 
     void dpExtensionMinScores(int maxJumpScore,
 			      size_t& minScore1, size_t& minScore2) const;
