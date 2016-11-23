@@ -693,29 +693,15 @@ void SplitAligner::calcDelScores(unsigned i) {
 void SplitAligner::initRbegsAndEnds() {
   for (unsigned i = 0; i < numAlns; ++i) {
     const UnsplitAlignment& a = alns[i];
-    unsigned b = a.rstart;
-    unsigned e = a.rend;
-
-    if (!chromosomeIndex.empty()) {
-      StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
-      if (f == chromosomeIndex.end())
-	err("can't find " + std::string(a.rname) + " in the genome");
-      unsigned c = f->second;
-      unsigned offset = (a.qstrand == '+') ?
-	genome.seqBeg(c) : genome.finishedSize() - genome.seqEnd(c);
-      b += offset;
-      e += offset;
-    }
-
-    rBegs[i] = b;
-    rEnds[i] = e;
+    rBegs[i] = a.rstart;
+    rEnds[i] = a.rend;
   }
 }
 
 void SplitAligner::initSpliceCoords(unsigned i) {
   const UnsplitAlignment& a = alns[i];
   unsigned j = dpBeg(i);
-  unsigned k = rBegs[i];
+  unsigned k = a.rstart;
 
   cell(spliceBegCoords, i, j) = k;
   while (j < a.qstart) {
@@ -736,30 +722,38 @@ void SplitAligner::initSpliceCoords(unsigned i) {
   }
   cell(spliceEndCoords, i, j) = k;
 
-  assert(k == rEnds[i]);  // xxx
+  assert(k == a.rend);  // xxx
 }
 
 void SplitAligner::initSpliceSignals(unsigned i) {
   const uchar *toUnmasked = alphabet.numbersToUppercase;
-  const uchar *genomeBeg = genome.seqReader();
-  const uchar *genomeEnd = genome.seqReader() + genome.finishedSize();
+  const UnsplitAlignment& a = alns[i];
+
+  StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
+  if (f == chromosomeIndex.end())
+    err("can't find " + std::string(a.rname) + " in the genome");
+  unsigned c = f->second;
+  const uchar *chromBeg = genome.seqReader() + genome.seqBeg(c);
+  const uchar *chromEnd = genome.seqReader() + genome.seqEnd(c);
+  if (a.rend > chromEnd - chromBeg)
+    err("alignment beyond the end of " + std::string(a.rname));
 
   size_t rowBeg = matrixRowOrigins[i] + dpBeg(i);
   const unsigned *begCoords = &spliceBegCoords[rowBeg];
   const unsigned *endCoords = &spliceEndCoords[rowBeg];
-  unsigned char *begSigs = &spliceBegSignals[rowBeg];
-  unsigned char *endSigs = &spliceEndSignals[rowBeg];
+  unsigned char *begSignals = &spliceBegSignals[rowBeg];
+  unsigned char *endSignals = &spliceEndSignals[rowBeg];
   unsigned dpLen = dpEnd(i) - dpBeg(i);
 
-  if (alns[i].qstrand == '+') {
+  if (a.qstrand == '+') {
     for (unsigned j = 0; j <= dpLen; ++j) {
-      begSigs[j] = spliceBegSignalFwd(genomeBeg + begCoords[j], toUnmasked);
-      endSigs[j] = spliceEndSignalFwd(genomeBeg + endCoords[j], toUnmasked);
+      begSignals[j] = spliceBegSignalFwd(chromBeg + begCoords[j], toUnmasked);
+      endSignals[j] = spliceEndSignalFwd(chromBeg + endCoords[j], toUnmasked);
     }
   } else {
     for (unsigned j = 0; j <= dpLen; ++j) {
-      begSigs[j] = spliceBegSignalRev(genomeEnd - begCoords[j], toUnmasked);
-      endSigs[j] = spliceEndSignalRev(genomeEnd - endCoords[j], toUnmasked);
+      begSignals[j] = spliceBegSignalRev(chromEnd - begCoords[j], toUnmasked);
+      endSignals[j] = spliceEndSignalRev(chromEnd - endCoords[j], toUnmasked);
     }
   }
 }
