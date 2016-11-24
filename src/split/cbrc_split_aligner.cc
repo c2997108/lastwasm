@@ -732,9 +732,10 @@ void SplitAligner::initSpliceSignals(unsigned i) {
   StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
   if (f == chromosomeIndex.end())
     err("can't find " + std::string(a.rname) + " in the genome");
-  unsigned c = f->second;
-  const uchar *chromBeg = genome.seqReader() + genome.seqBeg(c);
-  const uchar *chromEnd = genome.seqReader() + genome.seqEnd(c);
+  unsigned v = f->second % maxGenomeVolumes();
+  unsigned c = f->second / maxGenomeVolumes();
+  const uchar *chromBeg = genome[v].seqReader() + genome[v].seqBeg(c);
+  const uchar *chromEnd = genome[v].seqReader() + genome[v].seqEnd(c);
   if (a.rend > chromEnd - chromBeg)
     err("alignment beyond the end of " + std::string(a.rname));
 
@@ -1133,11 +1134,12 @@ static void readPrjFile(const std::string& baseName,
 void SplitAligner::readGenomeVolume(const std::string& baseName,
 				    unsigned seqCount,
 				    unsigned volumeNumber) {
-  genome.fromFiles(baseName, seqCount, 0);
+  genome[volumeNumber].fromFiles(baseName, seqCount, 0);
 
-  for (unsigned i = 0; i < seqCount; ++i) {
-    std::string n = genome.seqName(i);
-    if (!chromosomeIndex.insert(std::make_pair(n, i)).second)
+  for (unsigned long long i = 0; i < seqCount; ++i) {
+    std::string n = genome[volumeNumber].seqName(i);
+    unsigned long long j = i * maxGenomeVolumes() + volumeNumber;
+    if (!chromosomeIndex.insert(std::make_pair(n, j)).second)
       err("duplicate sequence name: " + n);
   }
 }

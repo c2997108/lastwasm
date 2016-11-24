@@ -166,9 +166,9 @@ private:
     std::vector<int> spliceScoreTable;  // lookup table
     std::vector<double> spliceProbTable;  // lookup table
     unsigned spliceTableSize;
-    MultiSequence genome;
+    MultiSequence genome[32];
     Alphabet alphabet;
-    typedef std::map<std::string, unsigned> StringNumMap;
+    typedef std::map<std::string, unsigned long long> StringNumMap;
     StringNumMap chromosomeIndex;
     int spliceBegScores[4 * 4 + 1];  // donor score for any dinucleotide
     int spliceEndScores[4 * 4 + 1];  // acceptor score for any dinucleotide
@@ -201,6 +201,7 @@ private:
     void initSpliceSignals(unsigned i);
     void initRnameAndStrandIds();
     void initRbegsAndEnds();
+    static size_t maxGenomeVolumes() { return sizeof genome / sizeof *genome; }
     void readGenomeVolume(const std::string& baseName,
 			  unsigned seqCount, unsigned volumeNumber);
 
