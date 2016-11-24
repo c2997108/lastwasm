@@ -1127,13 +1127,14 @@ static void readPrjFile(const std::string& baseName,
     if( word == "volumes" ) iss >> volumes;
   }
 
-  if (alphabetLetters != "ACGT" || seqCount+1 == 0)
-    err("can't read file: " + fileName);
+  if (alphabetLetters != "ACGT") err("can't read file: " + fileName);
 }
 
 void SplitAligner::readGenomeVolume(const std::string& baseName,
 				    unsigned seqCount,
 				    unsigned volumeNumber) {
+  if (seqCount + 1 == 0) err("can't read: " + baseName);
+
   genome[volumeNumber].fromFiles(baseName, seqCount, 0);
 
   for (unsigned long long i = 0; i < seqCount; ++i) {
@@ -1150,7 +1151,13 @@ void SplitAligner::readGenome(const std::string& baseName) {
   readPrjFile(baseName, alphabetLetters, seqCount, volumes);
 
   if (volumes + 1 > 0 && volumes > 1) {
-    err("can't read multi-volume lastdb files, sorry");
+    if (volumes > maxGenomeVolumes()) err("too many volumes: " + baseName);
+    for (unsigned i = 0; i < volumes; ++i) {
+      std::string b = baseName + stringify(i);
+      unsigned c, v;
+      readPrjFile(b, alphabetLetters, c, v);
+      readGenomeVolume(b, c, i);
+    }
   } else {
     readGenomeVolume(baseName, seqCount, 0);
   }
