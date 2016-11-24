@@ -265,8 +265,6 @@ private:
 			   unsigned& oldInplayPos) const;
 
     void calcBaseScores(unsigned i);
-    void calcInsScores(unsigned i);
-    void calcDelScores(unsigned i);
     void initDpBounds();
 };
 

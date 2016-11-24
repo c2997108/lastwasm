@@ -601,7 +601,7 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
     return output;
 }
 
-// The next 2 routines represent affine gap scores in a cunning way.
+// The next routine represents affine gap scores in a cunning way.
 // Amat holds scores at query bases, and at every base that is aligned
 // to a gap it gets a score of insExistenceScore + insExtensionScore.
 // Dmat holds scores between query bases, and between every pair of
@@ -610,84 +610,66 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 // if we jump from one alignment to another in the middle of a gap.
 
 void SplitAligner::calcBaseScores(unsigned i) {
-  int firstGapScore = insExistenceScore + insExtensionScore;
+  const int firstInsScore = insExistenceScore + insExtensionScore;
+  const int tweenInsScore = -insExistenceScore;
+
   const UnsplitAlignment& a = alns[i];
+  const size_t origin = matrixRowOrigins[i];
 
-  int *b = &cell(Amat, i, dpBeg(i));
-  int *s = &cell(Amat, i, a.qstart);
-  int *f = &cell(Amat, i, a.qend);
-  int *e = &cell(Amat, i, dpEnd(i));
+  int *AmatB = &Amat[origin + dpBeg(i)];
+  int *DmatB = &Dmat[origin + dpBeg(i)];
+  int *AmatS = &Amat[origin + a.qstart];
+  int *AmatE = &Amat[origin + dpEnd(i)];
 
-  while (b < s) *b++ = firstGapScore;
+  int delScore = 0;
+  int insCompensationScore = 0;
+
+  // treat any query letters before the alignment as insertions:
+  while (AmatB < AmatS) {
+    *AmatB++ = firstInsScore;
+    *DmatB++ = delScore + insCompensationScore;
+    delScore = 0;
+    insCompensationScore = tweenInsScore;
+  }
 
   const char *rAlign = a.ralign;
   const char *qAlign = a.qalign;
   const char *qQual = a.qQual;
 
-  while (b < f) {
+  while (*qAlign) {
     unsigned char x = *rAlign++;
     unsigned char y = *qAlign++;
     int q = qQual ? (*qQual++ - qualityOffset) : (numQualCodes - 1);
-    if (y == '-') /* noop */;
-    else if (x == '-') *b++ = firstGapScore;
-    else {
+    if (x == '-') {  // gap in reference sequence: insertion
+      *AmatB++ = firstInsScore;
+      *DmatB++ = delScore + insCompensationScore;
+      delScore = 0;
+      insCompensationScore = tweenInsScore;
+    } else if (y == '-') {  // gap in query sequence: deletion
+      if (delScore == 0) delScore = gapExistenceScore;
+      delScore += gapExtensionScore;
+      insCompensationScore = 0;
+    } else {
       assert(q >= 0);
       if (q >= numQualCodes) q = numQualCodes - 1;
-      *b++ = score_mat[x % 64][y % 64][q];
+      *AmatB++ = score_mat[x % 64][y % 64][q];
+      *DmatB++ = delScore;
+      delScore = 0;
+      insCompensationScore = 0;
     }
     // Amazingly, in ASCII, '.' equals 'n' mod 64.
     // So '.' will get the same scores as 'n'.
   }
 
-  while (b < e) *b++ = firstGapScore;
-}
-
-void SplitAligner::calcInsScores(unsigned i) {
-  const UnsplitAlignment& a = alns[i];
-  bool isExt = false;
-
-  int *b = &cell(Dmat, i, dpBeg(i));
-  int *s = &cell(Dmat, i, a.qstart);
-  int *e = &cell(Dmat, i, dpEnd(i));
-
-  while (b < s) {
-    *b++ = (isExt ? -insExistenceScore : 0);
-    isExt = true;
+  // treat any query letters after the alignment as insertions:
+  while (AmatB < AmatE) {
+    *AmatB++ = firstInsScore;
+    *DmatB++ = delScore + insCompensationScore;
+    delScore = 0;
+    insCompensationScore = tweenInsScore;
   }
 
-  const char *rAlign = a.ralign;
-  const char *qAlign = a.qalign;
-
-  while (*qAlign) {
-    bool isDel = (*qAlign++ == '-');
-    bool isIns = (*rAlign++ == '-');
-    if (!isDel) *b++ = (isIns && isExt ? -insExistenceScore : 0);
-    isExt = isIns;
-  }
-
-  while (b < e) {
-    *b++ = (isExt ? -insExistenceScore : 0);
-    isExt = true;
-  }
-
-  *b++ = 0;
-}
-
-void SplitAligner::calcDelScores(unsigned i) {
-  const UnsplitAlignment& a = alns[i];
-  int *b = &cell(Dmat, i, a.qstart);
-  const char *qAlign = a.qalign;
-  int delScore = 0;
-  while (*qAlign) {
-    if (*qAlign++ == '-') {  // deletion in query
-      if (delScore == 0) delScore = gapExistenceScore;
-      delScore += gapExtensionScore;
-    } else {
-      *b++ += delScore;
-      delScore = 0;
-    }
-  }
-  *b++ += delScore;
+  *DmatB++ = delScore;
 }
 
 void SplitAligner::initRbegsAndEnds() {
@@ -901,11 +883,7 @@ void SplitAligner::initMatricesForOneQuery() {
   resizeMatrix(Aexp);
   resizeMatrix(Dexp);
 
-  for (unsigned i = 0; i < numAlns; i++) {
-    calcBaseScores(i);
-    calcInsScores(i);
-    calcDelScores(i);
-  }
+  for (unsigned i = 0; i < numAlns; i++) calcBaseScores(i);
 
   if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
     resizeMatrix(spliceBegCoords);
