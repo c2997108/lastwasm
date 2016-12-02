@@ -70,7 +70,7 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       const cbrc::UnsplitAlignment& a,
 			       unsigned alnNum,
 			       unsigned qSliceBeg, unsigned qSliceEnd,
-			       double forwardDirectionProb,
+			       double senseStrandLogOdds,
 			       const LastSplitOptions& opts,
 			       bool isAlreadySplit) {
   unsigned alnBeg, alnEnd;
@@ -92,9 +92,11 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   }
   if (opts.direction == 0) p.swap(pRev);
   if (opts.direction == 2) {
-    double reverseDirectionProb = 1.0 - forwardDirectionProb;
+    double reverseProb = 1 / (1 + std::exp(senseStrandLogOdds));
+    // the exp might overflow to inf, but that should be OK
+    double forwardProb = 1 - reverseProb;
     for (unsigned i = 0; i < p.size(); ++i) {
-      p[i] = forwardDirectionProb * p[i] + reverseDirectionProb * pRev[i];
+      p[i] = forwardProb * p[i] + reverseProb * pRev[i];
     }
   }
 
@@ -115,8 +117,16 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   }
 
   std::cout << std::setprecision(mismapPrecision)
-	    << "a score=" << score << " mismap=" << mismap << "\n"
-	    << std::setprecision(6);
+	    << "a score=" << score << " mismap=" << mismap;
+  if (opts.direction == 2) {
+    double b = senseStrandLogOdds / std::log(2.0);
+    if (b < 0.1 && b > -0.1) b = 0;
+    else if (b > 10) b = std::floor(b + 0.5);
+    else if (b < -10) b = std::ceil(b - 0.5);
+    int sensePrecision = (b < 10 && b > -10) ? 2 : 3;
+    std::cout << std::setprecision(sensePrecision) << " sense=" << b;
+  }
+  std::cout << "\n" << std::setprecision(6);
   if (a.qstrand == '-') cbrc::flipMafStrands(s.begin(), s.end());
   if (opts.no_split && a.linesEnd[-1][0] == 'c') s.push_back(a.linesEnd[-1]);
   cbrc::printMaf(s);
@@ -149,17 +159,14 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     sa.flipSpliceSignals();
   }
 
-  double forwardDirectionProb = -1;
-  if (opts.direction == 2) {
-    forwardDirectionProb = sa.spliceSignalStrandProb();
-    if (opts.verbose) std::cerr << "\tforwardProb=" << forwardDirectionProb;
-  }
+  double senseStrandLogOdds =
+    (opts.direction == 2) ? sa.spliceSignalStrandLogOdds() : 0;
 
   if (opts.no_split) {
     if (opts.verbose) std::cerr << "\n";
     for (unsigned i = 0; i < end - beg; ++i) {
       doOneAlignmentPart(sa, beg[i], i, beg[i].qstart, beg[i].qend,
-			 forwardDirectionProb, opts, isAlreadySplit);
+			 senseStrandLogOdds, opts, isAlreadySplit);
     }
   } else {
     long viterbiScore = LONG_MIN;
@@ -192,7 +199,7 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     for (unsigned k = 0; k < alnNums.size(); ++k) {
       unsigned i = alnNums[k];
       doOneAlignmentPart(sa, beg[i], i, queryBegs[k], queryEnds[k],
-			 forwardDirectionProb, opts, isAlreadySplit);
+			 senseStrandLogOdds, opts, isAlreadySplit);
     }
   }
 }

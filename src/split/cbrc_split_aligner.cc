@@ -916,13 +916,13 @@ void SplitAligner::flipSpliceSignals() {
   }
 }
 
-double SplitAligner::spliceSignalStrandProb() const {
+double SplitAligner::spliceSignalStrandLogOdds() const {
   assert(rescales.size() == rescalesRev.size());
-  double r = 1.0;
+  double logOdds = 0;
   for (unsigned j = 0; j < rescales.size(); ++j) {
-    r *= rescalesRev[j] / rescales[j];
-  }  // r might overflow to inf, but that should be OK
-  return 1.0 / (1.0 + r);
+    logOdds += std::log(rescales[j] / rescalesRev[j]);
+  }
+  return logOdds;
 }
 
 // 1st 1 million reads from SRR359290.fastq:

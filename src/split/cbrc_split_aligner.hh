@@ -102,9 +102,10 @@ public:
     // Toggles between forward and reverse-complement splice signals
     void flipSpliceSignals();
 
-    // The probability that the query uses splice signals in the
-    // orientation currently set by flipSpliceSignals()
-    double spliceSignalStrandProb() const;
+    // This returns log(p / (1-p)), where p is the probability that
+    // the query uses splice signals in the orientation currently set
+    // by flipSpliceSignals()
+    double spliceSignalStrandLogOdds() const;
 
 private:
     static const int numQualCodes = 64;

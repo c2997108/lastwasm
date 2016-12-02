@@ -26,10 +26,10 @@ can do the alignment like this::
 Spliced alignment of RNA reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now we assume that "q.fastq" has reads from RNA forward strands.  This
-time, we provide the genome information to last-split, which causes it
-to do spliced instead of split alignment, and also tells it where the
-splice signals are (GT, AG, etc)::
+Now we assume that "q.fastq" has reads from RNA forward (sense)
+strands.  This time, we provide the genome information to last-split,
+which causes it to do spliced instead of split alignment, and also
+tells it where the splice signals are (GT, AG, etc)::
 
   lastdb -uNEAR -R01 db genome.fasta
   lastal -Q1 -D10 db q.fastq | last-split -g db > out.maf
@@ -45,6 +45,9 @@ between any two places in the genome.
 very short parts of a spliced alignment (e.g. short exons).  Note that
 last-split discards the lowest-significance alignments, but it uses
 them to estimate the ambiguity of higher-significance alignments.
+
+If your reads are from unknown/mixed RNA strands, add -d2 to the
+last-split options.
 
 Alignment of two whole genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,9 +188,14 @@ Options
 
   -d, --direction=D
          Do spliced alignment, and set the strandedness of the
-         queries: 0=reverse, 1=forward, 2=unknown/mixed.  This
+         queries: 0=antisense, 1=sense, 2=unknown/mixed.  This
          determines whether forward and/or reverse-complement splice
          signals are used.
+
+         If you use -d2, the output will have an extra "sense" field,
+         indicating the log-odds that the query is sense-stranded::
+
+	   log2[ prob(sense) / prob(antisense) ]
 
   -c, --cis=PROB
          Do spliced alignment, and set the average probability per
