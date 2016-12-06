@@ -405,7 +405,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 					       int refTantanSetting,
                                                bool isCaseSensitiveSeeds,
 					       bool isVolumes,
-					       indexT refMinimizerWindow,
+					       size_t refMinimizerWindow,
 					       unsigned realNumOfThreads ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 

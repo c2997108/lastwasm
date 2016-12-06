@@ -36,9 +36,9 @@ struct LastdbArguments{
   int tantanSetting;
   bool isCaseSensitive;
   std::vector< std::string > seedPatterns;
-  size_t volumeSize;  // type?
-  indexT indexStep;
-  indexT minimizerWindow;
+  size_t volumeSize;
+  size_t indexStep;
+  size_t minimizerWindow;
   unsigned numOfThreads;
   std::string subsetSeedFile;
   std::string userAlphabet;

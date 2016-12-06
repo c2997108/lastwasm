@@ -10,7 +10,7 @@
 using namespace cbrc;
 
 void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
-				     indexT step, indexT minimizerWindow) {
+				     size_t step, size_t minimizerWindow) {
   if (beg >= end) return;
   assert(step > 0);
   const uchar *subsetMap = seed.firstMap();

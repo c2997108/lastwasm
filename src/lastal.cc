@@ -292,7 +292,7 @@ void calculateScoreStatistics( const std::string& matrixName,
 
 // Read the .prj file for the whole database
 void readOuterPrj( const std::string& fileName, unsigned& volumes,
-                   indexT& refMinimizerWindow, indexT& minSeedLimit,
+                   size_t& refMinimizerWindow, size_t& minSeedLimit,
 		   bool& isKeepRefLowercase, int& refTantanSetting,
                    countT& refSequences, countT& refLetters ){
   std::ifstream f( fileName.c_str() );
@@ -571,7 +571,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
       // increase "i" to the delimiter position.  This gave a speed-up
       // of only 3%, with 34-nt tags.
 
-      indexT gaplessAlignmentsPerQueryPosition = 0;
+      size_t gaplessAlignmentsPerQueryPosition = 0;
 
       for( /* noop */; beg < end; ++beg ){  // loop over suffix-array matches
 	if( gaplessAlignmentsPerQueryPosition ==
@@ -639,7 +639,7 @@ void alignGapped( LastAligner& aligner,
                   size_t queryNum, char strand, const uchar* querySeq,
 		  Phase::Enum phase ){
   Dispatcher dis( phase, aligner, queryNum, strand, querySeq );
-  indexT frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
+  size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
   // Redo the gapless extensions, using gapped score parameters.
@@ -714,7 +714,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, char strand, const uchar* querySeq ){
   Centroid& centroid = aligner.centroid;
   Dispatcher dis( Phase::final, aligner, queryNum, strand, querySeq );
-  indexT frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
+  size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
 
   if( args.outputType > 3 ){
     if( dis.p ){
@@ -751,7 +751,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 static void eraseWeakAlignments(LastAligner &aligner, AlignmentPot &gappedAlns,
 				size_t queryNum, char strand,
 				const uchar *querySeq) {
-  indexT frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
+  size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   Dispatcher dis(Phase::gapless, aligner, queryNum, strand, querySeq);
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &a = gappedAlns.items[i];
@@ -1146,8 +1146,8 @@ void lastal( int argc, char** argv ){
   args.resetCumulativeOptions();  // because we will do fromArgs again
 
   unsigned volumes = unsigned(-1);
-  indexT refMinimizerWindow = 1;  // assume this value, if not specified
-  indexT minSeedLimit = 0;
+  size_t refMinimizerWindow = 1;  // assume this value, if not specified
+  size_t minSeedLimit = 0;
   countT refSequences = -1;
   countT refLetters = -1;
   bool isKeepRefLowercase = true;

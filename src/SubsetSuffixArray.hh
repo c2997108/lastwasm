@@ -41,7 +41,7 @@ public:
   // If minimizerWindow > 1 then the positions are added only if they
   // are "minimizers" for the given window and seed pattern.
   void addPositions( const uchar* text, indexT beg, indexT end,
-		     indexT step, indexT minimizerWindow );
+		     size_t step, size_t minimizerWindow );
 
   // Sort the suffix array (but don't make the buckets).
   void sortIndex( const uchar* text,

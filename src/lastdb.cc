@@ -38,7 +38,7 @@ bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
   const uchar* seq = multi.seqReader() + multi.seqBeg(0);
   unsigned dnaCount = 0;
 
-  for( indexT i = 0; i < 100; ++i ){  // look at the first 100 letters
+  for( unsigned i = 0; i < 100; ++i ){  // look at the first 100 letters
     uchar c = alph.numbersToUppercase[ seq[i] ];
     if( c == alph.size ) return false;  // we hit the end of the sequence early
     if( c < alph.size || c == alph.encode[ (uchar)'N' ] ) ++dnaCount;
