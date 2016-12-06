@@ -204,7 +204,7 @@ private:
     void initRbegsAndEnds();
     static size_t maxGenomeVolumes() { return sizeof genome / sizeof *genome; }
     void readGenomeVolume(const std::string& baseName,
-			  unsigned seqCount, unsigned volumeNumber);
+			  size_t seqCount, size_t volumeNumber);
 
     void dpExtensionMinScores(int maxJumpScore,
 			      size_t& minScore1, size_t& minScore2) const;

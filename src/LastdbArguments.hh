@@ -42,7 +42,7 @@ struct LastdbArguments{
   unsigned numOfThreads;
   std::string subsetSeedFile;
   std::string userAlphabet;
-  indexT minSeedLimit;
+  size_t minSeedLimit;
   indexT bucketDepth;
   int childTableType;
   bool isCountsOnly;

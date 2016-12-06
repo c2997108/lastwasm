@@ -714,8 +714,8 @@ void SplitAligner::initSpliceSignals(unsigned i) {
   StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
   if (f == chromosomeIndex.end())
     err("can't find " + std::string(a.rname) + " in the genome");
-  unsigned v = f->second % maxGenomeVolumes();
-  unsigned c = f->second / maxGenomeVolumes();
+  size_t v = f->second % maxGenomeVolumes();
+  size_t c = f->second / maxGenomeVolumes();
   const uchar *chromBeg = genome[v].seqReader() + genome[v].seqBeg(c);
   const uchar *chromEnd = genome[v].seqReader() + genome[v].seqEnd(c);
   if (a.rend > chromEnd - chromBeg)
@@ -1088,8 +1088,8 @@ void SplitAligner::printParameters() const {
 
 static void readPrjFile(const std::string& baseName,
 			std::string& alphabetLetters,
-			unsigned& seqCount,
-			unsigned& volumes) {
+			size_t& seqCount,
+			size_t& volumes) {
   seqCount = volumes = -1;
 
   std::string fileName = baseName + ".prj";
@@ -1102,15 +1102,15 @@ static void readPrjFile(const std::string& baseName,
     getline(iss, word, '=');
     if (word == "alphabet") iss >> alphabetLetters;
     if (word == "numofsequences") iss >> seqCount;
-    if( word == "volumes" ) iss >> volumes;
+    if (word == "volumes") iss >> volumes;
   }
 
   if (alphabetLetters != "ACGT") err("can't read file: " + fileName);
 }
 
 void SplitAligner::readGenomeVolume(const std::string& baseName,
-				    unsigned seqCount,
-				    unsigned volumeNumber) {
+				    size_t seqCount,
+				    size_t volumeNumber) {
   if (seqCount + 1 == 0) err("can't read: " + baseName);
 
   genome[volumeNumber].fromFiles(baseName, seqCount, 0);
@@ -1125,14 +1125,14 @@ void SplitAligner::readGenomeVolume(const std::string& baseName,
 
 void SplitAligner::readGenome(const std::string& baseName) {
   std::string alphabetLetters;
-  unsigned seqCount, volumes;
+  size_t seqCount, volumes;
   readPrjFile(baseName, alphabetLetters, seqCount, volumes);
 
   if (volumes + 1 > 0 && volumes > 1) {
     if (volumes > maxGenomeVolumes()) err("too many volumes: " + baseName);
-    for (unsigned i = 0; i < volumes; ++i) {
+    for (size_t i = 0; i < volumes; ++i) {
       std::string b = baseName + stringify(i);
-      unsigned c, v;
+      size_t c, v;
       readPrjFile(b, alphabetLetters, c, v);
       readGenomeVolume(b, c, i);
     }

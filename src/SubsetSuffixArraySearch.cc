@@ -9,7 +9,7 @@ using namespace cbrc;
 // could & probably should return the match depth
 void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
                                const uchar* queryPtr, const uchar* text,
-                               indexT maxHits,
+                               size_t maxHits,
                                indexT minDepth, indexT maxDepth ) const{
   // the next line is unnecessary, but makes it faster in some cases:
   if( maxHits == 0 && minDepth < maxDepth ) minDepth = maxDepth;

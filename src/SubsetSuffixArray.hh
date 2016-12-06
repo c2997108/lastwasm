@@ -45,7 +45,7 @@ public:
 
   // Sort the suffix array (but don't make the buckets).
   void sortIndex( const uchar* text,
-		  indexT maxUnsortedInterval, int childTableType );
+		  size_t maxUnsortedInterval, int childTableType );
 
   // Make the buckets.  If bucketDepth+1 == 0, then a default
   // bucketDepth is used.  The default is: the maximum possible
@@ -66,7 +66,7 @@ public:
   // via begPtr and endPtr.
   void match( const indexT*& begPtr, const indexT*& endPtr,
               const uchar* queryPtr, const uchar* text,
-              indexT maxHits, indexT minDepth, indexT maxDepth ) const;
+              size_t maxHits, indexT minDepth, indexT maxDepth ) const;
 
   // Count matches of all sizes (up to maxDepth), starting at the
   // given position in the query.

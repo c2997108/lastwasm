@@ -87,13 +87,13 @@ struct LastalArguments{
   sequenceFormat::Enum inputFormat;
   indexT minHitDepth;
   indexT maxHitDepth;
-  indexT oneHitMultiplicity;
+  size_t oneHitMultiplicity;
   size_t maxGaplessAlignmentsPerQueryPosition;
   size_t cullingLimitForGaplessAlignments;
   size_t cullingLimitForFinalAlignments;
   indexT queryStep;
   size_t minimizerWindow;
-  indexT batchSize;  // approx size of query sequences to scan in 1 batch
+  size_t batchSize;  // approx size of query sequences to scan in 1 batch
   unsigned numOfThreads;
   indexT maxRepeatDistance;  // suppress repeats <= this distance apart
   double temperature;  // probability = exp( score / temperature ) / Z
