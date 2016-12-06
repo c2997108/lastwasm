@@ -360,7 +360,7 @@ void writeCounts( std::ostream& out ){
   for( indexT i = 0; i < matchCounts.size(); ++i ){
     out << query.seqName(i) << '\n';
 
-    for( indexT j = args.minHitDepth; j < matchCounts[i].size(); ++j ){
+    for( size_t j = args.minHitDepth; j < matchCounts[i].size(); ++j ){
       out << j << '\t' << matchCounts[i][j] << '\n';
     }
 
@@ -370,12 +370,12 @@ void writeCounts( std::ostream& out ){
 
 // Count all matches, of all sizes, of a query sequence against a suffix array
 void countMatches( size_t queryNum, const uchar* querySeq ){
-  indexT loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
-  indexT loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
+  size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
   if( args.minHitDepth > 1 )
     loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
 
-  for( indexT i = loopBeg; i < loopEnd; i += args.queryStep ){
+  for( size_t i = loopBeg; i < loopEnd; i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x )
       suffixArrays[x].countMatches( matchCounts[queryNum], querySeq + i,
 				    text.seqReader(), args.maxHitDepth );
@@ -545,8 +545,8 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
 
-  indexT loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
-  indexT loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
+  size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
   if( args.minHitDepth > 1 )
     loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
 

@@ -85,8 +85,8 @@ struct LastalArguments{
   int maxDropGapless;
   int maxDropFinal;
   sequenceFormat::Enum inputFormat;
-  indexT minHitDepth;
-  indexT maxHitDepth;
+  size_t minHitDepth;
+  size_t maxHitDepth;
   size_t oneHitMultiplicity;
   size_t maxGaplessAlignmentsPerQueryPosition;
   size_t cullingLimitForGaplessAlignments;

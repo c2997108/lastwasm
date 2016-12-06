@@ -66,13 +66,13 @@ public:
   // via begPtr and endPtr.
   void match( const indexT*& begPtr, const indexT*& endPtr,
               const uchar* queryPtr, const uchar* text,
-              size_t maxHits, indexT minDepth, indexT maxDepth ) const;
+              size_t maxHits, size_t minDepth, size_t maxDepth ) const;
 
   // Count matches of all sizes (up to maxDepth), starting at the
   // given position in the query.
   void countMatches( std::vector<unsigned long long>& counts,
 		     const uchar* queryPtr, const uchar* text,
-		     indexT maxDepth ) const;
+		     size_t maxDepth ) const;
 
 private:
   CyclicSubsetSeed seed;
@@ -113,7 +113,7 @@ private:
 		      const uchar* textBase, const uchar* subsetMap ) const;
 
   // Return the maximum prefix size covered by the buckets.
-  indexT maxBucketPrefix() const { return bucketSteps.size() - 1; }
+  size_t maxBucketPrefix() const { return bucketSteps.size() - 1; }
 
   unsigned defaultBucketDepth();
 
