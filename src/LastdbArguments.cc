@@ -38,7 +38,7 @@ LastdbArguments::LastdbArguments() :
   subsetSeedFile(""),
   userAlphabet(""),
   minSeedLimit(0),
-  bucketDepth(indexT(-1)),  // means: use the default (adapts to the data)
+  bucketDepth(-1),  // means: use the default (adapts to the data)
   childTableType(0),
   isCountsOnly(false),
   verbosity(0),

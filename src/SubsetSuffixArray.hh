@@ -51,7 +51,7 @@ public:
   // bucketDepth is used.  The default is: the maximum possible
   // bucketDepth such that the number of bucket entries is at most 1/4
   // the number of suffix array entries.
-  void makeBuckets( const uchar* text, indexT bucketDepth );
+  void makeBuckets( const uchar* text, unsigned bucketDepth );
 
   void fromFiles( const std::string& baseName,
 		  bool isMaskLowercase, const uchar letterCode[] );
@@ -115,7 +115,7 @@ private:
   // Return the maximum prefix size covered by the buckets.
   indexT maxBucketPrefix() const { return bucketSteps.size() - 1; }
 
-  indexT defaultBucketDepth();
+  unsigned defaultBucketDepth();
 
   void makeBucketSteps( indexT bucketDepth );
 

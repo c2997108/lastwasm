@@ -14,8 +14,6 @@
 namespace cbrc{
 
 struct LastdbArguments{
-  typedef unsigned indexT;
-
   // set the parameters to their default values:
   LastdbArguments();
 
@@ -43,7 +41,7 @@ struct LastdbArguments{
   std::string subsetSeedFile;
   std::string userAlphabet;
   size_t minSeedLimit;
-  indexT bucketDepth;
+  unsigned bucketDepth;
   int childTableType;
   bool isCountsOnly;
   int verbosity;
