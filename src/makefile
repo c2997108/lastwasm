@@ -67,7 +67,7 @@ last-merge-batches: $(MBOBJ)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 .cc.o:
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I. -c -o $@ $<
+	$(CXX) -DLAST_INT_TYPE=unsigned $(CPPFLAGS) $(CXXFLAGS) -I. -c -o $@ $<
 
 .cpp.o:
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

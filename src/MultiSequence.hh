@@ -19,7 +19,7 @@ namespace cbrc{
 
 class MultiSequence{
  public:
-  typedef unsigned indexT;
+  typedef LAST_INT_TYPE indexT;
   typedef unsigned char uchar;
 
   // initialize with leftmost delimiter pad, ready for appending sequences

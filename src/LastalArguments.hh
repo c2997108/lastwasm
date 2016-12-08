@@ -14,8 +14,6 @@
 namespace cbrc{
 
 struct LastalArguments{
-  typedef unsigned indexT;
-
   // set the parameters to their default values:
   LastalArguments();
 
@@ -91,11 +89,11 @@ struct LastalArguments{
   size_t maxGaplessAlignmentsPerQueryPosition;
   size_t cullingLimitForGaplessAlignments;
   size_t cullingLimitForFinalAlignments;
-  indexT queryStep;
+  size_t queryStep;
   size_t minimizerWindow;
   size_t batchSize;  // approx size of query sequences to scan in 1 batch
   unsigned numOfThreads;
-  indexT maxRepeatDistance;  // suppress repeats <= this distance apart
+  size_t maxRepeatDistance;  // suppress repeats <= this distance apart
   double temperature;  // probability = exp( score / temperature ) / Z
   double gamma;        // parameter for gamma-centroid alignment
   std::string geneticCodeFile;
