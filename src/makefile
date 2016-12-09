@@ -17,26 +17,32 @@ alp/njn_dynprogproblim.o alp/njn_ioutil.o alp/njn_random.o	\
 alp/sls_falp_alignment_evaluer.o alp/sls_fsa1_pvalues.o		\
 alp/sls_fsa1_utils.o alp/sls_fsa1.o alp/sls_fsa1_parameters.o
 
-DBOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o			\
-SubsetSuffixArray.o LastdbArguments.o io.o fileMap.o TantanMasker.o	\
-ScoreMatrix.o SubsetMinimizerFinder.o LambdaCalculator.o tantan.o	\
-SubsetSuffixArraySort.o MultiSequenceQual.o lastdb.o
+indexObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o		\
+ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o io.o	\
+tantan.o LastdbArguments.o
 
-ALOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o			\
-SubsetSuffixArray.o LastalArguments.o io.o fileMap.o TantanMasker.o	\
-ScoreMatrix.o SubsetMinimizerFinder.o tantan.o DiagonalTable.o		\
-SegmentPair.o Alignment.o GappedXdropAligner.o SegmentPairPot.o		\
-AlignmentPot.o GeneralizedAffineGapCosts.o Centroid.o			\
-LambdaCalculator.o TwoQualityScoreMatrix.o OneQualityScoreMatrix.o	\
-QualityPssmMaker.o GeneticCode.o LastEvaluer.o GreedyXdropAligner.o	\
-gaplessXdrop.o gaplessPssmXdrop.o gaplessTwoQualityXdrop.o		\
-SubsetSuffixArraySearch.o AlignmentWrite.o MultiSequenceQual.o		\
+indexObj4 = MultiSequence.o MultiSequenceQual.o SubsetSuffixArray.o	\
+SubsetSuffixArraySort.o lastdb.o
+
+alignObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o		\
+ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o io.o	\
+tantan.o LastalArguments.o Centroid.o GappedXdropAligner.o		\
 GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
-GappedXdropAligner3frame.o lastal.o $(alpObj)
+GappedXdropAligner3frame.o GeneralizedAffineGapCosts.o GeneticCode.o	\
+GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
+QualityPssmMaker.o TwoQualityScoreMatrix.o gaplessXdrop.o		\
+gaplessPssmXdrop.o gaplessTwoQualityXdrop.o $(alpObj)
 
-SPOBJ = Alphabet.o MultiSequence.o fileMap.o split/cbrc_linalg.o	\
-split/last-split.o split/cbrc_split_aligner.o split/last-split-main.o	\
-split/cbrc_unsplit_alignment.o
+alignObj4 = Alignment.o AlignmentPot.o AlignmentWrite.o			\
+DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\
+SegmentPairPot.o SubsetSuffixArray.o SubsetSuffixArraySearch.o		\
+lastal.o
+
+splitObj0 = Alphabet.o fileMap.o split/cbrc_linalg.o	\
+split/cbrc_unsplit_alignment.o split/last-split-main.o
+
+splitObj4 = MultiSequence.o split/cbrc_split_aligner.o	\
+split/last-split.o
 
 PPOBJ = last-pair-probs.o last-pair-probs-main.o io.o
 
@@ -46,14 +52,17 @@ ALL = lastdb lastal last-split last-merge-batches last-pair-probs
 
 all: $(ALL)
 
-lastdb: $(DBOBJ)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(DBOBJ)
+indexAllObj4 = $(indexObj0) $(indexObj4)
+lastdb: $(indexAllObj4)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(indexAllObj4)
 
-lastal: $(ALOBJ)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(ALOBJ)
+alignAllObj4 = $(alignObj0) $(alignObj4)
+lastal: $(alignAllObj4)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(alignAllObj4)
 
-last-split: $(SPOBJ)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(SPOBJ)
+splitAllObj4 = $(splitObj0) $(splitObj4)
+last-split: $(splitAllObj4)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(splitAllObj4)
 
 last-pair-probs: $(PPOBJ)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(PPOBJ)
