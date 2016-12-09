@@ -8,6 +8,15 @@ CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 
 CFLAGS = -Wall -O2
 
+alpObj = alp/sls_alignment_evaluer.o alp/sls_pvalues.o		\
+alp/sls_alp_sim.o alp/sls_alp_regression.o alp/sls_alp_data.o	\
+alp/sls_alp.o alp/sls_basic.o alp/njn_localmaxstatmatrix.o	\
+alp/njn_localmaxstat.o alp/njn_localmaxstatutil.o		\
+alp/njn_dynprogprob.o alp/njn_dynprogprobproto.o		\
+alp/njn_dynprogproblim.o alp/njn_ioutil.o alp/njn_random.o	\
+alp/sls_falp_alignment_evaluer.o alp/sls_fsa1_pvalues.o		\
+alp/sls_fsa1_utils.o alp/sls_fsa1.o alp/sls_fsa1_parameters.o
+
 DBOBJ = Alphabet.o MultiSequence.o CyclicSubsetSeed.o			\
 SubsetSuffixArray.o LastdbArguments.o io.o fileMap.o TantanMasker.o	\
 ScoreMatrix.o SubsetMinimizerFinder.o LambdaCalculator.o tantan.o	\
@@ -23,15 +32,7 @@ QualityPssmMaker.o GeneticCode.o LastEvaluer.o GreedyXdropAligner.o	\
 gaplessXdrop.o gaplessPssmXdrop.o gaplessTwoQualityXdrop.o		\
 SubsetSuffixArraySearch.o AlignmentWrite.o MultiSequenceQual.o		\
 GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
-GappedXdropAligner3frame.o lastal.o alp/sls_alignment_evaluer.o		\
-alp/sls_pvalues.o alp/sls_alp_sim.o alp/sls_alp_regression.o		\
-alp/sls_alp_data.o alp/sls_alp.o alp/sls_basic.o			\
-alp/njn_localmaxstatmatrix.o alp/njn_localmaxstat.o			\
-alp/njn_localmaxstatutil.o alp/njn_dynprogprob.o			\
-alp/njn_dynprogprobproto.o alp/njn_dynprogproblim.o alp/njn_ioutil.o	\
-alp/njn_random.o alp/sls_falp_alignment_evaluer.o			\
-alp/sls_fsa1_pvalues.o alp/sls_fsa1_utils.o alp/sls_fsa1.o		\
-alp/sls_fsa1_parameters.o
+GappedXdropAligner3frame.o lastal.o $(alpObj)
 
 SPOBJ = Alphabet.o MultiSequence.o fileMap.o split/cbrc_linalg.o	\
 split/last-split.o split/cbrc_split_aligner.o split/last-split-main.o	\
