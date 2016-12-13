@@ -1090,6 +1090,7 @@ static void readPrjFile(const std::string& baseName,
 			std::string& alphabetLetters,
 			size_t& seqCount,
 			size_t& volumes) {
+  size_t fileBitsPerInt = 32;
   seqCount = volumes = -1;
 
   std::string fileName = baseName + ".prj";
@@ -1103,9 +1104,16 @@ static void readPrjFile(const std::string& baseName,
     if (word == "alphabet") iss >> alphabetLetters;
     if (word == "numofsequences") iss >> seqCount;
     if (word == "volumes") iss >> volumes;
+    if (word == "integersize") iss >> fileBitsPerInt;
   }
 
   if (alphabetLetters != "ACGT") err("can't read file: " + fileName);
+
+  if (fileBitsPerInt != sizeof(MultiSequence::indexT) * CHAR_BIT) {
+    if (fileBitsPerInt == 32) err("please use last-split for " + baseName);
+    if (fileBitsPerInt == 64) err("please use last-split8 for " + baseName);
+    err("weird integersize in " + fileName);
+  }
 }
 
 void SplitAligner::readGenomeVolume(const std::string& baseName,

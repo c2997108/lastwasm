@@ -140,6 +140,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     else{
       f << "numofindexes=" << numOfIndexes << '\n';
     }
+    f << "integersize=" << (sizeof(indexT) * CHAR_BIT) << '\n';
     writeLastalOptions( f, seedText );
   }
 

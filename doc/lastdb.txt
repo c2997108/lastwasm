@@ -110,8 +110,8 @@ Advanced Options
 
       However, the output for one sequence is never split.  Since the
       output files are several-fold bigger than the input (unless you
-      use -w), this means that mammalian chromosomes cannot be
-      processed using much less than 2G (unless you use -w).
+      use -w or -W), this means that mammalian chromosomes cannot be
+      processed using much less than 2G (unless you use -w or -W).
 
       There is a hard upper limit of about 4 billion sequence letters
       per volume.  Together with the previous point, this means that
@@ -189,6 +189,43 @@ Advanced Options
 
   -V, --version
       Show version information, and exit.
+
+lastdb8
+-------
+
+lastdb8 is identical to lastdb, except that it internally uses larger
+(8-byte) integers.  This means it can handle more than 4 billion
+sequence letters per volume, but it uses more memory.
+
+Memory and disk usage
+---------------------
+
+Suppose we give lastdb N letters of sequence data, of which M are
+non-masked "real" letters (e.g. excluding N for DNA and X for
+proteins).  The output files will include:
+
+* The sequences (N bytes).
+
+* An "index" consisting of:
+  positions (4M bytes), and "buckets" (<= M bytes).
+
+* The sequence names (*usually* negligible).
+
+This is modified by several options.
+
+* -C1 adds M bytes to the index, -C2 adds 2M bytes, and -C3 adds 4M
+  bytes.
+
+* -w STEP: makes the index STEP times smaller.
+
+* -W SIZE: makes the index about (SIZE+1)/2 times smaller.
+
+* lastdb8: makes the index twice as big.
+
+* -u, -m: Multiple patterns multiply the index size.  For example,
+  `MAM8 <last-seeds.html>`_ makes it 8 times bigger.
+
+* -s: does not change the total size, but splits it into volumes.
 
 Limitations
 -----------

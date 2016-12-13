@@ -538,3 +538,10 @@ Therefore, with parallel processes, you should either ensure you have
 enough memory to hold several volumes simultaneously, or run lastal on
 one volume at a time.  An efficient scheme is to use a different
 computer for each volume.
+
+lastal8
+-------
+
+lastal8 has identical usage to lastal, and is used with `lastdb8
+<lastdb.html>`_.  lastal cannot read the output of lastdb8, and
+lastal8 cannot read the output of lastdb.

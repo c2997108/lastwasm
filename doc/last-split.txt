@@ -281,6 +281,13 @@ The following points matter only if you are doing something unusual
 * It assumes this score matrix applies to all alignments, when the
   alignments are oriented to use the forward strand of the query.
 
+last-split8
+-----------
+
+last-split8 is almost identical to last-split.  The only difference is
+the -g option: last-split can only read the output of lastdb, whereas
+last-split8 can only read the output of `lastdb8 <lastdb.html>`_.
+
 Limitations
 -----------
 

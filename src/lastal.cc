@@ -298,6 +298,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
+  size_t fileBitsPerInt = 32;
   std::string trigger = "#lastal";
 
   std::string line, word;
@@ -320,6 +321,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "minimizerwindow" ) iss >> refMinimizerWindow;
     if( word == "volumes" ) iss >> volumes;
     if( word == "numofindexes" ) iss >> numOfIndexes;
+    if( word == "integersize" ) iss >> fileBitsPerInt;
   }
 
   if( f.eof() && !f.bad() ) f.clear();
@@ -331,6 +333,12 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   if( !f ) ERR( "can't read file: " + fileName );
   if( version < 294 && version > 0)
     ERR( "the lastdb files are old: please re-run lastdb" );
+
+  if( fileBitsPerInt != sizeof(indexT) * CHAR_BIT ){
+    if( fileBitsPerInt == 32 ) ERR( "please use lastal for " + fileName );
+    if( fileBitsPerInt == 64 ) ERR( "please use lastal8 for " + fileName );
+    ERR( "weird integersize in " + fileName );
+  }
 }
 
 // Read a per-volume .prj file, with info about a database volume
