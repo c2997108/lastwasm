@@ -203,26 +203,47 @@ namespace cbrc{
       if (! isPssm) {
 	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
-	while (1) {	// start: inner most loop
-	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * seE;
-	  const double xI = *fI1 * seEI;
-	  const double xP = *fP2 * seP;
-	  *fD0 = xM * eF + xD + xP;
-	  *fI0 = (xM + xD) * eFI + xI + xP;
-	  *fM0 = (xM + xD + xI + xP) * match_score[ *s1 ][ *s2 ];
-	  *fP0 = xM * eF + xP;
-	  sum_f += xM;
-	  if( globality && (isDelimiter(*s2, *match_score) ||
-			    isDelimiter(*s1, *match_score)) ){
-	    Z += xM + xD + xI + xP;
+	if (isAffine) {
+	  while (1) {
+	    const double xM = *fM2 * scale12;
+	    const double xD = *fD1 * seE;
+	    const double xI = *fI1 * seEI;
+	    *fD0 = xM * eF + xD;
+	    *fI0 = (xM + xD) * eFI + xI;
+	    *fM0 = (xM + xD + xI) * match_score[ *s1 ][ *s2 ];
+	    sum_f += xM;
+	    if( globality && (isDelimiter(*s2, *match_score) ||
+			      isDelimiter(*s1, *match_score)) ){
+	      Z += xM + xD + xI;
+	    }
+	    if (fM0 == fM0last) break;
+	    fM0++; fD0++; fI0++;
+	    fM2++; fD1++; fI1++;
+	    s1 += seqIncrement;
+	    s2 -= seqIncrement;
 	  }
-	  if (fM0 == fM0last) break;
-	  fM0++; fD0++; fI0++; fP0++;
-	  fM2++; fD1++; fI1++; fP2++;
-	  s1 += seqIncrement;
-	  s2 -= seqIncrement;
-	}	// end: inner most loop
+	} else {
+	  while (1) {
+	    const double xM = *fM2 * scale12;
+	    const double xD = *fD1 * seE;
+	    const double xI = *fI1 * seEI;
+	    const double xP = *fP2 * seP;
+	    *fD0 = xM * eF + xD + xP;
+	    *fI0 = (xM + xD) * eFI + xI + xP;
+	    *fM0 = (xM + xD + xI + xP) * match_score[ *s1 ][ *s2 ];
+	    *fP0 = xM * eF + xP;
+	    sum_f += xM;
+	    if( globality && (isDelimiter(*s2, *match_score) ||
+			      isDelimiter(*s1, *match_score)) ){
+	      Z += xM + xD + xI + xP;
+	    }
+	    if (fM0 == fM0last) break;
+	    fM0++; fD0++; fI0++; fP0++;
+	    fM2++; fD1++; fI1++; fP2++;
+	    s1 += seqIncrement;
+	    s2 -= seqIncrement;
+	  }
+	}
       } // end: if (! isPssm)
       else {
 	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
@@ -350,47 +371,87 @@ namespace cbrc{
       if (! isPssm ) {
 	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
 
-	while (1) { // inner most loop
-	  double yM = *bM0 * match_score[ *s1 ][ *s2 ];
-	  double yD = *bD0;
-	  double yI = *bI0;
-	  double yP = *bP0;
-	  double zM = yM + yD * eF + yI * eFI + yP * eF;
-	  double zD = yM + yD + yI * eFI;
-	  double zI = yM + yI;
-	  double zP = yM + yP + yD + yI;
-	  if( globality ){
-	    if( isDelimiter(*s2, *match_score) ||
-		isDelimiter(*s1, *match_score) ){
-	      zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
-	      zP += scaledUnit;
+	if (isAffine) {
+	  while (1) {
+	    double yM = *bM0 * match_score[ *s1 ][ *s2 ];
+	    double yD = *bD0;
+	    double yI = *bI0;
+	    double zM = yM + yD * eF + yI * eFI;
+	    double zD = yM + yD + yI * eFI;
+	    double zI = yM + yI;
+	    if( globality ){
+	      if( isDelimiter(*s2, *match_score) ||
+		  isDelimiter(*s1, *match_score) ){
+		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
+	      }
+	    }else{
+	      zM += scaledUnit;
 	    }
-	  }else{
-	    zM += scaledUnit;
+	    *bM2 = zM * scale12;
+	    *bD1 = zD * seE;
+	    *bI1 = zI * seEI;
+
+	    double prob = *fM2 * *bM2;
+	    *pp0 = prob;
+	    double probd = *fD1 * *bD1;
+	    double probi = *fI1 * *bI1;
+	    mD[ i ] += probd;
+	    mI[ j ] += probi;
+	    mX1 [ i ] -= ( prob + probd );
+	    mX2 [ j ] -= ( prob + probi );
+
+	    if (bM0 == bM0last) break;
+	    i++; j--;
+	    bM2++; bD1++; bI1++;
+	    bM0++; bD0++; bI0++;
+	    fM2++; fD1++; fI1++;
+	    pp0++;
+	    s1 += seqIncrement;
+	    s2 -= seqIncrement;
 	  }
-	  *bM2 = zM * scale12;
-	  *bD1 = zD * seE;
-	  *bI1 = zI * seEI;
-	  *bP2 = zP * seP;
+	} else {
+	  while (1) {
+	    double yM = *bM0 * match_score[ *s1 ][ *s2 ];
+	    double yD = *bD0;
+	    double yI = *bI0;
+	    double yP = *bP0;
+	    double zM = yM + yD * eF + yI * eFI + yP * eF;
+	    double zD = yM + yD + yI * eFI;
+	    double zI = yM + yI;
+	    double zP = yM + yP + yD + yI;
+	    if( globality ){
+	      if( isDelimiter(*s2, *match_score) ||
+		  isDelimiter(*s1, *match_score) ){
+		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
+		zP += scaledUnit;
+	      }
+	    }else{
+	      zM += scaledUnit;
+	    }
+	    *bM2 = zM * scale12;
+	    *bD1 = zD * seE;
+	    *bI1 = zI * seEI;
+	    *bP2 = zP * seP;
 
-	  double prob = *fM2 * *bM2;
-	  *pp0 = prob;
-	  double probd = *fD1 * *bD1;
-	  double probi = *fI1 * *bI1;
-	  double probp = *fP2 * *bP2;
-	  mD[ i ] += probd + probp;
-	  mI[ j ] += probi + probp;
-	  mX1 [ i ] -= ( prob + probd + probp );
-	  mX2 [ j ] -= ( prob + probi + probp );
+	    double prob = *fM2 * *bM2;
+	    *pp0 = prob;
+	    double probd = *fD1 * *bD1;
+	    double probi = *fI1 * *bI1;
+	    double probp = *fP2 * *bP2;
+	    mD[ i ] += probd + probp;
+	    mI[ j ] += probi + probp;
+	    mX1 [ i ] -= ( prob + probd + probp );
+	    mX2 [ j ] -= ( prob + probi + probp );
 
-	  if (bM0 == bM0last) break;
-	  i++; j--;
-	  bM2++; bD1++; bI1++; bP2++;
-	  bM0++; bD0++; bI0++; bP0++;
-	  fM2++; fD1++; fI1++; fP2++;
-	  pp0++;
-	  s1 += seqIncrement;
-	  s2 -= seqIncrement;
+	    if (bM0 == bM0last) break;
+	    i++; j--;
+	    bM2++; bD1++; bI1++; bP2++;
+	    bM0++; bD0++; bI0++; bP0++;
+	    fM2++; fD1++; fI1++; fP2++;
+	    pp0++;
+	    s1 += seqIncrement;
+	    s2 -= seqIncrement;
+	  }
 	}
       }
       else {
@@ -738,34 +799,59 @@ namespace cbrc{
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
 
       if (! isPssm ) {
-	while (1) { // inner most loop
-	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * seE;
-	  const double xI = *fI1 * seEI;
-	  const double xP = *fP2 * seP;
-	  const double yM = *bM0 * match_score[ *s1 ][ *s2 ];
-	  const double yD = *bD0;
-	  const double yI = *bI0;
-	  const double yP = *bP0;
-	  c.emit[*s1][*s2] += (xM + xD + xI + xP) * yM;
-	  c.MM += xM * yM;
-	  c.DM += xD * yM;
-	  c.IM += xI * yM;
-	  c.PM += xP * yM;
-	  c.MD += xM * yD * eF;
-	  c.DD += xD * yD;
-	  c.PD += xP * yD;
-	  c.MI += xM * yI * eFI;
-	  c.DI += xD * yI * eFI;
-	  c.II += xI * yI;
-	  c.PI += xP * yI;
-	  c.MP += xM * yP * eF;
-	  c.PP += xP * yP;
-	  if (bM0 == bM0last) break;
-	  fM2++; fD1++; fI1++; fP2++;
-	  bM0++; bD0++; bI0++; bP0++;
-	  s1 += seqIncrement;
-	  s2 -= seqIncrement;
+	if (isAffine) {
+	  while (1) {
+	    const double xM = *fM2 * scale12;
+	    const double xD = *fD1 * seE;
+	    const double xI = *fI1 * seEI;
+	    const double yM = *bM0 * match_score[ *s1 ][ *s2 ];
+	    const double yD = *bD0;
+	    const double yI = *bI0;
+	    c.emit[*s1][*s2] += (xM + xD + xI) * yM;
+	    c.MM += xM * yM;
+	    c.DM += xD * yM;
+	    c.IM += xI * yM;
+	    c.MD += xM * yD * eF;
+	    c.DD += xD * yD;
+	    c.MI += xM * yI * eFI;
+	    c.DI += xD * yI * eFI;
+	    c.II += xI * yI;
+	    if (bM0 == bM0last) break;
+	    fM2++; fD1++; fI1++;
+	    bM0++; bD0++; bI0++;
+	    s1 += seqIncrement;
+	    s2 -= seqIncrement;
+	  }
+	} else {
+	  while (1) {
+	    const double xM = *fM2 * scale12;
+	    const double xD = *fD1 * seE;
+	    const double xI = *fI1 * seEI;
+	    const double xP = *fP2 * seP;
+	    const double yM = *bM0 * match_score[ *s1 ][ *s2 ];
+	    const double yD = *bD0;
+	    const double yI = *bI0;
+	    const double yP = *bP0;
+	    c.emit[*s1][*s2] += (xM + xD + xI + xP) * yM;
+	    c.MM += xM * yM;
+	    c.DM += xD * yM;
+	    c.IM += xI * yM;
+	    c.PM += xP * yM;
+	    c.MD += xM * yD * eF;
+	    c.DD += xD * yD;
+	    c.PD += xP * yD;
+	    c.MI += xM * yI * eFI;
+	    c.DI += xD * yI * eFI;
+	    c.II += xI * yI;
+	    c.PI += xP * yI;
+	    c.MP += xM * yP * eF;
+	    c.PP += xP * yP;
+	    if (bM0 == bM0last) break;
+	    fM2++; fD1++; fI1++; fP2++;
+	    bM0++; bD0++; bI0++; bP0++;
+	    s1 += seqIncrement;
+	    s2 -= seqIncrement;
+	  }
 	}
       }
       else {
