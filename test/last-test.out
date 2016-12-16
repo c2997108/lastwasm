@@ -2281,6 +2281,87 @@ TEST lastal -W1 -M -fTAB /tmp/last-test hg19-M.fa
 46	chrM	6575	23	+	16775	chrM	13269	23	-	16571	23	EG2=2.5e+06	E=0.0015
 # Query sequences=1
 
+TEST lastal -fTAB -j4 -A2 -B2 /tmp/last-test hg19-M.fa
+#
+# a=7 b=1 A=2 B=2 e=22 d=13 x=21 y=9 z=21 D=1e+06 E=2.80852e+07
+# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 W=3 w=1000 t=0.910239 j=4 Q=0
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+# lambda=1.08109 K=0.308697
+#
+#    A  C  G  T
+# A  1 -1 -1 -1
+# C -1  1 -1 -1
+# G -1 -1  1 -1
+# T -1 -1 -1  1
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+# batch 0
+1116	chrM	6510	2477	+	16775	chrM	5764	2482	+	16571	78,2:0,35,3:0,17,0:8,445,0:1,8,0:2,1082,0:3,67,5:0,57,1:0,19,1:0,150,0:2,4,0:1,503	EG2=0	E=0	fullScore=1.13e+03
+583	chrM	9353	1821	+	16775	chrM	8638	1814	+	16571	432,0:1,10,2:0,28,0:1,934,1:0,21,0:1,26,4:0,313,3:0,47	EG2=5.8e-257	E=2.9e-266	fullScore=593
+545	chrM	4097	1794	+	16775	chrM	3334	1787	+	16571	914,0:2,27,2:0,26,0:1,13,10:0,70,0:3,61,1:0,670	EG2=4e-239	E=2.1e-248	fullScore=558
+540	chrM	11243	1829	+	16775	chrM	10518	1821	+	16571	1692,8:0,129	EG2=9e-237	E=4.6e-246	fullScore=547
+524	chrM	14904	1124	+	16775	chrM	14756	1124	+	16571	1124	EG2=2.9e-229	E=1.5e-238	fullScore=528
+475	chrM	13197	1385	+	16775	chrM	12461	1388	+	16571	510,0:3,875	EG2=3e-206	E=1.5e-215	fullScore=490
+203	chrM	1702	617	+	16775	chrM	1042	606	+	16571	114,2:0,92,4:0,33,1:0,27,1:0,45,0:1,32,0:1,61,6:0,54,0:1,10,0:1,85,0:1,14,2:0,34	EG2=1.5e-78	E=8.5e-88	fullScore=221
+164	chrM	3629	255	+	16775	chrM	2908	255	+	16571	146,1:0,53,0:1,55	EG2=3.1e-60	E=1.7e-69	fullScore=169
+131	chrM	2890	560	+	16775	chrM	2171	572	+	16571	27,0:3,8,0:3,32,0:1,15,0:1,24,0:2,37,0:2,22,0:1,13,0:2,19,0:1,66,0:2,38,1:0,32,2:0,37,3:0,184	EG2=9.6e-45	E=5.5e-54	fullScore=151
+120	chrM	5978	529	+	16775	chrM	5208	523	+	16571	233,0:3,84,5:0,39,3:0,14,0:1,69,2:0,80	EG2=1.4e-39	E=8.1e-49	fullScore=131
+119	chrM	1234	365	+	16775	chrM	585	362	+	16571	9,0:1,56,0:1,82,3:0,63,1:0,19,1:0,55,0:1,57,1:0,18	EG2=4.1e-39	E=2.4e-48	fullScore=127
+99	chrM	2432	295	+	16775	chrM	1742	281	+	16571	26,1:0,12,4:0,25,4:0,11,2:0,57,0:1,42,1:0,24,3:0,83	EG2=1e-29	E=5.9e-39	fullScore=109
+52	chrM	16456	319	+	16775	chrM	14425	318	+	16571	247,2:0,54,0:1,16	EG2=1.2e-07	E=6.9e-17	fullScore=56.1
+29	chrM	3973	69	+	16775	chrM	3237	70	+	16571	38,0:1,31	EG2=7.5e+03	E=4.4e-06	fullScore=32.3
+26	chrM	856	48	+	16775	chrM	198	48	+	16571	48	EG2=1.9e+05	E=0.00011	fullScore=27.7
+26	chrM	5538	94	+	16775	chrM	12989	94	+	16571	94	EG2=1.9e+05	E=0.00011	fullScore=28.9
+24	chrM	3520	38	+	16775	chrM	2807	38	+	16571	38	EG2=1.7e+06	E=0.00098	fullScore=26.8
+23	chrM	16128	49	+	16775	chrM	15975	49	+	16571	49	EG2=4.9e+06	E=0.0029	fullScore=24.9
+22	chrM	9034	88	+	16775	chrM	8312	92	+	16571	24,0:2,20,0:2,44	EG2=1.4e+07	E=0.0085	fullScore=28
+22	chrM	12073	105	+	16775	chrM	12976	102	+	16571	69,3:0,33	EG2=1.4e+07	E=0.0085	fullScore=24.7
+22	chrM	14801	78	+	16775	chrM	14065	78	+	16571	78	EG2=1.4e+07	E=0.0085	fullScore=25.7
+24	chrM	6570	28	+	16775	chrM	13264	28	-	16571	28	EG2=1.7e+06	E=0.00098	fullScore=25.6
+# Query sequences=1
+
+TEST lastal -fTAB -j4 -Q1 -e90 -a7 -A12 -B4 /tmp/last-test SRR001981-1k.fastq
+#
+# a=7 b=9 A=12 B=4 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.80852e+07
+# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 W=3 w=1000 t=4.36661 j=4 Q=1
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+# lambda=0.219607 K=0.335759
+#
+#    A  C  G  T
+# A  6 -18 -18 -18
+# C -18  6 -18 -18
+# G -18 -18  6 -18
+# T -18 -18 -18  6
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+# batch 0
+93	chrM	963	25	+	16775	SRR001981.67	6	24	+	36	18,1:0,6	EG2=4.5e+08	E=0.00027	fullScore=99.8
+104	chrM	973	20	+	16775	SRR001981.107	7	21	+	36	17,0:1,3	EG2=4e+07	E=2.1e-05	fullScore=112
+100	chrM	957	29	+	16775	SRR001981.202	0	31	-	36	6,0:1,8,0:2,10,1:0,4	EG2=9.7e+07	E=5.4e-05	fullScore=111
+# batch 1
+119	chrM	952	33	+	16775	SRR001981.279	0	33	-	36	33	EG2=1.5e+06	E=6.1e-07	fullScore=130
+104	chrM	949	33	+	16775	SRR001981.279	1	33	-	36	33	EG2=4e+07	E=2.1e-05	fullScore=111
+99	chrM	960	28	+	16775	SRR001981.279	0	28	-	36	28	EG2=1.2e+08	E=6.8e-05	fullScore=109
+97	chrM	960	28	+	16775	SRR001981.279	5	26	-	36	9,2:0,17	EG2=1.9e+08	E=0.00011	fullScore=116
+96	chrM	963	24	+	16775	SRR001981.279	0	24	-	36	24	EG2=2.3e+08	E=0.00014	fullScore=104
+108	chrM	968	22	+	16775	SRR001981.346	1	25	-	36	17,0:3,5	EG2=1.7e+07	E=8.2e-06	fullScore=114
+# batch 2
+95	chrM	950	37	+	16775	SRR001981.597	0	33	-	36	12,1:0,6,2:0,10,1:0,5	EG2=2.9e+08	E=0.00017	fullScore=108
+90	chrM	949	32	+	16775	SRR001981.597	5	28	-	36	10,1:0,2,1:0,6,2:0,10	EG2=8.8e+08	E=0.00055	fullScore=101
+# batch 3
+90	chrM	971	15	+	16775	SRR001981.805	21	15	+	36	15	EG2=8.8e+08	E=0.00055	fullScore=90.9
+93	chrM	959	27	+	16775	SRR001981.815	1	25	-	36	10,2:0,15	EG2=4.5e+08	E=0.00027	fullScore=101
+# batch 4
+# Query sequences=1000
+
 TEST lastal -Q1 -T1 -j1 -s0 /tmp/last-test SRR001981-1k.fastq
 #
 # a=21 b=9 A=21 B=9 e=105 d=105 x=104 y=44 z=104 D=1e+06 E=2.78234e+07

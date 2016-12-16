@@ -5,7 +5,6 @@
 #include <sstream>
 #include <algorithm>  // upper_bound
 #include <cassert>
-#include <cctype>  // isspace
 #include <iterator>  // istreambuf_iterator
 
 using namespace cbrc;
@@ -91,8 +90,8 @@ MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
   std::istreambuf_iterator<char> endpos;
   while( inpos != endpos ){
     uchar c = *inpos;
-    if( c == '>' ) break;  // we have hit the next FASTA sequence
-    if( !std::isspace(c) ){
+    if( c > ' ' ){  // faster than isspace
+      if( c == '>' ) break;  // we have hit the next FASTA sequence
       if( seq.v.size() >= maxSeqLen ) break;
       seq.v.push_back(c);
     }
