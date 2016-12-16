@@ -92,10 +92,9 @@ int GappedXdropAligner::align(const uchar *seq1,
                               int gapUnalignedCost,
                               int maxScoreDrop,
                               int maxMatchScore) {
-  bool isAffine =
-    insExistenceCost == delExistenceCost &&
-    insExtensionCost == delExtensionCost &&
-    gapUnalignedCost >= delExistenceCost + 2 * delExtensionCost;
+  const bool isAffine = isAffineGaps(delExistenceCost, delExtensionCost,
+				     insExistenceCost, insExtensionCost,
+				     gapUnalignedCost);
 
   std::size_t maxSeq1begs[] = { 0, 9 };
   std::size_t minSeq1ends[] = { 1, 0 };
@@ -155,14 +154,13 @@ int GappedXdropAligner::align(const uchar *seq1,
         while (1) {
           int x = *x2;
           int y = *y1 - delExtensionCost;
-          int z = *z1 - delExtensionCost;
+          int z = *z1 - insExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
             updateBest(bestScore, b, antidiagonal, x0, x0base);
             *x0 = b + scorer[*s1][*s2];
-            int g = b - delExistenceCost;
-            *y0 = maxValue(g, y);
-            *z0 = maxValue(g, z);
+            *y0 = maxValue(b - delExistenceCost, y);
+            *z0 = maxValue(b - insExistenceCost, z);
           }
           else *x0 = *y0 = *z0 = -INF;
           if (x0 == x0last) break;
@@ -172,14 +170,13 @@ int GappedXdropAligner::align(const uchar *seq1,
         while (1) {
           int x = *x2;
           int y = *y1 - delExtensionCost;
-          int z = *z1 - delExtensionCost;
+          int z = *z1 - insExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
             updateBest(bestScore, b, antidiagonal, x0, x0base);
             *x0 = b + scorer[*s1][*s2];
-            int g = b - delExistenceCost;
-            *y0 = maxValue(g, y);
-            *z0 = maxValue(g, z);
+            *y0 = maxValue(b - delExistenceCost, y);
+            *z0 = maxValue(b - insExistenceCost, z);
           }
           else *x0 = *y0 = *z0 = -INF;
           if (x0 == x0last) break;

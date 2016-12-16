@@ -231,9 +231,9 @@ namespace cbrc{
 	  while (1) { // start: inner most loop
 	    const double xM = *fM2 * scale12;
 	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seE;
+	    const double xI = *fI1 * seEI;
 	    *fD0 = xM * eF + xD;
-	    *fI0 = (xM + xD) * eF + xI;
+	    *fI0 = (xM + xD) * eFI + xI;
 	    *fM0 = (xM + xD + xI) * (*p2)[ *s1 ];
 	    sum_f += xM;
 	    if ( globality && (isDelimiter(0, *p2) ||
@@ -401,8 +401,8 @@ namespace cbrc{
 	    double yM = *bM0 * ( *p2 )[ *s1 ];
 	    double yD = *bD0;
 	    double yI = *bI0;
-	    double zM = yM + yD * eF + yI * eF;
-	    double zD = yM + yD + yI * eF;
+	    double zM = yM + yD * eF + yI * eFI;
+	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
 	    if( globality ){
 	      if( isDelimiter(0, *p2) ||
@@ -414,7 +414,7 @@ namespace cbrc{
 	    }
 	    *bM2 = zM * scale12;
 	    *bD1 = zD * seE;
-	    *bI1 = zI * seE;
+	    *bI1 = zI * seEI;
 
 	    double prob = *fM2 * *bM2;
 	    *pp0 = prob;
@@ -775,7 +775,7 @@ namespace cbrc{
 	  while (1) { // inner most loop
 	    const double xM = *fM2 * scale12;
 	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seE;
+	    const double xI = *fI1 * seEI;
 	    const double yM = *bM0 * ( *p2 )[ *s1 ];
 	    const double yD = *bD0;
 	    const double yI = *bI0;
@@ -785,8 +785,8 @@ namespace cbrc{
 	    c.IM += xI * yM;
 	    c.MD += xM * yD * eF;
 	    c.DD += xD * yD;
-	    c.MI += xM * yI * eF;
-	    c.DI += xD * yI * eF;
+	    c.MI += xM * yI * eFI;
+	    c.DI += xD * yI * eFI;
 	    c.II += xI * yI;
 	    if (bM0 == bM0last) break;
 	    fM2++; fD1++; fI1++;
