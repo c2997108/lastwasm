@@ -392,8 +392,8 @@ namespace cbrc{
 	    double probi = *fI1 * *bI1;
 	    mD[ i ] += probd;
 	    mI[ j ] += probi;
-	    mX1 [ i ] -= ( prob + probd );
-	    mX2 [ j ] -= ( prob + probi );
+	    mX1 [ i ] -= prob;
+	    mX2 [ j ] -= prob;
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
@@ -433,8 +433,8 @@ namespace cbrc{
 	    double probp = *fP2 * *bP2;
 	    mD[ i ] += probd + probp;
 	    mI[ j ] += probi + probp;
-	    mX1 [ i ] -= ( prob + probd + probp );
-	    mX2 [ j ] -= ( prob + probi + probp );
+	    mX1 [ i ] -= prob;
+	    mX2 [ j ] -= prob;
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
@@ -474,8 +474,8 @@ namespace cbrc{
 	    double probi = *fI1 * *bI1;
 	    mD[ i ] += probd;
 	    mI[ j ] += probi;
-	    mX1 [ i ] -= ( prob + probd );
-	    mX2 [ j ] -= ( prob + probi );
+	    mX1 [ i ] -= prob;
+	    mX2 [ j ] -= prob;
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
@@ -515,8 +515,8 @@ namespace cbrc{
 	    double probp = *fP2 * *bP2;
 	    mD[ i ] += probd + probp;
 	    mI[ j ] += probi + probp;
-	    mX1 [ i ] -= ( prob + probd + probp );
-	    mX2 [ j ] -= ( prob + probi + probp );
+	    mX1 [ i ] -= prob;
+	    mX2 [ j ] -= prob;
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
@@ -632,11 +632,13 @@ namespace cbrc{
 
       do{
 	const double matchProb = (*fM2++) * (*bM2++);
-	const double thisXD = mX1[seq1pos];
-	const double thisXI = mX2[seq2pos];
+	const double thisD = mD[seq1pos];
+	const double thisI = mI[seq2pos];
+	const double thisXD = mX1[seq1pos] - thisD;
+	const double thisXI = mX2[seq2pos] - thisI;
 	const double s = 2 * gamma * matchProb - (thisXD + thisXI);
-	const double u = gamma * mD[ seq1pos ] - thisXD;
-	const double t = gamma * mI[ seq2pos ] - thisXI;
+	const double u = gamma * thisD - thisXD;
+	const double t = gamma * thisI - thisXI;
 	const double oldX1 = *X1++;  // Added by MCF
 	const double score = std::max( std::max( oldX1 + u, *X1 + t), *X2++ + s );
 	updateScore ( score, k, seq1pos );
@@ -663,11 +665,13 @@ namespace cbrc{
       const size_t v = xa.vert( k, i );
       const size_t d = xa.diag( k, i );
       const double matchProb = fM[d] * bM[d];
-      const double thisXD = mX1[i];
-      const double thisXI = mX2[j];
+      const double thisD = mD[i];
+      const double thisI = mI[j];
+      const double thisXD = mX1[i] - thisD;
+      const double thisXI = mX2[j] - thisI;
       const double s = 2 * gamma * matchProb - (thisXD + thisXI);
-      const double t = gamma * mI[ j ] - thisXI;
-      const double u = gamma * mD[ i ] - thisXD;
+      const double t = gamma * thisI - thisXI;
+      const double u = gamma * thisD - thisXD;
       const int m = maxIndex( X[d] + s, X[h] + u, X[v] + t );
       if( m == 0 ){
 	k -= 2;
