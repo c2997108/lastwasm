@@ -241,12 +241,11 @@ namespace cbrc{
 	    s2 -= seqIncrement;
 	  }
 	}
-      } // end: if (! isPssm)
-      else {
+      } else {
 	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
 	if (isAffine) {
-	  while (1) { // start: inner most loop
+	  while (1) {
 	    const double xM = *fM2 * scale12;
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
@@ -263,9 +262,9 @@ namespace cbrc{
 	    fM2++; fD1++; fI1++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
-	  }	// end: inner most loop
-	}else{
-	  while (1) { // start: inner most loop
+	  }
+	} else {
+	  while (1) {
 	    const double xM = *fM2 * scale12;
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
@@ -284,13 +283,15 @@ namespace cbrc{
 	    fM2++; fD1++; fI1++; fP2++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
-	  }	// end: inner most loop
+	  }
 	}
       }
+
       if( !globality ) Z += sum_f;
       scale[k+2] = sum_f + 1.0;  // seems ugly
       Z /= scale[k+2]; // scaling
     } // k
+
     //std::cout << "# Z=" << Z << std::endl;
     assert( Z > 0.0 );
     scale[ numAntidiagonals + 1 ] *= Z;  // this causes scaled Z to equal 1
@@ -357,7 +358,8 @@ namespace cbrc{
 
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
 
-      int i = seq1beg; int j = seq2pos;
+      double* mDout = &mD[ seq1beg ];
+      double* mIout = &mI[ seq2pos ];
 
       const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
 
@@ -384,13 +386,11 @@ namespace cbrc{
 	    *bD1 = zD * seE;
 	    *bI1 = zI * seEI;
 
-	    double probd = *fD1 * *bD1;
-	    double probi = *fI1 * *bI1;
-	    mD[ i ] += probd;
-	    mI[ j ] += probi;
+	    *mDout += (*fD1) * (*bD1);
+	    *mIout += (*fI1) * (*bI1);
 
 	    if (bM0 == bM0last) break;
-	    i++; j--;
+	    mDout++; mIout--;
 	    bM2++; bD1++; bI1++;
 	    bM0++; bD0++; bI0++;
 	    fD1++; fI1++;
@@ -421,14 +421,12 @@ namespace cbrc{
 	    *bI1 = zI * seEI;
 	    *bP2 = zP * seP;
 
-	    double probd = *fD1 * *bD1;
-	    double probi = *fI1 * *bI1;
 	    double probp = *fP2 * *bP2;
-	    mD[ i ] += probd + probp;
-	    mI[ j ] += probi + probp;
+	    *mDout += (*fD1) * (*bD1) + probp;
+	    *mIout += (*fI1) * (*bI1) + probp;
 
 	    if (bM0 == bM0last) break;
-	    i++; j--;
+	    mDout++; mIout--;
 	    bM2++; bD1++; bI1++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    fD1++; fI1++; fP2++;
@@ -436,12 +434,11 @@ namespace cbrc{
 	    s2 -= seqIncrement;
 	  }
 	}
-      }
-      else {
+      } else {
 	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
 
 	if (isAffine) {
-	  while (1) { // inner most loop
+	  while (1) {
 	    double yM = *bM0 * ( *p2 )[ *s1 ];
 	    double yD = *bD0;
 	    double yI = *bI0;
@@ -460,20 +457,18 @@ namespace cbrc{
 	    *bD1 = zD * seE;
 	    *bI1 = zI * seEI;
 
-	    double probd = *fD1 * *bD1;
-	    double probi = *fI1 * *bI1;
-	    mD[ i ] += probd;
-	    mI[ j ] += probi;
+	    *mDout += (*fD1) * (*bD1);
+	    *mIout += (*fI1) * (*bI1);
 
 	    if (bM0 == bM0last) break;
-	    i++; j--;
+	    mDout++; mIout--;
 	    bM2++; bD1++; bI1++;
 	    bM0++; bD0++; bI0++;
 	    fD1++; fI1++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }
-	}else{
+	} else {
 	  while (1) {
 	    double yM = *bM0 * ( *p2 )[ *s1 ];
 	    double yD = *bD0;
@@ -497,14 +492,12 @@ namespace cbrc{
 	    *bI1 = zI * seEI;
 	    *bP2 = zP * seP;
 
-	    double probd = *fD1 * *bD1;
-	    double probi = *fI1 * *bI1;
 	    double probp = *fP2 * *bP2;
-	    mD[ i ] += probd + probp;
-	    mI[ j ] += probi + probp;
+	    *mDout += (*fD1) * (*bD1) + probp;
+	    *mIout += (*fI1) * (*bI1) + probp;
 
 	    if (bM0 == bM0last) break;
-	    i++; j--;
+	    mDout++; mIout--;
 	    bM2++; bD1++; bI1++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    fD1++; fI1++; fP2++;
