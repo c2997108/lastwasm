@@ -167,11 +167,11 @@ namespace cbrc{
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      double sum_f = 0.0; // sum of forward values
       const size_t seq1beg = seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale12 = 1.0 / ( scale[k+1] * scale[k] );
-      const double scale1  = 1.0 / scale[k+1];
+      const double scale12 = scale[k+1] * scale[k];
+      const double scale1  = scale[k+1];
+      double sum_f = 0.0; // sum of forward values
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
@@ -288,13 +288,13 @@ namespace cbrc{
       }
 
       if( !globality ) Z += sum_f;
-      scale[k+2] = sum_f + 1.0;  // seems ugly
-      Z /= scale[k+2]; // scaling
+      scale[k+2] = 1.0 / (sum_f + 1.0);  // seems ugly
+      Z *= scale[k+2]; // scaling
     } // k
 
     //std::cout << "# Z=" << Z << std::endl;
     assert( Z > 0.0 );
-    scale[ numAntidiagonals + 1 ] *= Z;  // this causes scaled Z to equal 1
+    scale[ numAntidiagonals + 1 ] /= Z;  // this causes scaled Z to equal 1
   }
 
   // added by M. Hamada
@@ -330,9 +330,9 @@ namespace cbrc{
     for( size_t k = numAntidiagonals; k-- > 0; ){
       const size_t seq1beg = seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale12 = 1.0 / ( scale[k+1] * scale[k] );
-      const double scale1  = 1.0 / scale[k+1];
-      scaledUnit /= scale[k+2];
+      const double scale12 = scale[k+1] * scale[k];
+      const double scale1  = scale[k+1];
+      scaledUnit *= scale[k+2];
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
@@ -740,7 +740,7 @@ namespace cbrc{
   double Centroid::logPartitionFunction() const{
     double x = 0.0;
     for( size_t k = 0; k < numAntidiagonals; ++k ){
-      x += std::log( scale[k+2] );
+      x -= std::log( scale[k+2] );
     }
     return T * x;
   }
@@ -772,8 +772,8 @@ namespace cbrc{
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale12 = 1.0 / ( scale[k+1] * scale[k] );
-      const double scale1  = 1.0 / scale[k+1];
+      const double scale12 = scale[k+1] * scale[k];
+      const double scale1  = scale[k+1];
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
