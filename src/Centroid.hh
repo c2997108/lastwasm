@@ -101,8 +101,6 @@ namespace cbrc{
     dvec_t bI; // b^I(i,j)
     dvec_t bP; // b^P(i,j)
 
-    dvec_t pp; // posterior match probabilities
-
     dvec_t mD;
     dvec_t mI;
     dvec_t mX1;
@@ -126,12 +124,6 @@ namespace cbrc{
     // before the x-drop region) for this antidiagonal
     size_t seq1start( size_t antidiagonal ) const {
       return xa.scoreEndIndex( antidiagonal ) - xa.scoreOrigin( antidiagonal );
-    }
-
-    // get DP matrix value at the given position
-    double cellx( const dvec_t& matrix,
-                  size_t antiDiagonal, size_t seq1pos ) const{
-      return matrix[ xa.scoreOrigin( antiDiagonal ) + seq1pos ];
     }
 
     // get a pointer into a sequence, taking start and direction into account

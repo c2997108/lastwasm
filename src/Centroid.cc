@@ -110,7 +110,6 @@ namespace cbrc{
   }
 
   void Centroid::initBackwardMatrix(){
-    pp.resize( fM.size() );
     mD.assign( numAntidiagonals + 2, 0.0 );
     mI.assign( numAntidiagonals + 2, 0.0 );
     mX1.assign ( numAntidiagonals + 2, 1.0 );
@@ -301,7 +300,6 @@ namespace cbrc{
 
   // added by M. Hamada
   // compute posterior probabilities while executing backward algorithm
-  // posterior probabilities are stored in pp
   void Centroid::backward( const uchar* seq1, const uchar* seq2,
 			   size_t start1, size_t start2,
 			   bool isForward, int globality,
@@ -347,8 +345,6 @@ namespace cbrc{
       const double* bI0 = &bI[ scoreEnd + 1 ];
       const double* bP0 = &bP[ scoreEnd + 1 ];
 
-      double* pp0 = &pp[ scoreEnd ];
-
       const size_t horiBeg = xa.hori( k, seq1beg );
       const size_t vertBeg = xa.vert( k, seq1beg );
       const size_t diagBeg = xa.diag( k, seq1beg );
@@ -392,7 +388,6 @@ namespace cbrc{
 	    *bI1 = zI * seEI;
 
 	    double prob = *fM2 * *bM2;
-	    *pp0 = prob;
 	    double probd = *fD1 * *bD1;
 	    double probi = *fI1 * *bI1;
 	    mD[ i ] += probd;
@@ -405,7 +400,6 @@ namespace cbrc{
 	    bM2++; bD1++; bI1++;
 	    bM0++; bD0++; bI0++;
 	    fM2++; fD1++; fI1++;
-	    pp0++;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;
 	  }
@@ -434,7 +428,6 @@ namespace cbrc{
 	    *bP2 = zP * seP;
 
 	    double prob = *fM2 * *bM2;
-	    *pp0 = prob;
 	    double probd = *fD1 * *bD1;
 	    double probi = *fI1 * *bI1;
 	    double probp = *fP2 * *bP2;
@@ -448,7 +441,6 @@ namespace cbrc{
 	    bM2++; bD1++; bI1++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    fM2++; fD1++; fI1++; fP2++;
-	    pp0++;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;
 	  }
@@ -478,7 +470,6 @@ namespace cbrc{
 	    *bI1 = zI * seEI;
 
 	    double prob = *fM2 * *bM2;
-	    *pp0 = prob;
 	    double probd = *fD1 * *bD1;
 	    double probi = *fI1 * *bI1;
 	    mD[ i ] += probd;
@@ -491,7 +482,6 @@ namespace cbrc{
 	    bM2++; bD1++; bI1++;
 	    bM0++; bD0++; bI0++;
 	    fM2++; fD1++; fI1++;
-	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }
@@ -520,7 +510,6 @@ namespace cbrc{
 	    *bP2 = zP * seP;
 
 	    double prob = *fM2 * *bM2;
-	    *pp0 = prob;
 	    double probd = *fD1 * *bD1;
 	    double probi = *fI1 * *bI1;
 	    double probp = *fP2 * *bP2;
@@ -534,7 +523,6 @@ namespace cbrc{
 	    bM2++; bD1++; bI1++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    fM2++; fD1++; fI1++; fP2++;
-	    pp0++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }
@@ -567,7 +555,6 @@ namespace cbrc{
     for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
-      const double* P0 = &pp[ scoreEnd ];
       size_t seq1pos = seq1start( k );
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
@@ -575,11 +562,13 @@ namespace cbrc{
       const size_t d = xa.diag( k, seq1pos );
       const double* X1 = &X[h];
       const double* X2 = &X[d];
+      const double* fM2 = &fM[d];
+      const double* bM2 = &bM[d];
 
       *X0++ = -DINF;		// add one pad cell
 
       do{
-	const double matchProb = *P0++;
+	const double matchProb = (*fM2++) * (*bM2++);
 	const double s = ( gamma + 1 ) * matchProb - 1;
 	const double oldX1 = *X1++;  // Added by MCF
 	const double score = std::max( std::max( oldX1, *X1 ), *X2++ + s );
@@ -604,7 +593,7 @@ namespace cbrc{
       const size_t h = xa.hori( k, i );
       const size_t v = xa.vert( k, i );
       const size_t d = xa.diag( k, i );
-      const double matchProb = cellx( pp, k, i );
+      const double matchProb = fM[d] * bM[d];
       const int m = maxIndex( X[d] + (gamma + 1) * matchProb - 1, X[h], X[v] );
       if( m == 0 ){
 	k -= 2;
@@ -628,7 +617,6 @@ namespace cbrc{
     for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
-      const double* P0 = &pp[ scoreEnd ];
       size_t seq1pos = seq1start( k );
       size_t seq2pos = k - seq1pos;
 
@@ -637,11 +625,13 @@ namespace cbrc{
       const size_t d = xa.diag( k, seq1pos );
       const double* X1 = &X[h];
       const double* X2 = &X[d];
+      const double* fM2 = &fM[d];
+      const double* bM2 = &bM[d];
 
       *X0++ = -DINF;		// add one pad cell
 
       do{
-	const double matchProb = *P0++;
+	const double matchProb = (*fM2++) * (*bM2++);
 	const double thisXD = mX1[seq1pos];
 	const double thisXI = mX2[seq2pos];
 	const double s = 2 * gamma * matchProb - (thisXD + thisXI);
@@ -672,7 +662,7 @@ namespace cbrc{
       const size_t h = xa.hori( k, i );
       const size_t v = xa.vert( k, i );
       const size_t d = xa.diag( k, i );
-      const double matchProb = cellx( pp, k, i );
+      const double matchProb = fM[d] * bM[d];
       const double thisXD = mX1[i];
       const double thisXI = mX2[j];
       const double s = 2 * gamma * matchProb - (thisXD + thisXI);
@@ -726,7 +716,8 @@ namespace cbrc{
       size_t seq2pos = i->end2();
 
       for( size_t j = 0; j < i->size; ++j ){
-	double p = cellx( pp, seq1pos + seq2pos, seq1pos );
+	size_t d = xa.diag( seq1pos + seq2pos, seq1pos );
+	double p = fM[d] * bM[d];
 	ambiguityCodes.push_back( asciiProbability(p) );
 	--seq1pos;
 	--seq2pos;
