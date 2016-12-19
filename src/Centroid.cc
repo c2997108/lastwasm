@@ -112,8 +112,6 @@ namespace cbrc{
   void Centroid::initBackwardMatrix(){
     mD.assign( numAntidiagonals + 2, 0.0 );
     mI.assign( numAntidiagonals + 2, 0.0 );
-    mX1.assign ( numAntidiagonals + 2, 1.0 );
-    mX2.assign ( numAntidiagonals + 2, 1.0 );
 
     size_t n = xa.scoreEndIndex( numAntidiagonals );
     bM.assign( n, 0.0 );
@@ -353,7 +351,6 @@ namespace cbrc{
       double* bM2 = &bM[ diagBeg ];
       double* bP2 = &bP[ diagBeg ];
 
-      const double* fM2 = &fM[ diagBeg ];
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ vertBeg ];
       const double* fP2 = &fP[ diagBeg ];
@@ -387,19 +384,16 @@ namespace cbrc{
 	    *bD1 = zD * seE;
 	    *bI1 = zI * seEI;
 
-	    double prob = *fM2 * *bM2;
 	    double probd = *fD1 * *bD1;
 	    double probi = *fI1 * *bI1;
 	    mD[ i ] += probd;
 	    mI[ j ] += probi;
-	    mX1 [ i ] -= prob;
-	    mX2 [ j ] -= prob;
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
 	    bM2++; bD1++; bI1++;
 	    bM0++; bD0++; bI0++;
-	    fM2++; fD1++; fI1++;
+	    fD1++; fI1++;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;
 	  }
@@ -427,20 +421,17 @@ namespace cbrc{
 	    *bI1 = zI * seEI;
 	    *bP2 = zP * seP;
 
-	    double prob = *fM2 * *bM2;
 	    double probd = *fD1 * *bD1;
 	    double probi = *fI1 * *bI1;
 	    double probp = *fP2 * *bP2;
 	    mD[ i ] += probd + probp;
 	    mI[ j ] += probi + probp;
-	    mX1 [ i ] -= prob;
-	    mX2 [ j ] -= prob;
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
 	    bM2++; bD1++; bI1++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
-	    fM2++; fD1++; fI1++; fP2++;
+	    fD1++; fI1++; fP2++;
 	    s1 += seqIncrement;
 	    s2 -= seqIncrement;
 	  }
@@ -469,19 +460,16 @@ namespace cbrc{
 	    *bD1 = zD * seE;
 	    *bI1 = zI * seEI;
 
-	    double prob = *fM2 * *bM2;
 	    double probd = *fD1 * *bD1;
 	    double probi = *fI1 * *bI1;
 	    mD[ i ] += probd;
 	    mI[ j ] += probi;
-	    mX1 [ i ] -= prob;
-	    mX2 [ j ] -= prob;
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
 	    bM2++; bD1++; bI1++;
 	    bM0++; bD0++; bI0++;
-	    fM2++; fD1++; fI1++;
+	    fD1++; fI1++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }
@@ -509,20 +497,17 @@ namespace cbrc{
 	    *bI1 = zI * seEI;
 	    *bP2 = zP * seP;
 
-	    double prob = *fM2 * *bM2;
 	    double probd = *fD1 * *bD1;
 	    double probi = *fI1 * *bI1;
 	    double probp = *fP2 * *bP2;
 	    mD[ i ] += probd + probp;
 	    mI[ j ] += probi + probp;
-	    mX1 [ i ] -= prob;
-	    mX2 [ j ] -= prob;
 
 	    if (bM0 == bM0last) break;
 	    i++; j--;
 	    bM2++; bD1++; bI1++; bP2++;
 	    bM0++; bD0++; bI0++; bP0++;
-	    fM2++; fD1++; fI1++; fP2++;
+	    fD1++; fI1++; fP2++;
 	    s1 += seqIncrement;
 	    p2 -= seqIncrement;
 	  }
@@ -613,6 +598,21 @@ namespace cbrc{
   double Centroid::dp_ama( double gamma ){
 
     initDecodingMatrix();
+
+    mX1.assign ( numAntidiagonals + 2, 1.0 );
+    mX2.assign ( numAntidiagonals + 2, 1.0 );
+
+    for (size_t k = 0; k < numAntidiagonals; ++k) {
+      size_t seq1pos = seq1start(k);
+      size_t seq2pos = k - seq1pos;
+      size_t loopBeg = xa.diag(k, seq1pos);
+      size_t loopEnd = loopBeg + xa.numCellsAndPads(k) - 1;
+      for (size_t i = loopBeg; i < loopEnd; ++i) {
+	const double matchProb = fM[i] * bM[i];
+	mX1[seq1pos++] -= matchProb;
+	mX2[seq2pos--] -= matchProb;
+      }
+    }
 
     for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );
