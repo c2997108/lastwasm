@@ -568,22 +568,25 @@ namespace cbrc{
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
-      size_t cur = seq1start( k );
+      size_t seq1pos = seq1start( k );
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
-      const double* X1 = &X[xa.hori(k, cur)];
-      const double* X2 = &X[xa.diag(k, cur)];
+      const size_t h = xa.hori( k, seq1pos );
+      const size_t d = xa.diag( k, seq1pos );
+      const double* X1 = &X[h];
+      const double* X2 = &X[d];
 
       *X0++ = -DINF;		// add one pad cell
 
       do{
-	const double s = ( gamma + 1 ) * ( *P0++ ) - 1;
+	const double matchProb = *P0++;
+	const double s = ( gamma + 1 ) * matchProb - 1;
 	const double oldX1 = *X1++;  // Added by MCF
 	const double score = std::max( std::max( oldX1, *X1 ), *X2++ + s );
 	//assert ( score >= 0 );
-	updateScore ( score, k, cur );
+	updateScore ( score, k, seq1pos );
 	*X0++ = score;
-	cur++;
+	seq1pos++;
       }while( X0 != x0end );
     }
     return bestScore;
@@ -598,10 +601,11 @@ namespace cbrc{
     size_t oldPos1 = i;
 
     while( k > 0 ){
-      const int m =
-	maxIndex( diagx( X, k, i ) + ( gamma + 1 ) * cellx( pp, k, i ) - 1,
-                  horix( X, k, i ),
-                  vertx( X, k, i ) );
+      const size_t h = xa.hori( k, i );
+      const size_t v = xa.vert( k, i );
+      const size_t d = xa.diag( k, i );
+      const double matchProb = cellx( pp, k, i );
+      const int m = maxIndex( X[d] + (gamma + 1) * matchProb - 1, X[h], X[v] );
       if( m == 0 ){
 	k -= 2;
 	i -= 1;
@@ -625,24 +629,29 @@ namespace cbrc{
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
       const double* P0 = &pp[ scoreEnd ];
-      size_t cur = seq1start( k );
-      size_t seq2pos = k - cur;
+      size_t seq1pos = seq1start( k );
+      size_t seq2pos = k - seq1pos;
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
-      const double* X1 = &X[ xa.hori(k, cur) ];
-      const double* X2 = &X[ xa.diag(k, cur) ];
+      const size_t h = xa.hori( k, seq1pos );
+      const size_t d = xa.diag( k, seq1pos );
+      const double* X1 = &X[h];
+      const double* X2 = &X[d];
 
       *X0++ = -DINF;		// add one pad cell
 
       do{
-	const double s = 2 * gamma * *P0++ - ( mX1[ cur ] + mX2[ seq2pos ] );
+	const double matchProb = *P0++;
+	const double thisXD = mX1[seq1pos];
+	const double thisXI = mX2[seq2pos];
+	const double s = 2 * gamma * matchProb - (thisXD + thisXI);
+	const double u = gamma * mD[ seq1pos ] - thisXD;
+	const double t = gamma * mI[ seq2pos ] - thisXI;
 	const double oldX1 = *X1++;  // Added by MCF
-	const double u = gamma * mD[ cur ] - mX1[ cur ];
-	const double t = gamma * mI[ seq2pos ] - mX2[ seq2pos ];
 	const double score = std::max( std::max( oldX1 + u, *X1 + t), *X2++ + s );
-	updateScore ( score, k, cur );
+	updateScore ( score, k, seq1pos );
 	*X0++ = score;
-	cur++;
+	seq1pos++;
 	seq2pos--;
       }while( X0 != x0end );
     }
@@ -660,13 +669,16 @@ namespace cbrc{
 
     while( k > 0 ){
       const size_t j = k - i;
-      const double s = 2 * gamma * cellx( pp, k, i ) - ( mX1[ i ] + mX2[ j ] );
-      const double t = gamma * mI[ j ] - mX2[ j ];
-      const double u = gamma * mD[ i ] - mX1[ i ];
-      const int m =
-	maxIndex( diagx( X, k, i ) + s,
-                  horix( X, k, i ) + u,
-                  vertx( X, k, i ) + t );
+      const size_t h = xa.hori( k, i );
+      const size_t v = xa.vert( k, i );
+      const size_t d = xa.diag( k, i );
+      const double matchProb = cellx( pp, k, i );
+      const double thisXD = mX1[i];
+      const double thisXI = mX2[j];
+      const double s = 2 * gamma * matchProb - (thisXD + thisXI);
+      const double t = gamma * mI[ j ] - thisXI;
+      const double u = gamma * mD[ i ] - thisXD;
+      const int m = maxIndex( X[d] + s, X[h] + u, X[v] + t );
       if( m == 0 ){
 	k -= 2;
 	i -= 1;

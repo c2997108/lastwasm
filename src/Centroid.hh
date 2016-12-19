@@ -134,24 +134,6 @@ namespace cbrc{
       return matrix[ xa.scoreOrigin( antiDiagonal ) + seq1pos ];
     }
 
-    // get DP matrix value "left of" the given position
-    double horix( const dvec_t& matrix,
-                  size_t antiDiagonal, size_t seq1pos ) const{
-      return matrix[ xa.hori( antiDiagonal, seq1pos ) ];
-    }
-
-    // get DP matrix value "above" the given position
-    double vertx( const dvec_t& matrix,
-                  size_t antiDiagonal, size_t seq1pos ) const{
-      return matrix[ xa.vert( antiDiagonal, seq1pos ) ];
-    }
-
-    // get DP matrix value "diagonal from" the given position
-    double diagx( const dvec_t& matrix,
-                  size_t antiDiagonal, size_t seq1pos ) const{
-      return matrix[ xa.diag( antiDiagonal, seq1pos ) ];
-    }
-
     // get a pointer into a sequence, taking start and direction into account
     template < typename T >
     static const T* seqPtr( const T* seq, bool isForward, size_t pos ){
@@ -160,5 +142,6 @@ namespace cbrc{
     }
   };
 
-}  // end namespace cbrc
-#endif  // CENTROID_HH
+}
+
+#endif
