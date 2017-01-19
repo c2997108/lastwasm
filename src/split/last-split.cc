@@ -77,9 +77,10 @@ static void printSense(double senseStrandLogOdds) {
 
 static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       const cbrc::UnsplitAlignment& a,
+			       unsigned numOfParts, unsigned partNum,
 			       unsigned alnNum,
 			       unsigned qSliceBeg, unsigned qSliceEnd,
-			       double senseStrandLogOdds,
+			       bool isSenseStrand, double senseStrandLogOdds,
 			       const LastSplitOptions& opts,
 			       bool isAlreadySplit) {
   unsigned alnBeg, alnEnd;
@@ -128,6 +129,17 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   std::cout << std::setprecision(mismapPrecision)
 	    << "a score=" << score << " mismap=" << mismap;
   if (opts.direction == 2) printSense(senseStrandLogOdds);
+  if (!opts.genome.empty() && !opts.no_split) {
+    char signal[3] = {0};
+    if (partNum > 0) {
+      sa.spliceEndSignal(signal, alnNum, qSliceBeg, isSenseStrand);
+      std::cout << (isSenseStrand ? " acc=" : " don=") << signal;
+    }
+    if (partNum + 1 < numOfParts) {
+      sa.spliceBegSignal(signal, alnNum, qSliceEnd, isSenseStrand);
+      std::cout << (isSenseStrand ? " don=" : " acc=") << signal;
+    }
+  }
   std::cout << "\n" << std::setprecision(6);
 
   if (a.qstrand == '-') cbrc::flipMafStrands(s.begin(), s.end());
@@ -169,8 +181,9 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     if (opts.verbose) std::cerr << "\n";
     unsigned numOfParts = end - beg;
     for (unsigned i = 0; i < numOfParts; ++i) {
-      doOneAlignmentPart(sa, beg[i], i, beg[i].qstart, beg[i].qend,
-			 senseStrandLogOdds, opts, isAlreadySplit);
+      doOneAlignmentPart(sa, beg[i], numOfParts, i, i,
+			 beg[i].qstart, beg[i].qend,
+			 true, senseStrandLogOdds, opts, isAlreadySplit);
     }
   } else {
     long viterbiScore = LONG_MIN;
@@ -204,8 +217,10 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     unsigned numOfParts = alnNums.size();
     for (unsigned k = 0; k < numOfParts; ++k) {
       unsigned i = alnNums[k];
-      doOneAlignmentPart(sa, beg[i], i, queryBegs[k], queryEnds[k],
-			 senseStrandLogOdds, opts, isAlreadySplit);
+      doOneAlignmentPart(sa, beg[i], numOfParts, k, i,
+			 queryBegs[k], queryEnds[k],
+			 isSenseStrand, senseStrandLogOdds,
+			 opts, isAlreadySplit);
     }
   }
 }

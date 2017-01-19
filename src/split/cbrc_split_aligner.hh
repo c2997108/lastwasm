@@ -107,6 +107,16 @@ public:
     // by flipSpliceSignals()
     double spliceSignalStrandLogOdds() const;
 
+    // Gets the 2 genome bases immediately downstream of queryPos in
+    // alnNum, and writes them into the buffer pointed to by "out"
+    void spliceBegSignal(char *out, unsigned alnNum, unsigned queryPos,
+			 bool isSenseStrand) const;
+
+    // Gets the 2 genome bases immediately upstream of queryPos in
+    // alnNum, and writes them into the buffer pointed to by "out"
+    void spliceEndSignal(char *out, unsigned alnNum, unsigned queryPos,
+			 bool isSenseStrand) const;
+
 private:
     static const int numQualCodes = 64;
     static int score_mat[64][64][numQualCodes];

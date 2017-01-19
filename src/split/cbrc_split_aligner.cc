@@ -749,6 +749,68 @@ void SplitAligner::initSpliceSignals(unsigned i) {
   }
 }
 
+const uchar sequenceEndSentinel = 4;
+
+static void getNextSignal(uchar *out, const uchar *seq) {
+  out[0] = seq[0];
+  out[1] = (seq[0] == sequenceEndSentinel) ? sequenceEndSentinel : seq[1];
+}
+
+static void getPrevSignal(uchar *out, const uchar *seq) {
+  out[1] = seq[-1];
+  out[0] = (seq[-1] == sequenceEndSentinel) ? sequenceEndSentinel : seq[-2];
+}
+
+static char decodeOneBase(const uchar *decode, uchar x) {
+  return (x == sequenceEndSentinel) ? 'N' : decode[x];
+}
+
+static void decodeSpliceSignal(char *out,
+			       const uchar *signal,
+			       const uchar *decode,
+			       const uchar *complement,
+			       bool isSameStrand) {
+  if (isSameStrand) {
+    out[0] = decodeOneBase(decode, signal[0]);
+    out[1] = decodeOneBase(decode, signal[1]);
+  } else {
+    out[0] = decodeOneBase(decode, complement[signal[1]]);
+    out[1] = decodeOneBase(decode, complement[signal[0]]);
+  }
+}
+
+void SplitAligner::spliceBegSignal(char *out,
+				   unsigned alnNum, unsigned queryPos,
+				   bool isSenseStrand) const {
+  const UnsplitAlignment& a = alns[alnNum];
+  bool isForwardStrand = (a.qstrand == '+');
+  StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
+  size_t v = f->second % maxGenomeVolumes();
+  size_t c = f->second / maxGenomeVolumes();
+  uchar signal[2];
+  unsigned coord = cell(spliceBegCoords, alnNum, queryPos);
+  if (isForwardStrand) getNextSignal(signal, seqBeg(genome[v], c) + coord);
+  else                 getPrevSignal(signal, seqEnd(genome[v], c) - coord);
+  decodeSpliceSignal(out, signal, alphabet.decode, alphabet.complement,
+		     isSenseStrand == isForwardStrand);
+}
+
+void SplitAligner::spliceEndSignal(char *out,
+				   unsigned alnNum, unsigned queryPos,
+				   bool isSenseStrand) const {
+  const UnsplitAlignment& a = alns[alnNum];
+  bool isForwardStrand = (a.qstrand == '+');
+  StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
+  size_t v = f->second % maxGenomeVolumes();
+  size_t c = f->second / maxGenomeVolumes();
+  uchar signal[2];
+  unsigned coord = cell(spliceEndCoords, alnNum, queryPos);
+  if (isForwardStrand) getPrevSignal(signal, seqBeg(genome[v], c) + coord);
+  else                 getNextSignal(signal, seqEnd(genome[v], c) - coord);
+  decodeSpliceSignal(out, signal, alphabet.decode, alphabet.complement,
+		     isSenseStrand == isForwardStrand);
+}
+
 struct RnameAndStrandLess {
   RnameAndStrandLess(const UnsplitAlignment *a) : alns(a) {}
 
