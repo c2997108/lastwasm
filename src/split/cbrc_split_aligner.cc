@@ -707,6 +707,14 @@ void SplitAligner::initSpliceCoords(unsigned i) {
   assert(k == a.rend);  // xxx
 }
 
+static const uchar *seqBeg(const MultiSequence &m, size_t sequenceIndex) {
+  return m.seqReader() + m.seqBeg(sequenceIndex);
+}
+
+static const uchar *seqEnd(const MultiSequence &m, size_t sequenceIndex) {
+  return m.seqReader() + m.seqEnd(sequenceIndex);
+}
+
 void SplitAligner::initSpliceSignals(unsigned i) {
   const uchar *toUnmasked = alphabet.numbersToUppercase;
   const UnsplitAlignment& a = alns[i];
@@ -716,8 +724,8 @@ void SplitAligner::initSpliceSignals(unsigned i) {
     err("can't find " + std::string(a.rname) + " in the genome");
   size_t v = f->second % maxGenomeVolumes();
   size_t c = f->second / maxGenomeVolumes();
-  const uchar *chromBeg = genome[v].seqReader() + genome[v].seqBeg(c);
-  const uchar *chromEnd = genome[v].seqReader() + genome[v].seqEnd(c);
+  const uchar *chromBeg = seqBeg(genome[v], c);
+  const uchar *chromEnd = seqEnd(genome[v], c);
   if (a.rend > chromEnd - chromBeg)
     err("alignment beyond the end of " + std::string(a.rname));
 

@@ -66,6 +66,15 @@ static bool less(const cbrc::UnsplitAlignment& a,
   return a.linesBeg < b.linesBeg;  // stabilizes the sort
 }
 
+static void printSense(double senseStrandLogOdds) {
+  double b = senseStrandLogOdds / std::log(2.0);
+  if (b < 0.1 && b > -0.1) b = 0;
+  else if (b > 10) b = std::floor(b + 0.5);
+  else if (b < -10) b = std::ceil(b - 0.5);
+  int precision = (b < 10 && b > -10) ? 2 : 3;
+  std::cout << std::setprecision(precision) << " sense=" << b;
+}
+
 static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       const cbrc::UnsplitAlignment& a,
 			       unsigned alnNum,
@@ -118,15 +127,9 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 
   std::cout << std::setprecision(mismapPrecision)
 	    << "a score=" << score << " mismap=" << mismap;
-  if (opts.direction == 2) {
-    double b = senseStrandLogOdds / std::log(2.0);
-    if (b < 0.1 && b > -0.1) b = 0;
-    else if (b > 10) b = std::floor(b + 0.5);
-    else if (b < -10) b = std::ceil(b - 0.5);
-    int sensePrecision = (b < 10 && b > -10) ? 2 : 3;
-    std::cout << std::setprecision(sensePrecision) << " sense=" << b;
-  }
+  if (opts.direction == 2) printSense(senseStrandLogOdds);
   std::cout << "\n" << std::setprecision(6);
+
   if (a.qstrand == '-') cbrc::flipMafStrands(s.begin(), s.end());
   if (opts.no_split && a.linesEnd[-1][0] == 'c') s.push_back(a.linesEnd[-1]);
   cbrc::printMaf(s);
@@ -164,7 +167,8 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
 
   if (opts.no_split) {
     if (opts.verbose) std::cerr << "\n";
-    for (unsigned i = 0; i < end - beg; ++i) {
+    unsigned numOfParts = end - beg;
+    for (unsigned i = 0; i < numOfParts; ++i) {
       doOneAlignmentPart(sa, beg[i], i, beg[i].qstart, beg[i].qend,
 			 senseStrandLogOdds, opts, isAlreadySplit);
     }
@@ -181,10 +185,11 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
       sa.flipSpliceSignals();
       if (opts.verbose) std::cerr << "\t" << viterbiScoreRev;
     }
+    bool isSenseStrand = (viterbiScore >= viterbiScoreRev);
     std::vector<unsigned> alnNums;
     std::vector<unsigned> queryBegs;
     std::vector<unsigned> queryEnds;
-    if (viterbiScore >= viterbiScoreRev) {
+    if (isSenseStrand) {
       sa.traceBack(viterbiScore, alnNums, queryBegs, queryEnds);
     } else {
       sa.flipSpliceSignals();
@@ -196,7 +201,8 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
     std::reverse(queryEnds.begin(), queryEnds.end());
 
     if (opts.verbose) std::cerr << "\n";
-    for (unsigned k = 0; k < alnNums.size(); ++k) {
+    unsigned numOfParts = alnNums.size();
+    for (unsigned k = 0; k < numOfParts; ++k) {
       unsigned i = alnNums[k];
       doOneAlignmentPart(sa, beg[i], i, queryBegs[k], queryEnds[k],
 			 senseStrandLogOdds, opts, isAlreadySplit);
