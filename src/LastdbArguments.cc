@@ -56,7 +56,7 @@ Main Options:\n\
 -p: interpret the sequences as proteins\n\
 -R: repeat-marking options (default="
     + stringify(isKeepLowercase) + stringify(tantanSetting) + ")\n\
--c: soft-mask lowercase letters\n\
+-c: soft-mask lowercase letters (in reference *and* query sequences)\n\
 -u: seeding scheme (default: YASS for DNA, else exact-match seeds)";
 
   std::string help = usage + "\n\
