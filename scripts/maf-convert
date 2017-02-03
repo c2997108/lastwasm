@@ -265,12 +265,10 @@ def pslCommaString(things):
     # UCSC software seems to prefer a trailing comma
     return ",".join(map(str, things)) + ","
 
-def pslEnds(headMafFields, tailMafFields):
-    seqName, seqLen, strand, letterSize, beg = headMafFields[0:5]
-    end = tailMafFields[5]
+def pslEnds(seqLen, strand, beg, end):
     if strand == "-":
-        beg, end = seqLen - end, seqLen - beg
-    return seqName, seqLen, strand, letterSize, beg, end
+        return seqLen - end, seqLen - beg
+    return beg, end
 
 def writePsl(opts, mafs):
     matchCounts = [0] * 4
@@ -278,13 +276,19 @@ def writePsl(opts, mafs):
     matches, mismatches, repMatches, nCount = matchCounts
     numGaplessColumns = sum(matchCounts)
 
-    headA, headB = mafs[0][1]
-    tailA, tailB = mafs[-1][1]
+    if not blocks:
+        return
 
-    seqNameA, seqLenA, strandA, letterSizeA, begA, endA = pslEnds(headA, tailA)
+    fieldsA, fieldsB = mafs[0][1]
+    headSize, headBegA, headBegB = blocks[0]
+    tailSize, tailBegA, tailBegB = blocks[-1]
+
+    seqNameA, seqLenA, strandA, letterSizeA = fieldsA[0:4]
+    begA, endA = pslEnds(seqLenA, strandA, headBegA, tailBegA + tailSize)
     baseInsertA = endA - begA - numGaplessColumns * letterSizeA
 
-    seqNameB, seqLenB, strandB, letterSizeB, begB, endB = pslEnds(headB, tailB)
+    seqNameB, seqLenB, strandB, letterSizeB = fieldsB[0:4]
+    begB, endB = pslEnds(seqLenB, strandB, headBegB, tailBegB + tailSize)
     baseInsertB = endB - begB - numGaplessColumns * letterSizeB
 
     numInsertA, numInsertB = pslNumInserts(blocks, letterSizeA, letterSizeB)
