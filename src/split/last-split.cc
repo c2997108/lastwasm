@@ -83,21 +83,26 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       bool isSenseStrand, double senseStrandLogOdds,
 			       const LastSplitOptions& opts,
 			       bool isAlreadySplit) {
+  unsigned qSliceBegTrimmed = qSliceBeg;
+  unsigned qSliceEndTrimmed = qSliceEnd;
   unsigned alnBeg, alnEnd;
-  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, alnBeg);
-  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEnd, alnEnd);
+  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBegTrimmed, alnBeg);
+  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEndTrimmed, alnEnd);
 
-  int score = sa.segmentScore(alnNum, qSliceBeg, qSliceEnd);
+  int score =
+    sa.segmentScore(alnNum, qSliceBeg, qSliceEnd) -
+    sa.segmentScore(alnNum, qSliceBeg, qSliceBegTrimmed) -
+    sa.segmentScore(alnNum, qSliceEndTrimmed, qSliceEnd);
   if (score < opts.score) return;
 
   std::vector<double> p;
   if (opts.direction != 0) {
-    p = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
+    p = sa.marginalProbs(qSliceBegTrimmed, alnNum, alnBeg, alnEnd);
   }
   std::vector<double> pRev;
   if (opts.direction != 1) {
     sa.flipSpliceSignals();
-    pRev = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
+    pRev = sa.marginalProbs(qSliceBegTrimmed, alnNum, alnBeg, alnEnd);
     sa.flipSpliceSignals();
   }
   if (opts.direction == 0) p.swap(pRev);
