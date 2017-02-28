@@ -117,12 +117,12 @@ def get_text_sizes(my_strings, font, fontsize, image_mode):
 
 def get_seq_info(seq_size_dic, font, fontsize, image_mode):
     '''Return miscellaneous information about the sequences.'''
-    seq_names = seq_size_dic.keys()
-    seq_names.sort(key=natural_sort_key)
-    seq_sizes = [seq_size_dic[i] for i in seq_names]
-    name_sizes = get_text_sizes(seq_names, font, fontsize, image_mode)
+    seqNames = seq_size_dic.keys()
+    seqNames.sort(key=natural_sort_key)
+    seq_sizes = [seq_size_dic[i] for i in seqNames]
+    name_sizes = get_text_sizes(seqNames, font, fontsize, image_mode)
     margin = max(zip(*name_sizes)[1])  # maximum text height
-    return seq_names, seq_sizes, name_sizes, margin
+    return seqNames, seq_sizes, name_sizes, margin
 
 def div_ceil(x, y):
     '''Return x / y rounded up.'''
@@ -258,14 +258,14 @@ def get_nonoverlapping_labels(labels, label_space):
             nonoverlapping_labels.append(i)
     return nonoverlapping_labels
 
-def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix,
+def get_axis_image(seqNames, name_sizes, seq_starts, seq_pix,
                    font, image_mode, opts):
     '''Make an image of axis labels.'''
     min_pos = seq_starts[0]
     max_pos = seq_starts[-1] + seq_pix[-1]
     height = max(zip(*name_sizes)[1])
     labels = [make_label(i, j, k, l) for i, j, k, l in
-              zip(seq_names, name_sizes, seq_starts, seq_pix)]
+              zip(seqNames, name_sizes, seq_starts, seq_pix)]
     labels = [i for i in labels if i[1] >= min_pos and i[2] <= max_pos]
     labels.sort()
     labels = get_nonoverlapping_labels(labels, opts.label_space)
@@ -277,8 +277,8 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix,
         draw.text(position, i[3], font=font, fill=opts.text_color)
     return im
 
-def seqOrigins(seq_names, seq_starts, bp_per_pix):
-    for i, j in zip(seq_names, seq_starts):
+def seqOrigins(seqNames, seq_starts, bp_per_pix):
+    for i, j in zip(seqNames, seq_starts):
         yield i, bp_per_pix * j
 
 def lastDotplot(opts, args):
@@ -299,8 +299,8 @@ def lastDotplot(opts, args):
 
     seq_info1 = get_seq_info(seq_size_dic1, font, opts.fontsize, image_mode)
     seq_info2 = get_seq_info(seq_size_dic2, font, opts.fontsize, image_mode)
-    seq_names1, seq_sizes1, name_sizes1, margin1 = seq_info1
-    seq_names2, seq_sizes2, name_sizes2, margin2 = seq_info2
+    seqNames1, seq_sizes1, name_sizes1, margin1 = seq_info1
+    seqNames2, seq_sizes2, name_sizes2, margin2 = seq_info2
 
     warn("choosing bp per pixel...")
     pix_limit1 = opts.width  - margin1
@@ -314,8 +314,8 @@ def lastDotplot(opts, args):
                                                  opts.pix_tween_seqs, margin1)
     seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, bp_per_pix,
                                                  opts.pix_tween_seqs, margin2)
-    origins1 = dict(seqOrigins(seq_names1, seq_starts1, bp_per_pix))
-    origins2 = dict(seqOrigins(seq_names2, seq_starts2, bp_per_pix))
+    origins1 = dict(seqOrigins(seqNames1, seq_starts1, bp_per_pix))
+    origins2 = dict(seqOrigins(seqNames2, seq_starts2, bp_per_pix))
 
     warn("processing alignments...")
     hits = alignmentPixels(width, height, alignments, bp_per_pix,
@@ -348,9 +348,9 @@ def lastDotplot(opts, args):
             elif store_value == 3: im.putpixel(xy, overlap_color)
 
     if opts.fontsize != 0:
-        axis1 = get_axis_image(seq_names1, name_sizes1, seq_starts1, seq_pix1,
+        axis1 = get_axis_image(seqNames1, name_sizes1, seq_starts1, seq_pix1,
                                font, image_mode, opts)
-        axis2 = get_axis_image(seq_names2, name_sizes2, seq_starts2, seq_pix2,
+        axis2 = get_axis_image(seqNames2, name_sizes2, seq_starts2, seq_pix2,
                                font, image_mode, opts)
         axis2 = axis2.transpose(Image.ROTATE_270)  # !!! bug hotspot
         im.paste(axis1, (0, 0))
