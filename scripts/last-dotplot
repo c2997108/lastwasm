@@ -184,12 +184,11 @@ def drawLineReverse(hits, width, bp_per_pix, beg1, beg2, size):
         beg2 -= next_pix
         size -= next_pix
 
-def alignmentPixels(width, height, alignments, bp_per_pix,
-                    seq_start_dic1, seq_start_dic2):
+def alignmentPixels(width, height, alignments, bp_per_pix, origins1, origins2):
     hits = [0] * (width * height)  # the image data
     for seq1, seq2, blocks in alignments:
-        ori1 = seq_start_dic1[seq1] * bp_per_pix
-        ori2 = seq_start_dic2[seq2] * bp_per_pix
+        ori1 = origins1[seq1]
+        ori2 = origins2[seq2]
         for beg1, beg2, size in blocks:
             if beg1 < 0:
                 beg1 = -(beg1 + size)
@@ -228,18 +227,18 @@ def readGaps(fileName):
         bridgedText = w[7]
         yield seqName, beg, end, bridgedText
 
-def drawUnsequencedGaps(im, gaps, start_dic, margin, limit, isTop, bridgedText,
+def drawUnsequencedGaps(im, gaps, origins, margin, limit, isTop, bridgedText,
                         bp_per_pix, color):
     '''Draw rectangles representing unsequenced gaps.'''
     for seqName, beg, end, b in gaps:
         if b != bridgedText: continue
-        if seqName not in start_dic: continue
-        origin = start_dic[seqName]
-        b = div_ceil(beg, bp_per_pix)  # use fully-covered pixels only
-        e = end // bp_per_pix
+        if seqName not in origins: continue
+        ori = origins[seqName]
+        b = div_ceil(ori + beg, bp_per_pix)  # use fully-covered pixels only
+        e = (ori + end) // bp_per_pix
         if e <= b: continue
-        if isTop: box = origin + b, margin, origin + e, limit
-        else:     box = margin, origin + b, limit, origin + e
+        if isTop: box = b, margin, e, limit
+        else:     box = margin, b, limit, e
         im.paste(color, box)
 
 def make_label(text, text_size, range_start, range_size):
@@ -278,6 +277,10 @@ def get_axis_image(seq_names, name_sizes, seq_starts, seq_pix,
         draw.text(position, i[3], font=font, fill=opts.text_color)
     return im
 
+def seqOrigins(seq_names, seq_starts, bp_per_pix):
+    for i, j in zip(seq_names, seq_starts):
+        yield i, bp_per_pix * j
+
 def lastDotplot(opts, args):
     if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
     else:              font = ImageFont.load_default()
@@ -311,29 +314,29 @@ def lastDotplot(opts, args):
                                                  opts.pix_tween_seqs, margin1)
     seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, bp_per_pix,
                                                  opts.pix_tween_seqs, margin2)
-    seq_start_dic1 = dict(zip(seq_names1, seq_starts1))
-    seq_start_dic2 = dict(zip(seq_names2, seq_starts2))
+    origins1 = dict(seqOrigins(seq_names1, seq_starts1, bp_per_pix))
+    origins2 = dict(seqOrigins(seq_names2, seq_starts2, bp_per_pix))
 
     warn("processing alignments...")
     hits = alignmentPixels(width, height, alignments, bp_per_pix,
-                           seq_start_dic1, seq_start_dic2)
+                           origins1, origins2)
     warn("done")
 
     image_size = width, height
     im = Image.new(image_mode, image_size, opts.background_color)
 
-    start_dic1 = expandedSeqDict(seq_start_dic1)
-    start_dic2 = expandedSeqDict(seq_start_dic2)
+    origins1 = expandedSeqDict(origins1)
+    origins2 = expandedSeqDict(origins2)
     gaps1 = list(readGaps(opts.gap1))
     gaps2 = list(readGaps(opts.gap2))
     # draw bridged gaps first, then unbridged gaps on top:
-    drawUnsequencedGaps(im, gaps1, start_dic1, margin2, height, True, "yes",
+    drawUnsequencedGaps(im, gaps1, origins1, margin2, height, True, "yes",
                         bp_per_pix, opts.bridged_color)
-    drawUnsequencedGaps(im, gaps2, start_dic2, margin1, width, False, "yes",
+    drawUnsequencedGaps(im, gaps2, origins2, margin1, width, False, "yes",
                         bp_per_pix, opts.bridged_color)
-    drawUnsequencedGaps(im, gaps1, start_dic1, margin2, height, True, "no",
+    drawUnsequencedGaps(im, gaps1, origins1, margin2, height, True, "no",
                         bp_per_pix, opts.unbridged_color)
-    drawUnsequencedGaps(im, gaps2, start_dic2, margin1, width, False, "no",
+    drawUnsequencedGaps(im, gaps2, origins2, margin1, width, False, "no",
                         bp_per_pix, opts.unbridged_color)
 
     for i in range(height):
