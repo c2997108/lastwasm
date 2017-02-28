@@ -161,23 +161,23 @@ def get_pix_info(seq_sizes, bp_per_pix, pix_tween_seqs, margin):
     tot_pix = seq_starts[-1] + seq_pix[-1]
     return seq_pix, seq_starts, tot_pix
 
-def drawLineForward(hits, width, bp_per_pix, origin, beg1, beg2, size):
+def drawLineForward(hits, width, bp_per_pix, beg1, beg2, size):
     while True:
         q1, r1 = divmod(beg1, bp_per_pix)
         q2, r2 = divmod(beg2, bp_per_pix)
-        hits[origin + q2 * width + q1] |= 1
+        hits[q2 * width + q1] |= 1
         next_pix = min(bp_per_pix - r1, bp_per_pix - r2)
         if next_pix >= size: break
         beg1 += next_pix
         beg2 += next_pix
         size -= next_pix
 
-def drawLineReverse(hits, width, bp_per_pix, origin, beg1, beg2, size):
+def drawLineReverse(hits, width, bp_per_pix, beg1, beg2, size):
     beg2 = -1 - beg2
     while True:
         q1, r1 = divmod(beg1, bp_per_pix)
         q2, r2 = divmod(beg2, bp_per_pix)
-        hits[origin + q2 * width + q1] |= 2
+        hits[q2 * width + q1] |= 2
         next_pix = min(bp_per_pix - r1, r2 + 1)
         if next_pix >= size: break
         beg1 += next_pix
@@ -188,19 +188,18 @@ def alignmentPixels(width, height, alignments, bp_per_pix,
                     seq_start_dic1, seq_start_dic2):
     hits = [0] * (width * height)  # the image data
     for seq1, seq2, blocks in alignments:
-        seq_start1 = seq_start_dic1[seq1]
-        seq_start2 = seq_start_dic2[seq2]
-        origin = seq_start2 * width + seq_start1
+        ori1 = seq_start_dic1[seq1] * bp_per_pix
+        ori2 = seq_start_dic2[seq2] * bp_per_pix
         for beg1, beg2, size in blocks:
             if beg1 < 0:
                 beg1 = -(beg1 + size)
                 beg2 = -(beg2 + size)
             if beg2 >= 0:
-                drawLineForward(hits, width, bp_per_pix, origin,
-                                beg1, beg2, size)
+                drawLineForward(hits, width, bp_per_pix,
+                                beg1 + ori1, beg2 + ori2, size)
             else:
-                drawLineReverse(hits, width, bp_per_pix, origin,
-                                beg1, beg2, size)
+                drawLineReverse(hits, width, bp_per_pix,
+                                beg1 + ori1, beg2 - ori2, size)
     return hits
 
 def expandedSeqDict(seqDict):
