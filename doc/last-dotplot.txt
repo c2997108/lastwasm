@@ -49,6 +49,11 @@ names starting in "chr" followed by one or two characters::
 
   last-dotplot -1 'chr?' -1 'chr??' alns alns.png
 
+You can also specify a sequence range; for example this gets the first
+1000 bases of chr9::
+
+  last-dotplot -1 chr9:0-1000 alns alns.png
+
 Options
 -------
 

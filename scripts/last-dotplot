@@ -19,6 +19,21 @@ def warn(message):
     prog = os.path.basename(sys.argv[0])
     sys.stderr.write(prog + ": " + message + "\n")
 
+def croppedBlocks(blocks, range1, range2):
+    cropBeg1, cropEnd1 = range1
+    cropBeg2, cropEnd2 = range2
+    if blocks[0][0] < 0: cropBeg1, cropEnd1 = -cropEnd1, -cropBeg1
+    if blocks[0][1] < 0: cropBeg2, cropEnd2 = -cropEnd2, -cropBeg2
+    for beg1, beg2, size in blocks:
+        b1 = max(cropBeg1, beg1)
+        e1 = min(cropEnd1, beg1 + size)
+        if b1 >= e1: continue
+        offset = beg2 - beg1
+        b2 = max(cropBeg2, b1 + offset)
+        e2 = min(cropEnd2, e1 + offset)
+        if b2 >= e2: continue
+        yield b2 - offset, b2, e2 - b2
+
 def tabBlocks(beg1, beg2, blocks):
     '''Get the gapless blocks of an alignment, from LAST tabular format.'''
     for i in blocks.split(","):
@@ -78,15 +93,23 @@ def alignmentInput(lines):
                 yield chr1, seqlen1, chr2, seqlen2, blocks
                 mafCount = 0
 
-def isWantedSequenceName(name, patterns):
-    if not patterns: return True
-    base = name.split(".")[-1]  # allow for names like hg19.chr7
-    for i in patterns:
-        if fnmatch.fnmatchcase(name, i): return True
-        if fnmatch.fnmatchcase(base, i): return True
-    return False
+def seqRangeFromText(text):
+    if ":" in text:
+        pattern, interval = text.rsplit(":", 1)
+        if "-" in interval:
+            beg, end = interval.rsplit("-", 1)
+            return pattern, int(beg), int(end)  # beg may be negative
+    return text, 0, sys.maxsize
 
-def updateSeqLimits(isTrim, seqLimits, seqName, seqLen, blocks, index):
+def rangeFromSeqName(seqRanges, name, seqLen):
+    if not seqRanges: return 0, seqLen
+    base = name.split(".")[-1]  # allow for names like hg19.chr7
+    for pat, beg, end in seqRanges:
+        if fnmatch.fnmatchcase(name, pat) or fnmatch.fnmatchcase(base, pat):
+            return max(beg, 0), min(end, seqLen)
+    return 0, 0
+
+def updateSeqLimits(isTrim, seqLimits, seqName, seqRange, blocks, index):
     if isTrim:
         beg = blocks[0][index]
         end = blocks[-1][index] + blocks[-1][2]
@@ -97,21 +120,26 @@ def updateSeqLimits(isTrim, seqLimits, seqName, seqLen, blocks, index):
         else:
             seqLimits[seqName] = beg, end
     else:
-        seqLimits[seqName] = 0, seqLen
+        seqLimits[seqName] = seqRange
 
 def readAlignments(fileName, opts):
     '''Get alignments and sequence limits, from MAF or tabular format.'''
+    seqRanges1 = map(seqRangeFromText, opts.seq1)
+    seqRanges2 = map(seqRangeFromText, opts.seq2)
+
     alignments = []
     seqLimits1 = {}
     seqLimits2 = {}
     lines = fileinput.input(fileName)
     for seqName1, seqLen1, seqName2, seqLen2, blocks in alignmentInput(lines):
-        if not isWantedSequenceName(seqName1, opts.seq1): continue
-        if not isWantedSequenceName(seqName2, opts.seq2): continue
-        aln = seqName1, seqName2, blocks
+        range1 = rangeFromSeqName(seqRanges1, seqName1, seqLen1)
+        range2 = rangeFromSeqName(seqRanges2, seqName2, seqLen2)
+        b = list(croppedBlocks(blocks, range1, range2))
+        if not b: continue
+        aln = seqName1, seqName2, b
         alignments.append(aln)
-        updateSeqLimits(opts.trim1, seqLimits1, seqName1, seqLen1, blocks, 0)
-        updateSeqLimits(opts.trim2, seqLimits2, seqName2, seqLen2, blocks, 1)
+        updateSeqLimits(opts.trim1, seqLimits1, seqName1, range1, b, 0)
+        updateSeqLimits(opts.trim2, seqLimits2, seqName2, range2, b, 1)
     return alignments, seqLimits1, seqLimits2
 
 def natural_sort_key(my_string):
@@ -393,8 +421,10 @@ if __name__ == "__main__":
     description = "Draw a dotplot of pair-wise sequence alignments in MAF or tabular format."
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-1", "--seq1", metavar="PATTERN", action="append",
+                  default=[],
                   help="which sequences to show from the 1st genome")
     op.add_option("-2", "--seq2", metavar="PATTERN", action="append",
+                  default=[],
                   help="which sequences to show from the 2nd genome")
     # Replace "width" & "height" with a single "length" option?
     op.add_option("-x", "--width", type="int", default=1000,
