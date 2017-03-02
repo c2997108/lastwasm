@@ -64,7 +64,7 @@ def alignmentInput(lines):
             if w[4] == "-": beg1 -= seqlen1
             chr2, beg2, seqlen2 = w[6], int(w[7]), int(w[10])
             if w[9] == "-": beg2 -= seqlen2
-            blocks = tabBlocks(beg1, beg2, w[11])
+            blocks = list(tabBlocks(beg1, beg2, w[11]))
             yield chr1, seqlen1, chr2, seqlen2, blocks
         elif line[0] == "s":  # MAF format
             if mafCount == 0:
@@ -74,7 +74,7 @@ def alignmentInput(lines):
             else:
                 chr2, beg2, seqlen2, seq2 = w[1], int(w[2]), int(w[5]), w[6]
                 if w[4] == "-": beg2 -= seqlen2
-                blocks = mafBlocks(beg1, beg2, seq1, seq2)
+                blocks = list(mafBlocks(beg1, beg2, seq1, seq2))
                 yield chr1, seqlen1, chr2, seqlen2, blocks
                 mafCount = 0
 
@@ -86,20 +86,33 @@ def isWantedSequenceName(name, patterns):
         if fnmatch.fnmatchcase(base, i): return True
     return False
 
+def updateSeqLimits(isTrim, seqLimits, seqName, seqLen, blocks, index):
+    if isTrim:
+        beg = blocks[0][index]
+        end = blocks[-1][index] + blocks[-1][2]
+        if beg < 0: beg, end = -end, -beg
+        if seqName in seqLimits:
+            b, e = seqLimits[seqName]
+            seqLimits[seqName] = min(b, beg), max(e, end)
+        else:
+            seqLimits[seqName] = beg, end
+    else:
+        seqLimits[seqName] = 0, seqLen
+
 def readAlignments(fileName, opts):
-    '''Get alignments and sequence lengths, from MAF or tabular format.'''
+    '''Get alignments and sequence limits, from MAF or tabular format.'''
     alignments = []
-    seqLengths1 = {}
-    seqLengths2 = {}
+    seqLimits1 = {}
+    seqLimits2 = {}
     lines = fileinput.input(fileName)
     for seqName1, seqLen1, seqName2, seqLen2, blocks in alignmentInput(lines):
         if not isWantedSequenceName(seqName1, opts.seq1): continue
         if not isWantedSequenceName(seqName2, opts.seq2): continue
         aln = seqName1, seqName2, blocks
         alignments.append(aln)
-        seqLengths1[seqName1] = seqLen1
-        seqLengths2[seqName2] = seqLen2
-    return alignments, seqLengths1, seqLengths2
+        updateSeqLimits(opts.trim1, seqLimits1, seqName1, seqLen1, blocks, 0)
+        updateSeqLimits(opts.trim2, seqLimits2, seqName2, seqLen2, blocks, 1)
+    return alignments, seqLimits1, seqLimits2
 
 def natural_sort_key(my_string):
     '''Return a sort key for "natural" ordering, e.g. chr9 < chr10.'''
@@ -115,11 +128,11 @@ def get_text_sizes(my_strings, font, fontsize, image_mode):
     draw = ImageDraw.Draw(im)
     return [draw.textsize(i, font=font) for i in my_strings]
 
-def get_seq_info(seq_size_dic, font, fontsize, image_mode):
+def get_seq_info(seqLimits, font, fontsize, image_mode):
     '''Return miscellaneous information about the sequences.'''
-    seqNames = seq_size_dic.keys()
+    seqNames = seqLimits.keys()
     seqNames.sort(key=natural_sort_key)
-    seq_sizes = [seq_size_dic[i] for i in seqNames]
+    seq_sizes = [seqLimits[i][1] - seqLimits[i][0] for i in seqNames]
     name_sizes = get_text_sizes(seqNames, font, fontsize, image_mode)
     margin = max(zip(*name_sizes)[1])  # maximum text height
     return seqNames, seq_sizes, name_sizes, margin
@@ -213,26 +226,31 @@ def expandedSeqDict(seqDict):
 def isExtraFirstGapField(fields):
     return fields[4].isdigit()
 
-def readGaps(fileName):
+def readGaps(fileName, seqLimits):
     '''Read locations of unsequenced gaps, from an agp or gap file.'''
     if not fileName: return
+    seqLimits = expandedSeqDict(seqLimits)
     for line in fileinput.input(fileName):
         w = line.split()
         if not w or w[0][0] == "#": continue
         if isExtraFirstGapField(w): w = w[1:]
         if w[4] not in "NU": continue
         seqName = w[0]
+        if seqName not in seqLimits: continue
+        cropBeg, cropEnd = seqLimits[seqName]
         end = int(w[2])
         beg = end - int(w[5])  # zero-based coordinate
+        b = max(beg, cropBeg)
+        e = min(end, cropEnd)
+        if b >= e: continue
         bridgedText = w[7]
-        yield seqName, beg, end, bridgedText
+        yield seqName, b, e, bridgedText
 
 def drawUnsequencedGaps(im, gaps, origins, margin, limit, isTop, bridgedText,
                         bp_per_pix, color):
     '''Draw rectangles representing unsequenced gaps.'''
     for seqName, beg, end, b in gaps:
         if b != bridgedText: continue
-        if seqName not in origins: continue
         ori = origins[seqName]
         b = div_ceil(ori + beg, bp_per_pix)  # use fully-covered pixels only
         e = (ori + end) // bp_per_pix
@@ -277,9 +295,9 @@ def get_axis_image(seqNames, name_sizes, seq_starts, seq_pix,
         draw.text(position, i[3], font=font, fill=opts.text_color)
     return im
 
-def seqOrigins(seqNames, seq_starts, bp_per_pix):
+def seqOrigins(seqNames, seq_starts, seqLimits, bp_per_pix):
     for i, j in zip(seqNames, seq_starts):
-        yield i, bp_per_pix * j
+        yield i, bp_per_pix * j - seqLimits[i][0]
 
 def lastDotplot(opts, args):
     if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
@@ -292,13 +310,13 @@ def lastDotplot(opts, args):
     overlap_color = tuple([(i + j) // 2 for i, j in zipped_colors])
 
     warn("reading alignments...")
-    alignments, seq_size_dic1, seq_size_dic2 = readAlignments(args[0], opts)
+    alignments, seqLimits1, seqLimits2 = readAlignments(args[0], opts)
     warn("done")
 
     if not alignments: raise Exception("there are no alignments")
 
-    seq_info1 = get_seq_info(seq_size_dic1, font, opts.fontsize, image_mode)
-    seq_info2 = get_seq_info(seq_size_dic2, font, opts.fontsize, image_mode)
+    seq_info1 = get_seq_info(seqLimits1, font, opts.fontsize, image_mode)
+    seq_info2 = get_seq_info(seqLimits2, font, opts.fontsize, image_mode)
     seqNames1, seq_sizes1, name_sizes1, margin1 = seq_info1
     seqNames2, seq_sizes2, name_sizes2, margin2 = seq_info2
 
@@ -314,8 +332,9 @@ def lastDotplot(opts, args):
                                                  opts.pix_tween_seqs, margin1)
     seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, bp_per_pix,
                                                  opts.pix_tween_seqs, margin2)
-    origins1 = dict(seqOrigins(seqNames1, seq_starts1, bp_per_pix))
-    origins2 = dict(seqOrigins(seqNames2, seq_starts2, bp_per_pix))
+
+    origins1 = dict(seqOrigins(seqNames1, seq_starts1, seqLimits1, bp_per_pix))
+    origins2 = dict(seqOrigins(seqNames2, seq_starts2, seqLimits2, bp_per_pix))
 
     warn("processing alignments...")
     hits = alignmentPixels(width, height, alignments, bp_per_pix,
@@ -327,8 +346,8 @@ def lastDotplot(opts, args):
 
     origins1 = expandedSeqDict(origins1)
     origins2 = expandedSeqDict(origins2)
-    gaps1 = list(readGaps(opts.gap1))
-    gaps2 = list(readGaps(opts.gap2))
+    gaps1 = list(readGaps(opts.gap1, seqLimits1))
+    gaps2 = list(readGaps(opts.gap2, seqLimits2))
     # draw bridged gaps first, then unbridged gaps on top:
     drawUnsequencedGaps(im, gaps1, origins1, margin2, height, True, "yes",
                         bp_per_pix, opts.bridged_color)
@@ -390,6 +409,10 @@ if __name__ == "__main__":
                   help="color for forward alignments (default: %default)")
     op.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
                   help="color for reverse alignments (default: %default)")
+    op.add_option("--trim1", action="store_true",
+                  help="trim unaligned sequence flanks from the 1st genome")
+    op.add_option("--trim2", action="store_true",
+                  help="trim unaligned sequence flanks from the 2nd genome")
     og = optparse.OptionGroup(op, "Unsequenced gap options")
     og.add_option("--gap1", metavar="FILE",
                   help="read genome1 unsequenced gaps from agp or gap file")

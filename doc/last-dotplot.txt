@@ -54,30 +54,26 @@ Options
 
   -h, --help
       Show a help message, with default option values, and exit.
-
   -1 PATTERN, --seq1=PATTERN
       Which sequences to show from the 1st genome.
-
   -2 PATTERN, --seq2=PATTERN
       Which sequences to show from the 2nd genome.
-
   -x WIDTH, --width=WIDTH
       Maximum width in pixels.
-
   -y HEIGHT, --height=HEIGHT
       Maximum height in pixels.
-
   -f FILE, --fontfile=FILE
       TrueType or OpenType font file.
-
   -s SIZE, --fontsize=SIZE
       TrueType or OpenType font size.
-
   -c COLOR, --forwardcolor=COLOR
       Color for forward alignments.
-
   -r COLOR, --reversecolor=COLOR
       Color for reverse alignments.
+  --trim1
+      Trim unaligned sequence flanks from the 1st genome.
+  --trim2
+      Trim unaligned sequence flanks from the 2nd genome.
 
 Unsequenced gap options
 ~~~~~~~~~~~~~~~~~~~~~~~
