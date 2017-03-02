@@ -92,13 +92,13 @@ def readAlignments(fileName, opts):
     seqLengths1 = {}
     seqLengths2 = {}
     lines = fileinput.input(fileName)
-    for chr1, seqlen1, chr2, seqlen2, blocks in alignmentInput(lines):
-        if not isWantedSequenceName(chr1, opts.seq1): continue
-        if not isWantedSequenceName(chr2, opts.seq2): continue
-        aln = chr1, chr2, blocks
+    for seqName1, seqLen1, seqName2, seqLen2, blocks in alignmentInput(lines):
+        if not isWantedSequenceName(seqName1, opts.seq1): continue
+        if not isWantedSequenceName(seqName2, opts.seq2): continue
+        aln = seqName1, seqName2, blocks
         alignments.append(aln)
-        seqLengths1[chr1] = seqlen1
-        seqLengths2[chr2] = seqlen2
+        seqLengths1[seqName1] = seqLen1
+        seqLengths2[seqName2] = seqLen2
     return alignments, seqLengths1, seqLengths2
 
 def natural_sort_key(my_string):
