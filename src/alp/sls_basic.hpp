@@ -54,7 +54,7 @@ Contents: Some basic functions and types
 namespace Sls { 
 
 	const double pi=3.1415926535897932384626433832795;
-	const double const_val=1/sqrt(2.0*pi);
+	const double const_val=1/std::sqrt(2.0*pi);
 	const long int quick_tests_trials_number=100;
 
 	struct error//struct to handle exceptions
@@ -188,6 +188,11 @@ namespace Sls {
 
 		static double one_minus_exp_function(
 		double y_);
+
+		static double normal_probability(double x_)
+		{
+			return 0.5*std::erfc(-std::sqrt(0.5)*x_);
+		}
 
 		static double normal_probability(
 		double x_,
