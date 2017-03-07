@@ -74,6 +74,7 @@ LastalArguments::LastalArguments() :
   maxHitDepth(-1),
   oneHitMultiplicity(10),
   maxGaplessAlignmentsPerQueryPosition(0),  // depends on oneHitMultiplicity
+  maxAlignmentsPerQueryStrand(-1),
   cullingLimitForGaplessAlignments(0),
   cullingLimitForFinalAlignments(0),
   queryStep(1),
@@ -144,6 +145,7 @@ Miscellaneous options (default settings):\n\
 -T: type of alignment: 0=local, 1=overlap ("
     + stringify(globality) + ")\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
+-N: stop after the first N alignments per query strand\n\
 -R: repeat-marking options (the same as was used for lastdb)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
     2=gapless+postmask, 3=always (2 if lastdb -c and Q<5, else 0)\n\
@@ -168,7 +170,7 @@ LAST home page: http://last.cbrc.jp/\n\
   optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] = "hVvf:" "r:q:p:a:b:A:B:c:F:x:y:z:d:e:" "D:E:"
-    "s:S:MT:m:l:L:n:C:K:k:W:i:P:R:u:w:t:g:G:j:Q:";
+    "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:Q:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -284,6 +286,9 @@ LAST home page: http://last.cbrc.jp/\n\
     case 'n':
       unstringify( maxGaplessAlignmentsPerQueryPosition, optarg );
       if( maxGaplessAlignmentsPerQueryPosition <= 0 ) badopt( c, optarg );
+      break;
+    case 'N':
+      unstringify( maxAlignmentsPerQueryStrand, optarg );
       break;
     case 'C':
       unstringify( cullingLimitForGaplessAlignments, optarg );
@@ -595,6 +600,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   if( maxHitDepth + 1 > 0 )
     stream << " L=" << maxHitDepth;
   stream << " n=" << maxGaplessAlignmentsPerQueryPosition;
+  if( maxAlignmentsPerQueryStrand + 1 > 0 )
+    stream << " N=" << maxAlignmentsPerQueryStrand;
   if( cullingLimitForGaplessAlignments )
     stream << " C=" << cullingLimitForGaplessAlignments;
   if( cullingLimitForFinalAlignments )

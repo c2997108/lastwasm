@@ -552,6 +552,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
   Dispatcher dis( Phase::gapless, aligner, queryNum, strand, querySeq );
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
+  size_t significantAlignmentCount = 0;
 
   size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
   size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
@@ -588,10 +589,11 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	indexT j = *beg;  // coordinate in the reference sequence
 	if( dt.isCovered( i, j ) ) continue;
 	++gaplessExtensionCount;
+	int score;
 
 	if( isOverlap ){
 	  size_t revLen, fwdLen;
-	  int score = dis.gaplessOverlap( j, i, revLen, fwdLen );
+	  score = dis.gaplessOverlap( j, i, revLen, fwdLen );
 	  if( score < minScoreGapless ) continue;
 	  SegmentPair sp( j - revLen, i - revLen, revLen + fwdLen, score );
 	  dt.addEndpoint( sp.end2(), sp.end1() );
@@ -599,7 +601,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	}else{
 	  int fs = dis.forwardGaplessScore( j, i );
 	  int rs = dis.reverseGaplessScore( j, i );
-	  int score = fs + rs;
+	  score = fs + rs;
 
 	  // Tried checking the score after isOptimal & addEndpoint,
 	  // but the number of extensions decreased by < 10%, and it
@@ -623,6 +625,12 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 
 	++gaplessAlignmentsPerQueryPosition;
 	++gaplessAlignmentCount;
+
+	if( score >= args.minScoreGapped &&
+	    ++significantAlignmentCount >= args.maxAlignmentsPerQueryStrand ) {
+	  i = loopEnd;
+	  break;
+	}
       }
     }
   }
@@ -710,6 +718,7 @@ void alignGapped( LastAligner& aligner,
     else SegmentPairPot::markAsGood(sp);
 
     ++gappedAlignmentCount;
+    if( gappedAlignmentCount >= args.maxAlignmentsPerQueryStrand ) break;
   }
 
   LOG2( "gapped extensions=" << gappedExtensionCount );

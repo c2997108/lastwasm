@@ -87,6 +87,7 @@ struct LastalArguments{
   size_t maxHitDepth;
   size_t oneHitMultiplicity;
   size_t maxGaplessAlignmentsPerQueryPosition;
+  size_t maxAlignmentsPerQueryStrand;
   size_t cullingLimitForGaplessAlignments;
   size_t cullingLimitForFinalAlignments;
   size_t queryStep;

@@ -311,6 +311,11 @@ Miscellaneous options
       extensions, it skips any remaining initial matches starting at
       that position.
 
+  -N COUNT
+      Stop after finding COUNT alignments per query strand.  This
+      makes lastal faster: it quits gapless and gapped extensions as
+      soon as it finds COUNT alignments with score ≥ e.
+
   -R DIGITS
       Specify lowercase-marking of repeats, by two digits (e.g. "-R 01"),
       with the following meanings.
