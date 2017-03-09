@@ -212,7 +212,7 @@ private:
     void initSpliceSignals(unsigned i);
     void initRnameAndStrandIds();
     void initRbegsAndEnds();
-    static size_t maxGenomeVolumes() { return sizeof genome / sizeof *genome; }
+    size_t maxGenomeVolumes() const { return sizeof genome / sizeof *genome; }
     void readGenomeVolume(const std::string& baseName,
 			  size_t seqCount, size_t volumeNumber);
 
