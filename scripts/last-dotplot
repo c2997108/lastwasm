@@ -84,7 +84,7 @@ def alignmentInput(lines):
             if w[4] == "-": beg1 -= seqlen1
             chr2, beg2, seqlen2 = w[6], int(w[7]), int(w[10])
             if w[9] == "-": beg2 -= seqlen2
-            blocks = list(tabBlocks(beg1, beg2, w[11]))
+            blocks = tabBlocks(beg1, beg2, w[11])
             yield chr1, seqlen1, chr2, seqlen2, blocks
         elif line[0] == "s":  # MAF format
             if mafCount == 0:
@@ -94,7 +94,7 @@ def alignmentInput(lines):
             else:
                 chr2, beg2, seqlen2, seq2 = w[1], int(w[2]), int(w[5]), w[6]
                 if w[4] == "-": beg2 -= seqlen2
-                blocks = list(mafBlocks(beg1, beg2, seq1, seq2))
+                blocks = mafBlocks(beg1, beg2, seq1, seq2)
                 yield chr1, seqlen1, chr2, seqlen2, blocks
                 mafCount = 0
 
@@ -141,7 +141,7 @@ def readAlignments(fileName, opts):
         if not range1: continue
         range2 = rangeFromSeqName(seqRanges2, seqName2, seqLen2)
         if not range2: continue
-        b = list(croppedBlocks(blocks, range1, range2))
+        b = list(croppedBlocks(list(blocks), range1, range2))
         if not b: continue
         aln = seqName1, seqName2, b
         alignments.append(aln)
@@ -276,7 +276,7 @@ def readBed(fileName, seqLimits):
     if not fileName: return
     for line in myOpen(fileName):
         w = line.split()
-        if not w or w[0][0] == "#": continue
+        if not w: continue
         seqName = w[0]
         if seqName not in seqLimits: continue
         cropBeg, cropEnd = seqLimits[seqName]
@@ -363,8 +363,7 @@ def get_axis_image(seqNames, name_sizes, seq_starts, seq_pix,
     min_pos = seq_starts[0]
     max_pos = seq_starts[-1] + seq_pix[-1]
     height = max(zip(*name_sizes)[1])
-    labels = [make_label(i, j, k, l) for i, j, k, l in
-              zip(seqNames, name_sizes, seq_starts, seq_pix)]
+    labels = map(make_label, seqNames, name_sizes, seq_starts, seq_pix)
     labels = [i for i in labels if i[1] >= min_pos and i[2] <= max_pos]
     labels.sort()
     labels = get_nonoverlapping_labels(labels, opts.label_space)
@@ -414,6 +413,8 @@ def lastDotplot(opts, args):
                                                  opts.pix_tween_seqs, margin1)
     seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, bp_per_pix,
                                                  opts.pix_tween_seqs, margin2)
+    warn("width:  " + str(width))
+    warn("height: " + str(height))
 
     origins1 = dict(seqOrigins(seqNames1, seq_starts1, seqLimits1, bp_per_pix))
     origins2 = dict(seqOrigins(seqNames2, seq_starts2, seqLimits2, bp_per_pix))
