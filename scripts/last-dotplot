@@ -9,11 +9,16 @@
 # according to the number of aligned nt-pairs within it, but the
 # result is too faint.  How can this be done better?
 
-import fileinput, fnmatch, itertools, optparse, os, re, sys
+import fnmatch, itertools, optparse, os, re, sys
 
 # Try to make PIL/PILLOW work:
 try: from PIL import Image, ImageDraw, ImageFont, ImageColor
 except ImportError: import Image, ImageDraw, ImageFont, ImageColor
+
+def myOpen(fileName):  # faster than fileinput
+    if fileName == "-":
+        return sys.stdin
+    return open(fileName)
 
 def warn(message):
     prog = os.path.basename(sys.argv[0])
@@ -107,7 +112,7 @@ def rangeFromSeqName(seqRanges, name, seqLen):
     for pat, beg, end in seqRanges:
         if fnmatch.fnmatchcase(name, pat) or fnmatch.fnmatchcase(base, pat):
             return max(beg, 0), min(end, seqLen)
-    return 0, 0
+    return None
 
 def updateSeqLimits(isTrim, seqLimits, seqName, seqRange, blocks, index):
     if isTrim:
@@ -130,10 +135,12 @@ def readAlignments(fileName, opts):
     alignments = []
     seqLimits1 = {}
     seqLimits2 = {}
-    lines = fileinput.input(fileName)
+    lines = myOpen(fileName)
     for seqName1, seqLen1, seqName2, seqLen2, blocks in alignmentInput(lines):
         range1 = rangeFromSeqName(seqRanges1, seqName1, seqLen1)
+        if not range1: continue
         range2 = rangeFromSeqName(seqRanges2, seqName2, seqLen2)
+        if not range2: continue
         b = list(croppedBlocks(blocks, range1, range2))
         if not b: continue
         aln = seqName1, seqName2, b
@@ -258,7 +265,7 @@ def readGaps(fileName, seqLimits):
     '''Read locations of unsequenced gaps, from an agp or gap file.'''
     if not fileName: return
     seqLimits = expandedSeqDict(seqLimits)
-    for line in fileinput.input(fileName):
+    for line in myOpen(fileName):
         w = line.split()
         if not w or w[0][0] == "#": continue
         if isExtraFirstGapField(w): w = w[1:]
