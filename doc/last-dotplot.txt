@@ -79,6 +79,15 @@ Options
       Trim unaligned sequence flanks from the 1st genome.
   --trim2
       Trim unaligned sequence flanks from the 2nd genome.
+  --bed1=FILE
+      Read `BED-format
+      <https://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_
+      annotations for the 1st genome.  They are drawn as rectangles,
+      with coordinates given by the first three BED fields.  The color
+      is specified by the RGB field if present, else pale red if the
+      strand is "+", pale blue if "-", or pale purple.
+  --bed2=FILE
+      Read BED-format annotations for the 2nd genome.
 
 Unsequenced gap options
 ~~~~~~~~~~~~~~~~~~~~~~~

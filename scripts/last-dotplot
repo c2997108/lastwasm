@@ -258,13 +258,35 @@ def expandedSeqDict(seqDict):
         newDict[base] = x
     return newDict
 
+def readBed(fileName, seqLimits):
+    if not fileName: return
+    for line in myOpen(fileName):
+        w = line.split()
+        if not w or w[0][0] == "#": continue
+        seqName = w[0]
+        if seqName not in seqLimits: continue
+        cropBeg, cropEnd = seqLimits[seqName]
+        beg = int(w[1])
+        end = int(w[2])
+        b = max(beg, cropBeg)
+        e = min(end, cropEnd)
+        if b >= e: continue
+        if len(w) > 8:
+            color = tuple(map(int, w[8].split(",")))
+        elif len(w) > 5:
+            if   w[5] == "+": color = 255, 244, 244
+            elif w[5] == "-": color = 244, 244, 255
+            else:             color = 255, 228, 255
+        else:
+            color = 255, 228, 255
+        yield seqName, b, e, color
+
 def isExtraFirstGapField(fields):
     return fields[4].isdigit()
 
 def readGaps(fileName, seqLimits):
     '''Read locations of unsequenced gaps, from an agp or gap file.'''
     if not fileName: return
-    seqLimits = expandedSeqDict(seqLimits)
     for line in myOpen(fileName):
         w = line.split()
         if not w or w[0][0] == "#": continue
@@ -280,6 +302,16 @@ def readGaps(fileName, seqLimits):
         if b >= e: continue
         bridgedText = w[7]
         yield seqName, b, e, bridgedText
+
+def drawAnnotations(im, beds, origins, margin, limit, isTop, bp_per_pix):
+    # XXX no consideration of different-color overlaps
+    for seqName, beg, end, color in beds:
+        ori = origins[seqName]
+        b = (ori + beg) // bp_per_pix
+        e = div_ceil(ori + end, bp_per_pix)
+        if isTop: box = b, margin, e, limit
+        else:     box = margin, b, limit, e
+        im.paste(color, box)
 
 def drawUnsequencedGaps(im, gaps, origins, margin, limit, isTop, bridgedText,
                         bp_per_pix, color):
@@ -379,8 +411,16 @@ def lastDotplot(opts, args):
     image_size = width, height
     im = Image.new(image_mode, image_size, opts.background_color)
 
+    seqLimits1 = expandedSeqDict(seqLimits1)
+    seqLimits2 = expandedSeqDict(seqLimits2)
     origins1 = expandedSeqDict(origins1)
     origins2 = expandedSeqDict(origins2)
+
+    beds1 = list(readBed(opts.bed1, seqLimits1))
+    beds2 = list(readBed(opts.bed2, seqLimits2))
+    drawAnnotations(im, beds1, origins1, margin2, height, True, bp_per_pix)
+    drawAnnotations(im, beds2, origins2, margin1, width, False, bp_per_pix)
+
     gaps1 = list(readGaps(opts.gap1, seqLimits1))
     gaps2 = list(readGaps(opts.gap2, seqLimits2))
     # draw bridged gaps first, then unbridged gaps on top:
@@ -450,6 +490,10 @@ if __name__ == "__main__":
                   help="trim unaligned sequence flanks from the 1st genome")
     op.add_option("--trim2", action="store_true",
                   help="trim unaligned sequence flanks from the 2nd genome")
+    op.add_option("--bed1", metavar="FILE",
+                  help="read genome1 annotations from bed file")
+    op.add_option("--bed2", metavar="FILE",
+                  help="read genome2 annotations from bed file")
     og = optparse.OptionGroup(op, "Unsequenced gap options")
     og.add_option("--gap1", metavar="FILE",
                   help="read genome1 unsequenced gaps from agp or gap file")
