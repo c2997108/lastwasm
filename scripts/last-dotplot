@@ -163,14 +163,28 @@ def get_text_sizes(my_strings, font, fontsize, image_mode):
     draw = ImageDraw.Draw(im)
     return [draw.textsize(i, font=font) for i in my_strings]
 
-def get_seq_info(seqLimits, font, fontsize, image_mode):
+def sizeText(size):
+    suffixes = "bp", "kb", "Mb", "Gb"
+    for i, x in enumerate(suffixes):
+        j = 10 ** (i * 3)
+        if size < j * 10:
+            return "%.2g" % (1.0 * size / j) + x
+        if size < j * 1000 or i == len(suffixes) - 1:
+            return "%.0f" % (1.0 * size / j) + x
+
+def seqNameAndSizeText(seqName, seqSize):
+    return seqName + ": " + sizeText(seqSize)
+
+def getSeqInfo(seqLimits, font, fontsize, image_mode, isShowSize):
     '''Return miscellaneous information about the sequences.'''
     seqNames = seqLimits.keys()
     seqNames.sort(key=natural_sort_key)
     seq_sizes = [seqLimits[i][1] - seqLimits[i][0] for i in seqNames]
-    name_sizes = get_text_sizes(seqNames, font, fontsize, image_mode)
-    margin = max(zip(*name_sizes)[1])  # maximum text height
-    return seqNames, seq_sizes, name_sizes, margin
+    if isShowSize: seqLabels = map(seqNameAndSizeText, seqNames, seq_sizes)
+    else:          seqLabels = seqNames
+    labelSizes = get_text_sizes(seqLabels, font, fontsize, image_mode)
+    margin = max(zip(*labelSizes)[1])  # maximum text height
+    return seqNames, seq_sizes, seqLabels, labelSizes, margin
 
 def div_ceil(x, y):
     '''Return x / y rounded up.'''
@@ -382,10 +396,11 @@ def lastDotplot(opts, args):
 
     if not alignments: raise Exception("there are no alignments")
 
-    seq_info1 = get_seq_info(seqLimits1, font, opts.fontsize, image_mode)
-    seq_info2 = get_seq_info(seqLimits2, font, opts.fontsize, image_mode)
-    seqNames1, seq_sizes1, name_sizes1, margin1 = seq_info1
-    seqNames2, seq_sizes2, name_sizes2, margin2 = seq_info2
+    i1 = getSeqInfo(seqLimits1, font, opts.fontsize, image_mode, opts.lengths1)
+    seqNames1, seq_sizes1, seqLabels1, labelSizes1, margin1 = i1
+
+    i2 = getSeqInfo(seqLimits2, font, opts.fontsize, image_mode, opts.lengths2)
+    seqNames2, seq_sizes2, seqLabels2, labelSizes2, margin2 = i2
 
     warn("choosing bp per pixel...")
     pix_limit1 = opts.width  - margin1
@@ -442,9 +457,9 @@ def lastDotplot(opts, args):
             elif store_value == 3: im.putpixel(xy, overlap_color)
 
     if opts.fontsize != 0:
-        axis1 = get_axis_image(seqNames1, name_sizes1, seq_starts1, seq_pix1,
+        axis1 = get_axis_image(seqLabels1, labelSizes1, seq_starts1, seq_pix1,
                                font, image_mode, opts)
-        axis2 = get_axis_image(seqNames2, name_sizes2, seq_starts2, seq_pix2,
+        axis2 = get_axis_image(seqLabels2, labelSizes2, seq_starts2, seq_pix2,
                                font, image_mode, opts)
         axis2 = axis2.transpose(Image.ROTATE_270)  # !!! bug hotspot
         im.paste(axis1, (0, 0))
@@ -490,10 +505,15 @@ if __name__ == "__main__":
                   help="trim unaligned sequence flanks from the 1st genome")
     op.add_option("--trim2", action="store_true",
                   help="trim unaligned sequence flanks from the 2nd genome")
+    op.add_option("--lengths1", action="store_true",
+                  help="show sequence lengths for the 1st genome")
+    op.add_option("--lengths2", action="store_true",
+                  help="show sequence lengths for the 2nd genome")
     op.add_option("--bed1", metavar="FILE",
                   help="read genome1 annotations from bed file")
     op.add_option("--bed2", metavar="FILE",
                   help="read genome2 annotations from bed file")
+
     og = optparse.OptionGroup(op, "Unsequenced gap options")
     og.add_option("--gap1", metavar="FILE",
                   help="read genome1 unsequenced gaps from agp or gap file")

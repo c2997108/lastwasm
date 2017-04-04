@@ -79,6 +79,10 @@ Options
       Trim unaligned sequence flanks from the 1st genome.
   --trim2
       Trim unaligned sequence flanks from the 2nd genome.
+  --lengths1
+      Show sequence lengths for the 1st genome.
+  --lengths2
+      Show sequence lengths for the 2nd genome.
   --bed1=FILE
       Read `BED-format
       <https://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_
