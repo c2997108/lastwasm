@@ -64,10 +64,15 @@ namespace cbrc{
     double dp_ama( double gamma );
     void traceback_ama( std::vector< SegmentPair >& chunks, double gamma ) const;
 
-    // Added by MCF: get the probability of each column in the alignment:
-    void getColumnAmbiguities( std::vector< uchar >& ambiguityCodes,
-                               const std::vector< SegmentPair >& chunks,
-                               bool isForward );
+    void getMatchAmbiguities(std::vector<uchar>& ambiguityCodes,
+			     size_t seq1end, size_t seq2end,
+			     size_t length) const;
+
+    void getDeleteAmbiguities(std::vector<uchar>& ambiguityCodes,
+			      size_t seq1end, size_t seq1beg) const;
+
+    void getInsertAmbiguities(std::vector<uchar>& ambiguityCodes,
+			      size_t seq2end, size_t seq2beg) const;
 
     double logPartitionFunction() const;  // a.k.a. full score, forward score
 

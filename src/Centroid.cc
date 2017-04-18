@@ -696,45 +696,27 @@ namespace cbrc{
     return static_cast<uchar>(k);
   }
 
-  static void getGapAmbiguities( std::vector<uchar>& ambiguityCodes,
-                                    const std::vector<double>& probs,
-                                    size_t rbeg, size_t rend ){
-    for( size_t i = rbeg; i > rend; --i ){
-      ambiguityCodes.push_back( asciiProbability( probs[ i ] ) );
+  void Centroid::getMatchAmbiguities(std::vector<uchar>& ambiguityCodes,
+				     size_t seq1end, size_t seq2end,
+				     size_t length) const {
+    while (length) {
+      size_t d = xa.diag(seq1end + seq2end, seq1end);
+      double p = fM[d] * bM[d];
+      ambiguityCodes.push_back(asciiProbability(p));
+      --seq1end;  --seq2end;  --length;
     }
   }
 
-  // Added by MCF:
-  void Centroid::getColumnAmbiguities( std::vector<uchar>& ambiguityCodes,
-                                       const std::vector<SegmentPair>& chunks,
-                                       bool isForward ){
-    for( CI(SegmentPair) i = chunks.begin(); i < chunks.end(); ++i ){
-      size_t seq1pos = i->end1();
-      size_t seq2pos = i->end2();
+  void Centroid::getDeleteAmbiguities(std::vector<uchar>& ambiguityCodes,
+				      size_t seq1end, size_t seq1beg) const {
+    for (size_t i = seq1end; i > seq1beg; --i)
+      ambiguityCodes.push_back(asciiProbability(mD[i]));
+  }
 
-      for( size_t j = 0; j < i->size; ++j ){
-	size_t d = xa.diag( seq1pos + seq2pos, seq1pos );
-	double p = fM[d] * bM[d];
-	ambiguityCodes.push_back( asciiProbability(p) );
-	--seq1pos;
-	--seq2pos;
-      }
-
-      CI(SegmentPair) j = i + 1;
-      size_t end1 = (j < chunks.end()) ? j->end1() : 0;
-      size_t end2 = (j < chunks.end()) ? j->end2() : 0;
-
-      // ASSUMPTION: if there is an insertion adjacent to a deletion,
-      // the deletion will get printed first.
-      if( isForward ){
-        getGapAmbiguities( ambiguityCodes, mI, seq2pos, end2 );
-        getGapAmbiguities( ambiguityCodes, mD, seq1pos, end1 );
-      }
-      else{
-        getGapAmbiguities( ambiguityCodes, mD, seq1pos, end1 );
-        getGapAmbiguities( ambiguityCodes, mI, seq2pos, end2 );
-      }
-    }
+  void Centroid::getInsertAmbiguities(std::vector<uchar>& ambiguityCodes,
+				      size_t seq2end, size_t seq2beg) const {
+    for (size_t i = seq2end; i > seq2beg; --i)
+      ambiguityCodes.push_back(asciiProbability(mI[i]));
   }
 
   double Centroid::logPartitionFunction() const{

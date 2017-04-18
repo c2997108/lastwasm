@@ -262,6 +262,29 @@ bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
   return false;
 }
 
+static void getColumnAmbiguities(const Centroid& centroid,
+				 std::vector<uchar>& ambiguityCodes,
+				 const std::vector<SegmentPair>& chunks,
+				 bool isForward) {
+  for (size_t i = 0; i < chunks.size(); ++i) {
+    const SegmentPair& x = chunks[i];
+    centroid.getMatchAmbiguities(ambiguityCodes, x.end1(), x.end2(), x.size);
+    size_t j = i + 1;
+    bool isNext = (j < chunks.size());
+    size_t end1 = isNext ? chunks[j].end1() : 0;
+    size_t end2 = isNext ? chunks[j].end2() : 0;
+    // ASSUMPTION: if there is an insertion adjacent to a deletion,
+    // the deletion will get printed first.
+    if (isForward) {
+      centroid.getInsertAmbiguities(ambiguityCodes, x.beg2(), end2);
+      centroid.getDeleteAmbiguities(ambiguityCodes, x.beg1(), end1);
+    } else {
+      centroid.getDeleteAmbiguities(ambiguityCodes, x.beg1(), end1);
+      centroid.getInsertAmbiguities(ambiguityCodes, x.beg2(), end2);
+    }
+  }
+}
+
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< uchar >& ambiguityCodes,
 			Centroid& centroid,
@@ -361,7 +384,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       centroid.traceback( chunks, gamma );
     }
 
-    centroid.getColumnAmbiguities( ambiguityCodes, chunks, isForward );
+    getColumnAmbiguities( centroid, ambiguityCodes, chunks, isForward );
     extras.fullScore += centroid.logPartitionFunction();
 
     if( outputType == 7 ){
