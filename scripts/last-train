@@ -3,6 +3,18 @@
 
 import math, optparse, os, random, signal, subprocess, sys, tempfile
 
+def randomSample(things, sampleSize):
+    """Randomly get sampleSize things (or all if fewer)."""
+    reservoir = []  # "reservoir sampling" algorithm
+    for i, x in enumerate(things):
+        if i < sampleSize:
+            reservoir.append(x)
+        else:
+            r = random.randrange(i + 1)
+            if r < sampleSize:
+                reservoir[r] = x
+    return reservoir
+
 def writeWords(outFile, words):
     outFile.write(" ".join(words) + "\n")
 
@@ -32,40 +44,66 @@ def seqInput(fileNames):
                     lineType = (lineType + 1) % 4
             if seqType == 1: yield "".join(seq), ""
 
-def randomNumbersAndLengths(lengths, sampleSize):
-    numbersAndLengths = list(enumerate(lengths))
-    random.shuffle(numbersAndLengths)
-    for i, x in numbersAndLengths:
-        if x < sampleSize:
-            yield i, x
-            sampleSize -= x
-        else:
-            yield i, sampleSize
-            break
+def isGoodChunk(chunk):
+    for i in chunk:
+        for j in i[3]:
+            if j not in "Nn":
+                return True
+    return False
 
-def writeSeqSample(numbersAndLengths, seqInput, outfile):
-    j = 0
-    for i, x in enumerate(seqInput):
-        if j < len(numbersAndLengths) and numbersAndLengths[j][0] == i:
-            seqlen = numbersAndLengths[j][1]
-            seq, qual = x
-            if qual:
-                outfile.write("@" + str(i) + "\n")
-                outfile.write(seq[:seqlen])
-                outfile.write("\n+\n")
-                outfile.write(qual[:seqlen])
-            else:
-                outfile.write(">" + str(i) + "\n")
-                outfile.write(seq[:seqlen])
-            outfile.write("\n")
-            j += 1
+def chunkInput(opts, sequences):
+    chunkCount = 0
+    chunk = []
+    wantedLength = opts.sample_length
+    for i, x in enumerate(sequences):
+        seq, qual = x
+        if all(i in "Nn" for i in seq): continue
+        seqLength = len(seq)
+        beg = 0
+        while beg < seqLength:
+            length = min(wantedLength, seqLength - beg)
+            end = beg + length
+            segment = i, beg, end, seq[beg:end], qual[beg:end]
+            chunk.append(segment)
+            wantedLength -= length
+            if not wantedLength:
+                if isGoodChunk(chunk):
+                    yield chunk
+                    chunkCount += 1
+                chunk = []
+                wantedLength = opts.sample_length
+            beg = end
+    if chunk and chunkCount < opts.sample_number:
+        yield chunk
+
+def writeSegment(outfile, segment):
+    if not segment: return
+    i, beg, end, seq, qual = segment
+    name = str(i) + ":" + str(beg)
+    if qual:
+        outfile.write("@" + name + "\n")
+        outfile.write(seq)
+        outfile.write("\n+\n")
+        outfile.write(qual)
+    else:
+        outfile.write(">" + name + "\n")
+        outfile.write(seq)
+    outfile.write("\n")
 
 def getSeqSample(opts, queryFiles, outfile):
-    lengths = (len(i[0]) for i in seqInput(queryFiles))
-    sampleSize = int(round(opts.sample))
-    numbersAndLengths = sorted(randomNumbersAndLengths(lengths, sampleSize))
-    writeSeqSample(numbersAndLengths, seqInput(queryFiles), outfile)
-    print "# sampled sequences:", len(numbersAndLengths)
+    sequences = seqInput(queryFiles)
+    chunks = chunkInput(opts, sequences)
+    sample = randomSample(chunks, opts.sample_number)
+    sample.sort()
+    x = None
+    for chunk in sample:
+        for y in chunk:
+            if x and y[0] == x[0] and y[1] == x[2]:
+                x = x[0], x[1], y[2], x[3] + y[3], x[4] + y[4]
+            else:
+                writeSegment(outfile, x)
+                x = y
+    writeSegment(outfile, x)
 
 def scaleFromHeader(lines):
     for line in lines:
@@ -365,7 +403,7 @@ def doTraining(opts, args):
     writeMatrixWithLetters(sys.stdout, externalMatrix, "")
 
 def lastTrain(opts, args):
-    if opts.sample:
+    if opts.sample_number:
         random.seed(math.pi)
         refName = args[0]
         queryFiles = args[1:]
@@ -392,8 +430,10 @@ if __name__ == "__main__":
                   help="force insertion/deletion symmetry")
     og.add_option("--pid", type="float", default=100, help=
                   "skip alignments with > PID% identity (default: %default)")
-    og.add_option("--sample", type="float", default=1000000, metavar="N",
-                  help="use a random sample of N letters (default: %default)")
+    og.add_option("--sample-number", type="int", default=500, metavar="N",
+                  help="number of random sequence samples (default: %default)")
+    og.add_option("--sample-length", type="int", default=2000, metavar="L",
+                  help="length of each sample (default: %default)")
     op.add_option_group(og)
     og = optparse.OptionGroup(op, "Initial parameter options")
     og.add_option("-r", metavar="SCORE",
