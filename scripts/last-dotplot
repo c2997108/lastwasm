@@ -379,7 +379,7 @@ def get_axis_image(seqNames, name_sizes, seq_starts, seq_pix,
     labels.sort()
     labels = get_nonoverlapping_labels(labels, opts.label_space)
     image_size = max_pos, height
-    im = Image.new(image_mode, image_size, opts.border_shade)
+    im = Image.new(image_mode, image_size, opts.border_color)
     draw = ImageDraw.Draw(im)
     for i in labels:
         position = i[1], 0
@@ -417,15 +417,15 @@ def lastDotplot(opts, args):
     warn("choosing bp per pixel...")
     pix_limit1 = opts.width  - margin1
     pix_limit2 = opts.height - margin2
-    bp_per_pix1 = get_bp_per_pix(seqSizes1, opts.pix_tween_seqs, pix_limit1)
-    bp_per_pix2 = get_bp_per_pix(seqSizes2, opts.pix_tween_seqs, pix_limit2)
+    bp_per_pix1 = get_bp_per_pix(seqSizes1, opts.border_pixels, pix_limit1)
+    bp_per_pix2 = get_bp_per_pix(seqSizes2, opts.border_pixels, pix_limit2)
     bp_per_pix = max(bp_per_pix1, bp_per_pix2)
     warn("bp per pixel = " + str(bp_per_pix))
 
     seq_pix1, seq_starts1, width  = get_pix_info(seqSizes1, bp_per_pix,
-                                                 opts.pix_tween_seqs, margin1)
+                                                 opts.border_pixels, margin1)
     seq_pix2, seq_starts2, height = get_pix_info(seqSizes2, bp_per_pix,
-                                                 opts.pix_tween_seqs, margin2)
+                                                 opts.border_pixels, margin2)
     warn("width:  " + str(width))
     warn("height: " + str(height))
 
@@ -480,12 +480,12 @@ def lastDotplot(opts, args):
         im.paste(axis2, (0, 0))
 
     for i in seq_starts1[1:]:
-        box = i - opts.pix_tween_seqs, margin2, i, height
-        im.paste(opts.border_shade, box)
+        box = i - opts.border_pixels, margin2, i, height
+        im.paste(opts.border_color, box)
 
     for i in seq_starts2[1:]:
-        box = margin1, i - opts.pix_tween_seqs, width, i
-        im.paste(opts.border_shade, box)
+        box = margin1, i - opts.border_pixels, width, i
+        im.paste(opts.border_color, box)
 
     im.save(args[1])
 
@@ -521,6 +521,11 @@ if __name__ == "__main__":
                   help="trim unaligned sequence flanks from the 1st genome")
     op.add_option("--trim2", action="store_true",
                   help="trim unaligned sequence flanks from the 2nd genome")
+    op.add_option("--border-pixels", metavar="INT", type="int", default=1,
+                  help="number of pixels between sequences (default=%default)")
+    op.add_option("--border-color", metavar="COLOR", default="#dcdcdc",
+                  help="color for pixels between sequences (default=%default)")
+    # xxx --margin-color?
     op.add_option("--bed1", metavar="FILE",
                   help="read genome1 annotations from bed file")
     op.add_option("--bed2", metavar="FILE",
@@ -552,8 +557,6 @@ if __name__ == "__main__":
 
     opts.text_color = "black"
     opts.background_color = "white"
-    opts.pix_tween_seqs = 2  # number of border pixels between sequences
-    opts.border_shade = 239, 239, 239  # the shade of grey for border pixels
     opts.label_space = 5     # minimum number of pixels between axis labels
 
     try: lastDotplot(opts, args)

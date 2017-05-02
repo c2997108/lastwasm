@@ -81,6 +81,10 @@ Options
       Trim unaligned sequence flanks from the 1st (horizontal) genome.
   --trim2
       Trim unaligned sequence flanks from the 2nd (vertical) genome.
+  --border-pixels=INT
+      Number of pixels between sequences.
+  --border-color=COLOR
+      Color for pixels between sequences.
   --bed1=FILE
       Read `BED-format
       <https://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_
