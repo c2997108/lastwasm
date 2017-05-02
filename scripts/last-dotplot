@@ -179,12 +179,14 @@ def getSeqInfo(seqLimits, font, fontsize, image_mode, isShowSize):
     '''Return miscellaneous information about the sequences.'''
     seqNames = seqLimits.keys()
     seqNames.sort(key=natural_sort_key)
-    seq_sizes = [seqLimits[i][1] - seqLimits[i][0] for i in seqNames]
-    if isShowSize: seqLabels = map(seqNameAndSizeText, seqNames, seq_sizes)
-    else:          seqLabels = seqNames
+    seqSizes = [seqLimits[i][1] - seqLimits[i][0] for i in seqNames]
+    if isShowSize:
+        seqLabels = map(seqNameAndSizeText, seqNames, seqSizes)
+    else:
+        seqLabels = seqNames
     labelSizes = get_text_sizes(seqLabels, font, fontsize, image_mode)
     margin = max(zip(*labelSizes)[1])  # maximum text height
-    return seqNames, seq_sizes, seqLabels, labelSizes, margin
+    return seqNames, seqSizes, seqLabels, labelSizes, margin
 
 def div_ceil(x, y):
     '''Return x / y rounded up.'''
@@ -396,22 +398,22 @@ def lastDotplot(opts, args):
     if not alignments: raise Exception("there are no alignments")
 
     i1 = getSeqInfo(seqLimits1, font, opts.fontsize, image_mode, opts.lengths1)
-    seqNames1, seq_sizes1, seqLabels1, labelSizes1, margin1 = i1
+    seqNames1, seqSizes1, seqLabels1, labelSizes1, margin1 = i1
 
     i2 = getSeqInfo(seqLimits2, font, opts.fontsize, image_mode, opts.lengths2)
-    seqNames2, seq_sizes2, seqLabels2, labelSizes2, margin2 = i2
+    seqNames2, seqSizes2, seqLabels2, labelSizes2, margin2 = i2
 
     warn("choosing bp per pixel...")
     pix_limit1 = opts.width  - margin1
     pix_limit2 = opts.height - margin2
-    bp_per_pix1 = get_bp_per_pix(seq_sizes1, opts.pix_tween_seqs, pix_limit1)
-    bp_per_pix2 = get_bp_per_pix(seq_sizes2, opts.pix_tween_seqs, pix_limit2)
+    bp_per_pix1 = get_bp_per_pix(seqSizes1, opts.pix_tween_seqs, pix_limit1)
+    bp_per_pix2 = get_bp_per_pix(seqSizes2, opts.pix_tween_seqs, pix_limit2)
     bp_per_pix = max(bp_per_pix1, bp_per_pix2)
     warn("bp per pixel = " + str(bp_per_pix))
 
-    seq_pix1, seq_starts1, width  = get_pix_info(seq_sizes1, bp_per_pix,
+    seq_pix1, seq_starts1, width  = get_pix_info(seqSizes1, bp_per_pix,
                                                  opts.pix_tween_seqs, margin1)
-    seq_pix2, seq_starts2, height = get_pix_info(seq_sizes2, bp_per_pix,
+    seq_pix2, seq_starts2, height = get_pix_info(seqSizes2, bp_per_pix,
                                                  opts.pix_tween_seqs, margin2)
     warn("width:  " + str(width))
     warn("height: " + str(height))
@@ -494,10 +496,6 @@ if __name__ == "__main__":
                   help="maximum width in pixels (default: %default)")
     op.add_option("-y", "--height", type="int", default=1000,
                   help="maximum height in pixels (default: %default)")
-    op.add_option("-f", "--fontfile", metavar="FILE",
-                  help="TrueType or OpenType font file")
-    op.add_option("-s", "--fontsize", metavar="SIZE", type="int", default=11,
-                  help="TrueType or OpenType font size (default: %default)")
     op.add_option("-c", "--forwardcolor", metavar="COLOR", default="red",
                   help="color for forward alignments (default: %default)")
     op.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
@@ -506,14 +504,21 @@ if __name__ == "__main__":
                   help="trim unaligned sequence flanks from the 1st genome")
     op.add_option("--trim2", action="store_true",
                   help="trim unaligned sequence flanks from the 2nd genome")
-    op.add_option("--lengths1", action="store_true",
-                  help="show sequence lengths for the 1st genome")
-    op.add_option("--lengths2", action="store_true",
-                  help="show sequence lengths for the 2nd genome")
     op.add_option("--bed1", metavar="FILE",
                   help="read genome1 annotations from bed file")
     op.add_option("--bed2", metavar="FILE",
                   help="read genome2 annotations from bed file")
+
+    og = optparse.OptionGroup(op, "Text options")
+    og.add_option("-f", "--fontfile", metavar="FILE",
+                  help="TrueType or OpenType font file")
+    og.add_option("-s", "--fontsize", metavar="SIZE", type="int", default=11,
+                  help="TrueType or OpenType font size (default: %default)")
+    og.add_option("--lengths1", action="store_true",
+                  help="show sequence lengths for the 1st (horizontal) genome")
+    og.add_option("--lengths2", action="store_true",
+                  help="show sequence lengths for the 2nd (vertical) genome")
+    op.add_option_group(og)
 
     og = optparse.OptionGroup(op, "Unsequenced gap options")
     og.add_option("--gap1", metavar="FILE",

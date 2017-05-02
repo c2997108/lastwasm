@@ -27,10 +27,10 @@ sequences with names like "chrUn_random522" like this::
 
   last-dotplot -1 'chr[!U]*' -2 'chr[!U]*' alns alns.png
 
-Option "-1" selects sequences from the 1st genome, and "-2" selects
-sequences from the 2nd genome.  'chr[!U]*' is a *pattern* that
-specifies names starting with "chr", followed by any character except
-U, followed by anything.
+Option "-1" selects sequences from the 1st (horizontal) genome, and
+"-2" selects sequences from the 2nd (vertical) genome.  'chr[!U]*' is
+a *pattern* that specifies names starting with "chr", followed by any
+character except U, followed by anything.
 
 ==========  =============================
 Pattern     Meaning
@@ -60,29 +60,21 @@ Options
   -h, --help
       Show a help message, with default option values, and exit.
   -1 PATTERN, --seq1=PATTERN
-      Which sequences to show from the 1st genome.
+      Which sequences to show from the 1st (horizontal) genome.
   -2 PATTERN, --seq2=PATTERN
-      Which sequences to show from the 2nd genome.
+      Which sequences to show from the 2nd (vertical) genome.
   -x WIDTH, --width=WIDTH
       Maximum width in pixels.
   -y HEIGHT, --height=HEIGHT
       Maximum height in pixels.
-  -f FILE, --fontfile=FILE
-      TrueType or OpenType font file.
-  -s SIZE, --fontsize=SIZE
-      TrueType or OpenType font size.
   -c COLOR, --forwardcolor=COLOR
       Color for forward alignments.
   -r COLOR, --reversecolor=COLOR
       Color for reverse alignments.
   --trim1
-      Trim unaligned sequence flanks from the 1st genome.
+      Trim unaligned sequence flanks from the 1st (horizontal) genome.
   --trim2
-      Trim unaligned sequence flanks from the 2nd genome.
-  --lengths1
-      Show sequence lengths for the 1st genome.
-  --lengths2
-      Show sequence lengths for the 2nd genome.
+      Trim unaligned sequence flanks from the 2nd (vertical) genome.
   --bed1=FILE
       Read `BED-format
       <https://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_
@@ -92,6 +84,18 @@ Options
       strand is "+", pale blue if "-", or pale purple.
   --bed2=FILE
       Read BED-format annotations for the 2nd genome.
+
+Text options
+~~~~~~~~~~~~
+
+  -f FILE, --fontfile=FILE
+      TrueType or OpenType font file.
+  -s SIZE, --fontsize=SIZE
+      TrueType or OpenType font size.
+  --lengths1
+      Show sequence lengths for the 1st (horizontal) genome.
+  --lengths2
+      Show sequence lengths for the 2nd (vertical) genome.
 
 Unsequenced gap options
 ~~~~~~~~~~~~~~~~~~~~~~~
