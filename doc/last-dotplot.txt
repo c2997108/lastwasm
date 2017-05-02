@@ -71,6 +71,12 @@ Options
       Color for forward alignments.
   -r COLOR, --reversecolor=COLOR
       Color for reverse alignments.
+  --sort1=N
+      Put the 1st genome's sequences left-to-right in order of: their
+      appearance in the input (0), their names (1), their lengths (2).
+  --sort2=N
+      Put the 2nd genome's sequences top-to-bottom in order of: their
+      appearance in the input (0), their names (1), their lengths (2).
   --trim1
       Trim unaligned sequence flanks from the 1st (horizontal) genome.
   --trim2
