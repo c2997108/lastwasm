@@ -25,9 +25,6 @@ def isMatch(alignmentColumn):
         if i.upper() != first: return False
     return True
 
-def isGapless(alignmentColumn):
-    return "-" not in alignmentColumn
-
 def gapRunCount(row):
     """Get the number of runs of gap characters."""
     return sum(k == "-" for k, v in groupby(row))
@@ -44,17 +41,27 @@ def insertSize(row, letterSize):
     """Get the length of sequence included in the row."""
     return (len(row) - row.count("-")) * letterSize - 4 * row.count("/") - 2 * row.count("\\")
 
-def insertSizeText(row, letterSize):
-    return str(insertSize(row, letterSize))
-
 def matchAndInsertSizes(alignmentColumns, letterSizes):
     """Get sizes of gapless blocks, and of the inserts between them."""
-    for k, v in groupby(alignmentColumns, isGapless):
-        if k:
-            yield str(sum(1 for i in v))
+    letterSizeA, letterSizeB = letterSizes
+    delSize = insSize = subSize = 0
+    for x, y in alignmentColumns:
+        if x == "-":
+            if subSize:
+                if delSize or insSize: yield str(delSize) + ":" + str(insSize)
+                yield str(subSize)
+                delSize = insSize = subSize = 0
+            insSize += symbolSize(y, letterSizeB)
+        elif y == "-":
+            if subSize:
+                if delSize or insSize: yield str(delSize) + ":" + str(insSize)
+                yield str(subSize)
+                delSize = insSize = subSize = 0
+            delSize += symbolSize(x, letterSizeA)
         else:
-            yield ":".join(imap(insertSizeText,
-                                alignmentRowsFromColumns(v), letterSizes))
+            subSize += 1
+    if delSize or insSize: yield str(delSize) + ":" + str(insSize)
+    if subSize: yield str(subSize)
 
 ##### Routines for reading MAF format: #####
 
@@ -832,7 +839,6 @@ if __name__ == "__main__":
         op.error("need file (not pipe) with option -d")
 
     try: mafConvert(opts, args)
-    except KeyboardInterrupt: pass  # avoid silly error message
     except Exception, e:
         prog = os.path.basename(sys.argv[0])
         sys.exit(prog + ": error: " + str(e))
