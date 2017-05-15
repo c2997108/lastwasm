@@ -328,6 +328,7 @@ def fixedLastalArgs(opts):
     if opts.E: x.append("-E" + opts.E)
     if opts.s: x.append("-s" + opts.s)
     if opts.S: x.append("-S" + opts.S)
+    if opts.C: x.append("-C" + opts.C)
     if opts.T: x.append("-T" + opts.T)
     if opts.m: x.append("-m" + opts.m)
     if opts.P: x.append("-P" + opts.P)
@@ -458,6 +459,8 @@ if __name__ == "__main__":
     og.add_option("-S", metavar="NUMBER", default="1", help=
                   "score matrix applies to forward strand of: " +
                   "0=reference, 1=query (default: %default)")
+    og.add_option("-C", metavar="COUNT", help=
+                  "omit gapless alignments in COUNT others with > score-per-length")
     og.add_option("-T", metavar="NUMBER",
                   help="type of alignment: 0=local, 1=overlap (default: 0)")
     og.add_option("-m", metavar="COUNT", help=

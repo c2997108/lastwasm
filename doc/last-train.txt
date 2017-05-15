@@ -74,6 +74,10 @@ Alignment options
   -S NUMBER  Score matrix applies to forward strand of: 0=reference,
              1=query.  This matters only if the scores lack
              reverse-complement symmetry.
+  -C COUNT   Before extending gapped alignments, discard any gapless
+             alignment whose query range lies in COUNT other gapless
+             alignments with higher score-per-length.  This aims to
+             reduce run time.
   -T NUMBER  Type of alignment: 0=local, 1=overlap.
   -m COUNT   Maximum number of initial matches per query position.
   -P COUNT   Number of parallel threads.
