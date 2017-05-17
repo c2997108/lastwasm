@@ -296,14 +296,12 @@ def readBed(fileName, seqLimits):
         b = max(beg, cropBeg)
         e = min(end, cropEnd)
         if b >= e: continue
+        color = 255, 228, 255
         if len(w) > 8:
             color = tuple(map(int, w[8].split(",")))
         elif len(w) > 5:
             if   w[5] == "+": color = 255, 244, 244
             elif w[5] == "-": color = 244, 244, 255
-            else:             color = 255, 228, 255
-        else:
-            color = 255, 228, 255
         yield seqName, b, e, color
 
 def isExtraFirstGapField(fields):
@@ -417,23 +415,23 @@ def lastDotplot(opts, args):
     warn("choosing bp per pixel...")
     pix_limit1 = opts.width  - margin1
     pix_limit2 = opts.height - margin2
-    bp_per_pix1 = get_bp_per_pix(seqSizes1, opts.border_pixels, pix_limit1)
-    bp_per_pix2 = get_bp_per_pix(seqSizes2, opts.border_pixels, pix_limit2)
-    bp_per_pix = max(bp_per_pix1, bp_per_pix2)
-    warn("bp per pixel = " + str(bp_per_pix))
+    bpPerPix1 = get_bp_per_pix(seqSizes1, opts.border_pixels, pix_limit1)
+    bpPerPix2 = get_bp_per_pix(seqSizes2, opts.border_pixels, pix_limit2)
+    bpPerPix = max(bpPerPix1, bpPerPix2)
+    warn("bp per pixel = " + str(bpPerPix))
 
-    seq_pix1, seq_starts1, width  = get_pix_info(seqSizes1, bp_per_pix,
+    seq_pix1, seq_starts1, width  = get_pix_info(seqSizes1, bpPerPix,
                                                  opts.border_pixels, margin1)
-    seq_pix2, seq_starts2, height = get_pix_info(seqSizes2, bp_per_pix,
+    seq_pix2, seq_starts2, height = get_pix_info(seqSizes2, bpPerPix,
                                                  opts.border_pixels, margin2)
     warn("width:  " + str(width))
     warn("height: " + str(height))
 
-    origins1 = dict(seqOrigins(seqNames1, seq_starts1, seqLimits1, bp_per_pix))
-    origins2 = dict(seqOrigins(seqNames2, seq_starts2, seqLimits2, bp_per_pix))
+    origins1 = dict(seqOrigins(seqNames1, seq_starts1, seqLimits1, bpPerPix))
+    origins2 = dict(seqOrigins(seqNames2, seq_starts2, seqLimits2, bpPerPix))
 
     warn("processing alignments...")
-    hits = alignmentPixels(width, height, alignments, bp_per_pix,
+    hits = alignmentPixels(width, height, alignments, bpPerPix,
                            origins1, origins2)
     warn("done")
 
@@ -447,20 +445,20 @@ def lastDotplot(opts, args):
 
     beds1 = list(readBed(opts.bed1, seqLimits1))
     beds2 = list(readBed(opts.bed2, seqLimits2))
-    drawAnnotations(im, beds1, origins1, margin2, height, True, bp_per_pix)
-    drawAnnotations(im, beds2, origins2, margin1, width, False, bp_per_pix)
+    drawAnnotations(im, beds1, origins1, margin2, height, True, bpPerPix)
+    drawAnnotations(im, beds2, origins2, margin1, width, False, bpPerPix)
 
     gaps1 = list(readGaps(opts.gap1, seqLimits1))
     gaps2 = list(readGaps(opts.gap2, seqLimits2))
     # draw bridged gaps first, then unbridged gaps on top:
     drawUnsequencedGaps(im, gaps1, origins1, margin2, height, True, "yes",
-                        bp_per_pix, opts.bridged_color)
+                        bpPerPix, opts.bridged_color)
     drawUnsequencedGaps(im, gaps2, origins2, margin1, width, False, "yes",
-                        bp_per_pix, opts.bridged_color)
+                        bpPerPix, opts.bridged_color)
     drawUnsequencedGaps(im, gaps1, origins1, margin2, height, True, "no",
-                        bp_per_pix, opts.unbridged_color)
+                        bpPerPix, opts.unbridged_color)
     drawUnsequencedGaps(im, gaps2, origins2, margin1, width, False, "no",
-                        bp_per_pix, opts.unbridged_color)
+                        bpPerPix, opts.unbridged_color)
 
     for i in range(height):
         for j in range(width):
