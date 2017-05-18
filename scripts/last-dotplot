@@ -290,12 +290,8 @@ def readBed(fileName, seqLimits):
         if not w: continue
         seqName = w[0]
         if seqName not in seqLimits: continue
-        cropBeg, cropEnd = seqLimits[seqName]
         beg = int(w[1])
         end = int(w[2])
-        b = max(beg, cropBeg)
-        e = min(end, cropEnd)
-        if b >= e: continue
         layer = 900
         color = "#ffe4ff"
         if len(w) > 4:
@@ -308,7 +304,7 @@ def readBed(fileName, seqLimits):
                     color = "#fff4f4"
                 elif w[5] == "-":
                     color = "#f4f4ff"
-        yield layer, color, seqName, b, e
+        yield layer, color, seqName, beg, end
 
 def isExtraFirstGapField(fields):
     return fields[4].isdigit()
@@ -323,19 +319,19 @@ def readGaps(opts, fileName, seqLimits):
         if w[4] not in "NU": continue
         seqName = w[0]
         if seqName not in seqLimits: continue
-        cropBeg, cropEnd = seqLimits[seqName]
         end = int(w[2])
         beg = end - int(w[5])  # zero-based coordinate
-        b = max(beg, cropBeg)
-        e = min(end, cropEnd)
-        if b >= e: continue
         if w[7] == "yes":
-            yield 3000, opts.bridged_color, seqName, b, e
+            yield 3000, opts.bridged_color, seqName, beg, end
         else:
-            yield 2000, opts.unbridged_color, seqName, b, e
+            yield 2000, opts.unbridged_color, seqName, beg, end
 
-def bedBoxes(beds, origins, margin, edge, isTop, bpPerPix):
+def bedBoxes(beds, seqLimits, origins, margin, edge, isTop, bpPerPix):
     for layer, color, seqName, beg, end in beds:
+        cropBeg, cropEnd = seqLimits[seqName]
+        beg = max(beg, cropBeg)
+        end = min(end, cropEnd)
+        if beg >= end: continue
         ori = origins[seqName]
         if layer <= 1000:
             # include partly-covered pixels
@@ -453,11 +449,11 @@ def lastDotplot(opts, args):
 
     beds1 = itertools.chain(readBed(opts.bed1, seqLimits1),
                             readGaps(opts, opts.gap1, seqLimits1))
-    b1 = bedBoxes(beds1, origins1, margin2, height, True, bpPerPix)
+    b1 = bedBoxes(beds1, seqLimits1, origins1, margin2, height, True, bpPerPix)
 
     beds2 = itertools.chain(readBed(opts.bed2, seqLimits2),
                             readGaps(opts, opts.gap2, seqLimits2))
-    b2 = bedBoxes(beds2, origins2, margin1, width, False, bpPerPix)
+    b2 = bedBoxes(beds2, seqLimits2, origins2, margin1, width, False, bpPerPix)
 
     boxes = sorted(itertools.chain(b1, b2))
     drawAnnotations(im, boxes)
