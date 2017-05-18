@@ -276,11 +276,13 @@ def alignmentPixels(width, height, alignments, bp_per_pix, origins1, origins2):
 
 def expandedSeqDict(seqDict):
     '''Allow lookup by short sequence names, e.g. chr7 as well as hg19.chr7.'''
-    newDict = {}
+    newDict = seqDict.copy()
     for name, x in seqDict.items():
-        base = name.split(".")[-1]
-        newDict[name] = x
-        newDict[base] = x
+        if "." in name:
+            base = name.split(".")[-1]
+            if base in newDict:  # an ambiguous case was found:
+                return seqDict   # so give up completely
+            newDict[base] = x
     return newDict
 
 def readBed(fileName, seqLimits):
