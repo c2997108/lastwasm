@@ -296,6 +296,7 @@ def readBed(fileName, seqLimits):
         b = max(beg, cropBeg)
         e = min(end, cropEnd)
         if b >= e: continue
+        layer = 900
         color = "#ffe4ff"
         if len(w) > 5:
             if len(w) > 8 and w[8].count(",") == 2:
@@ -304,12 +305,12 @@ def readBed(fileName, seqLimits):
                 color = "#fff4f4"
             elif w[5] == "-":
                 color = "#f4f4ff"
-        yield seqName, b, e, color
+        yield layer, color, seqName, b, e
 
 def isExtraFirstGapField(fields):
     return fields[4].isdigit()
 
-def readGaps(fileName, seqLimits):
+def readGaps(opts, fileName, seqLimits):
     '''Read locations of unsequenced gaps, from an agp or gap file.'''
     if not fileName: return
     for line in myOpen(fileName):
@@ -325,30 +326,32 @@ def readGaps(fileName, seqLimits):
         b = max(beg, cropBeg)
         e = min(end, cropEnd)
         if b >= e: continue
-        bridgedText = w[7]
-        yield seqName, b, e, bridgedText
+        if w[7] == "yes":
+            yield 3000, opts.bridged_color, seqName, b, e
+        else:
+            yield 2000, opts.unbridged_color, seqName, b, e
 
-def drawAnnotations(im, beds, origins, margin, limit, isTop, bp_per_pix):
-    # XXX no consideration of different-color overlaps
-    for seqName, beg, end, color in beds:
+def bedBoxes(beds, origins, margin, edge, isTop, bpPerPix):
+    for layer, color, seqName, beg, end in beds:
         ori = origins[seqName]
-        b = (ori + beg) // bp_per_pix
-        e = div_ceil(ori + end, bp_per_pix)
-        if isTop: box = b, margin, e, limit
-        else:     box = margin, b, limit, e
-        im.paste(color, box)
+        if layer <= 1000:
+            # include partly-covered pixels
+            b = (ori + beg) // bpPerPix
+            e = div_ceil(ori + end, bpPerPix)
+        else:
+            # exclude partly-covered pixels
+            b = div_ceil(ori + beg, bpPerPix)
+            e = (ori + end) // bpPerPix
+            if e <= b: continue
+        if isTop:
+            box = b, margin, e, edge
+        else:
+            box = margin, b, edge, e
+        yield layer, color, box
 
-def drawUnsequencedGaps(im, gaps, origins, margin, limit, isTop, bridgedText,
-                        bp_per_pix, color):
-    '''Draw rectangles representing unsequenced gaps.'''
-    for seqName, beg, end, b in gaps:
-        if b != bridgedText: continue
-        ori = origins[seqName]
-        b = div_ceil(ori + beg, bp_per_pix)  # use fully-covered pixels only
-        e = (ori + end) // bp_per_pix
-        if e <= b: continue
-        if isTop: box = b, margin, e, limit
-        else:     box = margin, b, limit, e
+def drawAnnotations(im, boxes):
+    # xxx use partial transparency for different-color overlaps?
+    for layer, color, box in boxes:
         im.paste(color, box)
 
 def make_label(text, text_size, range_start, range_size):
@@ -445,22 +448,16 @@ def lastDotplot(opts, args):
     origins1 = expandedSeqDict(origins1)
     origins2 = expandedSeqDict(origins2)
 
-    beds1 = list(readBed(opts.bed1, seqLimits1))
-    beds2 = list(readBed(opts.bed2, seqLimits2))
-    drawAnnotations(im, beds1, origins1, margin2, height, True, bpPerPix)
-    drawAnnotations(im, beds2, origins2, margin1, width, False, bpPerPix)
+    beds1 = itertools.chain(readBed(opts.bed1, seqLimits1),
+                            readGaps(opts, opts.gap1, seqLimits1))
+    b1 = bedBoxes(beds1, origins1, margin2, height, True, bpPerPix)
 
-    gaps1 = list(readGaps(opts.gap1, seqLimits1))
-    gaps2 = list(readGaps(opts.gap2, seqLimits2))
-    # draw bridged gaps first, then unbridged gaps on top:
-    drawUnsequencedGaps(im, gaps1, origins1, margin2, height, True, "yes",
-                        bpPerPix, opts.bridged_color)
-    drawUnsequencedGaps(im, gaps2, origins2, margin1, width, False, "yes",
-                        bpPerPix, opts.bridged_color)
-    drawUnsequencedGaps(im, gaps1, origins1, margin2, height, True, "no",
-                        bpPerPix, opts.unbridged_color)
-    drawUnsequencedGaps(im, gaps2, origins2, margin1, width, False, "no",
-                        bpPerPix, opts.unbridged_color)
+    beds2 = itertools.chain(readBed(opts.bed2, seqLimits2),
+                            readGaps(opts, opts.gap2, seqLimits2))
+    b2 = bedBoxes(beds2, origins2, margin1, width, False, bpPerPix)
+
+    boxes = sorted(itertools.chain(b1, b2))
+    drawAnnotations(im, boxes)
 
     for i in range(height):
         for j in range(width):
