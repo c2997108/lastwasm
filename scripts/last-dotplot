@@ -298,13 +298,16 @@ def readBed(fileName, seqLimits):
         if b >= e: continue
         layer = 900
         color = "#ffe4ff"
-        if len(w) > 5:
-            if len(w) > 8 and w[8].count(",") == 2:
-                 color = "rgb(" + w[8] + ")"
-            elif w[5] == "+":
-                color = "#fff4f4"
-            elif w[5] == "-":
-                color = "#f4f4ff"
+        if len(w) > 4:
+            if w[4] != ".":
+                layer = float(w[4])
+            if len(w) > 5:
+                if len(w) > 8 and w[8].count(",") == 2:
+                    color = "rgb(" + w[8] + ")"
+                elif w[5] == "+":
+                    color = "#fff4f4"
+                elif w[5] == "-":
+                    color = "#f4f4ff"
         yield layer, color, seqName, b, e
 
 def isExtraFirstGapField(fields):
