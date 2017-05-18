@@ -296,12 +296,14 @@ def readBed(fileName, seqLimits):
         b = max(beg, cropBeg)
         e = min(end, cropEnd)
         if b >= e: continue
-        color = 255, 228, 255
-        if len(w) > 8:
-            color = tuple(map(int, w[8].split(",")))
-        elif len(w) > 5:
-            if   w[5] == "+": color = 255, 244, 244
-            elif w[5] == "-": color = 244, 244, 255
+        color = "#ffe4ff"
+        if len(w) > 5:
+            if len(w) > 8 and w[8].count(",") == 2:
+                 color = "rgb(" + w[8] + ")"
+            elif w[5] == "+":
+                color = "#fff4f4"
+            elif w[5] == "-":
+                color = "#f4f4ff"
         yield seqName, b, e, color
 
 def isExtraFirstGapField(fields):
