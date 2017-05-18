@@ -85,15 +85,6 @@ Options
       Number of pixels between sequences.
   --border-color=COLOR
       Color for pixels between sequences.
-  --bed1=FILE
-      Read `BED-format
-      <https://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_
-      annotations for the 1st genome.  They are drawn as rectangles,
-      with coordinates given by the first three BED fields.  The color
-      is specified by the RGB field if present, else pale red if the
-      strand is "+", pale blue if "-", or pale purple.
-  --bed2=FILE
-      Read BED-format annotations for the 2nd genome.
 
 Text options
 ~~~~~~~~~~~~
@@ -106,6 +97,44 @@ Text options
       Show sequence lengths for the 1st (horizontal) genome.
   --lengths2
       Show sequence lengths for the 2nd (vertical) genome.
+
+Annotation options
+~~~~~~~~~~~~~~~~~~
+
+These options read annotations of sequence segments, and draw them as
+colored horizontal or vertical stripes.  This looks good only if the
+annotations are reasonably sparse: e.g. you can't sensibly view 20000
+gene annotations in one small dotplot.
+
+  --bed1=FILE
+      Read `BED-format
+      <https://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_
+      annotations for the 1st genome.  They are drawn as stripes, with
+      coordinates given by the first three BED fields.  The color is
+      specified by the RGB field if present, else pale red if the
+      strand is "+", pale blue if "-", or pale purple.
+  --bed2=FILE
+      Read BED-format annotations for the 2nd genome.
+  --rmsk1=FILE
+      Read repeat annotations for the 1st genome, in RepeatMasker .out
+      or rmsk.txt format.  The color is pale purple for "low
+      complexity" and "simple repeats", else pale red for "+" strand
+      and pale blue for "-" strand.
+  --rmsk2=FILE
+      Read repeat annotations for the 2nd genome.
+
+Gene options
+~~~~~~~~~~~~
+
+  --genePred1=FILE
+      Read gene annotations for the 1st genome in `genePred format
+      <https://genome.ucsc.edu/FAQ/FAQformat.html#format9>`_.
+  --genePred2=FILE
+      Read gene annotations for the 2nd genome.
+  --exon-color=COLOR
+      Color for exons.
+  --cds-color=COLOR
+      Color for protein-coding regions.
 
 Unsequenced gap options
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -124,3 +153,9 @@ of unknown sequence.
 
 An unsequenced gap will be shown only if it covers at least one whole
 pixel.
+
+Colors
+~~~~~~
+
+Colors can be specified in `various ways described here
+<http://effbot.org/imagingbook/imagecolor.htm>`_.
