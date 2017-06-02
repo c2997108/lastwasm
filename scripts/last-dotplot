@@ -202,20 +202,18 @@ def div_ceil(x, y):
     q, r = divmod(x, y)
     return q + (r != 0)
 
-def tot_seq_pix(seq_sizes, bp_per_pix):
-    '''Return the total pixels needed for sequences of the given sizes.'''
-    return sum([div_ceil(i, bp_per_pix) for i in seq_sizes])
-
 def get_bp_per_pix(seq_sizes, pix_tween_seqs, pix_limit):
     '''Get the minimum bp-per-pixel that fits in the size limit.'''
     seq_num = len(seq_sizes)
     seq_pix_limit = pix_limit - pix_tween_seqs * (seq_num - 1)
     if seq_pix_limit < seq_num:
         raise Exception("can't fit the image: too many sequences?")
-    lower_bound = div_ceil(sum(seq_sizes), seq_pix_limit)
-    for bp_per_pix in itertools.count(lower_bound):  # slow linear search
-        if tot_seq_pix(seq_sizes, bp_per_pix) <= seq_pix_limit: break
-    return bp_per_pix
+    negLimit = -seq_pix_limit
+    negBpPerPix = sum(seq_sizes) // negLimit
+    while True:
+        if sum(i // negBpPerPix for i in seq_sizes) >= negLimit:
+            return -negBpPerPix
+        negBpPerPix -= 1
 
 def get_seq_starts(seq_pix, pix_tween_seqs, margin):
     '''Get the start pixel for each sequence.'''
