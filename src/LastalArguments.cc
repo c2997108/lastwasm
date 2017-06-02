@@ -2,7 +2,7 @@
 
 #include "LastalArguments.hh"
 #include "stringify.hh"
-#include <unistd.h>  // getopt
+#include "getoptUtil.hh"
 #include <algorithm>  // max
 #include <iostream>
 #include <sstream>
@@ -167,7 +167,6 @@ Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 
-  optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   const char optionString[] = "hVvf:" "r:q:p:a:b:A:B:c:F:x:y:z:d:e:" "D:E:"
     "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:Q:";
@@ -368,11 +367,14 @@ LAST home page: http://last.cbrc.jp/\n\
   if( isGreedy && maskLowercase == 3 )
     ERR( "can't combine option -M with option -u 3" );
 
-  if( optionsOnly ) return;
-  if( optind >= argc )
-    ERR( "please give me a database name and sequence file(s)\n\n" + usage );
-  lastdbName = argv[optind++];
-  inputStart = optind;
+  if( !optionsOnly ){
+    if( optind >= argc )
+      ERR( "please give me a database name and sequence file(s)\n\n" + usage );
+    lastdbName = argv[optind++];
+    inputStart = optind;
+  }
+
+  resetGetopt();
 }
 
 void LastalArguments::fromLine( const std::string& line ){

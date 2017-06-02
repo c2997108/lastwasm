@@ -175,9 +175,9 @@ LastEvaluer.o LastEvaluer.o8: LastEvaluer.cc LastEvaluer.hh ScoreMatrixRow.hh \
  alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
  GeneticCode.hh
 LastalArguments.o LastalArguments.o8: LastalArguments.cc LastalArguments.hh \
- SequenceFormat.hh stringify.hh version.hh
+ SequenceFormat.hh stringify.hh getoptUtil.hh version.hh
 LastdbArguments.o LastdbArguments.o8: LastdbArguments.cc LastdbArguments.hh \
- SequenceFormat.hh stringify.hh version.hh
+ SequenceFormat.hh stringify.hh getoptUtil.hh version.hh
 MultiSequence.o MultiSequence.o8: MultiSequence.cc MultiSequence.hh ScoreMatrixRow.hh \
  VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh
 MultiSequenceQual.o MultiSequenceQual.o8: MultiSequenceQual.cc MultiSequence.hh \

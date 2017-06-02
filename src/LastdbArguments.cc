@@ -2,7 +2,7 @@
 
 #include "LastdbArguments.hh"
 #include "stringify.hh"
-#include <unistd.h>  // getopt
+#include "getoptUtil.hh"
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>  // EXIT_SUCCESS
@@ -86,7 +86,6 @@ Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 
-  optind = 1;  // allows us to scan arguments more than once(???)
   int c;
   while( (c = myGetopt(argc, argv, "hVpR:cm:s:w:W:P:u:a:i:b:C:xvQ:")) != -1 ) {
     switch(c){
@@ -159,11 +158,14 @@ LAST home page: http://last.cbrc.jp/\n\
     }
   }
 
-  if( isOptionsOnly ) return;
-  if( optind >= argc )
-    ERR( "please give me an output name and sequence file(s)\n\n" + usage );
-  lastdbName = argv[optind++];
-  inputStart = optind;
+  if( !isOptionsOnly ){
+    if( optind >= argc )
+      ERR( "please give me an output name and sequence file(s)\n\n" + usage );
+    lastdbName = argv[optind++];
+    inputStart = optind;
+  }
+
+  resetGetopt();
 }
 
 void LastdbArguments::fromLine( const std::string& line ){
