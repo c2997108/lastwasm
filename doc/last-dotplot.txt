@@ -59,6 +59,8 @@ Options
 
   -h, --help
       Show a help message, with default option values, and exit.
+  -v, --verbose
+      Show progress messages & data about the plot.
   -1 PATTERN, --seq1=PATTERN
       Which sequences to show from the 1st (horizontal) genome.
   -2 PATTERN, --seq2=PATTERN
