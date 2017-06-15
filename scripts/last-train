@@ -3,6 +3,11 @@
 
 import math, optparse, os, random, signal, subprocess, sys, tempfile
 
+def myOpen(fileName):  # faster than fileinput
+    if fileName == "-":
+        return sys.stdin
+    return open(fileName)
+
 def randomSample(things, sampleSize):
     """Randomly get sampleSize things (or all if fewer)."""
     reservoir = []  # "reservoir sampling" algorithm
@@ -19,10 +24,12 @@ def writeWords(outFile, words):
     outFile.write(" ".join(words) + "\n")
 
 def seqInput(fileNames):
+    if not fileNames:
+        fileNames = ["-"]
     for name in fileNames:
-        with open(name) as file:
+        with myOpen(name) as f:
             seqType = 0
-            for line in file:
+            for line in f:
                 if seqType == 0:
                     if line[0] == ">":
                         seqType = 1

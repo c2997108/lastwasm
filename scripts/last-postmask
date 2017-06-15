@@ -56,12 +56,12 @@ def printIfGood(maf, seqs, scoreMatrix, delOpenCost, insOpenCost, minScore):
             print line,
         print
 
-def doOneFile(file):
+def doOneFile(lines):
     scoreMatrix = []
     maf = []
     seqs = []
 
-    for line in file:
+    for line in lines:
         if line[0] == "#":
             print line,
             w = line.split()
@@ -96,8 +96,8 @@ def lastPostmask(args):
             if i == "-":
                 doOneFile(sys.stdin)
             else:
-                with open(i) as file:
-                    doOneFile(file)
+                with open(i) as f:
+                    doOneFile(f)
     else:
         doOneFile(sys.stdin)
 
