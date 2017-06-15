@@ -365,7 +365,8 @@ double eps_lambda_,//relative error for the parameter lambda
 double eps_K_,//relative error for the parameter K
 double max_time_,//maximum allowed calculation time in seconds
 double max_mem_,//maximum allowed memory usage in Mb
-long randomSeed_)//randomizaton seed
+long randomSeed_,//randomizaton seed
+double temperature_)
 {
 
 	struct_for_randomization *randomization_parameters=NULL;
@@ -512,6 +513,7 @@ long randomSeed_)//randomizaton seed
 		letterFreqs1_normalized,
 		letterFreqs2_normalized,
 
+		temperature_,
 		max_time_,//maximum allowed calculation time in seconds
 		max_mem_,//maximum allowed memory usage in MB
 		eps_lambda_,//relative error for lambda calculation

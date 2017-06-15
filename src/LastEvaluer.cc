@@ -357,10 +357,19 @@ void LastEvaluer::init(const char *matrixName,
 
     if (isGapped) {
       evaluer.set_gapped_computation_parameters_simplified(maxSeconds);
-      evaluer.initGapped(alphabetSize, &matrix[0], letterFreqs2, letterFreqs1,
-			 delOpen, delEpen, insOpen, insEpen,
-			 true, lambdaTolerance, kTolerance,
-			 0, maxMegabytes, randomSeed);
+      for (int i = 0; ; ++i) {
+	double t = Sls::default_importance_sampling_temperature + 0.01 * i;
+	try {
+	  evaluer.initGapped(alphabetSize, &matrix[0],
+			     letterFreqs2, letterFreqs1,
+			     delOpen, delEpen, insOpen, insEpen,
+			     true, lambdaTolerance, kTolerance,
+			     0, maxMegabytes, randomSeed, t);
+	  break;
+	} catch (const Sls::error& e) {
+	  if (i == 10) throw;
+	}
+      }
     } else {
       evaluer.initGapless(alphabetSize, &matrix[0],
 			  letterFreqs2, letterFreqs1);
