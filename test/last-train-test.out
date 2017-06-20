@@ -1,4 +1,4 @@
-TEST last-train -m1 /tmp/last-train-test ../examples/mouseMito.fa
+TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # maximum percent identity: 100
 # scale of score parameters: 4.5512
 # scale used while training: 91.024

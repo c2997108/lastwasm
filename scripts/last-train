@@ -478,7 +478,10 @@ if __name__ == "__main__":
                   help="input format: 0=fasta, 1=fastq-sanger")
     op.add_option_group(og)
     (opts, args) = op.parse_args()
-    if len(args) < 2: op.error("I need a lastdb index and query sequences")
+    if len(args) < 1:
+        op.error("I need a lastdb index and query sequences")
+    if not opts.sample_number and (len(args) < 2 or "-" in args):
+        op.error("sorry, can't use stdin when --sample-number=0")
     if not opts.p and (not opts.Q or opts.Q == "0"):
         if not opts.r: opts.r = "5"
         if not opts.q: opts.q = "5"
