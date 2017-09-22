@@ -84,6 +84,8 @@ Alignment options
              reduce run time.
   -T NUMBER  Type of alignment: 0=local, 1=overlap.
   -m COUNT   Maximum number of initial matches per query position.
+  -k STEP    Look for initial matches starting only at every STEP-th
+             position in each query.
   -P COUNT   Number of parallel threads.
   -Q NUMBER  Query sequence format: 0=fasta, 1=fastq-sanger.
              **Important:** if you use option -Q, last-train will only
