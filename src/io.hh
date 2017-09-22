@@ -6,6 +6,8 @@
 #ifndef IO_H
 #define IO_H
 
+#include "mcf_zstream.hh"
+
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -15,10 +17,7 @@
 namespace cbrc{
 
 // open an input file, but if the name is "-", just return cin
-std::istream& openIn( const std::string& fileName, std::ifstream& ifs );
-
-// open an output file, but if the name is "-", just return cout
-std::ostream& openOut( const std::string& fileName, std::ofstream& ofs );
+std::istream& openIn( const std::string& fileName, mcf::izstream& ifs );
 
 // read a file into a string, but if the name is "-", read cin
 std::string slurp( const std::string& fileName );

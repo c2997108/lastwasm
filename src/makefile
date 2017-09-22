@@ -8,6 +8,8 @@ CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 
 CFLAGS = -Wall -O2
 
+LDFLAGS = -lz
+
 alpObj = alp/sls_alignment_evaluer.o alp/sls_pvalues.o		\
 alp/sls_alp_sim.o alp/sls_alp_regression.o alp/sls_alp_data.o	\
 alp/sls_alp.o alp/sls_basic.o alp/njn_localmaxstatmatrix.o	\
@@ -151,7 +153,7 @@ Centroid.o Centroid.o8: Centroid.cc Centroid.hh GappedXdropAligner.hh \
  ScoreMatrixRow.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
  OneQualityScoreMatrix.hh GappedXdropAlignerInl.hh
 CyclicSubsetSeed.o CyclicSubsetSeed.o8: CyclicSubsetSeed.cc CyclicSubsetSeed.hh \
- CyclicSubsetSeedData.hh io.hh stringify.hh
+ CyclicSubsetSeedData.hh io.hh mcf_zstream.hh stringify.hh
 DiagonalTable.o DiagonalTable.o8: DiagonalTable.cc DiagonalTable.hh
 GappedXdropAligner.o GappedXdropAligner.o8: GappedXdropAligner.cc GappedXdropAligner.hh \
  ScoreMatrixRow.hh GappedXdropAlignerInl.hh
@@ -179,7 +181,7 @@ LastalArguments.o LastalArguments.o8: LastalArguments.cc LastalArguments.hh \
 LastdbArguments.o LastdbArguments.o8: LastdbArguments.cc LastdbArguments.hh \
  SequenceFormat.hh stringify.hh getoptUtil.hh version.hh
 MultiSequence.o MultiSequence.o8: MultiSequence.cc MultiSequence.hh ScoreMatrixRow.hh \
- VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh
+ VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh mcf_zstream.hh
 MultiSequenceQual.o MultiSequenceQual.o8: MultiSequenceQual.cc MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
 OneQualityScoreMatrix.o OneQualityScoreMatrix.o8: OneQualityScoreMatrix.cc \
@@ -187,14 +189,15 @@ OneQualityScoreMatrix.o OneQualityScoreMatrix.o8: OneQualityScoreMatrix.cc \
  stringify.hh
 QualityPssmMaker.o QualityPssmMaker.o8: QualityPssmMaker.cc QualityPssmMaker.hh \
  ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
-ScoreMatrix.o ScoreMatrix.o8: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixData.hh io.hh
+ScoreMatrix.o ScoreMatrix.o8: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixData.hh io.hh \
+ mcf_zstream.hh
 SegmentPair.o SegmentPair.o8: SegmentPair.cc SegmentPair.hh
 SegmentPairPot.o SegmentPairPot.o8: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh
 SubsetMinimizerFinder.o SubsetMinimizerFinder.o8: SubsetMinimizerFinder.cc \
  SubsetMinimizerFinder.hh CyclicSubsetSeed.hh
 SubsetSuffixArray.o SubsetSuffixArray.o8: SubsetSuffixArray.cc SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
- SubsetMinimizerFinder.hh io.hh
+ SubsetMinimizerFinder.hh io.hh mcf_zstream.hh
 SubsetSuffixArraySearch.o SubsetSuffixArraySearch.o8: SubsetSuffixArraySearch.cc \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
  fileMap.hh stringify.hh
@@ -211,11 +214,11 @@ gaplessPssmXdrop.o gaplessPssmXdrop.o8: gaplessPssmXdrop.cc gaplessPssmXdrop.hh 
 gaplessTwoQualityXdrop.o gaplessTwoQualityXdrop.o8: gaplessTwoQualityXdrop.cc \
  gaplessTwoQualityXdrop.hh TwoQualityScoreMatrix.hh ScoreMatrixRow.hh
 gaplessXdrop.o gaplessXdrop.o8: gaplessXdrop.cc gaplessXdrop.hh ScoreMatrixRow.hh
-io.o io.o8: io.cc io.hh
+io.o io.o8: io.cc io.hh mcf_zstream.hh
 last-pair-probs-main.o last-pair-probs-main.o8: last-pair-probs-main.cc last-pair-probs.hh \
  stringify.hh version.hh
 last-pair-probs.o last-pair-probs.o8: last-pair-probs.cc last-pair-probs.hh io.hh \
- stringify.hh
+ mcf_zstream.hh stringify.hh
 lastal.o lastal.o8: lastal.cc LastalArguments.hh SequenceFormat.hh \
  QualityPssmMaker.hh ScoreMatrixRow.hh OneQualityScoreMatrix.hh \
  TwoQualityScoreMatrix.hh qualityScoreUtil.hh stringify.hh \
@@ -228,12 +231,12 @@ lastal.o lastal.o8: lastal.cc LastalArguments.hh SequenceFormat.hh \
  SegmentPairPot.hh ScoreMatrix.hh Alphabet.hh MultiSequence.hh \
  TantanMasker.hh tantan.hh DiagonalTable.hh GreedyXdropAligner.hh \
  gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh \
- threadUtil.hh version.hh
+ mcf_zstream.hh threadUtil.hh version.hh
 lastdb.o lastdb.o8: lastdb.cc LastdbArguments.hh SequenceFormat.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
  fileMap.hh stringify.hh Alphabet.hh MultiSequence.hh ScoreMatrixRow.hh \
- TantanMasker.hh tantan.hh io.hh qualityScoreUtil.hh threadUtil.hh \
- version.hh
+ TantanMasker.hh tantan.hh io.hh mcf_zstream.hh qualityScoreUtil.hh \
+ threadUtil.hh version.hh
 tantan.o tantan.o8: tantan.cc tantan.hh
 last-merge-batches.o: last-merge-batches.c version.hh
 alp/njn_dynprogprob.o: alp/njn_dynprogprob.cpp alp/njn_dynprogprob.hpp \

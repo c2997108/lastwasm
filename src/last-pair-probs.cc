@@ -616,7 +616,7 @@ void lastPairProbs(LastPairProbsOptions& opts) {
   size_t n = inputs.size();
 
   if (!opts.isFraglen || !opts.isSdev) {
-    std::ifstream inFile1, inFile2;
+    mcf::izstream inFile1, inFile2;
     std::istream& in1 = (n > 0) ? cbrc::openIn(inputs[0], inFile1) : std::cin;
     std::istream& in2 = (n > 1) ? cbrc::openIn(inputs[1], inFile2) : in1;
     if (n < 2) skipOneBatchMarker(in1);
@@ -626,7 +626,7 @@ void lastPairProbs(LastPairProbsOptions& opts) {
   }
 
   if (!opts.estdist) {
-    std::ifstream inFile1, inFile2;
+    mcf::izstream inFile1, inFile2;
     std::istream& in1 = (n > 0) ? cbrc::openIn(inputs[0], inFile1) : std::cin;
     std::istream& in2 = (n > 1) ? cbrc::openIn(inputs[1], inFile2) : in1;
     AlignmentParameters params1 = readHeaderOrDie(in1);

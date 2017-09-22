@@ -21,9 +21,10 @@ like this::
   >My2ndSequence
   TTTAGAGGGTTCTTCGGGATT
 
-You can also pipe sequences into lastdb, for example::
+These files may be compressed in gzip (.gz) format.  You can also pipe
+sequences into lastdb, for example::
 
-  zcat humanChromosome*.fasta.gz | lastdb humanDb
+  bzcat humanChromosome*.fasta.bz2 | lastdb humanDb
 
 Options
 -------

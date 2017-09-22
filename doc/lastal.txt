@@ -13,9 +13,10 @@ writes several files whose names begin with ``humanDb``.  The lastal
 command reads files called ``dna*.fasta``, compares them to
 ``humanDb``, and writes alignments to a file called ``myalns.maf``.
 
-You can also pipe query sequences into lastal, for example::
+You can use gzip (.gz) compressed query files.  You can also pipe
+query sequences into lastal, for example::
 
-  zcat seqs.fasta.gz | lastal humanDb > myalns.maf
+  bzcat seqs.fasta.bz2 | lastal humanDb > myalns.maf
 
 Steps in lastal
 ---------------

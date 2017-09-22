@@ -310,7 +310,7 @@ void lastdb( int argc, char** argv ){
   char** inputBegin = argv + args.inputStart;
 
   for( char** i = *inputBegin ? inputBegin : defaultInput; *i; ++i ){
-    std::ifstream inFileStream;
+    mcf::izstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
