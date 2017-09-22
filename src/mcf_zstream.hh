@@ -27,7 +27,6 @@ public:
     if (is_open()) return 0;
     input = gzopen(fileName, "rb");
     if (!is_open()) return 0;
-    gzbuffer(input, 2 * 1024 * 1024);  // makes it faster?
     return this;
   }
 
