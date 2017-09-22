@@ -186,6 +186,10 @@ Score options
       This serves two purposes: accuracy (avoid spurious internal
       regions in alignments) and speed (the smaller the faster).
 
+      You can specify either a score (e.g. -x20), or a percentage; for
+      example, -x50% specifies 50% of the default value (rounded down
+      to the nearest integer).
+
   -y DROP
       Maximum score drop for gapless alignments.
 

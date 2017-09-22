@@ -179,6 +179,9 @@ trap 'rm -f $db*' EXIT
     # first alignments only
     try lastal -N2 $db hg19-M.fa
 
+    # -x %
+    try lastal -W19 -x50% -fTAB $db hg19-M.fa
+
     # fastq-versus-fastq gapless overlap alignment
     lastdb -Q1 -uNEAR -cR01 $db $fastq
     try lastal -Q1 -T1 -j1 -s0 $db $fastq
