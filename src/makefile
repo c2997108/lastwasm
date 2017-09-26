@@ -5,8 +5,6 @@ CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 
 CFLAGS = -Wall -O2
 
-LDFLAGS = -lz
-
 alpObj = alp/sls_alignment_evaluer.o alp/sls_pvalues.o		\
 alp/sls_alp_sim.o alp/sls_alp_regression.o alp/sls_alp_data.o	\
 alp/sls_alp.o alp/sls_basic.o alp/njn_localmaxstatmatrix.o	\
@@ -58,19 +56,19 @@ all: $(ALL)
 
 indexAllObj4 = $(indexObj0) $(indexObj4)
 lastdb: $(indexAllObj4)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(indexAllObj4)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(indexAllObj4) -lz
 
 indexAllObj8 = $(indexObj0) $(indexObj8)
 lastdb8: $(indexAllObj8)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(indexAllObj8)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(indexAllObj8) -lz
 
 alignAllObj4 = $(alignObj0) $(alignObj4)
 lastal: $(alignAllObj4)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(alignAllObj4)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(alignAllObj4) -lz
 
 alignAllObj8 = $(alignObj0) $(alignObj8)
 lastal8: $(alignAllObj8)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(alignAllObj8)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(alignAllObj8) -lz
 
 splitAllObj4 = $(splitObj0) $(splitObj4)
 last-split: $(splitAllObj4)
@@ -81,7 +79,7 @@ last-split8: $(splitAllObj8)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(splitAllObj8)
 
 last-pair-probs: $(PPOBJ)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(PPOBJ)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(PPOBJ) -lz
 
 last-merge-batches: $(MBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(MBOBJ)
