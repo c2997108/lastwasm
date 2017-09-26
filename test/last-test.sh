@@ -196,7 +196,9 @@ lastdb -uBISR r hg19-M.fa
 rm f.* r.*
 
 ./last-pair-test.sh
+./last-postmask-test.sh
 ./last-split-test.sh
+./last-train-test.sh
 ./maf-convert-test.sh
 
 # Test: lastdb, lastal, last-split, maf-sort, maf-join

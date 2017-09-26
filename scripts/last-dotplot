@@ -9,6 +9,7 @@
 # according to the number of aligned nt-pairs within it, but the
 # result is too faint.  How can this be done better?
 
+import gzip
 import fnmatch, itertools, optparse, os, re, sys
 
 # Try to make PIL/PILLOW work:
@@ -18,6 +19,8 @@ except ImportError: import Image, ImageDraw, ImageFont, ImageColor
 def myOpen(fileName):  # faster than fileinput
     if fileName == "-":
         return sys.stdin
+    if fileName.endswith(".gz"):
+        return gzip.open(fileName)
     return open(fileName)
 
 def warn(message):

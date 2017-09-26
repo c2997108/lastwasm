@@ -1,11 +1,14 @@
 #! /usr/bin/env python
 # Copyright 2015 Martin C. Frith
 
+import gzip
 import math, optparse, os, random, signal, subprocess, sys, tempfile
 
 def myOpen(fileName):  # faster than fileinput
     if fileName == "-":
         return sys.stdin
+    if fileName.endswith(".gz"):
+        return gzip.open(fileName)
     return open(fileName)
 
 def randomSample(things, sampleSize):
@@ -27,29 +30,30 @@ def seqInput(fileNames):
     if not fileNames:
         fileNames = ["-"]
     for name in fileNames:
-        with myOpen(name) as f:
-            seqType = 0
-            for line in f:
-                if seqType == 0:
-                    if line[0] == ">":
-                        seqType = 1
-                        seq = []
-                    elif line[0] == "@":
-                        seqType = 2
-                        lineType = 1
-                elif seqType == 1:  # fasta
-                    if line[0] == ">":
-                        yield "".join(seq), ""
-                        seq = []
-                    else:
-                        seq.append(line.rstrip())
-                elif seqType == 2:  # fastq
-                    if lineType == 1:
-                        seq = line.rstrip()
-                    elif lineType == 3:
-                        yield seq, line.rstrip()
-                    lineType = (lineType + 1) % 4
-            if seqType == 1: yield "".join(seq), ""
+        f = myOpen(name)
+        seqType = 0
+        for line in f:
+            if seqType == 0:
+                if line[0] == ">":
+                    seqType = 1
+                    seq = []
+                elif line[0] == "@":
+                    seqType = 2
+                    lineType = 1
+            elif seqType == 1:  # fasta
+                if line[0] == ">":
+                    yield "".join(seq), ""
+                    seq = []
+                else:
+                    seq.append(line.rstrip())
+            elif seqType == 2:  # fastq
+                if lineType == 1:
+                    seq = line.rstrip()
+                elif lineType == 3:
+                    yield seq, line.rstrip()
+                lineType = (lineType + 1) % 4
+        if seqType == 1: yield "".join(seq), ""
+        f.close()
 
 def isGoodChunk(chunk):
     for i in chunk:

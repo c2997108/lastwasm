@@ -7,7 +7,15 @@
 # Genome FAQ, not e.g. "MIRA assembly format".
 
 from itertools import *
+import gzip
 import math, optparse, os, signal, sys
+
+def myOpen(fileName):
+    if fileName == "-":
+        return sys.stdin
+    if fileName.endswith(".gz"):
+        return gzip.open(fileName)
+    return open(fileName)
 
 def maxlen(s):
     return max(map(len, s))
@@ -335,16 +343,17 @@ def readGroupId(readGroupItems):
 def readSequenceLengths(fileNames):
     """Read name & length of topmost sequence in each maf block."""
     for i in fileNames:
-        with open(i) as f:
-            fields = None
-            for line in f:
-                if fields:
-                    if line.isspace():
-                        fields = None
-                else:
-                    if line[0] == "s":
-                        fields = line.split()
-                        yield fields[1], fields[5]
+        f = myOpen(i)
+        fields = None
+        for line in f:
+            if fields:
+                if line.isspace():
+                    fields = None
+            else:
+                if line[0] == "s":
+                    fields = line.split()
+                    yield fields[1], fields[5]
+        f.close()
 
 def naturalSortKey(s):
     """Return a key that sorts strings in "natural" order."""
@@ -372,11 +381,9 @@ def writeSamHeader(opts, fileNames):
             print "@SQ\tSN:%s\tLN:%s" % (k, sequenceLengths[k])
 
     if opts.dictfile:
-        if opts.dictfile == "-":
-            copyDictFile(sys.stdin)
-        else:
-            with open(opts.dictfile) as f:
-                copyDictFile(f)
+        f = myOpen(opts.dictfile)
+        copyDictFile(f)
+        f.close()
 
     if opts.readgroup:
         print "@RG\t" + "\t".join(opts.readgroup.split())
@@ -787,15 +794,12 @@ def mafConvert(opts, args):
         if isFormat(formatName, "tabular"):
             opts.isKeepComments = True
 
-    if fileNames:
-        for i in fileNames:
-            if i == "-":
-                mafConvertOneFile(opts, formatName, sys.stdin)
-            else:
-                with open(i) as f:
-                    mafConvertOneFile(opts, formatName, f)
-    else:
-        mafConvertOneFile(opts, formatName, sys.stdin)
+    if not fileNames:
+        fileNames = ["-"]
+    for i in fileNames:
+        f = myOpen(i)
+        mafConvertOneFile(opts, formatName, f)
+        f.close()
 
     if not opts.noheader:
         if isFormat(formatName, "html"):
