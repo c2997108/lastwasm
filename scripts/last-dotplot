@@ -163,13 +163,17 @@ def natural_sort_key(my_string):
     parts[1::2] = map(int, parts[1::2])
     return parts
 
-def get_text_sizes(my_strings, font, fontsize, image_mode):
+def textDimensions(imageDraw, font, textRot, text):
+    x, y = imageDraw.textsize(text, font=font)
+    return (y, x) if textRot else (x, y)
+
+def get_text_sizes(my_strings, font, fontsize, image_mode, textRot):
     '''Get widths & heights, in pixels, of some strings.'''
     if fontsize == 0: return [(0, 0) for i in my_strings]
     image_size = 1, 1
     im = Image.new(image_mode, image_size)
     draw = ImageDraw.Draw(im)
-    return [draw.textsize(i, font=font) for i in my_strings]
+    return [textDimensions(draw, font, textRot, i) for i in my_strings]
 
 def sizeText(size):
     suffixes = "bp", "kb", "Mb", "Gb"
@@ -184,7 +188,7 @@ def seqNameAndSizeText(seqName, seqSize):
     return seqName + ": " + sizeText(seqSize)
 
 def getSeqInfo(sortOpt, seqNames, seqLimits,
-               font, fontsize, image_mode, isShowSize):
+               font, fontsize, image_mode, isShowSize, textRot):
     '''Return miscellaneous information about the sequences.'''
     if sortOpt == 1:
         seqNames.sort(key=natural_sort_key)
@@ -202,8 +206,9 @@ def getSeqInfo(sortOpt, seqNames, seqLimits,
         seqLabels = map(seqNameAndSizeText, seqNames, seqSizes)
     else:
         seqLabels = seqNames
-    labelSizes = get_text_sizes(seqLabels, font, fontsize, image_mode)
-    margin = max(zip(*labelSizes)[1])  # maximum text height
+    labelSizes = get_text_sizes(seqLabels, font, fontsize, image_mode, textRot)
+    margin = max(i[1] for i in labelSizes)
+    # xxx the margin may be too big, because some labels may get omitted
     return seqNames, seqSizes, seqLabels, labelSizes, margin
 
 def div_ceil(x, y):
@@ -413,11 +418,11 @@ def drawAnnotations(im, boxes):
 
 def make_label(text, text_size, range_start, range_size):
     '''Return an axis label with endpoint & sort-order information.'''
-    text_width  = text_size[0]
+    text_width, text_height = text_size
     label_start = range_start + (range_size - text_width) // 2
     label_end   = label_start + text_width
     sort_key    = text_width - range_size
-    return sort_key, label_start, label_end, text
+    return sort_key, label_start, label_end, text, text_height
 
 def get_nonoverlapping_labels(labels, label_space):
     '''Get a subset of non-overlapping axis labels, greedily.'''
@@ -428,21 +433,23 @@ def get_nonoverlapping_labels(labels, label_space):
             nonoverlapping_labels.append(i)
     return nonoverlapping_labels
 
-def get_axis_image(seqNames, name_sizes, seq_starts, seq_pix,
-                   font, image_mode, opts):
+def get_axis_image(seqNames, name_sizes, seq_starts, seq_pix, textRot,
+                   textAln, font, image_mode, opts):
     '''Make an image of axis labels.'''
     min_pos = seq_starts[0]
     max_pos = seq_starts[-1] + seq_pix[-1]
-    height = max(zip(*name_sizes)[1])
+    margin = max(i[1] for i in name_sizes)
     labels = map(make_label, seqNames, name_sizes, seq_starts, seq_pix)
     labels = [i for i in labels if i[1] >= min_pos and i[2] <= max_pos]
     labels.sort()
-    labels = get_nonoverlapping_labels(labels, opts.label_space)
-    image_size = max_pos, height
+    minPixTweenLabels = 0 if textRot else opts.label_space
+    labels = get_nonoverlapping_labels(labels, minPixTweenLabels)
+    image_size = (margin, max_pos) if textRot else (max_pos, margin)
     im = Image.new(image_mode, image_size, opts.border_color)
     draw = ImageDraw.Draw(im)
     for i in labels:
-        position = i[1], 0
+        base = margin - i[4] if textAln else 0
+        position = (base, i[1]) if textRot else (i[1], base)
         draw.text(position, i[3], font=font, fill=opts.text_color)
     return im
 
@@ -466,12 +473,14 @@ def lastDotplot(opts, args):
     warn("done")
     if not alignments: raise Exception("there are no alignments")
 
+    textRot1 = "vertical".startswith(opts.rot1)
     i1 = getSeqInfo(opts.sort1, seqNames1, seqLimits1,
-                    font, opts.fontsize, image_mode, opts.lengths1)
+                    font, opts.fontsize, image_mode, opts.lengths1, textRot1)
     seqNames1, seqSizes1, seqLabels1, labelSizes1, tMargin = i1
 
+    textRot2 = "horizontal".startswith(opts.rot2)
     i2 = getSeqInfo(opts.sort2, seqNames2, seqLimits2,
-                    font, opts.fontsize, image_mode, opts.lengths2)
+                    font, opts.fontsize, image_mode, opts.lengths2, textRot2)
     seqNames2, seqSizes2, seqLabels2, labelSizes2, lMargin = i2
 
     warn("choosing bp per pixel...")
@@ -530,10 +539,13 @@ def lastDotplot(opts, args):
 
     if opts.fontsize != 0:
         axis1 = get_axis_image(seqLabels1, labelSizes1, seq_starts1, seq_pix1,
-                               font, image_mode, opts)
+                               textRot1, False, font, image_mode, opts)
+        if textRot1:
+            axis1 = axis1.transpose(Image.ROTATE_90)
         axis2 = get_axis_image(seqLabels2, labelSizes2, seq_starts2, seq_pix2,
-                               font, image_mode, opts)
-        axis2 = axis2.transpose(Image.ROTATE_270)  # !!! bug hotspot
+                               textRot2, textRot2, font, image_mode, opts)
+        if not textRot2:
+            axis2 = axis2.transpose(Image.ROTATE_270)
         im.paste(axis1, (0, 0))
         im.paste(axis2, (0, 0))
 
@@ -592,6 +604,10 @@ if __name__ == "__main__":
                   help="TrueType or OpenType font file")
     og.add_option("-s", "--fontsize", metavar="SIZE", type="int", default=11,
                   help="TrueType or OpenType font size (default: %default)")
+    og.add_option("--rot1", metavar="ROT", default="h",
+                  help="text rotation for the 1st genome (default=%default)")
+    og.add_option("--rot2", metavar="ROT", default="v",
+                  help="text rotation for the 2nd genome (default=%default)")
     og.add_option("--lengths1", action="store_true",
                   help="show sequence lengths for the 1st (horizontal) genome")
     og.add_option("--lengths2", action="store_true",

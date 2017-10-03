@@ -2,8 +2,9 @@ last-dotplot
 ============
 
 This script makes a dotplot, a.k.a. Oxford Grid, of pair-wise sequence
-alignments in MAF or LAST tabular format.  It requires the Python
-Imaging Library to be installed.  It can be used like this::
+alignments in MAF or LAST tabular format.  It requires the `Python
+Imaging Library <https://pillow.readthedocs.io/>`_ to be installed.
+It can be used like this::
 
   last-dotplot my-alignments my-plot.png
 
@@ -13,7 +14,11 @@ The output can be in any format supported by the Imaging Library::
 
 To get a nicer font, try something like::
 
-  last-dotplot -f /usr/share/fonts/truetype/freefont/FreeSans.ttf alns alns.png
+  last-dotplot -f /usr/share/fonts/liberation/LiberationSans-Regular.ttf alns alns.png
+
+or::
+
+  last-dotplot -f /Library/Fonts/Arial.ttf alns alns.png
 
 If the fonts are located somewhere different on your computer, change
 this as appropriate.
@@ -95,6 +100,10 @@ Text options
       TrueType or OpenType font file.
   -s SIZE, --fontsize=SIZE
       TrueType or OpenType font size.
+  --rot1=ROT
+      Text rotation for the 1st genome: h(orizontal) or v(ertical).
+  --rot2=ROT
+      Text rotation for the 2nd genome: h(orizontal) or v(ertical).
   --lengths1
       Show sequence lengths for the 1st (horizontal) genome.
   --lengths2
