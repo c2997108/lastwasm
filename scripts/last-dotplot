@@ -468,24 +468,24 @@ def lastDotplot(opts, args):
 
     i1 = getSeqInfo(opts.sort1, seqNames1, seqLimits1,
                     font, opts.fontsize, image_mode, opts.lengths1)
-    seqNames1, seqSizes1, seqLabels1, labelSizes1, margin1 = i1
+    seqNames1, seqSizes1, seqLabels1, labelSizes1, tMargin = i1
 
     i2 = getSeqInfo(opts.sort2, seqNames2, seqLimits2,
                     font, opts.fontsize, image_mode, opts.lengths2)
-    seqNames2, seqSizes2, seqLabels2, labelSizes2, margin2 = i2
+    seqNames2, seqSizes2, seqLabels2, labelSizes2, lMargin = i2
 
     warn("choosing bp per pixel...")
-    pix_limit1 = opts.width  - margin1
-    pix_limit2 = opts.height - margin2
+    pix_limit1 = opts.width  - lMargin
+    pix_limit2 = opts.height - tMargin
     bpPerPix1 = get_bp_per_pix(seqSizes1, opts.border_pixels, pix_limit1)
     bpPerPix2 = get_bp_per_pix(seqSizes2, opts.border_pixels, pix_limit2)
     bpPerPix = max(bpPerPix1, bpPerPix2)
     warn("bp per pixel = " + str(bpPerPix))
 
     seq_pix1, seq_starts1, width  = get_pix_info(seqSizes1, bpPerPix,
-                                                 opts.border_pixels, margin1)
+                                                 opts.border_pixels, lMargin)
     seq_pix2, seq_starts2, height = get_pix_info(seqSizes2, bpPerPix,
-                                                 opts.border_pixels, margin2)
+                                                 opts.border_pixels, tMargin)
     warn("width:  " + str(width))
     warn("height: " + str(height))
 
@@ -509,13 +509,13 @@ def lastDotplot(opts, args):
                             readRmsk(opts.rmsk1, seqLimits1),
                             readGenePred(opts, opts.genePred1, seqLimits1),
                             readGaps(opts, opts.gap1, seqLimits1))
-    b1 = bedBoxes(beds1, seqLimits1, origins1, margin2, height, True, bpPerPix)
+    b1 = bedBoxes(beds1, seqLimits1, origins1, tMargin, height, True, bpPerPix)
 
     beds2 = itertools.chain(readBed(opts.bed2, seqLimits2),
                             readRmsk(opts.rmsk2, seqLimits2),
                             readGenePred(opts, opts.genePred2, seqLimits2),
                             readGaps(opts, opts.gap2, seqLimits2))
-    b2 = bedBoxes(beds2, seqLimits2, origins2, margin1, width, False, bpPerPix)
+    b2 = bedBoxes(beds2, seqLimits2, origins2, lMargin, width, False, bpPerPix)
 
     boxes = sorted(itertools.chain(b1, b2))
     drawAnnotations(im, boxes)
@@ -538,11 +538,11 @@ def lastDotplot(opts, args):
         im.paste(axis2, (0, 0))
 
     for i in seq_starts1[1:]:
-        box = i - opts.border_pixels, margin2, i, height
+        box = i - opts.border_pixels, tMargin, i, height
         im.paste(opts.border_color, box)
 
     for i in seq_starts2[1:]:
-        box = margin1, i - opts.border_pixels, width, i
+        box = lMargin, i - opts.border_pixels, width, i
         im.paste(opts.border_color, box)
 
     im.save(args[1])
