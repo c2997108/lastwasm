@@ -169,7 +169,7 @@ def writeAxt(maf):
 
     head, body = ranges[0], ranges[1:]
 
-    outWords = [str(axtCounter.next())]
+    outWords = [str(next(axtCounter))]
     outWords.extend(head[:3])
     for i in body:
         outWords.extend(i)
@@ -217,6 +217,42 @@ def writeTab(maf):
 def mafConvertToTab(opts, lines):
     for maf in mafInput(opts, lines):
         writeTab(maf)
+
+##### Routines for converting to chain format: #####
+
+def writeChain(maf):
+    aLine, sLines, qLines, pLines = maf
+
+    score = "0"
+    for i in aLine.split():
+        if i.startswith("score="):
+            score = i[6:]
+
+    outWords = ["chain", score]
+
+    for seqName, seqLen, strand, letterSize, beg, end, row in sLines:
+        x = seqName, str(seqLen), strand, str(beg), str(end)
+        outWords.extend(x)
+
+    outWords.append(str(next(axtCounter) + 1))
+
+    print " ".join(outWords)
+
+    letterSizes = [i[3] for i in sLines]
+    rows = [i[6] for i in sLines]
+    alignmentColumns = izip(*rows)
+    size = "0"
+    for i in matchAndInsertSizes(alignmentColumns, letterSizes):
+        if ":" in i:
+            print size + "\t" + i.replace(":", "\t")
+            size = "0"
+        else:
+            size = i
+    print size
+
+def mafConvertToChain(opts, lines):
+    for maf in mafInput(opts, lines):
+        writeChain(maf)
 
 ##### Routines for converting to PSL format: #####
 
@@ -767,6 +803,8 @@ def mafConvertOneFile(opts, formatName, lines):
         mafConvertToBlast(opts, lines)
     elif isFormat(formatName, "blasttab"):
         mafConvertToBlastTab(opts, lines)
+    elif isFormat(formatName, "chain"):
+        mafConvertToChain(opts, lines)
     elif isFormat(formatName, "html"):
         mafConvertToHtml(opts, lines)
     elif isFormat(formatName, "psl"):
@@ -813,6 +851,7 @@ if __name__ == "__main__":
   %prog axt mafFile(s)
   %prog blast mafFile(s)
   %prog blasttab mafFile(s)
+  %prog chain mafFile(s)
   %prog html mafFile(s)
   %prog psl mafFile(s)
   %prog sam mafFile(s)
