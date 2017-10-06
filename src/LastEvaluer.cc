@@ -367,7 +367,7 @@ void LastEvaluer::init(const char *matrixName,
 			     0, maxMegabytes, randomSeed, t);
 	  break;
 	} catch (const Sls::error& e) {
-	  if (i == 10) throw;
+	  if (i == 20) throw;
 	}
       }
     } else {
