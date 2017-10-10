@@ -254,10 +254,9 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
 
 // Read the next sequence, adding it to the MultiSequence
 std::istream&
-appendFromFasta( MultiSequence& multi, unsigned numOfIndexes,
+appendFromFasta( MultiSequence& multi, indexT maxSeqLen,
 		 const LastdbArguments& args, const Alphabet& alph,
 		 std::istream& in ){
-  indexT maxSeqLen = maxLettersPerVolume( args, numOfIndexes );
   if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
 
   size_t oldSize = multi.unfinishedSize();
@@ -311,6 +310,7 @@ void lastdb( int argc, char** argv ){
   unsigned volumeNumber = 0;
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
+  indexT maxSeqLen = maxLettersPerVolume( args, seeds.size() );
 
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
@@ -321,7 +321,7 @@ void lastdb( int argc, char** argv ){
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
-    while( appendFromFasta( multi, seeds.size(), args, alph, in ) ){
+    while( appendFromFasta( multi, maxSeqLen, args, alph, in ) ){
       if( !args.isProtein && args.userAlphabet.empty() &&
           sequenceCount == 0 && isDubiousDna( alph, multi ) ){
         std::cerr << args.programName << ": that's some funny-lookin DNA\n";

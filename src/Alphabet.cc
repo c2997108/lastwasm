@@ -51,14 +51,6 @@ char* Alphabet::rtCopy( const uchar* beg, const uchar* end, char* dest ) const{
   return dest;
 }
 
-void Alphabet::rc( uchar* beg, uchar* end ) const{
-  std::reverse( beg, end );
-
-  for( /* noop */; beg < end; ++beg ){
-    *beg = complement[ *beg ];
-  }
-}
-
 void Alphabet::init(){
   for( std::string::iterator i = letters.begin(); i < letters.end(); ++i )
     *i = std::toupper( *i );

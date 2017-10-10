@@ -950,29 +950,16 @@ void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
   cullFinalAlignments( aligner.textAlns, oldNumOfAlns );
 }
 
-static void reverseComplementQuery( size_t queryNum ){
-  size_t b = query.seqBeg(queryNum);
-  size_t e = query.seqEnd(queryNum);
-  queryAlph.rc( query.seqWriter() + b, query.seqWriter() + e );
-  if( isQuality( args.inputFormat ) ){
-    std::reverse( query.qualityWriter() + b * query.qualsPerLetter(),
-		  query.qualityWriter() + e * query.qualsPerLetter() );
-  }else if( args.inputFormat == sequenceFormat::pssm ){
-    reverseComplementPssm( query.pssmWriter() + b,
-			   query.pssmWriter() + e, queryAlph.complement );
-  }
-}
-
 static void alignOneQuery(LastAligner &aligner,
 			  size_t queryNum, bool isFirstVolume) {
   if (args.strand == 2 && !isFirstVolume)
-    reverseComplementQuery(queryNum);
+    reverseComplementOneSequence(query, queryAlph.complement, queryNum);
 
   if (args.strand != 0)
     translateAndScan(aligner, queryNum, '+');
 
   if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
-    reverseComplementQuery(queryNum);
+    reverseComplementOneSequence(query, queryAlph.complement, queryNum);
 
   if (args.strand != 1)
     translateAndScan(aligner, queryNum, '-');

@@ -169,6 +169,29 @@ inline void reverseComplementPssm(ScoreMatrixRow *beg, ScoreMatrixRow *end,
   }
 }
 
+inline void reverseComplementOneSequence(MultiSequence &m,
+					 const uchar *complement,
+					 size_t seqNum) {
+  size_t b = m.seqBeg(seqNum);
+  size_t e = m.seqEnd(seqNum);
+
+  uchar *s = m.seqWriter();
+  std::reverse(s + b, s + e);
+  for (size_t i = b; i < e; ++i) {
+    s[i] = complement[s[i]];
+  }
+
+  size_t qpl = m.qualsPerLetter();
+  if (qpl) {
+    std::reverse(m.qualityWriter() + b * qpl, m.qualityWriter() + e * qpl);
+  }
+
+  ScoreMatrixRow *p = m.pssmWriter();
+  if (p) {
+    reverseComplementPssm(p + b, p + e, complement);
+  }
+}
+
 // Divide the sequences into a given number of roughly-equally-sized
 // chunks, and return the first sequence in the Nth chunk.
 inline size_t firstSequenceInChunk(const MultiSequence &m,
