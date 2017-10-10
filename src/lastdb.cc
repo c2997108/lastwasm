@@ -180,12 +180,21 @@ static void preprocessSeqs(MultiSequence &multi,
 // Make one database volume, from one batch of sequences
 void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
 		 MultiSequence& multi, const LastdbArguments& args,
-		 const Alphabet& alph, const std::vector<countT>& letterCounts,
+		 const Alphabet& alph, std::vector<countT>& letterCounts,
 		 const TantanMasker& masker, unsigned numOfThreads,
 		 const std::string& seedText, const std::string& baseName ){
   size_t numOfIndexes = seeds.size();
   size_t numOfSequences = multi.finishedSequences();
   size_t textLength = multi.finishedSize();
+  const uchar* seq = multi.seqReader();
+
+  std::vector<countT> letterCountsInThisVolume(alph.size);
+  alph.count(seq, seq + textLength, &letterCountsInThisVolume[0]);
+  for (unsigned c = 0; c < alph.size; ++c) {
+    letterCounts[c] += letterCountsInThisVolume[c];
+  }
+
+  if (args.isCountsOnly) return;
 
   if( args.tantanSetting ){
     LOG( "masking..." );
@@ -194,9 +203,8 @@ void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
 
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
-		letterCounts, -1, numOfIndexes, seedText );
+		letterCountsInThisVolume, -1, numOfIndexes, seedText );
   multi.toFiles( baseName );
-  const uchar* seq = multi.seqReader();
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     SubsetSuffixArray myIndex;
@@ -244,7 +252,7 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
   return z;
 }
 
-// Read the next sequence, adding it to the MultiSequence and the SuffixArray
+// Read the next sequence, adding it to the MultiSequence
 std::istream&
 appendFromFasta( MultiSequence& multi, unsigned numOfIndexes,
 		 const LastdbArguments& args, const Alphabet& alph,
@@ -303,7 +311,6 @@ void lastdb( int argc, char** argv ){
   unsigned volumeNumber = 0;
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
-  std::vector<countT> letterTotals( alph.size );
 
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
@@ -322,30 +329,18 @@ void lastdb( int argc, char** argv ){
 
       if( multi.isFinished() ){
         ++sequenceCount;
-	const uchar* seq = multi.seqReader();
-	size_t lastSeq = multi.finishedSequences() - 1;
-	size_t beg = multi.seqBeg( lastSeq );
-	size_t end = multi.seqEnd( lastSeq );
-	alph.count( seq + beg, seq + end, &letterCounts[0] );
-	if( args.isCountsOnly ){
-	  // memory-saving, which seems to be important on 32-bit systems:
-	  multi.reinitForAppending();
-	}
       }
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
 	makeVolume( seeds, multi, args, alph, letterCounts,
 		    tantanMasker, numOfThreads, seedText, baseName );
-	for( unsigned c = 0; c < alph.size; ++c )
-	  letterTotals[c] += letterCounts[c];
-	letterCounts.assign( alph.size, 0 );
 	multi.reinitForAppending();
       }
     }
   }
 
   if( multi.finishedSequences() > 0 ){
-    if( volumeNumber == 0 ){
+    if( volumeNumber == 0 && !args.isCountsOnly ){
       makeVolume( seeds, multi, args, alph, letterCounts,
 		  tantanMasker, numOfThreads, seedText, args.lastdbName );
       return;
@@ -355,10 +350,8 @@ void lastdb( int argc, char** argv ){
 		tantanMasker, numOfThreads, seedText, baseName );
   }
 
-  for( unsigned c = 0; c < alph.size; ++c ) letterTotals[c] += letterCounts[c];
-
   writePrjFile( args.lastdbName + ".prj", args, alph, sequenceCount,
-		letterTotals, volumeNumber, seeds.size(), seedText );
+		letterCounts, volumeNumber, seeds.size(), seedText );
 }
 
 int main( int argc, char** argv )
