@@ -116,6 +116,13 @@ def getSeqSample(opts, queryFiles, outfile):
                 x = y
     writeSegment(outfile, x)
 
+def versionFromHeader(lines):
+    for line in lines:
+        words = line.split()
+        if "version" in words:
+            return words[-1]
+    raise Exception("couldn't read the version")
+
 def scaleFromHeader(lines):
     for line in lines:
         for i in line.split():
@@ -371,6 +378,7 @@ def doTraining(opts, args):
     y = ["last-split", "-n"]
     p = subprocess.Popen(x, stdout=subprocess.PIPE)
     q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE)
+    lastalVersion = versionFromHeader(q.stdout)
     externalScale = scaleFromHeader(q.stdout)
     internalScale = externalScale * scaleIncrease
     if opts.Q:
@@ -378,6 +386,7 @@ def doTraining(opts, args):
         internalMatrix = scaledMatrix(externalMatrix, scaleIncrease)
     oldParameters = []
 
+    print "# lastal version:", lastalVersion
     print "# maximum percent identity:", opts.pid
     print "# scale of score parameters:", externalScale
     print "# scale used while training:", internalScale
