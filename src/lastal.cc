@@ -950,20 +950,6 @@ void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
   cullFinalAlignments( aligner.textAlns, oldNumOfAlns );
 }
 
-static void reverseComplementPssm( size_t queryNum ){
-  ScoreMatrixRow* beg = query.pssmWriter() + query.seqBeg(queryNum);
-  ScoreMatrixRow* end = query.pssmWriter() + query.seqEnd(queryNum);
-
-  while( beg < end ){
-    --end;
-    for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
-      unsigned j = queryAlph.complement[i];
-      if( beg < end || i < j ) std::swap( (*beg)[i], (*end)[j] );
-    }
-    ++beg;
-  }
-}
-
 static void reverseComplementQuery( size_t queryNum ){
   size_t b = query.seqBeg(queryNum);
   size_t e = query.seqEnd(queryNum);
@@ -972,7 +958,8 @@ static void reverseComplementQuery( size_t queryNum ){
     std::reverse( query.qualityWriter() + b * query.qualsPerLetter(),
 		  query.qualityWriter() + e * query.qualsPerLetter() );
   }else if( args.inputFormat == sequenceFormat::pssm ){
-    reverseComplementPssm(queryNum);
+    reverseComplementPssm( query.pssmWriter() + b,
+			   query.pssmWriter() + e, queryAlph.complement );
   }
 }
 

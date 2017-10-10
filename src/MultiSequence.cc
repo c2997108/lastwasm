@@ -58,13 +58,6 @@ void MultiSequence::toFiles( const std::string& baseName ) const{
                       baseName + ".qua" );
 }
 
-void MultiSequence::addName( std::string& name ){
-  names.v.insert( names.v.end(), name.begin(), name.end() );
-  nameEnds.v.push_back( names.v.size() );
-  if( nameEnds.v.back() < names.v.size() )
-    throw std::runtime_error("the sequence names are too long");
-}
-
 std::istream& MultiSequence::readFastaName( std::istream& stream ){
   std::string line, word;
   getline( stream, line );

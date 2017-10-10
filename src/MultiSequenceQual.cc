@@ -15,12 +15,9 @@ using namespace cbrc;
 
 std::istream&
 MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
-  const uchar padQualityScore = 64;  // should never be used, but a valid value
-
   // initForAppending:
   qualityScoresPerLetter = 1;
-  if( qualityScores.v.empty() )
-    qualityScores.v.insert( qualityScores.v.end(), padSize, padQualityScore );
+  if( qualityScores.v.empty() ) finishQual();
 
   // reinitForAppending:
   if( qualityScores.v.size() > seq.v.size() )
@@ -51,7 +48,7 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
 
   if( isFinishable(maxSeqLen) ){
     finish();
-    qualityScores.v.insert( qualityScores.v.end(), padSize, padQualityScore );
+    finishQual();
   }
 
   return stream;
@@ -60,15 +57,11 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
 std::istream&
 MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
 			      unsigned alphSize, const uchar decode[] ){
-  const uchar padQualityScore = 64;  // should never be used, but a valid value
-  size_t qualPadSize = padSize * alphSize;
   size_t qualSize = seq.v.size() * alphSize;
 
   // initForAppending:
   qualityScoresPerLetter = alphSize;
-  if( qualityScores.v.empty() )
-    qualityScores.v.insert( qualityScores.v.end(), qualPadSize,
-                            padQualityScore );
+  if( qualityScores.v.empty() ) finishQual();
 
   // reinitForAppending:
   if( qualityScores.v.size() > qualSize )
@@ -104,8 +97,7 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
 
   if( isFinishable(maxSeqLen) ){
     finish();
-    qualityScores.v.insert( qualityScores.v.end(), qualPadSize,
-                            padQualityScore );
+    finishQual();
   }
 
   return stream;
@@ -148,12 +140,10 @@ std::istream&
 MultiSequence::appendFromPssm( std::istream& stream, indexT maxSeqLen,
                                const uchar* lettersToNumbers,
                                bool isMaskLowercase ){
-  size_t pssmPadSize = padSize * scoreMatrixRowSize;
   size_t pssmSize = seq.v.size() * scoreMatrixRowSize;
 
   // initForAppending:
-  if( pssm.empty() )
-    pssm.insert( pssm.end(), pssmPadSize, -INF );
+  if( pssm.empty() ) finishPssm();
 
   // reinitForAppending:
   if( pssm.size() > pssmSize )
@@ -200,7 +190,7 @@ MultiSequence::appendFromPssm( std::istream& stream, indexT maxSeqLen,
 
   if( isFinishable(maxSeqLen) ){
     finish();
-    pssm.insert( pssm.end(), pssmPadSize, -INF );
+    finishPssm();
   }
 
   if( !stream.bad() ) stream.clear();

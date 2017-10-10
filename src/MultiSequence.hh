@@ -17,10 +17,11 @@
 
 namespace cbrc{
 
+typedef unsigned char uchar;
+
 class MultiSequence{
  public:
   typedef LAST_INT_TYPE indexT;
-  typedef unsigned char uchar;
 
   // initialize with leftmost delimiter pad, ready for appending sequences
   void initForAppending( indexT padSizeIn );
@@ -130,12 +131,43 @@ class MultiSequence{
   // read the letters above PSSM columns, so we know which column is which
   std::istream& readPssmHeader( std::istream& stream );
 
-  // add a new sequence name
-  void addName( std::string& name );
+  void finishName() {  // finish adding a sequence name: store its end coord
+    nameEnds.v.push_back(names.v.size());
+    if (nameEnds.v.back() < names.v.size()) {
+      throw std::runtime_error("the sequence names are too long");
+    }
+  }
+
+  void addName(const std::string &name) {  // add a new sequence name
+    names.v.insert(names.v.end(), name.begin(), name.end());
+    finishName();
+  }
+
+  void finishQual() {  // add delimiter to the end of the quality scores
+    uchar padQualityScore = 64;  // should never be used, but a valid value
+    size_t s = padSize * qualityScoresPerLetter;
+    qualityScores.v.insert(qualityScores.v.end(), s, padQualityScore);
+  }
+
+  void finishPssm() {  // add delimiter to the end of the PSSM
+    pssm.insert(pssm.end(), padSize * scoreMatrixRowSize, -INF);
+  }
 
   // can we finish the last sequence and stay within the memory limit?
   bool isFinishable( indexT maxSeqLen ) const;
 };
+
+inline void reverseComplementPssm(ScoreMatrixRow *beg, ScoreMatrixRow *end,
+				  const uchar *complement) {
+  while (beg < end) {
+    --end;
+    for (unsigned i = 0; i < scoreMatrixRowSize; ++i) {
+      unsigned j = complement[i];
+      if (beg < end || i < j) std::swap((*beg)[i], (*end)[j]);
+    }
+    ++beg;
+  }
+}
 
 // Divide the sequences into a given number of roughly-equally-sized
 // chunks, and return the first sequence in the Nth chunk.
@@ -152,5 +184,6 @@ inline size_t firstSequenceInChunk(const MultiSequence &m,
   return (begDistance < endDistance) ? seqNum : seqNum + 1;
 }
 
-}  // end namespace cbrc
-#endif  // MULTISEQUENCE_HH
+}
+
+#endif
