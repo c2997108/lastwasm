@@ -333,8 +333,16 @@ def tryToMakeChildProgramsFindable():
     # put srcDir first, to avoid getting older versions of LAST:
     os.environ["PATH"] = srcDir + os.pathsep + os.environ["PATH"]
 
-def fixedLastalArgs(opts):
-    x = ["lastal", "-j7"]
+def readLastalProgName(lastdbIndexName):
+    bitsPerInt = "32"
+    with open(lastdbIndexName + ".prj") as f:
+        for line in f:
+            if line.startswith("integersize="):
+                bitsPerInt = line.split("=")[1].strip()
+    return "lastal8" if bitsPerInt == "64" else "lastal"
+
+def fixedLastalArgs(opts, lastalProgName):
+    x = [lastalProgName, "-j7"]
     if opts.D: x.append("-D" + opts.D)
     if opts.E: x.append("-E" + opts.E)
     if opts.s: x.append("-s" + opts.s)
@@ -349,8 +357,9 @@ def fixedLastalArgs(opts):
 
 def doTraining(opts, args):
     tryToMakeChildProgramsFindable()
+    lastalProgName = readLastalProgName(args[0])
     scaleIncrease = 20  # while training, up-scale the scores by this amount
-    x = fixedLastalArgs(opts)
+    x = fixedLastalArgs(opts, lastalProgName)
     if opts.r: x.append("-r" + opts.r)
     if opts.q: x.append("-q" + opts.q)
     if opts.p: x.append("-p" + opts.p)
@@ -395,7 +404,7 @@ def doTraining(opts, args):
             if parameters in oldParameters: break
             oldParameters.append(parameters)
             internalMatrix = matrixWithLetters(matScores)
-        x = fixedLastalArgs(opts)
+        x = fixedLastalArgs(opts, lastalProgName)
         x.append("-p-")
         x += args
         p = subprocess.Popen(x, stdin=subprocess.PIPE, stdout=subprocess.PIPE)

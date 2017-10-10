@@ -435,7 +435,7 @@ C     -3      4     -9     -2
 G     -3    -10      8     -8
 T     -6     -3    -11      4
 
-TEST last-train -m1 --revsym /tmp/last-train-test ../examples/mouseMito.fa
+TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # maximum percent identity: 100
 # scale of score parameters: 4.5512
 # scale used while training: 91.024
@@ -872,7 +872,7 @@ C     -4      6    -10     -2
 G     -2    -10      6     -4
 T     -6     -4     -6      4
 
-TEST last-train -m1 --matsym --gapsym /tmp/last-train-test ../examples/mouseMito.fa
+TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mouseMito.fa
 # maximum percent identity: 100
 # scale of score parameters: 4.5512
 # scale used while training: 91.024
