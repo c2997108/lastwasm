@@ -56,9 +56,6 @@ class MultiSequence{
   // finish the last sequence: add final pad and end coordinate
   void finish();
 
-  // unfinish the last sequence: remove final pad and end coordinate
-  void unfinish();
-
   // did we finish reading the last sequence?
   bool isFinished() const{ return ends.size() == nameEnds.size(); }
 
@@ -94,18 +91,14 @@ class MultiSequence{
         : reinterpret_cast< const ScoreMatrixRow* >( &pssm[0] );
   }
 
-  /* */ ScoreMatrixRow* pssmWriter()      {
-    return pssm.empty() ? 0
-        : reinterpret_cast<       ScoreMatrixRow* >( &pssm[0] );
-  }
-
   // get a pointer to the start of the quality data
   const uchar* qualityReader() const{ return qualityScores.begin(); }
-  /***/ uchar* qualityWriter()      { return &qualityScores.v[0]; }
 
   // How many quality scores are there per letter?  There might be
   // none at all, one per letter, or several (e.g. 4) per letter.
   size_t qualsPerLetter() const { return qualityScoresPerLetter; }
+
+  void reverseComplementOneSequence(indexT seqNum, const uchar *complement);
 
  private:
   indexT padSize;  // number of delimiter chars between sequences
@@ -157,48 +150,13 @@ class MultiSequence{
   bool isFinishable( indexT maxSeqLen ) const;
 };
 
-inline void reverseComplementPssm(ScoreMatrixRow *beg, ScoreMatrixRow *end,
-				  const uchar *complement) {
-  while (beg < end) {
-    --end;
-    for (unsigned i = 0; i < scoreMatrixRowSize; ++i) {
-      unsigned j = complement[i];
-      if (beg < end || i < j) std::swap((*beg)[i], (*end)[j]);
-    }
-    ++beg;
-  }
-}
-
-inline void reverseComplementOneSequence(MultiSequence &m,
-					 const uchar *complement,
-					 size_t seqNum) {
-  size_t b = m.seqBeg(seqNum);
-  size_t e = m.seqEnd(seqNum);
-
-  uchar *s = m.seqWriter();
-  std::reverse(s + b, s + e);
-  for (size_t i = b; i < e; ++i) {
-    s[i] = complement[s[i]];
-  }
-
-  size_t qpl = m.qualsPerLetter();
-  if (qpl) {
-    std::reverse(m.qualityWriter() + b * qpl, m.qualityWriter() + e * qpl);
-  }
-
-  ScoreMatrixRow *p = m.pssmWriter();
-  if (p) {
-    reverseComplementPssm(p + b, p + e, complement);
-  }
-}
-
 // Divide the sequences into a given number of roughly-equally-sized
 // chunks, and return the first sequence in the Nth chunk.
 inline size_t firstSequenceInChunk(const MultiSequence &m,
 				   size_t numOfChunks, size_t chunkNum) {
   size_t numOfSeqs = m.finishedSequences();
   size_t beg = m.seqBeg(0);
-  size_t end = m.padEnd(numOfSeqs - 1) - 1;
+  size_t end = m.seqBeg(numOfSeqs) - 1;
   unsigned long long len = end - beg;  // try to avoid overflow
   size_t pos = beg + len * chunkNum / numOfChunks;
   size_t seqNum = m.whichSequence(pos);

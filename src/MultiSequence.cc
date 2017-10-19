@@ -19,9 +19,11 @@ void MultiSequence::initForAppending( indexT padSizeIn ){
 }
 
 void MultiSequence::reinitForAppending(){
-  seq.v.erase( seq.v.begin(), seq.v.begin() + ends.v.back() - padSize );
-  names.v.erase( names.v.begin(),
-                 names.v.begin() + nameEnds.v[ finishedSequences() ] );
+  size_t n = finishedSequences();
+  size_t s = padBeg(n);
+
+  seq.v.erase(seq.v.begin(), seq.v.begin() + s);
+  names.v.erase(names.v.begin(), names.v.begin() + nameEnds.v[n]);
   ends.v.resize(1);
   nameEnds.v.resize(1);
   if( !names.v.empty() ) nameEnds.v.push_back( names.v.size() );
@@ -102,12 +104,6 @@ void MultiSequence::finish(){
   assert( ends.v.back() == seq.v.size() );
 }
 
-void MultiSequence::unfinish(){
-  assert( isFinished() );
-  ends.v.pop_back();
-  seq.v.erase( seq.v.end() - padSize, seq.v.end() );
-}
-
 bool MultiSequence::isFinishable( indexT maxSeqLen ) const{
   return seq.v.size() + padSize <= maxSeqLen;
 }
@@ -121,4 +117,39 @@ MultiSequence::indexT MultiSequence::whichSequence( indexT coordinate ) const{
 std::string MultiSequence::seqName( indexT seqNum ) const{
   return std::string( names.begin() + nameEnds[ seqNum ],
 		      names.begin() + nameEnds[ seqNum + 1 ] );
+}
+
+static void reverseComplementPssm(int *beg, int *end,
+				  const uchar *complement) {
+  while (beg < end) {
+    end -= scoreMatrixRowSize;
+    for (unsigned i = 0; i < scoreMatrixRowSize; ++i) {
+      unsigned j = complement[i];
+      if (beg < end || i < j) std::swap(beg[i], end[j]);
+    }
+    beg += scoreMatrixRowSize;
+  }
+}
+
+void MultiSequence::reverseComplementOneSequence(indexT seqNum,
+						 const uchar *complement) {
+  size_t b = seqBeg(seqNum);
+  size_t e = seqEnd(seqNum);
+
+  uchar *s = seqWriter();
+  std::reverse(s + b, s + e);
+  for (size_t i = b; i < e; ++i) {
+    s[i] = complement[s[i]];
+  }
+
+  if (qualsPerLetter() > 0) {
+    uchar *q = &qualityScores.v[0];
+    std::reverse(q + b * qualsPerLetter(), q + e * qualsPerLetter());
+  }
+
+  if (!pssm.empty()) {
+    int *p = &pssm[0];
+    reverseComplementPssm(p + b * scoreMatrixRowSize,
+			  p + e * scoreMatrixRowSize, complement);
+  }
 }

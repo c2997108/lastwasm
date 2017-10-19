@@ -68,7 +68,7 @@ Advanced Options (default settings):\n\
     + stringify(minimizerWindow) + ")\n\
 -s: volume size (unlimited)\n\
 -Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina ("
-      + stringify(inputFormat) + ")\n\
+    + stringify(inputFormat) + ")\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
 -m: seed pattern\n\

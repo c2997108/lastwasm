@@ -953,13 +953,13 @@ void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
 static void alignOneQuery(LastAligner &aligner,
 			  size_t queryNum, bool isFirstVolume) {
   if (args.strand == 2 && !isFirstVolume)
-    reverseComplementOneSequence(query, queryAlph.complement, queryNum);
+    query.reverseComplementOneSequence(queryNum, queryAlph.complement);
 
   if (args.strand != 0)
     translateAndScan(aligner, queryNum, '+');
 
   if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
-    reverseComplementOneSequence(query, queryAlph.complement, queryNum);
+    query.reverseComplementOneSequence(queryNum, queryAlph.complement);
 
   if (args.strand != 1)
     translateAndScan(aligner, queryNum, '-');
