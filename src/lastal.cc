@@ -526,9 +526,9 @@ static void printAndDelete(char *text) {
 }
 
 static void writeAlignment(LastAligner &aligner, const Alignment &aln,
-			   size_t queryNum, char strand, const uchar* querySeq,
+			   size_t queryNum, const uchar* querySeq,
 			   const AlignmentExtras &extras = AlignmentExtras()) {
-  AlignmentText a = aln.write(text, query, queryNum, strand, querySeq,
+  AlignmentText a = aln.write(text, query, queryNum, querySeq,
 			      args.isTranslated(), alph, evaluer,
 			      args.outputFormat, extras);
   if (isCollatedAlignments() || aligners.size() > 1)
@@ -538,11 +538,10 @@ static void writeAlignment(LastAligner &aligner, const Alignment &aln,
 }
 
 static void writeSegmentPair(LastAligner &aligner, const SegmentPair &s,
-			     size_t queryNum, char strand,
-			     const uchar* querySeq) {
+			     size_t queryNum, const uchar* querySeq) {
   Alignment a;
   a.fromSegmentPair(s);
-  writeAlignment(aligner, a, queryNum, strand, querySeq);
+  writeAlignment(aligner, a, queryNum, querySeq);
 }
 
 // Find query matches to the suffix array, and do gapless extensions
@@ -597,7 +596,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	  if( score < minScoreGapless ) continue;
 	  SegmentPair sp( j - revLen, i - revLen, revLen + fwdLen, score );
 	  dt.addEndpoint( sp.end2(), sp.end1() );
-	  writeSegmentPair( aligner, sp, queryNum, strand, querySeq );
+	  writeSegmentPair( aligner, sp, queryNum, querySeq );
 	}else{
 	  int fs = dis.forwardGaplessScore( j, i );
 	  int rs = dis.reverseGaplessScore( j, i );
@@ -616,7 +615,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	  dt.addEndpoint( sp.end2(), sp.end1() );
 
 	  if( args.outputType == 1 ){  // we just want gapless alignments
-	    writeSegmentPair( aligner, sp, queryNum, strand, querySeq );
+	    writeSegmentPair( aligner, sp, queryNum, querySeq );
 	  }
 	  else{
 	    gaplessAlns.add(sp);  // add the gapless alignment to the pot
@@ -747,7 +746,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     if( args.outputType < 4 ){
-      writeAlignment( aligner, aln, queryNum, strand, querySeq );
+      writeAlignment( aligner, aln, queryNum, querySeq );
     }
     else{  // calculate match probabilities:
       Alignment probAln;
@@ -760,7 +759,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 			 dis.p, dis.t, dis.i, dis.j, alph, extras,
 			 args.gamma, args.outputType );
       assert( aln.score != -INF );
-      writeAlignment( aligner, probAln, queryNum, strand, querySeq, extras );
+      writeAlignment( aligner, probAln, queryNum, querySeq, extras );
     }
   }
 }

@@ -79,7 +79,15 @@ class MultiSequence{
     const char *n = names.begin();
     indexT b = nameEnds[seqNum];
     indexT e = nameEnds[seqNum + 1];
+    if (e > b && n[e-1] <= ' ') --e;
     return std::string(n + b, n + e);
+  }
+
+  char strand(indexT seqNum) const {
+    const char *n = names.begin();
+    indexT b = nameEnds[seqNum];
+    indexT e = nameEnds[seqNum + 1];
+    return (e > b && n[e-1] == '\t') ? '-' : '+';
   }
 
   // get a pointer to the start of the sequence data
@@ -136,6 +144,7 @@ class MultiSequence{
 
   void addName(const std::string &name) {  // add a new sequence name
     names.v.insert(names.v.end(), name.begin(), name.end());
+    names.v.push_back('\n');
     finishName();
   }
 

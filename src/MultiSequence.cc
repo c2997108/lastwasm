@@ -148,4 +148,7 @@ void MultiSequence::reverseComplementOneSequence(indexT seqNum,
     reverseComplementPssm(p + b * scoreMatrixRowSize,
 			  p + e * scoreMatrixRowSize, complement);
   }
+
+  char &strandChar = names.v[nameEnds.v[seqNum + 1] - 1];
+  strandChar = "\n\t"[strandChar == '\n'];
 }

@@ -111,7 +111,7 @@ struct Alignment{
 		      const uchar *qual1, const uchar *qual2) const;
 
   AlignmentText write(const MultiSequence& seq1, const MultiSequence& seq2,
-		      size_t seqNum2, char strand, const uchar* seqData2,
+		      size_t seqNum2, const uchar* seqData2,
 		      bool isTranslated, const Alphabet& alph,
 		      const LastEvaluer& evaluer, int format,
 		      const AlignmentExtras& extras) const;
@@ -143,20 +143,19 @@ struct Alignment{
 	       double gamma, int outputType );
 
   AlignmentText writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
-			 size_t seqNum2, char strand, bool isTranslated,
+			 size_t seqNum2, bool isTranslated,
 			 const LastEvaluer& evaluer,
 			 const AlignmentExtras& extras) const;
 
   AlignmentText writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
-			 size_t seqNum2, char strand, const uchar* seqData2,
+			 size_t seqNum2, const uchar* seqData2,
 			 bool isTranslated, const Alphabet& alph,
 			 const LastEvaluer& evaluer,
 			 const AlignmentExtras& extras) const;
 
   AlignmentText writeBlastTab(const MultiSequence& seq1,
 			      const MultiSequence& seq2,
-			      size_t seqNum2, char strand,
-			      const uchar* seqData2,
+			      size_t seqNum2, const uchar* seqData2,
 			      bool isTranslated, const Alphabet& alph,
 			      const LastEvaluer& evaluer,
 			      bool isExtraColumns) const;
