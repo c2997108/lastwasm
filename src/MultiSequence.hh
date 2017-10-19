@@ -74,7 +74,13 @@ class MultiSequence{
   indexT padEnd( indexT seqNum ) const{ return ends[seqNum+1]; }
   indexT seqLen( indexT seqNum ) const{ return seqEnd(seqNum)-seqBeg(seqNum); }
   indexT padLen( indexT seqNum ) const{ return padEnd(seqNum)-padBeg(seqNum); }
-  std::string seqName( indexT seqNum ) const;
+
+  std::string seqName(indexT seqNum) const {
+    const char *n = names.begin();
+    indexT b = nameEnds[seqNum];
+    indexT e = nameEnds[seqNum + 1];
+    return std::string(n + b, n + e);
+  }
 
   // get a pointer to the start of the sequence data
   const uchar* seqReader() const{ return seq.begin(); }
@@ -133,18 +139,20 @@ class MultiSequence{
     finishName();
   }
 
-  void finishQual() {  // add delimiter to the end of the quality scores
+  void appendQualPad() {  // add delimiter to the end of the quality scores
     uchar padQualityScore = 64;  // should never be used, but a valid value
     size_t s = padSize * qualityScoresPerLetter;
     qualityScores.v.insert(qualityScores.v.end(), s, padQualityScore);
   }
 
-  void finishPssm() {  // add delimiter to the end of the PSSM
+  void appendPssmPad() {  // add delimiter to the end of the PSSM
     pssm.insert(pssm.end(), padSize * scoreMatrixRowSize, -INF);
   }
 
   // can we finish the last sequence and stay within the memory limit?
-  bool isFinishable( indexT maxSeqLen ) const;
+  bool isFinishable(indexT maxSeqLen) const {
+    return seq.v.size() + padSize <= maxSeqLen;
+  }
 
   // finish the last sequence: add final pad and end coordinate
   void finish();

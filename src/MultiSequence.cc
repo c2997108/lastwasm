@@ -111,19 +111,10 @@ void MultiSequence::finish(){
   assert( ends.v.back() == seq.v.size() );
 }
 
-bool MultiSequence::isFinishable( indexT maxSeqLen ) const{
-  return seq.v.size() + padSize <= maxSeqLen;
-}
-
 MultiSequence::indexT MultiSequence::whichSequence( indexT coordinate ) const{
   const indexT* u = std::upper_bound( ends.begin(), ends.end(), coordinate );
   assert( u != ends.begin() && u != ends.end() );
   return u - ends.begin() - 1;
-}
-
-std::string MultiSequence::seqName( indexT seqNum ) const{
-  return std::string( names.begin() + nameEnds[ seqNum ],
-		      names.begin() + nameEnds[ seqNum + 1 ] );
 }
 
 static void reverseComplementPssm(int *beg, int *end,

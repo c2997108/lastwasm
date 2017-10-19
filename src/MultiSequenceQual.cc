@@ -6,9 +6,6 @@
 #include <cctype>  // toupper
 #include <limits>  // numeric_limits
 
-// make C++ tolerable:
-#define CI(type) std::vector<type>::const_iterator
-
 #define ERR(x) throw std::runtime_error(x)
 
 using namespace cbrc;
@@ -17,7 +14,7 @@ std::istream&
 MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
   // initForAppending:
   qualityScoresPerLetter = 1;
-  if( qualityScores.v.empty() ) finishQual();
+  if( qualityScores.v.empty() ) appendQualPad();
 
   if( isFinished() ){
     uchar c = '@';
@@ -43,7 +40,7 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
 
   if( isFinishable(maxSeqLen) ){
     finish();
-    finishQual();
+    appendQualPad();
   }
 
   return stream;
@@ -52,11 +49,9 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
 std::istream&
 MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
 			      unsigned alphSize, const uchar decode[] ){
-  size_t qualSize = seq.v.size() * alphSize;
-
   // initForAppending:
   qualityScoresPerLetter = alphSize;
-  if( qualityScores.v.empty() ) finishQual();
+  if( qualityScores.v.empty() ) appendQualPad();
 
   if( isFinished() ){
     std::string line;
@@ -68,6 +63,8 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
     std::string name = stringify( ++lineCount );
     addName(name);
 
+    size_t oldSize = qualityScores.v.size();
+
     std::istringstream iss(line);
     int q;
     while( iss >> q ){
@@ -76,18 +73,19 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
       qualityScores.v.push_back( q + 64 );  // ASCII-encode the quality score
     }
 
-    if( qualityScores.v.size() % alphSize != 0 ) ERR( "bad PRB data" );
+    size_t newSize = qualityScores.v.size();
+    if (newSize % qualityScoresPerLetter != 0) ERR("bad PRB data");
 
-    for( CI(uchar) i = qualityScores.v.begin() + qualSize;
-	 i < qualityScores.v.end(); i += alphSize ){
-      unsigned maxIndex = std::max_element( i, i + alphSize ) - i;
+    for (size_t i = oldSize; i < newSize; i += qualityScoresPerLetter) {
+      const uchar *q = &qualityScores.v[i];
+      unsigned maxIndex = std::max_element(q, q + qualityScoresPerLetter) - q;
       seq.v.push_back( decode[ maxIndex ] );
     }
   }
 
   if( isFinishable(maxSeqLen) ){
     finish();
-    finishQual();
+    appendQualPad();
   }
 
   return stream;
@@ -131,7 +129,7 @@ MultiSequence::appendFromPssm( std::istream& stream, indexT maxSeqLen,
                                const uchar* lettersToNumbers,
                                bool isMaskLowercase ){
   // initForAppending:
-  if( pssm.empty() ) finishPssm();
+  if( pssm.empty() ) appendPssmPad();
 
   if( isFinished() ){
     readPssmHeader(stream);
@@ -174,7 +172,7 @@ MultiSequence::appendFromPssm( std::istream& stream, indexT maxSeqLen,
 
   if( isFinishable(maxSeqLen) ){
     finish();
-    finishPssm();
+    appendPssmPad();
   }
 
   if( !stream.bad() ) stream.clear();
