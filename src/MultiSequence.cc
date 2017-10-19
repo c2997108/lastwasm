@@ -27,6 +27,13 @@ void MultiSequence::reinitForAppending(){
   ends.v.resize(1);
   nameEnds.v.resize(1);
   if( !names.v.empty() ) nameEnds.v.push_back( names.v.size() );
+
+  qualityScores.v.erase(qualityScores.v.begin(),
+			qualityScores.v.begin() + s * qualsPerLetter());
+
+  if (!pssm.empty()) {
+    pssm.erase(pssm.begin(), pssm.begin() + s * scoreMatrixRowSize);
+  }
 }
 
 void MultiSequence::fromFiles( const std::string& baseName, indexT seqCount,
@@ -142,10 +149,8 @@ void MultiSequence::reverseComplementOneSequence(indexT seqNum,
     s[i] = complement[s[i]];
   }
 
-  if (qualsPerLetter() > 0) {
-    uchar *q = &qualityScores.v[0];
-    std::reverse(q + b * qualsPerLetter(), q + e * qualsPerLetter());
-  }
+  reverse(qualityScores.v.begin() + b * qualsPerLetter(),
+	  qualityScores.v.begin() + e * qualsPerLetter());
 
   if (!pssm.empty()) {
     int *p = &pssm[0];

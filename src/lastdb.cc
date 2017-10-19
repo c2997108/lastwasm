@@ -185,7 +185,7 @@ void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
 		 const std::string& seedText, const std::string& baseName ){
   size_t numOfIndexes = seeds.size();
   size_t numOfSequences = multi.finishedSequences();
-  size_t textLength = multi.finishedSize();
+  size_t textLength = multi.seqBeg(numOfSequences);
   const uchar* seq = multi.seqReader();
 
   std::vector<countT> letterCountsInThisVolume(alph.size);
@@ -297,14 +297,14 @@ void lastdb( int argc, char** argv ){
   unsigned numOfThreads =
     decideNumberOfThreads(args.numOfThreads, args.programName, args.verbosity);
   Alphabet alph;
-  MultiSequence multi;
-  std::vector< CyclicSubsetSeed > seeds;
   makeAlphabet( alph, args );
   TantanMasker tantanMasker;
   if( args.tantanSetting )
     tantanMasker.init( alph.isProtein(), args.tantanSetting > 1,
 		       alph.letters, alph.encode );
+  std::vector< CyclicSubsetSeed > seeds;
   makeSubsetSeeds( seeds, seedText, args, alph );
+  MultiSequence multi;
   multi.initForAppending(1);
   alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
   unsigned volumeNumber = 0;

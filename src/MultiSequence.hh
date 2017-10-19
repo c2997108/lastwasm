@@ -53,9 +53,6 @@ class MultiSequence{
                                 const uchar* lettersToNumbers,
                                 bool isMaskLowercase );
 
-  // finish the last sequence: add final pad and end coordinate
-  void finish();
-
   // did we finish reading the last sequence?
   bool isFinished() const{ return ends.size() == nameEnds.size(); }
 
@@ -148,6 +145,9 @@ class MultiSequence{
 
   // can we finish the last sequence and stay within the memory limit?
   bool isFinishable( indexT maxSeqLen ) const;
+
+  // finish the last sequence: add final pad and end coordinate
+  void finish();
 };
 
 // Divide the sequences into a given number of roughly-equally-sized

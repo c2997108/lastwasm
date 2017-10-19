@@ -19,11 +19,6 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
   qualityScoresPerLetter = 1;
   if( qualityScores.v.empty() ) finishQual();
 
-  // reinitForAppending:
-  if( qualityScores.v.size() > seq.v.size() )
-    qualityScores.v.erase( qualityScores.v.begin(),
-                           qualityScores.v.end() - seq.v.size() );
-
   if( isFinished() ){
     uchar c = '@';
     stream >> c;
@@ -62,11 +57,6 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
   // initForAppending:
   qualityScoresPerLetter = alphSize;
   if( qualityScores.v.empty() ) finishQual();
-
-  // reinitForAppending:
-  if( qualityScores.v.size() > qualSize )
-    qualityScores.v.erase( qualityScores.v.begin(),
-                           qualityScores.v.end() - qualSize );
 
   if( isFinished() ){
     std::string line;
@@ -140,14 +130,8 @@ std::istream&
 MultiSequence::appendFromPssm( std::istream& stream, indexT maxSeqLen,
                                const uchar* lettersToNumbers,
                                bool isMaskLowercase ){
-  size_t pssmSize = seq.v.size() * scoreMatrixRowSize;
-
   // initForAppending:
   if( pssm.empty() ) finishPssm();
-
-  // reinitForAppending:
-  if( pssm.size() > pssmSize )
-    pssm.erase( pssm.begin(), pssm.end() - pssmSize );
 
   if( isFinished() ){
     readPssmHeader(stream);
