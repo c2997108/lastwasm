@@ -250,6 +250,13 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
   return z;
 }
 
+static bool isRoomToDuplicateTheLastSequence(const MultiSequence &multi,
+					     size_t maxSeqLen) {
+  size_t n = multi.finishedSequences();
+  size_t s = multi.seqBeg(n);
+  return s <= maxSeqLen && s - multi.seqBeg(n - 1) <= maxSeqLen - s;
+}
+
 void lastdb( int argc, char** argv ){
   LastdbArguments args;
   args.fromArgs( argc, argv );
@@ -297,6 +304,23 @@ void lastdb( int argc, char** argv ){
       }
 
       if( multi.isFinished() ){
+	if (args.strand != 1) {
+	  if (args.strand == 2) {
+	    ++sequenceCount;
+	    if (isRoomToDuplicateTheLastSequence(multi, maxSeqLen)) {
+	      size_t lastSeq = multi.finishedSequences() - 1;
+	      multi.duplicateOneSequence(lastSeq);
+	    } else {
+	      std::string baseName =
+		args.lastdbName + stringify(volumeNumber++);
+	      makeVolume(seeds, multi, args, alph, letterCounts,
+			 tantanMasker, numOfThreads, seedText, baseName);
+	      multi.eraseAllButTheLastSequence();
+	    }
+	  }
+	  size_t lastSeq = multi.finishedSequences() - 1;
+	  multi.reverseComplementOneSequence(lastSeq, alph.complement);
+	}
         ++sequenceCount;
       }
       else{

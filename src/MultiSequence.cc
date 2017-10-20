@@ -152,3 +152,26 @@ void MultiSequence::reverseComplementOneSequence(indexT seqNum,
   char &strandChar = names.v[nameEnds.v[seqNum + 1] - 1];
   strandChar = "\n\t"[strandChar == '\n'];
 }
+
+void MultiSequence::duplicateOneSequence(indexT seqNum) {
+  indexT nameBeg = nameEnds[seqNum];
+  indexT nameEnd = nameEnds[seqNum + 1];
+  for (indexT i = nameBeg; i < nameEnd; ++i) {
+    names.v.push_back(names.v[i]);
+  }
+  finishName();
+
+  size_t b = seqBeg(seqNum);
+  size_t e = padEnd(seqNum);
+
+  for (size_t i = b; i < e; ++i) {
+    seq.v.push_back(seq.v[i]);
+  }
+  ends.v.push_back(seq.v.size());
+
+  for (size_t i = b * qualsPerLetter(); i < e * qualsPerLetter(); ++i) {
+    qualityScores.v.push_back(qualityScores.v[i]);
+  }
+
+  assert(pssm.empty());  // implement this if & when needed
+}

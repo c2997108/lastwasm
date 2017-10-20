@@ -424,6 +424,11 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
 
   size_t blastAlnBeg1 = alnBeg1 + 1;  // 1-based coordinate
   size_t blastAlnEnd1 = alnEnd1;
+  if (strand1 == '-') {
+    blastAlnBeg1 = seqStart1 + seqLen1 - alnBeg1;
+    blastAlnEnd1 = seqStart1 + seqLen1 - alnEnd1 + 1;  // 1-based coordinate
+    seqStart1 = 0;
+  }
   size_t blastAlnBeg2 = alnBeg2 + 1;  // 1-based coordinate
   size_t blastAlnEnd2 = alnEnd2;
   if (strand2 == '-') {

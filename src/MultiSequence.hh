@@ -29,6 +29,12 @@ class MultiSequence{
   // re-initialize, but keep the last sequence if it is unfinished
   void reinitForAppending();
 
+  void eraseAllButTheLastSequence() {
+    ends.v.pop_back();
+    reinitForAppending();
+    ends.v.push_back(seq.v.size());
+  }
+
   // read seqCount finished sequences, and their names, from binary files
   void fromFiles( const std::string& baseName, indexT seqCount,
                   size_t qualitiesPerLetter );
@@ -107,6 +113,8 @@ class MultiSequence{
   size_t qualsPerLetter() const { return qualityScoresPerLetter; }
 
   void reverseComplementOneSequence(indexT seqNum, const uchar *complement);
+
+  void duplicateOneSequence(indexT seqNum);
 
  private:
   indexT padSize;  // number of delimiter chars between sequences
