@@ -214,24 +214,24 @@ last-pair-probs-main.o last-pair-probs-main.o8: last-pair-probs-main.cc last-pai
  stringify.hh version.hh
 last-pair-probs.o last-pair-probs.o8: last-pair-probs.cc last-pair-probs.hh io.hh \
  mcf_zstream.hh stringify.hh
-lastal.o lastal.o8: lastal.cc LastalArguments.hh SequenceFormat.hh \
- QualityPssmMaker.hh ScoreMatrixRow.hh OneQualityScoreMatrix.hh \
- TwoQualityScoreMatrix.hh qualityScoreUtil.hh stringify.hh \
+lastal.o lastal.o8: lastal.cc last.hh Alphabet.hh MultiSequence.hh \
+ ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
+ SequenceFormat.hh qualityScoreUtil.hh LastalArguments.hh \
+ QualityPssmMaker.hh OneQualityScoreMatrix.hh TwoQualityScoreMatrix.hh \
  LambdaCalculator.hh LastEvaluer.hh alp/sls_alignment_evaluer.hpp \
  alp/sls_pvalues.hpp alp/sls_basic.hpp alp/sls_falp_alignment_evaluer.hpp \
  alp/sls_fsa1_pvalues.hpp GeneticCode.hh SubsetMinimizerFinder.hh \
- SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
- fileMap.hh Centroid.hh GappedXdropAligner.hh \
- GeneralizedAffineGapCosts.hh SegmentPair.hh AlignmentPot.hh Alignment.hh \
- SegmentPairPot.hh ScoreMatrix.hh Alphabet.hh MultiSequence.hh \
+ SubsetSuffixArray.hh CyclicSubsetSeed.hh Centroid.hh \
+ GappedXdropAligner.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
+ AlignmentPot.hh Alignment.hh SegmentPairPot.hh ScoreMatrix.hh \
  TantanMasker.hh tantan.hh DiagonalTable.hh GreedyXdropAligner.hh \
  gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh \
  mcf_zstream.hh threadUtil.hh version.hh
-lastdb.o lastdb.o8: lastdb.cc LastdbArguments.hh SequenceFormat.hh \
- SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
- fileMap.hh stringify.hh Alphabet.hh MultiSequence.hh ScoreMatrixRow.hh \
- TantanMasker.hh tantan.hh io.hh mcf_zstream.hh qualityScoreUtil.hh \
- threadUtil.hh version.hh
+lastdb.o lastdb.o8: lastdb.cc last.hh Alphabet.hh MultiSequence.hh \
+ ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
+ SequenceFormat.hh qualityScoreUtil.hh LastdbArguments.hh \
+ SubsetSuffixArray.hh CyclicSubsetSeed.hh TantanMasker.hh tantan.hh io.hh \
+ mcf_zstream.hh threadUtil.hh version.hh
 tantan.o tantan.o8: tantan.cc tantan.hh
 last-merge-batches.o: last-merge-batches.c version.hh
 alp/njn_dynprogprob.o: alp/njn_dynprogprob.cpp alp/njn_dynprogprob.hpp \

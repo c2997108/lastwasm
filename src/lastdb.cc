@@ -3,13 +3,12 @@
 // Read fasta-format sequences; construct a suffix array of them; and
 // write the results to files.
 
+#include "last.hh"
+
 #include "LastdbArguments.hh"
 #include "SubsetSuffixArray.hh"
-#include "Alphabet.hh"
-#include "MultiSequence.hh"
 #include "TantanMasker.hh"
 #include "io.hh"
-#include "qualityScoreUtil.hh"
 #include "stringify.hh"
 #include "threadUtil.hh"
 #include <stdexcept>
@@ -23,7 +22,6 @@
 
 using namespace cbrc;
 
-typedef MultiSequence::indexT indexT;
 typedef unsigned long long countT;
 
 // Set up an alphabet (e.g. DNA or protein), based on the user options
@@ -252,36 +250,6 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
   return z;
 }
 
-// Read the next sequence, adding it to the MultiSequence
-std::istream&
-appendFromFasta( MultiSequence& multi, indexT maxSeqLen,
-		 const LastdbArguments& args, const Alphabet& alph,
-		 std::istream& in ){
-  if( multi.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
-
-  size_t oldSize = multi.unfinishedSize();
-
-  if ( args.inputFormat == sequenceFormat::fasta )
-    multi.appendFromFasta( in, maxSeqLen );
-  else
-    multi.appendFromFastq( in, maxSeqLen );
-
-  if( !multi.isFinished() && multi.finishedSequences() == 0 )
-    ERR( "encountered a sequence that's too long" );
-
-  // encode the newly-read sequence
-  uchar* seq = multi.seqWriter();
-  size_t newSize = multi.unfinishedSize();
-  alph.tr( seq + oldSize, seq + newSize, args.isKeepLowercase );
-
-  if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
-    checkQualityCodes( multi.qualityReader() + oldSize,
-                       multi.qualityReader() + newSize,
-                       qualityOffset( args.inputFormat ) );
-
-  return in;
-}
-
 void lastdb( int argc, char** argv ){
   LastdbArguments args;
   args.fromArgs( argc, argv );
@@ -306,7 +274,7 @@ void lastdb( int argc, char** argv ){
   makeSubsetSeeds( seeds, seedText, args, alph );
   MultiSequence multi;
   multi.initForAppending(1);
-  alph.tr( multi.seqWriter(), multi.seqWriter() + multi.unfinishedSize() );
+  alph.tr(multi.seqWriter(), multi.seqWriter() + multi.seqBeg(0));
   unsigned volumeNumber = 0;
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
@@ -321,7 +289,8 @@ void lastdb( int argc, char** argv ){
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
-    while( appendFromFasta( multi, maxSeqLen, args, alph, in ) ){
+    while (appendSequence(multi, in, maxSeqLen, args.inputFormat, alph,
+			  args.isKeepLowercase, 0)) {
       if( !args.isProtein && args.userAlphabet.empty() &&
           sequenceCount == 0 && isDubiousDna( alph, multi ) ){
         std::cerr << args.programName << ": that's some funny-lookin DNA\n";

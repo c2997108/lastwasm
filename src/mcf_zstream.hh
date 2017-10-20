@@ -4,8 +4,8 @@
 // you give it a gzip-compressed file, it will decompress what it
 // reads.
 
-#ifndef MCF_ZSTREAM
-#define MCF_ZSTREAM
+#ifndef MCF_ZSTREAM_HH
+#define MCF_ZSTREAM_HH
 
 #include <zlib.h>
 

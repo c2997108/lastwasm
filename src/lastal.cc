@@ -2,11 +2,12 @@
 
 // BLAST-like pair-wise sequence alignment, using suffix arrays.
 
+#include "last.hh"
+
 #include "LastalArguments.hh"
 #include "QualityPssmMaker.hh"
 #include "OneQualityScoreMatrix.hh"
 #include "TwoQualityScoreMatrix.hh"
-#include "qualityScoreUtil.hh"
 #include "LambdaCalculator.hh"
 #include "LastEvaluer.hh"
 #include "GeneticCode.hh"
@@ -18,8 +19,6 @@
 #include "SegmentPairPot.hh"
 #include "SegmentPair.hh"
 #include "ScoreMatrix.hh"
-#include "Alphabet.hh"
-#include "MultiSequence.hh"
 #include "TantanMasker.hh"
 #include "DiagonalTable.hh"
 #include "GeneralizedAffineGapCosts.hh"
@@ -54,7 +53,6 @@ struct LastAligner {  // data that changes between queries
 };
 
 namespace {
-  typedef MultiSequence::indexT indexT;
   typedef unsigned long long countT;
 
   LastalArguments args;
@@ -1097,40 +1095,6 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
   }
 }
 
-// Read the next sequence, adding it to the MultiSequence
-std::istream& appendFromFasta( std::istream& in ){
-  indexT maxSeqLen = args.batchSize;
-  if( maxSeqLen < args.batchSize ) maxSeqLen = indexT(-1);
-  if( query.finishedSequences() == 0 ) maxSeqLen = indexT(-1);
-
-  size_t oldSize = query.unfinishedSize();
-
-  /**/ if( args.inputFormat == sequenceFormat::fasta )
-    query.appendFromFasta( in, maxSeqLen );
-  else if( args.inputFormat == sequenceFormat::prb )
-    query.appendFromPrb( in, maxSeqLen, queryAlph.size, queryAlph.decode );
-  else if( args.inputFormat == sequenceFormat::pssm )
-    query.appendFromPssm( in, maxSeqLen, queryAlph.encode,
-                          args.maskLowercase > 1 );
-  else
-    query.appendFromFastq( in, maxSeqLen );
-
-  if( !query.isFinished() && query.finishedSequences() == 0 )
-    ERR( "encountered a sequence that's too long" );
-
-  // encode the newly-read sequence
-  uchar* seq = query.seqWriter();
-  size_t newSize = query.unfinishedSize();
-  queryAlph.tr( seq + oldSize, seq + newSize, args.isKeepLowercase );
-
-  if( isPhred( args.inputFormat ) )  // assumes one quality code per letter:
-    checkQualityCodes( query.qualityReader() + oldSize,
-                       query.qualityReader() + newSize,
-                       qualityOffset( args.inputFormat ) );
-
-  return in;
-}
-
 void lastal( int argc, char** argv ){
   args.fromArgs( argc, argv );
   args.resetCumulativeOptions();  // because we will do fromArgs again
@@ -1208,8 +1172,7 @@ void lastal( int argc, char** argv ){
   if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
   if( args.outputType > 0 ) makeQualityScorers();
 
-  queryAlph.tr( query.seqWriter(),
-                query.seqWriter() + query.unfinishedSize() );
+  queryAlph.tr(query.seqWriter(), query.seqWriter() + query.seqBeg(0));
 
   if( volumes+1 == 0 ) readIndex( args.lastdbName, refSequences );
 
@@ -1218,6 +1181,8 @@ void lastal( int argc, char** argv ){
   out.precision(3);  // print non-integers more compactly
   countT queryBatchCount = 0;
   countT sequenceCount = 0;
+  indexT maxSeqLen = args.batchSize;
+  if (maxSeqLen < args.batchSize) maxSeqLen = -1;
 
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
@@ -1228,7 +1193,8 @@ void lastal( int argc, char** argv ){
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
-    while( appendFromFasta( in ) ){
+    while (appendSequence(query, in, maxSeqLen, args.inputFormat, queryAlph,
+			  args.isKeepLowercase, args.maskLowercase > 1)) {
       if( query.isFinished() ){
 	++sequenceCount;
       }else{

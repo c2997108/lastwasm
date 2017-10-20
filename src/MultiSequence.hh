@@ -59,9 +59,6 @@ class MultiSequence{
   // how many finished sequences are there?
   indexT finishedSequences() const{ return ends.size() - 1; }
 
-  // total length of finished sequences plus delimiters
-  indexT finishedSize() const{ return ends.back(); }
-
   // total length of finished and unfinished sequences plus delimiters
   size_t unfinishedSize() const{ return seq.size(); }
 
