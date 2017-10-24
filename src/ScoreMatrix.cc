@@ -104,7 +104,8 @@ void ScoreMatrix::init( const uchar encode[] ){
   }
 
   // set a hugely negative score for the delimiter symbol:
-  uchar z = encode[' '];
+  uchar delimiter = ' ';
+  uchar z = encode[delimiter];
   assert( z < MAT );
   for( unsigned i = 0; i < MAT; ++i ){
     caseSensitive[z][i] = -INF;

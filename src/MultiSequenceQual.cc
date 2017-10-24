@@ -38,7 +38,7 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
     if( seq.v.size() != qualityScores.v.size() ) ERR( "bad FASTQ data" );
   }
 
-  if( isFinishable(maxSeqLen) ){
+  if (isRoomToAppendPad(maxSeqLen)) {
     finish();
     appendQualPad();
   }
@@ -83,7 +83,7 @@ MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
     }
   }
 
-  if( isFinishable(maxSeqLen) ){
+  if (isRoomToAppendPad(maxSeqLen)) {
     finish();
     appendQualPad();
   }
@@ -106,7 +106,8 @@ std::istream& MultiSequence::readPssmHeader( std::istream& stream ){
 
     while( iss >> word ){
       if( word.size() == 1 ){
-        uchar letter = std::toupper( word[0] );
+	uchar c = word[0];
+        uchar letter = std::toupper(c);
         // allow for PSI-BLAST format, with repeated letters:
         if( pssmColumnLetters.size() && pssmColumnLetters[0] == letter ) break;
         pssmColumnLetters.push_back(letter);
@@ -163,14 +164,15 @@ MultiSequence::appendFromPssm( std::istream& stream, indexT maxSeqLen,
       if( isMaskLowercase ) scores[i] = std::min(scores[i], 0);
       if( maskColumn != column ) row[maskColumn] = scores[i];
     }
-    unsigned delimiterColumn = lettersToNumbers[' '];
+    uchar delimiter = ' ';
+    unsigned delimiterColumn = lettersToNumbers[delimiter];
     assert( delimiterColumn < scoreMatrixRowSize );
     row[delimiterColumn] = -INF;
 
     stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
   }
 
-  if( isFinishable(maxSeqLen) ){
+  if (isRoomToAppendPad(maxSeqLen)) {
     finish();
     appendPssmPad();
   }

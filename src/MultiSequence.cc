@@ -100,15 +100,8 @@ MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
     ++inpos;
   }
 
-  if( isFinishable(maxSeqLen) ) finish();
+  if (isRoomToAppendPad(maxSeqLen)) finish();
   return stream;
-}
-
-void MultiSequence::finish(){
-  assert( !isFinished() );
-  seq.v.insert( seq.v.end(), padSize, ' ' );
-  ends.v.push_back( seq.v.size() );
-  assert( ends.v.back() == seq.v.size() );
 }
 
 MultiSequence::indexT MultiSequence::whichSequence( indexT coordinate ) const{

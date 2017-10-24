@@ -163,13 +163,15 @@ class MultiSequence{
     pssm.insert(pssm.end(), padSize * scoreMatrixRowSize, -INF);
   }
 
-  // can we finish the last sequence and stay within the memory limit?
-  bool isFinishable(indexT maxSeqLen) const {
-    return seq.v.size() + padSize <= maxSeqLen;
+  bool isRoomToAppendPad(indexT maxSeqLen) const {
+    return seq.v.size() <= maxSeqLen && padSize <= maxSeqLen - seq.v.size();
   }
 
   // finish the last sequence: add final pad and end coordinate
-  void finish();
+  void finish() {
+    seq.v.insert(seq.v.end(), padSize, ' ');
+    ends.v.push_back(seq.v.size());
+  }
 };
 
 // Divide the sequences into a given number of roughly-equally-sized

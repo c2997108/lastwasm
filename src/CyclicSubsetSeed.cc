@@ -122,8 +122,9 @@ void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
     std::string subset;
 
     for( size_t i = 0; i < inputWord.size(); ++i ){
-      uchar upper = std::toupper( inputWord[i] );
-      uchar lower = std::tolower( inputWord[i] );
+      uchar c = inputWord[i];
+      uchar upper = std::toupper(c);
+      uchar lower = std::tolower(c);
       addLetter( &numbersToSubsets[0], upper, subsetNum, letterCode );
       subset += upper;
       if( !isMaskLowercase && lower != upper ){
