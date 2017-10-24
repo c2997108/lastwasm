@@ -27,6 +27,8 @@ Options
 
   -h, --help
          Show a help message, with default option values, and exit.
+  -v, --verbose
+         Show more details of intermediate steps.
 
 Training options
 ~~~~~~~~~~~~~~~~

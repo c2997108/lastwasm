@@ -360,6 +360,7 @@ def fixedLastalArgs(opts, lastalProgName):
     if opts.k: x.append("-k" + opts.k)
     if opts.P: x.append("-P" + opts.P)
     if opts.Q: x.append("-Q" + opts.Q)
+    if opts.verbose: x.append("-" + "v" * opts.verbose)
     return x
 
 def doTraining(opts, args):
@@ -452,6 +453,8 @@ if __name__ == "__main__":
     usage = "%prog [options] lastdb-name sequence-file(s)"
     description = "Try to find suitable score parameters for aligning the given sequences."
     op = optparse.OptionParser(usage=usage, description=description)
+    op.add_option("-v", "--verbose", action="count",
+                  help="show more details of intermediate steps")
     og = optparse.OptionGroup(op, "Training options")
     og.add_option("--revsym", action="store_true",
                   help="force reverse-complement symmetry")

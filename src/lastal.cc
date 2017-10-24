@@ -278,13 +278,12 @@ void calculateScoreStatistics( const std::string& matrixName,
                   p1, p2, isGapped,
                   gapCosts.delExist, gapCosts.delExtend,
                   gapCosts.insExist, gapCosts.insExtend,
-                  args.frameshiftCost, geneticCode, isStandardGeneticCode );
+                  args.frameshiftCost, geneticCode, isStandardGeneticCode,
+		  args.verbosity );
     evaluer.setSearchSpace( refLetters, args.numOfStrands() );
     if( args.verbosity > 0 ) evaluer.writeParameters( std::cerr );
   }catch( const Sls::error& e ){
     LOG( "can't get E-value parameters for this scoring scheme" );
-    if( args.verbosity > 1 )
-      std::cerr << "ALP: " << e.error_code << ": " << e.st;
   }
 }
 
