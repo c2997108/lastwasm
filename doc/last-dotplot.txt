@@ -92,6 +92,8 @@ Options
       Number of pixels between sequences.
   --border-color=COLOR
       Color for pixels between sequences.
+  --margin-color=COLOR
+      Color for the margins.
 
 Text options
 ~~~~~~~~~~~~
@@ -100,14 +102,18 @@ Text options
       TrueType or OpenType font file.
   -s SIZE, --fontsize=SIZE
       TrueType or OpenType font size.
+  --labels1=N
+      Label the displayed regions of the 1st genome with their:
+      sequence name (0), name:length (1), name:start:length (2),
+      name:start-end (3).
+  --labels2=N
+      Label the displayed regions of the 2nd genome with their:
+      sequence name (0), name:length (1), name:start:length (2),
+      name:start-end (3).
   --rot1=ROT
       Text rotation for the 1st genome: h(orizontal) or v(ertical).
   --rot2=ROT
       Text rotation for the 2nd genome: h(orizontal) or v(ertical).
-  --lengths1
-      Show sequence lengths for the 1st (horizontal) genome.
-  --lengths2
-      Show sequence lengths for the 2nd (vertical) genome.
 
 Annotation options
 ~~~~~~~~~~~~~~~~~~
