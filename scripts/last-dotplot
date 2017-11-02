@@ -103,7 +103,7 @@ def alignmentInput(lines):
                 yield chr1, seqlen1, chr2, seqlen2, blocks
                 mafCount = 0
 
-def seqRangeFromText(text):
+def seqRequestFromText(text):
     if ":" in text:
         pattern, interval = text.rsplit(":", 1)
         if "-" in interval:
@@ -111,10 +111,10 @@ def seqRangeFromText(text):
             return pattern, int(beg), int(end)  # beg may be negative
     return text, 0, sys.maxsize
 
-def rangeFromSeqName(seqRanges, name, seqLen):
-    if not seqRanges: return 0, seqLen
+def rangeFromSeqName(seqRequests, name, seqLen):
+    if not seqRequests: return 0, seqLen
     base = name.split(".")[-1]  # allow for names like hg19.chr7
-    for pat, beg, end in seqRanges:
+    for pat, beg, end in seqRequests:
         if fnmatchcase(name, pat) or fnmatchcase(base, pat):
             return max(beg, 0), min(end, seqLen)
     return None
@@ -136,8 +136,8 @@ def updateSeqs(isTrim, seqNames, seqLimits, seqName, seqRange, blocks, index):
 
 def readAlignments(fileName, opts):
     '''Get alignments and sequence limits, from MAF or tabular format.'''
-    seqRanges1 = map(seqRangeFromText, opts.seq1)
-    seqRanges2 = map(seqRangeFromText, opts.seq2)
+    seqRequests1 = map(seqRequestFromText, opts.seq1)
+    seqRequests2 = map(seqRequestFromText, opts.seq2)
 
     alignments = []
     seqNames1 = []
@@ -146,9 +146,9 @@ def readAlignments(fileName, opts):
     seqLimits2 = {}
     lines = myOpen(fileName)
     for seqName1, seqLen1, seqName2, seqLen2, blocks in alignmentInput(lines):
-        range1 = rangeFromSeqName(seqRanges1, seqName1, seqLen1)
+        range1 = rangeFromSeqName(seqRequests1, seqName1, seqLen1)
         if not range1: continue
-        range2 = rangeFromSeqName(seqRanges2, seqName2, seqLen2)
+        range2 = rangeFromSeqName(seqRequests2, seqName2, seqLen2)
         if not range2: continue
         b = list(croppedBlocks(list(blocks), range1, range2))
         if not b: continue
@@ -391,10 +391,10 @@ def readGaps(opts, fileName, seqLimits):
             yield 2000, opts.unbridged_color, seqName, beg, end
 
 def bedBoxes(beds, seqLimits, origins, margin, edge, isTop, bpPerPix):
-    for layer, color, seqName, beg, end in beds:
+    for layer, color, seqName, bedBeg, bedEnd in beds:
         cropBeg, cropEnd = seqLimits[seqName]
-        beg = max(beg, cropBeg)
-        end = min(end, cropEnd)
+        beg = max(bedBeg, cropBeg)
+        end = min(bedEnd, cropEnd)
         if beg >= end: continue
         ori = origins[seqName]
         if layer <= 1000:
@@ -425,27 +425,28 @@ def make_label(text, text_size, range_start, range_size):
     sort_key    = text_width - range_size
     return sort_key, label_start, label_end, text, text_height
 
-def get_nonoverlapping_labels(labels, label_space):
+def nonoverlappingLabels(labels, minPixTweenLabels):
     '''Get a subset of non-overlapping axis labels, greedily.'''
-    nonoverlapping_labels = []
+    out = []
     for i in labels:
-        if True not in [i[1] < j[2] + label_space and j[1] < i[2] + label_space
-                        for j in nonoverlapping_labels]:
-            nonoverlapping_labels.append(i)
-    return nonoverlapping_labels
+        beg = i[1] - minPixTweenLabels
+        end = i[2] + minPixTweenLabels
+        if all(j[2] <= beg or j[1] >= end for j in out):
+            out.append(i)
+    return out
 
 def axisImage(seqNames, name_sizes, seq_starts, seq_pix, textRot,
               textAln, font, image_mode, opts):
     '''Make an image of axis labels.'''
-    min_pos = seq_starts[0]
-    max_pos = seq_starts[-1] + seq_pix[-1]
+    beg = seq_starts[0]
+    end = seq_starts[-1] + seq_pix[-1]
     margin = max(i[1] for i in name_sizes)
     labels = map(make_label, seqNames, name_sizes, seq_starts, seq_pix)
-    labels = [i for i in labels if i[1] >= min_pos and i[2] <= max_pos]
+    labels = [i for i in labels if i[1] >= beg and i[2] <= end]
     labels.sort()
     minPixTweenLabels = 0 if textRot else opts.label_space
-    labels = get_nonoverlapping_labels(labels, minPixTweenLabels)
-    image_size = (margin, max_pos) if textRot else (max_pos, margin)
+    labels = nonoverlappingLabels(labels, minPixTweenLabels)
+    image_size = (margin, end) if textRot else (end, margin)
     im = Image.new(image_mode, image_size, opts.margin_color)
     draw = ImageDraw.Draw(im)
     for i in labels:
@@ -477,24 +478,24 @@ def lastDotplot(opts, args):
     textRot1 = "vertical".startswith(opts.rot1)
     i1 = getSeqInfo(opts.sort1, seqNames1, seqLimits1,
                     font, opts.fontsize, image_mode, opts.lengths1, textRot1)
-    seqNames1, seqSizes1, seqLabels1, labelSizes1, tMargin = i1
+    seqNames1, rangeSizes1, seqLabels1, labelSizes1, tMargin = i1
 
     textRot2 = "horizontal".startswith(opts.rot2)
     i2 = getSeqInfo(opts.sort2, seqNames2, seqLimits2,
                     font, opts.fontsize, image_mode, opts.lengths2, textRot2)
-    seqNames2, seqSizes2, seqLabels2, labelSizes2, lMargin = i2
+    seqNames2, rangeSizes2, seqLabels2, labelSizes2, lMargin = i2
 
     warn("choosing bp per pixel...")
     maxPixels1 = opts.width  - lMargin
     maxPixels2 = opts.height - tMargin
-    bpPerPix1 = get_bp_per_pix(seqSizes1, opts.border_pixels, maxPixels1)
-    bpPerPix2 = get_bp_per_pix(seqSizes2, opts.border_pixels, maxPixels2)
+    bpPerPix1 = get_bp_per_pix(rangeSizes1, opts.border_pixels, maxPixels1)
+    bpPerPix2 = get_bp_per_pix(rangeSizes2, opts.border_pixels, maxPixels2)
     bpPerPix = max(bpPerPix1, bpPerPix2)
     warn("bp per pixel = " + str(bpPerPix))
 
-    seq_pix1, seq_starts1, width  = pixelData(seqSizes1, bpPerPix,
+    seq_pix1, seq_starts1, width  = pixelData(rangeSizes1, bpPerPix,
                                               opts.border_pixels, lMargin)
-    seq_pix2, seq_starts2, height = pixelData(seqSizes2, bpPerPix,
+    seq_pix2, seq_starts2, height = pixelData(rangeSizes2, bpPerPix,
                                               opts.border_pixels, tMargin)
     warn("width:  " + str(width))
     warn("height: " + str(height))
