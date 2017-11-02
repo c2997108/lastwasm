@@ -164,18 +164,6 @@ def natural_sort_key(my_string):
     parts[1::2] = map(int, parts[1::2])
     return parts
 
-def textDimensions(imageDraw, font, textRot, text):
-    x, y = imageDraw.textsize(text, font=font)
-    return (y, x) if textRot else (x, y)
-
-def get_text_sizes(my_strings, font, fontsize, image_mode, textRot):
-    '''Get widths & heights, in pixels, of some strings.'''
-    if fontsize == 0: return [(0, 0) for i in my_strings]
-    image_size = 1, 1
-    im = Image.new(image_mode, image_size)
-    draw = ImageDraw.Draw(im)
-    return [textDimensions(draw, font, textRot, i) for i in my_strings]
-
 def prettyNum(n):
     t = str(n)
     groups = []
@@ -203,6 +191,20 @@ def labelText(seqRange, labelOpt):
         return seqName + ": " + prettyNum(beg) + " - " + prettyNum(end)
     return seqName
 
+def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
+    if fontsize:
+        image_size = 1, 1
+        im = Image.new(image_mode, image_size)
+        draw = ImageDraw.Draw(im)
+    x = y = 0
+    for r in seqRanges:
+        text = labelText(r, labelOpt)
+        if fontsize:
+            x, y = draw.textsize(text, font=font)
+            if textRot:
+                x, y = y, x
+        yield text, x, y
+
 def getSeqInfo(sortOpt, seqNames, seqLimits,
                font, fontsize, image_mode, labelOpt, textRot):
     '''Return miscellaneous information about the sequences.'''
@@ -219,11 +221,11 @@ def getSeqInfo(sortOpt, seqNames, seqLimits,
         seqSizes = [i[0] for i in seqRecords]
         seqNames = [i[1] for i in seqRecords]
     seqRanges = [(i, seqLimits[i][0], seqLimits[i][1]) for i in seqNames]
-    seqLabels = [labelText(i, labelOpt) for i in seqRanges]
-    labelSizes = get_text_sizes(seqLabels, font, fontsize, image_mode, textRot)
-    margin = max(i[1] for i in labelSizes)
+    labelData = list(rangeLabels(seqRanges, labelOpt,
+                                 font, fontsize, image_mode, textRot))
+    margin = max(i[2] for i in labelData)
     # xxx the margin may be too big, because some labels may get omitted
-    return seqNames, seqSizes, seqLabels, labelSizes, margin
+    return seqNames, seqSizes, labelData, margin
 
 def div_ceil(x, y):
     '''Return x / y rounded up.'''
@@ -430,9 +432,9 @@ def drawAnnotations(im, boxes):
     for layer, color, box in boxes:
         im.paste(color, box)
 
-def make_label(text, text_size, range_start, range_size):
+def make_label(labelData, range_start, range_size):
     '''Return an axis label with endpoint & sort-order information.'''
-    text_width, text_height = text_size
+    text, text_width, text_height = labelData
     label_start = range_start + (range_size - text_width) // 2
     label_end   = label_start + text_width
     sort_key    = text_width - range_size
@@ -448,13 +450,13 @@ def nonoverlappingLabels(labels, minPixTweenLabels):
             out.append(i)
     return out
 
-def axisImage(seqNames, name_sizes, seq_starts, seq_pix, textRot,
+def axisImage(labelData, seq_starts, seq_pix, textRot,
               textAln, font, image_mode, opts):
     '''Make an image of axis labels.'''
     beg = seq_starts[0]
     end = seq_starts[-1] + seq_pix[-1]
-    margin = max(i[1] for i in name_sizes)
-    labels = map(make_label, seqNames, name_sizes, seq_starts, seq_pix)
+    margin = max(i[2] for i in labelData)
+    labels = map(make_label, labelData, seq_starts, seq_pix)
     labels = [i for i in labels if i[1] >= beg and i[2] <= end]
     labels.sort()
     minPixTweenLabels = 0 if textRot else opts.label_space
@@ -491,12 +493,12 @@ def lastDotplot(opts, args):
     textRot1 = "vertical".startswith(opts.rot1)
     i1 = getSeqInfo(opts.sort1, seqNames1, seqLimits1,
                     font, opts.fontsize, image_mode, opts.labels1, textRot1)
-    seqNames1, rangeSizes1, seqLabels1, labelSizes1, tMargin = i1
+    seqNames1, rangeSizes1, labelData1, tMargin = i1
 
     textRot2 = "horizontal".startswith(opts.rot2)
     i2 = getSeqInfo(opts.sort2, seqNames2, seqLimits2,
                     font, opts.fontsize, image_mode, opts.labels2, textRot2)
-    seqNames2, rangeSizes2, seqLabels2, labelSizes2, lMargin = i2
+    seqNames2, rangeSizes2, labelData2, lMargin = i2
 
     warn("choosing bp per pixel...")
     maxPixels1 = opts.width  - lMargin
@@ -553,11 +555,11 @@ def lastDotplot(opts, args):
             elif store_value == 3: im.putpixel(xy, overlap_color)
 
     if opts.fontsize != 0:
-        axis1 = axisImage(seqLabels1, labelSizes1, seq_starts1, seq_pix1,
+        axis1 = axisImage(labelData1, seq_starts1, seq_pix1,
                           textRot1, False, font, image_mode, opts)
         if textRot1:
             axis1 = axis1.transpose(Image.ROTATE_90)
-        axis2 = axisImage(seqLabels2, labelSizes2, seq_starts2, seq_pix2,
+        axis2 = axisImage(labelData2, seq_starts2, seq_pix2,
                           textRot2, textRot2, font, image_mode, opts)
         if not textRot2:
             axis2 = axis2.transpose(Image.ROTATE_270)
