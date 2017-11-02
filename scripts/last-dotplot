@@ -10,7 +10,8 @@
 # result is too faint.  How can this be done better?
 
 import gzip
-import fnmatch, itertools, optparse, os, re, sys
+from fnmatch import fnmatchcase
+import itertools, optparse, os, re, sys
 
 # Try to make PIL/PILLOW work:
 try: from PIL import Image, ImageDraw, ImageFont, ImageColor
@@ -114,7 +115,7 @@ def rangeFromSeqName(seqRanges, name, seqLen):
     if not seqRanges: return 0, seqLen
     base = name.split(".")[-1]  # allow for names like hg19.chr7
     for pat, beg, end in seqRanges:
-        if fnmatch.fnmatchcase(name, pat) or fnmatch.fnmatchcase(base, pat):
+        if fnmatchcase(name, pat) or fnmatchcase(base, pat):
             return max(beg, 0), min(end, seqLen)
     return None
 
@@ -216,33 +217,33 @@ def div_ceil(x, y):
     q, r = divmod(x, y)
     return q + (r != 0)
 
-def get_bp_per_pix(seq_sizes, pix_tween_seqs, pix_limit):
+def get_bp_per_pix(rangeSizes, pixTweenRanges, maxPixels):
     '''Get the minimum bp-per-pixel that fits in the size limit.'''
-    seq_num = len(seq_sizes)
-    seq_pix_limit = pix_limit - pix_tween_seqs * (seq_num - 1)
-    if seq_pix_limit < seq_num:
+    numOfRanges = len(rangeSizes)
+    maxPixelsInRanges = maxPixels - pixTweenRanges * (numOfRanges - 1)
+    if maxPixelsInRanges < numOfRanges:
         raise Exception("can't fit the image: too many sequences?")
-    negLimit = -seq_pix_limit
-    negBpPerPix = sum(seq_sizes) // negLimit
+    negLimit = -maxPixelsInRanges
+    negBpPerPix = sum(rangeSizes) // negLimit
     while True:
-        if sum(i // negBpPerPix for i in seq_sizes) >= negLimit:
+        if sum(i // negBpPerPix for i in rangeSizes) >= negLimit:
             return -negBpPerPix
         negBpPerPix -= 1
 
-def get_seq_starts(seq_pix, pix_tween_seqs, margin):
+def get_seq_starts(seq_pix, pixTweenRanges, margin):
     '''Get the start pixel for each sequence.'''
     seq_starts = []
-    pix_tot = margin - pix_tween_seqs
+    pix_tot = margin - pixTweenRanges
     for i in seq_pix:
-        pix_tot += pix_tween_seqs
+        pix_tot += pixTweenRanges
         seq_starts.append(pix_tot)
         pix_tot += i
     return seq_starts
 
-def get_pix_info(seq_sizes, bp_per_pix, pix_tween_seqs, margin):
+def pixelData(rangeSizes, bp_per_pix, pixTweenRanges, margin):
     '''Return pixel information about the sequences.'''
-    seq_pix = [div_ceil(i, bp_per_pix) for i in seq_sizes]
-    seq_starts = get_seq_starts(seq_pix, pix_tween_seqs, margin)
+    seq_pix = [div_ceil(i, bp_per_pix) for i in rangeSizes]
+    seq_starts = get_seq_starts(seq_pix, pixTweenRanges, margin)
     tot_pix = seq_starts[-1] + seq_pix[-1]
     return seq_pix, seq_starts, tot_pix
 
@@ -484,17 +485,17 @@ def lastDotplot(opts, args):
     seqNames2, seqSizes2, seqLabels2, labelSizes2, lMargin = i2
 
     warn("choosing bp per pixel...")
-    pix_limit1 = opts.width  - lMargin
-    pix_limit2 = opts.height - tMargin
-    bpPerPix1 = get_bp_per_pix(seqSizes1, opts.border_pixels, pix_limit1)
-    bpPerPix2 = get_bp_per_pix(seqSizes2, opts.border_pixels, pix_limit2)
+    maxPixels1 = opts.width  - lMargin
+    maxPixels2 = opts.height - tMargin
+    bpPerPix1 = get_bp_per_pix(seqSizes1, opts.border_pixels, maxPixels1)
+    bpPerPix2 = get_bp_per_pix(seqSizes2, opts.border_pixels, maxPixels2)
     bpPerPix = max(bpPerPix1, bpPerPix2)
     warn("bp per pixel = " + str(bpPerPix))
 
-    seq_pix1, seq_starts1, width  = get_pix_info(seqSizes1, bpPerPix,
-                                                 opts.border_pixels, lMargin)
-    seq_pix2, seq_starts2, height = get_pix_info(seqSizes2, bpPerPix,
-                                                 opts.border_pixels, tMargin)
+    seq_pix1, seq_starts1, width  = pixelData(seqSizes1, bpPerPix,
+                                              opts.border_pixels, lMargin)
+    seq_pix2, seq_starts2, height = pixelData(seqSizes2, bpPerPix,
+                                              opts.border_pixels, tMargin)
     warn("width:  " + str(width))
     warn("height: " + str(height))
 
