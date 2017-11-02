@@ -245,22 +245,22 @@ def get_bp_per_pix(rangeSizes, pixTweenRanges, maxPixels):
             return -negBpPerPix
         negBpPerPix -= 1
 
-def get_seq_starts(seq_pix, pixTweenRanges, margin):
-    '''Get the start pixel for each sequence.'''
-    seq_starts = []
+def getRangePixBegs(rangePixLens, pixTweenRanges, margin):
+    '''Get the start pixel for each range.'''
+    rangePixBegs = []
     pix_tot = margin - pixTweenRanges
-    for i in seq_pix:
+    for i in rangePixLens:
         pix_tot += pixTweenRanges
-        seq_starts.append(pix_tot)
+        rangePixBegs.append(pix_tot)
         pix_tot += i
-    return seq_starts
+    return rangePixBegs
 
 def pixelData(rangeSizes, bp_per_pix, pixTweenRanges, margin):
-    '''Return pixel information about the sequences.'''
-    seq_pix = [div_ceil(i, bp_per_pix) for i in rangeSizes]
-    seq_starts = get_seq_starts(seq_pix, pixTweenRanges, margin)
-    tot_pix = seq_starts[-1] + seq_pix[-1]
-    return seq_pix, seq_starts, tot_pix
+    '''Return pixel information about the ranges.'''
+    rangePixLens = [div_ceil(i, bp_per_pix) for i in rangeSizes]
+    rangePixBegs = getRangePixBegs(rangePixLens, pixTweenRanges, margin)
+    tot_pix = rangePixBegs[-1] + rangePixLens[-1]
+    return rangePixBegs, rangePixLens, tot_pix
 
 def drawLineForward(hits, width, bp_per_pix, beg1, beg2, size):
     while True:
@@ -450,13 +450,13 @@ def nonoverlappingLabels(labels, minPixTweenLabels):
             out.append(i)
     return out
 
-def axisImage(labelData, seq_starts, seq_pix, textRot,
+def axisImage(labelData, rangePixBegs, rangePixLens, textRot,
               textAln, font, image_mode, opts):
     '''Make an image of axis labels.'''
-    beg = seq_starts[0]
-    end = seq_starts[-1] + seq_pix[-1]
+    beg = rangePixBegs[0]
+    end = rangePixBegs[-1] + rangePixLens[-1]
     margin = max(i[2] for i in labelData)
-    labels = map(make_label, labelData, seq_starts, seq_pix)
+    labels = map(make_label, labelData, rangePixBegs, rangePixLens)
     labels = [i for i in labels if i[1] >= beg and i[2] <= end]
     labels.sort()
     minPixTweenLabels = 0 if textRot else opts.label_space
@@ -470,8 +470,8 @@ def axisImage(labelData, seq_starts, seq_pix, textRot,
         draw.text(position, i[3], font=font, fill=opts.text_color)
     return im
 
-def seqOrigins(seqNames, seq_starts, seqLimits, bp_per_pix):
-    for i, j in zip(seqNames, seq_starts):
+def seqOrigins(seqNames, rangePixBegs, seqLimits, bp_per_pix):
+    for i, j in zip(seqNames, rangePixBegs):
         yield i, bp_per_pix * j - seqLimits[i][0]
 
 def lastDotplot(opts, args):
@@ -508,15 +508,17 @@ def lastDotplot(opts, args):
     bpPerPix = max(bpPerPix1, bpPerPix2)
     warn("bp per pixel = " + str(bpPerPix))
 
-    seq_pix1, seq_starts1, width  = pixelData(rangeSizes1, bpPerPix,
-                                              opts.border_pixels, lMargin)
-    seq_pix2, seq_starts2, height = pixelData(rangeSizes2, bpPerPix,
-                                              opts.border_pixels, tMargin)
+    p1 = pixelData(rangeSizes1, bpPerPix, opts.border_pixels, lMargin)
+    rangePixBegs1, rangePixLens1, width = p1
+
+    p2 = pixelData(rangeSizes2, bpPerPix, opts.border_pixels, tMargin)
+    rangePixBegs2, rangePixLens2, height = p2
+
     warn("width:  " + str(width))
     warn("height: " + str(height))
 
-    origins1 = dict(seqOrigins(seqNames1, seq_starts1, seqLimits1, bpPerPix))
-    origins2 = dict(seqOrigins(seqNames2, seq_starts2, seqLimits2, bpPerPix))
+    origins1 = dict(seqOrigins(seqNames1, rangePixBegs1, seqLimits1, bpPerPix))
+    origins2 = dict(seqOrigins(seqNames2, rangePixBegs2, seqLimits2, bpPerPix))
 
     warn("processing alignments...")
     hits = alignmentPixels(width, height, alignments, bpPerPix,
@@ -555,22 +557,22 @@ def lastDotplot(opts, args):
             elif store_value == 3: im.putpixel(xy, overlap_color)
 
     if opts.fontsize != 0:
-        axis1 = axisImage(labelData1, seq_starts1, seq_pix1,
+        axis1 = axisImage(labelData1, rangePixBegs1, rangePixLens1,
                           textRot1, False, font, image_mode, opts)
         if textRot1:
             axis1 = axis1.transpose(Image.ROTATE_90)
-        axis2 = axisImage(labelData2, seq_starts2, seq_pix2,
+        axis2 = axisImage(labelData2, rangePixBegs2, rangePixLens2,
                           textRot2, textRot2, font, image_mode, opts)
         if not textRot2:
             axis2 = axis2.transpose(Image.ROTATE_270)
         im.paste(axis1, (0, 0))
         im.paste(axis2, (0, 0))
 
-    for i in seq_starts1[1:]:
+    for i in rangePixBegs1[1:]:
         box = i - opts.border_pixels, tMargin, i, height
         im.paste(opts.border_color, box)
 
-    for i in seq_starts2[1:]:
+    for i in rangePixBegs2[1:]:
         box = lMargin, i - opts.border_pixels, width, i
         im.paste(opts.border_color, box)
 
