@@ -307,7 +307,7 @@ def readBed(fileName, seqLimits):
         beg = int(w[1])
         end = int(w[2])
         layer = 900
-        color = "#ffe4ff"
+        color = "#fbf"
         if len(w) > 4:
             if w[4] != ".":
                 layer = float(w[4])
@@ -315,9 +315,9 @@ def readBed(fileName, seqLimits):
                 if len(w) > 8 and w[8].count(",") == 2:
                     color = "rgb(" + w[8] + ")"
                 elif w[5] == "+":
-                    color = "#fff4f4"
+                    color = "#ffe8e8"
                 elif w[5] == "-":
-                    color = "#f4f4ff"
+                    color = "#e8e8ff"
         yield layer, color, seqName, beg, end
 
 def commaSeparatedInts(text):
@@ -363,11 +363,11 @@ def readRmsk(fileName, seqLimits):
         else:
             continue
         if repeatClass in ("Low_complexity", "Simple_repeat"):
-            yield 200, "#ffe4ff", seqName, beg, end
+            yield 200, "#fbf", seqName, beg, end
         elif strand == "+":
-            yield 100, "#fff4f4", seqName, beg, end
+            yield 100, "#ffe8e8", seqName, beg, end
         else:
-            yield 100, "#f4f4ff", seqName, beg, end
+            yield 100, "#e8e8ff", seqName, beg, end
 
 def isExtraFirstGapField(fields):
     return fields[4].isdigit()
@@ -433,8 +433,8 @@ def get_nonoverlapping_labels(labels, label_space):
             nonoverlapping_labels.append(i)
     return nonoverlapping_labels
 
-def get_axis_image(seqNames, name_sizes, seq_starts, seq_pix, textRot,
-                   textAln, font, image_mode, opts):
+def axisImage(seqNames, name_sizes, seq_starts, seq_pix, textRot,
+              textAln, font, image_mode, opts):
     '''Make an image of axis labels.'''
     min_pos = seq_starts[0]
     max_pos = seq_starts[-1] + seq_pix[-1]
@@ -445,7 +445,7 @@ def get_axis_image(seqNames, name_sizes, seq_starts, seq_pix, textRot,
     minPixTweenLabels = 0 if textRot else opts.label_space
     labels = get_nonoverlapping_labels(labels, minPixTweenLabels)
     image_size = (margin, max_pos) if textRot else (max_pos, margin)
-    im = Image.new(image_mode, image_size, opts.border_color)
+    im = Image.new(image_mode, image_size, opts.margin_color)
     draw = ImageDraw.Draw(im)
     for i in labels:
         base = margin - i[4] if textAln else 0
@@ -538,12 +538,12 @@ def lastDotplot(opts, args):
             elif store_value == 3: im.putpixel(xy, overlap_color)
 
     if opts.fontsize != 0:
-        axis1 = get_axis_image(seqLabels1, labelSizes1, seq_starts1, seq_pix1,
-                               textRot1, False, font, image_mode, opts)
+        axis1 = axisImage(seqLabels1, labelSizes1, seq_starts1, seq_pix1,
+                          textRot1, False, font, image_mode, opts)
         if textRot1:
             axis1 = axis1.transpose(Image.ROTATE_90)
-        axis2 = get_axis_image(seqLabels2, labelSizes2, seq_starts2, seq_pix2,
-                               textRot2, textRot2, font, image_mode, opts)
+        axis2 = axisImage(seqLabels2, labelSizes2, seq_starts2, seq_pix2,
+                          textRot2, textRot2, font, image_mode, opts)
         if not textRot2:
             axis2 = axis2.transpose(Image.ROTATE_270)
         im.paste(axis1, (0, 0))
@@ -595,9 +595,10 @@ if __name__ == "__main__":
                   help="trim unaligned sequence flanks from the 2nd genome")
     op.add_option("--border-pixels", metavar="INT", type="int", default=1,
                   help="number of pixels between sequences (default=%default)")
-    op.add_option("--border-color", metavar="COLOR", default="#dcdcdc",
+    op.add_option("--border-color", metavar="COLOR", default="black",
                   help="color for pixels between sequences (default=%default)")
-    # xxx --margin-color?
+    op.add_option("--margin-color", metavar="COLOR", default="#dcdcdc",
+                  help="margin color")
 
     og = optparse.OptionGroup(op, "Text options")
     og.add_option("-f", "--fontfile", metavar="FILE",
@@ -630,9 +631,9 @@ if __name__ == "__main__":
                   help="read genome1 genes from genePred file")
     og.add_option("--genePred2", metavar="FILE",
                   help="read genome2 genes from genePred file")
-    og.add_option("--exon-color", metavar="COLOR", default="#dfd",
+    og.add_option("--exon-color", metavar="COLOR", default="PaleGreen",
                   help="color for exons (default=%default)")
-    og.add_option("--cds-color", metavar="COLOR", default="#bdb",
+    og.add_option("--cds-color", metavar="COLOR", default="LimeGreen",
                   help="color for protein-coding regions (default=%default)")
     op.add_option_group(og)
 
@@ -643,7 +644,7 @@ if __name__ == "__main__":
                   help="read genome2 unsequenced gaps from agp or gap file")
     og.add_option("--bridged-color", metavar="COLOR", default="yellow",
                   help="color for bridged gaps (default: %default)")
-    og.add_option("--unbridged-color", metavar="COLOR", default="pink",
+    og.add_option("--unbridged-color", metavar="COLOR", default="orange",
                   help="color for unbridged gaps (default: %default)")
     op.add_option_group(og)
     (opts, args) = op.parse_args()
