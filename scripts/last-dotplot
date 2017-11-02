@@ -432,13 +432,25 @@ def drawAnnotations(im, boxes):
     for layer, color, box in boxes:
         im.paste(color, box)
 
-def make_label(labelData, range_start, range_size):
-    '''Return an axis label with endpoint & sort-order information.'''
-    text, text_width, text_height = labelData
-    label_start = range_start + (range_size - text_width) // 2
-    label_end   = label_start + text_width
-    sort_key    = text_width - range_size
-    return sort_key, label_start, label_end, text, text_height
+def placedLabels(labels, rangePixBegs, rangePixLens, beg, end):
+    '''Return axis labels with endpoint & sort-order information.'''
+    maxWidth = end - beg
+    for i, j, k in zip(labels, rangePixBegs, rangePixLens):
+        text, textWidth, textHeight = i
+        if textWidth > maxWidth:
+            continue
+        labelBeg = j + (k - textWidth) // 2
+        labelEnd = labelBeg + textWidth
+        sortKey = textWidth - k
+        if labelBeg < beg:
+            labelBeg = beg
+            labelEnd = beg + textWidth
+            sortKey += maxWidth
+        if labelEnd > end:
+            labelEnd = end
+            labelBeg = end - textWidth
+            sortKey += maxWidth
+        yield sortKey, labelBeg, labelEnd, text, textHeight
 
 def nonoverlappingLabels(labels, minPixTweenLabels):
     '''Get a subset of non-overlapping axis labels, greedily.'''
@@ -450,15 +462,13 @@ def nonoverlappingLabels(labels, minPixTweenLabels):
             out.append(i)
     return out
 
-def axisImage(labelData, rangePixBegs, rangePixLens, textRot,
+def axisImage(labels, rangePixBegs, rangePixLens, textRot,
               textAln, font, image_mode, opts):
     '''Make an image of axis labels.'''
     beg = rangePixBegs[0]
     end = rangePixBegs[-1] + rangePixLens[-1]
-    margin = max(i[2] for i in labelData)
-    labels = map(make_label, labelData, rangePixBegs, rangePixLens)
-    labels = [i for i in labels if i[1] >= beg and i[2] <= end]
-    labels.sort()
+    margin = max(i[2] for i in labels)
+    labels = sorted(placedLabels(labels, rangePixBegs, rangePixLens, beg, end))
     minPixTweenLabels = 0 if textRot else opts.label_space
     labels = nonoverlappingLabels(labels, minPixTweenLabels)
     image_size = (margin, end) if textRot else (end, margin)
