@@ -89,10 +89,6 @@ Options
   --sort2=N
       Put the 2nd genome's sequences top-to-bottom in order of: their
       appearance in the input (0), their names (1), their lengths (2).
-  --trim1
-      Trim unaligned sequence flanks from the 1st (horizontal) genome.
-  --trim2
-      Trim unaligned sequence flanks from the 2nd (vertical) genome.
   --border-pixels=INT
       Number of pixels between sequences.
   --border-color=COLOR

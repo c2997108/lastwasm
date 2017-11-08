@@ -120,30 +120,26 @@ def seqRequestFromText(text):
             return pattern, int(beg), int(end)  # beg may be negative
     return text, 0, sys.maxsize
 
-def rangeFromSeqName(seqRequests, name, seqLen):
+def rangesFromSeqName(seqRequests, name, seqLen):
     if seqRequests:
         base = name.split(".")[-1]  # allow for names like hg19.chr7
         for pat, beg, end in seqRequests:
             if fnmatchcase(name, pat) or fnmatchcase(base, pat):
-                return max(beg, 0), min(end, seqLen)
-        return None
+                yield max(beg, 0), min(end, seqLen)
     else:
-        return 0, seqLen
+        yield 0, seqLen
 
-def updateSeqs(isTrim, seqNames, seqLimits, seqName, seqRange, blocks, index):
-    if seqName not in seqLimits:
-        seqNames.append(seqName)
-    if isTrim:
-        beg = blocks[0][index]
-        end = blocks[-1][index] + blocks[-1][2]
-        if beg < 0: beg, end = -end, -beg
-        if seqName in seqLimits:
-            b, e = seqLimits[seqName]
-            seqLimits[seqName] = min(b, beg), max(e, end)
-        else:
-            seqLimits[seqName] = beg, end
+def updateSeqs(coverDict, seqRanges, seqName, ranges, coveredRange):
+    beg, end = coveredRange
+    if beg < 0:
+        coveredRange = -end, -beg
+    if seqName in coverDict:
+        coverDict[seqName].append(coveredRange)
     else:
-        seqLimits[seqName] = seqRange
+        coverDict[seqName] = [coveredRange]
+        for beg, end in ranges:
+            r = seqName, beg, end
+            seqRanges.append(r)
 
 def readAlignments(fileName, opts):
     '''Get alignments and sequence limits, from MAF or tabular format.'''
@@ -151,25 +147,25 @@ def readAlignments(fileName, opts):
     seqRequests2 = map(seqRequestFromText, opts.seq2)
 
     alignments = []
-    seqNames1 = []
-    seqNames2 = []
-    seqLimits1 = {}
-    seqLimits2 = {}
+    seqRanges1 = []
+    seqRanges2 = []
+    coverDict1 = {}
+    coverDict2 = {}
     lines = myOpen(fileName)
     for seqName1, seqLen1, seqName2, seqLen2, blocks in alignmentInput(lines):
-        range1 = rangeFromSeqName(seqRequests1, seqName1, seqLen1)
-        if not range1: continue
-        range2 = rangeFromSeqName(seqRequests2, seqName2, seqLen2)
-        if not range2: continue
-        b = list(croppedBlocks(list(blocks), [range1], [range2]))
+        ranges1 = sorted(rangesFromSeqName(seqRequests1, seqName1, seqLen1))
+        if not ranges1: continue
+        ranges2 = sorted(rangesFromSeqName(seqRequests2, seqName2, seqLen2))
+        if not ranges2: continue
+        b = list(croppedBlocks(list(blocks), ranges1, ranges2))
         if not b: continue
         aln = seqName1, seqName2, b
         alignments.append(aln)
-        updateSeqs(opts.trim1, seqNames1, seqLimits1, seqName1, range1, b, 0)
-        updateSeqs(opts.trim2, seqNames2, seqLimits2, seqName2, range2, b, 1)
-    seqRanges1 = [(i, seqLimits1[i][0], seqLimits1[i][1]) for i in seqNames1]
-    seqRanges2 = [(i, seqLimits2[i][0], seqLimits2[i][1]) for i in seqNames2]
-    return alignments, seqRanges1, seqRanges2
+        coveredRange1 = b[0][0], b[-1][0] + b[-1][2]
+        updateSeqs(coverDict1, seqRanges1, seqName1, ranges1, coveredRange1)
+        coveredRange2 = b[0][1], b[-1][1] + b[-1][2]
+        updateSeqs(coverDict2, seqRanges2, seqName2, ranges2, coveredRange2)
+    return alignments, seqRanges1, coverDict1, seqRanges2, coverDict2
 
 def natural_sort_key(my_string):
     '''Return a sort key for "natural" ordering, e.g. chr9 < chr10.'''
@@ -544,7 +540,7 @@ def lastDotplot(opts, args):
 
     warn("reading alignments...")
     alnData = readAlignments(args[0], opts)
-    alignments, seqRanges1, seqRanges2 = alnData
+    alignments, seqRanges1, coverDict1, seqRanges2, coverDict2 = alnData
     warn("done")
     if not alignments: raise Exception("there are no alignments")
 
@@ -665,10 +661,6 @@ if __name__ == "__main__":
     op.add_option("--sort2", default="1", metavar="N",
                   help="genome2 sequence order: 0=input order, 1=name order, "
                   "2=length order (default=%default)")
-    op.add_option("--trim1", action="store_true",
-                  help="trim unaligned sequence flanks from the 1st genome")
-    op.add_option("--trim2", action="store_true",
-                  help="trim unaligned sequence flanks from the 2nd genome")
     op.add_option("--border-pixels", metavar="INT", type="int", default=1,
                   help="number of pixels between sequences (default=%default)")
     op.add_option("--border-color", metavar="COLOR", default="black",
