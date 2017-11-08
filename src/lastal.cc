@@ -26,7 +26,7 @@
 #include "gaplessXdrop.hh"
 #include "gaplessPssmXdrop.hh"
 #include "gaplessTwoQualityXdrop.hh"
-#include "io.hh"
+#include "zio.hh"
 #include "stringify.hh"
 #include "threadUtil.hh"
 #include <iomanip>  // setw

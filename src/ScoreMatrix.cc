@@ -2,7 +2,7 @@
 
 #include "ScoreMatrix.hh"
 #include "ScoreMatrixData.hh"
-#include "io.hh"
+#include "zio.hh"
 #include <sstream>
 #include <iomanip>
 #include <algorithm>  // min, max
@@ -32,7 +32,7 @@ std::string ScoreMatrix::stringFromName( const std::string& name ){
     if( n == scoreMatrices[i].name )
       return scoreMatrices[i].text;
 
-  return slurp( n );
+  return slurp( n.c_str() );
 }
 
 void ScoreMatrix::matchMismatch( int match, int mismatch,

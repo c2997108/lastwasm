@@ -14,15 +14,15 @@ alp/njn_dynprogproblim.o alp/njn_ioutil.o alp/njn_random.o	\
 alp/sls_falp_alignment_evaluer.o alp/sls_fsa1_pvalues.o		\
 alp/sls_fsa1_utils.o alp/sls_fsa1.o alp/sls_fsa1_parameters.o
 
-indexObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o		\
-ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o io.o	\
+indexObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o	\
+ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o	\
 tantan.o LastdbArguments.o
 
 indexObj4 = MultiSequence.o MultiSequenceQual.o SubsetSuffixArray.o	\
 SubsetSuffixArraySort.o lastdb.o
 
 alignObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o		\
-ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o io.o	\
+ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o		\
 tantan.o LastalArguments.o GappedXdropAligner.o				\
 GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
 GappedXdropAligner3frame.o GeneralizedAffineGapCosts.o GeneticCode.o	\
@@ -41,7 +41,7 @@ split/cbrc_unsplit_alignment.o split/last-split-main.o
 splitObj4 = MultiSequence.o split/cbrc_split_aligner.o	\
 split/last-split.o
 
-PPOBJ = last-pair-probs.o last-pair-probs-main.o io.o
+PPOBJ = last-pair-probs.o last-pair-probs-main.o
 
 MBOBJ = last-merge-batches.o
 
@@ -148,7 +148,7 @@ Centroid.o Centroid.o8: Centroid.cc Centroid.hh GappedXdropAligner.hh \
  ScoreMatrixRow.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
  OneQualityScoreMatrix.hh GappedXdropAlignerInl.hh
 CyclicSubsetSeed.o CyclicSubsetSeed.o8: CyclicSubsetSeed.cc CyclicSubsetSeed.hh \
- CyclicSubsetSeedData.hh io.hh mcf_zstream.hh stringify.hh
+ CyclicSubsetSeedData.hh zio.hh mcf_zstream.hh stringify.hh
 DiagonalTable.o DiagonalTable.o8: DiagonalTable.cc DiagonalTable.hh
 GappedXdropAligner.o GappedXdropAligner.o8: GappedXdropAligner.cc GappedXdropAligner.hh \
  ScoreMatrixRow.hh GappedXdropAlignerInl.hh
@@ -176,7 +176,7 @@ LastalArguments.o LastalArguments.o8: LastalArguments.cc LastalArguments.hh \
 LastdbArguments.o LastdbArguments.o8: LastdbArguments.cc LastdbArguments.hh \
  SequenceFormat.hh stringify.hh getoptUtil.hh version.hh
 MultiSequence.o MultiSequence.o8: MultiSequence.cc MultiSequence.hh ScoreMatrixRow.hh \
- VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh mcf_zstream.hh
+ VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh
 MultiSequenceQual.o MultiSequenceQual.o8: MultiSequenceQual.cc MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
 OneQualityScoreMatrix.o OneQualityScoreMatrix.o8: OneQualityScoreMatrix.cc \
@@ -184,7 +184,7 @@ OneQualityScoreMatrix.o OneQualityScoreMatrix.o8: OneQualityScoreMatrix.cc \
  stringify.hh
 QualityPssmMaker.o QualityPssmMaker.o8: QualityPssmMaker.cc QualityPssmMaker.hh \
  ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
-ScoreMatrix.o ScoreMatrix.o8: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixData.hh io.hh \
+ScoreMatrix.o ScoreMatrix.o8: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixData.hh zio.hh \
  mcf_zstream.hh
 SegmentPair.o SegmentPair.o8: SegmentPair.cc SegmentPair.hh
 SegmentPairPot.o SegmentPairPot.o8: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh
@@ -192,7 +192,7 @@ SubsetMinimizerFinder.o SubsetMinimizerFinder.o8: SubsetMinimizerFinder.cc \
  SubsetMinimizerFinder.hh CyclicSubsetSeed.hh
 SubsetSuffixArray.o SubsetSuffixArray.o8: SubsetSuffixArray.cc SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
- SubsetMinimizerFinder.hh io.hh mcf_zstream.hh
+ SubsetMinimizerFinder.hh io.hh
 SubsetSuffixArraySearch.o SubsetSuffixArraySearch.o8: SubsetSuffixArraySearch.cc \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh \
  fileMap.hh stringify.hh
@@ -209,10 +209,9 @@ gaplessPssmXdrop.o gaplessPssmXdrop.o8: gaplessPssmXdrop.cc gaplessPssmXdrop.hh 
 gaplessTwoQualityXdrop.o gaplessTwoQualityXdrop.o8: gaplessTwoQualityXdrop.cc \
  gaplessTwoQualityXdrop.hh TwoQualityScoreMatrix.hh ScoreMatrixRow.hh
 gaplessXdrop.o gaplessXdrop.o8: gaplessXdrop.cc gaplessXdrop.hh ScoreMatrixRow.hh
-io.o io.o8: io.cc io.hh mcf_zstream.hh
 last-pair-probs-main.o last-pair-probs-main.o8: last-pair-probs-main.cc last-pair-probs.hh \
  stringify.hh version.hh
-last-pair-probs.o last-pair-probs.o8: last-pair-probs.cc last-pair-probs.hh io.hh \
+last-pair-probs.o last-pair-probs.o8: last-pair-probs.cc last-pair-probs.hh zio.hh \
  mcf_zstream.hh stringify.hh
 lastal.o lastal.o8: lastal.cc last.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
@@ -225,13 +224,13 @@ lastal.o lastal.o8: lastal.cc last.hh Alphabet.hh MultiSequence.hh \
  GappedXdropAligner.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
  AlignmentPot.hh Alignment.hh SegmentPairPot.hh ScoreMatrix.hh \
  TantanMasker.hh tantan.hh DiagonalTable.hh GreedyXdropAligner.hh \
- gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh io.hh \
+ gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh \
  mcf_zstream.hh threadUtil.hh version.hh
 lastdb.o lastdb.o8: lastdb.cc last.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  SequenceFormat.hh qualityScoreUtil.hh LastdbArguments.hh \
- SubsetSuffixArray.hh CyclicSubsetSeed.hh TantanMasker.hh tantan.hh io.hh \
- mcf_zstream.hh threadUtil.hh version.hh
+ SubsetSuffixArray.hh CyclicSubsetSeed.hh TantanMasker.hh tantan.hh \
+ zio.hh mcf_zstream.hh threadUtil.hh version.hh
 tantan.o tantan.o8: tantan.cc tantan.hh
 last-merge-batches.o: last-merge-batches.c version.hh
 alp/njn_dynprogprob.o: alp/njn_dynprogprob.cpp alp/njn_dynprogprob.hpp \

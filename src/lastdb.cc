@@ -8,7 +8,7 @@
 #include "LastdbArguments.hh"
 #include "SubsetSuffixArray.hh"
 #include "TantanMasker.hh"
-#include "io.hh"
+#include "zio.hh"
 #include "stringify.hh"
 #include "threadUtil.hh"
 #include <stdexcept>

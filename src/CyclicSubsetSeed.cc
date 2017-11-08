@@ -2,7 +2,7 @@
 
 #include "CyclicSubsetSeed.hh"
 #include "CyclicSubsetSeedData.hh"
-#include "io.hh"
+#include "zio.hh"
 #include "stringify.hh"
 #include <algorithm>  // sort
 #include <sstream>
@@ -23,7 +23,7 @@ std::string CyclicSubsetSeed::stringFromName( const std::string& name ){
     if( name == subsetSeeds[i].name )
       return subsetSeeds[i].text;
 
-  return slurp( name );
+  return slurp( name.c_str() );
 }
 
 std::string
