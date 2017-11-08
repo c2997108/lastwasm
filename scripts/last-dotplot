@@ -289,11 +289,20 @@ def drawLineReverse(hits, width, bp_per_pix, beg1, beg2, size):
         beg2 -= next_pix
         size -= next_pix
 
-def alignmentPixels(width, height, alignments, bp_per_pix, origins1, origins2):
+def findOrigin(ranges, beg, size):
+    if beg < 0:
+        beg = -(beg + size)
+    for rangeBeg, rangeEnd, origin in ranges:
+        if rangeEnd > beg:
+            return origin
+
+def alignmentPixels(width, height, alignments, bp_per_pix,
+                    rangeDict1, rangeDict2):
     hits = [0] * (width * height)  # the image data
     for seq1, seq2, blocks in alignments:
-        ori1 = origins1[seq1]
-        ori2 = origins2[seq2]
+        beg1, beg2, size = blocks[0]
+        ori1 = findOrigin(rangeDict1[seq1], beg1, size)
+        ori2 = findOrigin(rangeDict2[seq2], beg2, size)
         for beg1, beg2, size in blocks:
             if beg1 < 0:
                 beg1 = -(beg1 + size)
@@ -317,12 +326,12 @@ def expandedSeqDict(seqDict):
             newDict[base] = x
     return newDict
 
-def readBed(fileName, seqLimits):
+def readBed(fileName, rangeDict):
     for line in myOpen(fileName):
         w = line.split()
         if not w: continue
         seqName = w[0]
-        if seqName not in seqLimits: continue
+        if seqName not in rangeDict: continue
         beg = int(w[1])
         end = int(w[2])
         layer = 900
@@ -342,13 +351,13 @@ def readBed(fileName, seqLimits):
 def commaSeparatedInts(text):
     return map(int, text.rstrip(",").split(","))
 
-def readGenePred(opts, fileName, seqLimits):
+def readGenePred(opts, fileName, rangeDict):
     for line in myOpen(fileName):
         fields = line.split()
         if not fields: continue
         if fields[2] not in "+-": fields = fields[1:]
         seqName = fields[1]
-        if seqName not in seqLimits: continue
+        if seqName not in rangeDict: continue
         #strand = fields[2]
         cdsBeg = int(fields[5])
         cdsEnd = int(fields[6])
@@ -360,19 +369,19 @@ def readGenePred(opts, fileName, seqLimits):
             e = min(end, cdsEnd)
             if b < e: yield 400, opts.cds_color, seqName, b, e
 
-def readRmsk(fileName, seqLimits):
+def readRmsk(fileName, rangeDict):
     for line in myOpen(fileName):
         fields = line.split()
         if len(fields) == 17:  # rmsk.txt
             seqName = fields[5]
-            if seqName not in seqLimits: continue  # do this ASAP for speed
+            if seqName not in rangeDict: continue  # do this ASAP for speed
             beg = int(fields[6])
             end = int(fields[7])
             strand = fields[9]
             repeatClass = fields[11]
         elif len(fields) == 15:  # .out
             seqName = fields[4]
-            if seqName not in seqLimits: continue
+            if seqName not in rangeDict: continue
             beg = int(fields[5]) - 1
             end = int(fields[6])
             strand = fields[8]
@@ -389,7 +398,7 @@ def readRmsk(fileName, seqLimits):
 def isExtraFirstGapField(fields):
     return fields[4].isdigit()
 
-def readGaps(opts, fileName, seqLimits):
+def readGaps(opts, fileName, rangeDict):
     '''Read locations of unsequenced gaps, from an agp or gap file.'''
     for line in myOpen(fileName):
         w = line.split()
@@ -397,7 +406,7 @@ def readGaps(opts, fileName, seqLimits):
         if isExtraFirstGapField(w): w = w[1:]
         if w[4] not in "NU": continue
         seqName = w[0]
-        if seqName not in seqLimits: continue
+        if seqName not in rangeDict: continue
         end = int(w[2])
         beg = end - int(w[5])  # zero-based coordinate
         if w[7] == "yes":
@@ -405,27 +414,26 @@ def readGaps(opts, fileName, seqLimits):
         else:
             yield 2000, opts.unbridged_color, seqName, beg, end
 
-def bedBoxes(beds, seqLimits, origins, margin, edge, isTop, bpPerPix):
+def bedBoxes(beds, rangeDict, margin, edge, isTop, bpPerPix):
     for layer, color, seqName, bedBeg, bedEnd in beds:
-        cropBeg, cropEnd = seqLimits[seqName]
-        beg = max(bedBeg, cropBeg)
-        end = min(bedEnd, cropEnd)
-        if beg >= end: continue
-        ori = origins[seqName]
-        if layer <= 1000:
-            # include partly-covered pixels
-            b = (ori + beg) // bpPerPix
-            e = div_ceil(ori + end, bpPerPix)
-        else:
-            # exclude partly-covered pixels
-            b = div_ceil(ori + beg, bpPerPix)
-            e = (ori + end) // bpPerPix
-            if e <= b: continue
-        if isTop:
-            box = b, margin, e, edge
-        else:
-            box = margin, b, edge, e
-        yield layer, color, box
+        for rangeBeg, rangeEnd, origin in rangeDict[seqName]:
+            beg = max(bedBeg, rangeBeg)
+            end = min(bedEnd, rangeEnd)
+            if beg >= end: continue
+            if layer <= 1000:
+                # include partly-covered pixels
+                b = (origin + beg) // bpPerPix
+                e = div_ceil(origin + end, bpPerPix)
+            else:
+                # exclude partly-covered pixels
+                b = div_ceil(origin + beg, bpPerPix)
+                e = (origin + end) // bpPerPix
+                if e <= b: continue
+            if isTop:
+                box = b, margin, e, edge
+            else:
+                box = margin, b, edge, e
+            yield layer, color, box
 
 def drawAnnotations(im, boxes):
     # xxx use partial transparency for different-color overlaps?
@@ -480,9 +488,12 @@ def axisImage(labels, rangePixBegs, rangePixLens, textRot,
         draw.text(position, i[3], font=font, fill=opts.text_color)
     return im
 
-def seqOrigins(seqNames, rangePixBegs, seqLimits, bp_per_pix):
+def rangesPerSeq(seqNames, seqLimits, rangePixBegs, bpPerPix):
     for i, j in zip(seqNames, rangePixBegs):
-        yield i, bp_per_pix * j - seqLimits[i][0]
+        beg, end = seqLimits[i]
+        origin = bpPerPix * j - beg
+        r = beg, end, origin
+        yield i, [r]
 
 def getFont(opts):
     if opts.fontfile:
@@ -538,38 +549,36 @@ def lastDotplot(opts, args):
 
     p1 = pixelData(rangeSizes1, bpPerPix, opts.border_pixels, lMargin)
     rangePixBegs1, rangePixLens1, width = p1
+    rangeDict1 = dict(rangesPerSeq(seqNames1, seqLimits1, rangePixBegs1,
+                                   bpPerPix))
 
     p2 = pixelData(rangeSizes2, bpPerPix, opts.border_pixels, tMargin)
     rangePixBegs2, rangePixLens2, height = p2
+    rangeDict2 = dict(rangesPerSeq(seqNames2, seqLimits2, rangePixBegs2,
+                                   bpPerPix))
 
     warn("width:  " + str(width))
     warn("height: " + str(height))
 
-    origins1 = dict(seqOrigins(seqNames1, rangePixBegs1, seqLimits1, bpPerPix))
-    origins2 = dict(seqOrigins(seqNames2, rangePixBegs2, seqLimits2, bpPerPix))
-
     warn("processing alignments...")
     hits = alignmentPixels(width, height, alignments, bpPerPix,
-                           origins1, origins2)
+                           rangeDict1, rangeDict2)
 
     warn("reading annotations...")
 
-    seqLimits1 = expandedSeqDict(seqLimits1)
-    seqLimits2 = expandedSeqDict(seqLimits2)
-    origins1 = expandedSeqDict(origins1)
-    origins2 = expandedSeqDict(origins2)
+    rangeDict1 = expandedSeqDict(rangeDict1)
+    beds1 = itertools.chain(readBed(opts.bed1, rangeDict1),
+                            readRmsk(opts.rmsk1, rangeDict1),
+                            readGenePred(opts, opts.genePred1, rangeDict1),
+                            readGaps(opts, opts.gap1, rangeDict1))
+    b1 = bedBoxes(beds1, rangeDict1, tMargin, height, True, bpPerPix)
 
-    beds1 = itertools.chain(readBed(opts.bed1, seqLimits1),
-                            readRmsk(opts.rmsk1, seqLimits1),
-                            readGenePred(opts, opts.genePred1, seqLimits1),
-                            readGaps(opts, opts.gap1, seqLimits1))
-    b1 = bedBoxes(beds1, seqLimits1, origins1, tMargin, height, True, bpPerPix)
-
-    beds2 = itertools.chain(readBed(opts.bed2, seqLimits2),
-                            readRmsk(opts.rmsk2, seqLimits2),
-                            readGenePred(opts, opts.genePred2, seqLimits2),
-                            readGaps(opts, opts.gap2, seqLimits2))
-    b2 = bedBoxes(beds2, seqLimits2, origins2, lMargin, width, False, bpPerPix)
+    rangeDict2 = expandedSeqDict(rangeDict2)
+    beds2 = itertools.chain(readBed(opts.bed2, rangeDict2),
+                            readRmsk(opts.rmsk2, rangeDict2),
+                            readGenePred(opts, opts.genePred2, rangeDict2),
+                            readGaps(opts, opts.gap2, rangeDict2))
+    b2 = bedBoxes(beds2, rangeDict2, lMargin, width, False, bpPerPix)
 
     boxes = sorted(itertools.chain(b1, b2))
 
