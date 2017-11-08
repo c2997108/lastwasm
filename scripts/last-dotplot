@@ -168,6 +168,20 @@ def natural_sort_key(my_string):
     parts[1::2] = map(int, parts[1::2])
     return parts
 
+def nameKey(oneSeqRanges):
+    return natural_sort_key(oneSeqRanges[0][0])
+
+def sizeKey(oneSeqRanges):
+    return sum(b - e for n, b, e in oneSeqRanges), nameKey(oneSeqRanges)
+
+def getSortedRanges(seqRanges, sortOpt):
+    g = [list(v) for k, v in itertools.groupby(seqRanges, itemgetter(0))]
+    if sortOpt == "1":
+        g.sort(key=nameKey)
+    if sortOpt == "2":
+        g.sort(key=sizeKey)
+    return [j for i in g for j in i]
+
 def prettyNum(n):
     t = str(n)
     groups = []
@@ -211,25 +225,16 @@ def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
 
 def getSeqInfo(sortOpt, seqNames, seqLimits,
                font, fontsize, image_mode, labelOpt, textRot):
-    '''Return miscellaneous information about the sequences.'''
-    if sortOpt == 1:
-        seqNames.sort(key=natural_sort_key)
-    rangeSizes = [seqLimits[i][1] - seqLimits[i][0] for i in seqNames]
-    for i in seqNames:
-        r = seqLimits[i]
-        out = i, str(r[0]), str(r[1])
-        warn("\t".join(out))
-    warn("")
-    if sortOpt == 2:
-        seqRecords = sorted(zip(rangeSizes, seqNames), reverse=True)
-        rangeSizes = [i[0] for i in seqRecords]
-        seqNames = [i[1] for i in seqRecords]
     seqRanges = [(i, seqLimits[i][0], seqLimits[i][1]) for i in seqNames]
-    labelData = list(rangeLabels(seqRanges, labelOpt,
-                                 font, fontsize, image_mode, textRot))
-    margin = max(i[2] for i in labelData)
+    s = getSortedRanges(seqRanges, sortOpt)
+    for i in s:
+        warn("\t".join(map(str, i)))
+    warn("")
+    rangeSizes = [e - b for n, b, e in s]
+    labs = list(rangeLabels(s, labelOpt, font, fontsize, image_mode, textRot))
+    margin = max(i[2] for i in labs)
     # xxx the margin may be too big, because some labels may get omitted
-    return seqRanges, rangeSizes, labelData, margin
+    return s, rangeSizes, labs, margin
 
 def div_ceil(x, y):
     '''Return x / y rounded up.'''
@@ -646,10 +651,10 @@ if __name__ == "__main__":
                   help="color for forward alignments (default: %default)")
     op.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
                   help="color for reverse alignments (default: %default)")
-    op.add_option("--sort1", type="int", default=1, metavar="N",
+    op.add_option("--sort1", default="1", metavar="N",
                   help="genome1 sequence order: 0=input order, 1=name order, "
                   "2=length order (default=%default)")
-    op.add_option("--sort2", type="int", default=1, metavar="N",
+    op.add_option("--sort2", default="1", metavar="N",
                   help="genome2 sequence order: 0=input order, 1=name order, "
                   "2=length order (default=%default)")
     op.add_option("--trim1", action="store_true",
