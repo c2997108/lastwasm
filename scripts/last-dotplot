@@ -19,6 +19,8 @@ try: from PIL import Image, ImageDraw, ImageFont, ImageColor
 except ImportError: import Image, ImageDraw, ImageFont, ImageColor
 
 def myOpen(fileName):  # faster than fileinput
+    if fileName is None:
+        return []
     if fileName == "-":
         return sys.stdin
     if fileName.endswith(".gz"):
@@ -171,7 +173,7 @@ def prettyNum(n):
     while t:
         groups.append(t[-3:])
         t = t[:-3]
-    return " ".join(reversed(groups))
+    return ",".join(reversed(groups))
 
 def sizeText(size):
     suffixes = "bp", "kb", "Mb", "Gb"
@@ -187,9 +189,9 @@ def labelText(seqRange, labelOpt):
     if labelOpt == 1:
         return seqName + ": " + sizeText(end - beg)
     if labelOpt == 2:
-        return seqName + ": " + prettyNum(beg) + ": " + sizeText(end - beg)
+        return seqName + ":" + prettyNum(beg) + ": " + sizeText(end - beg)
     if labelOpt == 3:
-        return seqName + ": " + prettyNum(beg) + " - " + prettyNum(end)
+        return seqName + ":" + prettyNum(beg) + "-" + prettyNum(end)
     return seqName
 
 def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
@@ -235,6 +237,7 @@ def div_ceil(x, y):
 
 def get_bp_per_pix(rangeSizes, pixTweenRanges, maxPixels):
     '''Get the minimum bp-per-pixel that fits in the size limit.'''
+    warn("choosing bp per pixel...")
     numOfRanges = len(rangeSizes)
     maxPixelsInRanges = maxPixels - pixTweenRanges * (numOfRanges - 1)
     if maxPixelsInRanges < numOfRanges:
@@ -315,7 +318,6 @@ def expandedSeqDict(seqDict):
     return newDict
 
 def readBed(fileName, seqLimits):
-    if not fileName: return
     for line in myOpen(fileName):
         w = line.split()
         if not w: continue
@@ -341,7 +343,6 @@ def commaSeparatedInts(text):
     return map(int, text.rstrip(",").split(","))
 
 def readGenePred(opts, fileName, seqLimits):
-    if not fileName: return
     for line in myOpen(fileName):
         fields = line.split()
         if not fields: continue
@@ -360,7 +361,6 @@ def readGenePred(opts, fileName, seqLimits):
             if b < e: yield 400, opts.cds_color, seqName, b, e
 
 def readRmsk(fileName, seqLimits):
-    if not fileName: return
     for line in myOpen(fileName):
         fields = line.split()
         if len(fields) == 17:  # rmsk.txt
@@ -391,7 +391,6 @@ def isExtraFirstGapField(fields):
 
 def readGaps(opts, fileName, seqLimits):
     '''Read locations of unsequenced gaps, from an agp or gap file.'''
-    if not fileName: return
     for line in myOpen(fileName):
         w = line.split()
         if not w or w[0][0] == "#": continue
@@ -444,13 +443,13 @@ def placedLabels(labels, rangePixBegs, rangePixLens, beg, end):
         labelEnd = labelBeg + textWidth
         sortKey = textWidth - k
         if labelBeg < beg:
+            sortKey += maxWidth * (beg - labelBeg)
             labelBeg = beg
             labelEnd = beg + textWidth
-            sortKey += maxWidth
         if labelEnd > end:
+            sortKey += maxWidth * (labelEnd - end)
             labelEnd = end
             labelBeg = end - textWidth
-            sortKey += maxWidth
         yield sortKey, labelBeg, labelEnd, text, textHeight
 
 def nonoverlappingLabels(labels, minPixTweenLabels):
@@ -515,8 +514,8 @@ def lastDotplot(opts, args):
     overlap_color = tuple([(i + j) // 2 for i, j in zipped_colors])
 
     warn("reading alignments...")
-    alignmentInfo = readAlignments(args[0], opts)
-    alignments, seqNames1, seqNames2, seqLimits1, seqLimits2 = alignmentInfo
+    alnData = readAlignments(args[0], opts)
+    alignments, seqNames1, seqNames2, seqLimits1, seqLimits2 = alnData
     warn("done")
     if not alignments: raise Exception("there are no alignments")
 
@@ -530,7 +529,6 @@ def lastDotplot(opts, args):
                     font, opts.fontsize, image_mode, opts.labels2, textRot2)
     seqNames2, rangeSizes2, labelData2, lMargin = i2
 
-    warn("choosing bp per pixel...")
     maxPixels1 = opts.width  - lMargin
     maxPixels2 = opts.height - tMargin
     bpPerPix1 = get_bp_per_pix(rangeSizes1, opts.border_pixels, maxPixels1)
@@ -553,10 +551,8 @@ def lastDotplot(opts, args):
     warn("processing alignments...")
     hits = alignmentPixels(width, height, alignments, bpPerPix,
                            origins1, origins2)
-    warn("done")
 
-    image_size = width, height
-    im = Image.new(image_mode, image_size, opts.background_color)
+    warn("reading annotations...")
 
     seqLimits1 = expandedSeqDict(seqLimits1)
     seqLimits2 = expandedSeqDict(seqLimits2)
@@ -576,6 +572,12 @@ def lastDotplot(opts, args):
     b2 = bedBoxes(beds2, seqLimits2, origins2, lMargin, width, False, bpPerPix)
 
     boxes = sorted(itertools.chain(b1, b2))
+
+    warn("drawing...")
+
+    image_size = width, height
+    im = Image.new(image_mode, image_size, opts.background_color)
+
     drawAnnotations(im, boxes)
 
     for i in range(height):
