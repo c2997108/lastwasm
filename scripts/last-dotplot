@@ -33,6 +33,10 @@ def warn(message):
         prog = os.path.basename(sys.argv[0])
         sys.stderr.write(prog + ": " + message + "\n")
 
+def groupByFirstItem(things):
+    for k, v in itertools.groupby(things, itemgetter(0)):
+        yield k, [i[1:] for i in v]
+
 def croppedBlocks(blocks, ranges1, ranges2):
     headBeg1, headBeg2, headSize = blocks[0]
     for r1 in ranges1:
@@ -167,6 +171,48 @@ def readAlignments(fileName, opts):
         updateSeqs(coverDict2, seqRanges2, seqName2, ranges2, coveredRange2)
     return alignments, seqRanges1, coverDict1, seqRanges2, coverDict2
 
+def nameAndRangesFromDict(cropDict, seqName):
+    if seqName in cropDict:
+        return seqName, cropDict[seqName]
+    n = seqName.split(".")[-1]
+    if n in cropDict:
+        return n, cropDict[n]
+    return seqName, []
+
+def rangesForSecondaryAlignments(primaryRanges, seqLen):
+    if primaryRanges:
+        return primaryRanges
+    return [(0, seqLen)]
+
+def readSecondaryAlignments(opts, cropRanges1, cropRanges2):
+    cropDict1 = dict(groupByFirstItem(cropRanges1))
+    cropDict2 = dict(groupByFirstItem(cropRanges2))
+
+    alignments = []
+    seqRanges1 = []
+    seqRanges2 = []
+    coverDict1 = {}
+    coverDict2 = {}
+    lines = myOpen(opts.alignments)
+    for seqName1, seqLen1, seqName2, seqLen2, blocks in alignmentInput(lines):
+        seqName1, ranges1 = nameAndRangesFromDict(cropDict1, seqName1)
+        seqName2, ranges2 = nameAndRangesFromDict(cropDict2, seqName2)
+        if not ranges1 and not ranges2:
+            continue
+        r1 = rangesForSecondaryAlignments(ranges1, seqLen1)
+        r2 = rangesForSecondaryAlignments(ranges2, seqLen2)
+        b = list(croppedBlocks(list(blocks), r1, r2))
+        if not b: continue
+        aln = seqName1, seqName2, b
+        alignments.append(aln)
+        if not ranges1:
+            coveredRange1 = b[0][0], b[-1][0] + b[-1][2]
+            updateSeqs(coverDict1, seqRanges1, seqName1, r1, coveredRange1)
+        if not ranges2:
+            coveredRange2 = b[0][1], b[-1][1] + b[-1][2]
+            updateSeqs(coverDict2, seqRanges2, seqName2, r2, coveredRange2)
+    return alignments, seqRanges1, coverDict1, seqRanges2, coverDict2
+
 def twoValuesFromOption(text, separator):
     if separator in text:
         return text.split(separator)
@@ -231,6 +277,10 @@ def getSortedRanges(seqRanges, sortOpt):
         g.sort(key=sizeKey)
     return [j for i in g for j in i]
 
+def allSortedRanges(seqRanges, seqRangesB, sortOpt):
+    x, y = twoValuesFromOption(sortOpt, ":")
+    return getSortedRanges(seqRanges, x) + getSortedRanges(seqRangesB, y)
+
 def prettyNum(n):
     t = str(n)
     groups = []
@@ -272,9 +322,9 @@ def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
                 x, y = y, x
         yield text, x, y
 
-def dataFromRanges(seqRanges, sortOpt, font,
+def dataFromRanges(cutRanges, cutRangesB, sortOpt, font,
                    fontsize, image_mode, labelOpt, textRot):
-    s = getSortedRanges(seqRanges, sortOpt)
+    s = allSortedRanges(cutRanges, cutRangesB, sortOpt)
     for i in s:
         warn("\t".join(map(str, i)))
     warn("")
@@ -582,6 +632,9 @@ def lastDotplot(opts, args):
     zipped_colors = zip(forward_color, reverse_color)
     overlap_color = tuple([(i + j) // 2 for i, j in zipped_colors])
 
+    maxGap1, maxGapB1 = twoValuesFromOption(opts.max_gap1, ":")
+    maxGap2, maxGapB2 = twoValuesFromOption(opts.max_gap2, ":")
+
     warn("reading alignments...")
     alnData = readAlignments(args[0], opts)
     alignments, seqRanges1, coverDict1, seqRanges2, coverDict2 = alnData
@@ -592,17 +645,28 @@ def lastDotplot(opts, args):
     minAlignedBases = min(coveredLength(coverDict1), coveredLength(coverDict2))
     pad = int(opts.pad * minAlignedBases)
     cutRanges1 = list(trimmed(seqRanges1, coverDict1, minAlignedBases,
-                              opts.max_gap1, pad, pad))
+                              maxGap1, pad, pad))
     cutRanges2 = list(trimmed(seqRanges2, coverDict2, minAlignedBases,
-                              opts.max_gap2, pad, pad))
+                              maxGap2, pad, pad))
+
+    warn("reading secondary alignments...")
+    alnDataB = readSecondaryAlignments(opts, cutRanges1, cutRanges2)
+    alignmentsB, seqRangesB1, coverDictB1, seqRangesB2, coverDictB2 = alnDataB
+    warn("cutting...")
+    coverDictB1 = dict(mergedRangesPerSeq(coverDictB1))
+    coverDictB2 = dict(mergedRangesPerSeq(coverDictB2))
+    cutRangesB1 = trimmed(seqRangesB1, coverDictB1, minAlignedBases,
+                          maxGapB1, 0, 0)
+    cutRangesB2 = trimmed(seqRangesB2, coverDictB2, minAlignedBases,
+                          maxGapB2, 0, 0)
 
     textRot1 = "vertical".startswith(opts.rot1)
-    i1 = dataFromRanges(cutRanges1, opts.sort1, font,
+    i1 = dataFromRanges(cutRanges1, cutRangesB1, opts.sort1, font,
                         opts.fontsize, image_mode, opts.labels1, textRot1)
     sortedRanges1, rangeSizes1, labelData1, tMargin = i1
 
     textRot2 = "horizontal".startswith(opts.rot2)
-    i2 = dataFromRanges(cutRanges2, opts.sort2, font,
+    i2 = dataFromRanges(cutRanges2, cutRangesB2, opts.sort2, font,
                         opts.fontsize, image_mode, opts.labels2, textRot2)
     sortedRanges2, rangeSizes2, labelData2, lMargin = i2
 
@@ -625,7 +689,7 @@ def lastDotplot(opts, args):
     warn("height: " + str(height))
 
     warn("processing alignments...")
-    hits = alignmentPixels(width, height, alignments, bpPerPix,
+    hits = alignmentPixels(width, height, alignments + alignmentsB, bpPerPix,
                            rangeDict1, rangeDict2)
 
     warn("reading annotations...")
@@ -707,6 +771,7 @@ if __name__ == "__main__":
                   help="color for forward alignments (default: %default)")
     op.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
                   help="color for reverse alignments (default: %default)")
+    op.add_option("--alignments", metavar="FILE", help="secondary alignments")
     op.add_option("--sort1", default="1", metavar="N",
                   help="genome1 sequence order: 0=input order, 1=name order, "
                   "2=length order (default=%default)")
@@ -726,6 +791,7 @@ if __name__ == "__main__":
                   help="number of pixels between sequences (default=%default)")
     op.add_option("--border-color", metavar="COLOR", default="black",
                   help="color for pixels between sequences (default=%default)")
+    # --break-color and/or --break-pixels for intra-sequence breaks?
     op.add_option("--margin-color", metavar="COLOR", default="#dcdcdc",
                   help="margin color")
 

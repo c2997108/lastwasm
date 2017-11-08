@@ -83,12 +83,35 @@ Options
       Color for forward alignments.
   -r COLOR, --reversecolor=COLOR
       Color for reverse alignments.
+  --alignments=FILE
+      Read secondary alignments.  For example: we could use primary
+      alignment data with one human DNA read aligned to the human
+      genome, and secondary alignment data with the whole chimpanzee
+      versus human genomes.  last-dotplot will show the parts of the
+      secondary alignments that are near the primary alignments.
   --sort1=N
       Put the 1st genome's sequences left-to-right in order of: their
       appearance in the input (0), their names (1), their lengths (2).
+      You can use two colon-separated values, e.g. "2:1" to specify 2
+      for primary and 1 for secondary alignments.
   --sort2=N
       Put the 2nd genome's sequences top-to-bottom in order of: their
       appearance in the input (0), their names (1), their lengths (2).
+  --max-gap1=FRAC
+      Maximum unaligned gap in the 1st genome.  For example, if two
+      parts of one DNA read align to widely-separated parts of one
+      chromosome, it's probably best to cut the intervening region
+      from the dotplot.  FRAC is a fraction of the length of the
+      (primary) alignments.  You can specify "inf" to keep all
+      unaligned gaps.  You can use two comma-separated values,
+      e.g. "0.5,3" to specify 0.5 for end-gaps (unaligned sequence
+      ends) and 3 for mid-gaps (between alignments).  You can use two
+      colon-separated values (each of which may be comma-separated)
+      for primary and secondary alignments.
+  --max-gap2=FRAC
+      Maximum unaligned gap in the 2nd genome.
+  --pad=FRAC
+      Length of pad to leave when cutting unaligned gaps.
   --border-pixels=INT
       Number of pixels between sequences.
   --border-color=COLOR
