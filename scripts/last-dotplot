@@ -167,6 +167,50 @@ def readAlignments(fileName, opts):
         updateSeqs(coverDict2, seqRanges2, seqName2, ranges2, coveredRange2)
     return alignments, seqRanges1, coverDict1, seqRanges2, coverDict2
 
+def twoValuesFromOption(text, separator):
+    if separator in text:
+        return text.split(separator)
+    return text, text
+
+def mergedRanges(ranges):
+    oldBeg, maxEnd = ranges[0]
+    for beg, end in ranges:
+        if beg > maxEnd:
+            yield oldBeg, maxEnd
+            oldBeg = beg
+            maxEnd = end
+        elif end > maxEnd:
+            maxEnd = end
+    yield oldBeg, maxEnd
+
+def mergedRangesPerSeq(coverDict):
+    for k, v in coverDict.iteritems():
+        v.sort()
+        yield k, list(mergedRanges(v))
+
+def coveredLength(mergedCoverDict):
+    return sum(sum(e - b for b, e in v) for v in mergedCoverDict.itervalues())
+
+def trimmed(seqRanges, coverDict, minAlignedBases, maxGapFrac, endPad, midPad):
+    maxEndGapFrac, maxMidGapFrac = twoValuesFromOption(maxGapFrac, ",")
+    maxEndGap = max(float(maxEndGapFrac) * minAlignedBases, endPad * 1.0)
+    maxMidGap = max(float(maxMidGapFrac) * minAlignedBases, midPad * 2.0)
+
+    for seqName, rangeBeg, rangeEnd in seqRanges:
+        seqBlocks = coverDict[seqName]
+        blocks = [i for i in seqBlocks if i[0] < rangeEnd and i[1] > rangeBeg]
+        if blocks[0][0] - rangeBeg > maxEndGap:
+            rangeBeg = blocks[0][0] - endPad
+        for j, y in enumerate(blocks):
+            if j:
+                x = blocks[j - 1]
+                if y[0] - x[1] > maxMidGap:
+                    yield seqName, rangeBeg, x[1] + midPad
+                    rangeBeg = y[0] - midPad
+        if rangeEnd - blocks[-1][1] > maxEndGap:
+            rangeEnd = blocks[-1][1] + endPad
+        yield seqName, rangeBeg, rangeEnd
+
 def natural_sort_key(my_string):
     '''Return a sort key for "natural" ordering, e.g. chr9 < chr10.'''
     parts = re.split(r'(\d+)', my_string)
@@ -541,16 +585,24 @@ def lastDotplot(opts, args):
     warn("reading alignments...")
     alnData = readAlignments(args[0], opts)
     alignments, seqRanges1, coverDict1, seqRanges2, coverDict2 = alnData
-    warn("done")
     if not alignments: raise Exception("there are no alignments")
+    warn("cutting...")
+    coverDict1 = dict(mergedRangesPerSeq(coverDict1))
+    coverDict2 = dict(mergedRangesPerSeq(coverDict2))
+    minAlignedBases = min(coveredLength(coverDict1), coveredLength(coverDict2))
+    pad = int(opts.pad * minAlignedBases)
+    cutRanges1 = list(trimmed(seqRanges1, coverDict1, minAlignedBases,
+                              opts.max_gap1, pad, pad))
+    cutRanges2 = list(trimmed(seqRanges2, coverDict2, minAlignedBases,
+                              opts.max_gap2, pad, pad))
 
     textRot1 = "vertical".startswith(opts.rot1)
-    i1 = dataFromRanges(seqRanges1, opts.sort1, font,
+    i1 = dataFromRanges(cutRanges1, opts.sort1, font,
                         opts.fontsize, image_mode, opts.labels1, textRot1)
     sortedRanges1, rangeSizes1, labelData1, tMargin = i1
 
     textRot2 = "horizontal".startswith(opts.rot2)
-    i2 = dataFromRanges(seqRanges2, opts.sort2, font,
+    i2 = dataFromRanges(cutRanges2, opts.sort2, font,
                         opts.fontsize, image_mode, opts.labels2, textRot2)
     sortedRanges2, rangeSizes2, labelData2, lMargin = i2
 
@@ -661,6 +713,15 @@ if __name__ == "__main__":
     op.add_option("--sort2", default="1", metavar="N",
                   help="genome2 sequence order: 0=input order, 1=name order, "
                   "2=length order (default=%default)")
+    op.add_option("--max-gap1", metavar="FRAC", default="0.5,2", help=
+                  "maximum unaligned (end,mid) gap in genome1: "
+                  "fraction of aligned length (default=%default)")
+    op.add_option("--max-gap2", metavar="FRAC", default="0.5,2", help=
+                  "maximum unaligned (end,mid) gap in genome2: "
+                  "fraction of aligned length (default=%default)")
+    op.add_option("--pad", metavar="FRAC", type="float", default=0.04, help=
+                  "pad length when cutting unaligned gaps: "
+                  "fraction of aligned length (default=%default)")
     op.add_option("--border-pixels", metavar="INT", type="int", default=1,
                   help="number of pixels between sequences (default=%default)")
     op.add_option("--border-color", metavar="COLOR", default="black",
