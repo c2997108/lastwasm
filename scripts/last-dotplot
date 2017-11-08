@@ -11,6 +11,7 @@
 
 import gzip
 from fnmatch import fnmatchcase
+import subprocess
 import itertools, optparse, os, re, sys
 
 # Try to make PIL/PILLOW work:
@@ -484,10 +485,29 @@ def seqOrigins(seqNames, rangePixBegs, seqLimits, bp_per_pix):
     for i, j in zip(seqNames, rangePixBegs):
         yield i, bp_per_pix * j - seqLimits[i][0]
 
-def lastDotplot(opts, args):
-    if opts.fontfile:  font = ImageFont.truetype(opts.fontfile, opts.fontsize)
-    else:              font = ImageFont.load_default()
+def getFont(opts):
+    if opts.fontfile:
+        return ImageFont.truetype(opts.fontfile, opts.fontsize)
+    fileNames = []
+    try:
+        x = ["fc-match", "-f%{file}", "arial"]
+        p = subprocess.Popen(x, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        fileNames.append(out)
+    except OSError as e:
+        warn("fc-match error: " + str(e))
+    fileNames.append("/Library/Fonts/Arial.ttf")  # for Mac
+    for i in fileNames:
+        try:
+            font = ImageFont.truetype(i, opts.fontsize)
+            warn("font: " + i)
+            return font
+        except IOError as e:
+            warn("font load error: " + str(e))
+    return ImageFont.load_default()
 
+def lastDotplot(opts, args):
+    font = getFont(opts)
     image_mode = 'RGB'
     forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
     reverse_color = ImageColor.getcolor(opts.reversecolor, image_mode)
@@ -632,7 +652,7 @@ if __name__ == "__main__":
     og = optparse.OptionGroup(op, "Text options")
     og.add_option("-f", "--fontfile", metavar="FILE",
                   help="TrueType or OpenType font file")
-    og.add_option("-s", "--fontsize", metavar="SIZE", type="int", default=11,
+    og.add_option("-s", "--fontsize", metavar="SIZE", type="int", default=14,
                   help="TrueType or OpenType font size (default: %default)")
     og.add_option("--labels1", type="int", default=0, metavar="N", help=
                   "genome1 labels: 0=name, 1=name:length, "
@@ -687,6 +707,6 @@ if __name__ == "__main__":
 
     try: lastDotplot(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message
-    except Exception, e:
+    except Exception as e:
         prog = os.path.basename(sys.argv[0])
         sys.exit(prog + ": error: " + str(e))

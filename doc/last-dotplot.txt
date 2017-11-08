@@ -12,16 +12,12 @@ The output can be in any format supported by the Imaging Library::
 
   last-dotplot alns alns.gif
 
-To get a nicer font, try something like::
+Terminology
+-----------
 
-  last-dotplot -f /usr/share/fonts/liberation/LiberationSans-Regular.ttf alns alns.png
-
-or::
-
-  last-dotplot -f /Library/Fonts/Arial.ttf alns alns.png
-
-If the fonts are located somewhere different on your computer, change
-this as appropriate.
+last-dotplot shows alignments of one set of sequences against another
+set of sequences.  This document calls a "set of sequences" a
+"genome", though it need not actually be a genome.
 
 Choosing sequences
 ------------------
@@ -58,6 +54,15 @@ You can also specify a sequence range; for example this gets the first
 1000 bases of chr9::
 
   last-dotplot -1 chr9:0-1000 alns alns.png
+
+Fonts
+-----
+
+last-dotplot tries to find a nice font on your computer, but may fail,
+in which case it will use an ugly font.  You can specify a font like
+this::
+
+  last-dotplot -f /usr/share/fonts/liberation/LiberationSans-Regular.ttf alns alns.png
 
 Options
 -------
@@ -172,7 +177,7 @@ An unsequenced gap will be shown only if it covers at least one whole
 pixel.
 
 Colors
-~~~~~~
+------
 
 Colors can be specified in `various ways described here
 <http://effbot.org/imagingbook/imagecolor.htm>`_.
