@@ -533,6 +533,8 @@ def bedBoxes(beds, rangeDict, margin, edge, isTop, bpPerPix):
                 b = div_ceil(origin + beg, bpPerPix)
                 e = (origin + end) // bpPerPix
                 if e <= b: continue
+                if end == rangeEnd:  # include partly-covered end pixels
+                    e = div_ceil(origin + end, bpPerPix)
             if isTop:
                 box = b, margin, e, edge
             else:
