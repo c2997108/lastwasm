@@ -33,20 +33,25 @@ def warn(message):
         prog = os.path.basename(sys.argv[0])
         sys.stderr.write(prog + ": " + message + "\n")
 
-def croppedBlocks(blocks, range1, range2):
-    cropBeg1, cropEnd1 = range1
-    cropBeg2, cropEnd2 = range2
-    if blocks[0][0] < 0: cropBeg1, cropEnd1 = -cropEnd1, -cropBeg1
-    if blocks[0][1] < 0: cropBeg2, cropEnd2 = -cropEnd2, -cropBeg2
-    for beg1, beg2, size in blocks:
-        b1 = max(cropBeg1, beg1)
-        e1 = min(cropEnd1, beg1 + size)
-        if b1 >= e1: continue
-        offset = beg2 - beg1
-        b2 = max(cropBeg2, b1 + offset)
-        e2 = min(cropEnd2, e1 + offset)
-        if b2 >= e2: continue
-        yield b2 - offset, b2, e2 - b2
+def croppedBlocks(blocks, ranges1, ranges2):
+    headBeg1, headBeg2, headSize = blocks[0]
+    for r1 in ranges1:
+        for r2 in ranges2:
+            cropBeg1, cropEnd1 = r1
+            if headBeg1 < 0:
+                cropBeg1, cropEnd1 = -cropEnd1, -cropBeg1
+            cropBeg2, cropEnd2 = r2
+            if headBeg2 < 0:
+                cropBeg2, cropEnd2 = -cropEnd2, -cropBeg2
+            for beg1, beg2, size in blocks:
+                b1 = max(cropBeg1, beg1)
+                e1 = min(cropEnd1, beg1 + size)
+                if b1 >= e1: continue
+                offset = beg2 - beg1
+                b2 = max(cropBeg2, b1 + offset)
+                e2 = min(cropEnd2, e1 + offset)
+                if b2 >= e2: continue
+                yield b2 - offset, b2, e2 - b2
 
 def tabBlocks(beg1, beg2, blocks):
     '''Get the gapless blocks of an alignment, from LAST tabular format.'''
@@ -116,12 +121,14 @@ def seqRequestFromText(text):
     return text, 0, sys.maxsize
 
 def rangeFromSeqName(seqRequests, name, seqLen):
-    if not seqRequests: return 0, seqLen
-    base = name.split(".")[-1]  # allow for names like hg19.chr7
-    for pat, beg, end in seqRequests:
-        if fnmatchcase(name, pat) or fnmatchcase(base, pat):
-            return max(beg, 0), min(end, seqLen)
-    return None
+    if seqRequests:
+        base = name.split(".")[-1]  # allow for names like hg19.chr7
+        for pat, beg, end in seqRequests:
+            if fnmatchcase(name, pat) or fnmatchcase(base, pat):
+                return max(beg, 0), min(end, seqLen)
+        return None
+    else:
+        return 0, seqLen
 
 def updateSeqs(isTrim, seqNames, seqLimits, seqName, seqRange, blocks, index):
     if seqName not in seqLimits:
@@ -154,13 +161,15 @@ def readAlignments(fileName, opts):
         if not range1: continue
         range2 = rangeFromSeqName(seqRequests2, seqName2, seqLen2)
         if not range2: continue
-        b = list(croppedBlocks(list(blocks), range1, range2))
+        b = list(croppedBlocks(list(blocks), [range1], [range2]))
         if not b: continue
         aln = seqName1, seqName2, b
         alignments.append(aln)
         updateSeqs(opts.trim1, seqNames1, seqLimits1, seqName1, range1, b, 0)
         updateSeqs(opts.trim2, seqNames2, seqLimits2, seqName2, range2, b, 1)
-    return alignments, seqNames1, seqNames2, seqLimits1, seqLimits2
+    seqRanges1 = [(i, seqLimits1[i][0], seqLimits1[i][1]) for i in seqNames1]
+    seqRanges2 = [(i, seqLimits2[i][0], seqLimits2[i][1]) for i in seqNames2]
+    return alignments, seqRanges1, seqRanges2
 
 def natural_sort_key(my_string):
     '''Return a sort key for "natural" ordering, e.g. chr9 < chr10.'''
@@ -223,9 +232,8 @@ def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
                 x, y = y, x
         yield text, x, y
 
-def getSeqInfo(sortOpt, seqNames, seqLimits,
-               font, fontsize, image_mode, labelOpt, textRot):
-    seqRanges = [(i, seqLimits[i][0], seqLimits[i][1]) for i in seqNames]
+def dataFromRanges(seqRanges, sortOpt, font,
+                   fontsize, image_mode, labelOpt, textRot):
     s = getSortedRanges(seqRanges, sortOpt)
     for i in s:
         warn("\t".join(map(str, i)))
@@ -536,18 +544,18 @@ def lastDotplot(opts, args):
 
     warn("reading alignments...")
     alnData = readAlignments(args[0], opts)
-    alignments, seqNames1, seqNames2, seqLimits1, seqLimits2 = alnData
+    alignments, seqRanges1, seqRanges2 = alnData
     warn("done")
     if not alignments: raise Exception("there are no alignments")
 
     textRot1 = "vertical".startswith(opts.rot1)
-    i1 = getSeqInfo(opts.sort1, seqNames1, seqLimits1,
-                    font, opts.fontsize, image_mode, opts.labels1, textRot1)
+    i1 = dataFromRanges(seqRanges1, opts.sort1, font,
+                        opts.fontsize, image_mode, opts.labels1, textRot1)
     sortedRanges1, rangeSizes1, labelData1, tMargin = i1
 
     textRot2 = "horizontal".startswith(opts.rot2)
-    i2 = getSeqInfo(opts.sort2, seqNames2, seqLimits2,
-                    font, opts.fontsize, image_mode, opts.labels2, textRot2)
+    i2 = dataFromRanges(seqRanges2, opts.sort2, font,
+                        opts.fontsize, image_mode, opts.labels2, textRot2)
     sortedRanges2, rangeSizes2, labelData2, lMargin = i2
 
     maxPixels1 = opts.width  - lMargin
