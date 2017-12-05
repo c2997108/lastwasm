@@ -269,8 +269,9 @@ def nameKey(oneSeqRanges):
 def sizeKey(oneSeqRanges):
     return sum(b - e for n, b, e in oneSeqRanges), nameKey(oneSeqRanges)
 
-def getSortedRanges(seqRanges, sortOpt):
-    g = [list(v) for k, v in itertools.groupby(seqRanges, itemgetter(0))]
+def mySortedRanges(seqRanges, sortOpt):
+    rangesGroupedBySeqName = itertools.groupby(seqRanges, itemgetter(0))
+    g = [list(ranges) for seqName, ranges in rangesGroupedBySeqName]
     if sortOpt == "1":
         g.sort(key=nameKey)
     if sortOpt == "2":
@@ -279,7 +280,7 @@ def getSortedRanges(seqRanges, sortOpt):
 
 def allSortedRanges(seqRanges, seqRangesB, sortOpt):
     x, y = twoValuesFromOption(sortOpt, ":")
-    return getSortedRanges(seqRanges, x) + getSortedRanges(seqRangesB, y)
+    return mySortedRanges(seqRanges, x) + mySortedRanges(seqRangesB, y)
 
 def prettyNum(n):
     t = str(n)
@@ -323,16 +324,17 @@ def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
         yield text, x, y
 
 def dataFromRanges(cutRanges, cutRangesB, sortOpt, font,
-                   fontsize, image_mode, labelOpt, textRot):
-    s = allSortedRanges(cutRanges, cutRangesB, sortOpt)
-    for i in s:
+                   fontSize, imageMode, labelOpt, textRot):
+    sortedRanges = allSortedRanges(cutRanges, cutRangesB, sortOpt)
+    for i in sortedRanges:
         warn("\t".join(map(str, i)))
     warn("")
-    rangeSizes = [e - b for n, b, e in s]
-    labs = list(rangeLabels(s, labelOpt, font, fontsize, image_mode, textRot))
+    rangeSizes = [e - b for n, b, e in sortedRanges]
+    labs = list(rangeLabels(sortedRanges, labelOpt, font, fontSize,
+                            imageMode, textRot))
     margin = max(i[2] for i in labs)
     # xxx the margin may be too big, because some labels may get omitted
-    return s, rangeSizes, labs, margin
+    return sortedRanges, rangeSizes, labs, margin
 
 def div_ceil(x, y):
     '''Return x / y rounded up.'''
