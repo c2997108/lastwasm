@@ -58,9 +58,8 @@ You can also specify a sequence range; for example this gets the first
 Fonts
 -----
 
-last-dotplot tries to find a nice font on your computer, but may fail,
-in which case it will use an ugly font.  You can specify a font like
-this::
+last-dotplot tries to find a nice font on your computer, but may fail
+and use an ugly font.  You can specify a font like this::
 
   last-dotplot -f /usr/share/fonts/liberation/LiberationSans-Regular.ttf alns alns.png
 
@@ -91,12 +90,15 @@ Options
       secondary alignments that are near the primary alignments.
   --sort1=N
       Put the 1st genome's sequences left-to-right in order of: their
-      appearance in the input (0), their names (1), their lengths (2).
-      You can use two colon-separated values, e.g. "2:1" to specify 2
-      for primary and 1 for secondary alignments.
+      appearance in the input (0), their names (1), their lengths (2),
+      the top-to-bottom order of (the midpoints of) their alignments
+      (3).  You can use two colon-separated values, e.g. "2:1" to
+      specify 2 for primary and 1 for secondary alignments.
   --sort2=N
       Put the 2nd genome's sequences top-to-bottom in order of: their
-      appearance in the input (0), their names (1), their lengths (2).
+      appearance in the input (0), their names (1), their lengths (2),
+      the left-to-right order of (the midpoints of) their alignments
+      (3).
   --max-gap1=FRAC
       Maximum unaligned gap in the 1st genome.  For example, if two
       parts of one DNA read align to widely-separated parts of one

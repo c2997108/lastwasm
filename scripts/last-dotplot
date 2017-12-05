@@ -9,6 +9,7 @@
 # according to the number of aligned nt-pairs within it, but the
 # result is too faint.  How can this be done better?
 
+import functools
 import gzip
 from fnmatch import fnmatchcase
 from operator import itemgetter
@@ -269,18 +270,65 @@ def nameKey(oneSeqRanges):
 def sizeKey(oneSeqRanges):
     return sum(b - e for n, b, e in oneSeqRanges), nameKey(oneSeqRanges)
 
-def mySortedRanges(seqRanges, sortOpt):
+def alignmentKey(seqNamesToLists, oneSeqRanges):
+    seqName = oneSeqRanges[0][0]
+    alignmentsOfThisSequence = seqNamesToLists[seqName]
+    numOfAlignedLetterPairs = sum(i[3] for i in alignmentsOfThisSequence)
+    toMiddle = numOfAlignedLetterPairs // 2
+    for i in alignmentsOfThisSequence:
+        toMiddle -= i[3]
+        if toMiddle < 0:
+            return i[1:3]  # sequence-rank and "position" of this alignment
+
+def alignmentSortData1(alignments, seqNamesToRanks2):
+    for seqName1, seqName2, blocks in alignments:
+        seqRank2 = seqNamesToRanks2[seqName2]
+        pos2 = abs(blocks[0][1] + blocks[-1][1] + blocks[-1][2])
+        numOfAlignedLetterPairs = sum(i[2] for i in blocks)
+        yield seqName1, seqRank2, pos2, numOfAlignedLetterPairs
+
+def alignmentSortData2(alignments, seqNamesToRanks1):
+    for seqName1, seqName2, blocks in alignments:
+        seqRank1 = seqNamesToRanks1[seqName1]
+        pos1 = abs(blocks[0][0] + blocks[-1][0] + blocks[-1][2])
+        numOfAlignedLetterPairs = sum(i[2] for i in blocks)
+        yield seqName2, seqRank1, pos1, numOfAlignedLetterPairs
+
+def mySortedRanges(seqRanges, sortOpt,
+                   alignmentSortDataFunc, alignments, otherRanges):
     rangesGroupedBySeqName = itertools.groupby(seqRanges, itemgetter(0))
     g = [list(ranges) for seqName, ranges in rangesGroupedBySeqName]
     if sortOpt == "1":
         g.sort(key=nameKey)
     if sortOpt == "2":
         g.sort(key=sizeKey)
+    if sortOpt == "3":
+        otherNameGroups = itertools.groupby(i[0] for i in otherRanges)
+        ranksAndNames = enumerate(i[0] for i in otherNameGroups)
+        otherNamesToRanks = dict((n, r) for r, n in ranksAndNames)
+        alns = sorted(alignmentSortDataFunc(alignments, otherNamesToRanks))
+        alnsGroupedBySeqName = itertools.groupby(alns, itemgetter(0))
+        seqNamesToLists = dict((k, list(v)) for k, v in alnsGroupedBySeqName)
+        g.sort(key=functools.partial(alignmentKey, seqNamesToLists))
     return [j for i in g for j in i]
 
-def allSortedRanges(seqRanges, seqRangesB, sortOpt):
-    x, y = twoValuesFromOption(sortOpt, ":")
-    return mySortedRanges(seqRanges, x) + mySortedRanges(seqRangesB, y)
+def allSortedRanges(opts, alignments, alignmentsB,
+                    seqRanges1, seqRangesB1, seqRanges2, seqRangesB2):
+    o1, oB1 = twoValuesFromOption(opts.sort1, ":")
+    o2, oB2 = twoValuesFromOption(opts.sort2, ":")
+    if o1 == "3" and o2 == "3":
+        raise Exception("the sort options have circular dependency")
+    if o1 != "3":
+        s1 = mySortedRanges(seqRanges1, o1, None, None, None)
+    if o2 != "3":
+        s2 = mySortedRanges(seqRanges2, o2, None, None, None)
+    if o1 == "3":
+        s1 = mySortedRanges(seqRanges1, o1, alignmentSortData1, alignments, s2)
+    if o2 == "3":
+        s2 = mySortedRanges(seqRanges2, o2, alignmentSortData2, alignments, s1)
+    t1 = mySortedRanges(seqRangesB1, oB1, alignmentSortData1, alignmentsB, s2)
+    t2 = mySortedRanges(seqRangesB2, oB2, alignmentSortData2, alignmentsB, s1)
+    return s1 + t1, s2 + t2
 
 def prettyNum(n):
     t = str(n)
@@ -323,9 +371,7 @@ def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
                 x, y = y, x
         yield text, x, y
 
-def dataFromRanges(cutRanges, cutRangesB, sortOpt, font,
-                   fontSize, imageMode, labelOpt, textRot):
-    sortedRanges = allSortedRanges(cutRanges, cutRangesB, sortOpt)
+def dataFromRanges(sortedRanges, font, fontSize, imageMode, labelOpt, textRot):
     for i in sortedRanges:
         warn("\t".join(map(str, i)))
     warn("")
@@ -334,7 +380,7 @@ def dataFromRanges(cutRanges, cutRangesB, sortOpt, font,
                             imageMode, textRot))
     margin = max(i[2] for i in labs)
     # xxx the margin may be too big, because some labels may get omitted
-    return sortedRanges, rangeSizes, labs, margin
+    return rangeSizes, labs, margin
 
 def div_ceil(x, y):
     '''Return x / y rounded up.'''
@@ -664,15 +710,20 @@ def lastDotplot(opts, args):
     cutRangesB2 = trimmed(seqRangesB2, coverDictB2, minAlignedBases,
                           maxGapB2, 0, 0)
 
+    warn("sorting...")
+    sortOut = allSortedRanges(opts, alignments, alignmentsB,
+                              cutRanges1, cutRangesB1, cutRanges2, cutRangesB2)
+    sortedRanges1, sortedRanges2 = sortOut
+
     textRot1 = "vertical".startswith(opts.rot1)
-    i1 = dataFromRanges(cutRanges1, cutRangesB1, opts.sort1, font,
+    i1 = dataFromRanges(sortedRanges1, font,
                         opts.fontsize, image_mode, opts.labels1, textRot1)
-    sortedRanges1, rangeSizes1, labelData1, tMargin = i1
+    rangeSizes1, labelData1, tMargin = i1
 
     textRot2 = "horizontal".startswith(opts.rot2)
-    i2 = dataFromRanges(cutRanges2, cutRangesB2, opts.sort2, font,
+    i2 = dataFromRanges(sortedRanges2, font,
                         opts.fontsize, image_mode, opts.labels2, textRot2)
-    sortedRanges2, rangeSizes2, labelData2, lMargin = i2
+    rangeSizes2, labelData2, lMargin = i2
 
     maxPixels1 = opts.width  - lMargin
     maxPixels2 = opts.height - tMargin
@@ -778,10 +829,10 @@ if __name__ == "__main__":
     op.add_option("--alignments", metavar="FILE", help="secondary alignments")
     op.add_option("--sort1", default="1", metavar="N",
                   help="genome1 sequence order: 0=input order, 1=name order, "
-                  "2=length order (default=%default)")
+                  "2=length order, 3=alignment order (default=%default)")
     op.add_option("--sort2", default="1", metavar="N",
                   help="genome2 sequence order: 0=input order, 1=name order, "
-                  "2=length order (default=%default)")
+                  "2=length order, 3=alignment order (default=%default)")
     op.add_option("--max-gap1", metavar="FRAC", default="0.5,2", help=
                   "maximum unaligned (end,mid) gap in genome1: "
                   "fraction of aligned length (default=%default)")
