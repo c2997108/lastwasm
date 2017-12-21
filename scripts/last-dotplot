@@ -280,22 +280,17 @@ def alignmentKey(seqNamesToLists, oneSeqRanges):
         if toMiddle < 0:
             return i[1:3]  # sequence-rank and "position" of this alignment
 
-def alignmentSortData1(alignments, seqNamesToRanks2):
-    for seqName1, seqName2, blocks in alignments:
-        seqRank2 = seqNamesToRanks2[seqName2]
-        pos2 = abs(blocks[0][1] + blocks[-1][1] + blocks[-1][2])
+def alignmentSortData(alignments, seqIndex, otherNamesToRanks):
+    otherIndex = 1 - seqIndex
+    for i in alignments:
+        blocks = i[2]
+        otherRank = otherNamesToRanks[i[otherIndex]]
+        otherPos = abs(blocks[0][otherIndex] +
+                       blocks[-1][otherIndex] + blocks[-1][2])
         numOfAlignedLetterPairs = sum(i[2] for i in blocks)
-        yield seqName1, seqRank2, pos2, numOfAlignedLetterPairs
+        yield i[seqIndex], otherRank, otherPos, numOfAlignedLetterPairs
 
-def alignmentSortData2(alignments, seqNamesToRanks1):
-    for seqName1, seqName2, blocks in alignments:
-        seqRank1 = seqNamesToRanks1[seqName1]
-        pos1 = abs(blocks[0][0] + blocks[-1][0] + blocks[-1][2])
-        numOfAlignedLetterPairs = sum(i[2] for i in blocks)
-        yield seqName2, seqRank1, pos1, numOfAlignedLetterPairs
-
-def mySortedRanges(seqRanges, sortOpt,
-                   alignmentSortDataFunc, alignments, otherRanges):
+def mySortedRanges(seqRanges, sortOpt, seqIndex, alignments, otherRanges):
     rangesGroupedBySeqName = itertools.groupby(seqRanges, itemgetter(0))
     g = [list(ranges) for seqName, ranges in rangesGroupedBySeqName]
     if sortOpt == "1":
@@ -306,7 +301,8 @@ def mySortedRanges(seqRanges, sortOpt,
         otherNameGroups = itertools.groupby(i[0] for i in otherRanges)
         ranksAndNames = enumerate(i[0] for i in otherNameGroups)
         otherNamesToRanks = dict((n, r) for r, n in ranksAndNames)
-        alns = sorted(alignmentSortDataFunc(alignments, otherNamesToRanks))
+        alns = sorted(alignmentSortData(alignments, seqIndex,
+                                        otherNamesToRanks))
         alnsGroupedBySeqName = itertools.groupby(alns, itemgetter(0))
         seqNamesToLists = dict((k, list(v)) for k, v in alnsGroupedBySeqName)
         g.sort(key=functools.partial(alignmentKey, seqNamesToLists))
@@ -323,11 +319,11 @@ def allSortedRanges(opts, alignments, alignmentsB,
     if o2 != "3":
         s2 = mySortedRanges(seqRanges2, o2, None, None, None)
     if o1 == "3":
-        s1 = mySortedRanges(seqRanges1, o1, alignmentSortData1, alignments, s2)
+        s1 = mySortedRanges(seqRanges1, o1, 0, alignments, s2)
     if o2 == "3":
-        s2 = mySortedRanges(seqRanges2, o2, alignmentSortData2, alignments, s1)
-    t1 = mySortedRanges(seqRangesB1, oB1, alignmentSortData1, alignmentsB, s2)
-    t2 = mySortedRanges(seqRangesB2, oB2, alignmentSortData2, alignmentsB, s1)
+        s2 = mySortedRanges(seqRanges2, o2, 1, alignments, s1)
+    t1 = mySortedRanges(seqRangesB1, oB1, 0, alignmentsB, s2)
+    t2 = mySortedRanges(seqRangesB2, oB2, 1, alignmentsB, s1)
     return s1 + t1, s2 + t2
 
 def prettyNum(n):
@@ -430,7 +426,6 @@ def drawLineForward(hits, width, bp_per_pix, beg1, beg2, size):
         size -= next_pix
 
 def drawLineReverse(hits, width, bp_per_pix, beg1, beg2, size):
-    beg2 = -1 - beg2
     while True:
         q1, r1 = divmod(beg1, bp_per_pix)
         q2, r2 = divmod(beg2, bp_per_pix)
@@ -461,10 +456,10 @@ def alignmentPixels(width, height, alignments, bp_per_pix,
                 beg2 = -(beg2 + size)
             if beg2 >= 0:
                 drawLineForward(hits, width, bp_per_pix,
-                                beg1 + ori1, beg2 + ori2, size)
+                                ori1 + beg1, ori2 + beg2, size)
             else:
                 drawLineReverse(hits, width, bp_per_pix,
-                                beg1 + ori1, beg2 - ori2, size)
+                                ori1 + beg1, ori2 - beg2 - 1, size)
     return hits
 
 def expandedSeqDict(seqDict):
@@ -636,10 +631,10 @@ def axisImage(labels, rangePixBegs, rangePixLens, textRot,
     image_size = (margin, end) if textRot else (end, margin)
     im = Image.new(image_mode, image_size, opts.margin_color)
     draw = ImageDraw.Draw(im)
-    for i in labels:
-        base = margin - i[4] if textAln else 0
-        position = (base, i[1]) if textRot else (i[1], base)
-        draw.text(position, i[3], font=font, fill=opts.text_color)
+    for sortKey, labelBeg, labelEnd, text, textHeight in labels:
+        base = margin - textHeight if textAln else 0
+        position = (base, labelBeg) if textRot else (labelBeg, base)
+        draw.text(position, text, font=font, fill=opts.text_color)
     return im
 
 def rangesWithOrigins(sortedRanges, rangePixBegs, bpPerPix):
