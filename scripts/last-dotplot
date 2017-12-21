@@ -9,6 +9,7 @@
 # according to the number of aligned nt-pairs within it, but the
 # result is too faint.  How can this be done better?
 
+import collections
 import functools
 import gzip
 from fnmatch import fnmatchcase
@@ -258,6 +259,22 @@ def trimmed(seqRanges, coverDict, minAlignedBases, maxGapFrac, endPad, midPad):
             rangeEnd = blocks[-1][1] + endPad
         yield seqName, rangeBeg, rangeEnd
 
+def rangesWithStrandInfo(seqRanges, strandOpt, alignments, seqIndex):
+    if strandOpt == "1":
+        forwardMinusReverse = collections.defaultdict(int)
+        for i in alignments:
+            blocks = i[2]
+            beg1, beg2, size = blocks[0]
+            numOfAlignedLetterPairs = sum(i[2] for i in blocks)
+            if (beg1 < 0) != (beg2 < 0):  # opposite-strand alignment
+                numOfAlignedLetterPairs *= -1
+            forwardMinusReverse[i[seqIndex]] += numOfAlignedLetterPairs
+    strandNum = 0
+    for seqName, beg, end in seqRanges:
+        if strandOpt == "1":
+            strandNum = 1 if forwardMinusReverse[seqName] >= 0 else 2
+        yield seqName, beg, end, strandNum
+
 def natural_sort_key(my_string):
     '''Return a sort key for "natural" ordering, e.g. chr9 < chr10.'''
     parts = re.split(r'(\d+)', my_string)
@@ -280,29 +297,38 @@ def alignmentKey(seqNamesToLists, oneSeqRanges):
         if toMiddle < 0:
             return i[1:3]  # sequence-rank and "position" of this alignment
 
-def alignmentSortData(alignments, seqIndex, otherNamesToRanks):
+def rankAndFlipPerSeq(seqRanges):
+    rangesGroupedBySeqName = itertools.groupby(seqRanges, itemgetter(0))
+    for rank, group in enumerate(rangesGroupedBySeqName):
+        seqName, ranges = group
+        strandNum = next(ranges)[3]
+        flip = 1 if strandNum < 2 else -1
+        yield seqName, (rank, flip)
+
+def alignmentSortData(alignments, seqIndex, otherNamesToRanksAndFlips):
     otherIndex = 1 - seqIndex
     for i in alignments:
         blocks = i[2]
-        otherRank = otherNamesToRanks[i[otherIndex]]
-        otherPos = abs(blocks[0][otherIndex] +
-                       blocks[-1][otherIndex] + blocks[-1][2])
+        otherRank, otherFlip = otherNamesToRanksAndFlips[i[otherIndex]]
+        otherPos = otherFlip * abs(blocks[0][otherIndex] +
+                                   blocks[-1][otherIndex] + blocks[-1][2])
         numOfAlignedLetterPairs = sum(i[2] for i in blocks)
         yield i[seqIndex], otherRank, otherPos, numOfAlignedLetterPairs
 
 def mySortedRanges(seqRanges, sortOpt, seqIndex, alignments, otherRanges):
     rangesGroupedBySeqName = itertools.groupby(seqRanges, itemgetter(0))
     g = [list(ranges) for seqName, ranges in rangesGroupedBySeqName]
+    for i in g:
+        if i[0][3] > 1:
+            i.reverse()
     if sortOpt == "1":
         g.sort(key=nameKey)
     if sortOpt == "2":
         g.sort(key=sizeKey)
     if sortOpt == "3":
-        otherNameGroups = itertools.groupby(i[0] for i in otherRanges)
-        ranksAndNames = enumerate(i[0] for i in otherNameGroups)
-        otherNamesToRanks = dict((n, r) for r, n in ranksAndNames)
+        otherNamesToRanksAndFlips = dict(rankAndFlipPerSeq(otherRanges))
         alns = sorted(alignmentSortData(alignments, seqIndex,
-                                        otherNamesToRanks))
+                                        otherNamesToRanksAndFlips))
         alnsGroupedBySeqName = itertools.groupby(alns, itemgetter(0))
         seqNamesToLists = dict((k, list(v)) for k, v in alnsGroupedBySeqName)
         g.sort(key=functools.partial(alignmentKey, seqNamesToLists))
@@ -310,6 +336,15 @@ def mySortedRanges(seqRanges, sortOpt, seqIndex, alignments, otherRanges):
 
 def allSortedRanges(opts, alignments, alignmentsB,
                     seqRanges1, seqRangesB1, seqRanges2, seqRangesB2):
+    o1, oB1 = twoValuesFromOption(opts.strands1, ":")
+    o2, oB2 = twoValuesFromOption(opts.strands2, ":")
+    if o1 == "1" and o2 == "1":
+        raise Exception("the strand options have circular dependency")
+    seqRanges1 = list(rangesWithStrandInfo(seqRanges1, o1, alignments, 0))
+    seqRanges2 = list(rangesWithStrandInfo(seqRanges2, o2, alignments, 1))
+    seqRangesB1 = list(rangesWithStrandInfo(seqRangesB1, oB1, alignmentsB, 0))
+    seqRangesB2 = list(rangesWithStrandInfo(seqRangesB2, oB2, alignmentsB, 1))
+
     o1, oB1 = twoValuesFromOption(opts.sort1, ":")
     o2, oB2 = twoValuesFromOption(opts.sort2, ":")
     if o1 == "3" and o2 == "3":
@@ -344,7 +379,7 @@ def sizeText(size):
             return "%.0f" % (1.0 * size / j) + x
 
 def labelText(seqRange, labelOpt):
-    seqName, beg, end = seqRange
+    seqName, beg, end, strandNum = seqRange
     if labelOpt == 1:
         return seqName + ": " + sizeText(end - beg)
     if labelOpt == 2:
@@ -365,13 +400,16 @@ def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
             x, y = draw.textsize(text, font=font)
             if textRot:
                 x, y = y, x
-        yield text, x, y
+        yield text, x, y, r[3]
 
 def dataFromRanges(sortedRanges, font, fontSize, imageMode, labelOpt, textRot):
-    for i in sortedRanges:
-        warn("\t".join(map(str, i)))
+    for seqName, rangeBeg, rangeEnd, strandNum in sortedRanges:
+        out = [seqName, str(rangeBeg), str(rangeEnd)]
+        if strandNum > 0:
+            out.append(".+-"[strandNum])
+        warn("\t".join(out))
     warn("")
-    rangeSizes = [e - b for n, b, e in sortedRanges]
+    rangeSizes = [e - b for n, b, e, s in sortedRanges]
     labs = list(rangeLabels(sortedRanges, labelOpt, font, fontSize,
                             imageMode, textRot))
     margin = max(i[2] for i in labs)
@@ -436,25 +474,26 @@ def drawLineReverse(hits, width, bp_per_pix, beg1, beg2, size):
         beg2 -= next_pix
         size -= next_pix
 
-def findOrigin(ranges, beg, size):
-    if beg < 0:
+def strandAndOrigin(ranges, beg, size):
+    isReverseStrand = (beg < 0)
+    if isReverseStrand:
         beg = -(beg + size)
-    for rangeBeg, rangeEnd, origin in ranges:
+    for rangeBeg, rangeEnd, isReverseRange, origin in ranges:
         if rangeEnd > beg:
-            return origin
+            return (isReverseStrand != isReverseRange), origin
 
 def alignmentPixels(width, height, alignments, bp_per_pix,
                     rangeDict1, rangeDict2):
     hits = [0] * (width * height)  # the image data
     for seq1, seq2, blocks in alignments:
         beg1, beg2, size = blocks[0]
-        ori1 = findOrigin(rangeDict1[seq1], beg1, size)
-        ori2 = findOrigin(rangeDict2[seq2], beg2, size)
+        isReverse1, ori1 = strandAndOrigin(rangeDict1[seq1], beg1, size)
+        isReverse2, ori2 = strandAndOrigin(rangeDict2[seq2], beg2, size)
         for beg1, beg2, size in blocks:
-            if beg1 < 0:
+            if isReverse1:
                 beg1 = -(beg1 + size)
                 beg2 = -(beg2 + size)
-            if beg2 >= 0:
+            if isReverse1 == isReverse2:
                 drawLineForward(hits, width, bp_per_pix,
                                 ori1 + beg1, ori2 + beg2, size)
             else:
@@ -489,10 +528,13 @@ def readBed(fileName, rangeDict):
             if len(w) > 5:
                 if len(w) > 8 and w[8].count(",") == 2:
                     color = "rgb(" + w[8] + ")"
-                elif w[5] == "+":
-                    color = "#ffe8e8"
-                elif w[5] == "-":
-                    color = "#e8e8ff"
+                else:
+                    strand = w[5]
+                    isRev = rangeDict[seqName][0][2]
+                    if strand == "+" and not isRev or strand == "-" and isRev:
+                        color = "#ffe8e8"
+                    if strand == "-" and not isRev or strand == "+" and isRev:
+                        color = "#e8e8ff"
         yield layer, color, seqName, beg, end
 
 def commaSeparatedInts(text):
@@ -537,7 +579,7 @@ def readRmsk(fileName, rangeDict):
             continue
         if repeatClass in ("Low_complexity", "Simple_repeat"):
             yield 200, "#fbf", seqName, beg, end
-        elif strand == "+":
+        elif (strand == "+") != rangeDict[seqName][0][2]:
             yield 100, "#ffe8e8", seqName, beg, end
         else:
             yield 100, "#e8e8ff", seqName, beg, end
@@ -563,10 +605,12 @@ def readGaps(opts, fileName, rangeDict):
 
 def bedBoxes(beds, rangeDict, margin, edge, isTop, bpPerPix):
     for layer, color, seqName, bedBeg, bedEnd in beds:
-        for rangeBeg, rangeEnd, origin in rangeDict[seqName]:
+        for rangeBeg, rangeEnd, isReverseRange, origin in rangeDict[seqName]:
             beg = max(bedBeg, rangeBeg)
             end = min(bedEnd, rangeEnd)
             if beg >= end: continue
+            if isReverseRange:
+                beg, end = -end, -beg
             if layer <= 1000:
                 # include partly-covered pixels
                 b = (origin + beg) // bpPerPix
@@ -576,8 +620,11 @@ def bedBoxes(beds, rangeDict, margin, edge, isTop, bpPerPix):
                 b = div_ceil(origin + beg, bpPerPix)
                 e = (origin + end) // bpPerPix
                 if e <= b: continue
-                if end == rangeEnd:  # include partly-covered end pixels
-                    e = div_ceil(origin + end, bpPerPix)
+                if bedEnd >= rangeEnd:  # include partly-covered end pixels
+                    if isReverseRange:
+                        b = (origin + beg) // bpPerPix
+                    else:
+                        e = div_ceil(origin + end, bpPerPix)
             if isTop:
                 box = b, margin, e, edge
             else:
@@ -593,7 +640,7 @@ def placedLabels(labels, rangePixBegs, rangePixLens, beg, end):
     '''Return axis labels with endpoint & sort-order information.'''
     maxWidth = end - beg
     for i, j, k in zip(labels, rangePixBegs, rangePixLens):
-        text, textWidth, textHeight = i
+        text, textWidth, textHeight, strandNum = i
         if textWidth > maxWidth:
             continue
         labelBeg = j + (k - textWidth) // 2
@@ -607,7 +654,7 @@ def placedLabels(labels, rangePixBegs, rangePixLens, beg, end):
             sortKey += maxWidth * (labelEnd - end)
             labelEnd = end
             labelBeg = end - textWidth
-        yield sortKey, labelBeg, labelEnd, text, textHeight
+        yield sortKey, labelBeg, labelEnd, text, textHeight, strandNum
 
 def nonoverlappingLabels(labels, minPixTweenLabels):
     '''Get a subset of non-overlapping axis labels, greedily.'''
@@ -631,20 +678,25 @@ def axisImage(labels, rangePixBegs, rangePixLens, textRot,
     image_size = (margin, end) if textRot else (end, margin)
     im = Image.new(image_mode, image_size, opts.margin_color)
     draw = ImageDraw.Draw(im)
-    for sortKey, labelBeg, labelEnd, text, textHeight in labels:
+    for sortKey, labelBeg, labelEnd, text, textHeight, strandNum in labels:
         base = margin - textHeight if textAln else 0
         position = (base, labelBeg) if textRot else (labelBeg, base)
-        draw.text(position, text, font=font, fill=opts.text_color)
+        fill = ("black", opts.forwardcolor, opts.reversecolor)[strandNum]
+        draw.text(position, text, font=font, fill=fill)
     return im
 
-def rangesWithOrigins(sortedRanges, rangePixBegs, bpPerPix):
-    for i, j in zip(sortedRanges, rangePixBegs):
-        seqName, rangeBeg, rangeEnd = i
-        origin = bpPerPix * j - rangeBeg
-        yield seqName, (rangeBeg, rangeEnd, origin)
+def rangesWithOrigins(sortedRanges, rangePixBegs, rangePixLens, bpPerPix):
+    for i, j, k in zip(sortedRanges, rangePixBegs, rangePixLens):
+        seqName, rangeBeg, rangeEnd, strandNum = i
+        isReverseRange = (strandNum > 1)
+        if isReverseRange:
+            origin = bpPerPix * (j + k) + rangeBeg
+        else:
+            origin = bpPerPix * j - rangeBeg
+        yield seqName, (rangeBeg, rangeEnd, isReverseRange, origin)
 
-def rangesPerSeq(sortedRanges, rangePixBegs, bpPerPix):
-    a = rangesWithOrigins(sortedRanges, rangePixBegs, bpPerPix)
+def rangesPerSeq(sortedRanges, rangePixBegs, rangePixLens, bpPerPix):
+    a = rangesWithOrigins(sortedRanges, rangePixBegs, rangePixLens, bpPerPix)
     for k, v in itertools.groupby(a, itemgetter(0)):
         yield k, [i[1] for i in v]
 
@@ -729,11 +781,13 @@ def lastDotplot(opts, args):
 
     p1 = pixelData(rangeSizes1, bpPerPix, opts.border_pixels, lMargin)
     rangePixBegs1, rangePixLens1, width = p1
-    rangeDict1 = dict(rangesPerSeq(sortedRanges1, rangePixBegs1, bpPerPix))
+    rangeDict1 = dict(rangesPerSeq(sortedRanges1, rangePixBegs1,
+                                   rangePixLens1, bpPerPix))
 
     p2 = pixelData(rangeSizes2, bpPerPix, opts.border_pixels, tMargin)
     rangePixBegs2, rangePixLens2, height = p2
-    rangeDict2 = dict(rangesPerSeq(sortedRanges2, rangePixBegs2, bpPerPix))
+    rangeDict2 = dict(rangesPerSeq(sortedRanges2, rangePixBegs2,
+                                   rangePixLens2, bpPerPix))
 
     warn("width:  " + str(width))
     warn("height: " + str(height))
@@ -828,6 +882,12 @@ if __name__ == "__main__":
     op.add_option("--sort2", default="1", metavar="N",
                   help="genome2 sequence order: 0=input order, 1=name order, "
                   "2=length order, 3=alignment order (default=%default)")
+    op.add_option("--strands1", default="0", metavar="N", help=
+                  "genome1 sequence orientation: 0=forward orientation, "
+                  "1=alignment orientation (default=%default)")
+    op.add_option("--strands2", default="0", metavar="N", help=
+                  "genome2 sequence orientation: 0=forward orientation, "
+                  "1=alignment orientation (default=%default)")
     op.add_option("--max-gap1", metavar="FRAC", default="0.5,2", help=
                   "maximum unaligned (end,mid) gap in genome1: "
                   "fraction of aligned length (default=%default)")
@@ -897,7 +957,6 @@ if __name__ == "__main__":
     (opts, args) = op.parse_args()
     if len(args) != 2: op.error("2 arguments needed")
 
-    opts.text_color = "black"
     opts.background_color = "white"
     opts.label_space = 5     # minimum number of pixels between axis labels
 

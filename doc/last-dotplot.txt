@@ -99,6 +99,16 @@ Options
       appearance in the input (0), their names (1), their lengths (2),
       the left-to-right order of (the midpoints of) their alignments
       (3).
+  --strands1=N
+      Put the 1st genome's sequences: in forwards orientation (0), in
+      the orientation of most of their aligned bases (1).  In the
+      latter case, the labels will be colored (in the same way as the
+      alignments) to indicate the sequences' orientations.  You can
+      use two colon-separated values for primary and secondary
+      alignments.
+  --strands2=N
+      Put the 2nd genome's sequences: in forwards orientation (0), in
+      the orientation of most of their aligned bases (1).
   --max-gap1=FRAC
       Maximum unaligned gap in the 1st genome.  For example, if two
       parts of one DNA read align to widely-separated parts of one
