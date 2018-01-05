@@ -127,11 +127,6 @@ namespace cbrc{
     }
   }
 
-  // xxx this will go wrong for non-delimiters with severe mismatch scores
-  static bool isDelimiter(uchar c, const double *expScores) {
-    return expScores[c] <= 0.0;
-  }
-
   void Centroid::forward(const uchar* seq1, const uchar* seq2,
 			 const ExpMatrixRow* pssm, bool isForward,
 			 const GeneralizedAffineGapCosts& gap,
@@ -194,10 +189,8 @@ namespace cbrc{
 	    const double total = xM + xD + xI;
 	    *fM0 = total * matchProb;
 	    sum_f += xM;
-	    if( globality && (isDelimiter(letter2, *match_score) ||
-			      isDelimiter(letter1, *match_score)) ){
-	      Z += total;
-	    }
+	    if (globality && matchProb <= 0) Z += total;  // xxx
+
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++;
 	    fM2++; fD1++; fI1++;
@@ -214,15 +207,13 @@ namespace cbrc{
 	    const unsigned letter2 = *s2;
 	    const double matchProb = match_score[letter1][letter2];
 	    *fP0 = xM * eF + xP;
-	    *fD0 = xM * eF + xD + xP;
-	    *fI0 = (xM + xD) * eFI + xI + xP;
-	    const double total = xM + xD + xI + xP;
+	    *fD0 = xM * eF + xP + xD;
+	    *fI0 = (xM + xD) * eFI + (xI + xP);
+	    const double total = (xM + xD) + (xI + xP);
 	    *fM0 = total * matchProb;
 	    sum_f += xM;
-	    if( globality && (isDelimiter(letter2, *match_score) ||
-			      isDelimiter(letter1, *match_score)) ){
-	      Z += total;
-	    }
+	    if (globality && matchProb <= 0) Z += total;  // xxx
+
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++; fP0++;
 	    fM2++; fD1++; fI1++; fP2++;
@@ -246,10 +237,8 @@ namespace cbrc{
 	    const double total = xM + xD + xI;
 	    *fM0 = total * matchProb;
 	    sum_f += xM;
-	    if ( globality && (isDelimiter(0, matchProbs) ||
-			       isDelimiter(letter1, *pssm)) ){
-	      Z += total;
-	    }
+	    if (globality && matchProb <= 0) Z += total;  // xxx
+
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++;
 	    fM2++; fD1++; fI1++;
@@ -266,15 +255,13 @@ namespace cbrc{
 	    const double *matchProbs = *p2;
 	    const double matchProb = matchProbs[letter1];
 	    *fP0 = xM * eF + xP;
-	    *fD0 = xM * eF + xD + xP;
-	    *fI0 = (xM + xD) * eFI + xI + xP;
-	    const double total = xM + xD + xI + xP;
+	    *fD0 = xM * eF + xP + xD;
+	    *fI0 = (xM + xD) * eFI + (xI + xP);
+	    const double total = (xM + xD) + (xI + xP);
 	    *fM0 = total * matchProb;
 	    sum_f += xM;
-	    if ( globality && (isDelimiter(0, matchProbs) ||
-			       isDelimiter(letter1, *pssm)) ){
-	      Z += total;
-	    }
+	    if (globality && matchProb <= 0) Z += total;  // xxx
+
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++; fP0++;
 	    fM2++; fD1++; fI1++; fP2++;
@@ -360,8 +347,9 @@ namespace cbrc{
 	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
 	    if( globality ){
-	      if( isDelimiter(*s2, *match_score) ||
-		  isDelimiter(*s1, *match_score) ){
+	      if( matchProb <= 0 ){
+		// xxx should get here only at delimiters, but will get
+		// here for non-delimiters with severe mismatch scores
 		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
 	      }
 	    }else{
@@ -392,10 +380,9 @@ namespace cbrc{
 	    double zM = yM + yD * eF + yI * eFI + yP * eF;
 	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
-	    double zP = yM + yP + yD + yI;
+	    double zP = yM + yD + yI + yP;
 	    if( globality ){
-	      if( isDelimiter(*s2, *match_score) ||
-		  isDelimiter(*s1, *match_score) ){
+	      if( matchProb <= 0 ){  // xxx
 		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
 		zP += scaledUnit;
 	      }
@@ -433,8 +420,7 @@ namespace cbrc{
 	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
 	    if( globality ){
-	      if( isDelimiter(0, *p2) ||
-		  isDelimiter(*s1, *pssm) ){
+	      if( matchProb <= 0 ){  // xxx
 		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
 	      }
 	    }else{
@@ -465,10 +451,9 @@ namespace cbrc{
 	    double zM = yM + yD * eF + yI * eFI + yP * eF;
 	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
-	    double zP = yM + yP + yD + yI;
+	    double zP = yM + yD + yI + yP;
 	    if( globality ){
-	      if( isDelimiter(0, *p2) ||
-		  isDelimiter(*s1, *pssm) ){
+	      if( matchProb <= 0 ){  // xxx
 		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
 		zP += scaledUnit;
 	      }
