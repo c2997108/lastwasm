@@ -62,7 +62,7 @@ struct AlignmentText {
 struct AlignmentExtras {
   // Optional (probabilistic) attributes of an alignment.
   // To save memory, these are outside the main Alignment struct.
-  std::vector<uchar> columnAmbiguityCodes;  // char or uchar?
+  std::vector<char> columnAmbiguityCodes;
   std::vector<double> expectedCounts;  // expected emission & transition counts
   double fullScore;  // a.k.a. forward score, sum-of-paths score
   AlignmentExtras() : fullScore(0) {}
@@ -127,7 +127,7 @@ struct Alignment{
   size_t end2() const{ return blocks.back().end2(); }
 
   void extend( std::vector< SegmentPair >& chunks,
-	       std::vector< uchar >& ambiguityCodes,
+	       std::vector< char >& ambiguityCodes,
 	       Centroid& centroid,
 	       GreedyXdropAligner& greedyAligner, bool isGreedy,
 	       const uchar* seq1, const uchar* seq2,

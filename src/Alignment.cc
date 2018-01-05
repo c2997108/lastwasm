@@ -96,7 +96,7 @@ void Alignment::makeXdrop( Centroid& centroid,
   }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
-  std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
+  std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
   extend( blocks, columnAmbiguityCodes, centroid, greedyAligner, isGreedy,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
@@ -116,7 +116,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 
   // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
-  std::vector<uchar> forwardAmbiguities;
+  std::vector<char> forwardAmbiguities;
   extend( forwardBlocks, forwardAmbiguities, centroid, greedyAligner, isGreedy,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
@@ -263,7 +263,7 @@ bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
 }
 
 static void getColumnAmbiguities(const Centroid& centroid,
-				 std::vector<uchar>& ambiguityCodes,
+				 std::vector<char>& ambiguityCodes,
 				 const std::vector<SegmentPair>& chunks,
 				 bool isForward) {
   for (size_t i = 0; i < chunks.size(); ++i) {
@@ -286,7 +286,7 @@ static void getColumnAmbiguities(const Centroid& centroid,
 }
 
 void Alignment::extend( std::vector< SegmentPair >& chunks,
-			std::vector< uchar >& ambiguityCodes,
+			std::vector< char >& ambiguityCodes,
 			Centroid& centroid,
 			GreedyXdropAligner& greedyAligner, bool isGreedy,
 			const uchar* seq1, const uchar* seq2,
@@ -358,7 +358,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
   score += extensionScore;
 
-  if( outputType < 5 || outputType == 7 ){  // ordinary max-score alignment
+  if( outputType < 5 || outputType > 6 ){  // ordinary max-score alignment
     size_t end1, end2, size;
     if( isGreedy ){
       while( greedyAligner.getNextChunk( end1, end2, size ) )
@@ -375,6 +375,10 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if( outputType > 3 ){  // calculate match probabilities
     assert( !isGreedy );
     assert( !sm2qual );
+    if (!isForward) {
+      --start1;
+      --start2;
+    }
     centroid.doForwardBackwardAlgorithm(seq1, seq2, start1, start2, isForward,
 					gap, globality);
 

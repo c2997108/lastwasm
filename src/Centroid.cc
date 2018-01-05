@@ -174,12 +174,12 @@ namespace cbrc{
 
       const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
 
-      const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
+      const uchar* s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
 
       *fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;  // add one pad cell
 
       if (! isPssm) {
-	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
+	const uchar* s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
 
 	if (isAffine) {
 	  while (1) {
@@ -231,7 +231,7 @@ namespace cbrc{
 	  }
 	}
       } else {
-	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
+	const ExpMatrixRow* p2 = isForward ? pssm + seq2pos : pssm - seq2pos;
 
 	if (isAffine) {
 	  while (1) {
@@ -345,10 +345,10 @@ namespace cbrc{
       double* mDout = &mD[ seq1beg ];
       double* mIout = &mI[ seq2pos ];
 
-      const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
+      const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
 
       if (! isPssm ) {
-	const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
+	const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
 
 	if (isAffine) {
 	  while (1) {
@@ -421,7 +421,7 @@ namespace cbrc{
 	  }
 	}
       } else {
-	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
+	const ExpMatrixRow *p2 = isForward ? pssm + seq2pos : pssm - seq2pos;
 
 	if (isAffine) {
 	  while (1) {
@@ -670,7 +670,7 @@ namespace cbrc{
   // Return an ASCII code representing an error probability.  The
   // printable codes are 33--126, but here we use a maximum of 125, so
   // that 126 is reserved for special cases.
-  static uchar asciiProbability( double probCorrect ){
+  static char asciiProbability( double probCorrect ){
     assert( probCorrect >= 0 );
     //assert( probCorrect <= 1 );  // can fail: floating point is imperfect
     double e = 1 - probCorrect;
@@ -679,10 +679,10 @@ namespace cbrc{
     int i = static_cast<int>(g);  // round fractions down
     int j = i + 33;
     int k = std::min( j, 125 );
-    return static_cast<uchar>(k);
+    return static_cast<char>(k);
   }
 
-  void Centroid::getMatchAmbiguities(std::vector<uchar>& ambiguityCodes,
+  void Centroid::getMatchAmbiguities(std::vector<char>& ambiguityCodes,
 				     size_t seq1end, size_t seq2end,
 				     size_t length) const {
     while (length) {
@@ -693,13 +693,13 @@ namespace cbrc{
     }
   }
 
-  void Centroid::getDeleteAmbiguities(std::vector<uchar>& ambiguityCodes,
+  void Centroid::getDeleteAmbiguities(std::vector<char>& ambiguityCodes,
 				      size_t seq1end, size_t seq1beg) const {
     for (size_t i = seq1end; i > seq1beg; --i)
       ambiguityCodes.push_back(asciiProbability(mD[i]));
   }
 
-  void Centroid::getInsertAmbiguities(std::vector<uchar>& ambiguityCodes,
+  void Centroid::getInsertAmbiguities(std::vector<char>& ambiguityCodes,
 				      size_t seq2end, size_t seq2beg) const {
     for (size_t i = seq2end; i > seq2beg; --i)
       ambiguityCodes.push_back(asciiProbability(mI[i]));
@@ -742,8 +742,8 @@ namespace cbrc{
       const double seEI = eEI * scale1;
       const double seP = eP * scale12;
 
-      const uchar* s1 = seqPtr( seq1, isForward, seq1beg );
-      const uchar* s2 = seqPtr( seq2, isForward, seq2pos );
+      const uchar* s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
+      const uchar* s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + 1 ];
@@ -822,7 +822,7 @@ namespace cbrc{
 	}
       }
       else {
-	const ExpMatrixRow* p2 = seqPtr( pssm, isForward, seq2pos );
+	const ExpMatrixRow* p2 = isForward ? pssm + seq2pos : pssm - seq2pos;
 
 	if (isAffine) {
 	  while (1) { // inner most loop

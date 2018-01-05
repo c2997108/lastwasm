@@ -40,6 +40,9 @@ namespace cbrc{
                    const uchar* sequenceBeg, const uchar* qualityBeg );
     void setOutputType( int m ) { outputType = m; }
 
+    // start1 is the index of the first letter to look at in seq1
+    // start2 is the index of the first letter to look at in seq2
+
     void doForwardBackwardAlgorithm(const uchar* seq1, const uchar* seq2,
 				    size_t start1, size_t start2,
 				    bool isForward,
@@ -63,14 +66,14 @@ namespace cbrc{
     double dp_ama( double gamma );
     void traceback_ama( std::vector< SegmentPair >& chunks, double gamma ) const;
 
-    void getMatchAmbiguities(std::vector<uchar>& ambiguityCodes,
+    void getMatchAmbiguities(std::vector<char>& ambiguityCodes,
 			     size_t seq1end, size_t seq2end,
 			     size_t length) const;
 
-    void getDeleteAmbiguities(std::vector<uchar>& ambiguityCodes,
+    void getDeleteAmbiguities(std::vector<char>& ambiguityCodes,
 			      size_t seq1end, size_t seq1beg) const;
 
-    void getInsertAmbiguities(std::vector<uchar>& ambiguityCodes,
+    void getInsertAmbiguities(std::vector<char>& ambiguityCodes,
 			      size_t seq2end, size_t seq2beg) const;
 
     double logPartitionFunction() const;  // a.k.a. full score, forward score
@@ -135,13 +138,6 @@ namespace cbrc{
     // before the x-drop region) for this antidiagonal
     size_t seq1start( size_t antidiagonal ) const {
       return xa.scoreEndIndex( antidiagonal ) - xa.scoreOrigin( antidiagonal );
-    }
-
-    // get a pointer into a sequence, taking start and direction into account
-    template < typename T >
-    static const T* seqPtr( const T* seq, bool isForward, size_t pos ){
-      if( isForward ) return seq + pos;
-      else            return seq - pos - 1;
     }
   };
 

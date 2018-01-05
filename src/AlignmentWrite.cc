@@ -273,13 +273,6 @@ static void writeMafHeadQ(char *out,
   w.fill(qLineBlankLen, ' ');
 }
 
-// Write the first part of a "p" line:
-static void writeMafHeadP(char *out, size_t pLineBlankLen) {
-  Writer w(out);
-  w << 'p' << ' ';
-  w.fill(pLineBlankLen, ' ');
-}
-
 // Write a "c" line
 static void writeMafLineC(std::vector<char> &cLine,
 			  const std::vector<double> &counts) {
@@ -301,7 +294,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
 				  const LastEvaluer& evaluer,
 				  const AlignmentExtras& extras) const {
   double fullScore = extras.fullScore;
-  const std::vector<uchar>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
+  const std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
 
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
@@ -379,17 +372,18 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
     *dest++ = '\n';
   }
 
+  Writer w(dest);
+
   if (!columnAmbiguityCodes.empty()) {
-    writeMafHeadP(dest, pLineBlankLen);
-    dest = copy(columnAmbiguityCodes.begin(),
-		columnAmbiguityCodes.end(), dest + headLen);
-    *dest++ = '\n';
+    w << 'p' << ' ';
+    w.fill(pLineBlankLen, ' ');
+    w.copy(&columnAmbiguityCodes[0], columnAmbiguityCodes.size());
+    w << '\n';
   }
 
-  dest = copy(cLine.begin(), cLine.end(), dest);
+  if (!cLine.empty()) w.copy(&cLine[0], cLine.size());
 
-  *dest++ = '\n';  // blank line afterwards
-  *dest++ = '\0';
+  w << '\n' << '\0';  // blank line afterwards
 
   return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand2, score, 0, 0, text);
 }
