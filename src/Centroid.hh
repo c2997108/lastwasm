@@ -42,9 +42,6 @@ namespace cbrc{
 
     void reset( ) {
       numAntidiagonals = xa.numAntidiagonals();
-      bestScore = 0;
-      bestAntiDiagonal = 0;
-      bestPos1 =0;
     }
 
     void forward( const uchar* seq1, const uchar* seq2,
@@ -121,7 +118,6 @@ namespace cbrc{
 
     void initForwardMatrix();
     void initBackwardMatrix();
-    void initDecodingMatrix();
 
     void updateScore( double score, size_t antiDiagonal, size_t cur );
 

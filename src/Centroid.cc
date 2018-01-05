@@ -120,10 +120,6 @@ namespace cbrc{
     bP.assign( n, 0.0 );
   }
 
-  void Centroid::initDecodingMatrix(){
-    X.resize( fM.size() );
-  }
-
   void Centroid::updateScore( double score, size_t antiDiagonal, size_t cur ){
     if( bestScore < score ){
       bestScore = score;
@@ -153,16 +149,11 @@ namespace cbrc{
     double Z = 0.0;  // partion function of forward values
 
     const bool isAffine = gap.isAffine();
-    const int E = gap.delExtend;
-    const int F = gap.delExist;
-    const int EI = gap.insExtend;
-    const int FI = gap.insExist;
-    const int P = gap.pairExtend;
-    const double eE = EXP ( - E / T );
-    const double eF = EXP ( - F / T );
-    const double eEI = EXP ( - EI / T );
-    const double eFI = EXP ( - FI / T );
-    const double eP = EXP ( - P / T );
+    const double eE = EXP ( - gap.delExtend / T );
+    const double eF = EXP ( - gap.delExist / T );
+    const double eEI = EXP ( - gap.insExtend / T );
+    const double eFI = EXP ( - gap.insExist / T );
+    const double eP = EXP ( - gap.pairExtend / T );
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
@@ -205,13 +196,17 @@ namespace cbrc{
 	    const double xM = *fM2 * scale12;
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
+	    const unsigned letter1 = *s1;
+	    const unsigned letter2 = *s2;
+	    const double matchProb = match_score[letter1][letter2];
 	    *fD0 = xM * eF + xD;
 	    *fI0 = (xM + xD) * eFI + xI;
-	    *fM0 = (xM + xD + xI) * match_score[ *s1 ][ *s2 ];
+	    const double total = xM + xD + xI;
+	    *fM0 = total * matchProb;
 	    sum_f += xM;
-	    if( globality && (isDelimiter(*s2, *match_score) ||
-			      isDelimiter(*s1, *match_score)) ){
-	      Z += xM + xD + xI;
+	    if( globality && (isDelimiter(letter2, *match_score) ||
+			      isDelimiter(letter1, *match_score)) ){
+	      Z += total;
 	    }
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++;
@@ -225,14 +220,18 @@ namespace cbrc{
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
 	    const double xP = *fP2 * seP;
+	    const unsigned letter1 = *s1;
+	    const unsigned letter2 = *s2;
+	    const double matchProb = match_score[letter1][letter2];
+	    *fP0 = xM * eF + xP;
 	    *fD0 = xM * eF + xD + xP;
 	    *fI0 = (xM + xD) * eFI + xI + xP;
-	    *fM0 = (xM + xD + xI + xP) * match_score[ *s1 ][ *s2 ];
-	    *fP0 = xM * eF + xP;
+	    const double total = xM + xD + xI + xP;
+	    *fM0 = total * matchProb;
 	    sum_f += xM;
-	    if( globality && (isDelimiter(*s2, *match_score) ||
-			      isDelimiter(*s1, *match_score)) ){
-	      Z += xM + xD + xI + xP;
+	    if( globality && (isDelimiter(letter2, *match_score) ||
+			      isDelimiter(letter1, *match_score)) ){
+	      Z += total;
 	    }
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++; fP0++;
@@ -249,13 +248,17 @@ namespace cbrc{
 	    const double xM = *fM2 * scale12;
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
+	    const unsigned letter1 = *s1;
+	    const double *matchProbs = *p2;
+	    const double matchProb = matchProbs[letter1];
 	    *fD0 = xM * eF + xD;
 	    *fI0 = (xM + xD) * eFI + xI;
-	    *fM0 = (xM + xD + xI) * (*p2)[ *s1 ];
+	    const double total = xM + xD + xI;
+	    *fM0 = total * matchProb;
 	    sum_f += xM;
-	    if ( globality && (isDelimiter(0, *p2) ||
-			       isDelimiter(*s1, *pssm)) ){
-	      Z += xM + xD + xI;
+	    if ( globality && (isDelimiter(0, matchProbs) ||
+			       isDelimiter(letter1, *pssm)) ){
+	      Z += total;
 	    }
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++;
@@ -269,14 +272,18 @@ namespace cbrc{
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
 	    const double xP = *fP2 * seP;
+	    const unsigned letter1 = *s1;
+	    const double *matchProbs = *p2;
+	    const double matchProb = matchProbs[letter1];
+	    *fP0 = xM * eF + xP;
 	    *fD0 = xM * eF + xD + xP;
 	    *fI0 = (xM + xD) * eFI + xI + xP;
-	    *fM0 = (xM + xD + xI + xP) * (*p2)[ *s1 ];
-	    *fP0 = xM * eF + xP;
+	    const double total = xM + xD + xI + xP;
+	    *fM0 = total * matchProb;
 	    sum_f += xM;
-	    if ( globality && (isDelimiter(0, *p2) ||
-			       isDelimiter(*s1, *pssm)) ){
-	      Z += xM + xD + xI + xP;
+	    if ( globality && (isDelimiter(0, matchProbs) ||
+			       isDelimiter(letter1, *pssm)) ){
+	      Z += total;
 	    }
 	    if (fM0 == fM0last) break;
 	    fM0++; fD0++; fI0++; fP0++;
@@ -313,16 +320,11 @@ namespace cbrc{
     initBackwardMatrix();
 
     const bool isAffine = gap.isAffine();
-    const int E = gap.delExtend;
-    const int F = gap.delExist;
-    const int EI = gap.insExtend;
-    const int FI = gap.insExist;
-    const int P = gap.pairExtend;
-    const double eE = EXP ( - E / T );
-    const double eF = EXP ( - F / T );
-    const double eEI = EXP ( - EI / T );
-    const double eFI = EXP ( - FI / T );
-    const double eP = EXP ( - P / T );
+    const double eE = EXP ( - gap.delExtend / T );
+    const double eF = EXP ( - gap.delExist / T );
+    const double eEI = EXP ( - gap.insExtend / T );
+    const double eFI = EXP ( - gap.insExist / T );
+    const double eP = EXP ( - gap.pairExtend / T );
     double scaledUnit = 1.0;
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
@@ -368,9 +370,10 @@ namespace cbrc{
 
 	if (isAffine) {
 	  while (1) {
-	    double yM = *bM0 * match_score[ *s1 ][ *s2 ];
-	    double yD = *bD0;
-	    double yI = *bI0;
+	    const double matchProb = match_score[*s1][*s2];
+	    const double yM = (*bM0) * matchProb;
+	    const double yD = *bD0;
+	    const double yI = *bI0;
 	    double zM = yM + yD * eF + yI * eFI;
 	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
@@ -399,10 +402,11 @@ namespace cbrc{
 	  }
 	} else {
 	  while (1) {
-	    double yM = *bM0 * match_score[ *s1 ][ *s2 ];
-	    double yD = *bD0;
-	    double yI = *bI0;
-	    double yP = *bP0;
+	    const double matchProb = match_score[*s1][*s2];
+	    const double yM = (*bM0) * matchProb;
+	    const double yD = *bD0;
+	    const double yI = *bI0;
+	    const double yP = *bP0;
 	    double zM = yM + yD * eF + yI * eFI + yP * eF;
 	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
@@ -439,9 +443,10 @@ namespace cbrc{
 
 	if (isAffine) {
 	  while (1) {
-	    double yM = *bM0 * ( *p2 )[ *s1 ];
-	    double yD = *bD0;
-	    double yI = *bI0;
+	    const double matchProb = (*p2)[*s1];
+	    const double yM = (*bM0) * matchProb;
+	    const double yD = *bD0;
+	    const double yI = *bI0;
 	    double zM = yM + yD * eF + yI * eFI;
 	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
@@ -470,10 +475,11 @@ namespace cbrc{
 	  }
 	} else {
 	  while (1) {
-	    double yM = *bM0 * ( *p2 )[ *s1 ];
-	    double yD = *bD0;
-	    double yI = *bI0;
-	    double yP = *bP0;
+	    const double matchProb = (*p2)[*s1];
+	    const double yM = (*bM0) * matchProb;
+	    const double yD = *bD0;
+	    const double yI = *bI0;
+	    const double yP = *bP0;
 	    double zM = yM + yD * eF + yI * eFI + yP * eF;
 	    double zD = yM + yD + yI * eFI;
 	    double zI = yM + yI;
@@ -515,21 +521,22 @@ namespace cbrc{
   }
 
   double Centroid::dp( double gamma ){
-    if (outputType == 5 ) return dp_centroid( gamma );
-    else if (outputType == 6 ) return dp_ama (gamma);
+    bestScore = 0;
+    bestAntiDiagonal = 0;
+    bestPos1 = 0;
+    X.resize(fM.size());
+    if (outputType == 5) return dp_centroid(gamma);
+    if (outputType == 6) return dp_ama(gamma);
     return 0;
   }
 
   void Centroid::traceback( std::vector< SegmentPair >& chunks,
 			    double gamma ) const{
     if (outputType==5) traceback_centroid( chunks, gamma );
-    else if (outputType==6) traceback_ama( chunks, gamma);
+    if (outputType==6) traceback_ama( chunks, gamma );
   }
 
   double Centroid::dp_centroid( double gamma ){
-
-    initDecodingMatrix();
-
     for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
@@ -589,9 +596,6 @@ namespace cbrc{
   }
 
   double Centroid::dp_ama( double gamma ){
-
-    initDecodingMatrix();
-
     mX1.assign ( numAntidiagonals + 2, 1.0 );
     mX2.assign ( numAntidiagonals + 2, 1.0 );
 
@@ -738,16 +742,11 @@ namespace cbrc{
     const int seqIncrement = isForward ? 1 : -1;
 
     const bool isAffine = gap.isAffine();
-    const int E = gap.delExtend;
-    const int F = gap.delExist;
-    const int EI = gap.insExtend;
-    const int FI = gap.insExist;
-    const int P = gap.pairExtend;
-    const double eE = EXP ( - E / T );
-    const double eF = EXP ( - F / T );
-    const double eEI = EXP ( - EI / T );
-    const double eFI = EXP ( - FI / T );
-    const double eP = EXP ( - P / T );
+    const double eE = EXP ( - gap.delExtend / T );
+    const double eF = EXP ( - gap.delExist / T );
+    const double eEI = EXP ( - gap.insExtend / T );
+    const double eFI = EXP ( - gap.insExist / T );
+    const double eP = EXP ( - gap.pairExtend / T );
 
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
@@ -786,10 +785,12 @@ namespace cbrc{
 	    const double xM = *fM2 * scale12;
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
-	    const double yM = *bM0 * match_score[ *s1 ][ *s2 ];
+	    const unsigned letter1 = *s1;
+	    const unsigned letter2 = *s2;
+	    const double yM = *bM0 * match_score[letter1][letter2];
 	    const double yD = *bD0;
 	    const double yI = *bI0;
-	    c.emit[*s1][*s2] += (xM + xD + xI) * yM;
+	    c.emit[letter1][letter2] += (xM + xD + xI) * yM;
 	    c.MM += xM * yM;
 	    c.DM += xD * yM;
 	    c.IM += xI * yM;
@@ -810,11 +811,13 @@ namespace cbrc{
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
 	    const double xP = *fP2 * seP;
-	    const double yM = *bM0 * match_score[ *s1 ][ *s2 ];
+	    const unsigned letter1 = *s1;
+	    const unsigned letter2 = *s2;
+	    const double yM = *bM0 * match_score[letter1][letter2];
 	    const double yD = *bD0;
 	    const double yI = *bI0;
 	    const double yP = *bP0;
-	    c.emit[*s1][*s2] += (xM + xD + xI + xP) * yM;
+	    c.emit[letter1][letter2] += (xM + xD + xI + xP) * yM;
 	    c.MM += xM * yM;
 	    c.DM += xD * yM;
 	    c.IM += xI * yM;
@@ -844,10 +847,11 @@ namespace cbrc{
 	    const double xM = *fM2 * scale12;
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
-	    const double yM = *bM0 * ( *p2 )[ *s1 ];
+	    const unsigned letter1 = *s1;
+	    const double yM = *bM0 * (*p2)[letter1];
 	    const double yD = *bD0;
 	    const double yI = *bI0;
-	    c.emit[*s1][*s2] += (xM + xD + xI) * yM;  // xxx
+	    c.emit[letter1][*s2] += (xM + xD + xI) * yM;  // xxx
 	    c.MM += xM * yM;
 	    c.DM += xD * yM;
 	    c.IM += xI * yM;
@@ -869,11 +873,12 @@ namespace cbrc{
 	    const double xD = *fD1 * seE;
 	    const double xI = *fI1 * seEI;
 	    const double xP = *fP2 * seP;
-	    const double yM = *bM0 * ( *p2 )[ *s1 ];
+	    const unsigned letter1 = *s1;
+	    const double yM = *bM0 * (*p2)[letter1];
 	    const double yD = *bD0;
 	    const double yI = *bI0;
 	    const double yP = *bP0;
-	    c.emit[*s1][*s2] += (xM + xD + xI + xP) * yM;  // xxx
+	    c.emit[letter1][*s2] += (xM + xD + xI + xP) * yM;  // xxx
 	    c.MM += xM * yM;
 	    c.DM += xD * yM;
 	    c.IM += xI * yM;
