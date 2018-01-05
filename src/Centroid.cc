@@ -96,7 +96,6 @@ namespace cbrc{
   }
 
   void Centroid::initForwardMatrix(){
-    scale.assign ( numAntidiagonals + 2, 1.0 ); // scaling
     size_t n = xa.scoreEndIndex( numAntidiagonals );
 
     if ( fM.size() < n ) {
@@ -133,29 +132,20 @@ namespace cbrc{
     return expScores[c] <= 0.0;
   }
 
-  void Centroid::forward( const uchar* seq1, const uchar* seq2,
-			  size_t start1, size_t start2,
-			  bool isForward, int globality,
-			  const GeneralizedAffineGapCosts& gap ){
-
-    //std::cout << "[forward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
-    seq1 += start1;
-    seq2 += start2;
-    const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
-    const int seqIncrement = isForward ? 1 : -1;
-
+  void Centroid::forward(const uchar* seq1, const uchar* seq2,
+			 const ExpMatrixRow* pssm, bool isForward,
+			 const GeneralizedAffineGapCosts& gap,
+			 int globality) {
     initForwardMatrix();
-
-    double Z = 0.0;  // partion function of forward values
-
+    const int seqIncrement = isForward ? 1 : -1;
     const bool isAffine = gap.isAffine();
     const double eE = EXP ( - gap.delExtend / T );
     const double eF = EXP ( - gap.delExist / T );
     const double eEI = EXP ( - gap.insExtend / T );
     const double eFI = EXP ( - gap.insExist / T );
     const double eP = EXP ( - gap.pairExtend / T );
-
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
+    double Z = 0.0;  // partion function of forward values
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = seq1start( k );
@@ -306,28 +296,20 @@ namespace cbrc{
 
   // added by M. Hamada
   // compute posterior probabilities while executing backward algorithm
-  void Centroid::backward( const uchar* seq1, const uchar* seq2,
-			   size_t start1, size_t start2,
-			   bool isForward, int globality,
-			   const GeneralizedAffineGapCosts& gap ){
-
-    //std::cout << "[backward] start1=" << start1 << "," << "start2=" << start2 << "," << "isForward=" << isForward << std::endl;
-    seq1 += start1;
-    seq2 += start2;
-    const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
-    const int seqIncrement = isForward ? 1 : -1;
-
+  void Centroid::backward(const uchar* seq1, const uchar* seq2,
+			  const ExpMatrixRow* pssm, bool isForward,
+			  const GeneralizedAffineGapCosts& gap,
+			  int globality) {
     initBackwardMatrix();
-
+    const int seqIncrement = isForward ? 1 : -1;
     const bool isAffine = gap.isAffine();
     const double eE = EXP ( - gap.delExtend / T );
     const double eF = EXP ( - gap.delExist / T );
     const double eEI = EXP ( - gap.insExtend / T );
     const double eFI = EXP ( - gap.insExist / T );
     const double eP = EXP ( - gap.pairExtend / T );
-    double scaledUnit = 1.0;
-
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
+    double scaledUnit = 1.0;
 
     for( size_t k = numAntidiagonals; k-- > 0; ){
       const size_t seq1beg = seq1start( k );

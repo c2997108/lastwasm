@@ -40,17 +40,19 @@ namespace cbrc{
                    const uchar* sequenceBeg, const uchar* qualityBeg );
     void setOutputType( int m ) { outputType = m; }
 
-    void reset( ) {
+    void doForwardBackwardAlgorithm(const uchar* seq1, const uchar* seq2,
+				    size_t start1, size_t start2,
+				    bool isForward,
+				    const GeneralizedAffineGapCosts& gap,
+				    int globality) {
+      seq1 += start1;
+      seq2 += start2;
+      const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
       numAntidiagonals = xa.numAntidiagonals();
+      scale.assign(numAntidiagonals + 2, 1.0);
+      forward(seq1, seq2, pssm, isForward, gap, globality);
+      backward(seq1, seq2, pssm, isForward, gap, globality);
     }
-
-    void forward( const uchar* seq1, const uchar* seq2,
-		  size_t start1, size_t start2, bool isForward,
-		  int globality, const GeneralizedAffineGapCosts& gap );
-
-    void backward( const uchar* seq1, const uchar* seq2,
-		   size_t start1, size_t start2, bool isForward,
-		   int globality, const GeneralizedAffineGapCosts& gap );
 
     double dp( double gamma );
     void traceback( std::vector< SegmentPair >& chunks, double gamma ) const;
@@ -115,6 +117,14 @@ namespace cbrc{
     double bestScore;
     size_t bestAntiDiagonal;
     size_t bestPos1;
+
+    void forward(const uchar* seq1, const uchar* seq2,
+		 const ExpMatrixRow* pssm, bool isForward,
+		 const GeneralizedAffineGapCosts& gap, int globality);
+
+    void backward(const uchar* seq1, const uchar* seq2,
+		  const ExpMatrixRow* pssm, bool isForward,
+		  const GeneralizedAffineGapCosts& gap, int globality);
 
     void initForwardMatrix();
     void initBackwardMatrix();
