@@ -109,9 +109,6 @@ namespace cbrc{
   }
 
   void Centroid::initBackwardMatrix(){
-    mD.assign( numAntidiagonals + 2, 0.0 );
-    mI.assign( numAntidiagonals + 2, 0.0 );
-
     size_t n = xa.scoreEndIndex( numAntidiagonals );
     bM.assign( n, 0.0 );
     bD.assign( n, 0.0 );
@@ -119,20 +116,12 @@ namespace cbrc{
     bP.assign( n, 0.0 );
   }
 
-  void Centroid::updateScore( double score, size_t antiDiagonal, size_t cur ){
-    if( bestScore < score ){
-      bestScore = score;
-      bestAntiDiagonal = antiDiagonal;
-      bestPos1 = cur;
-    }
-  }
-
   void Centroid::forward(const uchar* seq1, const uchar* seq2,
-			 const ExpMatrixRow* pssm, bool isForward,
+			 const ExpMatrixRow* pssm, bool isExtendFwd,
 			 const GeneralizedAffineGapCosts& gap,
 			 int globality) {
     initForwardMatrix();
-    const int seqIncrement = isForward ? 1 : -1;
+    const int seqIncrement = isExtendFwd ? 1 : -1;
     const bool isAffine = gap.isAffine();
     const double eE = EXP ( - gap.delExtend / T );
     const double eF = EXP ( - gap.delExist / T );
@@ -169,12 +158,12 @@ namespace cbrc{
 
       const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
 
-      const uchar* s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
+      const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       *fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;  // add one pad cell
 
       if (! isPssm) {
-	const uchar* s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
+	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
 	if (isAffine) {
 	  while (1) {
@@ -222,7 +211,7 @@ namespace cbrc{
 	  }
 	}
       } else {
-	const ExpMatrixRow* p2 = isForward ? pssm + seq2pos : pssm - seq2pos;
+	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
 
 	if (isAffine) {
 	  while (1) {
@@ -284,11 +273,11 @@ namespace cbrc{
   // added by M. Hamada
   // compute posterior probabilities while executing backward algorithm
   void Centroid::backward(const uchar* seq1, const uchar* seq2,
-			  const ExpMatrixRow* pssm, bool isForward,
+			  const ExpMatrixRow* pssm, bool isExtendFwd,
 			  const GeneralizedAffineGapCosts& gap,
 			  int globality) {
     initBackwardMatrix();
-    const int seqIncrement = isForward ? 1 : -1;
+    const int seqIncrement = isExtendFwd ? 1 : -1;
     const bool isAffine = gap.isAffine();
     const double eE = EXP ( - gap.delExtend / T );
     const double eF = EXP ( - gap.delExist / T );
@@ -332,10 +321,10 @@ namespace cbrc{
       double* mDout = &mD[ seq1beg ];
       double* mIout = &mI[ seq2pos ];
 
-      const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
+      const uchar *s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       if (! isPssm ) {
-	const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
+	const uchar *s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
 	if (isAffine) {
 	  while (1) {
@@ -408,7 +397,7 @@ namespace cbrc{
 	  }
 	}
       } else {
-	const ExpMatrixRow *p2 = isForward ? pssm + seq2pos : pssm - seq2pos;
+	const ExpMatrixRow *p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
 
 	if (isAffine) {
 	  while (1) {
@@ -482,9 +471,6 @@ namespace cbrc{
     }
 
     //std::cout << "# bM[0]=" << bM[0] << std::endl;
-    //ExpectedCount ec;
-    //computeExpectedCounts ( seq1, seq2, start1, start2, isForward, gap, ec );
-    //ec.write (std::cerr);
   }
 
   double Centroid::dp( double gamma ){
@@ -495,12 +481,6 @@ namespace cbrc{
     if (outputType == 5) return dp_centroid(gamma);
     if (outputType == 6) return dp_ama(gamma);
     return 0;
-  }
-
-  void Centroid::traceback( std::vector< SegmentPair >& chunks,
-			    double gamma ) const{
-    if (outputType==5) traceback_centroid( chunks, gamma );
-    if (outputType==6) traceback_ama( chunks, gamma );
   }
 
   double Centroid::dp_centroid( double gamma ){
@@ -700,13 +680,13 @@ namespace cbrc{
 
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 					 size_t start1, size_t start2,
-					 bool isForward,
+					 bool isExtendFwd,
 					 const GeneralizedAffineGapCosts& gap,
 					 ExpectedCount& c ) const{
     seq1 += start1;
     seq2 += start2;
     const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
-    const int seqIncrement = isForward ? 1 : -1;
+    const int seqIncrement = isExtendFwd ? 1 : -1;
 
     const bool isAffine = gap.isAffine();
     const double eE = EXP ( - gap.delExtend / T );
@@ -727,8 +707,8 @@ namespace cbrc{
       const double seEI = eEI * scale1;
       const double seP = eP * scale12;
 
-      const uchar* s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
-      const uchar* s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
+      const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
+      const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + 1 ];
@@ -807,7 +787,7 @@ namespace cbrc{
 	}
       }
       else {
-	const ExpMatrixRow* p2 = isForward ? pssm + seq2pos : pssm - seq2pos;
+	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
 
 	if (isAffine) {
 	  while (1) { // inner most loop

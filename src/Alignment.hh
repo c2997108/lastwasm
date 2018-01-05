@@ -127,7 +127,7 @@ struct Alignment{
   size_t end2() const{ return blocks.back().end2(); }
 
   void extend( std::vector< SegmentPair >& chunks,
-	       std::vector< char >& ambiguityCodes,
+	       std::vector< char >& columnCodes,
 	       Centroid& centroid,
 	       GreedyXdropAligner& greedyAligner, bool isGreedy,
 	       const uchar* seq1, const uchar* seq2,

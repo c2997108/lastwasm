@@ -25,6 +25,7 @@ namespace cbrc{
     ExpectedCount ();
     std::ostream& write (std::ostream& os) const;
   };
+
   /**
    * (1) Forward and backward algorithm on the DP region given by Xdrop algorithm
    * (2) \gamma-centroid decoding
@@ -45,7 +46,7 @@ namespace cbrc{
 
     void doForwardBackwardAlgorithm(const uchar* seq1, const uchar* seq2,
 				    size_t start1, size_t start2,
-				    bool isForward,
+				    bool isExtendFwd,
 				    const GeneralizedAffineGapCosts& gap,
 				    int globality) {
       seq1 += start1;
@@ -53,12 +54,18 @@ namespace cbrc{
       const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
       numAntidiagonals = xa.numAntidiagonals();
       scale.assign(numAntidiagonals + 2, 1.0);
-      forward(seq1, seq2, pssm, isForward, gap, globality);
-      backward(seq1, seq2, pssm, isForward, gap, globality);
+      forward(seq1, seq2, pssm, isExtendFwd, gap, globality);
+      mD.assign(numAntidiagonals + 2, 0.0);
+      mI.assign(numAntidiagonals + 2, 0.0);
+      backward(seq1, seq2, pssm, isExtendFwd, gap, globality);
     }
 
     double dp( double gamma );
-    void traceback( std::vector< SegmentPair >& chunks, double gamma ) const;
+
+    void traceback(std::vector<SegmentPair> &chunks, double gamma) const {
+      if (outputType==5) traceback_centroid(chunks, gamma);
+      if (outputType==6) traceback_ama(chunks, gamma);
+    }
 
     double dp_centroid( double gamma );
     void traceback_centroid( std::vector< SegmentPair >& chunks, double gamma ) const;
@@ -79,10 +86,10 @@ namespace cbrc{
     double logPartitionFunction() const;  // a.k.a. full score, forward score
 
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
-    void computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
-				 size_t start1, size_t start2, bool isForward,
-				 const GeneralizedAffineGapCosts& gap,
-				 ExpectedCount& count ) const;
+    void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
+			       size_t start1, size_t start2, bool isExtendFwd,
+			       const GeneralizedAffineGapCosts& gap,
+			       ExpectedCount& count) const;
 
   private:
     typedef double ExpMatrixRow[scoreMatrixRowSize];
@@ -122,17 +129,23 @@ namespace cbrc{
     size_t bestPos1;
 
     void forward(const uchar* seq1, const uchar* seq2,
-		 const ExpMatrixRow* pssm, bool isForward,
+		 const ExpMatrixRow* pssm, bool isExtendFwd,
 		 const GeneralizedAffineGapCosts& gap, int globality);
 
     void backward(const uchar* seq1, const uchar* seq2,
-		  const ExpMatrixRow* pssm, bool isForward,
+		  const ExpMatrixRow* pssm, bool isExtendFwd,
 		  const GeneralizedAffineGapCosts& gap, int globality);
 
     void initForwardMatrix();
     void initBackwardMatrix();
 
-    void updateScore( double score, size_t antiDiagonal, size_t cur );
+    void updateScore(double score, size_t antiDiagonal, size_t cur) {
+      if (bestScore < score) {
+	bestScore = score;
+	bestAntiDiagonal = antiDiagonal;
+	bestPos1 = cur;
+      }
+    }
 
     // start of the x-drop region (i.e. number of skipped seq1 letters
     // before the x-drop region) for this antidiagonal
