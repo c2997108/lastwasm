@@ -463,8 +463,12 @@ double temperature_)
 		double GaplessPreliminaryTime=CurrentTimeGaplessPreliminary-CurrentTime1;
 
 		//the choice for the importance sampling
-		long int gapOpen=alp_data::Tmin(gapOpen1_,gapOpen2_);
-		long int gapEpen=alp_data::Tmin(gapEpen1_,gapEpen2_);
+		//long int gapOpen=alp_data::Tmin(gapOpen1_,gapOpen2_);
+		//long int gapEpen=alp_data::Tmin(gapEpen1_,gapEpen2_);
+
+		long int gapEpen = alp_data::Tmin(gapEpen1_, gapEpen2_);
+		long int gapOpen = alp_data::Tmin(gapOpen1_ + gapEpen1_, gapOpen2_ + gapEpen2_) - gapEpen;
+
 
 		if(max_time_<=0)
 		{
