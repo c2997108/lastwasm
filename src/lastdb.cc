@@ -215,7 +215,8 @@ void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
     }
 
     LOG( "sorting..." );
-    myIndex.sortIndex( seq, args.minSeedLimit, args.childTableType );
+    myIndex.sortIndex( seq, args.minSeedLimit, args.childTableType,
+		       numOfThreads );
 
     LOG( "bucketing..." );
     myIndex.makeBuckets( seq, args.bucketDepth );
