@@ -160,7 +160,8 @@ Advanced Options
       is equivalent to "-a ACDEFGHIKLMNPQRSTVWY".  Non-alphabet
       letters are allowed in sequences, but by default they are
       excluded from initial matches and get the mismatch score when
-      aligned to anything.  If -a is specified, -p is ignored.
+      aligned to anything.  As a special case, for the DNA alphabet,
+      Us are converted to Ts.  If -a is specified, -p is ignored.
 
   -i MATCHES
       This option makes lastdb faster, at the expense of limiting your

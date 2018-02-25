@@ -179,6 +179,9 @@ trap 'rm -f $db*' EXIT
     # first alignments only
     try lastal -N2 $db hg19-M.fa
 
+    # "U" nucleotide
+    try "tr Tt Uu < hg19-M.fa | lastal -N2 $db"
+
     # -x %
     try lastal -W19 -x50% -fTAB $db hg19-M.fa
 

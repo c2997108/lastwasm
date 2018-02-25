@@ -96,6 +96,11 @@ void Alphabet::initCaseConversions( unsigned codeEnd ) {
     numbersToLowercase[i] = i;
   }
 
+  if (letters == dna) {  // kludge for RNA:
+    encode['U'] = encode['T'];
+    encode['u'] = encode['t'];
+  }
+
   for( unsigned i = 0; i < capacity; ++i ){
     lettersToUppercase[i] = numbersToUppercase[ encode[i] ];
   }
