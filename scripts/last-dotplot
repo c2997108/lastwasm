@@ -285,7 +285,7 @@ def nameKey(oneSeqRanges):
     return natural_sort_key(oneSeqRanges[0][0])
 
 def sizeKey(oneSeqRanges):
-    return sum(b - e for n, b, e in oneSeqRanges), nameKey(oneSeqRanges)
+    return sum(b - e for n, b, e, s in oneSeqRanges), nameKey(oneSeqRanges)
 
 def alignmentKey(seqNamesToLists, oneSeqRanges):
     seqName = oneSeqRanges[0][0]
