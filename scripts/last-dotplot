@@ -479,7 +479,7 @@ def strandAndOrigin(ranges, beg, size):
     if isReverseStrand:
         beg = -(beg + size)
     for rangeBeg, rangeEnd, isReverseRange, origin in ranges:
-        if rangeEnd > beg:
+        if rangeEnd > beg:  # assumes the ranges are sorted
             return (isReverseStrand != isReverseRange), origin
 
 def alignmentPixels(width, height, alignments, bp_per_pix,
@@ -698,7 +698,7 @@ def rangesWithOrigins(sortedRanges, rangePixBegs, rangePixLens, bpPerPix):
 def rangesPerSeq(sortedRanges, rangePixBegs, rangePixLens, bpPerPix):
     a = rangesWithOrigins(sortedRanges, rangePixBegs, rangePixLens, bpPerPix)
     for k, v in itertools.groupby(a, itemgetter(0)):
-        yield k, [i[1] for i in v]
+        yield k, sorted(i[1] for i in v)
 
 def getFont(opts):
     if opts.fontfile:
