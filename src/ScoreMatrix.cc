@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <cctype>  // toupper, tolower
-#include <cstddef>  // size_t
+#include <stddef.h>  // size_t
 //#include <iostream>  // for debugging
 
 #define ERR(x) throw std::runtime_error(x)
@@ -19,7 +19,7 @@
 namespace cbrc{
 
 const char *ScoreMatrix::canonicalName( const std::string& name ){
-  for( std::size_t i = 0; i < COUNTOF(scoreMatrixNicknames); ++i )
+  for( size_t i = 0; i < COUNTOF(scoreMatrixNicknames); ++i )
     if( name == scoreMatrixNicknames[i].nickname )
       return scoreMatrixNicknames[i].realname;
   return name.c_str();
@@ -28,7 +28,7 @@ const char *ScoreMatrix::canonicalName( const std::string& name ){
 std::string ScoreMatrix::stringFromName( const std::string& name ){
   std::string n = canonicalName( name );
 
-  for( std::size_t i = 0; i < COUNTOF(scoreMatrices); ++i )
+  for( size_t i = 0; i < COUNTOF(scoreMatrices); ++i )
     if( n == scoreMatrices[i].name )
       return scoreMatrices[i].text;
 
@@ -39,11 +39,11 @@ void ScoreMatrix::matchMismatch( int match, int mismatch,
 				 const std::string& letters ){
   rows = letters;
   cols = letters;
-  std::size_t size = letters.size();
+  size_t size = letters.size();
 
   cells.resize( size );
 
-  for( std::size_t i = 0; i < size; ++i ){
+  for( size_t i = 0; i < size; ++i ){
     cells[i].assign( size, -mismatch );
     cells[i][i] = match;
   }
@@ -55,7 +55,7 @@ void ScoreMatrix::fromString( const std::string& matString ){
   if( !iss ) ERR( "can't read the score matrix" );
 }
 
-void ScoreMatrix::init( const uchar encode[] ){
+void ScoreMatrix::init(const uchar symbolToIndex[]) {
   assert( !rows.empty() && !cols.empty() );
 
   for( std::string::iterator i = rows.begin(); i < rows.end(); ++i )
@@ -67,8 +67,8 @@ void ScoreMatrix::init( const uchar encode[] ){
   minScore = cells[0][0];
   maxScore = cells[0][0];
 
-  for( std::size_t i = 0; i < rows.size(); ++i ){
-    for( std::size_t j = 0; j < cols.size(); ++j ){
+  for( size_t i = 0; i < rows.size(); ++i ){
+    for( size_t j = 0; j < cols.size(); ++j ){
       minScore = std::min( minScore, cells[i][j] );
       maxScore = std::max( maxScore, cells[i][j] );
     }
@@ -82,12 +82,12 @@ void ScoreMatrix::init( const uchar encode[] ){
     }
   }
 
-  for( std::size_t i = 0; i < rows.size(); ++i ){
-    for( std::size_t j = 0; j < cols.size(); ++j ){
-      uchar x = encode[ uchar(rows[i]) ];
-      uchar y = encode[ uchar(cols[j]) ];
-      uchar a = encode[ std::tolower( rows[i] ) ];
-      uchar b = encode[ std::tolower( cols[j] ) ];
+  for( size_t i = 0; i < rows.size(); ++i ){
+    for( size_t j = 0; j < cols.size(); ++j ){
+      uchar x = symbolToIndex[ uchar(rows[i]) ];
+      uchar y = symbolToIndex[ uchar(cols[j]) ];
+      uchar a = symbolToIndex[ std::tolower( rows[i] ) ];
+      uchar b = symbolToIndex[ std::tolower( cols[j] ) ];
       if( a >= MAT )
         ERR( std::string("bad letter in score matrix: ") + rows[i] );
       if( b >= MAT )
@@ -105,7 +105,7 @@ void ScoreMatrix::init( const uchar encode[] ){
 
   // set a hugely negative score for the delimiter symbol:
   uchar delimiter = ' ';
-  uchar z = encode[delimiter];
+  uchar z = symbolToIndex[delimiter];
   assert( z < MAT );
   for( unsigned i = 0; i < MAT; ++i ){
     caseSensitive[z][i] = -INF;
@@ -117,14 +117,14 @@ void ScoreMatrix::init( const uchar encode[] ){
 
 void ScoreMatrix::writeCommented( std::ostream& stream ) const{
   stream << "# " << ' ';
-  for( std::size_t i = 0; i < cols.size(); ++i ){
+  for( size_t i = 0; i < cols.size(); ++i ){
     stream << ' ' << std::setw(OUTPAD) << cols[i];
   }
   stream << '\n';
 
-  for( std::size_t i = 0; i < rows.size(); ++i ){
+  for( size_t i = 0; i < rows.size(); ++i ){
     stream << "# " << rows[i];
-    for( std::size_t j = 0; j < cols.size(); ++j ){
+    for( size_t j = 0; j < cols.size(); ++j ){
       stream << ' ' << std::setw(OUTPAD) << cells[i][j];
     }
     stream << '\n';
@@ -170,21 +170,4 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
   return stream;
 }
 
-std::ostream& operator<<( std::ostream& stream, const ScoreMatrix& m ){
-  for( std::size_t i = 0; i < m.cols.size(); ++i ){
-    stream << ' ' << std::setw(m.OUTPAD) << m.cols[i];
-  }
-  stream << '\n';
-
-  for( std::size_t i = 0; i < m.rows.size(); ++i ){
-    stream << m.rows[i];
-    for( std::size_t j = 0; j < m.cols.size(); ++j ){
-      stream << ' ' << std::setw(m.OUTPAD) << m.cells[i][j];
-    }
-    stream << '\n';
-  }
-
-  return stream;
 }
-
-}  // end namespace cbrc

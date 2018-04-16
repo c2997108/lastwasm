@@ -29,8 +29,8 @@ void QualityPssmMaker::init(const ScoreMatrixRow *scoreMatrix,
   this->isMatchMismatchMatrix = isMatchMismatchMatrix;
   this->toUnmasked = toUnmasked;
 
-  double matchExp = std::exp(lambda * matchScore);
-  double mismatchExp = std::exp(lambda * mismatchScore);
+  double matchExp = probFromScore(lambda, matchScore);
+  double mismatchExp = probFromScore(lambda, mismatchScore);
 
   for (int q = 0; q < qualityCapacity; ++q) {
     double e = errorProbFromQual(q, qualityOffset, false);
@@ -40,12 +40,12 @@ void QualityPssmMaker::init(const ScoreMatrixRow *scoreMatrix,
     double expScore = p * matchExp + e * mismatchExp;
     assert(p > 0);
     assert(expScore > 0);
-    qualityToMatchScore[q] = nearestInt(std::log(expScore) / lambda);
+    qualityToMatchScore[q] = scoreFromProb(lambda, expScore);
   }
 
   for (int i = 0; i < scoreMatrixRowSize; ++i)
     for (int j = 0; j < scoreMatrixRowSize; ++j)
-      expMatrix[i][j] = std::exp(lambda * scoreMatrix[i][j]);  // can be 0
+      expMatrix[i][j] = probFromScore(lambda, scoreMatrix[i][j]);  // can be 0
 }
 
 // This function is a wee bit slow, even if isMatchMismatchMatrix and
@@ -88,7 +88,7 @@ void QualityPssmMaker::make(const uchar *sequenceBeg,
           double expScore = std::inner_product(letterProbs, letterProbsEnd,
                                                expMatrix[unmasked1], 0.0);
           assert(expScore > 0);
-          score = nearestInt(std::log(expScore) / lambda);
+          score = scoreFromProb(lambda, expScore);
         }
       }
 

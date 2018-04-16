@@ -18,6 +18,14 @@ inline int nearestInt(double x) {
   else       return -static_cast<int>(0.5 - x);
 }
 
+inline double probFromScore(double lambda, int score) {
+  return std::exp(lambda * score);
+}
+
+inline int scoreFromProb(double lambda, double prob) {
+  return nearestInt(std::log(prob) / lambda);
+}
+
 inline double phredErrorProb(int qualityScore) {
   if (qualityScore < 0) qualityScore = 0;
   return std::pow(10.0, -0.1 * qualityScore);
@@ -51,7 +59,7 @@ inline double qualityCertainty(double errorProb, double letterProb) {
 inline int qualityPairScore(double expScore, double certainty1,
 			    double certainty2, double lambda) {
   double x = certainty1 * certainty2 * (expScore - 1) + 1;
-  return nearestInt(std::log(x) / lambda);
+  return scoreFromProb(lambda, x);
 }
 
 inline void checkQualityCodes(const uchar *qualityBeg,
