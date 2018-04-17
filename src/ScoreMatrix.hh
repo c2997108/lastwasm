@@ -25,7 +25,9 @@ struct ScoreMatrix{
   static const char *canonicalName( const std::string& name );
   static std::string stringFromName( const std::string& name );
 
-  void matchMismatch( int match, int mismatch, const std::string& letters );
+  void setMatchMismatch(int matchScore,  // usually > 0
+			int mismatchCost,  // usually > 0
+			const std::string& symbols);  // case is preserved
 
   void fromString( const std::string& s );
 
@@ -33,8 +35,8 @@ struct ScoreMatrix{
 
   void writeCommented( std::ostream& stream ) const;  // write preceded by "#"
 
-  std::string rows;                       // row headings (letters)
-  std::string cols;                       // column headings (letters)
+  std::string rowSymbols;  // row headings (letters)
+  std::string colSymbols;  // column headings (letters)
   std::vector< std::vector<int> > cells;  // scores
   int caseSensitive[MAT][MAT];
   int caseInsensitive[MAT][MAT];

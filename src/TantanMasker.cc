@@ -37,7 +37,7 @@ T -5 -5 -5  2\n\
     s.fromString(ScoreMatrix::stringFromName("BL62"));
   } else {
     alphabetSize = alphabet.size();
-    s.matchMismatch(1, 1, alphabet);
+    s.setMatchMismatch(1, 1, alphabet);
   }
 
   s.init(letterToIndex);

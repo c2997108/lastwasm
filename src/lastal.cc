@@ -103,8 +103,8 @@ void makeScoreMatrix( const std::string& matrixName,
     scoreMatrix.fromString( matrixFile );
   }
   else{
-    scoreMatrix.matchMismatch( args.matchScore, args.mismatchCost,
-			       alph.letters );
+    scoreMatrix.setMatchMismatch( args.matchScore, args.mismatchCost,
+				  alph.letters );
   }
 
   scoreMatrix.init( alph.encode );

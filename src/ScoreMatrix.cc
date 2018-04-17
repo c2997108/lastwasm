@@ -35,17 +35,17 @@ std::string ScoreMatrix::stringFromName( const std::string& name ){
   return slurp( n.c_str() );
 }
 
-void ScoreMatrix::matchMismatch( int match, int mismatch,
-				 const std::string& letters ){
-  rows = letters;
-  cols = letters;
-  size_t size = letters.size();
+void ScoreMatrix::setMatchMismatch(int matchScore, int mismatchCost,
+				   const std::string& symbols) {
+  rowSymbols.assign(symbols.begin(), symbols.end());
+  colSymbols.assign(symbols.begin(), symbols.end());
 
-  cells.resize( size );
+  size_t size = symbols.size();
+  cells.resize(size);
 
-  for( size_t i = 0; i < size; ++i ){
-    cells[i].assign( size, -mismatch );
-    cells[i][i] = match;
+  for (size_t i = 0; i < size; ++i) {
+    cells[i].assign(size, -mismatchCost);
+    cells[i][i] = matchScore;
   }
 }
 
@@ -56,19 +56,19 @@ void ScoreMatrix::fromString( const std::string& matString ){
 }
 
 void ScoreMatrix::init(const uchar symbolToIndex[]) {
-  assert( !rows.empty() && !cols.empty() );
+  assert( !rowSymbols.empty() && !colSymbols.empty() );
 
-  for( std::string::iterator i = rows.begin(); i < rows.end(); ++i )
+  for (std::string::iterator i = rowSymbols.begin(); i < rowSymbols.end(); ++i)
     *i = std::toupper( *i );
 
-  for( std::string::iterator i = cols.begin(); i < cols.end(); ++i )
+  for (std::string::iterator i = colSymbols.begin(); i < colSymbols.end(); ++i)
     *i = std::toupper( *i );
 
   minScore = cells[0][0];
   maxScore = cells[0][0];
 
-  for( size_t i = 0; i < rows.size(); ++i ){
-    for( size_t j = 0; j < cols.size(); ++j ){
+  for( size_t i = 0; i < rowSymbols.size(); ++i ){
+    for( size_t j = 0; j < colSymbols.size(); ++j ){
       minScore = std::min( minScore, cells[i][j] );
       maxScore = std::max( maxScore, cells[i][j] );
     }
@@ -82,16 +82,16 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
     }
   }
 
-  for( size_t i = 0; i < rows.size(); ++i ){
-    for( size_t j = 0; j < cols.size(); ++j ){
-      uchar x = symbolToIndex[ uchar(rows[i]) ];
-      uchar y = symbolToIndex[ uchar(cols[j]) ];
-      uchar a = symbolToIndex[ std::tolower( rows[i] ) ];
-      uchar b = symbolToIndex[ std::tolower( cols[j] ) ];
+  for( size_t i = 0; i < rowSymbols.size(); ++i ){
+    for( size_t j = 0; j < colSymbols.size(); ++j ){
+      uchar x = symbolToIndex[ uchar(rowSymbols[i]) ];
+      uchar y = symbolToIndex[ uchar(colSymbols[j]) ];
+      uchar a = symbolToIndex[ std::tolower( rowSymbols[i] ) ];
+      uchar b = symbolToIndex[ std::tolower( colSymbols[j] ) ];
       if( a >= MAT )
-        ERR( std::string("bad letter in score matrix: ") + rows[i] );
+        ERR( std::string("bad letter in score matrix: ") + rowSymbols[i] );
       if( b >= MAT )
-        ERR( std::string("bad letter in score matrix: ") + cols[j] );
+        ERR( std::string("bad letter in score matrix: ") + colSymbols[j] );
       caseSensitive[x][b] = std::min( cells[i][j], 0 );
       caseSensitive[a][y] = std::min( cells[i][j], 0 );
       caseSensitive[a][b] = std::min( cells[i][j], 0 );
@@ -117,14 +117,14 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
 
 void ScoreMatrix::writeCommented( std::ostream& stream ) const{
   stream << "# " << ' ';
-  for( size_t i = 0; i < cols.size(); ++i ){
-    stream << ' ' << std::setw(OUTPAD) << cols[i];
+  for( size_t i = 0; i < colSymbols.size(); ++i ){
+    stream << ' ' << std::setw(OUTPAD) << colSymbols[i];
   }
   stream << '\n';
 
-  for( size_t i = 0; i < rows.size(); ++i ){
-    stream << "# " << rows[i];
-    for( size_t j = 0; j < cols.size(); ++j ){
+  for( size_t i = 0; i < rowSymbols.size(); ++i ){
+    stream << "# " << rowSymbols[i];
+    for( size_t j = 0; j < colSymbols.size(); ++j ){
       stream << ' ' << std::setw(OUTPAD) << cells[i][j];
     }
     stream << '\n';
@@ -132,8 +132,8 @@ void ScoreMatrix::writeCommented( std::ostream& stream ) const{
 }
 
 std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
-  std::string tmpRows;
-  std::string tmpCols;
+  std::string tmpRowSymbols;
+  std::string tmpColSymbols;
   std::vector< std::vector<int> > tmpCells;
   std::string line;
   int state = 0;
@@ -145,25 +145,27 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
     if( state == 0 ){
       if( c == '#' ) continue;  // skip comment lines at the top
       do{
-	tmpCols.push_back(c);
+	tmpColSymbols.push_back(c);
       }while( iss >> c );
       state = 1;
     }
     else{
-      tmpRows.push_back(c);
+      tmpRowSymbols.push_back(c);
       tmpCells.resize( tmpCells.size() + 1 );
       int score;
       while( iss >> score ){
 	tmpCells.back().push_back(score);
       }
-      if( tmpCells.back().size() != tmpCols.size() ) ERR( "bad score matrix" );
+      if (tmpCells.back().size() != tmpColSymbols.size()) {
+	ERR("bad score matrix");
+      }
     }
   }
 
-  if( stream.eof() && !stream.bad() && !tmpRows.empty() ){
+  if( stream.eof() && !stream.bad() && !tmpRowSymbols.empty() ){
     stream.clear();
-    m.rows.swap(tmpRows);
-    m.cols.swap(tmpCols);
+    m.rowSymbols.swap(tmpRowSymbols);
+    m.colSymbols.swap(tmpColSymbols);
     m.cells.swap(tmpCells);
   }
 
