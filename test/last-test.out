@@ -6,11 +6,11 @@ TEST lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 /tmp/last-test gal
 # Reference sequences=2 normal letters=17803
 # lambda=0.00944633 K=0.095059
 #
-#    A  C  G  T  N
-# A 91 -114 -31 -123 -100
+#     A   C   G   T   N
+# A  91 -114 -31 -123 -100
 # C -114 100 -125 -31 -100
 # G -31 -125 100 -114 -100
-# T -123 -31 -114 91 -100
+# T -123 -31 -114  91 -100
 # N -100 -100 -100 -100 -100
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
@@ -100,11 +100,11 @@ TEST lastal -fTAB -i1 -w0 -e40 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -179,11 +179,11 @@ TEST lastal -Q1 -e90 -a9 /tmp/last-test SRR001981-1k.fastq
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -350,11 +350,11 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -376,11 +376,11 @@ TEST lastal -s0 -f0 -p asymmetric.mat -e2000 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=2 normal letters=17803
 # lambda=0.00991067 K=0.062759
 #
-#    A  C  G  T
-# A 53 -51 -51 -69
-# C -11 88 -92 -11
-# G -11 -92 88 -11
-# T -69 -51 -51 53
+#     A   C   G   T
+# A  53 -51 -51 -69
+# C -11  88 -92 -11
+# G -11 -92  88 -11
+# T -69 -51 -51  53
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -402,11 +402,11 @@ TEST lastal -Q3 -e110 /tmp/last-test illumina100.txt
 # Reference sequences=2 normal letters=17803
 # lambda=0.228526 K=0.433378
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -434,11 +434,11 @@ TEST lastal -Q4 -e90 /tmp/last-test mouse_tss_prb.txt
 # Reference sequences=2 normal letters=17803
 # lambda=0.228526 K=0.433378
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -481,11 +481,11 @@ TEST lastal -Q1 -j6 -e90 -a9 /tmp/last-test SRR001981-1k.fastq
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -579,11 +579,11 @@ TEST lastal -r3 -q3 -a21 -c2 -e60 -f0 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=2 normal letters=17803
 # lambda=0.365408 K=0.245627
 #
-#    A  C  G  T
-# A  3 -3 -3 -3
-# C -3  3 -3 -3
-# G -3 -3  3 -3
-# T -3 -3 -3  3
+#     A   C   G   T
+# A   3  -3  -3  -3
+# C  -3   3  -3  -3
+# G  -3  -3   3  -3
+# T  -3  -3  -3   3
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -725,11 +725,11 @@ TEST lastal -Q1 -r1 -q2 -a1 -b1 -e44 -m100 -s0 /tmp/last-test sd-ccs-100.fq
 # Reference sequences=100 normal letters=45801
 # lambda=1.13866 K=0.257584
 #
-#    A  C  G  T
-# A  1 -2 -2 -2
-# C -2  1 -2 -2
-# G -2 -2  1 -2
-# T -2 -2 -2  1
+#     A   C   G   T
+# A   1  -2  -2  -2
+# C  -2   1  -2  -2
+# G  -2  -2   1  -2
+# T  -2  -2  -2   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -764,11 +764,11 @@ TEST lastal -Q1 -e90 -a9 -f0 /tmp/last-test0 SRR001981-1k.fastq
 # Reference sequences=1 normal letters=16775
 # lambda=0.22361 K=0.374766
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -802,11 +802,11 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -828,11 +828,11 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -854,11 +854,11 @@ TEST lastal -T1 -Q1 -e60 -a9 -f0 /tmp/last-test SRR001981-1k.fastq
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -883,11 +883,11 @@ TEST lastal -T1 -Q1 -e60 -a9 -j4 /tmp/last-test SRR001981-1k.fastq
 # Reference sequences=2 normal letters=17803
 # lambda=0.22361 K=0.374766
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -933,11 +933,11 @@ TEST lastal -T1 -Q1 -e60 -j1 -fTAB /tmp/last-test SRR001981-1k.fastq
 # Reference sequences=2 normal letters=17803
 # lambda=0.229011 K=0.710602
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -963,11 +963,11 @@ TEST lastal -s0 -e18 -j7 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1016,11 +1016,11 @@ TEST lastal -e34 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1046,11 +1046,11 @@ TEST lastal -pHOXD70 -e4500 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=1 normal letters=16571
 # lambda=0.00944633 K=0.095059
 #
-#    A  C  G  T  N
-# A 91 -114 -31 -123 -100
+#     A   C   G   T   N
+# A  91 -114 -31 -123 -100
 # C -114 100 -125 -31 -100
 # G -31 -125 100 -114 -100
-# T -123 -31 -114 91 -100
+# T -123 -31 -114  91 -100
 # N -100 -100 -100 -100 -100
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
@@ -1072,11 +1072,11 @@ TEST lastal -e34 -C2 -f0 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1102,11 +1102,11 @@ TEST lastal -e34 -f0 -l30 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1167,11 +1167,11 @@ TEST lastal -e40 /tmp/last-test hg19-M.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1308,11 +1308,11 @@ TEST lastal -pAT77 -e100 -s0 /tmp/last-test at-rich.fa
 # Reference sequences=1 normal letters=59940
 # lambda=0.336172 K=0.189772
 #
-#    A  C  G  T
-# A  2 -3 -2 -3
-# C -3  5 -3 -2
-# G -2 -3  5 -3
-# T -3 -2 -3  2
+#     A   C   G   T
+# A   2  -3  -2  -3
+# C  -3   5  -3  -2
+# G  -2  -3   5  -3
+# T  -3  -2  -3   2
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1410,11 +1410,11 @@ TEST lastal -Q1 -a15 -b3 -e80 /tmp/last-test nano.fq
 # Reference sequences=2 normal letters=17803
 # lambda=0.219611 K=0.335483
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1439,11 +1439,11 @@ lastal: quality data not used for non-fastq query versus fastq reference
 # Reference sequences=100 normal letters=45801
 # lambda=0.661467 K=0.0260716
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1478,11 +1478,11 @@ lastal: quality data not used for non-fastq query versus fastq reference
 # Reference sequences=100 normal letters=45801
 # lambda=0.192713 K=0.203529
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -1921,11 +1921,11 @@ TEST lastal -S1 -pBISF -Q1 -e120 -f0 -j4 /tmp/last-test bs100.fastq
 # Reference sequences=1 normal letters=16571
 # lambda=0.22862 K=0.399124
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18  3
-# G -18 -18  6 -18
-# T -18 -18 -18  3
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18   3
+# G -18 -18   6 -18
+# T -18 -18 -18   3
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2038,11 +2038,11 @@ TEST lastal -D1000 -fTAB -K2 /tmp/last-test galGal3-M-32.fa
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2210,11 +2210,11 @@ TEST lastal -W19 -fTAB /tmp/last-test hg19-M.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2250,11 +2250,11 @@ TEST lastal -W1 -M -fTAB /tmp/last-test hg19-M.fa
 # Reference sequences=2 normal letters=17803
 # lambda=0.545793 K=0.198192
 #
-#    A  C  G  T
-# A  2 -3 -3 -3
-# C -3  2 -3 -3
-# G -3 -3  2 -3
-# T -3 -3 -3  2
+#     A   C   G   T
+# A   2  -3  -3  -3
+# C  -3   2  -3  -3
+# G  -3  -3   2  -3
+# T  -3  -3  -3   2
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2289,11 +2289,11 @@ TEST lastal -fTAB -j4 -A2 -B2 /tmp/last-test hg19-M.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09024 K=0.30481
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2332,11 +2332,11 @@ TEST lastal -fTAB -j4 -Q1 -e90 -a7 -A12 -B4 /tmp/last-test SRR001981-1k.fastq
 # Reference sequences=2 normal letters=17803
 # lambda=0.218273 K=0.335682
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2370,11 +2370,11 @@ TEST lastal -N2 /tmp/last-test hg19-M.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2404,11 +2404,11 @@ TEST tr Tt Uu < hg19-M.fa | lastal -N2 /tmp/last-test
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2438,11 +2438,11 @@ TEST lastal -W19 -x50% -fTAB /tmp/last-test hg19-M.fa
 # Reference sequences=2 normal letters=17803
 # lambda=1.09602 K=0.335388
 #
-#    A  C  G  T
-# A  1 -1 -1 -1
-# C -1  1 -1 -1
-# G -1 -1  1 -1
-# T -1 -1 -1  1
+#     A   C   G   T
+# A   1  -1  -1  -1
+# C  -1   1  -1  -1
+# G  -1  -1   1  -1
+# T  -1  -1  -1   1
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.
@@ -2496,11 +2496,11 @@ TEST lastal -Q1 -T1 -j1 -s0 /tmp/last-test SRR001981-1k.fastq
 # Reference sequences=1000 normal letters=35941
 # lambda=0.229011 K=0.710602
 #
-#    A  C  G  T
-# A  6 -18 -18 -18
-# C -18  6 -18 -18
-# G -18 -18  6 -18
-# T -18 -18 -18  6
+#     A   C   G   T
+# A   6 -18 -18 -18
+# C -18   6 -18 -18
+# G -18 -18   6 -18
+# T -18 -18 -18   6
 #
 # Coordinates are 0-based.  For - strand matches, coordinates
 # in the reverse complement of the 2nd sequence are used.

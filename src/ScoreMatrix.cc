@@ -16,6 +16,13 @@
 
 #define COUNTOF(a) (sizeof (a) / sizeof *(a))
 
+static void makeUppercase(std::string& s) {
+  for (size_t i = 0; i < s.size(); ++i) {
+    unsigned char c = s[i];
+    s[i] = std::toupper(c);
+  }
+}
+
 namespace cbrc{
 
 const char *ScoreMatrix::canonicalName( const std::string& name ){
@@ -55,14 +62,21 @@ void ScoreMatrix::fromString( const std::string& matString ){
   if( !iss ) ERR( "can't read the score matrix" );
 }
 
+static void upperAndLowerIndex(unsigned tooBig, const uchar *symbolToIndex,
+			       char symbol, unsigned& upper, unsigned& lower) {
+  uchar s = symbol;
+  upper = symbolToIndex[s];
+  lower = symbolToIndex[std::tolower(s)];
+  if (upper >= tooBig || lower >= tooBig) {
+    ERR(std::string("bad letter in score matrix: ") + symbol);
+  }
+}
+
 void ScoreMatrix::init(const uchar symbolToIndex[]) {
   assert( !rowSymbols.empty() && !colSymbols.empty() );
 
-  for (std::string::iterator i = rowSymbols.begin(); i < rowSymbols.end(); ++i)
-    *i = std::toupper( *i );
-
-  for (std::string::iterator i = colSymbols.begin(); i < colSymbols.end(); ++i)
-    *i = std::toupper( *i );
+  makeUppercase(rowSymbols);
+  makeUppercase(colSymbols);
 
   minScore = cells[0][0];
   maxScore = cells[0][0];
@@ -84,14 +98,9 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
 
   for( size_t i = 0; i < rowSymbols.size(); ++i ){
     for( size_t j = 0; j < colSymbols.size(); ++j ){
-      uchar iu = symbolToIndex[ uchar(rowSymbols[i]) ];
-      uchar ju = symbolToIndex[ uchar(colSymbols[j]) ];
-      uchar il = symbolToIndex[ std::tolower( rowSymbols[i] ) ];
-      uchar jl = symbolToIndex[ std::tolower( colSymbols[j] ) ];
-      if( il >= MAT )
-        ERR( std::string("bad letter in score matrix: ") + rowSymbols[i] );
-      if( jl >= MAT )
-        ERR( std::string("bad letter in score matrix: ") + colSymbols[j] );
+      unsigned iu, il, ju, jl;
+      upperAndLowerIndex(MAT, symbolToIndex, rowSymbols[i], iu, il);
+      upperAndLowerIndex(MAT, symbolToIndex, colSymbols[j], ju, jl);
       caseSensitive[iu][jl] = std::min( cells[i][j], 0 );
       caseSensitive[il][ju] = std::min( cells[i][j], 0 );
       caseSensitive[il][jl] = std::min( cells[i][j], 0 );
@@ -116,16 +125,18 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
 }
 
 void ScoreMatrix::writeCommented( std::ostream& stream ) const{
+  int colWidth = colSymbols.size() < 20 ? 3 : 2;
+
   stream << "# " << ' ';
   for( size_t i = 0; i < colSymbols.size(); ++i ){
-    stream << ' ' << std::setw(OUTPAD) << colSymbols[i];
+    stream << ' ' << std::setw(colWidth) << colSymbols[i];
   }
   stream << '\n';
 
   for( size_t i = 0; i < rowSymbols.size(); ++i ){
     stream << "# " << rowSymbols[i];
     for( size_t j = 0; j < colSymbols.size(); ++j ){
-      stream << ' ' << std::setw(OUTPAD) << cells[i][j];
+      stream << ' ' << std::setw(colWidth) << cells[i][j];
     }
     stream << '\n';
   }

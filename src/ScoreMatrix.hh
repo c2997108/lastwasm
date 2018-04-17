@@ -20,7 +20,6 @@ typedef unsigned char uchar;
 struct ScoreMatrix{
   enum { INF = INT_MAX / 2 };  // big, but try to avoid overflow
   enum { MAT = 64 };           // matrix size = MAT x MAT
-  enum { OUTPAD = 2 };         // cell-padding for output
 
   static const char *canonicalName( const std::string& name );
   static std::string stringFromName( const std::string& name );
