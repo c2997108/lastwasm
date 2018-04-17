@@ -96,6 +96,43 @@ void complementMatrix(const ScoreMatrixRow *from, ScoreMatrixRow *to) {
       to[i][j] = from[alph.complement[i]][alph.complement[j]];
 }
 
+// Meaningless for PSSMs, unless they have the same scale as the score matrix
+static void calculateSubstitutionScoreMatrixStatistics() {
+  LOG( "calculating matrix probabilities..." );
+  // the case-sensitivity of the matrix makes no difference here
+  lambdaCalculator.calculate( scoreMatrix.caseSensitive, alph.size );
+
+  if( lambdaCalculator.isBad() ){
+    if( isQuality( args.inputFormat ) ||
+        (args.temperature < 0 && args.outputType > 3) )
+      ERR( "can't calculate probabilities: "
+	   "maybe the mismatch costs are too weak" );
+    else
+      LOG( "can't calculate probabilities: "
+	   "maybe the mismatch costs are too weak" );
+    return;
+  }
+
+  const double *p1 = lambdaCalculator.letterProbs1();
+  const double *p2 = lambdaCalculator.letterProbs2();
+
+  LOG( "matrix lambda=" << lambdaCalculator.lambda() );
+  LOG( "matrix letter frequencies (upper=reference, lower=query):" );
+  if( args.verbosity > 0 ){
+    std::cerr << std::left;
+    std::streamsize p = std::cerr.precision(2);
+    unsigned e = alph.size;
+    for( unsigned i = 0; i < e; ++i )
+      std::cerr << std::setw(3) << alph.letters[i] << (i + 1 < e ? " " : "\n");
+    for( unsigned i = 0; i < e; ++i )
+      std::cerr << std::setw(3) << 100 * p1[i] << (i + 1 < e ? " " : "\n");
+    for( unsigned i = 0; i < e; ++i )
+      std::cerr << std::setw(3) << 100 * p2[i] << (i + 1 < e ? " " : "\n");
+    std::cerr.precision(p);
+    std::cerr << std::right;
+  }
+}
+
 // Set up a scoring matrix, based on the user options
 void makeScoreMatrix( const std::string& matrixName,
 		      const std::string& matrixFile ){
@@ -231,43 +268,9 @@ void makeQualityScorers(){
 }
 
 // Calculate statistical parameters for the alignment scoring scheme
-// Meaningless for PSSMs, unless they have the same scale as the score matrix
-void calculateScoreStatistics( const std::string& matrixName,
-			       countT refLetters ){
-  LOG( "calculating matrix probabilities..." );
-  // the case-sensitivity of the matrix makes no difference here
-  lambdaCalculator.calculate( scoreMatrix.caseSensitive, alph.size );
-
-  if( lambdaCalculator.isBad() ){
-    if( isQuality( args.inputFormat ) ||
-        (args.temperature < 0 && args.outputType > 3) )
-      ERR( "can't calculate probabilities: "
-	   "maybe the mismatch costs are too weak" );
-    else
-      LOG( "can't calculate probabilities: "
-	   "maybe the mismatch costs are too weak" );
-    return;
-  }
-
-  const double *p1 = lambdaCalculator.letterProbs1();
-  const double *p2 = lambdaCalculator.letterProbs2();
-
-  LOG( "matrix lambda=" << lambdaCalculator.lambda() );
-  LOG( "matrix letter frequencies (upper=reference, lower=query):" );
-  if( args.verbosity > 0 ){
-    std::cerr << std::left;
-    std::streamsize p = std::cerr.precision(2);
-    unsigned e = alph.size;
-    for( unsigned i = 0; i < e; ++i )
-      std::cerr << std::setw(3) << alph.letters[i] << (i + 1 < e ? " " : "\n");
-    for( unsigned i = 0; i < e; ++i )
-      std::cerr << std::setw(3) << 100 * p1[i] << (i + 1 < e ? " " : "\n");
-    for( unsigned i = 0; i < e; ++i )
-      std::cerr << std::setw(3) << 100 * p2[i] << (i + 1 < e ? " " : "\n");
-    std::cerr.precision(p);
-    std::cerr << std::right;
-  }
-
+static void calculateScoreStatistics(const std::string& matrixName,
+				     countT refLetters) {
+  calculateSubstitutionScoreMatrixStatistics();
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
   bool isGapped = (args.outputType > 1);
   bool isStandardGeneticCode = args.geneticCodeFile.empty();
@@ -275,7 +278,8 @@ void calculateScoreStatistics( const std::string& matrixName,
   try{
     evaluer.init( canonicalMatrixName, args.matchScore, args.mismatchCost,
                   alph.letters.c_str(), scoreMatrix.caseSensitive,
-                  p1, p2, isGapped,
+		  lambdaCalculator.letterProbs1(),
+		  lambdaCalculator.letterProbs2(), isGapped,
                   gapCosts.delExist, gapCosts.delExtend,
                   gapCosts.insExist, gapCosts.insExtend,
                   args.frameshiftCost, geneticCode, isStandardGeneticCode,

@@ -84,22 +84,22 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
 
   for( size_t i = 0; i < rowSymbols.size(); ++i ){
     for( size_t j = 0; j < colSymbols.size(); ++j ){
-      uchar x = symbolToIndex[ uchar(rowSymbols[i]) ];
-      uchar y = symbolToIndex[ uchar(colSymbols[j]) ];
-      uchar a = symbolToIndex[ std::tolower( rowSymbols[i] ) ];
-      uchar b = symbolToIndex[ std::tolower( colSymbols[j] ) ];
-      if( a >= MAT )
+      uchar iu = symbolToIndex[ uchar(rowSymbols[i]) ];
+      uchar ju = symbolToIndex[ uchar(colSymbols[j]) ];
+      uchar il = symbolToIndex[ std::tolower( rowSymbols[i] ) ];
+      uchar jl = symbolToIndex[ std::tolower( colSymbols[j] ) ];
+      if( il >= MAT )
         ERR( std::string("bad letter in score matrix: ") + rowSymbols[i] );
-      if( b >= MAT )
+      if( jl >= MAT )
         ERR( std::string("bad letter in score matrix: ") + colSymbols[j] );
-      caseSensitive[x][b] = std::min( cells[i][j], 0 );
-      caseSensitive[a][y] = std::min( cells[i][j], 0 );
-      caseSensitive[a][b] = std::min( cells[i][j], 0 );
-      caseSensitive[x][y] = cells[i][j];  // careful: maybe a==x or b==y
-      caseInsensitive[x][y] = cells[i][j];
-      caseInsensitive[x][b] = cells[i][j];
-      caseInsensitive[a][y] = cells[i][j];
-      caseInsensitive[a][b] = cells[i][j];
+      caseSensitive[iu][jl] = std::min( cells[i][j], 0 );
+      caseSensitive[il][ju] = std::min( cells[i][j], 0 );
+      caseSensitive[il][jl] = std::min( cells[i][j], 0 );
+      caseSensitive[iu][ju] = cells[i][j];  // careful: maybe il==iu or jl==ju
+      caseInsensitive[iu][ju] = cells[i][j];
+      caseInsensitive[iu][jl] = cells[i][j];
+      caseInsensitive[il][ju] = cells[i][j];
+      caseInsensitive[il][jl] = cells[i][j];
     }
   }
 
