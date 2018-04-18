@@ -144,7 +144,16 @@ void makeScoreMatrix( const std::string& matrixName,
 				  alph.letters );
   }
 
-  scoreMatrix.init( alph.encode );
+  scoreMatrix.init(alph.encode);
+  if (args.outputType > 0) {
+    calculateSubstitutionScoreMatrixStatistics();
+    if (alph.letters == alph.dna) {
+      scoreMatrix.addAmbiguousScores(alph.encode, lambdaCalculator.lambda(),
+				     lambdaCalculator.letterProbs1(),
+				     lambdaCalculator.letterProbs2());
+      scoreMatrix.init(alph.encode);
+    }
+  }
 
   // If the input is a PSSM, the score matrix is not used, and its
   // maximum score should not be used.  Here, we try to set it to a
@@ -270,7 +279,6 @@ void makeQualityScorers(){
 // Calculate statistical parameters for the alignment scoring scheme
 static void calculateScoreStatistics(const std::string& matrixName,
 				     countT refLetters) {
-  calculateSubstitutionScoreMatrixStatistics();
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
   bool isGapped = (args.outputType > 1);
   bool isStandardGeneticCode = args.geneticCodeFile.empty();

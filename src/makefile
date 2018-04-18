@@ -184,8 +184,8 @@ OneQualityScoreMatrix.o OneQualityScoreMatrix.o8: OneQualityScoreMatrix.cc \
  stringify.hh
 QualityPssmMaker.o QualityPssmMaker.o8: QualityPssmMaker.cc QualityPssmMaker.hh \
  ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
-ScoreMatrix.o ScoreMatrix.o8: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixData.hh zio.hh \
- mcf_zstream.hh
+ScoreMatrix.o ScoreMatrix.o8: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixData.hh \
+ qualityScoreUtil.hh stringify.hh zio.hh mcf_zstream.hh
 SegmentPair.o SegmentPair.o8: SegmentPair.cc SegmentPair.hh
 SegmentPairPot.o SegmentPairPot.o8: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh
 SubsetMinimizerFinder.o SubsetMinimizerFinder.o8: SubsetMinimizerFinder.cc \

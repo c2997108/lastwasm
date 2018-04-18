@@ -32,6 +32,12 @@ struct ScoreMatrix{
 
   void init(const uchar symbolToIndex[]);  // unspecified letters get minScore
 
+  // add scores for e.g. "W" meaning A or T
+  void addAmbiguousScores(const uchar symbolToIndex[],
+			  double scale,  // "lambda" for getting probabilities
+			  const double rowSymbolProbs[],
+			  const double colSymbolProbs[]);
+
   void writeCommented( std::ostream& stream ) const;  // write preceded by "#"
 
   std::string rowSymbols;  // row headings (letters)
