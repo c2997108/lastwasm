@@ -130,13 +130,19 @@ Score options
       `<last-matrices.html>`_.
 
       Any other NAME is assumed to be a file name.  For an example of
-      the format, see the matrix files in the data directory.  Any
-      letters that aren't in the matrix will get the lowest score in
-      the matrix when aligned to anything.  Asymmetric scores are
-      allowed: query letters correspond to columns and reference
-      letters correspond to rows.  Other options can be specified on
-      lines starting with "#last", but command line options override
-      them.
+      the format, see the matrix files in the data directory.
+      Asymmetric scores are allowed: query letters correspond to
+      columns and reference letters correspond to rows.
+
+      Any letters that aren't in the matrix get default match/mismatch
+      scores.  For doubly- and triply-ambiguous bases (such as "W"
+      meaning A or T), these default scores are derived from the ACGT
+      scores, and are shown in the header of lastal's output.  Any
+      other letters get the lowest score in the matrix when aligned to
+      anything.
+
+      Other options can be specified on lines starting with "#last",
+      but command line options override them.
 
   -a COST
       Gap existence cost.
