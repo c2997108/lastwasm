@@ -22,6 +22,12 @@ def myOpen(fileName):
         return gzip.open(fileName)
     return open(fileName)
 
+def complement(base):
+    x = "ACGTRYKMBDHV"
+    y = "TGCAYRMKVHDB"
+    i = x.find(base)
+    return y[i] if i >= 0 else base
+
 def getScoreMatrix(rowHeads, colHeads, matrix, deleteCost, insertCost):
     defaultScore = min(map(min, matrix))
     scoreMatrix = [[defaultScore for i in range(128)] for j in range(128)]
@@ -41,6 +47,13 @@ def getScoreMatrix(rowHeads, colHeads, matrix, deleteCost, insertCost):
         scoreMatrix[i][ord("-")] = -deleteCost
         scoreMatrix[ord("-")][i] = -insertCost
     return scoreMatrix
+
+def getScoreMatrices(rowHeads, colHeads, matrix, deleteCost, insertCost):
+    rowComps = [complement(i) for i in rowHeads]
+    colComps = [complement(i) for i in colHeads]
+    f = getScoreMatrix(rowHeads, colHeads, matrix, deleteCost, insertCost)
+    r = getScoreMatrix(rowComps, colComps, matrix, deleteCost, insertCost)
+    return f, r
 
 def isGoodAlignment(seqs, scoreMatrix, delOpenCost, insOpenCost, minScore):
     """Does the alignment have a segment with score >= minScore?"""
@@ -65,7 +78,8 @@ def printIfGood(maf, seqs, scoreMatrix, delOpenCost, insOpenCost, minScore):
         print
 
 def doOneFile(lines):
-    scoreMatrix = []
+    matrixStrand = 0
+    scoreMatrices = None
     maf = []
     seqs = []
 
@@ -79,6 +93,7 @@ def doOneFile(lines):
                 if i.startswith("A="): aIns = int(i[2:])
                 if i.startswith("B="): bIns = int(i[2:])
                 if i.startswith("e="): minScore = int(i[2:])
+                if i.startswith("S="): matrixStrand = int(i[2:])
             if len(w) > 1 and max(map(len, w)) == 1:
                 colHeads = w[1:]
                 rowHeads = []
@@ -91,11 +106,16 @@ def doOneFile(lines):
             maf = []
             seqs = []
         else:
-            if not scoreMatrix:
-                scoreMatrix = getScoreMatrix(rowHeads, colHeads, matrix,
-                                             bDel, bIns)
+            if not scoreMatrices:
+                scoreMatrices = getScoreMatrices(rowHeads, colHeads, matrix,
+                                                 bDel, bIns)
             maf.append(line)
-            if line[0] == "s": seqs.append(line.split()[6])
+            if line[0] == "s":
+                fields = line.split()
+                if len(seqs) == matrixStrand:
+                    strand = fields[4]
+                    scoreMatrix = scoreMatrices[strand == "-"]
+                seqs.append(fields[6])
     if seqs: printIfGood(maf, seqs, scoreMatrix, aDel, aIns, minScore)
 
 def lastPostmask(args):
