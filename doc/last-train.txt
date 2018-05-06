@@ -20,7 +20,7 @@ option <lastal.html#score-options>`_.
 
 You can also pipe sequences into last-train, for example::
 
-  zcat queries.fasta.gz | last-train mydb
+  bzcat queries.fasta.bz2 | last-train mydb
 
 Options
 -------
@@ -46,6 +46,10 @@ Training options
          Ignore alignments with > PID% identity.  This aims to
          optimize the parameters for low-similarity alignments,
          similarly to the BLOSUM matrices.
+  --postmask=NUMBER
+         By default, last-train ignores alignments of mostly-lowercase
+         sequence (by using `last-postmask <last-postmask.html>`_).
+         To turn this off, do ``--postmask=0``.
   --sample-number=N
          Use N randomly-chosen chunks of the query sequences.  The
          queries are chopped into fixed-length chunks (as if they were

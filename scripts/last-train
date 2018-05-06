@@ -336,9 +336,10 @@ def printGapCosts(gapCosts):
 
 def tryToMakeChildProgramsFindable():
     myDir = os.path.dirname(__file__)
-    srcDir = os.path.join(myDir, os.pardir, "src")
-    # put srcDir first, to avoid getting older versions of LAST:
-    os.environ["PATH"] = srcDir + os.pathsep + os.environ["PATH"]
+    x = os.path.join(myDir, os.pardir, "src")
+    y = os.path.join(myDir, os.pardir, "scripts")
+    # put them first, to avoid getting older versions of LAST:
+    os.environ["PATH"] = x + os.pathsep + y + os.pathsep + os.environ["PATH"]
 
 def readLastalProgName(lastdbIndexName):
     bitsPerInt = "32"
@@ -377,8 +378,11 @@ def doTraining(opts, args):
     if opts.B: x.append("-B" + opts.B)
     x += args
     y = ["last-split", "-n"]
+    z = ["last-postmask"]
     p = subprocess.Popen(x, stdout=subprocess.PIPE)
     q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE)
+    if opts.postmask:
+        q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE)
     lastalVersion = versionFromHeader(q.stdout)
     externalScale = scaleFromHeader(q.stdout)
     internalScale = externalScale * scaleIncrease
@@ -423,6 +427,8 @@ def doTraining(opts, args):
         p.stdin.close()
         # in python2.6, the next line must come after p.stdin.close()
         q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE)
+        if opts.postmask:
+            q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE)
 
     gapCosts = gapCostsFromProbs(externalScale, gapProbs)
     writeGapCosts(gapCosts, sys.stdout)
@@ -464,6 +470,8 @@ if __name__ == "__main__":
                   help="force insertion/deletion symmetry")
     og.add_option("--pid", type="float", default=100, help=
                   "skip alignments with > PID% identity (default: %default)")
+    og.add_option("--postmask", type="int", metavar="NUMBER", default=1, help=
+                  "skip mostly-lowercase alignments (default=%default)")
     og.add_option("--sample-number", type="int", default=500, metavar="N",
                   help="number of random sequence samples (default: %default)")
     og.add_option("--sample-length", type="int", default=2000, metavar="L",
