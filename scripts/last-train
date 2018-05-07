@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # Copyright 2015 Martin C. Frith
 
+from __future__ import print_function
+
 import gzip
 import math, optparse, os, random, signal, subprocess, sys, tempfile
 
@@ -157,7 +159,7 @@ def countsFromLastOutput(lines, opts):
         if line[0] == "s":
             strand = line.split()[4]  # slow?
         if line[0] == "c":
-            c = map(float, line.split()[1:])
+            c = [float(i) for i in line.split()[1:]]
             if not matrix:
                 matrixSize = int(math.sqrt(len(c) - 10))
                 matrix = [[1.0] * matrixSize for i in range(matrixSize)]
@@ -236,14 +238,16 @@ def matProbsFromCounts(counts, opts):
     total = sum(map(sum, counts))
     probs = [[j / total for j in i] for i in counts]
 
-    print "# substitution percent identity: %g" % (100 * identities / total)
-    print
-    print "# count matrix (query letters = columns, reference letters = rows):"
+    print("# substitution percent identity: %g" % (100 * identities / total))
+    print()
+    print("# count matrix "
+          "(query letters = columns, reference letters = rows):")
     writeCountMatrix(sys.stdout, counts, "# ")
-    print
-    print "# probability matrix (query letters = columns, reference letters = rows):"
+    print()
+    print("# probability matrix "
+          "(query letters = columns, reference letters = rows):")
     writeProbMatrix(sys.stdout, probs, "# ")
-    print
+    print()
 
     return probs
 
@@ -264,19 +268,19 @@ def gapProbsFromCounts(counts, opts):
         delExtendProb = (deletes - delOpens) / deletes
         insExtendProb = (inserts - insOpens) / inserts
 
-    print "# aligned letter pairs:", matches
-    print "# deletes:", deletes
-    print "# inserts:", inserts
-    print "# delOpens:", delOpens
-    print "# insOpens:", insOpens
-    print "# alignments:", alignments
-    print "# mean delete size: %g" % (deletes / delOpens)
-    print "# mean insert size: %g" % (inserts / insOpens)
-    print "# delOpenProb: %g" % delOpenProb
-    print "# insOpenProb: %g" % insOpenProb
-    print "# delExtendProb: %g" % delExtendProb
-    print "# insExtendProb: %g" % insExtendProb
-    print
+    print("# aligned letter pairs:", matches)
+    print("# deletes:", deletes)
+    print("# inserts:", inserts)
+    print("# delOpens:", delOpens)
+    print("# insOpens:", insOpens)
+    print("# alignments:", alignments)
+    print("# mean delete size: %g" % (deletes / delOpens))
+    print("# mean insert size: %g" % (inserts / insOpens))
+    print("# delOpenProb: %g" % delOpenProb)
+    print("# insOpenProb: %g" % insOpenProb)
+    print("# delExtendProb: %g" % delExtendProb)
+    print("# insExtendProb: %g" % insExtendProb)
+    print()
 
     delCloseProb = 1 - delExtendProb
     insCloseProb = 1 - insExtendProb
@@ -328,11 +332,11 @@ def writeGapCosts(gapCosts, out):
 
 def printGapCosts(gapCosts):
     delExistCost, insExistCost, delExtendCost, insExtendCost = gapCosts
-    print "# delExistCost:", delExistCost
-    print "# insExistCost:", insExistCost
-    print "# delExtendCost:", delExtendCost
-    print "# insExtendCost:", insExtendCost
-    print
+    print("# delExistCost:", delExistCost)
+    print("# insExistCost:", insExistCost)
+    print("# delExtendCost:", delExtendCost)
+    print("# insExtendCost:", insExtendCost)
+    print()
 
 def tryToMakeChildProgramsFindable():
     myDir = os.path.dirname(__file__)
@@ -391,15 +395,15 @@ def doTraining(opts, args):
         internalMatrix = scaledMatrix(externalMatrix, scaleIncrease)
     oldParameters = []
 
-    print "# lastal version:", lastalVersion
-    print "# maximum percent identity:", opts.pid
-    print "# scale of score parameters:", externalScale
-    print "# scale used while training:", internalScale
-    print
+    print("# lastal version:", lastalVersion)
+    print("# maximum percent identity:", opts.pid)
+    print("# scale of score parameters:", externalScale)
+    print("# scale used while training:", internalScale)
+    print()
 
     while True:
-        print "#", " ".join(x)
-        print
+        print("#", " ".join(x))
+        print()
         sys.stdout.flush()
         matCounts, gapCounts = countsFromLastOutput(q.stdout, opts)
         gapProbs = gapProbsFromCounts(gapCounts, opts)
@@ -411,9 +415,10 @@ def doTraining(opts, args):
         else:
             matProbs = matProbsFromCounts(matCounts, opts)
             matScores = matScoresFromProbs(internalScale, matProbs)
-            print "# score matrix (query letters = columns, reference letters = rows):"
+            print("# score matrix "
+                  "(query letters = columns, reference letters = rows):")
             writeScoreMatrix(sys.stdout, matScores, "# ")
-            print
+            print()
             parameters = gapCosts, matScores
             if parameters in oldParameters: break
             oldParameters.append(parameters)
@@ -437,7 +442,8 @@ def doTraining(opts, args):
     if not opts.Q:
         matScores = matScoresFromProbs(externalScale, matProbs)
         externalMatrix = matrixWithLetters(matScores)
-    print "# score matrix (query letters = columns, reference letters = rows):"
+    print("# score matrix "
+          "(query letters = columns, reference letters = rows):")
     writeMatrixWithLetters(sys.stdout, externalMatrix, "")
 
 def lastTrain(opts, args):

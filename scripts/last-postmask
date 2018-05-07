@@ -12,6 +12,8 @@
 # Limitations: doesn't (yet) handle sequence quality data,
 # frameshifts, or generalized affine gaps.
 
+from __future__ import print_function
+
 import gzip
 import itertools, optparse, os, signal, sys
 
@@ -74,8 +76,8 @@ def isGoodAlignment(seqs, scoreMatrix, delOpenCost, insOpenCost, minScore):
 def printIfGood(maf, seqs, scoreMatrix, delOpenCost, insOpenCost, minScore):
     if isGoodAlignment(seqs, scoreMatrix, delOpenCost, insOpenCost, minScore):
         for line in maf:
-            print line,
-        print
+            print(line, end="")
+        print()
 
 def doOneFile(lines):
     matrixStrand = 0
@@ -85,7 +87,7 @@ def doOneFile(lines):
 
     for line in lines:
         if line[0] == "#":
-            print line,
+            print(line, end="")
             w = line.split()
             for i in w:
                 if i.startswith("a="): aDel = int(i[2:])
@@ -100,7 +102,7 @@ def doOneFile(lines):
                 matrix = []
             elif len(w) > 2 and len(w[1]) == 1:
                 rowHeads.append(w[1])
-                matrix.append(map(int, w[2:]))
+                matrix.append(list(map(int, w[2:])))
         elif line.isspace():
             if seqs: printIfGood(maf, seqs, scoreMatrix, aDel, aIns, minScore)
             maf = []

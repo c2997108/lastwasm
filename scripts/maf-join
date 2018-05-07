@@ -10,6 +10,8 @@
 # WARNING: Alignment columns with a gap in the top genome are joined
 # arbitrarily!!!
 
+from __future__ import print_function
+
 import sys, os, fileinput, optparse, signal
 
 signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
@@ -70,16 +72,16 @@ class MafBlock:
         seq = [''.join(i) for i in self.seq]
         columns = self.chr, beg, size, self.strand, self.chrSize, seq
         widths = map(maxLen, columns)
-        print 'a'
+        print('a')
         for row in zip(*columns):
             widthsAndFields = zip(widths, row)
             field0 = "%-*s" % widthsAndFields[0]  # left-justify
             fields = ["%*s" % i for i in widthsAndFields[1:]]  # right-justify
-            print 's', field0, ' '.join(fields)
+            print('s', field0, ' '.join(fields))
         pad = ' '.join(' ' * i for i in widths[:-1])
         for i in self.prob:
-            print 'p', pad, i
-        print  # blank line afterwards
+            print('p', pad, i)
+        print()  # blank line afterwards
 
 def topSeqBeg(maf): return maf.beg[0]
 def topSeqEnd(maf): return maf.end[0]

@@ -9,11 +9,13 @@
 
 # Seems to work with Python 2.x, x>=4
 
+from __future__ import print_function
+
 import fileinput, itertools, optparse, os, signal, string, sys
 
 def filterComments(lines):
     for i in lines:
-        if i.startswith("#"): print i,
+        if i.startswith("#"): print(i, end="")
         else: yield i
 
 def mafInput(lines):
@@ -119,8 +121,8 @@ def mafSwap(opts, args):
         mafLines[1:stop] = mafLines[start:stop] + mafLines[1:start]
         if not isCanonicalStrand(mafLines[1]):
             mafLines = flippedMaf(mafLines)
-        for i in mafLines: print i,
-        print  # blank line after each alignment
+        for i in mafLines: print(i, end="")
+        print()  # blank line after each alignment
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
