@@ -25,7 +25,7 @@ trap 'rm -f $db*' EXIT
 {
     # spaced seeds, soft-masking, centroid alignment, matrix file
     lastdb -c -m110 $db $dnaSeq
-    try lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -x3400 -e2500 $db $dnaSeq
+    try lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -z3400 -e2500 $db $dnaSeq
 
     # multiple volumes & query batches
     lastdb -m1 -s1 $db $dnaSeq
@@ -182,8 +182,11 @@ trap 'rm -f $db*' EXIT
     # "U" nucleotide
     try "tr Tt Uu < hg19-M.fa | lastal -N2 $db"
 
-    # -x %
-    try lastal -W19 -x50% -fTAB $db hg19-M.fa
+    # -z %
+    try lastal -W19 -z50% -fTAB $db hg19-M.fa
+
+    # -x g
+    try lastal -W19 -x1g -fTAB $db hg19-M.fa
 
     # fastq-versus-fastq gapless overlap alignment
     lastdb -Q1 -uNEAR -cR01 $db $fastq

@@ -65,7 +65,7 @@ lastdb8 & lastal8
 ~~~~~~~~~~~~~~~~~
 
 If your reference has more than about 4 billion letters, 8-byte LAST
-*may* be beneficial.  Ordinary (4-byte) LAST cannot directly handle so
+may be beneficial.  Ordinary (4-byte) LAST cannot directly handle so
 much data, so it splits it into volumes, which is inefficient.  8-byte
 LAST can handle such data without voluming, but it uses more memory.
 
@@ -102,15 +102,29 @@ This option (gapless alignment culling) can make lastal **faster** but
 **less sensitive**.  It can also **reduce redundant output**.  For
 example, -C2 makes it discard alignments (before gapped extension)
 whose query coordinates lie in those of 2 or more stronger alignments.
+This works well for aligning long, repeat-rich, indel-poor sequences
+(e.g. mammal chromosomes) without repeat-masking.
 
-lastal -x
+lastal -z
 ---------
 
 This option can make lastal **faster** but **less sensitive**.  It
 sets the maximum score drop in alignments, in the gapped extension
 phase.  Lower values make it faster, by quitting unpromising
-extensions sooner.  The default aims at best accuracy.  For example,
-use -x50% to specify 50% of the default value.
+extensions sooner.  The default aims at best accuracy.
+
+You can set this option in several ways: perhaps the most intuitive is
+via maximum gap length.  For example, -z10g sets the maximum score
+drop such that the longest possible gap length is 10.
+
+lastal -x
+---------
+
+This option (preliminary gapped extension) can make lastal **faster**
+but **less sensitive**.  For example, -x2g makes it extend gapped
+alignments with a maximum gap length of 2, discard those with score
+below the gapped score threshold, then redo the survivors with the
+final max score drop (z).
 
 lastal -M
 ---------

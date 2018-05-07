@@ -56,6 +56,11 @@ struct LastalArguments{
   // how many strands are we scanning (1 or 2)?
   int numOfStrands() const{ return (strand == 2) ? 2 : 1; }
 
+  int minGapCost(int gapLength) const {
+    return std::min(gapExistCost + gapLength * gapExtendCost,
+		    insExistCost + gapLength * insExtendCost);
+  }
+
   // options:
   int outputFormat;
   int outputType;
@@ -80,8 +85,10 @@ struct LastalArguments{
   int frameshiftCost;
   std::string matrixFile;
   int maxDropGapped;
+  char maxDropGappedSuffix;
   int maxDropGapless;
   int maxDropFinal;
+  char maxDropFinalSuffix;
   sequenceFormat::Enum inputFormat;
   size_t minHitDepth;
   size_t maxHitDepth;

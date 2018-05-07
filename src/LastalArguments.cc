@@ -41,15 +41,14 @@ static char parseOutputFormat( const char* text ){
   return 0;
 }
 
-static int parseScoreOrPercent(const std::string &s) {
+static int parseScoreAndSuffix(const std::string &s, char &suffix) {
+  char c = 0;
   int x;
-  std::istringstream iss(s);
-  if(!(iss >> x) || x < 0) ERR("bad value: " + s);
-  char c;
-  if (iss >> c) {
-    if (c != '%' || iss >> c) ERR("bad value: " + s);
-    x = -x;  // negative value indicates percentage (kludge)
+  std::istringstream i(s);
+  if (!(i >> x) || x < 0 || (i >> c && i >> c)) {
+    ERR("bad value: " + s);
   }
+  suffix = c;
   return x;
 }
 
@@ -78,9 +77,11 @@ LastalArguments::LastalArguments() :
   gapPairCost(-1),  // this means: OFF
   frameshiftCost(-1),  // this means: ordinary, non-translated alignment
   matrixFile(""),
-  maxDropGapped(-100),  // depends on minScoreGapped & maxDropGapless
+  maxDropGapped(100),  // depends on maxDropFinal
+  maxDropGappedSuffix('%'),
   maxDropGapless(-1),  // depends on the score matrix
-  maxDropFinal(-1),  // depends on maxDropGapped
+  maxDropFinal(100),  // depends on minScoreGapped
+  maxDropFinalSuffix('%'),
   inputFormat(sequenceFormat::fasta),
   minHitDepth(1),
   maxHitDepth(-1),
@@ -128,9 +129,9 @@ Score options (default settings):\n\
 -B: insertion extension cost (b)\n\
 -c: unaligned residue pair cost (off)\n\
 -F: frameshift cost (off)\n\
--x: maximum score drop for gapped alignments (e-1)\n\
+-x: maximum score drop for preliminary gapped alignments (z)\n\
 -y: maximum score drop for gapless alignments (min[t*10, x])\n\
--z: maximum score drop for final gapped alignments (x)\n\
+-z: maximum score drop for final gapped alignments (e-1)\n\
 -d: minimum score for gapless alignments (min[e, t*ln(1000*refSize/n)])\n\
 -e: minimum score for gapped alignments\n\
 \n\
@@ -234,15 +235,14 @@ LAST home page: http://last.cbrc.jp/\n\
       if( frameshiftCost < 0 ) badopt( c, optarg );
       break;
     case 'x':
-      maxDropGapped = parseScoreOrPercent(optarg);
+      maxDropGapped = parseScoreAndSuffix(optarg, maxDropGappedSuffix);
       break;
     case 'y':
       unstringify( maxDropGapless, optarg );
       if( maxDropGapless < 0 ) badopt( c, optarg );
       break;
     case 'z':
-      unstringify( maxDropFinal, optarg );
-      if( maxDropFinal < 0 ) badopt( c, optarg );
+      maxDropFinal = parseScoreAndSuffix(optarg, maxDropFinalSuffix);
       break;
     case 'd':
       unstringify( minScoreGapless, optarg );
@@ -523,6 +523,10 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   }
 }
 
+static int percent(int val, int percentage) {
+  return (percentage == 100) ? val : val * percentage / 100;
+}
+
 void LastalArguments::setDefaultsFromMatrix( double lambda, int minScore ){
   if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
   if( minScoreGapped < 0 ){
@@ -536,11 +540,19 @@ To proceed without E-values, set a score threshold with option -e.");
 
   if( temperature < 0 ) temperature = 1 / lambda;
 
-  if( maxDropGapped < 0 ){
-    int percent = -maxDropGapped;
-    maxDropGapped = std::max( minScoreGapped - 1, 0 );
-    maxDropGapped = std::max( maxDropGapped, maxDropGapless );
-    if (percent != 100) maxDropGapped = maxDropGapped * percent / 100;
+  int defaultMaxScoreDrop = std::max(minScoreGapped - 1, 0);
+  defaultMaxScoreDrop = std::max(defaultMaxScoreDrop, maxDropGapless);
+
+  if (maxDropFinalSuffix == '%') {
+    maxDropFinal = percent(defaultMaxScoreDrop, maxDropFinal);
+  } else if (maxDropFinalSuffix == 'g') {
+    maxDropFinal = std::min(minGapCost(maxDropFinal), defaultMaxScoreDrop);
+  }
+
+  if (maxDropGappedSuffix == '%') {
+    maxDropGapped = percent(maxDropFinal, maxDropGapped);
+  } else if (maxDropGappedSuffix == 'g') {
+    maxDropGapped = std::min(minGapCost(maxDropGapped), maxDropFinal);
   }
 
   if( maxDropGapless < 0 ){  // should it depend on temperature or lambda?
@@ -548,8 +560,6 @@ To proceed without E-values, set a score threshold with option -e.");
     else                  maxDropGapless = int( 10.0 * temperature + 0.5 );
     maxDropGapless = std::min( maxDropGapless, maxDropGapped );
   }
-
-  if( maxDropFinal < 0 ) maxDropFinal = maxDropGapped;
 }
 
 int LastalArguments::calcMinScoreGapless( double numLettersInReference,

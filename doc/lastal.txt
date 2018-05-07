@@ -187,24 +187,33 @@ Score options
 
       The "-1" indicates the reverse frameshift.
 
-  -x DROP
+  -z DROP
       Maximum score drop for gapped alignments.  Gapped alignments are
       forbidden from having any internal region with score < -DROP.
-      This serves two purposes: accuracy (avoid spurious internal
-      regions in alignments) and speed (the smaller the faster).
+      The default value is e-1, which arguably produces the best
+      alignments.  Lower values improve speed, by quitting unpromising
+      extensions sooner.  You can specify this parameter in 3 ways:
 
-      You can specify either a score (e.g. -x20), or a percentage; for
-      example, -x50% specifies 50% of the default value (rounded down
-      to the nearest integer).
+      * A score (e.g. -z20).
+
+      * A percentage.  For example, -z50% specifies 50% of the default
+        value (rounded down to the nearest integer).
+
+      * A maximum gap length.  For example, -z8g sets the maximum
+        score drop to: min[a+8b, A+8B].  However, this never increases
+        the value above the default.
+
+  -x DROP
+      This option makes lastal extend gapped alignments twice.  First,
+      it extends gapped alignments with a maximum score drop of x, and
+      discards those with score < e.  The surviving alignments are
+      redone with a (presumably higher) maximum score drop of z.  This
+      aims to improve speed with minimal effect on the final
+      alignments.  You can specify -x in the same ways as -z (with the
+      default value of x being z).
 
   -y DROP
       Maximum score drop for gapless alignments.
-
-  -z DROP
-      Maximum score drop for final gapped alignments.  Setting z
-      different from x causes lastal to extend gapless alignments
-      twice: first with a maximum score drop of x, and then with a
-      (presumably higher) maximum score drop of z.
 
   -d SCORE
       Minimum score for gapless alignments.
