@@ -884,6 +884,6 @@ if __name__ == "__main__":
         op.error("need file (not pipe) with option -d")
 
     try: mafConvert(opts, args)
-    except Exception, e:
+    except Exception as e:
         prog = os.path.basename(sys.argv[0])
         sys.exit(prog + ": error: " + str(e))

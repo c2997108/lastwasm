@@ -137,6 +137,6 @@ if __name__ == "__main__":
 
     try: mafSwap(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message
-    except Exception, e:
+    except Exception as e:
         prog = os.path.basename(sys.argv[0])
         sys.exit(prog + ": error: " + str(e))

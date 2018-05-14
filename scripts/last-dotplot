@@ -149,8 +149,8 @@ def updateSeqs(coverDict, seqRanges, seqName, ranges, coveredRange):
 
 def readAlignments(fileName, opts):
     '''Get alignments and sequence limits, from MAF or tabular format.'''
-    seqRequests1 = map(seqRequestFromText, opts.seq1)
-    seqRequests2 = map(seqRequestFromText, opts.seq2)
+    seqRequests1 = [seqRequestFromText(i) for i in opts.seq1]
+    seqRequests2 = [seqRequestFromText(i) for i in opts.seq2]
 
     alignments = []
     seqRanges1 = []

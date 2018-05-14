@@ -305,8 +305,8 @@ def scoreFromLetterProbs(scale, pairProb, prob1, prob2):
     return scoreFromProb(scale, probRatio)
 
 def matScoresFromProbs(scale, probs):
-    rowProbs = map(sum, probs)
-    colProbs = map(sum, zip(*probs))
+    rowProbs = [sum(i) for i in probs]
+    colProbs = [sum(i) for i in zip(*probs)]
     return [[scoreFromLetterProbs(scale, j, x, y) for j, y in zip(i, colProbs)]
             for i, x in zip(probs, rowProbs)]
 
@@ -339,11 +339,10 @@ def printGapCosts(gapCosts):
     print()
 
 def tryToMakeChildProgramsFindable():
-    myDir = os.path.dirname(__file__)
-    x = os.path.join(myDir, os.pardir, "src")
-    y = os.path.join(myDir, os.pardir, "scripts")
+    d = os.path.dirname(__file__)
+    e = os.path.join(d, os.pardir, "src")
     # put them first, to avoid getting older versions of LAST:
-    os.environ["PATH"] = x + os.pathsep + y + os.pathsep + os.environ["PATH"]
+    os.environ["PATH"] = d + os.pathsep + e + os.pathsep + os.environ["PATH"]
 
 def readLastalProgName(lastdbIndexName):
     bitsPerInt = "32"
@@ -532,6 +531,6 @@ if __name__ == "__main__":
 
     try: lastTrain(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message
-    except Exception, e:
+    except Exception as e:
         prog = os.path.basename(sys.argv[0])
         sys.exit(prog + ": error: " + str(e))
