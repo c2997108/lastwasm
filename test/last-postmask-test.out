@@ -12,6 +12,7 @@ TEST last-postmask 102.maf
 # C -20  6 -21 -12
 # G -10 -21  6 -21
 # T -21 -11 -20  6
+# N  0  0  0  0
 #
 a score=138 EG2=3.3e+04 E=0.13
 s chr3 23607556 23 + 198295559 ACGTTCTGGTTTATGTTTCCTTG
@@ -225,4 +226,7 @@ a score=110 EG2=1.5e+07 E=58
 s chr15 78230485 25 + 101991189 CAGGAGCAGCCACCATGGCCACAAG
 s 102        166 24 -       699 CAGGAGCGGCCACCATGGCC-CAAG
 
+
+TEST last-postmask 90089.maf
+last-postmask: error: can't read alignment header
 

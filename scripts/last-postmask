@@ -15,7 +15,12 @@
 from __future__ import print_function
 
 import gzip
-import itertools, optparse, os, signal, sys
+import optparse, os, signal, sys
+
+try:
+    from future_builtins import zip
+except ImportError:
+    pass
 
 def myOpen(fileName):
     if fileName == "-":
@@ -78,15 +83,18 @@ def isGoodAlignment(columns, scoreMatrix, delOpenCost, insOpenCost, minScore):
     return False
 
 def printIfGood(maf, seqs, scoreMatrix, delOpenCost, insOpenCost, minScore):
-    cols = itertools.izip(*seqs)
+    cols = zip(*seqs)
     if isGoodAlignment(cols, scoreMatrix, delOpenCost, insOpenCost, minScore):
         for line in maf:
             print(line, end="")
         print()
 
 def doOneFile(lines):
+    aDel = bDel = aIns = bIns = minScore = matrices = None
     strandParam = 0
-    scoreMatrices = None
+    scoreMatrix = []
+    rowHeads = []
+    colHeads = []
     maf = []
     seqs = []
 
@@ -101,29 +109,29 @@ def doOneFile(lines):
                 if i.startswith("B="): bIns = int(i[2:])
                 if i.startswith("e="): minScore = int(i[2:])
                 if i.startswith("S="): strandParam = int(i[2:])
-            if len(fields) > 1 and max(map(len, fields)) == 1:
+            if not colHeads and len(fields) > 1 and max(map(len, fields)) == 1:
                 colHeads = fields[1:]
-                rowHeads = []
-                matrix = []
             elif len(fields) > 2 and len(fields[1]) == 1:
                 rowHeads.append(fields[1])
-                matrix.append([int(i) for i in fields[2:]])
+                scoreMatrix.append([int(i) for i in fields[2:]])
         elif line.isspace():
-            if seqs: printIfGood(maf, seqs, scoreMatrix, aDel, aIns, minScore)
+            if seqs: printIfGood(maf, seqs, matrix, aDel, aIns, minScore)
             maf = []
             seqs = []
         else:
-            if not scoreMatrices:
-                scoreMatrices = matrixPerStrand(rowHeads, colHeads, matrix,
-                                                bDel, bIns)
             maf.append(line)
             if line[0] == "s":
+                if not matrices:
+                    if None in (aDel, bDel, aIns, bIns, minScore):
+                        raise Exception("can't read alignment header")
+                    matrices = matrixPerStrand(rowHeads, colHeads,
+                                               scoreMatrix, bDel, bIns)
                 fields = line.split()
                 if len(seqs) == strandParam:
                     strand = fields[4]
-                    scoreMatrix = scoreMatrices[strand == "-"]
+                    matrix = matrices[strand == "-"]
                 seqs.append(fields[6])
-    if seqs: printIfGood(maf, seqs, scoreMatrix, aDel, aIns, minScore)
+    if seqs: printIfGood(maf, seqs, matrix, aDel, aIns, minScore)
 
 def lastPostmask(args):
     if not args:

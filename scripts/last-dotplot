@@ -18,8 +18,15 @@ import subprocess
 import itertools, optparse, os, re, sys
 
 # Try to make PIL/PILLOW work:
-try: from PIL import Image, ImageDraw, ImageFont, ImageColor
-except ImportError: import Image, ImageDraw, ImageFont, ImageColor
+try:
+    from PIL import Image, ImageDraw, ImageFont, ImageColor
+except ImportError:
+    import Image, ImageDraw, ImageFont, ImageColor
+
+try:
+    from future_builtins import zip
+except ImportError:
+    pass
 
 def myOpen(fileName):  # faster than fileinput
     if fileName is None:
@@ -75,7 +82,7 @@ def tabBlocks(beg1, beg2, blocks):
 def mafBlocks(beg1, beg2, seq1, seq2):
     '''Get the gapless blocks of an alignment, from MAF format.'''
     size = 0
-    for x, y in itertools.izip(seq1, seq2):
+    for x, y in zip(seq1, seq2):
         if x == "-":
             if size:
                 yield beg1, beg2, size

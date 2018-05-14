@@ -31,4 +31,4 @@ maf=SRR359290-1k.maf
 
     last-split 102.maf
 } |
-diff last-split-test.out -
+diff -u last-split-test.out -
