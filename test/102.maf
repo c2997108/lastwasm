@@ -2,7 +2,18 @@
 #
 # a=14 b=3 A=19 B=3 e=110 d=90 x=109 y=44 z=109 D=10 E=1.70365e+07
 # R=01 u=0 s=2 S=1 M=0 T=0 m=50 l=1 n=50 k=1 w=1000 t=4.43034 j=3 Q=0
-# /home/martin/data/genome/hg38/last/hg38naas-NEAR
+# Reference sequences=195 normal letters=2934876451
+# lambda=0.21715 K=0.343777
+#
+#    A  C  G  T
+# A  6 -18 -8 -20
+# C -20  6 -21 -12
+# G -10 -21  6 -21
+# T -21 -11 -20  6
+# N  0  0  0  0
+#
+# a=14 b=3 A=19 B=3 e=110 d=90 x=109 y=44 z=109 D=10 E=1.70365e+07
+# R=01 u=0 s=2 S=1 M=0 T=0 m=50 l=1 n=50 k=1 w=1000 t=4.43034 j=3 Q=0
 # Reference sequences=195 normal letters=2934876451
 # lambda=0.21715 K=0.343777
 #
