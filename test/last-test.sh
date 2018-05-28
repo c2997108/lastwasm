@@ -206,6 +206,7 @@ rm f.* r.*
 ./last-split-test.sh
 ./last-train-test.sh
 ./maf-convert-test.sh
+./maf-swap-test.sh
 
 # Test: lastdb, lastal, last-split, maf-sort, maf-join
 cd ../examples

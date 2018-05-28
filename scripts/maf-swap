@@ -7,24 +7,30 @@
 # flip all the strands.  But don't do this if the top sequence is
 # translated DNA.
 
-# Seems to work with Python 2.x, x>=4
-
 from __future__ import print_function
 
-import fileinput, itertools, optparse, os, signal, string, sys
+import gzip
+import itertools
+import optparse
+import os
+import signal
+import sys
 
-def filterComments(lines):
-    for i in lines:
-        if i.startswith("#"): print(i, end="")
-        else: yield i
+try:
+    maketrans = str.maketrans
+except AttributeError:
+    from string import maketrans
 
-def mafInput(lines):
-    for k, v in itertools.groupby(lines, str.isspace):
-        if not k: yield list(v)
+def myOpen(fileName):
+    if fileName == "-":
+        return sys.stdin
+    if fileName.endswith(".gz"):
+        return gzip.open(fileName)
+    return open(fileName)
 
 def indexOfNthSequence(mafLines, n):
     for i, line in enumerate(mafLines):
-        if line.startswith("s"):
+        if line[0] == "s":
             if n == 1: return i
             n -= 1
     raise Exception("encountered an alignment with too few sequences")
@@ -35,72 +41,57 @@ def rangeOfNthSequence(mafLines, n):
     stop = start + 1
     while stop < len(mafLines):
         line = mafLines[stop]
-        if not (line.startswith("q") or line.startswith("i")): break
+        if line[0] not in "qi": break
         stop += 1
     return start, stop
 
-complement = string.maketrans('ACGTNSWRYKMBDHVacgtnswrykmbdhv',
-                              'TGCANSWYRMKVHDBtgcanswyrmkvhdb')
+complement = maketrans('ACGTNSWRYKMBDHVacgtnswrykmbdhv',
+                       'TGCANSWYRMKVHDBtgcanswyrmkvhdb')
 # doesn't handle "U" in RNA sequences
 def revcomp(seq):
     return seq[::-1].translate(complement)
 
-def flippedMafS(words):
-    alnStart = int(words[2])
-    alnSize = int(words[3])
-    strand = words[4]
-    seqSize = int(words[5])
-    alnString = words[6]
-    newStart = seqSize - alnStart - alnSize
-    if strand == "-": newStrand = "+"
-    else:             newStrand = "-"
-    newString = revcomp(alnString)
-    out = words[0], words[1], newStart, alnSize, newStrand, seqSize, newString
-    return map(str, out)
-
-def flippedMafP(words):
-    flippedString = words[1][::-1]
-    return words[:1] + [flippedString]
-
-def flippedMafQ(words):
-    qualityString = words[2]
-    flippedString = qualityString[::-1]
-    return words[:2] + [flippedString]
-
-def flippedMafLine(mafLine):
-    words = mafLine.split()
-    if   words[0] == "s": return flippedMafS(words)
-    elif words[0] == "p": return flippedMafP(words)
-    elif words[0] == "q": return flippedMafQ(words)
-    else: return words
-
-def maxlen(s):
-    return max(map(len, s))
+def flippedMafRecords(mafLines):
+    for line in mafLines:
+        words = line.split()
+        if words[0] == "s":
+            s, name, start, span, strand, seqlen, alnString = words
+            newStart = str(int(seqlen) - int(start) - int(span))
+            newStrand = "+-"[strand == "+"]
+            newString = revcomp(alnString)
+            yield [s, name, newStart, span, newStrand, seqlen, newString]
+        elif words[0] == "p":
+            yield words[:1] + [words[1][::-1]]
+        elif words[0] == "q":
+            yield words[:2] + [words[2][::-1]]
+        else:
+            yield words
 
 def sLineFieldWidths(mafLines):
     sLines = (i for i in mafLines if i[0] == "s")
     sColumns = zip(*sLines)
-    return map(maxlen, sColumns)
+    for i in sColumns:
+        yield max(map(len, i))
 
-def joinedMafS(words, fieldWidths):
-    formatParams = itertools.chain(*zip(fieldWidths, words))
+def joinedMafS(fieldWidths, words):
+    formatParams = itertools.chain.from_iterable(zip(fieldWidths, words))
     return "%*s %-*s %*s %*s %*s %*s %*s\n" % tuple(formatParams)
 
 def joinedMafLine(words, fieldWidths):
     if words[0] == "s":
-        return joinedMafS(words, fieldWidths)
+        return joinedMafS(fieldWidths, words)
     elif words[0] == "q":
         words = words[:2] + [""] * 4 + words[2:]
-        return joinedMafS(words, fieldWidths)
+        return joinedMafS(fieldWidths, words)
     elif words[0] == "p":
         words = words[:1] + [""] * 5 + words[1:]
-        return joinedMafS(words, fieldWidths)
+        return joinedMafS(fieldWidths, words)
     else:
         return " ".join(words) + "\n"
 
 def flippedMaf(mafLines):
-    flippedLines = map(flippedMafLine, mafLines)
-    fieldWidths = sLineFieldWidths(flippedLines)
+    flippedLines = list(flippedMafRecords(mafLines))
+    fieldWidths = list(sLineFieldWidths(flippedLines))
     return (joinedMafLine(i, fieldWidths) for i in flippedLines)
 
 def isCanonicalStrand(mafLine):
@@ -114,15 +105,32 @@ def isCanonicalStrand(mafLine):
     if len(alnString) - gapCount < alnSize: return True  # translated DNA
     return False
 
+def swapOneMaf(opts, mafLines):
+    start, stop = rangeOfNthSequence(mafLines, opts.n)
+    mafLines[1:stop] = mafLines[start:stop] + mafLines[1:start]
+    if not isCanonicalStrand(mafLines[1]):
+        mafLines = flippedMaf(mafLines)
+    for i in mafLines:
+        print(i, end="")
+    print()  # blank line after each alignment
+
 def mafSwap(opts, args):
-    inputLines = fileinput.input(args)
-    for mafLines in mafInput(filterComments(inputLines)):
-        start, stop = rangeOfNthSequence(mafLines, opts.n)
-        mafLines[1:stop] = mafLines[start:stop] + mafLines[1:start]
-        if not isCanonicalStrand(mafLines[1]):
-            mafLines = flippedMaf(mafLines)
-        for i in mafLines: print(i, end="")
-        print()  # blank line after each alignment
+    if not args:
+        args = ["-"]
+    for fileName in args:
+        inputLines = myOpen(fileName)
+        mafLines = []
+        for line in inputLines:
+            if line[0] == "#":
+                print(line, end="")
+            elif line.isspace():
+                if mafLines:
+                    swapOneMaf(opts, mafLines)
+                    mafLines = []
+            else:
+                mafLines.append(line)
+        if mafLines:
+            swapOneMaf(opts, mafLines)
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message

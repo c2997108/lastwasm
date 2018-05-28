@@ -239,12 +239,12 @@ def mergedRanges(ranges):
     yield oldBeg, maxEnd
 
 def mergedRangesPerSeq(coverDict):
-    for k, v in coverDict.iteritems():
+    for k, v in coverDict.items():
         v.sort()
         yield k, list(mergedRanges(v))
 
 def coveredLength(mergedCoverDict):
-    return sum(sum(e - b for b, e in v) for v in mergedCoverDict.itervalues())
+    return sum(sum(e - b for b, e in v) for v in mergedCoverDict.values())
 
 def trimmed(seqRanges, coverDict, minAlignedBases, maxGapFrac, endPad, midPad):
     maxEndGapFrac, maxMidGapFrac = twoValuesFromOption(maxGapFrac, ",")

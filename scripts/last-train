@@ -382,10 +382,12 @@ def doTraining(opts, args):
     x += args
     y = ["last-split", "-n"]
     z = ["last-postmask"]
-    p = subprocess.Popen(x, stdout=subprocess.PIPE)
-    q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE)
+    p = subprocess.Popen(x, stdout=subprocess.PIPE, universal_newlines=True)
+    q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE,
+                         universal_newlines=True)
     if opts.postmask:
-        q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE)
+        q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
+                             universal_newlines=True)
     lastalVersion = versionFromHeader(q.stdout)
     externalScale = scaleFromHeader(q.stdout)
     internalScale = externalScale * scaleIncrease
@@ -425,14 +427,17 @@ def doTraining(opts, args):
         x = fixedLastalArgs(opts, lastalProgName)
         x.append("-p-")
         x += args
-        p = subprocess.Popen(x, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        p = subprocess.Popen(x, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                             universal_newlines=True)
         writeGapCosts(gapCosts, p.stdin)
         writeMatrixWithLetters(p.stdin, internalMatrix, "")
         p.stdin.close()
         # in python2.6, the next line must come after p.stdin.close()
-        q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE)
+        q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE,
+                             universal_newlines=True)
         if opts.postmask:
-            q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE)
+            q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
+                                 universal_newlines=True)
 
     gapCosts = gapCostsFromProbs(externalScale, gapProbs)
     writeGapCosts(gapCosts, sys.stdout)
@@ -451,7 +456,7 @@ def lastTrain(opts, args):
         refName = args[0]
         queryFiles = args[1:]
         try:
-            with tempfile.NamedTemporaryFile(delete=False) as f:
+            with tempfile.NamedTemporaryFile("w", delete=False) as f:
                 getSeqSample(opts, queryFiles, f)
             doTraining(opts, [refName, f.name])
         finally:

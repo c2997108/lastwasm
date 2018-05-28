@@ -12,6 +12,11 @@ from itertools import *
 import gzip
 import math, optparse, os, signal, sys
 
+try:
+    from future_builtins import map, zip
+except ImportError:
+    pass
+
 def myOpen(fileName):
     if fileName == "-":
         return sys.stdin
@@ -40,7 +45,7 @@ def gapRunCount(row):
     return sum(k == "-" for k, v in groupby(row))
 
 def alignmentRowsFromColumns(columns):
-    return imap(''.join, izip(*columns))
+    return map(''.join, zip(*columns))
 
 def symbolSize(symbol, letterSize):
     if symbol == "\\": return 1
@@ -210,7 +215,7 @@ def writeTab(maf):
 
     letterSizes = [i[3] for i in sLines]
     rows = [i[6] for i in sLines]
-    alignmentColumns = izip(*rows)
+    alignmentColumns = zip(*rows)
     gapWord = ",".join(matchAndInsertSizes(alignmentColumns, letterSizes))
     outWords.append(gapWord)
 
@@ -242,7 +247,7 @@ def writeChain(maf):
 
     letterSizes = [i[3] for i in sLines]
     rows = [i[6] for i in sLines]
-    alignmentColumns = izip(*rows)
+    alignmentColumns = zip(*rows)
     size = "0"
     for i in matchAndInsertSizes(alignmentColumns, letterSizes):
         if ":" in i:
@@ -272,7 +277,7 @@ def pslBlocks(opts, mafs, outCounts):
         letterSizeB, begB, endB, rowB = fieldsB[3:7]
 
         size = 0
-        for x, y in izip(rowA.upper(), rowB.upper()):
+        for x, y in zip(rowA.upper(), rowB.upper()):
             if x == "-":
                 if size:
                     yield size, begA, begB
@@ -502,18 +507,18 @@ def writeSam(readGroup, maf):
 
     pos = str(begA + 1)  # convert to 1-based coordinate
 
-    alignmentColumns = zip(rowA.upper(), rowB.upper())
+    alignmentColumns = list(zip(rowA.upper(), rowB.upper()))
 
     revBegB = seqLenB - endB
     cigar = "".join(cigarParts(begB, iter(alignmentColumns), revBegB))
 
-    seq = rowB.translate(None, "-")
+    seq = rowB.replace("-", "")
 
     qual = "*"
     if qLines:
         qFields = qLines[-1].split()
         if qFields[1] == seqNameB:
-            qual = ''.join(j for i, j in izip(rowB, qFields[2]) if i != "-")
+            qual = ''.join(j for i, j in zip(rowB, qFields[2]) if i != "-")
 
     # It's hard to get all the pair info, so this is very
     # incomplete, but hopefully good enough.
@@ -588,9 +593,9 @@ def blastChunker(sLines, lineSize, alignmentColumns):
     coords = [i[4] for i in sLines]
     for chunkCols in chunker(alignmentColumns, lineSize):
         chunkRows = list(alignmentRowsFromColumns(chunkCols))
-        begs = map(blastBegCoordinate, coords, strands, seqLens)
-        coords = map(nextCoordinate, coords, chunkRows, letterSizes)
-        ends = map(blastEndCoordinate, coords, strands, seqLens)
+        begs = list(map(blastBegCoordinate, coords, strands, seqLens))
+        coords = list(map(nextCoordinate, coords, chunkRows, letterSizes))
+        ends = list(map(blastEndCoordinate, coords, strands, seqLens))
         yield chunkCols, chunkRows, begs, ends
 
 def writeBlast(opts, maf, oldQueryName):
@@ -621,7 +626,7 @@ def writeBlast(opts, maf, oldQueryName):
 
     print(scoreLine)
 
-    alignmentColumns = zip(rowA, rowB)
+    alignmentColumns = list(zip(rowA, rowB))
 
     alnSize = len(alignmentColumns)
     matches = sum(x.upper() == y.upper() for x, y in alignmentColumns)
@@ -667,7 +672,7 @@ def writeBlastTab(opts, maf):
     seqNameA, begA, endA, rowA = blastDataFromMafFields(fieldsA)
     seqNameB, begB, endB, rowB = blastDataFromMafFields(fieldsB)
 
-    alignmentColumns = zip(rowA, rowB)
+    alignmentColumns = list(zip(rowA, rowB))
     alnSize = len(alignmentColumns)
     matches = sum(x == y for x, y in alignmentColumns)
     matchPercent = "%.2f" % (100.0 * matches / alnSize)
@@ -762,15 +767,15 @@ def writeHtml(opts, maf):
 
     if pLines:
         probRows = [i.split()[1] for i in pLines]
-        probCols = izip(*probRows)
-        classes = imap(probabilityClass, probCols)
+        probCols = zip(*probRows)
+        classes = map(probabilityClass, probCols)
     else:
         classes = repeat(None)
 
     seqNames = [i[0] for i in sLines]
     nameWidth = maxlen(seqNames)
     rows = [i[6] for i in sLines]
-    alignmentColumns = zip(*rows)
+    alignmentColumns = list(zip(*rows))
 
     print('<pre>')
     for chunk in blastChunker(sLines, opts.linesize, alignmentColumns):
