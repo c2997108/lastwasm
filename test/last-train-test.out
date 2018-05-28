@@ -4,8 +4,8 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # scale used while training: 91.024
 
 
-# aligned letter pairs: 15346.0
-# deletes: 495.0
+# aligned letter pairs: 15346
+# deletes: 495
 # inserts: 469.5
 # delOpens: 254.45
 # insOpens: 255.74
@@ -27,7 +27,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 3892.7         301.11         213.691        364.38        
-# C 738.95         3040.0         96.0           871.4         
+# C 738.95         3040           96             871.4         
 # G 313.63         55.17          1564.5         101.85        
 # T 344.03         370.99         49.75          3044.2        
 
@@ -46,7 +46,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -122    -84   -206     94
 
 
-# aligned letter pairs: 15415.0
+# aligned letter pairs: 15415
 # deletes: 225.95
 # inserts: 226.21
 # delOpens: 117.94
@@ -68,8 +68,8 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 3809.0         331.04         234.221        386.01        
-# C 792.35         2984.0         85.853         954.34        
+# A 3809           331.04         234.221        386.01        
+# C 792.35         2984           85.853         954.34        
 # G 344.24         48.73          1562.7         85.96         
 # T 355.92         430.23         40.591         2987.5        
 
@@ -88,7 +88,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -119    -71   -224     92
 
 
-# aligned letter pairs: 15482.0
+# aligned letter pairs: 15482
 # deletes: 145.89
 # inserts: 146.56
 # delOpens: 75.01
@@ -130,7 +130,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -114    -68   -219     91
 
 
-# aligned letter pairs: 15512.0
+# aligned letter pairs: 15512
 # deletes: 120.22
 # inserts: 121.23
 # delOpens: 60.92
@@ -152,7 +152,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 3777.0         358.33         244.221        413.58        
+# A 3777           358.33         244.221        413.58        
 # C 823.27         2952.4         88.684         978.9         
 # G 352.66         54.64          1555.2         90.3          
 # T 387.19         447.76         45.008         2955.5        
@@ -172,7 +172,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -112    -68   -215     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 111.54
 # inserts: 112.61
 # delOpens: 55.84
@@ -214,7 +214,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -111    -67   -213     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 108.72
 # inserts: 109.99
 # delOpens: 54.147
@@ -237,8 +237,8 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 3776.7         363.36         244.228        417.79        
-# C 828.26         2942.0         89.06          980.1         
-# G 352.72         56.08          1555.0         91.69         
+# C 828.26         2942           89.06          980.1         
+# G 352.72         56.08          1555           91.69         
 # T 393.35         449.97         46.165         2954.9        
 
 # probability matrix (query letters = columns, reference letters = rows):
@@ -256,7 +256,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -110    -67   -213     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 108.09
 # inserts: 109.27
 # delOpens: 53.62
@@ -279,8 +279,8 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 3776.6         363.36         244.227        417.81        
-# C 828.26         2942.0         89.159         980.1         
-# G 352.73         56.08          1555.0         91.8          
+# C 828.26         2942           89.159         980.1         
+# G 352.73         56.08          1555           91.8          
 # T 394.36         449.99         46.268         2954.9        
 
 # probability matrix (query letters = columns, reference letters = rows):
@@ -298,7 +298,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -110    -67   -213     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 107.98
 # inserts: 109.26
 # delOpens: 53.512
@@ -321,8 +321,8 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 3776.6         363.36         243.228        418.82        
-# C 828.26         2942.0         89.158         980.2         
-# G 352.73         56.08          1555.0         91.81         
+# C 828.26         2942           89.158         980.2         
+# G 352.73         56.08          1555           91.81         
 # T 394.37         449.99         46.269         2954.9        
 
 # probability matrix (query letters = columns, reference letters = rows):
@@ -340,7 +340,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -110    -67   -213     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 107.78
 # inserts: 109.15
 # delOpens: 53.408
@@ -363,9 +363,9 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 3776.6         363.36         243.226        418.82        
-# C 828.26         2942.0         89.157         980.2         
-# G 352.73         56.18          1555.0         91.81         
-# T 394.37         450.0          46.37          2954.9        
+# C 828.26         2942           89.157         980.2         
+# G 352.73         56.18          1555           91.81         
+# T 394.37         450            46.37          2954.9        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
@@ -382,7 +382,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -110    -67   -212     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 107.67
 # inserts: 108.95
 # delOpens: 53.3
@@ -405,9 +405,9 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 3776.6         363.36         243.225        418.82        
-# C 828.26         2942.0         89.156         980.2         
-# G 352.73         56.18          1555.0         91.81         
-# T 394.37         450.0          46.375         2954.8        
+# C 828.26         2942           89.156         980.2         
+# G 352.73         56.18          1555           91.81         
+# T 394.37         450            46.375         2954.8        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
@@ -441,8 +441,8 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # scale used while training: 91.024
 
 
-# aligned letter pairs: 15346.0
-# deletes: 495.0
+# aligned letter pairs: 15346
+# deletes: 495
 # inserts: 469.5
 # delOpens: 254.45
 # insOpens: 255.74
@@ -483,7 +483,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -122    -91   -138     86
 
 
-# aligned letter pairs: 15401.0
+# aligned letter pairs: 15401
 # deletes: 237.16
 # inserts: 237.41
 # delOpens: 124.51
@@ -525,7 +525,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -118    -80   -133     84
 
 
-# aligned letter pairs: 15489.0
+# aligned letter pairs: 15489
 # deletes: 155.29
 # inserts: 155.86
 # delOpens: 80.66
@@ -547,10 +547,10 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 6757.0         390.71         682.463        780.61        
+# A 6757           390.71         682.463        780.61        
 # C 900.69         4536.6         134.135        1314.21       
 # G 1314.21        134.135        4536.6         900.69        
-# T 780.61         682.463        390.71         6757.0        
+# T 780.61         682.463        390.71         6757          
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
@@ -567,7 +567,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -113    -77   -128     83
 
 
-# aligned letter pairs: 15508.0
+# aligned letter pairs: 15508
 # deletes: 127.05
 # inserts: 127.6
 # delOpens: 65.11
@@ -609,7 +609,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -111    -77   -126     83
 
 
-# aligned letter pairs: 15518.0
+# aligned letter pairs: 15518
 # deletes: 119.27
 # inserts: 120.05
 # delOpens: 60.51
@@ -651,7 +651,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -111    -77   -125     83
 
 
-# aligned letter pairs: 15528.0
+# aligned letter pairs: 15528
 # deletes: 117.28
 # inserts: 117.98
 # delOpens: 59.13
@@ -693,7 +693,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -110    -77   -125     82
 
 
-# aligned letter pairs: 15528.0
+# aligned letter pairs: 15528
 # deletes: 114.66
 # inserts: 115.59
 # delOpens: 57.65
@@ -735,7 +735,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -110    -76   -125     82
 
 
-# aligned letter pairs: 15527.0
+# aligned letter pairs: 15527
 # deletes: 113.73
 # inserts: 114.67
 # delOpens: 57.12
@@ -777,7 +777,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -110    -76   -125     82
 
 
-# aligned letter pairs: 15527.0
+# aligned letter pairs: 15527
 # deletes: 113.42
 # inserts: 114.36
 # delOpens: 56.91
@@ -819,7 +819,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -110    -76   -125     82
 
 
-# aligned letter pairs: 15527.0
+# aligned letter pairs: 15527
 # deletes: 113.72
 # inserts: 114.56
 # delOpens: 57.01
@@ -878,8 +878,8 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # scale used while training: 91.024
 
 
-# aligned letter pairs: 15346.0
-# deletes: 495.0
+# aligned letter pairs: 15346
+# deletes: 495
 # inserts: 469.5
 # delOpens: 254.45
 # insOpens: 255.74
@@ -901,8 +901,8 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 7785.4         1040.06        527.321        708.41        
-# C 1040.06        6080.0         151.17         1242.39       
-# G 527.321        151.17         3129.0         151.6         
+# C 1040.06        6080           151.17         1242.39       
+# G 527.321        151.17         3129           151.6         
 # T 708.41         1242.39        151.6          6088.4        
 
 # probability matrix (query letters = columns, reference letters = rows):
@@ -920,7 +920,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -121    -55   -177     93
 
 
-# aligned letter pairs: 15416.0
+# aligned letter pairs: 15416
 # deletes: 215.33
 # inserts: 215.69
 # delOpens: 113.98
@@ -943,9 +943,9 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 7618.2         1132.64        579.551        743.96        
-# C 1132.64        5928.0         135.031        1391.67       
+# C 1132.64        5928           135.031        1391.67       
 # G 579.551        135.031        3123.2         127.253       
-# T 743.96         1391.67        127.253        5955.0        
+# T 743.96         1391.67        127.253        5955          
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
@@ -962,7 +962,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -117    -45   -193     91
 
 
-# aligned letter pairs: 15503.0
+# aligned letter pairs: 15503
 # deletes: 137.59
 # inserts: 138.36
 # delOpens: 72.12
@@ -985,7 +985,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 7575.2         1171.74        594.856        786.35        
-# C 1171.74        5906.0         141.189        1424.23       
+# C 1171.74        5906           141.189        1424.23       
 # G 594.856        141.189        3112.6         132.353       
 # T 786.35         1424.23        132.353        5932.4        
 
@@ -1004,7 +1004,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -112    -44   -190     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 114.78
 # inserts: 115.79
 # delOpens: 59.15
@@ -1026,7 +1026,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 7554.0         1186.75        595.95         803.86        
+# A 7554           1186.75        595.95         803.86        
 # C 1186.75        5884.8         144.216        1429.81       
 # G 595.95         144.216        3110.2         136.454       
 # T 803.86         1429.81        136.454        5910.8        
@@ -1046,7 +1046,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -110    -43   -187     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 107.36
 # inserts: 108.51
 # delOpens: 54.6
@@ -1070,8 +1070,8 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 #   A              C              G              T             
 # A 7553.6         1193.74        595.995        809.11        
 # C 1193.74        5884.2         145.425        1432.07       
-# G 595.995        145.425        3110.0         138.114       
-# T 809.11         1432.07        138.114        5910.0        
+# G 595.995        145.425        3110           138.114       
+# T 809.11         1432.07        138.114        5910          
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
@@ -1088,7 +1088,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -110    -43   -186     90
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 105.58
 # inserts: 106.74
 # delOpens: 53.438
@@ -1112,7 +1112,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 #   A              C              G              T             
 # A 7553.4         1195.75        595.008        813.18        
 # C 1195.75        5884.2         145.822        1432.21       
-# G 595.008        145.822        3108.0         138.553       
+# G 595.008        145.822        3108           138.553       
 # T 813.18         1432.21        138.553        5909.8        
 
 # probability matrix (query letters = columns, reference letters = rows):
@@ -1130,7 +1130,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -110    -43   -186     89
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 104.94
 # inserts: 106.21
 # delOpens: 53.001
@@ -1153,8 +1153,8 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 7553.4         1195.74        596.007        813.2         
-# C 1195.74        5884.0         145.82         1432.23       
-# G 596.007        145.82         3108.0         138.673       
+# C 1195.74        5884           145.82         1432.23       
+# G 596.007        145.82         3108           138.673       
 # T 813.2          1432.23        138.673        5909.6        
 
 # probability matrix (query letters = columns, reference letters = rows):
@@ -1172,7 +1172,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -110    -43   -185     89
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 104.52
 # inserts: 105.89
 # delOpens: 52.688
@@ -1195,8 +1195,8 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 7553.4         1195.73        596.006        813.22        
-# C 1195.73        5884.0         145.819        1433.23       
-# G 596.006        145.819        3108.0         138.889       
+# C 1195.73        5884           145.819        1433.23       
+# G 596.006        145.819        3108           138.889       
 # T 813.22         1433.23        138.889        5909.6        
 
 # probability matrix (query letters = columns, reference letters = rows):
@@ -1214,7 +1214,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -110    -43   -185     89
 
 
-# aligned letter pairs: 15522.0
+# aligned letter pairs: 15522
 # deletes: 104.31
 # inserts: 105.58
 # delOpens: 52.578
@@ -1237,8 +1237,8 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 7553.4         1195.73        596.006        813.22        
-# C 1195.73        5884.0         145.918        1433.24       
-# G 596.006        145.918        3108.0         138.89        
+# C 1195.73        5884           145.918        1433.24       
+# G 596.006        145.918        3108           138.89        
 # T 813.22         1433.24        138.89         5909.6        
 
 # probability matrix (query letters = columns, reference letters = rows):

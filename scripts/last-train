@@ -208,7 +208,7 @@ def writeMatrixBody(outFile, prefix, alphabet, matrix, formatString):
 def writeCountMatrix(outFile, matrix, prefix):
     alphabet = guessAlphabet(len(matrix))
     writeMatrixHead(outFile, prefix, alphabet, "%-14s")
-    writeMatrixBody(outFile, prefix, alphabet, matrix, "%-14s")
+    writeMatrixBody(outFile, prefix, alphabet, matrix, "%-14.12g")
 
 def writeProbMatrix(outFile, matrix, prefix):
     alphabet = guessAlphabet(len(matrix))
@@ -268,11 +268,11 @@ def gapProbsFromCounts(counts, opts):
         delExtendProb = (deletes - delOpens) / deletes
         insExtendProb = (inserts - insOpens) / inserts
 
-    print("# aligned letter pairs:", matches)
-    print("# deletes:", deletes)
-    print("# inserts:", inserts)
-    print("# delOpens:", delOpens)
-    print("# insOpens:", insOpens)
+    print("# aligned letter pairs: %.12g" % matches)
+    print("# deletes: %.12g" % deletes)
+    print("# inserts: %.12g" % inserts)
+    print("# delOpens: %.12g" % delOpens)
+    print("# insOpens: %.12g" % insOpens)
     print("# alignments:", alignments)
     print("# mean delete size: %g" % (deletes / delOpens))
     print("# mean insert size: %g" % (inserts / insOpens))
