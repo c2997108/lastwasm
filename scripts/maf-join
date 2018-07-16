@@ -12,7 +12,13 @@
 
 from __future__ import print_function
 
+import functools
 import sys, os, fileinput, optparse, signal
+
+try:
+    from future_builtins import map, zip
+except ImportError:
+    pass
 
 signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # stop spurious error message
 
@@ -23,18 +29,19 @@ class peekable:  # Adapted from Python Cookbook 2nd edition
         self.cache = []
     def __iter__(self):
         return self
-    def next(self):
+    def __next__(self):
         if self.cache: return self.cache.pop()
-        else: return self.it.next()
+        else: return next(self.it)
+    next = __next__
     def peek(self):
-        if not self.cache: self.cache.append(self.it.next())
+        if not self.cache: self.cache.append(next(self.it))
         return self.cache[0]
 
 def maxLen(things): return max(map(len, things))
 
 class MafBlock:
-    def __init__(self, chr, beg, end, strand, chrSize, seq, prob):
-        self.chr = chr  # chromosome names
+    def __init__(self, chrom, beg, end, strand, chrSize, seq, prob):
+        self.chr = chrom  # chromosome names
         self.beg = beg  # alignment begin coordinates
         self.end = end  # alignment end coordinates
         self.strand = strand
@@ -42,11 +49,12 @@ class MafBlock:
         self.seq = seq  # aligned sequences, including gaps
         self.prob = prob  # probabilities (may be empty)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return len(self.seq) > 0
+    __nonzero__ = __bool__
 
-    def __cmp__(self, other):
-        return cmp(self.chr[:1] + self.beg[:1], other.chr[:1] + other.beg[:1])
+    def __lt__(self, other):
+        return (self.chr[:1] + self.beg[:1]) < (other.chr[:1] + other.beg[:1])
 
     def before(self, other):
         return (self.chr[0], self.end[0]) <= (other.chr[0], other.beg[0])
@@ -56,25 +64,25 @@ class MafBlock:
 
     def addLine(self, line):
         words = line.split()
-        if line.startswith('s'):
+        if line[0] == "s":
             self.chr.append(words[1])
             self.beg.append(int(words[2]))
             self.end.append(int(words[2]) + int(words[3]))
             self.strand.append(words[4])
             self.chrSize.append(words[5])
             self.seq.append(list(words[6]))
-        elif line.startswith('p'):
+        elif line[0] == "p":
             self.prob.append(words[1])
 
     def write(self):
-        beg = map(str, self.beg)
+        beg = [str(i) for i in self.beg]
         size = [str(e-b) for b, e in zip(self.beg, self.end)]
         seq = [''.join(i) for i in self.seq]
         columns = self.chr, beg, size, self.strand, self.chrSize, seq
-        widths = map(maxLen, columns)
+        widths = [maxLen(i) for i in columns]
         print('a')
         for row in zip(*columns):
-            widthsAndFields = zip(widths, row)
+            widthsAndFields = list(zip(widths, row))
             field0 = "%-*s" % widthsAndFields[0]  # left-justify
             fields = ["%*s" % i for i in widthsAndFields[1:]]  # right-justify
             print('s', field0, ' '.join(fields))
@@ -94,12 +102,12 @@ def joinOnFirstItem(x, y):
 
 def mafEasyJoin(x, y):
     '''Join two MAF blocks on the top sequence.'''
-    xJoin = zip(x.chr, x.beg, x.end, x.strand, x.chrSize, x.seq)
-    yJoin = zip(y.chr, y.beg, y.end, y.strand, y.chrSize, y.seq)
+    xJoin = list(zip(x.chr, x.beg, x.end, x.strand, x.chrSize, x.seq))
+    yJoin = list(zip(y.chr, y.beg, y.end, y.strand, y.chrSize, y.seq))
     joined = joinOnFirstItem(xJoin, yJoin)
-    chr, beg, end, strand, chrSize, seq = zip(*joined)
+    chrom, beg, end, strand, chrSize, seq = zip(*joined)
     prob = x.prob + y.prob
-    return MafBlock(chr, beg, end, strand, chrSize, seq, prob)
+    return MafBlock(chrom, beg, end, strand, chrSize, seq, prob)
 
 def countNonGaps(s): return len(s) - s.count('-')
 
@@ -178,7 +186,7 @@ def mafJoin(mafs):
     gapInfo = gapsToAdd(topSeqs)
     for maf, gapsAndPositions in zip(mafs, gapInfo):
         mafAddGaps(maf, gapsAndPositions)
-    return reduce(mafEasyJoin, mafs)
+    return functools.reduce(mafEasyJoin, mafs)
 
 def mafInput(lines):
     '''Read lines and yield MAF blocks.'''
@@ -213,15 +221,15 @@ def allOverlaps(sequences, beg, end):
         for j in allOverlaps(sequences[1:], newBeg, newEnd):
             yield (i,) + j
 
-def nextWindow(window, input, referenceMaf):
+def nextWindow(window, theInput, referenceMaf):
     '''Yield "relevant" MAF blocks, based on overlap with referenceMaf.'''
     for maf in window:
         if not maf.before(referenceMaf): yield maf
     try:
         while True:
-            maf = input.peek()
+            maf = theInput.peek()
             if maf.after(referenceMaf): break
-            maf = input.next()
+            maf = theInput.next()
             if not maf.before(referenceMaf): yield maf
     except StopIteration: pass
 
@@ -236,7 +244,7 @@ def overlappingMafs(sortedMafInputs):
             yield (h,) + i
 
 op = optparse.OptionParser(usage="%prog sorted-file1.maf sorted-file2.maf ...")
-(opts, args) = op.parse_args()
+opts, args = op.parse_args()
 
 progName = os.path.basename(sys.argv[0])
 
