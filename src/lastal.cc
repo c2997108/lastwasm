@@ -147,7 +147,7 @@ void makeScoreMatrix( const std::string& matrixName,
   scoreMatrix.init(alph.encode);
   if (args.outputType > 0) {
     calculateSubstitutionScoreMatrixStatistics();
-    if (alph.letters == alph.dna) {
+    if (alph.letters == alph.dna && !lambdaCalculator.isBad()) {
       scoreMatrix.addAmbiguousScores(alph.encode, lambdaCalculator.lambda(),
 				     lambdaCalculator.letterProbs1(),
 				     lambdaCalculator.letterProbs2());
@@ -279,6 +279,7 @@ void makeQualityScorers(){
 // Calculate statistical parameters for the alignment scoring scheme
 static void calculateScoreStatistics(const std::string& matrixName,
 				     countT refLetters) {
+  if (lambdaCalculator.isBad()) return;
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
   bool isGapped = (args.outputType > 1);
   bool isStandardGeneticCode = args.geneticCodeFile.empty();

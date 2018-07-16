@@ -2885,6 +2885,34 @@ TEST lastal -W19 -x1g -fTAB /tmp/last-test hg19-M.fa
 24	chrM	6570	28	+	16775	chrM	13264	28	-	16571	28	EG2=1.3e+06	E=0.00074
 # Query sequences=1
 
+TEST lastal -L9 -m0 -j1 -q0 -d5 -n6 -fTAB /tmp/last-test tttttccccc.fa
+#
+# a=7 b=1 A=7 B=1 e=5 d=5 x=4 y=0 z=4 D=1e+06 E=2.80852e+07
+# R=10 u=0 s=2 S=0 M=0 T=0 m=0 l=1 L=9 n=6 k=1 W=3 w=1000 t=-1 j=1 Q=0
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+#
+#     A   C   G   T
+# A   1   0   0   0
+# C   0   1   0   0
+# G   0   0   1   0
+# T   0   0   0   1
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+# batch 0
+6	chrM	7918	8	+	16775	tttttccccc	0	8	+	10	8
+8	chrM	4594	9	+	16775	tttttccccc	0	9	+	10	9
+9	chrM	8831	10	+	16775	tttttccccc	0	10	-	10	10
+7	chrM	15299	10	+	16775	tttttccccc	0	10	-	10	10
+7	chrM	1292	10	+	16775	tttttccccc	0	10	-	10	10
+6	chrM	3866	9	+	16775	tttttccccc	0	9	-	10	9
+8	chrM	4223	9	+	16775	tttttccccc	0	9	-	10	9
+7	chrM	8832	9	+	16775	tttttccccc	0	9	-	10	9
+# Query sequences=1
+
 TEST lastal -Q1 -T1 -j1 -s0 /tmp/last-test SRR001981-1k.fastq
 #
 # a=21 b=9 A=21 B=9 e=105 d=105 x=104 y=44 z=104 D=1e+06 E=2.78234e+07

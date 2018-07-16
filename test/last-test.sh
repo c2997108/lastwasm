@@ -188,6 +188,9 @@ trap 'rm -f $db*' EXIT
     # -x g
     try lastal -W19 -x1g -fTAB $db hg19-M.fa
 
+    # non-negative score matrix
+    try lastal -L9 -m0 -j1 -q0 -d5 -n6 -fTAB $db tttttccccc.fa
+
     # fastq-versus-fastq gapless overlap alignment
     lastdb -Q1 -uNEAR -cR01 $db $fastq
     try lastal -Q1 -T1 -j1 -s0 $db $fastq
