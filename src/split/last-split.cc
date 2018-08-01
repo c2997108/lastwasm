@@ -129,7 +129,10 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
     mismap = cbrc::pLinesToErrorProb(s.end()[-2].c_str(), s.end()[-1].c_str());
     if (mismap > opts.mismap) return;
     mismapPrecision = 2;
+    if (opts.format == 'm') s.pop_back();
   }
+
+  if (opts.format == 'm') s.pop_back();
 
   std::cout << std::setprecision(mismapPrecision)
 	    << "a score=" << score << " mismap=" << mismap;

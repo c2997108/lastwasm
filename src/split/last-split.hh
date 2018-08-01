@@ -18,6 +18,7 @@
 #include <vector>
 
 struct LastSplitOptions {
+  int format;
   std::string genome;
   int direction;
   double cis;

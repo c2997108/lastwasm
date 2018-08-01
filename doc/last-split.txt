@@ -181,6 +181,11 @@ Options
   -h, --help
          Show a help message, with default option values, and exit.
 
+  -f, --format=FMT
+         Choose the output format: MAF+ (the default), or MAF (which
+         omits the last-split "p" lines).  The format name is not
+         case-sensitive.
+
   -g, --genome=NAME
          Do spliced alignment, and read splice signals (GT, AG, etc)
          from the named genome.  NAME should be the name of a lastdb
