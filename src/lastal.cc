@@ -235,11 +235,11 @@ void makeQualityScorers(){
     else if( args.inputFormat == sequenceFormat::prb ){
       qualityPssmMaker.init( m, alph.size, lambda, isMatchMismatch,
                              args.matchScore, -args.mismatchCost,
-                             offset2, alph.numbersToUppercase );
+                             isPhred2, offset2, alph.numbersToUppercase );
       if( args.isQueryStrandMatrix && args.strand != 1 )
 	qualityPssmMakerRev.init( mRev, alph.size, lambda, isMatchMismatch,
 				  args.matchScore, -args.mismatchCost,
-				  offset2, alph.numbersToUppercase );
+				  isPhred2, offset2, alph.numbersToUppercase );
     }
   }
   else{
@@ -740,11 +740,12 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, char strand, const uchar* querySeq ){
   Centroid& centroid = aligner.centroid;
   Dispatcher dis( Phase::final, aligner, queryNum, strand, querySeq );
-  size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
+  size_t queryLen = query.padLen(queryNum);
+  size_t frameSize = args.isFrameshift() ? (queryLen / 3) : 0;
 
   if( args.outputType > 3 ){
     if( dis.p ){
-      centroid.setPssm( dis.p, query.padLen(queryNum), args.temperature,
+      centroid.setPssm( dis.p, queryLen, args.temperature,
                         getOneQualityExpMatrix(strand), dis.b, dis.j );
     }
     else{

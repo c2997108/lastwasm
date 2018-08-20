@@ -10,8 +10,6 @@
 #include <cstdlib>  // for abs
 #include <iomanip>
 
-#define CI(type) std::vector<type>::const_iterator  // added by MCF
-
 static const double DINF = DBL_MAX / 2;
 
 namespace{
@@ -19,7 +17,6 @@ namespace{
     return std::exp (x);
   }
 }
-
 
 namespace cbrc{
 
@@ -686,15 +683,14 @@ namespace cbrc{
     seq1 += start1;
     seq2 += start2;
     const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
-    const int seqIncrement = isExtendFwd ? 1 : -1;
 
+    const int seqIncrement = isExtendFwd ? 1 : -1;
     const bool isAffine = gap.isAffine();
     const double eE = EXP ( - gap.delExtend / T );
     const double eF = EXP ( - gap.delExist / T );
     const double eEI = EXP ( - gap.insExtend / T );
     const double eFI = EXP ( - gap.insExist / T );
     const double eP = EXP ( - gap.pairExtend / T );
-
     assert( gap.insExist == gap.delExist || eP <= 0.0 );
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
@@ -706,9 +702,6 @@ namespace cbrc{
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
       const double seP = eP * scale12;
-
-      const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
-      const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + 1 ];
@@ -725,6 +718,9 @@ namespace cbrc{
       const double* fP2 = &fP[ diagBeg ];
 
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
+
+      const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
+      const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
       if (! isPssm ) {
 	if (isAffine) {
@@ -850,4 +846,5 @@ namespace cbrc{
       }
     }
   }
+
 }  // end namespace cbrc

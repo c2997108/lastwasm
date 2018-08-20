@@ -50,6 +50,7 @@ class QualityPssmMaker {
             bool isMatchMismatchMatrix,
             int matchScore,
             int mismatchScore,  // score not cost!
+	    bool isPhred,  // typically false
             int qualityOffset,  // typically 64
             const uchar* toUnmasked);  // maps letters to unmasked letters
 
@@ -58,6 +59,8 @@ class QualityPssmMaker {
             const uchar *qualityBeg,
             int *pssmBeg,
             bool isApplyMasking) const;
+
+  const double *qualToProbRight() const { return qualityToProbCorrect; }
 
  private:
   static const int qualityCapacity = 128;

@@ -18,6 +18,7 @@ void QualityPssmMaker::init(const ScoreMatrixRow *scoreMatrix,
                             bool isMatchMismatchMatrix,
                             int matchScore,
                             int mismatchScore,
+			    bool isPhred,
                             int qualityOffset,
                             const uchar* toUnmasked) {
   assert(numNormalLetters <= scoreMatrixRowSize);
@@ -33,7 +34,7 @@ void QualityPssmMaker::init(const ScoreMatrixRow *scoreMatrix,
   double mismatchExp = probFromScore(lambda, mismatchScore);
 
   for (int q = 0; q < qualityCapacity; ++q) {
-    double e = errorProbFromQual(q, qualityOffset, false);
+    double e = errorProbFromQual(q, qualityOffset, isPhred);
     double p = 1 - e;
     qualityToProbCorrect[q] = p;
 
