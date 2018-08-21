@@ -92,6 +92,38 @@ namespace cbrc{
     }
   }
 
+  void Centroid::setLetterProbsPerPosition(unsigned alphabetSize,
+					   size_t sequenceLength,
+					   const uchar *sequence,
+					   const uchar *qualityCodes,
+					   bool isFastq,
+					   const double *qualToProbCorrect,
+					   const double *letterProbs,
+					   const uchar *toUnmasked) {
+    letterProbsPerPosition.resize(sequenceLength * alphabetSize);
+    for (size_t i = 0; i < sequenceLength; ++i) {
+      size_t j = i * alphabetSize;
+      double *out = &letterProbsPerPosition[j];
+      if (isFastq) {
+	unsigned letter = toUnmasked[sequence[i]];
+	if (letter < alphabetSize) {
+	  double p = qualToProbCorrect[qualityCodes[i]];
+	  for (unsigned k = 0; k < alphabetSize; ++k) {
+	    out[k] = (1 - p) * letterProbs[k];
+	  }
+	  out[letter] = p * (1 - letterProbs[letter]);
+	  // it's OK to scale the "out" values by a constant, per "i"
+	} else {
+	  std::fill_n(out, alphabetSize, 0.0);
+	}
+      } else {
+	for (unsigned k = 0; k < alphabetSize; ++k) {
+	  out[k] = qualToProbCorrect[qualityCodes[j + k]];
+	}
+      }
+    }
+  }
+
   void Centroid::initForwardMatrix(){
     size_t n = xa.scoreEndIndex( numAntidiagonals );
 
@@ -675,16 +707,43 @@ namespace cbrc{
     return T * x;
   }
 
+  static void countUncertainLetters(double *counts, double alignProb,
+				    unsigned alphabetSize,
+				    const double *probRatios,
+				    const double *letterProbs) {
+    double ratioParts[scoreMatrixRowSize];
+    double sum = 0;
+    for (unsigned letter = 0; letter < alphabetSize; ++letter) {
+      double r = probRatios[letter] * letterProbs[letter];
+      ratioParts[letter] = r;
+      sum += r;
+    }
+    if (sum > 0) {
+      const double mul = alignProb / sum;
+      for (unsigned letter = 0; letter < alphabetSize; ++letter) {
+	counts[letter] += mul * ratioParts[letter];
+      }
+    }
+  }
+
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 					 size_t start1, size_t start2,
 					 bool isExtendFwd,
 					 const GeneralizedAffineGapCosts& gap,
+					 unsigned alphabetSize,
 					 ExpectedCount& c ) const{
     seq1 += start1;
     seq2 += start2;
     const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
 
+    const double *letterProbs = 0;
+    if (!letterProbsPerPosition.empty()) {
+      letterProbs = &letterProbsPerPosition[0] + start2 * alphabetSize;
+    }
+
     const int seqIncrement = isExtendFwd ? 1 : -1;
+    int alphabetSizeIncrement = alphabetSize;
+    if (!isExtendFwd) alphabetSizeIncrement *= -1;
     const bool isAffine = gap.isAffine();
     const double eE = EXP ( - gap.delExtend / T );
     const double eF = EXP ( - gap.delExist / T );
@@ -720,9 +779,10 @@ namespace cbrc{
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
 
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
-      const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
       if (! isPssm ) {
+	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
+
 	if (isAffine) {
 	  while (1) {
 	    const double xM = *fM2 * scale12;
@@ -784,6 +844,8 @@ namespace cbrc{
       }
       else {
 	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
+	const size_t a2 = seq2pos * alphabetSize;
+	const double* lp2 = isExtendFwd ? letterProbs + a2 : letterProbs - a2;
 
 	if (isAffine) {
 	  while (1) { // inner most loop
@@ -794,7 +856,9 @@ namespace cbrc{
 	    const double yM = *bM0 * (*p2)[letter1];
 	    const double yD = *bD0;
 	    const double yI = *bI0;
-	    c.emit[letter1][*s2] += (xM + xD + xI) * yM;  // xxx
+	    const double alignProb = (xM + xD + xI) * yM;
+	    countUncertainLetters(c.emit[letter1], alignProb,
+				  alphabetSize, match_score[letter1], lp2);
 	    c.MM += xM * yM;
 	    c.DM += xD * yM;
 	    c.IM += xI * yM;
@@ -807,8 +871,8 @@ namespace cbrc{
 	    fM2++; fD1++; fI1++;
 	    bM0++; bD0++; bI0++;
 	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
 	    p2 -= seqIncrement;
+	    lp2 -= alphabetSizeIncrement;
 	  }
 	}else{
 	  while (1) { // inner most loop
@@ -821,7 +885,9 @@ namespace cbrc{
 	    const double yD = *bD0;
 	    const double yI = *bI0;
 	    const double yP = *bP0;
-	    c.emit[letter1][*s2] += (xM + xD + xI + xP) * yM;  // xxx
+	    const double alignProb = (xM + xD + xI + xP) * yM;
+	    countUncertainLetters(c.emit[letter1], alignProb,
+				  alphabetSize, match_score[letter1], lp2);
 	    c.MM += xM * yM;
 	    c.DM += xD * yM;
 	    c.IM += xI * yM;
@@ -839,8 +905,8 @@ namespace cbrc{
 	    fM2++; fD1++; fI1++; fP2++;
 	    bM0++; bD0++; bI0++; bP0++;
 	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
 	    p2 -= seqIncrement;
+	    lp2 -= alphabetSizeIncrement;
 	  }
 	}
       }

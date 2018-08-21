@@ -41,6 +41,18 @@ namespace cbrc{
                    const uchar* sequenceBeg, const uchar* qualityBeg );
     void setOutputType( int m ) { outputType = m; }
 
+    // For a sequence with quality data, store the probability that
+    // each position is each letter (possibly scaled by a constant per
+    // position).  xxx I don't think this really belongs in Centroid.
+    void setLetterProbsPerPosition(unsigned alphabetSize,
+				   size_t sequenceLength,
+				   const uchar *sequence,
+				   const uchar *qualityCodes,
+				   bool isFastq,
+				   const double *qualToProbCorrect,
+				   const double *letterProbs,
+				   const uchar *toUnmasked);
+
     // start1 is the index of the first letter to look at in seq1
     // start2 is the index of the first letter to look at in seq2
 
@@ -89,6 +101,7 @@ namespace cbrc{
     void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
 			       size_t start1, size_t start2, bool isExtendFwd,
 			       const GeneralizedAffineGapCosts& gap,
+			       unsigned alphabetSize,
 			       ExpectedCount& count) const;
 
   private:
@@ -101,6 +114,7 @@ namespace cbrc{
     bool isPssm;
     std::vector<double> pssmExp; //
     ExpMatrixRow* pssmExp2; // pre-computed pssm for prob align
+    std::vector<double> letterProbsPerPosition;  // for uncertain sequences
     int outputType;
 
     typedef std::vector< double > dvec_t;

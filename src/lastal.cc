@@ -185,7 +185,7 @@ void makeQualityScorers(){
 
   const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
   bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
-  double lambda = lambdaCalculator.lambda();
+  double lambda = lambdaCalculator.lambda();  // xxx 1/args.temperature ?
   const double* lp1 = lambdaCalculator.letterProbs1();
   bool isPhred1 = isPhred( referenceFormat );
   int offset1 = qualityOffset( referenceFormat );
@@ -232,7 +232,7 @@ void makeQualityScorers(){
 	  oneQualityExpMatrixRev.init( qRev, args.temperature );
       }
     }
-    else if( args.inputFormat == sequenceFormat::prb ){
+    if( isQuality(args.inputFormat) ){
       qualityPssmMaker.init( m, alph.size, lambda, isMatchMismatch,
                              args.matchScore, -args.mismatchCost,
                              isPhred2, offset2, alph.numbersToUppercase );
@@ -747,6 +747,14 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
     if( dis.p ){
       centroid.setPssm( dis.p, queryLen, args.temperature,
                         getOneQualityExpMatrix(strand), dis.b, dis.j );
+      if (args.outputType == 7) {
+	centroid.setScoreMatrix(dis.m, args.temperature);
+	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
+					   isFastq(args.inputFormat),
+					   qualityPssmMaker.qualToProbRight(),
+					   lambdaCalculator.letterProbs2(),
+					   alph.numbersToUppercase);
+      }
     }
     else{
       centroid.setScoreMatrix( dis.m, args.temperature );

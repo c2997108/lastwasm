@@ -392,7 +392,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     if( outputType == 7 ){
       ExpectedCount ec;
       centroid.computeExpectedCounts( seq1, seq2, start1, start2,
-				      isForward, gap, ec );
+				      isForward, gap, alph.size, ec );
       addExpectedCounts( &extras.expectedCounts[0], ec, alph );
     }
   }
