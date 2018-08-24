@@ -134,8 +134,9 @@ class MultiSequence{
   VectorOrMmap<uchar> qualityScores;
   size_t qualityScoresPerLetter;
 
-  // read a FASTA header: read the whole line but store just the first word
-  std::istream& readFastaName( std::istream& stream );
+  // Read a fasta/fastq header: read the whole line but store just the
+  // 1st word
+  void readFastxName( std::istream& stream );
 
   // read the letters above PSSM columns, so we know which column is which
   std::istream& readPssmHeader( std::istream& stream );

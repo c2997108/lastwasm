@@ -5,6 +5,7 @@
 #include <algorithm>  // max_element
 #include <cctype>  // toupper
 #include <limits>  // numeric_limits
+#include <streambuf>
 
 #define ERR(x) throw std::runtime_error(x)
 
@@ -20,25 +21,33 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
     uchar c = '@';
     stream >> c;
     if( c != '@' ) ERR( "bad FASTQ data: missing '@'" );
-    readFastaName(stream);
+    readFastxName(stream);
     if( !stream ) return stream;
+  }
 
-    // don't bother to obey maxSeqLen exactly: harmless for short sequences
-    while( stream >> c && c != '+' ){  // skips whitespace
+  std::streambuf *buf = stream.rdbuf();
+  int c = buf->sgetc();
+
+  while (c != std::streambuf::traits_type::eof()) {
+    if (c > ' ') {
+      if (c == '+' || seq.v.size() >= maxSeqLen) break;
       seq.v.push_back(c);
     }
-
-    stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-
-    while( qualityScores.v.size() < seq.v.size() && stream >> c ){  // skips WS
-      if (c > 126) ERR( "non-printable-ASCII in FASTQ quality data" );
-      qualityScores.v.push_back(c);
-    }
-
-    if( seq.v.size() != qualityScores.v.size() ) ERR( "bad FASTQ data" );
+    c = buf->snextc();
   }
 
   if (isRoomToAppendPad(maxSeqLen)) {
+    do {
+      c = buf->sbumpc();
+    } while (c != std::streambuf::traits_type::eof() && c != '\n');
+
+    while (qualityScores.v.size() < seq.v.size()) {
+      c = buf->sbumpc();
+      if (c == std::streambuf::traits_type::eof()) ERR("bad FASTQ data");
+      if (c > 126) ERR("non-printable-ASCII in FASTQ quality data");
+      if (c > ' ') qualityScores.v.push_back(c);
+    }
+
     finish();
     appendQualPad();
   }

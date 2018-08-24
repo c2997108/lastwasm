@@ -5,7 +5,7 @@
 #include <sstream>
 #include <algorithm>  // upper_bound
 #include <cassert>
-#include <iterator>  // istreambuf_iterator
+#include <streambuf>
 
 using namespace cbrc;
 
@@ -67,14 +67,13 @@ void MultiSequence::toFiles( const std::string& baseName ) const{
                       baseName + ".qua" );
 }
 
-std::istream& MultiSequence::readFastaName( std::istream& stream ){
-  std::string line, word;
-  getline( stream, line );
+void MultiSequence::readFastxName(std::istream& stream) {
+  std::string line, a;
+  getline(stream, line);
+  if (!stream) return;
   std::istringstream iss(line);
-  iss >> word;
-  if( !stream ) return stream;
-  addName(word);
-  return stream;
+  iss >> a;
+  addName(a);
 }
 
 std::istream&
@@ -84,20 +83,19 @@ MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
     stream >> c;
     if( c != '>' )
       throw std::runtime_error("bad FASTA sequence data: missing '>'");
-    readFastaName(stream);
+    readFastxName(stream);
     if( !stream ) return stream;
   }
 
-  std::istreambuf_iterator<char> inpos(stream);
-  std::istreambuf_iterator<char> endpos;
-  while( inpos != endpos ){
-    uchar c = *inpos;
-    if( c > ' ' ){  // faster than isspace
-      if( c == '>' ) break;  // we have hit the next FASTA sequence
-      if( seq.v.size() >= maxSeqLen ) break;
+  std::streambuf *buf = stream.rdbuf();
+  int c = buf->sgetc();
+
+  while (c != std::streambuf::traits_type::eof()) {
+    if (c > ' ') {  // faster than isspace
+      if (c == '>' || seq.v.size() >= maxSeqLen) break;
       seq.v.push_back(c);
     }
-    ++inpos;
+    c = buf->snextc();
   }
 
   if (isRoomToAppendPad(maxSeqLen)) finish();

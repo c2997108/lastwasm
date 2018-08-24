@@ -21,7 +21,7 @@ inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
 				    bool isMaskLowercase) {
   if (m.finishedSequences() == 0) maxSeqLen = -1;
 
-  size_t oldSize = m.unfinishedSize();
+  size_t oldSize = m.seqBeg(m.finishedSequences());
 
   if (f == sequenceFormat::fasta) {
     m.appendFromFasta(in, maxSeqLen);
@@ -37,7 +37,7 @@ inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
     err("encountered a sequence that's too long");
   }
 
-  size_t newSize = m.unfinishedSize();
+  size_t newSize = m.seqBeg(m.finishedSequences());
 
   // encode the newly-read sequence
   a.tr(m.seqWriter() + oldSize, m.seqWriter() + newSize, isKeepLowercase);
