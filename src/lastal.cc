@@ -745,8 +745,6 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 
   if( args.outputType > 3 ){
     if( dis.p ){
-      centroid.setPssm( dis.p, queryLen, args.temperature,
-                        getOneQualityExpMatrix(strand), dis.b, dis.j );
       if (args.outputType == 7) {
 	centroid.setScoreMatrix(dis.m, args.temperature);
 	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
@@ -755,6 +753,8 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 					   lambdaCalculator.letterProbs2(),
 					   alph.numbersToUppercase);
       }
+      centroid.setPssm(dis.p, queryLen, args.temperature,
+		       getOneQualityExpMatrix(strand), dis.b, dis.j);
     }
     else{
       centroid.setScoreMatrix( dis.m, args.temperature );
