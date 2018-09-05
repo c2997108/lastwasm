@@ -1,8 +1,9 @@
 last-train
 ==========
 
-This script tries to find suitable score parameters (substitution and
-gap scores) for aligning some given sequences.
+last-train finds the rates (probabilities) of insertion, deletion, and
+substitutions between two sets of sequences.  It thereby finds
+suitable substitution and gap scores for aligning them.
 
 It (probabilistically) aligns the sequences using some initial score
 parameters, then estimates better score parameters based on the
@@ -44,8 +45,8 @@ Training options
          Force the insertion costs to equal the deletion costs.
   --pid=PID
          Ignore alignments with > PID% identity.  This aims to
-         optimize the parameters for low-similarity alignments,
-         similarly to the BLOSUM matrices.
+         optimize the parameters for low-similarity alignments
+         (similarly to the BLOSUM matrices).
   --postmask=NUMBER
          By default, last-train ignores alignments of mostly-lowercase
          sequence (by using `last-postmask <last-postmask.html>`_).
@@ -94,9 +95,16 @@ Alignment options
              position in each query.
   -P COUNT   Number of parallel threads.
   -Q NUMBER  Query sequence format: 0=fasta, 1=fastq-sanger.
-             **Important:** if you use option -Q, last-train will only
-             train the gap scores, and leave the substitution scores
-             at their initial values.
+
+             last-train assumes that fastq quality codes indicate
+             substitution error probabilities, *not* insertion or
+             deletion error probabilities.  If this assumption is
+             dubious (e.g. for data with many insertion or deletion
+             errors), it may be better to use fasta.
+
+             For fastq, last-train finds the rates of substitutions
+             not explained by the quality data (ideally, real
+             substitutions as opposed to errors).
 
 Bugs
 ----

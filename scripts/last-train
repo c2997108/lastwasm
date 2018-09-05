@@ -132,20 +132,6 @@ def scaleFromHeader(lines):
                 return float(i[2:])
     raise Exception("couldn't read the scale")
 
-def scoreMatrixFromHeader(lines):
-    matrix = []
-    for line in lines:
-        w = line.split()
-        if len(w) > 2 and len(w[1]) == 1:
-            matrix.append(w[1:])
-        elif matrix:
-            break
-    return matrix
-
-def scaledMatrix(matrix, scaleIncrease):
-    return matrix[0:1] + [i[0:1] + [int(j) * scaleIncrease for j in i[1:]]
-                          for i in matrix[1:]]
-
 def countsFromLastOutput(lines, opts):
     matrix = []
     # use +1 pseudocounts as a kludge to mitigate numerical problems:
@@ -391,9 +377,6 @@ def doTraining(opts, args):
     lastalVersion = versionFromHeader(q.stdout)
     externalScale = scaleFromHeader(q.stdout)
     internalScale = externalScale * scaleIncrease
-    if opts.Q:
-        externalMatrix = scoreMatrixFromHeader(q.stdout)
-        internalMatrix = scaledMatrix(externalMatrix, scaleIncrease)
     oldParameters = []
 
     print("# lastal version:", lastalVersion)
@@ -403,27 +386,23 @@ def doTraining(opts, args):
     print()
 
     while True:
-        print("#", " ".join(x))
+        print("#", *x)
         print()
         sys.stdout.flush()
         matCounts, gapCounts = countsFromLastOutput(q.stdout, opts)
         gapProbs = gapProbsFromCounts(gapCounts, opts)
         gapCosts = gapCostsFromProbs(internalScale, gapProbs)
         printGapCosts(gapCosts)
-        if opts.Q:
-            if gapCosts in oldParameters: break
-            oldParameters.append(gapCosts)
-        else:
-            matProbs = matProbsFromCounts(matCounts, opts)
-            matScores = matScoresFromProbs(internalScale, matProbs)
-            print("# score matrix "
-                  "(query letters = columns, reference letters = rows):")
-            writeScoreMatrix(sys.stdout, matScores, "# ")
-            print()
-            parameters = gapCosts, matScores
-            if parameters in oldParameters: break
-            oldParameters.append(parameters)
-            internalMatrix = matrixWithLetters(matScores)
+        matProbs = matProbsFromCounts(matCounts, opts)
+        matScores = matScoresFromProbs(internalScale, matProbs)
+        print("# score matrix "
+              "(query letters = columns, reference letters = rows):")
+        writeScoreMatrix(sys.stdout, matScores, "# ")
+        print()
+        parameters = gapCosts, matScores
+        if parameters in oldParameters: break
+        oldParameters.append(parameters)
+        internalMatrix = matrixWithLetters(matScores)
         x = fixedLastalArgs(opts, lastalProgName)
         x.append("-p-")
         x += args
@@ -439,13 +418,13 @@ def doTraining(opts, args):
             q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
                                  universal_newlines=True)
 
+    if opts.Q: writeLine(sys.stdout, "#last -Q", opts.Q)
     gapCosts = gapCostsFromProbs(externalScale, gapProbs)
     writeGapCosts(gapCosts, sys.stdout)
     if opts.s: writeLine(sys.stdout, "#last -s", opts.s)
     if opts.S: writeLine(sys.stdout, "#last -S", opts.S)
-    if not opts.Q:
-        matScores = matScoresFromProbs(externalScale, matProbs)
-        externalMatrix = matrixWithLetters(matScores)
+    matScores = matScoresFromProbs(externalScale, matProbs)
+    externalMatrix = matrixWithLetters(matScores)
     print("# score matrix "
           "(query letters = columns, reference letters = rows):")
     writeMatrixWithLetters(sys.stdout, externalMatrix, "")
