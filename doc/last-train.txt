@@ -82,9 +82,17 @@ Alignment options
   -E EG2     Maximum expected alignments per square giga.  (See `here
              <last-evalues.html>`_.)
   -s NUMBER  Which query strand to use: 0=reverse, 1=forward, 2=both.
-  -S NUMBER  Score matrix applies to forward strand of: 0=reference,
-             1=query.  This matters only if the scores lack
-             reverse-complement symmetry.
+  -S NUMBER  Specify how to use the substitution score matrix for
+             reverse strands.  If you use ``--revsym``, this makes no
+             difference.  "0" means that the matrix is used as-is for
+             all alignments.  "1" (the default) means that the matrix
+             is used as-is for alignments of query sequence forward
+             strands, and the complemented matrix is used for query
+             sequence reverse strands.
+
+             This parameter is always written in last-train's output,
+             so it will override lastal's default.
+
   -C COUNT   Before extending gapped alignments, discard any gapless
              alignment whose query range lies in COUNT other gapless
              alignments with higher score-per-length.  This aims to
@@ -106,6 +114,9 @@ Alignment options
              not explained by the quality data (ideally, real
              substitutions as opposed to errors).
 
+             If specified, this parameter is written in last-train's
+             output, so it will override lastal's default.
+
 Bugs
 ----
 
@@ -118,3 +129,5 @@ Bugs
   `reducing the alignment significance threshold
   <last-tutorial.html#example-6-find-very-short-dna-alignments>`_ with
   option -D.
+
+* last-train cannot handle DNA-versus-protein alignment.

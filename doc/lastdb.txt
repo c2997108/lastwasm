@@ -98,6 +98,11 @@ Advanced Options
       The fraction of positions that are "minimum" is roughly: 2 /
       (SIZE + 1).
 
+  -S STRAND
+      Specify which strand of the input sequences should be prepared
+      for alignment: 0 means reverse only, 1 means forward only, and 2
+      means both.
+
   -s BYTES      
       Limit memory usage, by splitting the output files into smaller
       "volumes" if necessary.  This will limit the memory usage of
@@ -227,6 +232,8 @@ This is modified by several options.
   `MAM8 <last-seeds.html>`_ makes it 8 times bigger.
 
 * -s: does not change the total size, but splits it into volumes.
+
+* -S2: doubles the size of everything.
 
 Limitations
 -----------

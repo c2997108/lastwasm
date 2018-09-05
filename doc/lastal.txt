@@ -262,13 +262,13 @@ Miscellaneous options
       1 means forward only, and 2 means both.
 
   -S NUMBER
-      Specify which DNA strand the score matrix applies to.  This
-      matters only for unusual matrices that lack strand symmetry
-      (e.g. if the a:g score differs from the t:c score).  0 means
-      that the matrix applies to the forward strand of the reference
-      aligned to either strand of the query.  1 means that the matrix
-      applies to either strand of the reference aligned to the forward
-      strand of the query.
+      Specify how to use the substitution score matrix for reverse
+      strands.  This matters only for unusual matrices that lack
+      strand symmetry (e.g. if the a:g score differs from the t:c
+      score).  "0" means that the matrix is used as-is for all
+      alignments.  "1" means that the matrix is used as-is for
+      alignments of query sequence forward strands, and the
+      complemented matrix is used for query sequence reverse strands.
 
   -K LIMIT
       Omit any alignment whose query range lies in LIMIT or more other
@@ -368,8 +368,11 @@ Miscellaneous options
       3. Mask them for gapless and gapped extensions.
 
       "Mask" means change their match/mismatch scores to min(unmasked
-      score, 0).  This option does not affect treatment of lowercase
-      for initial matches.
+      score, 0), a.k.a. `gentle masking
+      <https://doi.org/10.1371/journal.pone.0028819>`_.
+
+      This option does not affect treatment of lowercase for initial
+      matches.
 
   -w DISTANCE
       This option is a kludge to avoid catastrophic time and memory

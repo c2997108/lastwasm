@@ -108,6 +108,14 @@ research to society.
 
     Describes last-train.
 
+13. `A Simplified Description of Child Tables for Sequence Similarity
+    Search`__.  Frith MC, Shrestha A.  IEEE/ACM Trans Comput Biol
+    Bioinform. 2018.
+
+    __ https://ieeexplore.ieee.org/document/8288582/
+
+    Describes how LAST uses child tables.
+
 External methods
 ----------------
 
