@@ -129,10 +129,10 @@ def doOneFile(lines):
                     matrices = matrixPerStrand(rowHeads, colHeads,
                                                scoreMatrix, bDel, bIns)
                 fields = line.split()
-                if len(seqs) == strandParam:
-                    strand = fields[4]
-                    matrix = matrices[strand == "-"]
                 seqs.append(fields[6])
+                if len(seqs) == 2:
+                    isReverse = (fields[4] == "-")
+                    matrix = matrices[isReverse * strandParam]
     if seqs: printIfGood(maf, seqs, matrix, aDel, aIns, minScore)
 
 def lastPostmask(args):
