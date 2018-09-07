@@ -166,6 +166,8 @@ class AlignmentParameters {
       if (g == -1.0 && i.substr(0,8) == "letters=") {
 	cbrc::unstringify(g, c + 8);
         if (g <= 0) err("letters must be positive");
+	// xxx if both genome strands were searched, and/or just one
+	// strand of query sequences, this may be off by a factor of 2
       }
     }
   }
@@ -355,17 +357,24 @@ static AlignmentParameters readHeaderOrDie(std::istream& lines) {
   return params;  // dummy
 }
 
-static Alignment parseAlignment(double score, const char *rName,
-                                long rStart, long rSpan, long rSize,
+static Alignment parseAlignment(double score, const char *rName, long rStart,
+				long rSpan, char rStrand, long rSize,
                                 const char *qName, char qStrand,
 				const String *linesBeg, const String *linesEnd,
                                 char strand, double scale,
                                 const std::set<std::string>& circularChroms) {
-  long c = -rStart;
-  if (qStrand == '-') {
-    c = rStart + rSpan;
-    if (circularChroms.find(rName) != circularChroms.end() ||
-        circularChroms.find(".") != circularChroms.end()) c += rSize;
+  const bool isRead1 = (strand == '+');
+  const bool isSameStrand = (qStrand == rStrand);
+
+  long c = rStart;
+  if (qStrand == '-') c += rSpan;     // the coordinate of the query's 5'end
+  if (rStrand == '-') c = rSize - c;  // in the reference's forward strand
+  if (isSameStrand) {
+    // it's the upstream read in a pair, so we will subtract this coordinate
+    c = -c;
+  } else if (circularChroms.find(rName) != circularChroms.end() ||
+	     circularChroms.find(".") != circularChroms.end()) {
+    c += rSize;
   }
 
   Alignment parse;
@@ -376,7 +385,7 @@ static Alignment parseAlignment(double score, const char *rName,
   parse.rSize = rSize;
   parse.scaledScore = score / scale;  // needed in 2nd pass
   parse.qName = qName;
-  parse.strand = (qStrand == strand) ? '+' : '-';
+  parse.strand = (isSameStrand == isRead1) ? '+' : '-';
   return parse;
 }
 
@@ -400,7 +409,7 @@ static Alignment parseMaf(const String *linesBeg, const String *linesEnd,
 			  const std::set<std::string>& circularChroms) {
   double score = parseMafScore(*linesBeg);
   String rName, qName;
-  char qStrand;
+  char rStrand, qStrand;
   long rStart, rSpan, rSize;
   unsigned n = 0;
   for (const String *i = linesBeg; i < linesEnd; ++i) {
@@ -411,7 +420,7 @@ static Alignment parseMaf(const String *linesBeg, const String *linesEnd,
         c = readWord(c, rName);
         c = readLong(c, rStart);
         c = readLong(c, rSpan);
-        c = skipWord(c);
+	c = readChar(c, rStrand);
 	c = readLong(c, rSize);
       } else if (n == 1) {
 	c = skipWord(c);
@@ -425,8 +434,9 @@ static Alignment parseMaf(const String *linesBeg, const String *linesEnd,
     if (!c) err("bad MAF line: " + std::string(*i));
   }
   if (n < 2) err("bad MAF");
-  return parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand,
-                        linesBeg, linesEnd, strand, scale, circularChroms);
+  return
+    parseAlignment(score, rName, rStart, rSpan, rStrand, rSize, qName, qStrand,
+		   linesBeg, linesEnd, strand, scale, circularChroms);
 }
 
 static Alignment parseTab(const String *linesBeg, const String *linesEnd,
@@ -434,22 +444,23 @@ static Alignment parseTab(const String *linesBeg, const String *linesEnd,
 			  const std::set<std::string>& circularChroms) {
   double score;
   String rName, qName;
-  char qStrand;
+  char rStrand, qStrand;
   long rStart, rSpan, rSize;
   const char *c = *linesBeg;
   c = readDouble(c, score);
   c = readWord(c, rName);
   c = readLong(c, rStart);
   c = readLong(c, rSpan);
-  c = skipWord(c);
+  c = readChar(c, rStrand);
   c = readLong(c, rSize);
   c = readWord(c, qName);
   c = skipWord(c);
   c = skipWord(c);
   c = readChar(c, qStrand);
   if (!c) err("bad line: " + std::string(*linesBeg));
-  return parseAlignment(score, rName, rStart, rSpan, rSize, qName, qStrand,
-                        linesBeg, linesEnd, strand, scale, circularChroms);
+  return
+    parseAlignment(score, rName, rStart, rSpan, rStrand, rSize, qName, qStrand,
+		   linesBeg, linesEnd, strand, scale, circularChroms);
 }
 
 static bool readBatch(std::istream& input,
