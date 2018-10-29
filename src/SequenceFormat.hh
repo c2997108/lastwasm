@@ -19,15 +19,15 @@ inline std::istream &operator>>(std::istream &s, sequenceFormat::Enum &f) {
   return s;
 }
 
-inline bool isQuality(sequenceFormat::Enum f) {
-  return f != sequenceFormat::fasta && f != sequenceFormat::pssm;
-}
-
-inline bool isFastq(sequenceFormat::Enum f) {
+inline bool isUseFastq(sequenceFormat::Enum f) {
   return
       f == sequenceFormat::fastqSanger ||
       f == sequenceFormat::fastqSolexa ||
       f == sequenceFormat::fastqIllumina;
+}
+
+inline bool isUseQuality(sequenceFormat::Enum f) {
+  return isUseFastq(f) || f == sequenceFormat::prb;
 }
 
 inline int qualityOffset(sequenceFormat::Enum f) {

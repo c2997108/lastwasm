@@ -98,7 +98,7 @@ void writeLastalOptions( std::ostream& out, const std::string& seedText ){
 void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const Alphabet& alph, countT sequenceCount,
 		   const std::vector<countT>& letterCounts,
-		   unsigned volumes, unsigned numOfIndexes,
+		   bool isFastq, unsigned volumes, unsigned numOfIndexes,
 		   const std::string& seedText ){
   countT letterTotal = std::accumulate( letterCounts.begin(),
                                         letterCounts.end(), countT(0) );
@@ -124,7 +124,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
       f << "tantansetting=" << args.tantanSetting << '\n';
     }
     f << "masklowercase=" << args.isCaseSensitive << '\n';
-    if( args.inputFormat != sequenceFormat::fasta ){
+    if( isFastq ){
       f << "sequenceformat=" << args.inputFormat << '\n';
     }
     if( args.minimizerWindow > 1 ){
@@ -201,7 +201,8 @@ void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
 
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
-		letterCountsInThisVolume, -1, numOfIndexes, seedText );
+		letterCountsInThisVolume, multi.qualsPerLetter(), -1,
+		numOfIndexes, seedText );
   multi.toFiles( baseName );
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
@@ -240,8 +241,9 @@ void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
 // neglects memory for the sequence names, and the fact that
 // lowercase-masked letters and DNA "N"s aren't indexed.)
 static indexT maxLettersPerVolume( const LastdbArguments& args,
+				   size_t qualityCodesPerLetter,
 				   unsigned numOfIndexes ){
-  size_t bytesPerLetter = isFastq( args.inputFormat ) ? 2 : 1;
+  size_t bytesPerLetter = 1 + qualityCodesPerLetter;
   size_t maxIndexBytesPerPosition = sizeof(indexT) + 1;
   maxIndexBytesPerPosition *= numOfIndexes;
   size_t x = bytesPerLetter * args.indexStep + maxIndexBytesPerPosition;
@@ -286,7 +288,7 @@ void lastdb( int argc, char** argv ){
   unsigned volumeNumber = 0;
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
-  indexT maxSeqLen = maxLettersPerVolume( args, seeds.size() );
+  indexT maxSeqLen = 0;
 
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
@@ -299,9 +301,13 @@ void lastdb( int argc, char** argv ){
 
     while (appendSequence(multi, in, maxSeqLen, args.inputFormat, alph,
 			  args.isKeepLowercase, 0)) {
-      if( !args.isProtein && args.userAlphabet.empty() &&
-          sequenceCount == 0 && isDubiousDna( alph, multi ) ){
-        std::cerr << args.programName << ": that's some funny-lookin DNA\n";
+      if (sequenceCount == 0) {
+	maxSeqLen =
+	  maxLettersPerVolume(args, multi.qualsPerLetter(), seeds.size());
+	if (!args.isProtein && args.userAlphabet.empty() &&
+	    isDubiousDna(alph, multi)) {
+	  std::cerr << args.programName << ": that's some funny-lookin DNA\n";
+	}
       }
 
       if( multi.isFinished() ){
@@ -345,7 +351,8 @@ void lastdb( int argc, char** argv ){
   }
 
   writePrjFile( args.lastdbName + ".prj", args, alph, sequenceCount,
-		letterCounts, volumeNumber, seeds.size(), seedText );
+		letterCounts, multi.qualsPerLetter(), volumeNumber,
+		seeds.size(), seedText );
 }
 
 int main( int argc, char** argv )

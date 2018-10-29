@@ -80,7 +80,7 @@ namespace {
   OneQualityExpMatrix oneQualityExpMatrixRev;
   QualityPssmMaker qualityPssmMaker;
   QualityPssmMaker qualityPssmMakerRev;
-  sequenceFormat::Enum referenceFormat;  // defaults to 0
+  sequenceFormat::Enum referenceFormat = sequenceFormat::fasta;
   TwoQualityScoreMatrix twoQualityMatrix;
   TwoQualityScoreMatrix twoQualityMatrixMasked;
   TwoQualityScoreMatrix twoQualityMatrixRev;
@@ -103,7 +103,7 @@ static void calculateSubstitutionScoreMatrixStatistics() {
   lambdaCalculator.calculate( scoreMatrix.caseSensitive, alph.size );
 
   if( lambdaCalculator.isBad() ){
-    if( isQuality( args.inputFormat ) ||
+    if( isUseQuality( args.inputFormat ) ||
         (args.temperature < 0 && args.outputType > 3) )
       ERR( "can't calculate probabilities: "
 	   "maybe the mismatch costs are too weak" );
@@ -179,7 +179,7 @@ void makeQualityScorers(){
   if( args.isGreedy ) return;
 
   if( args.isTranslated() )
-    if( isQuality( args.inputFormat ) || isQuality( referenceFormat ) )
+    if( isUseQuality( args.inputFormat ) || isUseQuality( referenceFormat ) )
       return warn( args.programName,
 		   "quality data not used for DNA-versus-protein alignment" );
 
@@ -199,8 +199,8 @@ void makeQualityScorers(){
   double lp2rev[scoreMatrixRowSize];
   permuteComplement( lp2, lp2rev );
 
-  if( referenceFormat == sequenceFormat::fasta ){
-    if( isFastq( args.inputFormat ) ){
+  if( !isUseFastq( referenceFormat ) ){
+    if( isUseFastq( args.inputFormat ) ){
       LOG( "calculating per-quality scores..." );
       if( args.maskLowercase > 0 )
 	oneQualityMatrixMasked.init( m, alph.size, lambda,
@@ -232,7 +232,7 @@ void makeQualityScorers(){
 	  oneQualityExpMatrixRev.init( qRev, args.temperature );
       }
     }
-    if( isQuality(args.inputFormat) ){
+    if( isUseQuality(args.inputFormat) ){
       qualityPssmMaker.init( m, alph.size, lambda, isMatchMismatch,
                              args.matchScore, -args.mismatchCost,
                              isPhred2, offset2, alph.numbersToUppercase );
@@ -243,7 +243,7 @@ void makeQualityScorers(){
     }
   }
   else{
-    if( isFastq( args.inputFormat ) ){
+    if( isUseFastq( args.inputFormat ) ){
       if( args.maskLowercase > 0 )
 	twoQualityMatrixMasked.init( m, lambda, lp1, lp2,
 				     isPhred1, offset1, isPhred2, offset2,
@@ -336,8 +336,9 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
 
   if( f.eof() && !f.bad() ) f.clear();
   if( alph.letters.empty() || refSequences+1 == 0 || refLetters+1 == 0 ||
-      isCaseSensitiveSeeds < 0 || referenceFormat >= sequenceFormat::prb ||
-      numOfIndexes > maxNumOfIndexes ){
+      isCaseSensitiveSeeds < 0 || numOfIndexes > maxNumOfIndexes ||
+      referenceFormat == sequenceFormat::prb ||
+      referenceFormat == sequenceFormat::pssm ){
     f.setstate( std::ios::failbit );
   }
   if( !f ) ERR( "can't read file: " + fileName );
@@ -748,7 +749,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       if (args.outputType == 7) {
 	centroid.setScoreMatrix(dis.m, args.temperature);
 	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
-					   isFastq(args.inputFormat),
+					   isUseFastq(args.inputFormat),
 					   qualityPssmMaker.qualToProbRight(),
 					   lambdaCalculator.letterProbs2(),
 					   alph.numbersToUppercase);
@@ -850,7 +851,7 @@ static void printAndClearAll() {
 void makeQualityPssm( LastAligner& aligner,
 		      size_t queryNum, char strand, const uchar* querySeq,
 		      bool isMask ){
-  if( !isQuality( args.inputFormat ) || isQuality( referenceFormat ) ) return;
+  if (!isUseQuality(args.inputFormat) || isUseQuality(referenceFormat)) return;
   if( args.isTranslated() || args.isGreedy ) return;
 
   std::vector<int> &qualityPssm = aligner.qualityPssm;
@@ -1028,7 +1029,7 @@ static void scanOneVolume(unsigned volume, unsigned volumeCount) {
 
 void readIndex( const std::string& baseName, indexT seqCount ) {
   LOG( "reading " << baseName << "..." );
-  text.fromFiles( baseName, seqCount, isFastq( referenceFormat ) );
+  text.fromFiles(baseName, seqCount, referenceFormat != sequenceFormat::fasta);
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     if( numOfIndexes > 1 ){
       suffixArrays[x].fromFiles( baseName + char('a' + x),

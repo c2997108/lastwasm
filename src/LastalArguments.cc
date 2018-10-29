@@ -445,7 +445,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     if( gapExistCost   == INT_MIN ) gapExistCost   =  11;
     if( gapExtendCost  < 0 ) gapExtendCost  =   2;
   }
-  else if( !isQuality( inputFormat ) ){
+  else if( !isUseQuality( inputFormat ) ){
     if( matchScore     < 0 ) matchScore     =   1;
     if( mismatchCost   < 0 ) mismatchCost   =   1;
     if( gapExistCost   == INT_MIN ) gapExistCost   =   7;

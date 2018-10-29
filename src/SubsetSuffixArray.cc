@@ -66,13 +66,13 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
   try{
     childTable.m.open( baseName + ".chi", indexedPositions );
-  }catch( std::runtime_error ){
+  }catch( std::runtime_error& ){
     try{
       kiddyTable.m.open( baseName + ".chi2", indexedPositions );
-    }catch( std::runtime_error ){
+    }catch( std::runtime_error& ){
       try{
 	chibiTable.m.open( baseName + ".chi1", indexedPositions );
-      }catch( std::runtime_error ){}
+      }catch( std::runtime_error& ){}
     }
   }
 }
