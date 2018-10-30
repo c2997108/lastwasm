@@ -70,8 +70,8 @@ Advanced Options (default settings):\n\
 -S: strand: 0=reverse, 1=forward, 2=both ("
     + stringify(strand) + ")\n\
 -s: volume size (unlimited)\n\
--Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina ("
-    + stringify(inputFormat) + ")\n\
+-Q: input format: 0=fasta or fastq-ignore,\n\
+                  1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina (fasta)\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
 -m: seed pattern\n\

@@ -474,13 +474,18 @@ Miscellaneous options
       * The count of adjacent pairs of insertions and unaligned letter pairs.
 
   -Q NUMBER
-      This option allows lastal to use sequence quality scores, or
-      PSSMs, for the queries.  0 means read queries in fasta format
-      (without quality scores); 1 means fastq-sanger format; 2 means
-      fastq-solexa format; 3 means fastq-illumina format; 4 means prb
-      format; 5 means read PSSMs.  (*Warning*: Illumina data is not
-      necessarily in fastq-illumina format; it is often in
-      fastq-sanger format.)
+      Specify how to read the query sequences::
+
+        Default    fasta
+           0       fasta or fastq-ignore
+           1       fastq-sanger
+           2       fastq-solexa
+           3       fastq-illumina
+           4       prb
+           5       PSSM
+
+      *Warning*: Illumina data is not necessarily in fastq-illumina
+      format; it is often in fastq-sanger format.
 
       The fastq formats look like this::
 
@@ -489,12 +494,20 @@ Miscellaneous options
         +
         55555555*&5-/55*5//5(55,5#&$)$)*+$
 
-      The "+" may optionally be followed by a name (ignored), and the
-      sequence and quality codes are allowed to wrap onto more than
-      one line.  For fastq-sanger, the quality scores are obtained by
-      subtracting 33 from the ASCII values of the characters below the
-      "+".  For fastq-solexa and fastq-illumina, they are obtained by
-      subtracting 64.
+      The "+" may be followed by text (ignored).  The symbols below
+      the "+" are quality codes, one per sequence letter.  The
+      sequence and quality codes may wrap onto more than one line.
+
+      fastq-ignore means that the quality codes are ignored.  For the
+      other fastq variants, lastal assumes the quality codes indicate
+      substitution error probabilities, *not* insertion or deletion
+      error probabilities.  If this assumption is dubious (e.g. for
+      data with many insertion or deletion errors), it may be better
+      to use fastq-ignore.
+
+      For fastq-sanger, quality scores are obtained by subtracting 33
+      from the ASCII values of the quality codes.  For fastq-solexa
+      and fastq-illumina, they are obtained by subtracting 64.
 
       prb format stores four quality scores (A, C, G, T) per position,
       with one sequence per line, like this::

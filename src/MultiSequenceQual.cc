@@ -12,13 +12,35 @@
 using namespace cbrc;
 
 std::istream&
-MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
+MultiSequence::appendFromFastx(std::istream& stream, indexT maxSeqLen,
+			       bool isKeepQualityData) {
+  if (names.empty()) {
+    isReadingFastq = false;
+    char c = '>';
+    stream >> c;
+    if (c == '@') {
+      isReadingFastq = true;
+    } else if (c != '>') {
+      ERR("bad sequence data: missing '>' or '@'");
+    }
+    readFastxName(stream);
+    if (!stream) return stream;
+  }
+
+  return isReadingFastq ?
+    appendFromFastq(stream, maxSeqLen, isKeepQualityData) :
+    appendFromFasta(stream, maxSeqLen);
+}
+
+std::istream&
+MultiSequence::appendFromFastq(std::istream& stream, indexT maxSeqLen,
+			       bool isKeepQualityData) {
   // initForAppending:
-  qualityScoresPerLetter = 1;
+  qualityScoresPerLetter = isKeepQualityData;
   if( qualityScores.v.empty() ) appendQualPad();
 
   if( isFinished() ){
-    uchar c = '@';
+    char c = '@';
     stream >> c;
     if( c != '@' ) ERR( "bad FASTQ data: missing '@'" );
     readFastxName(stream);
@@ -41,11 +63,16 @@ MultiSequence::appendFromFastq( std::istream& stream, indexT maxSeqLen ){
       c = buf->sbumpc();
     } while (c != std::streambuf::traits_type::eof() && c != '\n');
 
-    while (qualityScores.v.size() < seq.v.size()) {
+    for (size_t i = seq.v.size() - ends.v.back(); i > 0; ) {
       c = buf->sbumpc();
       if (c == std::streambuf::traits_type::eof()) ERR("bad FASTQ data");
-      if (c > 126) ERR("non-printable-ASCII in FASTQ quality data");
-      if (c > ' ') qualityScores.v.push_back(c);
+      if (c > ' ') {
+	if (isKeepQualityData) {
+	  if (c > 126) ERR("non-printable-ASCII in FASTQ quality data");
+	  qualityScores.v.push_back(c);
+	}
+	--i;
+      }
     }
 
     finish();

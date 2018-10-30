@@ -2682,6 +2682,48 @@ TEST lastal -fTAB -j4 -Q1 -e90 -a7 -A12 -B4 /tmp/last-test SRR001981-1k.fastq
 # batch 4
 # Query sequences=1000
 
+TEST lastal -fTAB -j4 -Q0 -e90 -a7 -A12 -B4 -b9 -r6 -q18 /tmp/last-test SRR001981-1k.fastq
+#
+# a=7 b=9 A=12 B=4 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.80852e+07
+# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 W=3 w=1000 t=4.36661 j=4 Q=0
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+# lambda=0.218273 K=0.335682
+#
+#     A   C   G   T   M   S   K   W   R   Y   B   D   H   V
+# A   6 -18 -18 -18   3 -18 -18   3   3 -18 -18   1   1   1
+# C -18   6 -18 -18   3   3 -18 -18 -18   3   1 -18   1   1
+# G -18 -18   6 -18 -18   3   3 -18   3 -18   1   1 -18   1
+# T -18 -18 -18   6 -18 -18   3   3 -18   3   1   1   1 -18
+# M   3   3 -18 -18   3   0 -18   0   0   0  -2  -2   1   1
+# S -18   3   3 -18   0   3   0 -18   0   0   1  -2  -2   1
+# K -18 -18   3   3 -18   0   3   0   0   0   1   1  -2  -2
+# W   3 -18 -18   3   0 -18   0   3   0   0  -2   1   1  -2
+# R   3 -18   3 -18   0   0   0   0   3 -18  -2   1  -2   1
+# Y -18   3 -18   3   0   0   0   0 -18   3   1  -2   1  -2
+# B -18   1   1   1  -2   1   1  -2  -2   1   1  -1  -1  -1
+# D   1 -18   1   1  -2  -2   1   1   1  -2  -1   1  -1  -1
+# H   1   1 -18   1   1  -2  -2   1  -2   1  -1  -1   1  -1
+# V   1   1   1 -18   1   1  -2  -2   1  -2  -1  -1  -1   1
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+# batch 0
+104	chrM	973	20	+	16775	SRR001981.107	7	21	+	36	17,0:1,3	EG2=4.6e+07	E=2.4e-05	fullScore=111
+96	chrM	963	23	+	16775	SRR001981.202	7	24	-	36	8,0:2,10,1:0,4	EG2=2.7e+08	E=0.00016	fullScore=110
+# batch 1
+115	chrM	951	39	+	16775	SRR001981.279	0	35	-	36	4,1:0,6,1:0,6,2:0,8,0:1,2,1:0,8	EG2=4.2e+06	E=1.8e-06	fullScore=121
+92	chrM	949	23	+	16775	SRR001981.279	14	22	-	36	13,1:0,9	EG2=6.4e+08	E=0.00039	fullScore=94.3
+108	chrM	968	22	+	16775	SRR001981.346	1	25	-	36	17,0:3,5	EG2=1.9e+07	E=9.5e-06	fullScore=114
+# batch 2
+# batch 3
+90	chrM	971	15	+	16775	SRR001981.805	21	15	+	36	15	EG2=9.9e+08	E=0.00062	fullScore=90.9
+90	chrM	971	15	+	16775	SRR001981.815	11	15	-	36	15	EG2=9.9e+08	E=0.00062	fullScore=98.3
+# batch 4
+# Query sequences=1000
+
 TEST lastal -N2 /tmp/last-test hg19-M.fa
 #
 # a=7 b=1 A=7 B=1 e=22 d=13 x=21 y=9 z=21 D=1e+06 E=2.80852e+07

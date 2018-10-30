@@ -19,7 +19,7 @@ last-train prints a summary of each alignment step, followed by the
 final score parameters, in a format that can be read by `lastal's -p
 option <lastal.html#score-options>`_.
 
-You can also pipe sequences into last-train, for example::
+last-train can read .gz files, or from pipes::
 
   bzcat queries.fasta.bz2 | last-train mydb
 
@@ -102,17 +102,23 @@ Alignment options
   -k STEP    Look for initial matches starting only at every STEP-th
              position in each query.
   -P COUNT   Number of parallel threads.
-  -Q NUMBER  Query sequence format: 0=fasta, 1=fastq-sanger.
+  -Q NUMBER  How to read the query sequences.  By default, they must
+             be in ``fasta`` format.  ``-Q0`` means ``fasta`` or
+             ``fastq-ignore``.  ``-Q1`` means ``fastq-sanger``.
 
-             last-train assumes that fastq quality codes indicate
-             substitution error probabilities, *not* insertion or
-             deletion error probabilities.  If this assumption is
-             dubious (e.g. for data with many insertion or deletion
-             errors), it may be better to use fasta.
+             The ``fastq`` formats are described here:
+             `<lastal.html>`_.  ``fastq-ignore`` means that the
+             quality data is ignored, so the results will be the same
+             as for ``fasta``.
 
-             For fastq, last-train finds the rates of substitutions
-             not explained by the quality data (ideally, real
-             substitutions as opposed to errors).
+             For ``fastq-sanger``, last-train assumes the quality
+             codes indicate substitution error probabilities, *not*
+             insertion or deletion error probabilities.  If this
+             assumption is dubious (e.g. for data with many insertion
+             or deletion errors), it may be better to use
+             ``fastq-ignore``.  For ``fastq-sanger``, last-train finds
+             the rates of substitutions not explained by the quality
+             data (ideally, real substitutions as opposed to errors).
 
              If specified, this parameter is written in last-train's
              output, so it will override lastal's default.

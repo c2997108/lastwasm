@@ -125,11 +125,10 @@ Advanced Options
       about 4 billion.
 
   -Q NUMBER
-      Specify the input format.  0 means fasta, 1 means fastq-sanger,
-      2 means fastq-solexa, and 3 means fastq-illumina.  The fastq
-      formats provide sequence quality data, which will be stored by
-      lastdb and then used by lastal.  These formats are described in
-      `<lastal.html>`_.
+      Specify how to read the sequences.  The default is fasta, 0
+      means fasta or fastq-ignore, 1 means fastq-sanger, 2 means
+      fastq-solexa, and 3 means fastq-illumina.  The fastq formats are
+      described in `<lastal.html>`_.
 
   -P THREADS
       Divide the work between this number of threads running in

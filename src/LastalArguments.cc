@@ -172,9 +172,8 @@ Miscellaneous options (default settings):\n\
                  4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA,\n\
                  7=expected counts ("
     + stringify(outputType) + ")\n\
--Q: input format: 0=fasta, 1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina,\n\
-                  4=prb, 5=PSSM ("
-    + stringify(inputFormat) + ")\n\
+-Q: input format: 0=fasta or fastq-ignore, 1=fastq-sanger, 2=fastq-solexa,\n\
+                  3=fastq-illumina, 4=prb, 5=PSSM (fasta)\n\
 \n\
 Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
@@ -641,7 +640,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   if( outputType > 4 && outputType < 7 )
     stream << " g=" << gamma;
   stream << " j=" << outputType;
-  stream << " Q=" << inputFormat;
+  stream << " Q=" << (inputFormat % sequenceFormat::fasta);
   stream << '\n';
 
   stream << "# " << lastdbName << '\n';

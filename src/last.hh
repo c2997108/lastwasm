@@ -25,12 +25,14 @@ inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
 
   if (f == sequenceFormat::fasta) {
     m.appendFromFasta(in, maxSeqLen);
+  } else if (f == sequenceFormat::fastx) {
+    m.appendFromFastx(in, maxSeqLen, false);
   } else if (f == sequenceFormat::prb) {
     m.appendFromPrb(in, maxSeqLen, a.size, a.decode);
   } else if (f == sequenceFormat::pssm) {
     m.appendFromPssm(in, maxSeqLen, a.encode, isMaskLowercase);
   } else {
-    m.appendFromFastq(in, maxSeqLen);
+    m.appendFromFastq(in, maxSeqLen, true);
   }
 
   if (!m.isFinished() && m.finishedSequences() == 0) {

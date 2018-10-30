@@ -8,7 +8,7 @@
 namespace cbrc {
 
 namespace sequenceFormat {
-enum Enum { fasta, fastqSanger, fastqSolexa, fastqIllumina, prb, pssm };
+enum Enum { fastx, fastqSanger, fastqSolexa, fastqIllumina, prb, pssm, fasta };
 }
 
 inline std::istream &operator>>(std::istream &s, sequenceFormat::Enum &f) {

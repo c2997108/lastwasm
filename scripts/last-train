@@ -499,8 +499,9 @@ if __name__ == "__main__":
                   "every STEP-th position in each query (default: 1)")
     og.add_option("-P", metavar="THREADS",
                   help="number of parallel threads")
-    og.add_option("-Q", metavar="NUMBER",
-                  help="input format: 0=fasta, 1=fastq-sanger")
+    og.add_option("-Q", metavar="NUMBER", help=
+                  "input format: 0=fasta or fastq-ignore, 1=fastq-sanger "
+                  "(default=fasta)")
     op.add_option_group(og)
     (opts, args) = op.parse_args()
     if len(args) < 1:

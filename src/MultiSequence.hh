@@ -47,8 +47,15 @@ class MultiSequence{
   // may not finish reading the sequence.
   std::istream& appendFromFasta( std::istream& stream, indexT maxSeqLen );
 
-  // As above, but read quality scores too.
-  std::istream& appendFromFastq( std::istream& stream, indexT maxSeqLen );
+  // As above, but read FASTQ format.
+  std::istream& appendFromFastq(std::istream& stream, indexT maxSeqLen,
+				bool isKeepQualityData);
+
+  // As above, but read either FASTA or FASTQ format.  The first
+  // sequence may have either format, but subsequent sequences must
+  // have the same format.
+  std::istream& appendFromFastx(std::istream& stream, indexT maxSeqLen,
+				bool isKeepQualityData);
 
   // As above, but read quality scores too.
   std::istream& appendFromPrb( std::istream& stream, indexT maxSeqLen,
@@ -133,6 +140,7 @@ class MultiSequence{
   // Qsolexa = -10*log10(p/(1-p))
   VectorOrMmap<uchar> qualityScores;
   size_t qualityScoresPerLetter;
+  bool isReadingFastq;
 
   // Read a fasta/fastq header: read the whole line but store just the
   // 1st word
