@@ -134,8 +134,12 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 
   if (opts.format == 'm') s.pop_back();
 
-  std::cout << std::setprecision(mismapPrecision)
-	    << "a score=" << score << " mismap=" << mismap;
+  if (opts.no_split && a.linesBeg[0][0] == 'a') {
+    std::cout << a.linesBeg[0];
+  } else {
+    std::cout << "a score=" << score;
+  }
+  std::cout << std::setprecision(mismapPrecision) << " mismap=" << mismap;
   if (opts.direction == 2) printSense(senseStrandLogOdds);
   if (!opts.genome.empty() && !opts.no_split) {
     char signal[3] = {0};
@@ -383,7 +387,7 @@ void lastSplit(LastSplitOptions& opts) {
 	  mafEnds.resize(1);
 	} else if (isSpace(line)) {
 	  addMaf(mafEnds, mafLines);
-	} else if (std::strchr("sqpc", line[0])) {
+	} else if (std::strchr(opts.no_split ? "asqpc" : "sqpc", line[0])) {
 	  mafLines.push_back(line);
 	}
       }
