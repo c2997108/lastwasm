@@ -19,50 +19,6 @@ last-dotplot shows alignments of one set of sequences against another
 set of sequences.  This document calls a "set of sequences" a
 "genome", though it need not actually be a genome.
 
-Choosing sequences
-------------------
-
-If there are too many sequences, the dotplot will be very cluttered,
-or the script might give up with an error message.  You can exclude
-sequences with names like "chrUn_random522" like this::
-
-  last-dotplot -1 'chr[!U]*' -2 'chr[!U]*' alns alns.png
-
-Option "-1" selects sequences from the 1st (horizontal) genome, and
-"-2" selects sequences from the 2nd (vertical) genome.  'chr[!U]*' is
-a *pattern* that specifies names starting with "chr", followed by any
-character except U, followed by anything.
-
-==========  =============================
-Pattern     Meaning
-----------  -----------------------------
-``*``       zero or more of any character
-``?``       any single character
-``[abc]``   any character in abc
-``[!abc]``  any character not in abc
-==========  =============================
-
-If a sequence name has a dot (e.g. "hg19.chr7"), the pattern is
-compared to both the whole name and the part after the dot.
-
-You can specify more than one pattern, e.g. this gets sequences with
-names starting in "chr" followed by one or two characters::
-
-  last-dotplot -1 'chr?' -1 'chr??' alns alns.png
-
-You can also specify a sequence range; for example this gets the first
-1000 bases of chr9::
-
-  last-dotplot -1 chr9:0-1000 alns alns.png
-
-Fonts
------
-
-last-dotplot tries to find a nice font on your computer, but may fail
-and use an ugly font.  You can specify a font like this::
-
-  last-dotplot -f /usr/share/fonts/liberation/LiberationSans-Regular.ttf alns alns.png
-
 Options
 -------
 
@@ -70,14 +26,18 @@ Options
       Show a help message, with default option values, and exit.
   -v, --verbose
       Show progress messages & data about the plot.
+  -x INT, --width=INT
+      Maximum width in pixels.
+  -y INT, --height=INT
+      Maximum height in pixels.
+  -m M, --maxseqs=M
+      Maximum number of horizontal or vertical sequences.  If there
+      are >M sequences, the smallest ones (after cutting) will be
+      discarded.
   -1 PATTERN, --seq1=PATTERN
       Which sequences to show from the 1st (horizontal) genome.
   -2 PATTERN, --seq2=PATTERN
       Which sequences to show from the 2nd (vertical) genome.
-  -x WIDTH, --width=WIDTH
-      Maximum width in pixels.
-  -y HEIGHT, --height=HEIGHT
-      Maximum height in pixels.
   -c COLOR, --forwardcolor=COLOR
       Color for forward alignments.
   -r COLOR, --reversecolor=COLOR
@@ -206,6 +166,54 @@ of unknown sequence.
 
 An unsequenced gap will be shown only if it covers at least one whole
 pixel.
+
+Choosing sequences
+------------------
+
+For example, you can exclude sequences with names like
+"chrUn_random522" like this::
+
+  last-dotplot -1 'chr[!U]*' -2 'chr[!U]*' alns alns.png
+
+Option "-1" selects sequences from the 1st (horizontal) genome, and
+"-2" selects sequences from the 2nd (vertical) genome.  'chr[!U]*' is
+a *pattern* that specifies names starting with "chr", followed by any
+character except U, followed by anything.
+
+==========  =============================
+Pattern     Meaning
+----------  -----------------------------
+``*``       zero or more of any character
+``?``       any single character
+``[abc]``   any character in abc
+``[!abc]``  any character not in abc
+==========  =============================
+
+If a sequence name has a dot (e.g. "hg19.chr7"), the pattern is
+compared to both the whole name and the part after the dot.
+
+You can specify more than one pattern, e.g. this gets sequences with
+names starting in "chr" followed by one or two characters::
+
+  last-dotplot -1 'chr?' -1 'chr??' alns alns.png
+
+You can also specify a sequence range; for example this gets the first
+1000 bases of chr9::
+
+  last-dotplot -1 chr9:0-1000 alns alns.png
+
+Text font
+---------
+
+You can improve the font quality by increasing its size, e.g. to 20
+points:
+
+  last-dotplot -s20 my-alignments my-plot.png
+
+last-dotplot tries to find a nice font on your computer, but may fail
+and use an ugly font.  You can specify a font like this::
+
+  last-dotplot -f /usr/share/fonts/liberation/LiberationSans-Regular.ttf alns alns.png
 
 Colors
 ------

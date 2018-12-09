@@ -13,6 +13,7 @@ import collections
 import functools
 import gzip
 from fnmatch import fnmatchcase
+import logging
 from operator import itemgetter
 import subprocess
 import itertools, optparse, os, re, sys
@@ -36,11 +37,6 @@ def myOpen(fileName):  # faster than fileinput
     if fileName.endswith(".gz"):
         return gzip.open(fileName, "rt")  # xxx dubious for Python2
     return open(fileName)
-
-def warn(message):
-    if opts.verbose:
-        prog = os.path.basename(sys.argv[0])
-        sys.stderr.write(prog + ": " + message + "\n")
 
 def groupByFirstItem(things):
     for k, v in itertools.groupby(things, itemgetter(0)):
@@ -414,8 +410,8 @@ def dataFromRanges(sortedRanges, font, fontSize, imageMode, labelOpt, textRot):
         out = [seqName, str(rangeBeg), str(rangeEnd)]
         if strandNum > 0:
             out.append(".+-"[strandNum])
-        warn("\t".join(out))
-    warn("")
+        logging.info("\t".join(out))
+    logging.info("")
     rangeSizes = [e - b for n, b, e, s in sortedRanges]
     labs = list(rangeLabels(sortedRanges, labelOpt, font, fontSize,
                             imageMode, textRot))
@@ -430,7 +426,7 @@ def div_ceil(x, y):
 
 def get_bp_per_pix(rangeSizes, pixTweenRanges, maxPixels):
     '''Get the minimum bp-per-pixel that fits in the size limit.'''
-    warn("choosing bp per pixel...")
+    logging.info("choosing bp per pixel...")
     numOfRanges = len(rangeSizes)
     maxPixelsInRanges = maxPixels - pixTweenRanges * (numOfRanges - 1)
     if maxPixelsInRanges < numOfRanges:
@@ -718,18 +714,37 @@ def getFont(opts):
         out, err = p.communicate()
         fileNames.append(out)
     except OSError as e:
-        warn("fc-match error: " + str(e))
+        logging.info("fc-match error: " + str(e))
     fileNames.append("/Library/Fonts/Arial.ttf")  # for Mac
     for i in fileNames:
         try:
             font = ImageFont.truetype(i, opts.fontsize)
-            warn("font: " + i)
+            logging.info("font: " + i)
             return font
         except IOError as e:
-            warn("font load error: " + str(e))
+            logging.info("font load error: " + str(e))
     return ImageFont.load_default()
 
+def sequenceSizesAndNames(seqRanges):
+    for seqName, ranges in itertools.groupby(seqRanges, itemgetter(0)):
+        size = sum(e - b for n, b, e in ranges)
+        yield size, seqName
+
+def biggestSequences(seqRanges, maxNumOfSequences):
+    s = sorted(sequenceSizesAndNames(seqRanges), reverse=True)
+    if len(s) > maxNumOfSequences:
+        logging.warning("too many sequences - discarding the smallest ones")
+        s = s[:maxNumOfSequences]
+    return set(i[1] for i in s)
+
+def remainingSequenceRanges(seqRanges, alignments, seqIndex):
+    remainingSequences = set(i[seqIndex] for i in alignments)
+    return [i for i in seqRanges if i[0] in remainingSequences]
+
 def lastDotplot(opts, args):
+    logLevel = logging.INFO if opts.verbose else logging.WARNING
+    logging.basicConfig(format="%(filename)s: %(message)s", level=logLevel)
+
     font = getFont(opts)
     image_mode = 'RGB'
     forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
@@ -740,11 +755,11 @@ def lastDotplot(opts, args):
     maxGap1, maxGapB1 = twoValuesFromOption(opts.max_gap1, ":")
     maxGap2, maxGapB2 = twoValuesFromOption(opts.max_gap2, ":")
 
-    warn("reading alignments...")
+    logging.info("reading alignments...")
     alnData = readAlignments(args[0], opts)
     alignments, seqRanges1, coverDict1, seqRanges2, coverDict2 = alnData
     if not alignments: raise Exception("there are no alignments")
-    warn("cutting...")
+    logging.info("cutting...")
     coverDict1 = dict(mergedRangesPerSeq(coverDict1))
     coverDict2 = dict(mergedRangesPerSeq(coverDict2))
     minAlignedBases = min(coveredLength(coverDict1), coveredLength(coverDict2))
@@ -754,10 +769,20 @@ def lastDotplot(opts, args):
     cutRanges2 = list(trimmed(seqRanges2, coverDict2, minAlignedBases,
                               maxGap2, pad, pad))
 
-    warn("reading secondary alignments...")
+    biggestSeqs1 = biggestSequences(cutRanges1, opts.maxseqs)
+    cutRanges1 = [i for i in cutRanges1 if i[0] in biggestSeqs1]
+    alignments = [i for i in alignments if i[0] in biggestSeqs1]
+    cutRanges2 = remainingSequenceRanges(cutRanges2, alignments, 1)
+
+    biggestSeqs2 = biggestSequences(cutRanges2, opts.maxseqs)
+    cutRanges2 = [i for i in cutRanges2 if i[0] in biggestSeqs2]
+    alignments = [i for i in alignments if i[1] in biggestSeqs2]
+    cutRanges1 = remainingSequenceRanges(cutRanges1, alignments, 0)
+
+    logging.info("reading secondary alignments...")
     alnDataB = readSecondaryAlignments(opts, cutRanges1, cutRanges2)
     alignmentsB, seqRangesB1, coverDictB1, seqRangesB2, coverDictB2 = alnDataB
-    warn("cutting...")
+    logging.info("cutting...")
     coverDictB1 = dict(mergedRangesPerSeq(coverDictB1))
     coverDictB2 = dict(mergedRangesPerSeq(coverDictB2))
     cutRangesB1 = trimmed(seqRangesB1, coverDictB1, minAlignedBases,
@@ -765,7 +790,7 @@ def lastDotplot(opts, args):
     cutRangesB2 = trimmed(seqRangesB2, coverDictB2, minAlignedBases,
                           maxGapB2, 0, 0)
 
-    warn("sorting...")
+    logging.info("sorting...")
     sortOut = allSortedRanges(opts, alignments, alignmentsB,
                               cutRanges1, cutRangesB1, cutRanges2, cutRangesB2)
     sortedRanges1, sortedRanges2 = sortOut
@@ -785,7 +810,7 @@ def lastDotplot(opts, args):
     bpPerPix1 = get_bp_per_pix(rangeSizes1, opts.border_pixels, maxPixels1)
     bpPerPix2 = get_bp_per_pix(rangeSizes2, opts.border_pixels, maxPixels2)
     bpPerPix = max(bpPerPix1, bpPerPix2)
-    warn("bp per pixel = " + str(bpPerPix))
+    logging.info("bp per pixel = " + str(bpPerPix))
 
     p1 = pixelData(rangeSizes1, bpPerPix, opts.border_pixels, lMargin)
     rangePixBegs1, rangePixLens1, width = p1
@@ -797,14 +822,14 @@ def lastDotplot(opts, args):
     rangeDict2 = dict(rangesPerSeq(sortedRanges2, rangePixBegs2,
                                    rangePixLens2, bpPerPix))
 
-    warn("width:  " + str(width))
-    warn("height: " + str(height))
+    logging.info("width:  " + str(width))
+    logging.info("height: " + str(height))
 
-    warn("processing alignments...")
+    logging.info("processing alignments...")
     hits = alignmentPixels(width, height, alignments + alignmentsB, bpPerPix,
                            rangeDict1, rangeDict2)
 
-    warn("reading annotations...")
+    logging.info("reading annotations...")
 
     rangeDict1 = expandedSeqDict(rangeDict1)
     beds1 = itertools.chain(readBed(opts.bed1, rangeDict1),
@@ -822,7 +847,7 @@ def lastDotplot(opts, args):
 
     boxes = sorted(itertools.chain(b1, b2))
 
-    warn("drawing...")
+    logging.info("drawing...")
 
     image_size = width, height
     im = Image.new(image_mode, image_size, opts.background_color)
@@ -868,17 +893,20 @@ if __name__ == "__main__":
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-v", "--verbose", action="count",
                   help="show progress messages & data about the plot")
+    # Replace "width" & "height" with a single "length" option?
+    op.add_option("-x", "--width", metavar="INT", type="int", default=1000,
+                  help="maximum width in pixels (default: %default)")
+    op.add_option("-y", "--height", metavar="INT", type="int", default=1000,
+                  help="maximum height in pixels (default: %default)")
+    op.add_option("-m", "--maxseqs", type="int", default=100, metavar="M",
+                  help="maximum number of horizontal or vertical sequences "
+                  "(default=%default)")
     op.add_option("-1", "--seq1", metavar="PATTERN", action="append",
                   default=[],
                   help="which sequences to show from the 1st genome")
     op.add_option("-2", "--seq2", metavar="PATTERN", action="append",
                   default=[],
                   help="which sequences to show from the 2nd genome")
-    # Replace "width" & "height" with a single "length" option?
-    op.add_option("-x", "--width", type="int", default=1000,
-                  help="maximum width in pixels (default: %default)")
-    op.add_option("-y", "--height", type="int", default=1000,
-                  help="maximum height in pixels (default: %default)")
     op.add_option("-c", "--forwardcolor", metavar="COLOR", default="red",
                   help="color for forward alignments (default: %default)")
     op.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
