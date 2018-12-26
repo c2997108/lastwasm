@@ -20,10 +20,10 @@ void multiplyAll(std::vector<double> &v, double factor) {
 }
 
 double firstRepeatOffsetProb(double probMult, int maxRepeatOffset) {
-  if (probMult < 1 || probMult > 1)
+  if (probMult < 1 || probMult > 1) {
     return (1 - probMult) / (1 - std::pow(probMult, maxRepeatOffset));
-  else
-    return 1.0 / maxRepeatOffset;
+  }
+  return 1.0 / maxRepeatOffset;
 }
 
 void checkForwardAndBackwardTotals(double fTot, double bTot) {
@@ -64,6 +64,7 @@ struct Tantan {
   double b2fLast;  // background state to last foreground state
 
   double backgroundProb;
+  std::vector<double> b2fProbs;  // background state to each foreground state
   std::vector<double> foregroundProbs;
   std::vector<double> insertionProbs;
 
@@ -99,7 +100,7 @@ struct Tantan {
     //f2g = firstGapProb;
     //g2f = 1 - otherGapProb;
     oneGapProb = firstGapProb * (1 - otherGapProb);
-    endGapProb = firstGapProb * 1;
+    endGapProb = firstGapProb * (maxRepeatOffset > 1);
     f2f0 = 1 - repeatEndProb;
     f2f1 = 1 - repeatEndProb - firstGapProb;
     f2f2 = 1 - repeatEndProb - firstGapProb * 2;
@@ -110,8 +111,15 @@ struct Tantan {
     b2fFirst = repeatProb * firstRepeatOffsetProb(b2fDecay, maxRepeatOffset);
     b2fLast = repeatProb * firstRepeatOffsetProb(b2fGrowth, maxRepeatOffset);
 
+    b2fProbs.resize(maxRepeatOffset);
     foregroundProbs.resize(maxRepeatOffset);
     insertionProbs.resize(maxRepeatOffset - 1);
+
+    double p = b2fFirst;
+    for (int i = 0; i < maxRepeatOffset; ++i) {
+      b2fProbs[i] = p;
+      p *= b2fDecay;
+    }
 
     scaleFactors.resize((seqEnd - seqBeg) / scaleStepSize);
   }
@@ -125,8 +133,7 @@ struct Tantan {
   double forwardTotal() {
     double fromForeground = std::accumulate(foregroundProbs.begin(),
                                             foregroundProbs.end(), 0.0);
-    fromForeground *= f2b;
-    double total = backgroundProb * b2b + fromForeground;
+    double total = backgroundProb * b2b + fromForeground * f2b;
     assert(total > 0);
     return total;
   }
@@ -148,36 +155,31 @@ struct Tantan {
     double f = *foregroundPtr;
     double fromForeground = f;
 
-    if (insertionProbs.empty()) {
-      *foregroundPtr = fromBackground + f * f2f0;
-    } else {
-      double *insertionPtr = &insertionProbs.back();
-      double i = *insertionPtr;
-      *foregroundPtr = fromBackground + f * f2f1 + i * endGapProb;
-      double d = f;
-      --foregroundPtr;
-      fromBackground *= b2fGrowth;
+    double *insertionPtr = &insertionProbs.back();
+    double i = *insertionPtr;
+    *foregroundPtr = fromBackground + f * f2f1 + i * endGapProb;
+    double d = f;
+    --foregroundPtr;
+    fromBackground *= b2fGrowth;
 
-      while (foregroundPtr > &foregroundProbs.front()) {
-        f = *foregroundPtr;
-        fromForeground += f;
-        i = *(insertionPtr - 1);
-        *foregroundPtr = fromBackground + f * f2f2 + (i + d) * oneGapProb;
-        *insertionPtr = f + i * g2g;
-        d = f + d * g2g;
-        --foregroundPtr;
-        --insertionPtr;
-        fromBackground *= b2fGrowth;
-      }
-
+    while (foregroundPtr > &foregroundProbs.front()) {
       f = *foregroundPtr;
       fromForeground += f;
-      *foregroundPtr = fromBackground + f * f2f1 + d * endGapProb;
-      *insertionPtr = f;
+      i = *(insertionPtr - 1);
+      *foregroundPtr = fromBackground + f * f2f2 + (i + d) * oneGapProb;
+      *insertionPtr = f + i * g2g;
+      d = f + d * g2g;
+      --foregroundPtr;
+      --insertionPtr;
+      fromBackground *= b2fGrowth;
     }
 
-    fromForeground *= f2b;
-    backgroundProb = backgroundProb * b2b + fromForeground;
+    f = *foregroundPtr;
+    fromForeground += f;
+    *foregroundPtr = fromBackground + f * f2f1 + d * endGapProb;
+    *insertionPtr = f;
+
+    backgroundProb = backgroundProb * b2b + fromForeground * f2b;
   }
 
   void calcBackwardTransitionProbsWithGaps() {
@@ -186,57 +188,48 @@ struct Tantan {
     double f = *foregroundPtr;
     double toForeground = f;
 
-    if (insertionProbs.empty()) {
-      *foregroundPtr = toBackground + f2f0 * f;
-    } else {
-      double *insertionPtr = &insertionProbs.front();
-      double i = *insertionPtr;
-      *foregroundPtr = toBackground + f2f1 * f + i;
-      double d = endGapProb * f;
-      ++foregroundPtr;
-      toForeground *= b2fGrowth;
+    double *insertionPtr = &insertionProbs.front();
+    double i = *insertionPtr;
+    *foregroundPtr = toBackground + f2f1 * f + i;
+    double d = endGapProb * f;
+    ++foregroundPtr;
+    toForeground *= b2fGrowth;
 
-      while (foregroundPtr < &foregroundProbs.back()) {
-        f = *foregroundPtr;
-        toForeground += f;
-        i = *(insertionPtr + 1);
-        *foregroundPtr = toBackground + f2f2 * f + (i + d);
-        double oneGapProb_f = oneGapProb * f;
-        *insertionPtr = oneGapProb_f + g2g * i;
-        d = oneGapProb_f + g2g * d;
-        ++foregroundPtr;
-        ++insertionPtr;
-        toForeground *= b2fGrowth;
-      }
-
+    while (foregroundPtr < &foregroundProbs.back()) {
       f = *foregroundPtr;
       toForeground += f;
-      *foregroundPtr = toBackground + f2f1 * f + d;
-      *insertionPtr = endGapProb * f;
+      i = *(insertionPtr + 1);
+      *foregroundPtr = toBackground + f2f2 * f + (i + d);
+      double oneGapProb_f = oneGapProb * f;
+      *insertionPtr = oneGapProb_f + g2g * i;
+      d = oneGapProb_f + g2g * d;
+      ++foregroundPtr;
+      ++insertionPtr;
+      toForeground *= b2fGrowth;
     }
 
-    toForeground *= b2fLast;
-    backgroundProb = b2b * backgroundProb + toForeground;
+    f = *foregroundPtr;
+    toForeground += f;
+    *foregroundPtr = toBackground + f2f1 * f + d;
+    *insertionPtr = endGapProb * f;
+
+    backgroundProb = b2b * backgroundProb + b2fLast * toForeground;
   }
 
   void calcForwardTransitionProbs() {
     if (endGapProb > 0) return calcForwardTransitionProbsWithGaps();
 
-    double fromBackground = backgroundProb * b2fLast;
+    double b = backgroundProb;
     double fromForeground = 0;
-    double *foregroundPtr = END(foregroundProbs);
     double *foregroundBeg = BEG(foregroundProbs);
 
-    while (foregroundPtr > foregroundBeg) {
-      --foregroundPtr;
-      double f = *foregroundPtr;
+    for (int i = 0; i < maxRepeatOffset; ++i) {
+      double f = foregroundBeg[i];
       fromForeground += f;
-      *foregroundPtr = fromBackground + f * f2f0;
-      fromBackground *= b2fGrowth;
+      foregroundBeg[i] = b * b2fProbs[i] + f * f2f0;
     }
 
-    fromForeground *= f2b;
-    backgroundProb = backgroundProb * b2b + fromForeground;
+    backgroundProb = b * b2b + fromForeground * f2b;
   }
 
   void calcBackwardTransitionProbs() {
@@ -244,18 +237,14 @@ struct Tantan {
 
     double toBackground = f2b * backgroundProb;
     double toForeground = 0;
-    double *foregroundPtr = BEG(foregroundProbs);
-    double *foregroundEnd = END(foregroundProbs);
+    double *foregroundBeg = BEG(foregroundProbs);
 
-    while (foregroundPtr < foregroundEnd) {
-      toForeground *= b2fGrowth;
-      double f = *foregroundPtr;
-      toForeground += f;
-      *foregroundPtr = toBackground + f2f0 * f;
-      ++foregroundPtr;
+    for (int i = 0; i < maxRepeatOffset; ++i) {
+      double f = foregroundBeg[i];
+      toForeground += b2fProbs[i] * f;
+      foregroundBeg[i] = toBackground + f2f0 * f;
     }
 
-    toForeground *= b2fLast;
     backgroundProb = b2b * backgroundProb + toForeground;
   }
 
@@ -281,12 +270,17 @@ struct Tantan {
     }
   }
 
+  bool isNearSeqBeg() {
+    return seqPtr - seqBeg < maxRepeatOffset;
+  }
+
+  const uchar *seqFurthestBack() {
+    return isNearSeqBeg() ? seqBeg : seqPtr - maxRepeatOffset;
+  }
+
   void calcEmissionProbs() {
     const double *lrRow = likelihoodRatioMatrix[*seqPtr];
-
-    bool isNearSeqBeg = (seqPtr - seqBeg < maxRepeatOffset);
-    const uchar *seqStop = isNearSeqBeg ? seqBeg : seqPtr - maxRepeatOffset;
-
+    const uchar *seqStop = seqFurthestBack();
     double *foregroundPtr = BEG(foregroundProbs);
     const uchar *offsetPtr = seqPtr;
 
