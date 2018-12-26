@@ -15,6 +15,7 @@ ${DOCS}: last-doc.css Makefile
 
 # Ugh!  Is there a better way?
 RST_CSS = `locate html4css1.css | tail -n1`
+#RST_CSS = html4css1.css
 
 RSTFLAGS = --initial-header-level=2 --no-compact-lists	\
 --no-compact-field-lists --option-limit=0 --no-doc-info

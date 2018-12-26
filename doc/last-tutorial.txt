@@ -70,21 +70,27 @@ score penalty of 15 for frameshifts::
   lastdb -p -cR01 protdb proteins.fa
   lastal -F15 protdb dnas.fa
 
-Example 4: Find short protein alignments
-----------------------------------------
+Example 4: Find high-similarity, and short, protein alignments
+--------------------------------------------------------------
 
 LAST uses a `scoring scheme <last-matrices.html>`_ to find
-similarities.  Some scoring schemes are good for long-and-weak
-similarities, others for short-and-strong similarities.  If we seek
-very short similarities, weak ones are hopeless (statistically
-insignificant), so we had better focus on strong ones.  The PAM30
-scoring scheme may work well::
+similarities.  Some scoring schemes are tuned for weak similarities,
+others for strong similarities.  The PAM30 scoring scheme finds strong
+protein similarities::
 
   lastdb -p -cR01 invdb invertebrate.fa
   lastal -pPAM30 invdb vertebrate.fa
 
-(How short is "very short"?  It depends on the amount of sequence data
-we are searching, but perhaps roughly less than 40 amino acids.)
+This has two advantages:
+
+* It omits weak alignments, or alignment parts (occasionally a strong
+  similarity is flanked by a weak similarity).
+
+* It can find short similarities.  If we seek very short similarities,
+  weak ones are hopeless (statistically insignificant), so we had
+  better focus on strong ones.  (How short is "very short"?  It
+  depends on the amount of sequence data we are searching, but perhaps
+  roughly less than 40 amino acids.)
 
 Example 5: Align human DNA sequences to the human genome
 --------------------------------------------------------
@@ -138,12 +144,14 @@ Example 7: Align human fastq sequences to the human genome
 DNA sequences are not always perfectly accurate, and they are
 sometimes provided in fastq format, which indicates the reliability of
 each base.  LAST can use this information to improve alignment
-accuracy.  (It assumes the reliabilities reflect substitution errors,
-not insertion/deletion errors: if that is not true, it may be better
-to use fasta format.)  Option -Q1 indicates fastq-sanger format::
+accuracy.  Option -Q1 indicates fastq-sanger format::
 
   lastdb -uNEAR -R01 humandb human/chr*.fa
-  lastal -Q1 -D100 humandb queries.fastq | last-split > myalns.maf
+  lastal -Q1 humandb queries.fastq | last-split > myalns.maf
+
+**Assumption:** LAST assumes the reliabilities reflect substitution
+errors, not insertion/deletion errors.  If that is not true, you can
+tell it to ignore the reliability data with -Q0.
 
 Fastq format confusion
 ----------------------
@@ -183,7 +191,18 @@ See `here <https://github.com/mcfrith/last-genome-alignments>`_.
 Example 9: Compare the human and chimp genomes
 ----------------------------------------------
 
-See `here <https://github.com/mcfrith/last-genome-alignments>`_.
+See `here <https://github.com/mcfrith/last-genome-alignments>`_.  But
+that recipe is *extremely* slow-and-accurate.  You can `tune
+<last-tuning.html>`_ it to compare huge, high-similarity genomes with
+moderate run time and memory use:
+
+* Omit the sensitivity-boosting lastal -m option.
+
+* Add -W99 (or so) to the lastdb options.
+
+* If the "reference" genome (the one given to lastdb) is > 4 GB, it's
+  probably more efficient to use lastdb8 and lastal8, instead of
+  lastdb and lastal.
 
 Example 10: Ambiguity of alignment columns
 ------------------------------------------

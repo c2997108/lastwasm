@@ -21,7 +21,7 @@ format), and the genome is in "genome.fasta" (in fasta format).  We
 can do the alignment like this::
 
   lastdb -uNEAR -R01 db genome.fasta
-  lastal -Q1 -D100 db q.fastq | last-split > out.maf
+  lastal -Q1 db q.fastq | last-split > out.maf
 
 Spliced alignment of RNA reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,7 +78,7 @@ Going faster by parallelization
 
 For example, split alignment of DNA reads to a genome::
 
-  parallel-fastq "lastal -Q1 -D100 db | last-split" < q.fastq > out.maf
+  parallel-fastq "lastal -Q1 db | last-split" < q.fastq > out.maf
 
 This requires GNU parallel to be installed
 (http://www.gnu.org/software/parallel/).
@@ -173,7 +173,7 @@ middle of the query, we can do "spliced" alignment without considering
 splice signals or favouring cis-splices::
 
   lastdb -uNEAR -R01 db genome.fasta
-  lastal -Q1 -D100 db q.fastq | last-split -c0 > out.maf
+  lastal -Q1 db q.fastq | last-split -c0 > out.maf
 
 Options
 -------
