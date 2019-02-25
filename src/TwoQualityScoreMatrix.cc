@@ -43,9 +43,7 @@ static int qualityEnd(const TwoQualityMatrixIndexer &indexer, int letter) {
 }
 
 void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
-                                 double lambda,
-                                 const double *letterProbs1,
-                                 const double *letterProbs2,
+				 const mcf::SubstitutionMatrixStats &matStats,
                                  bool isPhred1,
                                  int qualityOffset1,
                                  bool isPhred2,
@@ -58,6 +56,8 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
   indexer.init(toUnmasked);
   data.resize(Indexer::numSymbols * Indexer::numSymbols);
 
+  const double lambda = matStats.lambda();
+  const double matBias = matStats.bias();
   double expMat[Indexer::numNormalLetters][Indexer::numNormalLetters];
 
   for (int x1 = 0; x1 < Indexer::numNormalLetters; ++x1)
@@ -71,8 +71,8 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
     double e1 = errorProbFromQual(q, qualityOffset1, isPhred1);
     double e2 = errorProbFromQual(q, qualityOffset2, isPhred2);
     for (int x = 0; x < Indexer::numNormalLetters; ++x) {
-      certainties1[q][x] = qualityCertainty(e1, letterProbs1[x]);
-      certainties2[q][x] = qualityCertainty(e2, letterProbs2[x]);
+      certainties1[q][x] = qualityCertainty(e1, matStats.letterProbs1()[x]);
+      certainties2[q][x] = qualityCertainty(e2, matStats.letterProbs2()[x]);
     }
   }
 
@@ -85,8 +85,9 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
       int *dq2 = dq1 + q2 * Indexer::numQualityLetters;
       const double *c2s = certainties2[q2];
       if (isMatchMismatchMatrix) {  // do this common special case faster
-	int scoreSame = qualityPairScore(expMat[0][0], c1s[0], c2s[0], lambda);
-	int scoreDiff = qualityPairScore(expMat[0][1], c1s[0], c2s[0], lambda);
+	double c = c1s[0] * c2s[0];
+	int scoreSame = qualityPairScore(expMat[0][0], matBias, c, lambda);
+	int scoreDiff = qualityPairScore(expMat[0][1], matBias, c, lambda);
 	int scoreSameMask = isMask ? std::min(scoreSame, 0) : scoreSame;
 	int scoreDiffMask = isMask ? std::min(scoreDiff, 0) : scoreDiff;
 	for (int x1 = 0; x1 < Indexer::numNormalLetters; ++x1) {
@@ -115,7 +116,8 @@ void TwoQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
 	  for (int x2 = 0; x2 < Indexer::numNormalLetters; ++x2) {
 	    int m2 = x2 + Indexer::numNormalLetters;
 	    double c2 = c2s[x2];
-	    int score = qualityPairScore(expMat[x1][x2], c1, c2, lambda);
+	    double c = c1 * c2;
+	    int score = qualityPairScore(expMat[x1][x2], matBias, c, lambda);
 	    dx1[x2] = score;
 	    if (isMask) score = std::min(score, 0);
 	    dx1[m2] = score;

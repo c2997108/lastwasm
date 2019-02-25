@@ -184,28 +184,22 @@ void makeQualityScorers(){
 		   "quality data not used for DNA-versus-protein alignment" );
 
   const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
+  const ScoreMatrixRow* mRev = scoreMatrixRev;
   bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
-  double lambda = scoreMatrixStats.lambda();  // xxx 1/args.temperature ?
-  const double* lp1 = scoreMatrixStats.letterProbs1();
   bool isPhred1 = isPhred( referenceFormat );
   int offset1 = qualityOffset( referenceFormat );
-  const double* lp2 = scoreMatrixStats.letterProbs2();
   bool isPhred2 = isPhred( args.inputFormat );
   int offset2 = qualityOffset( args.inputFormat );
   const uchar *toUnmasked = alph.numbersToUppercase;
-
-  const ScoreMatrixRow* mRev = scoreMatrixRev;
-  const double *lp1rev = scoreMatrixStatsRev.letterProbs1();
-  const double *lp2rev = scoreMatrixStatsRev.letterProbs2();
 
   if( !isUseFastq( referenceFormat ) ){
     if( isUseFastq( args.inputFormat ) ){
       LOG( "calculating per-quality scores..." );
       if( args.maskLowercase > 0 )
-	oneQualityMatrixMasked.init(m, alph.size, lambda, lp2,
+	oneQualityMatrixMasked.init(m, alph.size, scoreMatrixStats,
 				    isPhred2, offset2, toUnmasked, true);
       if( args.maskLowercase < 3 )
-	oneQualityMatrix.init(m, alph.size, lambda, lp2,
+	oneQualityMatrix.init(m, alph.size, scoreMatrixStats,
 			      isPhred2, offset2, toUnmasked, false);
       const OneQualityScoreMatrix &q = (args.maskLowercase < 3) ?
 	oneQualityMatrix : oneQualityMatrixMasked;
@@ -216,10 +210,10 @@ void makeQualityScorers(){
 				    offset2, std::cerr );
       if( args.isQueryStrandMatrix && args.strand != 1 ){
 	if( args.maskLowercase > 0 )
-	  oneQualityMatrixRevMasked.init(mRev, alph.size, lambda, lp2rev,
+	  oneQualityMatrixRevMasked.init(mRev, alph.size, scoreMatrixStatsRev,
 					 isPhred2, offset2, toUnmasked, true);
 	if( args.maskLowercase < 3 )
-	  oneQualityMatrixRev.init(mRev, alph.size, lambda, lp2rev,
+	  oneQualityMatrixRev.init(mRev, alph.size, scoreMatrixStatsRev,
 				   isPhred2, offset2, toUnmasked, false);
 	const OneQualityScoreMatrix &qRev = (args.maskLowercase < 3) ?
 	  oneQualityMatrixRev : oneQualityMatrixRevMasked;
@@ -228,6 +222,7 @@ void makeQualityScorers(){
       }
     }
     if( isUseQuality(args.inputFormat) ){
+      double lambda = scoreMatrixStats.lambda();
       qualityPssmMaker.init(m, alph.size, lambda, isMatchMismatch,
 			    args.matchScore, -args.mismatchCost,
 			    isPhred2, offset2, toUnmasked);
@@ -240,22 +235,22 @@ void makeQualityScorers(){
   else{
     if( isUseFastq( args.inputFormat ) ){
       if( args.maskLowercase > 0 )
-	twoQualityMatrixMasked.init(m, lambda, lp1, lp2,
+	twoQualityMatrixMasked.init(m, scoreMatrixStats,
 				    isPhred1, offset1, isPhred2, offset2,
 				    toUnmasked, true, isMatchMismatch);
       if( args.maskLowercase < 3 )
-	twoQualityMatrix.init(m, lambda, lp1, lp2,
+	twoQualityMatrix.init(m, scoreMatrixStats,
 			      isPhred1, offset1, isPhred2, offset2,
 			      toUnmasked, false, isMatchMismatch);
       if( args.outputType > 3 )
         ERR( "fastq-versus-fastq column probabilities not implemented" );
       if( args.isQueryStrandMatrix && args.strand != 1 ){
 	if( args.maskLowercase > 0 )
-	  twoQualityMatrixRevMasked.init(mRev, lambda, lp1rev, lp2rev,
+	  twoQualityMatrixRevMasked.init(mRev, scoreMatrixStatsRev,
 					 isPhred1, offset1, isPhred2, offset2,
 					 toUnmasked, true, isMatchMismatch);
 	if( args.maskLowercase < 3 )
-	  twoQualityMatrixRev.init(mRev, lambda, lp1rev, lp2rev,
+	  twoQualityMatrixRev.init(mRev, scoreMatrixStatsRev,
 				   isPhred1, offset1, isPhred2, offset2,
 				   toUnmasked, false, isMatchMismatch);
       }

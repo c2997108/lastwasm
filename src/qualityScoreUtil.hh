@@ -56,9 +56,9 @@ inline double qualityCertainty(double errorProb, double letterProb) {
   return 1 - qualityUncertainty(errorProb, letterProb);
 }
 
-inline int qualityPairScore(double expScore, double certainty1,
-			    double certainty2, double lambda) {
-  double x = certainty1 * certainty2 * (expScore - 1) + 1;
+inline int qualityPairScore(double expScore, double avgExpScore,
+			    double certainty, double lambda) {
+  double x = certainty * (expScore - avgExpScore) + avgExpScore;
   return scoreFromProb(lambda, x);
 }
 

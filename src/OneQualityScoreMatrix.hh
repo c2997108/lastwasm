@@ -15,7 +15,7 @@
 
 // The score matrix Sxy is adjusted by the quality data like this:
 // Rxy    =  exp(lambda * Sxy)
-// R'xyq  =  (1-u) * Rxy + u
+// R'xyq  =  (1-u) * Rxy + u * matrixBias
 // S'xyq  =  nearestInt[ ln(R'xyq) / lambda ]
 
 // Some letters may be considered to be "masked" versions of other
@@ -30,6 +30,7 @@
 #ifndef ONE_QUALITY_SCORE_MATRIX_HH
 #define ONE_QUALITY_SCORE_MATRIX_HH
 
+#include "mcf_substitution_matrix_stats.hh"
 #include "ScoreMatrixRow.hh"
 
 #include <iosfwd>
@@ -50,8 +51,7 @@ class OneQualityScoreMatrix {
  public:
   void init(const ScoreMatrixRow *scoreMatrix,
             int numNormalLetters,  // typically 4 (ACGT)
-            double lambda,  // scale factor for scoreMatrix
-            const double *letterProbs2,  // scoreMatrix probs for 2nd sequence
+	    const mcf::SubstitutionMatrixStats &matStats,
             bool isPhred,  // phred or solexa qualities?
             int qualityOffset,  // typically 33 or 64
             const uchar *toUnmasked,  // maps letters to unmasked letters

@@ -10,12 +10,12 @@
 // For phred qualities:        e(q)  =  10^(-q/10)
 // Else for solexa qualities:  e(q)  =  1 / (1 + 10^(q/10))
 
-// Error probabilities are transformed to "uncertainties" like this:
-// u = e / (1 - backgroundProbability[letter])
+// Error probabilities are transformed to "certainties" like this:
+// c = 1 - e / (1 - backgroundProbability[letter])
 
 // The score matrix Sxy is adjusted by the quality data like this:
 // Rxy     =  exp(lambda * Sxy)
-// R'xyij  =  (1-u1)*(1-u2)*Rxy + u1 + u2 - u1*u2
+// R'xyij  =  c1*c2*Rxy + (1 - c1*c2) * matrixBias
 // S'xyij  =  nearestInt[ ln(R'xyij) / lambda ]
 
 // Some letters may be considered to be "masked" versions of other
@@ -30,6 +30,7 @@
 #ifndef TWO_QUALITY_SCORE_MATRIX_HH
 #define TWO_QUALITY_SCORE_MATRIX_HH
 
+#include "mcf_substitution_matrix_stats.hh"
 #include "ScoreMatrixRow.hh"
 
 #include <vector>
@@ -68,9 +69,7 @@ class TwoQualityScoreMatrix {
 
  public:
   void init(const ScoreMatrixRow *scoreMatrix,
-            double lambda,  // scale factor for scoreMatrix
-            const double *letterProbs1,  // scoreMatrix probs for 1st sequence
-            const double *letterProbs2,  // scoreMatrix probs for 2nd sequence
+	    const mcf::SubstitutionMatrixStats &matStats,
             bool isPhred1,
             int qualityOffset1,
             bool isPhred2,

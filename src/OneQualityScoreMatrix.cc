@@ -17,12 +17,12 @@ const int qualityCapacity = 128;
 
 void OneQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
                                  int numNormalLetters,
-                                 double lambda,
-                                 const double *letterProbs2,
+				 const mcf::SubstitutionMatrixStats &matStats,
                                  bool isPhred,
                                  int qualityOffset,
                                  const uchar *toUnmasked,
                                  bool isApplyMasking) {
+  const double lambda = matStats.lambda();
   data.resize(qualityCapacity * scoreMatrixRowSize * scoreMatrixRowSize);
 
   for (int letter1 = 0; letter1 < scoreMatrixRowSize; ++letter1) {
@@ -43,8 +43,8 @@ void OneQualityScoreMatrix::init(const ScoreMatrixRow *scoreMatrix,
       for (int q2 = 0; q2 < qualityCapacity; ++q2) {
         if (isUseQuality) {
 	  double e2 = errorProbFromQual(q2, qualityOffset, isPhred);
-          double c2 = qualityCertainty(e2, letterProbs2[unmasked2]);
-          score = qualityPairScore(expScore, 1, c2, lambda);
+          double c2 = qualityCertainty(e2, matStats.letterProbs2()[unmasked2]);
+          score = qualityPairScore(expScore, matStats.bias(), c2, lambda);
         }
 
         if (isMask) score = std::min(score, 0);
