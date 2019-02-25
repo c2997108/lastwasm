@@ -15,6 +15,14 @@ static double checkedExp(double lambda, int score) {
   return y;
 }
 
+static void permuteComplement(std::vector<double> &v,
+			      const unsigned char *complement) {
+  for (unsigned i = 0; i < v.size(); ++i) {
+    unsigned j = complement[i];
+    if (j < i) std::swap(v[i], v[j]);
+  }
+}
+
 static double calcLetterProbs(std::vector<double> &probs, unsigned size,
 			      double **expMat) {
   probs.assign(size, 1.0);
@@ -74,10 +82,9 @@ void SubstitutionMatrixStats::calcUnbiased(const const_int_ptr *scoreMatrix,
   }
 }
 
-void SubstitutionMatrixStats::flipDnaStrands() {
-  // assume that reversing the letter order gets the complement letters:
-  reverse(mLetterProbs1.begin(), mLetterProbs1.end());
-  reverse(mLetterProbs2.begin(), mLetterProbs2.end());
+void SubstitutionMatrixStats::flipDnaStrands(const unsigned char *complement) {
+  permuteComplement(mLetterProbs1, complement);
+  permuteComplement(mLetterProbs2, complement);
 }
 
 }

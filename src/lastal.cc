@@ -68,6 +68,7 @@ namespace {
   GeneralizedAffineGapCosts gapCosts;
   std::vector<LastAligner> aligners;
   mcf::SubstitutionMatrixStats scoreMatrixStats;
+  mcf::SubstitutionMatrixStats scoreMatrixStatsRev;
   LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
@@ -114,6 +115,9 @@ static void calculateSubstitutionScoreMatrixStatistics() {
     LOG(msg);
     return;
   }
+
+  scoreMatrixStatsRev = scoreMatrixStats;
+  scoreMatrixStatsRev.flipDnaStrands(alph.complement);
 
   const double *p1 = scoreMatrixStats.letterProbs1();
   const double *p2 = scoreMatrixStats.letterProbs2();
@@ -171,12 +175,6 @@ void makeScoreMatrix( const std::string& matrixName,
   }
 }
 
-void permuteComplement(const double *from, double *to) {
-  if (from)
-    for (unsigned i = 0; i < alph.size; ++i)
-      to[i] = from[alph.complement[i]];
-}
-
 void makeQualityScorers(){
   if( args.isGreedy ) return;
 
@@ -197,10 +195,8 @@ void makeQualityScorers(){
   const uchar *toUnmasked = alph.numbersToUppercase;
 
   const ScoreMatrixRow* mRev = scoreMatrixRev;
-  double lp1rev[scoreMatrixRowSize];
-  permuteComplement( lp1, lp1rev );
-  double lp2rev[scoreMatrixRowSize];
-  permuteComplement( lp2, lp2rev );
+  const double *lp1rev = scoreMatrixStatsRev.letterProbs1();
+  const double *lp2rev = scoreMatrixStatsRev.letterProbs2();
 
   if( !isUseFastq( referenceFormat ) ){
     if( isUseFastq( args.inputFormat ) ){

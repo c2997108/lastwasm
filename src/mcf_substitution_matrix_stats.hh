@@ -51,8 +51,10 @@ public:
   // set bias = 1 and calculate the other values
   void calcUnbiased(const const_int_ptr *scoreMatrix, unsigned size);
 
-  // set it to the parameters for aligning the reverse DNA strands
-  void flipDnaStrands();
+  // Set it to the parameters for aligning the reverse DNA strands.
+  // j = complement[i] means the j-th letter is the complement of the
+  // i-th letter.
+  void flipDnaStrands(const unsigned char *complement);
 
 private:
   double mLambda;
