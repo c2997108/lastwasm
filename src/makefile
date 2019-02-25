@@ -28,7 +28,8 @@ GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
 GappedXdropAligner3frame.o GeneralizedAffineGapCosts.o GeneticCode.o	\
 GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
 QualityPssmMaker.o TwoQualityScoreMatrix.o gaplessXdrop.o		\
-gaplessPssmXdrop.o gaplessTwoQualityXdrop.o $(alpObj)
+gaplessPssmXdrop.o gaplessTwoQualityXdrop.o cbrc_linalg.o		\
+mcf_substitution_matrix_stats.o $(alpObj)
 
 alignObj4 = Alignment.o AlignmentPot.o AlignmentWrite.o Centroid.o	\
 DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\
@@ -218,20 +219,23 @@ lastal.o lastal.o8: lastal.cc last.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  SequenceFormat.hh qualityScoreUtil.hh LastalArguments.hh \
  QualityPssmMaker.hh OneQualityScoreMatrix.hh TwoQualityScoreMatrix.hh \
- LambdaCalculator.hh LastEvaluer.hh alp/sls_alignment_evaluer.hpp \
- alp/sls_pvalues.hpp alp/sls_basic.hpp alp/sls_falp_alignment_evaluer.hpp \
+ LastEvaluer.hh alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp \
+ alp/sls_basic.hpp alp/sls_falp_alignment_evaluer.hpp \
  alp/sls_fsa1_pvalues.hpp GeneticCode.hh SubsetMinimizerFinder.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh Centroid.hh \
  GappedXdropAligner.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
  AlignmentPot.hh Alignment.hh SegmentPairPot.hh ScoreMatrix.hh \
  TantanMasker.hh tantan.hh DiagonalTable.hh GreedyXdropAligner.hh \
- gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh \
- mcf_zstream.hh threadUtil.hh version.hh
+ gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh \
+ mcf_substitution_matrix_stats.hh zio.hh mcf_zstream.hh threadUtil.hh \
+ version.hh
 lastdb.o lastdb.o8: lastdb.cc last.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  SequenceFormat.hh qualityScoreUtil.hh LastdbArguments.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh TantanMasker.hh tantan.hh \
  zio.hh mcf_zstream.hh threadUtil.hh version.hh
+mcf_substitution_matrix_stats.o mcf_substitution_matrix_stats.o8: mcf_substitution_matrix_stats.cc \
+ mcf_substitution_matrix_stats.hh LambdaCalculator.hh cbrc_linalg.hh
 tantan.o tantan.o8: tantan.cc tantan.hh
 last-merge-batches.o: last-merge-batches.c version.hh
 alp/njn_dynprogprob.o: alp/njn_dynprogprob.cpp alp/njn_dynprogprob.hpp \

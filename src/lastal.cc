@@ -8,7 +8,6 @@
 #include "QualityPssmMaker.hh"
 #include "OneQualityScoreMatrix.hh"
 #include "TwoQualityScoreMatrix.hh"
-#include "LambdaCalculator.hh"
 #include "LastEvaluer.hh"
 #include "GeneticCode.hh"
 #include "SubsetMinimizerFinder.hh"
@@ -26,6 +25,7 @@
 #include "gaplessXdrop.hh"
 #include "gaplessPssmXdrop.hh"
 #include "gaplessTwoQualityXdrop.hh"
+#include "mcf_substitution_matrix_stats.hh"
 #include "zio.hh"
 #include "stringify.hh"
 #include "threadUtil.hh"
@@ -67,7 +67,7 @@ namespace {
   int scoreMatrixRevMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   GeneralizedAffineGapCosts gapCosts;
   std::vector<LastAligner> aligners;
-  LambdaCalculator scoreMatrixStats;
+  mcf::SubstitutionMatrixStats scoreMatrixStats;
   LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
@@ -103,7 +103,7 @@ static void calculateSubstitutionScoreMatrixStatistics() {
   std::copy(scoreMatrix.caseSensitive,
 	    scoreMatrix.caseSensitive + alph.size, scoreMat);
   LOG( "calculating matrix probabilities..." );
-  scoreMatrixStats.calculate(scoreMat, alph.size);
+  scoreMatrixStats.calcUnbiased(scoreMat, alph.size);
 
   if( scoreMatrixStats.isBad() ){
     static const char msg[] =
