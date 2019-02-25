@@ -17,13 +17,13 @@
 
 namespace cbrc{
 
-class LambdaCalculator{
-  enum { MAT = 64 };
+typedef const int *const_int_ptr;
 
+class LambdaCalculator{
  public:
   LambdaCalculator() { setBad(); }
 
-  void calculate( const int matrix[MAT][MAT], int alphSize );
+  void calculate(const const_int_ptr *matrix, int alphSize);
 
   // Put us in the bad/undefined state.
   void setBad();

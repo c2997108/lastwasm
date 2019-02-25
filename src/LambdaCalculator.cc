@@ -390,9 +390,8 @@ bool LambdaCalculator::check_lambda(double** matrix, double lambda, int alpha_si
   return true;
 }
 
-void LambdaCalculator::calculate( const int matrix[MAT][MAT], int alphSize ){
+void LambdaCalculator::calculate(const const_int_ptr *matrix, int alphSize) {
   assert(alphSize >= 0);
-  assert(alphSize < MAT);
   setBad();
 
   int maxiter = 1000;

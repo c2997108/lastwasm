@@ -42,8 +42,11 @@ T -5 -5 -5  2\n\
 
   s.init(letterToIndex);
 
+  int *scoreMat[scoreMatrixRowSize];
+  std::copy(s.caseInsensitive, s.caseInsensitive + alphabetSize, scoreMat);
+
   LambdaCalculator c;
-  c.calculate(s.caseInsensitive, alphabetSize);
+  c.calculate(scoreMat, alphabetSize);
   assert(!c.isBad());
 
   for (int i = 0; i < scoreMatrixRowSize; ++i)

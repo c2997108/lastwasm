@@ -98,9 +98,12 @@ void complementMatrix(const ScoreMatrixRow *from, ScoreMatrixRow *to) {
 
 // Meaningless for PSSMs, unless they have the same scale as the score matrix
 static void calculateSubstitutionScoreMatrixStatistics() {
-  LOG( "calculating matrix probabilities..." );
+  int *scoreMat[scoreMatrixRowSize];
   // the case-sensitivity of the matrix makes no difference here
-  scoreMatrixStats.calculate( scoreMatrix.caseSensitive, alph.size );
+  std::copy(scoreMatrix.caseSensitive,
+	    scoreMatrix.caseSensitive + alph.size, scoreMat);
+  LOG( "calculating matrix probabilities..." );
+  scoreMatrixStats.calculate(scoreMat, alph.size);
 
   if( scoreMatrixStats.isBad() ){
     static const char msg[] =
