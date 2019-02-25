@@ -561,40 +561,6 @@ To proceed without E-values, set a score threshold with option -e.");
   }
 }
 
-int LastalArguments::calcMinScoreGapless( double numLettersInReference,
-					  double numOfIndexes ) const{
-  if( minScoreGapless >= 0 ) return minScoreGapless;
-
-  // ***** Default setting for minScoreGapless *****
-
-  // This attempts to ensure that the gapped alignment phase will be
-  // reasonably fast relative to the gapless alignment phase.
-
-  // The expected number of gapped extensions per query position is:
-  // kGapless * referenceSize * exp(-lambdaGapless * minScoreGapless).
-
-  // The number of gapless extensions per query position is
-  // proportional to: maxGaplessAlignmentsPerQueryPosition * numOfIndexes.
-
-  // So we want exp(lambdaGapless * minScoreGapless) to be
-  // proportional to: kGapless * referenceSize / (n * numOfIndexes).
-
-  // But we crudely ignore kGapless.
-
-  // The proportionality constant was guesstimated by some limited
-  // trial-and-error.  It should depend on the relative speeds of
-  // gapless and gapped extensions.
-
-  if( temperature < 0 ) return minScoreGapped;  // shouldn't happen
-
-  double n = maxGaplessAlignmentsPerQueryPosition;
-  if( maxGaplessAlignmentsPerQueryPosition + 1 == 0 ) n = 10;  // ?
-  double x = 1000.0 * numLettersInReference / (n * numOfIndexes);
-  if( x < 1 ) x = 1;
-  int s = int( temperature * std::log(x) + 0.5 );
-  return std::min( s, minScoreGapped );
-}
-
 void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << '#';
   stream << " a=" << gapExistCost;

@@ -67,7 +67,7 @@ namespace {
   int scoreMatrixRevMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   GeneralizedAffineGapCosts gapCosts;
   std::vector<LastAligner> aligners;
-  LambdaCalculator lambdaCalculator;
+  LambdaCalculator scoreMatrixStats;
   LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
@@ -100,23 +100,22 @@ void complementMatrix(const ScoreMatrixRow *from, ScoreMatrixRow *to) {
 static void calculateSubstitutionScoreMatrixStatistics() {
   LOG( "calculating matrix probabilities..." );
   // the case-sensitivity of the matrix makes no difference here
-  lambdaCalculator.calculate( scoreMatrix.caseSensitive, alph.size );
+  scoreMatrixStats.calculate( scoreMatrix.caseSensitive, alph.size );
 
-  if( lambdaCalculator.isBad() ){
+  if( scoreMatrixStats.isBad() ){
+    static const char msg[] =
+      "can't calculate probabilities: maybe the mismatch costs are too weak";
     if( isUseQuality( args.inputFormat ) ||
-        (args.temperature < 0 && args.outputType > 3) )
-      ERR( "can't calculate probabilities: "
-	   "maybe the mismatch costs are too weak" );
-    else
-      LOG( "can't calculate probabilities: "
-	   "maybe the mismatch costs are too weak" );
+	(args.temperature < 0 && args.outputType > 3) )
+      ERR(msg);
+    LOG(msg);
     return;
   }
 
-  const double *p1 = lambdaCalculator.letterProbs1();
-  const double *p2 = lambdaCalculator.letterProbs2();
+  const double *p1 = scoreMatrixStats.letterProbs1();
+  const double *p2 = scoreMatrixStats.letterProbs2();
 
-  LOG( "matrix lambda=" << lambdaCalculator.lambda() );
+  LOG( "matrix lambda=" << scoreMatrixStats.lambda() );
   LOG( "matrix letter frequencies (upper=reference, lower=query):" );
   if( args.verbosity > 0 ){
     std::cerr << std::left;
@@ -147,10 +146,10 @@ void makeScoreMatrix( const std::string& matrixName,
   scoreMatrix.init(alph.encode);
   if (args.outputType > 0) {
     calculateSubstitutionScoreMatrixStatistics();
-    if (alph.letters == alph.dna && !lambdaCalculator.isBad()) {
-      scoreMatrix.addAmbiguousScores(alph.encode, lambdaCalculator.lambda(),
-				     lambdaCalculator.letterProbs1(),
-				     lambdaCalculator.letterProbs2());
+    if (alph.letters == alph.dna && !scoreMatrixStats.isBad()) {
+      scoreMatrix.addAmbiguousScores(alph.encode, scoreMatrixStats.lambda(),
+				     scoreMatrixStats.letterProbs1(),
+				     scoreMatrixStats.letterProbs2());
       scoreMatrix.init(alph.encode);
     }
   }
@@ -185,13 +184,14 @@ void makeQualityScorers(){
 
   const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
   bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
-  double lambda = lambdaCalculator.lambda();  // xxx 1/args.temperature ?
-  const double* lp1 = lambdaCalculator.letterProbs1();
+  double lambda = scoreMatrixStats.lambda();  // xxx 1/args.temperature ?
+  const double* lp1 = scoreMatrixStats.letterProbs1();
   bool isPhred1 = isPhred( referenceFormat );
   int offset1 = qualityOffset( referenceFormat );
-  const double* lp2 = lambdaCalculator.letterProbs2();
+  const double* lp2 = scoreMatrixStats.letterProbs2();
   bool isPhred2 = isPhred( args.inputFormat );
   int offset2 = qualityOffset( args.inputFormat );
+  const uchar *toUnmasked = alph.numbersToUppercase;
 
   const ScoreMatrixRow* mRev = scoreMatrixRev;
   double lp1rev[scoreMatrixRowSize];
@@ -203,13 +203,11 @@ void makeQualityScorers(){
     if( isUseFastq( args.inputFormat ) ){
       LOG( "calculating per-quality scores..." );
       if( args.maskLowercase > 0 )
-	oneQualityMatrixMasked.init( m, alph.size, lambda,
-				     lp2, isPhred2, offset2,
-				     alph.numbersToUppercase, true );
+	oneQualityMatrixMasked.init(m, alph.size, lambda, lp2,
+				    isPhred2, offset2, toUnmasked, true);
       if( args.maskLowercase < 3 )
-	oneQualityMatrix.init( m, alph.size, lambda,
-			       lp2, isPhred2, offset2,
-			       alph.numbersToUppercase, false );
+	oneQualityMatrix.init(m, alph.size, lambda, lp2,
+			      isPhred2, offset2, toUnmasked, false);
       const OneQualityScoreMatrix &q = (args.maskLowercase < 3) ?
 	oneQualityMatrix : oneQualityMatrixMasked;
       if( args.outputType > 3 )
@@ -219,13 +217,11 @@ void makeQualityScorers(){
 				    offset2, std::cerr );
       if( args.isQueryStrandMatrix && args.strand != 1 ){
 	if( args.maskLowercase > 0 )
-	  oneQualityMatrixRevMasked.init( mRev, alph.size, lambda,
-					  lp2rev, isPhred2, offset2,
-					  alph.numbersToUppercase, true );
+	  oneQualityMatrixRevMasked.init(mRev, alph.size, lambda, lp2rev,
+					 isPhred2, offset2, toUnmasked, true);
 	if( args.maskLowercase < 3 )
-	  oneQualityMatrixRev.init( mRev, alph.size, lambda,
-				    lp2rev, isPhred2, offset2,
-				    alph.numbersToUppercase, false );
+	  oneQualityMatrixRev.init(mRev, alph.size, lambda, lp2rev,
+				   isPhred2, offset2, toUnmasked, false);
 	const OneQualityScoreMatrix &qRev = (args.maskLowercase < 3) ?
 	  oneQualityMatrixRev : oneQualityMatrixRevMasked;
 	if( args.outputType > 3 )
@@ -233,40 +229,36 @@ void makeQualityScorers(){
       }
     }
     if( isUseQuality(args.inputFormat) ){
-      qualityPssmMaker.init( m, alph.size, lambda, isMatchMismatch,
-                             args.matchScore, -args.mismatchCost,
-                             isPhred2, offset2, alph.numbersToUppercase );
+      qualityPssmMaker.init(m, alph.size, lambda, isMatchMismatch,
+			    args.matchScore, -args.mismatchCost,
+			    isPhred2, offset2, toUnmasked);
       if( args.isQueryStrandMatrix && args.strand != 1 )
-	qualityPssmMakerRev.init( mRev, alph.size, lambda, isMatchMismatch,
-				  args.matchScore, -args.mismatchCost,
-				  isPhred2, offset2, alph.numbersToUppercase );
+	qualityPssmMakerRev.init(mRev, alph.size, lambda, isMatchMismatch,
+				 args.matchScore, -args.mismatchCost,
+				 isPhred2, offset2, toUnmasked);
     }
   }
   else{
     if( isUseFastq( args.inputFormat ) ){
       if( args.maskLowercase > 0 )
-	twoQualityMatrixMasked.init( m, lambda, lp1, lp2,
-				     isPhred1, offset1, isPhred2, offset2,
-				     alph.numbersToUppercase, true,
-				     isMatchMismatch );
+	twoQualityMatrixMasked.init(m, lambda, lp1, lp2,
+				    isPhred1, offset1, isPhred2, offset2,
+				    toUnmasked, true, isMatchMismatch);
       if( args.maskLowercase < 3 )
-	twoQualityMatrix.init( m, lambda, lp1, lp2,
-			       isPhred1, offset1, isPhred2, offset2,
-			       alph.numbersToUppercase, false,
-			       isMatchMismatch );
+	twoQualityMatrix.init(m, lambda, lp1, lp2,
+			      isPhred1, offset1, isPhred2, offset2,
+			      toUnmasked, false, isMatchMismatch);
       if( args.outputType > 3 )
         ERR( "fastq-versus-fastq column probabilities not implemented" );
       if( args.isQueryStrandMatrix && args.strand != 1 ){
 	if( args.maskLowercase > 0 )
-	  twoQualityMatrixRevMasked.init( mRev, lambda, lp1rev, lp2rev,
-					  isPhred1, offset1, isPhred2, offset2,
-					  alph.numbersToUppercase, true,
-					  isMatchMismatch );
+	  twoQualityMatrixRevMasked.init(mRev, lambda, lp1rev, lp2rev,
+					 isPhred1, offset1, isPhred2, offset2,
+					 toUnmasked, true, isMatchMismatch);
 	if( args.maskLowercase < 3 )
-	  twoQualityMatrixRev.init( mRev, lambda, lp1rev, lp2rev,
-				    isPhred1, offset1, isPhred2, offset2,
-				    alph.numbersToUppercase, false,
-				    isMatchMismatch );
+	  twoQualityMatrixRev.init(mRev, lambda, lp1rev, lp2rev,
+				   isPhred1, offset1, isPhred2, offset2,
+				   toUnmasked, false, isMatchMismatch);
       }
     }
     else{
@@ -279,7 +271,7 @@ void makeQualityScorers(){
 // Calculate statistical parameters for the alignment scoring scheme
 static void calculateScoreStatistics(const std::string& matrixName,
 				     countT refLetters) {
-  if (lambdaCalculator.isBad()) return;
+  if (scoreMatrixStats.isBad()) return;
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
   bool isGapped = (args.outputType > 1);
   bool isStandardGeneticCode = args.geneticCodeFile.empty();
@@ -287,8 +279,8 @@ static void calculateScoreStatistics(const std::string& matrixName,
   try{
     evaluer.init( canonicalMatrixName, args.matchScore, args.mismatchCost,
                   alph.letters.c_str(), scoreMatrix.caseSensitive,
-		  lambdaCalculator.letterProbs1(),
-		  lambdaCalculator.letterProbs2(), isGapped,
+		  scoreMatrixStats.letterProbs1(),
+		  scoreMatrixStats.letterProbs2(), isGapped,
                   gapCosts.delExist, gapCosts.delExtend,
                   gapCosts.insExist, gapCosts.insExtend,
                   args.frameshiftCost, geneticCode, isStandardGeneticCode,
@@ -751,7 +743,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
 					   isUseFastq(args.inputFormat),
 					   qualityPssmMaker.qualToProbRight(),
-					   lambdaCalculator.letterProbs2(),
+					   scoreMatrixStats.letterProbs2(),
 					   alph.numbersToUppercase);
       }
       centroid.setPssm(dis.p, queryLen, args.temperature,
@@ -1040,13 +1032,46 @@ void readIndex( const std::string& baseName, indexT seqCount ) {
   }
 }
 
+int calcMinScoreGapless(double numLettersInReference) {
+  if (args.minScoreGapless >= 0) return args.minScoreGapless;
+
+  // ***** Default setting for minScoreGapless *****
+
+  // This attempts to ensure that the gapped alignment phase will be
+  // reasonably fast relative to the gapless alignment phase.
+
+  // The expected number of gapped extensions per query position is:
+  // kGapless * referenceSize * exp(-lambdaGapless * minScoreGapless).
+
+  // The number of gapless extensions per query position is
+  // proportional to: maxGaplessAlignmentsPerQueryPosition * numOfIndexes.
+
+  // So we want exp(lambdaGapless * minScoreGapless) to be
+  // proportional to: kGapless * referenceSize / (n * numOfIndexes).
+
+  // But we crudely ignore kGapless.
+
+  // The proportionality constant was guesstimated by some limited
+  // trial-and-error.  It should depend on the relative speeds of
+  // gapless and gapped extensions.
+
+  if (args.temperature < 0) return args.minScoreGapped;  // shouldn't happen
+
+  double n = args.maxGaplessAlignmentsPerQueryPosition;
+  if (args.maxGaplessAlignmentsPerQueryPosition + 1 == 0) n = 10;  // ?
+  double x = 1000.0 * numLettersInReference / (n * numOfIndexes);
+  if (x < 1) x = 1;
+  int s = int(args.temperature * std::log(x) + 0.5);
+  return std::min(s, args.minScoreGapped);
+}
+
 // Read one database volume
 void readVolume( unsigned volumeNumber ){
   std::string baseName = args.lastdbName + stringify(volumeNumber);
   indexT seqCount = indexT(-1);
   indexT seqLen = indexT(-1);
   readInnerPrj( baseName + ".prj", seqCount, seqLen );
-  minScoreGapless = args.calcMinScoreGapless( seqLen, numOfIndexes );
+  minScoreGapless = calcMinScoreGapless(seqLen);
   readIndex( baseName, seqCount );
 }
 
@@ -1189,8 +1214,8 @@ void lastal( int argc, char** argv ){
 
   if( args.outputType > 0 ) calculateScoreStatistics( matrixName, refLetters );
   int minScore = evaluer.minScore( args.maxEvalue, 1e18 );
-  args.setDefaultsFromMatrix( lambdaCalculator.lambda(), minScore );
-  minScoreGapless = args.calcMinScoreGapless( refLetters, numOfIndexes );
+  args.setDefaultsFromMatrix( scoreMatrixStats.lambda(), minScore );
+  minScoreGapless = calcMinScoreGapless(refLetters);
   if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
   if( args.outputType > 0 ) makeQualityScorers();
 

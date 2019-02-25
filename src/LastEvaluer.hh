@@ -82,7 +82,7 @@ public:
       evaluer.bitScore(score) : frameshiftEvaluer.bitScore(score);
   }
 
-  // In the "good" state: returns the minimum score with E-value >=
+  // In the "good" state: returns the minimum score with E-value <=
   // "evalue", which is always > 0.  Otherwise: returns -1.
   int minScore(double evalue, double area) const;
 

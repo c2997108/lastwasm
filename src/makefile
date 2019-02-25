@@ -35,7 +35,7 @@ DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\
 SegmentPairPot.o SubsetSuffixArray.o SubsetSuffixArraySearch.o		\
 lastal.o
 
-splitObj0 = Alphabet.o fileMap.o split/cbrc_linalg.o	\
+splitObj0 = Alphabet.o fileMap.o cbrc_linalg.o	\
 split/cbrc_unsplit_alignment.o split/last-split-main.o
 
 splitObj4 = MultiSequence.o split/cbrc_split_aligner.o	\
@@ -203,6 +203,7 @@ TantanMasker.o TantanMasker.o8: TantanMasker.cc TantanMasker.hh ScoreMatrixRow.h
 TwoQualityScoreMatrix.o TwoQualityScoreMatrix.o8: TwoQualityScoreMatrix.cc \
  TwoQualityScoreMatrix.hh ScoreMatrixRow.hh qualityScoreUtil.hh \
  stringify.hh
+cbrc_linalg.o cbrc_linalg.o8: cbrc_linalg.cc cbrc_linalg.hh
 fileMap.o fileMap.o8: fileMap.cc fileMap.hh stringify.hh
 gaplessPssmXdrop.o gaplessPssmXdrop.o8: gaplessPssmXdrop.cc gaplessPssmXdrop.hh \
  ScoreMatrixRow.hh
@@ -304,12 +305,11 @@ alp/sls_fsa1_utils.o: alp/sls_fsa1_utils.cpp alp/sls_fsa1_utils.hpp \
 alp/sls_pvalues.o: alp/sls_pvalues.cpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
  alp/sls_alp_data.hpp alp/sls_alp_regression.hpp alp/njn_random.hpp \
  alp/njn_uniform.hpp alp/sls_normal_distr_array.hpp
-split/cbrc_linalg.o split/cbrc_linalg.o8: split/cbrc_linalg.cc split/cbrc_linalg.hh
 split/cbrc_split_aligner.o split/cbrc_split_aligner.o8: split/cbrc_split_aligner.cc \
  split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \
  split/cbrc_int_exponentiator.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
- split/cbrc_linalg.hh
+ cbrc_linalg.hh
 split/cbrc_unsplit_alignment.o split/cbrc_unsplit_alignment.o8: split/cbrc_unsplit_alignment.cc \
  split/cbrc_unsplit_alignment.hh
 split/last-split-main.o split/last-split-main.o8: split/last-split-main.cc split/last-split.hh \

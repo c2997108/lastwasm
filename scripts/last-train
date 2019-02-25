@@ -26,7 +26,7 @@ def randomSample(things, sampleSize):
     return reservoir
 
 def writeWords(outFile, words):
-    outFile.write(" ".join(words) + "\n")
+    print(*words, file=outFile)
 
 def seqInput(fileNames):
     if not fileNames:
@@ -306,15 +306,12 @@ def gapCostsFromProbs(scale, probs):
     if insExtendCost == 0: insExtendCost = 1
     return delExistCost, insExistCost, delExtendCost, insExtendCost
 
-def writeLine(out, *things):
-    out.write(" ".join(map(str, things)) + "\n")
-
 def writeGapCosts(gapCosts, out):
     delExistCost, insExistCost, delExtendCost, insExtendCost = gapCosts
-    writeLine(out, "#last -a", delExistCost)
-    writeLine(out, "#last -A", insExistCost)
-    writeLine(out, "#last -b", delExtendCost)
-    writeLine(out, "#last -B", insExtendCost)
+    print("#last -a", delExistCost, file=out)
+    print("#last -A", insExistCost, file=out)
+    print("#last -b", delExtendCost, file=out)
+    print("#last -B", insExtendCost, file=out)
 
 def printGapCosts(gapCosts):
     delExistCost, insExistCost, delExtendCost, insExtendCost = gapCosts
@@ -418,11 +415,11 @@ def doTraining(opts, args):
             q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
                                  universal_newlines=True)
 
-    if opts.Q: writeLine(sys.stdout, "#last -Q", opts.Q)
+    if opts.Q: print("#last -Q", opts.Q)
     gapCosts = gapCostsFromProbs(externalScale, gapProbs)
     writeGapCosts(gapCosts, sys.stdout)
-    if opts.s: writeLine(sys.stdout, "#last -s", opts.s)
-    if opts.S: writeLine(sys.stdout, "#last -S", opts.S)
+    if opts.s: print("#last -s", opts.s)
+    if opts.S: print("#last -S", opts.S)
     matScores = matScoresFromProbs(externalScale, matProbs)
     externalMatrix = matrixWithLetters(matScores)
     print("# score matrix "
