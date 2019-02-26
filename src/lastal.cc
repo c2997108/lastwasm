@@ -734,10 +734,13 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
     if( dis.p ){
       if (args.outputType == 7) {
 	centroid.setScoreMatrix(dis.m, args.temperature);
+	bool isFwd = (strand == '+' || !args.isQueryStrandMatrix);
+	const mcf::SubstitutionMatrixStats &stats =
+	  isFwd ? scoreMatrixStats : scoreMatrixStatsRev;
 	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
 					   isUseFastq(args.inputFormat),
 					   qualityPssmMaker.qualToProbRight(),
-					   scoreMatrixStats.letterProbs2(),
+					   stats.letterProbs2(),
 					   alph.numbersToUppercase);
       }
       centroid.setPssm(dis.p, queryLen, args.temperature,
