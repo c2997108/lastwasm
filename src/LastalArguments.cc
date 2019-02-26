@@ -554,7 +554,7 @@ To proceed without E-values, set a score threshold with option -e.");
     maxDropGapped = std::min(minGapCost(maxDropGapped), maxDropFinal);
   }
 
-  if( maxDropGapless < 0 ){  // should it depend on temperature or lambda?
+  if( maxDropGapless < 0 ){  // should it depend on temperature or ...?
     if( temperature < 0 ) maxDropGapless = 0;  // shouldn't happen
     else                  maxDropGapless = int( 10.0 * temperature + 0.5 );
     maxDropGapless = std::min( maxDropGapless, maxDropGapped );

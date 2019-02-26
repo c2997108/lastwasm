@@ -400,9 +400,9 @@ Miscellaneous options
       selected with option -F.
 
   -t TEMPERATURE
-      Parameter for converting between scores and likelihood ratios.
+      Parameter for converting between scores and probability ratios.
       This affects the column ambiguity estimates.  A score is
-      converted to a likelihood ratio by this formula: exp(score /
+      converted to a probability ratio by this formula: exp(score /
       TEMPERATURE).  The default value is 1/lambda, where lambda is
       the scale factor of the scoring matrix, which is calculated by
       the method of Yu and Altschul (YK Yu et al. 2003, PNAS

@@ -2,7 +2,7 @@
 // Copyright 2013, 2014 Martin C. Frith
 
 #include "cbrc_split_aligner.hh"
-#include "cbrc_linalg.hh"
+#include "mcf_substitution_matrix_stats.hh"
 
 #include <algorithm>
 #include <cassert>
@@ -1274,15 +1274,16 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
 
   // Reverse-engineer the abundances of ACGT from the score matrix:
   unsigned blen = bases.size();
-  std::vector<double> bvec(blen * blen);
-  std::vector<double*> bmat(blen);
+  std::vector<int> bvec(blen * blen);
+  std::vector<int *> bmat(blen);
   for (unsigned i = 0; i < blen; ++i) bmat[i] = &bvec[i * blen];
   for (unsigned i = 0; i < blen; ++i)
     for (unsigned j = 0; j < blen; ++j)
-      bmat[i][j] = scaledExp(matrixLookup(matrix, rowNames, colNames,
-					  bases[i], bases[j]));
-  std::vector<double> queryLetterProbs(blen, 1.0);
-  linalgSolve(&bmat[0], &queryLetterProbs[0], blen);
+      bmat[i][j] = matrixLookup(matrix, rowNames, colNames,
+				bases[i], bases[j]);
+
+  mcf::SubstitutionMatrixStats stats;
+  stats.calcFromScale(&bmat[0], blen, scale);
 
   for (int i = 64; i < 128; ++i) {
     char x = std::toupper(i);
@@ -1295,7 +1296,7 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
 	if (xc == std::string::npos || yc == std::string::npos) {
 	  score_mat[i % 64][j % 64][q] = score;
 	} else {
-	  double p = queryLetterProbs[yc];
+	  double p = stats.letterProbs2()[yc];
 	  score_mat[i % 64][j % 64][q] = generalizedScore(score, scale, q, p);
 	}
       }

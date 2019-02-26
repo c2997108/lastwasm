@@ -103,17 +103,19 @@ static void calculateSubstitutionScoreMatrixStatistics() {
   // the case-sensitivity of the matrix makes no difference here
   std::copy(scoreMatrix.caseSensitive,
 	    scoreMatrix.caseSensitive + alph.size, scoreMat);
-  LOG( "calculating matrix probabilities..." );
-  scoreMatrixStats.calcUnbiased(scoreMat, alph.size);
 
-  if( scoreMatrixStats.isBad() ){
-    static const char msg[] =
-      "can't calculate probabilities: maybe the mismatch costs are too weak";
-    if( isUseQuality( args.inputFormat ) ||
-	(args.temperature < 0 && args.outputType > 3) )
-      ERR(msg);
-    LOG(msg);
-    return;
+  if (args.temperature < 0) {
+    LOG("calculating matrix probabilities...");
+    scoreMatrixStats.calcUnbiased(scoreMat, alph.size);
+    if (scoreMatrixStats.isBad()) {
+      static const char msg[] =
+	"can't calculate probabilities: maybe the mismatch costs are too weak";
+      if (isUseQuality(args.inputFormat) || args.outputType > 3) ERR(msg);
+      LOG(msg);
+      return;
+    }
+  } else {
+    scoreMatrixStats.calcFromScale(scoreMat, alph.size, args.temperature);
   }
 
   scoreMatrixStatsRev = scoreMatrixStats;
@@ -267,6 +269,7 @@ static void calculateScoreStatistics(const std::string& matrixName,
 				     countT refLetters) {
   if (scoreMatrixStats.isBad()) return;
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
+  if (args.temperature > 0 && !matrixName.empty()) canonicalMatrixName = " ";
   bool isGapped = (args.outputType > 1);
   bool isStandardGeneticCode = args.geneticCodeFile.empty();
   LOG( "getting E-value parameters..." );

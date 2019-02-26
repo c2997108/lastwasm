@@ -36,8 +36,9 @@ DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\
 SegmentPairPot.o SubsetSuffixArray.o SubsetSuffixArraySearch.o		\
 lastal.o
 
-splitObj0 = Alphabet.o fileMap.o cbrc_linalg.o	\
-split/cbrc_unsplit_alignment.o split/last-split-main.o
+splitObj0 = Alphabet.o LambdaCalculator.o fileMap.o cbrc_linalg.o	\
+mcf_substitution_matrix_stats.o split/cbrc_unsplit_alignment.o		\
+split/last-split-main.o
 
 splitObj4 = MultiSequence.o split/cbrc_split_aligner.o	\
 split/last-split.o
@@ -134,8 +135,9 @@ depend:
 	mv m makefile
 Alignment.o Alignment.o8: Alignment.cc Alignment.hh ScoreMatrixRow.hh SegmentPair.hh \
  Alphabet.hh Centroid.hh GappedXdropAligner.hh \
- GeneralizedAffineGapCosts.hh OneQualityScoreMatrix.hh GeneticCode.hh \
- GreedyXdropAligner.hh TwoQualityScoreMatrix.hh
+ GeneralizedAffineGapCosts.hh OneQualityScoreMatrix.hh \
+ mcf_substitution_matrix_stats.hh GeneticCode.hh GreedyXdropAligner.hh \
+ TwoQualityScoreMatrix.hh
 AlignmentPot.o AlignmentPot.o8: AlignmentPot.cc AlignmentPot.hh Alignment.hh \
  ScoreMatrixRow.hh SegmentPair.hh
 AlignmentWrite.o AlignmentWrite.o8: AlignmentWrite.cc Alignment.hh ScoreMatrixRow.hh \
@@ -147,7 +149,8 @@ AlignmentWrite.o AlignmentWrite.o8: AlignmentWrite.cc Alignment.hh ScoreMatrixRo
 Alphabet.o Alphabet.o8: Alphabet.cc Alphabet.hh
 Centroid.o Centroid.o8: Centroid.cc Centroid.hh GappedXdropAligner.hh \
  ScoreMatrixRow.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
- OneQualityScoreMatrix.hh GappedXdropAlignerInl.hh
+ OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
+ GappedXdropAlignerInl.hh
 CyclicSubsetSeed.o CyclicSubsetSeed.o8: CyclicSubsetSeed.cc CyclicSubsetSeed.hh \
  CyclicSubsetSeedData.hh zio.hh mcf_zstream.hh stringify.hh
 DiagonalTable.o DiagonalTable.o8: DiagonalTable.cc DiagonalTable.hh
@@ -155,7 +158,7 @@ GappedXdropAligner.o GappedXdropAligner.o8: GappedXdropAligner.cc GappedXdropAli
  ScoreMatrixRow.hh GappedXdropAlignerInl.hh
 GappedXdropAligner2qual.o GappedXdropAligner2qual.o8: GappedXdropAligner2qual.cc \
  GappedXdropAligner.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh \
- TwoQualityScoreMatrix.hh
+ TwoQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh
 GappedXdropAligner3frame.o GappedXdropAligner3frame.o8: GappedXdropAligner3frame.cc \
  GappedXdropAligner.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
 GappedXdropAligner3framePssm.o GappedXdropAligner3framePssm.o8: GappedXdropAligner3framePssm.cc \
@@ -181,8 +184,8 @@ MultiSequence.o MultiSequence.o8: MultiSequence.cc MultiSequence.hh ScoreMatrixR
 MultiSequenceQual.o MultiSequenceQual.o8: MultiSequenceQual.cc MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
 OneQualityScoreMatrix.o OneQualityScoreMatrix.o8: OneQualityScoreMatrix.cc \
- OneQualityScoreMatrix.hh ScoreMatrixRow.hh qualityScoreUtil.hh \
- stringify.hh
+ OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
+ ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
 QualityPssmMaker.o QualityPssmMaker.o8: QualityPssmMaker.cc QualityPssmMaker.hh \
  ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
 ScoreMatrix.o ScoreMatrix.o8: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixData.hh \
@@ -202,14 +205,15 @@ SubsetSuffixArraySort.o SubsetSuffixArraySort.o8: SubsetSuffixArraySort.cc Subse
 TantanMasker.o TantanMasker.o8: TantanMasker.cc TantanMasker.hh ScoreMatrixRow.hh \
  tantan.hh ScoreMatrix.hh LambdaCalculator.hh
 TwoQualityScoreMatrix.o TwoQualityScoreMatrix.o8: TwoQualityScoreMatrix.cc \
- TwoQualityScoreMatrix.hh ScoreMatrixRow.hh qualityScoreUtil.hh \
- stringify.hh
+ TwoQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
+ ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh
 cbrc_linalg.o cbrc_linalg.o8: cbrc_linalg.cc cbrc_linalg.hh
 fileMap.o fileMap.o8: fileMap.cc fileMap.hh stringify.hh
 gaplessPssmXdrop.o gaplessPssmXdrop.o8: gaplessPssmXdrop.cc gaplessPssmXdrop.hh \
  ScoreMatrixRow.hh
 gaplessTwoQualityXdrop.o gaplessTwoQualityXdrop.o8: gaplessTwoQualityXdrop.cc \
- gaplessTwoQualityXdrop.hh TwoQualityScoreMatrix.hh ScoreMatrixRow.hh
+ gaplessTwoQualityXdrop.hh TwoQualityScoreMatrix.hh \
+ mcf_substitution_matrix_stats.hh ScoreMatrixRow.hh
 gaplessXdrop.o gaplessXdrop.o8: gaplessXdrop.cc gaplessXdrop.hh ScoreMatrixRow.hh
 last-pair-probs-main.o last-pair-probs-main.o8: last-pair-probs-main.cc last-pair-probs.hh \
  stringify.hh version.hh
@@ -218,17 +222,17 @@ last-pair-probs.o last-pair-probs.o8: last-pair-probs.cc last-pair-probs.hh zio.
 lastal.o lastal.o8: lastal.cc last.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  SequenceFormat.hh qualityScoreUtil.hh LastalArguments.hh \
- QualityPssmMaker.hh OneQualityScoreMatrix.hh TwoQualityScoreMatrix.hh \
- LastEvaluer.hh alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp \
- alp/sls_basic.hpp alp/sls_falp_alignment_evaluer.hpp \
- alp/sls_fsa1_pvalues.hpp GeneticCode.hh SubsetMinimizerFinder.hh \
- SubsetSuffixArray.hh CyclicSubsetSeed.hh Centroid.hh \
- GappedXdropAligner.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
- AlignmentPot.hh Alignment.hh SegmentPairPot.hh ScoreMatrix.hh \
- TantanMasker.hh tantan.hh DiagonalTable.hh GreedyXdropAligner.hh \
- gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh \
- mcf_substitution_matrix_stats.hh zio.hh mcf_zstream.hh threadUtil.hh \
- version.hh
+ QualityPssmMaker.hh OneQualityScoreMatrix.hh \
+ mcf_substitution_matrix_stats.hh TwoQualityScoreMatrix.hh LastEvaluer.hh \
+ alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
+ alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
+ GeneticCode.hh SubsetMinimizerFinder.hh SubsetSuffixArray.hh \
+ CyclicSubsetSeed.hh Centroid.hh GappedXdropAligner.hh \
+ GeneralizedAffineGapCosts.hh SegmentPair.hh AlignmentPot.hh Alignment.hh \
+ SegmentPairPot.hh ScoreMatrix.hh TantanMasker.hh tantan.hh \
+ DiagonalTable.hh GreedyXdropAligner.hh gaplessXdrop.hh \
+ gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh mcf_zstream.hh \
+ threadUtil.hh version.hh
 lastdb.o lastdb.o8: lastdb.cc last.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  SequenceFormat.hh qualityScoreUtil.hh LastdbArguments.hh \
@@ -313,7 +317,7 @@ split/cbrc_split_aligner.o split/cbrc_split_aligner.o8: split/cbrc_split_aligner
  split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \
  split/cbrc_int_exponentiator.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
- cbrc_linalg.hh
+ mcf_substitution_matrix_stats.hh
 split/cbrc_unsplit_alignment.o split/cbrc_unsplit_alignment.o8: split/cbrc_unsplit_alignment.cc \
  split/cbrc_unsplit_alignment.hh
 split/last-split-main.o split/last-split-main.o8: split/last-split-main.cc split/last-split.hh \
