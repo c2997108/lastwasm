@@ -184,16 +184,7 @@ void makeScoreMatrix( const std::string& matrixName,
   }
 }
 
-void makeQualityScorers(){
-  if( args.isGreedy ) return;
-
-  if( args.isTranslated() )
-    if( isUseQuality( args.inputFormat ) || isUseQuality( referenceFormat ) )
-      return warn( args.programName,
-		   "quality data not used for DNA-versus-protein alignment" );
-
-  const ScoreMatrixRow* m = fwdMatrices.scoresMasked;  // case isn't relevant
-  const ScoreMatrixRow* mRev = revMatrices.scores;
+void makeQualityScorers(SubstitutionMatrices &m, bool isCheck) {
   bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
   bool isPhred1 = isPhred( referenceFormat );
   int offset1 = qualityOffset( referenceFormat );
@@ -203,72 +194,56 @@ void makeQualityScorers(){
 
   if( !isUseFastq( referenceFormat ) ){
     if( isUseFastq( args.inputFormat ) ){
-      LOG( "calculating per-quality scores..." );
+      if ( isCheck ) LOG( "calculating per-quality scores..." );
       if( args.maskLowercase > 0 )
-	fwdMatrices.oneQualMasked.init(m, alph.size, fwdMatrices.stats,
-				       isPhred2, offset2, toUnmasked, true);
+	m.oneQualMasked.init(m.scores, alph.size, m.stats,
+			     isPhred2, offset2, toUnmasked, true);
       if( args.maskLowercase < 3 )
-	fwdMatrices.oneQual.init(m, alph.size, fwdMatrices.stats,
-				 isPhred2, offset2, toUnmasked, false);
+	m.oneQual.init(m.scores, alph.size, m.stats,
+		       isPhred2, offset2, toUnmasked, false);
       const OneQualityScoreMatrix &q = (args.maskLowercase < 3) ?
-	fwdMatrices.oneQual : fwdMatrices.oneQualMasked;
+	m.oneQual : m.oneQualMasked;
       if( args.outputType > 3 )
-        fwdMatrices.oneQualExp.init( q, args.temperature );
-      if( args.verbosity > 0 )
+        m.oneQualExp.init(q, args.temperature);
+      if( isCheck && args.verbosity > 0 )
 	writeOneQualityScoreMatrix( q, alph.letters.c_str(),
 				    offset2, std::cerr );
-      if( args.isQueryStrandMatrix && args.strand != 1 ){
-	if( args.maskLowercase > 0 )
-	  revMatrices.oneQualMasked.init(mRev, alph.size, revMatrices.stats,
-					 isPhred2, offset2, toUnmasked, true);
-	if( args.maskLowercase < 3 )
-	  revMatrices.oneQual.init(mRev, alph.size, revMatrices.stats,
-				   isPhred2, offset2, toUnmasked, false);
-	const OneQualityScoreMatrix &qRev = (args.maskLowercase < 3) ?
-	  revMatrices.oneQual : revMatrices.oneQualMasked;
-	if( args.outputType > 3 )
-	  revMatrices.oneQualExp.init( qRev, args.temperature );
-      }
     }
     if( isUseQuality(args.inputFormat) ){
-      fwdMatrices.maker.init(m, alph.size, fwdMatrices.stats.lambda(),
-			     isMatchMismatch,
-			     args.matchScore, -args.mismatchCost,
-			     isPhred2, offset2, toUnmasked);
-      if( args.isQueryStrandMatrix && args.strand != 1 )
-	revMatrices.maker.init(mRev, alph.size, revMatrices.stats.lambda(),
-			       isMatchMismatch,
-			       args.matchScore, -args.mismatchCost,
-			       isPhred2, offset2, toUnmasked);
+      m.maker.init(m.scores, alph.size, m.stats.lambda(),
+		   isMatchMismatch, args.matchScore, -args.mismatchCost,
+		   isPhred2, offset2, toUnmasked);
     }
-  }
-  else{
+  } else {
     if( isUseFastq( args.inputFormat ) ){
       if( args.maskLowercase > 0 )
-	fwdMatrices.twoQualMasked.init(m, fwdMatrices.stats,
-				       isPhred1, offset1, isPhred2, offset2,
-				       toUnmasked, true, isMatchMismatch);
+	m.twoQualMasked.init(m.scores, m.stats,
+			     isPhred1, offset1, isPhred2, offset2,
+			     toUnmasked, true, isMatchMismatch);
       if( args.maskLowercase < 3 )
-	fwdMatrices.twoQual.init(m, fwdMatrices.stats,
-				 isPhred1, offset1, isPhred2, offset2,
-				 toUnmasked, false, isMatchMismatch);
+	m.twoQual.init(m.scores, m.stats,
+		       isPhred1, offset1, isPhred2, offset2,
+		       toUnmasked, false, isMatchMismatch);
       if( args.outputType > 3 )
         ERR( "fastq-versus-fastq column probabilities not implemented" );
-      if( args.isQueryStrandMatrix && args.strand != 1 ){
-	if( args.maskLowercase > 0 )
-	  revMatrices.twoQualMasked.init(mRev, revMatrices.stats,
-					 isPhred1, offset1, isPhred2, offset2,
-					 toUnmasked, true, isMatchMismatch);
-	if( args.maskLowercase < 3 )
-	  revMatrices.twoQual.init(mRev, revMatrices.stats,
-				   isPhred1, offset1, isPhred2, offset2,
-				   toUnmasked, false, isMatchMismatch);
-      }
-    }
-    else{
+    } else if (isCheck) {
       warn(args.programName,
 	   "quality data not used for non-fastq query versus fastq reference");
     }
+  }
+}
+
+void makeQualityScorers(){
+  if( args.isGreedy ) return;
+
+  if( args.isTranslated() )
+    if( isUseQuality( args.inputFormat ) || isUseQuality( referenceFormat ) )
+      return warn( args.programName,
+		   "quality data not used for DNA-versus-protein alignment" );
+
+  makeQualityScorers(fwdMatrices, true);
+  if (args.isQueryStrandMatrix && args.strand != 1) {
+    makeQualityScorers(revMatrices, false);
   }
 }
 
