@@ -171,9 +171,16 @@ void makeScoreMatrix( const std::string& matrixName,
   // This would work, except the maxDrops aren't finalized yet:
   // maxScore = std::max(args.maxDropGapped, args.maxDropFinal) + 1;
 
+  for (unsigned i = 0; i < scoreMatrixRowSize; ++i) {  // xxx
+    for (unsigned j = 0; j < scoreMatrixRowSize; ++j) {
+      fwdMatrices.scores[i][j] = scoreMatrix.caseInsensitive[i][j];
+      fwdMatrices.scoresMasked[i][j] = scoreMatrix.caseSensitive[i][j];
+    }
+  }
+
   if( args.isQueryStrandMatrix && args.strand != 1 ){
-    complementMatrix( scoreMatrix.caseInsensitive, revMatrices.scores );
-    complementMatrix( scoreMatrix.caseSensitive, revMatrices.scoresMasked );
+    complementMatrix(fwdMatrices.scores, revMatrices.scores);
+    complementMatrix(fwdMatrices.scoresMasked, revMatrices.scoresMasked);
   }
 }
 
@@ -185,7 +192,7 @@ void makeQualityScorers(){
       return warn( args.programName,
 		   "quality data not used for DNA-versus-protein alignment" );
 
-  const ScoreMatrixRow* m = scoreMatrix.caseSensitive;  // case isn't relevant
+  const ScoreMatrixRow* m = fwdMatrices.scoresMasked;  // case isn't relevant
   const ScoreMatrixRow* mRev = revMatrices.scores;
   bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
   bool isPhred1 = isPhred( referenceFormat );
@@ -277,7 +284,7 @@ static void calculateScoreStatistics(const std::string& matrixName,
   LOG( "getting E-value parameters..." );
   try{
     evaluer.init( canonicalMatrixName, args.matchScore, args.mismatchCost,
-                  alph.letters.c_str(), scoreMatrix.caseSensitive,
+                  alph.letters.c_str(), fwdMatrices.scoresMasked,
 		  stats.letterProbs1(), stats.letterProbs2(), isGapped,
                   gapCosts.delExist, gapCosts.delExtend,
                   gapCosts.insExist, gapCosts.insExtend,
@@ -391,41 +398,6 @@ void countMatches( size_t queryNum, const uchar* querySeq ){
   }
 }
 
-const ScoreMatrixRow *getScoreMatrix(char strand, bool isMask) {
-  if (strand == '+' || !args.isQueryStrandMatrix)
-    return isMask ? scoreMatrix.caseSensitive : scoreMatrix.caseInsensitive;
-  else
-    return isMask ? revMatrices.scoresMasked : revMatrices.scores;
-}
-
-const OneQualityScoreMatrix &getOneQualityMatrix(char strand, bool isMask) {
-  if (strand == '+' || !args.isQueryStrandMatrix)
-    return isMask ? fwdMatrices.oneQualMasked : fwdMatrices.oneQual;
-  else
-    return isMask ? revMatrices.oneQualMasked : revMatrices.oneQual;
-}
-
-const TwoQualityScoreMatrix &getTwoQualityMatrix(char strand, bool isMask) {
-  if (strand == '+' || !args.isQueryStrandMatrix)
-    return isMask ? fwdMatrices.twoQualMasked : fwdMatrices.twoQual;
-  else
-    return isMask ? revMatrices.twoQualMasked : revMatrices.twoQual;
-}
-
-const OneQualityExpMatrix &getOneQualityExpMatrix(char strand) {
-  if (strand == '+' || !args.isQueryStrandMatrix)
-    return fwdMatrices.oneQualExp;
-  else
-    return revMatrices.oneQualExp;
-}
-
-const QualityPssmMaker &getQualityPssmMaker(char strand) {
-  if (strand == '+' || !args.isQueryStrandMatrix)
-    return fwdMatrices.maker;
-  else
-    return revMatrices.maker;
-}
-
 static const uchar *getQueryQual(size_t queryNum) {
   const uchar *q = query.qualityReader();
   if (q) q += query.padBeg(queryNum) * query.qualsPerLetter();
@@ -460,15 +432,15 @@ struct Dispatcher{
   int d;  // the maximum score drop
   int z;
 
-  Dispatcher( Phase::Enum e, const LastAligner& aligner,
-	      size_t queryNum, char strand, const uchar* querySeq ) :
+  Dispatcher( Phase::Enum e, const LastAligner& aligner, size_t queryNum,
+	      const SubstitutionMatrices &matrices, const uchar* querySeq ) :
       a( text.seqReader() ),
       b( querySeq ),
       i( text.qualityReader() ),
       j( getQueryQual(queryNum) ),
       p( getQueryPssm(aligner, queryNum) ),
-      m( getScoreMatrix( strand, isMaskLowercase(e) ) ),
-      t( getTwoQualityMatrix( strand, isMaskLowercase(e) ) ),
+      m( isMaskLowercase(e) ? matrices.scoresMasked : matrices.scores ),
+      t( isMaskLowercase(e) ? matrices.twoQualMasked : matrices.twoQual ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
          (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
       z( t ? 2 : p ? 1 : 0 ){}
@@ -547,9 +519,10 @@ static void writeSegmentPair(LastAligner &aligner, const SegmentPair &s,
 
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
-		   size_t queryNum, char strand, const uchar* querySeq ){
+		   size_t queryNum, const SubstitutionMatrices &matrices,
+		   const uchar* querySeq ){
   const bool isOverlap = (args.globality && args.outputType == 1);
-  Dispatcher dis( Phase::gapless, aligner, queryNum, strand, querySeq );
+  Dispatcher dis(Phase::gapless, aligner, queryNum, matrices, querySeq);
   DiagonalTable dt;  // record already-covered positions on each diagonal
   countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
   size_t significantAlignmentCount = 0;
@@ -652,9 +625,9 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
 // Do gapped extensions of the gapless alignments
 void alignGapped( LastAligner& aligner,
 		  AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
-                  size_t queryNum, char strand, const uchar* querySeq,
-		  Phase::Enum phase ){
-  Dispatcher dis( phase, aligner, queryNum, strand, querySeq );
+                  size_t queryNum, const SubstitutionMatrices &matrices,
+		  const uchar* querySeq, Phase::Enum phase ){
+  Dispatcher dis(phase, aligner, queryNum, matrices, querySeq);
   size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
@@ -728,9 +701,10 @@ void alignGapped( LastAligner& aligner,
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
-		  size_t queryNum, char strand, const uchar* querySeq ){
+		  size_t queryNum, const SubstitutionMatrices &matrices,
+		  const uchar* querySeq ){
   Centroid& centroid = aligner.centroid;
-  Dispatcher dis( Phase::final, aligner, queryNum, strand, querySeq );
+  Dispatcher dis(Phase::final, aligner, queryNum, matrices, querySeq);
   size_t queryLen = query.padLen(queryNum);
   size_t frameSize = args.isFrameshift() ? (queryLen / 3) : 0;
 
@@ -738,9 +712,6 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
     if( dis.p ){
       if (args.outputType == 7) {
 	centroid.setScoreMatrix(dis.m, args.temperature);
-	bool isFwd = (strand == '+' || !args.isQueryStrandMatrix);
-	const SubstitutionMatrices &matrices =
-	  isFwd ? fwdMatrices : revMatrices;
 	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
 					   isUseFastq(args.inputFormat),
 					   matrices.maker.qualToProbRight(),
@@ -748,7 +719,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 					   alph.numbersToUppercase);
       }
       centroid.setPssm(dis.p, queryLen, args.temperature,
-		       getOneQualityExpMatrix(strand), dis.b, dis.j);
+		       matrices.oneQualExp, dis.b, dis.j);
     }
     else{
       centroid.setScoreMatrix( dis.m, args.temperature );
@@ -778,10 +749,11 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 }
 
 static void eraseWeakAlignments(LastAligner &aligner, AlignmentPot &gappedAlns,
-				size_t queryNum, char strand,
+				size_t queryNum,
+				const SubstitutionMatrices &matrices,
 				const uchar *querySeq) {
   size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
-  Dispatcher dis(Phase::gapless, aligner, queryNum, strand, querySeq);
+  Dispatcher dis(Phase::gapless, aligner, queryNum, matrices, querySeq);
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &a = gappedAlns.items[i];
     if (!a.hasGoodSegment(dis.a, dis.b, args.minScoreGapped, dis.m, gapCosts,
@@ -842,8 +814,8 @@ static void printAndClearAll() {
 }
 
 void makeQualityPssm( LastAligner& aligner,
-		      size_t queryNum, char strand, const uchar* querySeq,
-		      bool isMask ){
+		      size_t queryNum, const SubstitutionMatrices &matrices,
+		      const uchar* querySeq, bool isMask ){
   if (!isUseQuality(args.inputFormat) || isUseQuality(referenceFormat)) return;
   if( args.isTranslated() || args.isGreedy ) return;
 
@@ -857,53 +829,53 @@ void makeQualityPssm( LastAligner& aligner,
   int *pssm = &qualityPssm[0];
 
   if( args.inputFormat == sequenceFormat::prb ){
-    const QualityPssmMaker &m = getQualityPssmMaker( strand );
-    m.make( seqBeg, seqEnd, q, pssm, isMask );
+    matrices.maker.make( seqBeg, seqEnd, q, pssm, isMask );
   }
   else {
-    const OneQualityScoreMatrix &m = getOneQualityMatrix( strand, isMask );
+    const OneQualityScoreMatrix &m =
+      isMask ? matrices.oneQualMasked : matrices.oneQual;
     makePositionSpecificScoreMatrix( m, seqBeg, seqEnd, q, pssm );
   }
 }
 
 // Scan one query sequence against one database volume
-void scan( LastAligner& aligner,
-	   size_t queryNum, char strand, const uchar* querySeq ){
+void scan(LastAligner& aligner, size_t queryNum,
+	  const SubstitutionMatrices &matrices, const uchar* querySeq) {
   if( args.outputType == 0 ){  // we just want match counts
     countMatches( queryNum, querySeq );
     return;
   }
 
   bool isMask = (args.maskLowercase > 0);
-  makeQualityPssm( aligner, queryNum, strand, querySeq, isMask );
+  makeQualityPssm(aligner, queryNum, matrices, querySeq, isMask);
 
   SegmentPairPot gaplessAlns;
-  alignGapless( aligner, gaplessAlns, queryNum, strand, querySeq );
+  alignGapless(aligner, gaplessAlns, queryNum, matrices, querySeq);
   if( args.outputType == 1 ) return;  // we just want gapless alignments
   if( gaplessAlns.size() == 0 ) return;
 
   if( args.maskLowercase == 1 || args.maskLowercase == 2 )
-    makeQualityPssm( aligner, queryNum, strand, querySeq, false );
+    makeQualityPssm(aligner, queryNum, matrices, querySeq, false);
 
   AlignmentPot gappedAlns;
 
   if( args.maxDropFinal != args.maxDropGapped ){
     alignGapped( aligner, gappedAlns, gaplessAlns,
-		 queryNum, strand, querySeq, Phase::gapped );
+		 queryNum, matrices, querySeq, Phase::gapped );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
   alignGapped( aligner, gappedAlns, gaplessAlns,
-	       queryNum, strand, querySeq, Phase::final );
+	       queryNum, matrices, querySeq, Phase::final );
   if( gappedAlns.size() == 0 ) return;
 
   if (args.maskLowercase == 2) {
-    makeQualityPssm(aligner, queryNum, strand, querySeq, true);
-    eraseWeakAlignments(aligner, gappedAlns, queryNum, strand, querySeq);
+    makeQualityPssm(aligner, queryNum, matrices, querySeq, true);
+    eraseWeakAlignments(aligner, gappedAlns, queryNum, matrices, querySeq);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
     if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
-      makeQualityPssm(aligner, queryNum, strand, querySeq, false);
+      makeQualityPssm(aligner, queryNum, matrices, querySeq, false);
   }
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
@@ -912,7 +884,7 @@ void scan( LastAligner& aligner,
   }
 
   if( !isCollatedAlignments() ) gappedAlns.sort();  // sort by score
-  alignFinish( aligner, gappedAlns, queryNum, strand, querySeq );
+  alignFinish(aligner, gappedAlns, queryNum, matrices, querySeq);
 }
 
 static void tantanMaskOneQuery(size_t queryNum, uchar *querySeq) {
@@ -937,7 +909,8 @@ static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
 
 // Scan one query sequence strand against one database volume,
 // after optionally translating and/or masking the query
-void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
+void translateAndScan(LastAligner& aligner,
+		      size_t queryNum, const SubstitutionMatrices &matrices) {
   const uchar* querySeq = query.seqReader() + query.padBeg(queryNum);
   std::vector<uchar> modifiedQuery;
   size_t size = query.padLen(queryNum);
@@ -958,7 +931,7 @@ void translateAndScan( LastAligner& aligner, size_t queryNum, char strand ){
   }
 
   size_t oldNumOfAlns = aligner.textAlns.size();
-  scan( aligner, queryNum, strand, querySeq );
+  scan( aligner, queryNum, matrices, querySeq );
   cullFinalAlignments( aligner.textAlns, oldNumOfAlns );
 }
 
@@ -968,13 +941,14 @@ static void alignOneQuery(LastAligner &aligner,
     query.reverseComplementOneSequence(queryNum, queryAlph.complement);
 
   if (args.strand != 0)
-    translateAndScan(aligner, queryNum, '+');
+    translateAndScan(aligner, queryNum, fwdMatrices);
 
   if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
     query.reverseComplementOneSequence(queryNum, queryAlph.complement);
 
   if (args.strand != 1)
-    translateAndScan(aligner, queryNum, '-');
+    translateAndScan(aligner, queryNum,
+		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 }
 
 static void alignSomeQueries(size_t chunkNum,
