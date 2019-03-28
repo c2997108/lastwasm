@@ -18,6 +18,11 @@ namespace{
   }
 }
 
+static bool isAffineGapCosts(const mcf::GapCosts &g) {
+  return g.pairCost >= g.delPieces[0].growCost + g.insPieces[0].growCost +
+    std::max(g.delPieces[0].openCost, g.insPieces[0].openCost);
+}
+
 namespace cbrc{
 
   ExpectedCount::ExpectedCount ()
@@ -147,17 +152,15 @@ namespace cbrc{
 
   void Centroid::forward(const uchar* seq1, const uchar* seq2,
 			 const ExpMatrixRow* pssm, bool isExtendFwd,
-			 const GeneralizedAffineGapCosts& gap,
-			 int globality) {
+			 const mcf::GapCosts& gap, int globality) {
     initForwardMatrix();
     const int seqIncrement = isExtendFwd ? 1 : -1;
-    const bool isAffine = gap.isAffine();
-    const double eE = EXP ( - gap.delExtend / T );
-    const double eF = EXP ( - gap.delExist / T );
-    const double eEI = EXP ( - gap.insExtend / T );
-    const double eFI = EXP ( - gap.insExist / T );
-    const double eP = EXP ( - gap.pairExtend / T );
-    assert( gap.insExist == gap.delExist || eP <= 0.0 );
+    const bool isAffine = isAffineGapCosts(gap);
+    const double eE = EXP(-gap.delPieces[0].growCost / T);
+    const double eF = EXP(-gap.delPieces[0].openCost / T);
+    const double eEI = EXP(-gap.insPieces[0].growCost / T);
+    const double eFI = EXP(-gap.insPieces[0].openCost / T);
+    const double eP = EXP(-gap.pairCost / T);
     double Z = 0.0;  // partion function of forward values
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
@@ -303,17 +306,15 @@ namespace cbrc{
   // compute posterior probabilities while executing backward algorithm
   void Centroid::backward(const uchar* seq1, const uchar* seq2,
 			  const ExpMatrixRow* pssm, bool isExtendFwd,
-			  const GeneralizedAffineGapCosts& gap,
-			  int globality) {
+			  const mcf::GapCosts& gap, int globality) {
     initBackwardMatrix();
     const int seqIncrement = isExtendFwd ? 1 : -1;
-    const bool isAffine = gap.isAffine();
-    const double eE = EXP ( - gap.delExtend / T );
-    const double eF = EXP ( - gap.delExist / T );
-    const double eEI = EXP ( - gap.insExtend / T );
-    const double eFI = EXP ( - gap.insExist / T );
-    const double eP = EXP ( - gap.pairExtend / T );
-    assert( gap.insExist == gap.delExist || eP <= 0.0 );
+    const bool isAffine = isAffineGapCosts(gap);
+    const double eE = EXP(-gap.delPieces[0].growCost / T);
+    const double eF = EXP(-gap.delPieces[0].openCost / T);
+    const double eEI = EXP(-gap.insPieces[0].growCost / T);
+    const double eFI = EXP(-gap.insPieces[0].openCost / T);
+    const double eP = EXP(-gap.pairCost / T);
     double scaledUnit = 1.0;
 
     for( size_t k = numAntidiagonals; k-- > 0; ){
@@ -729,7 +730,7 @@ namespace cbrc{
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 					 size_t start1, size_t start2,
 					 bool isExtendFwd,
-					 const GeneralizedAffineGapCosts& gap,
+					 const mcf::GapCosts& gap,
 					 unsigned alphabetSize,
 					 ExpectedCount& c ) const{
     seq1 += start1;
@@ -744,13 +745,12 @@ namespace cbrc{
     const int seqIncrement = isExtendFwd ? 1 : -1;
     int alphabetSizeIncrement = alphabetSize;
     if (!isExtendFwd) alphabetSizeIncrement *= -1;
-    const bool isAffine = gap.isAffine();
-    const double eE = EXP ( - gap.delExtend / T );
-    const double eF = EXP ( - gap.delExist / T );
-    const double eEI = EXP ( - gap.insExtend / T );
-    const double eFI = EXP ( - gap.insExist / T );
-    const double eP = EXP ( - gap.pairExtend / T );
-    assert( gap.insExist == gap.delExist || eP <= 0.0 );
+    const bool isAffine = isAffineGapCosts(gap);
+    const double eE = EXP(-gap.delPieces[0].growCost / T);
+    const double eF = EXP(-gap.delPieces[0].openCost / T);
+    const double eEI = EXP(-gap.insPieces[0].growCost / T);
+    const double eFI = EXP(-gap.insPieces[0].openCost / T);
+    const double eP = EXP(-gap.pairCost / T);
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = seq1start( k );

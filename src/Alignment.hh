@@ -6,6 +6,7 @@
 #define ALIGNMENT_HH
 #include "ScoreMatrixRow.hh"
 #include "SegmentPair.hh"
+#include "mcf_gap_costs.hh"
 #include <stddef.h>  // size_t
 #include <string>
 #include <vector>
@@ -15,7 +16,6 @@ namespace cbrc{
 
 typedef unsigned char uchar;
 
-class GeneralizedAffineGapCosts;
 class GreedyXdropAligner;
 class LastEvaluer;
 class MultiSequence;
@@ -81,7 +81,7 @@ struct Alignment{
 		  GreedyXdropAligner& greedyAligner, bool isGreedy,
 		  const uchar* seq1, const uchar* seq2, int globality,
 		  const ScoreMatrixRow* scoreMatrix, int smMax,
-		  const GeneralizedAffineGapCosts& gap, int maxDrop,
+		  const mcf::GapCosts& gap, int maxDrop,
 		  int frameshiftCost, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
@@ -95,7 +95,7 @@ struct Alignment{
   // If "globality" is non-zero, skip the prefix and suffix checks.
   bool isOptimal( const uchar* seq1, const uchar* seq2, int globality,
                   const ScoreMatrixRow* scoreMatrix, int maxDrop,
-                  const GeneralizedAffineGapCosts& gapCosts,
+                  const mcf::GapCosts& gapCosts,
 		  int frameshiftCost, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
@@ -104,7 +104,7 @@ struct Alignment{
   // Does the Alignment have any segment with score >= minScore?
   bool hasGoodSegment(const uchar *seq1, const uchar *seq2,
 		      int minScore, const ScoreMatrixRow *scoreMatrix,
-		      const GeneralizedAffineGapCosts &gapCosts,
+		      const mcf::GapCosts &gapCosts,
 		      int frameshiftCost, size_t frameSize,
 		      const ScoreMatrixRow *pssm2,
 		      const TwoQualityScoreMatrix &sm2qual,
@@ -134,7 +134,7 @@ struct Alignment{
 	       size_t start1, size_t start2,
 	       bool isForward, int globality,
 	       const ScoreMatrixRow* sm, int smMax, int maxDrop,
-	       const GeneralizedAffineGapCosts& gap,
+	       const mcf::GapCosts& gap,
 	       int frameshiftCost, size_t frameSize,
 	       const ScoreMatrixRow* pssm2,
                const TwoQualityScoreMatrix& sm2qual,

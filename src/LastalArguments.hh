@@ -7,8 +7,10 @@
 
 #include "SequenceFormat.hh"
 
+#include <climits>
 #include <string>
 #include <iosfwd>
+#include <vector>
 #include <stddef.h>  // size_t
 
 namespace cbrc{
@@ -53,8 +55,14 @@ struct LastalArguments{
   int numOfStrands() const{ return (strand == 2) ? 2 : 1; }
 
   int minGapCost(int gapLength) const {
-    return std::min(gapExistCost + gapLength * gapExtendCost,
-		    insExistCost + gapLength * insExtendCost);
+    int m = INT_MAX;
+    for (size_t i = 0; i < delOpenCosts.size(); ++i) {
+      m = std::min(m, delOpenCosts[i] + gapLength * delGrowCosts[i]);
+    }
+    for (size_t i = 0; i < insOpenCosts.size(); ++i) {
+      m = std::min(m, insOpenCosts[i] + gapLength * insGrowCosts[i]);
+    }
+    return m;
   }
 
   // options:
@@ -73,10 +81,10 @@ struct LastalArguments{
   int minScoreGapless;
   int matchScore;
   int mismatchCost;
-  int gapExistCost;
-  int gapExtendCost;
-  int insExistCost;
-  int insExtendCost;
+  std::vector<int> delOpenCosts;
+  std::vector<int> delGrowCosts;
+  std::vector<int> insOpenCosts;
+  std::vector<int> insGrowCosts;
   int gapPairCost;
   int frameshiftCost;
   std::string matrixFile;

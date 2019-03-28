@@ -20,7 +20,6 @@
 #include "ScoreMatrix.hh"
 #include "TantanMasker.hh"
 #include "DiagonalTable.hh"
-#include "GeneralizedAffineGapCosts.hh"
 #include "GreedyXdropAligner.hh"
 #include "gaplessXdrop.hh"
 #include "gaplessPssmXdrop.hh"
@@ -77,7 +76,7 @@ namespace {
   ScoreMatrix scoreMatrix;
   SubstitutionMatrices fwdMatrices;
   SubstitutionMatrices revMatrices;
-  GeneralizedAffineGapCosts gapCosts;
+  mcf::GapCosts gapCosts;
   std::vector<LastAligner> aligners;
   LastEvaluer evaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
@@ -261,11 +260,12 @@ static void calculateScoreStatistics(const std::string& matrixName,
   bool isStandardGeneticCode = args.geneticCodeFile.empty();
   LOG( "getting E-value parameters..." );
   try{
+    const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
+    const mcf::GapCosts::Piece &ins = gapCosts.insPieces[0];
     evaluer.init( canonicalMatrixName, args.matchScore, args.mismatchCost,
                   alph.letters.c_str(), fwdMatrices.scoresMasked,
 		  stats.letterProbs1(), stats.letterProbs2(), isGapped,
-                  gapCosts.delExist, gapCosts.delExtend,
-                  gapCosts.insExist, gapCosts.insExtend,
+		  del.openCost, del.growCost, ins.openCost, ins.growCost,
                   args.frameshiftCost, geneticCode, isStandardGeneticCode,
 		  args.verbosity );
     evaluer.setSearchSpace( refLetters, args.numOfStrands() );
@@ -1146,8 +1146,8 @@ void lastal( int argc, char** argv ){
     tantanMasker.init( isProtein, args.tantanSetting > 1,
 		       alph.letters, alph.encode );
   makeScoreMatrix( matrixName, matrixFile );
-  gapCosts.assign( args.gapExistCost, args.gapExtendCost,
-		   args.insExistCost, args.insExtendCost, args.gapPairCost );
+  gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
+		  args.insOpenCosts, args.insGrowCosts, args.gapPairCost);
 
   if( args.isTranslated() ){
     if( isDna )  // allow user-defined alphabet

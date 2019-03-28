@@ -4,7 +4,7 @@
 #ifndef CENTROID_HH
 #define CENTROID_HH
 #include "GappedXdropAligner.hh"
-#include "GeneralizedAffineGapCosts.hh"
+#include "mcf_gap_costs.hh"
 #include "SegmentPair.hh"
 #include "OneQualityScoreMatrix.hh"
 #include <stddef.h>  // size_t
@@ -58,8 +58,7 @@ namespace cbrc{
 
     void doForwardBackwardAlgorithm(const uchar* seq1, const uchar* seq2,
 				    size_t start1, size_t start2,
-				    bool isExtendFwd,
-				    const GeneralizedAffineGapCosts& gap,
+				    bool isExtendFwd, const mcf::GapCosts& gap,
 				    int globality) {
       seq1 += start1;
       seq2 += start2;
@@ -100,8 +99,7 @@ namespace cbrc{
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
 			       size_t start1, size_t start2, bool isExtendFwd,
-			       const GeneralizedAffineGapCosts& gap,
-			       unsigned alphabetSize,
+			       const mcf::GapCosts& gap, unsigned alphabetSize,
 			       ExpectedCount& count) const;
 
   private:
@@ -144,11 +142,11 @@ namespace cbrc{
 
     void forward(const uchar* seq1, const uchar* seq2,
 		 const ExpMatrixRow* pssm, bool isExtendFwd,
-		 const GeneralizedAffineGapCosts& gap, int globality);
+		 const mcf::GapCosts& gap, int globality);
 
     void backward(const uchar* seq1, const uchar* seq2,
 		  const ExpMatrixRow* pssm, bool isExtendFwd,
-		  const GeneralizedAffineGapCosts& gap, int globality);
+		  const mcf::GapCosts& gap, int globality);
 
     void initForwardMatrix();
     void initBackwardMatrix();

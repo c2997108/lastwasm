@@ -6,10 +6,8 @@
 #include <algorithm>  // max
 #include <iostream>
 #include <sstream>
-#include <vector>
 #include <stdexcept>
 #include <cctype>
-#include <climits>
 #include <cmath>  // log
 #include <cstring>  // strtok
 #include <cstdlib>  // EXIT_SUCCESS
@@ -18,6 +16,26 @@
 
 static void badopt( char opt, const char* arg ){
   ERR( std::string("bad option value: -") + opt + ' ' + arg );
+}
+
+static void parseIntList(const char *in, std::vector<int> &out) {
+  std::istringstream s(in);
+  out.clear();
+  int x;
+  while (s >> x) {
+    out.push_back(x);
+    s.ignore();
+  }
+  if (!s.eof()) {
+    ERR(std::string("bad option value: ") + in);
+  }
+}
+
+static void writeIntList(std::ostream &s, const std::vector<int> &v) {
+  for (size_t i = 0; i < v.size(); ++i) {
+    if (i) s << ',';
+    s << v[i];
+  }
 }
 
 static int myGetopt( int argc, char** argv, const char* optstring ){
@@ -70,10 +88,6 @@ LastalArguments::LastalArguments() :
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
   matchScore(-1),  // depends on the alphabet
   mismatchCost(-1),  // depends on the alphabet
-  gapExistCost(INT_MIN),  // depends on the alphabet
-  gapExtendCost(-1),  // depends on the alphabet
-  insExistCost(INT_MIN),  // depends on gapExistCost
-  insExtendCost(-1),  // depends on gapExtendCost
   gapPairCost(-1),  // this means: OFF
   frameshiftCost(-1),  // this means: ordinary, non-translated alignment
   matrixFile(""),
@@ -222,18 +236,16 @@ LAST home page: http://last.cbrc.jp/\n\
       if (ambiguousLetterOpt < 0 || ambiguousLetterOpt > 3) badopt(c, optarg);
       break;
     case 'a':
-      unstringify( gapExistCost, optarg );
+      parseIntList(optarg, delOpenCosts);
       break;
     case 'b':
-      unstringify( gapExtendCost, optarg );
-      if( gapExtendCost <= 0 ) badopt( c, optarg );
+      parseIntList(optarg, delGrowCosts);
       break;
     case 'A':
-      unstringify( insExistCost, optarg );
+      parseIntList(optarg, insOpenCosts);
       break;
     case 'B':
-      unstringify( insExtendCost, optarg );
-      if( insExtendCost <= 0 ) badopt( c, optarg );
+      parseIntList(optarg, insGrowCosts);
       break;
     case 'c':
       unstringify( gapPairCost, optarg );
@@ -439,10 +451,11 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
   if( isGreedy ){
     if( matchScore     < 0 ) matchScore     =   2;
     if( mismatchCost   < 0 ) mismatchCost   =   3;
-    gapExistCost = 0;
-    gapExtendCost = mismatchCost + matchScore / 2;
-    insExistCost = gapExistCost;
-    insExtendCost = gapExtendCost;
+    int gapGrowCost = mismatchCost + matchScore / 2;
+    delOpenCosts.assign(1, 0);
+    delGrowCosts.assign(1, gapGrowCost);
+    insOpenCosts.assign(1, 0);
+    insGrowCosts.assign(1, gapGrowCost);
     if( frameshiftCost > 0 ) frameshiftCost =   0;
     if( matchScore % 2 )
       ERR( "with option -M, the match score (option -r) must be even" );
@@ -451,20 +464,20 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // default match & mismatch scores: Blosum62 matrix
     if( matchScore < 0 && mismatchCost >= 0 ) matchScore   = 1;  // idiot-proof
     if( mismatchCost < 0 && matchScore >= 0 ) mismatchCost = 1;  // idiot-proof
-    if( gapExistCost   == INT_MIN ) gapExistCost   =  11;
-    if( gapExtendCost  < 0 ) gapExtendCost  =   2;
+    if (delOpenCosts.empty()) delOpenCosts.assign(1, 11);
+    if (delGrowCosts.empty()) delGrowCosts.assign(1,  2);
   }
   else if( !isUseQuality( inputFormat ) ){
     if( matchScore     < 0 ) matchScore     =   1;
     if( mismatchCost   < 0 ) mismatchCost   =   1;
-    if( gapExistCost   == INT_MIN ) gapExistCost   =   7;
-    if( gapExtendCost  < 0 ) gapExtendCost  =   1;
+    if (delOpenCosts.empty()) delOpenCosts.assign(1, 7);
+    if (delGrowCosts.empty()) delGrowCosts.assign(1, 1);
   }
   else{  // sequence quality scores will be used:
     if( matchScore     < 0 ) matchScore     =   6;
     if( mismatchCost   < 0 ) mismatchCost   =  18;
-    if( gapExistCost   == INT_MIN ) gapExistCost   =  21;
-    if( gapExtendCost  < 0 ) gapExtendCost  =   9;
+    if (delOpenCosts.empty()) delOpenCosts.assign(1, 21);
+    if (delGrowCosts.empty()) delGrowCosts.assign(1,  9);
     // With this scoring scheme for DNA, gapless lambda ~= ln(10)/10,
     // so these scores should be comparable to PHRED scores.
     // Furthermore, since mismatchCost/matchScore = 3, the target
@@ -478,8 +491,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     maxEvalue = 1e18 / (numOfStrands() * r * queryLettersPerRandomAlignment);
   }
 
-  if( insExistCost == INT_MIN ) insExistCost = gapExistCost;
-  if( insExtendCost < 0 ) insExtendCost = gapExtendCost;
+  if (insOpenCosts.empty()) insOpenCosts = delOpenCosts;
+  if (insGrowCosts.empty()) insGrowCosts = delGrowCosts;
 
   if( tantanSetting < 0 ){
     isKeepLowercase = isKeepRefLowercase;
@@ -523,12 +536,23 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 
   if( minimizerWindow == 0 ) minimizerWindow = refMinimizerWindow;
 
-  if( isFrameshift() && frameshiftCost < gapExtendCost )
-    ERR( "the frameshift cost must not be less than the gap extension cost" );
+  if (delOpenCosts.size() != delGrowCosts.size() ||
+      insOpenCosts.size() != insGrowCosts.size()) {
+    ERR("bad gap costs");
+  }
 
-  if( insExistCost != gapExistCost || insExtendCost != gapExtendCost ){
-    if( isFrameshift() )
-      ERR( "can't combine option -F > 0 with option -A or -B" );
+  if (delOpenCosts.size() > 1 || insOpenCosts.size() > 1) {
+    ERR("piecewise linear gap costs not implemented");
+  }
+
+  if (isFrameshift()) {
+    if (frameshiftCost < delGrowCosts[0])
+      ERR("the frameshift cost must not be less than the gap extension cost");
+
+    if (insOpenCosts[0] != delOpenCosts[0] ||
+	insGrowCosts[0] != delGrowCosts[0]) {
+      ERR("can't combine option -F > 0 with option -A or -B");
+    }
   }
 }
 
@@ -573,10 +597,10 @@ To proceed without E-values, set a score threshold with option -e.");
 
 void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << '#';
-  stream << " a=" << gapExistCost;
-  stream << " b=" << gapExtendCost;
-  stream << " A=" << insExistCost;
-  stream << " B=" << insExtendCost;
+  stream << " a="; writeIntList(stream, delOpenCosts);
+  stream << " b="; writeIntList(stream, delGrowCosts);
+  stream << " A="; writeIntList(stream, insOpenCosts);
+  stream << " B="; writeIntList(stream, insGrowCosts);
   if( gapPairCost > 0 )
     stream << " c=" << gapPairCost;
   if( isTranslated() )

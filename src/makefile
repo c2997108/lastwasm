@@ -25,7 +25,7 @@ alignObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o		\
 ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o		\
 tantan.o LastalArguments.o GappedXdropAligner.o				\
 GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
-GappedXdropAligner3frame.o GeneralizedAffineGapCosts.o GeneticCode.o	\
+GappedXdropAligner3frame.o mcf_gap_costs.o GeneticCode.o	\
 GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
 QualityPssmMaker.o TwoQualityScoreMatrix.o gaplessXdrop.o		\
 gaplessPssmXdrop.o gaplessTwoQualityXdrop.o cbrc_linalg.o		\
@@ -134,21 +134,20 @@ depend:
 	$(CXX) -MM -I. split/*.cc | sed 's|.*:|split/&|' | $(fix8) >> m
 	mv m makefile
 Alignment.o Alignment.o8: Alignment.cc Alignment.hh ScoreMatrixRow.hh SegmentPair.hh \
- Alphabet.hh Centroid.hh GappedXdropAligner.hh \
- GeneralizedAffineGapCosts.hh OneQualityScoreMatrix.hh \
- mcf_substitution_matrix_stats.hh GeneticCode.hh GreedyXdropAligner.hh \
- TwoQualityScoreMatrix.hh
+ mcf_gap_costs.hh Alphabet.hh Centroid.hh GappedXdropAligner.hh \
+ OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh GeneticCode.hh \
+ GreedyXdropAligner.hh TwoQualityScoreMatrix.hh
 AlignmentPot.o AlignmentPot.o8: AlignmentPot.cc AlignmentPot.hh Alignment.hh \
- ScoreMatrixRow.hh SegmentPair.hh
+ ScoreMatrixRow.hh SegmentPair.hh mcf_gap_costs.hh
 AlignmentWrite.o AlignmentWrite.o8: AlignmentWrite.cc Alignment.hh ScoreMatrixRow.hh \
- SegmentPair.hh GeneticCode.hh LastEvaluer.hh \
+ SegmentPair.hh mcf_gap_costs.hh GeneticCode.hh LastEvaluer.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
  alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
  MultiSequence.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  Alphabet.hh
 Alphabet.o Alphabet.o8: Alphabet.cc Alphabet.hh
 Centroid.o Centroid.o8: Centroid.cc Centroid.hh GappedXdropAligner.hh \
- ScoreMatrixRow.hh GeneralizedAffineGapCosts.hh SegmentPair.hh \
+ ScoreMatrixRow.hh mcf_gap_costs.hh SegmentPair.hh \
  OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
  GappedXdropAlignerInl.hh
 CyclicSubsetSeed.o CyclicSubsetSeed.o8: CyclicSubsetSeed.cc CyclicSubsetSeed.hh \
@@ -165,8 +164,6 @@ GappedXdropAligner3framePssm.o GappedXdropAligner3framePssm.o8: GappedXdropAlign
  GappedXdropAligner.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
 GappedXdropAlignerPssm.o GappedXdropAlignerPssm.o8: GappedXdropAlignerPssm.cc GappedXdropAligner.hh \
  ScoreMatrixRow.hh GappedXdropAlignerInl.hh
-GeneralizedAffineGapCosts.o GeneralizedAffineGapCosts.o8: GeneralizedAffineGapCosts.cc \
- GeneralizedAffineGapCosts.hh
 GeneticCode.o GeneticCode.o8: GeneticCode.cc GeneticCode.hh Alphabet.hh
 GreedyXdropAligner.o GreedyXdropAligner.o8: GreedyXdropAligner.cc GreedyXdropAligner.hh \
  ScoreMatrixRow.hh
@@ -227,17 +224,17 @@ lastal.o lastal.o8: lastal.cc last.hh Alphabet.hh MultiSequence.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
  alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
  GeneticCode.hh SubsetMinimizerFinder.hh SubsetSuffixArray.hh \
- CyclicSubsetSeed.hh Centroid.hh GappedXdropAligner.hh \
- GeneralizedAffineGapCosts.hh SegmentPair.hh AlignmentPot.hh Alignment.hh \
- SegmentPairPot.hh ScoreMatrix.hh TantanMasker.hh tantan.hh \
- DiagonalTable.hh GreedyXdropAligner.hh gaplessXdrop.hh \
- gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh mcf_zstream.hh \
- threadUtil.hh version.hh
+ CyclicSubsetSeed.hh Centroid.hh GappedXdropAligner.hh mcf_gap_costs.hh \
+ SegmentPair.hh AlignmentPot.hh Alignment.hh SegmentPairPot.hh \
+ ScoreMatrix.hh TantanMasker.hh tantan.hh DiagonalTable.hh \
+ GreedyXdropAligner.hh gaplessXdrop.hh gaplessPssmXdrop.hh \
+ gaplessTwoQualityXdrop.hh zio.hh mcf_zstream.hh threadUtil.hh version.hh
 lastdb.o lastdb.o8: lastdb.cc last.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  SequenceFormat.hh qualityScoreUtil.hh LastdbArguments.hh \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh TantanMasker.hh tantan.hh \
  zio.hh mcf_zstream.hh threadUtil.hh version.hh
+mcf_gap_costs.o mcf_gap_costs.o8: mcf_gap_costs.cc mcf_gap_costs.hh
 mcf_substitution_matrix_stats.o mcf_substitution_matrix_stats.o8: mcf_substitution_matrix_stats.cc \
  mcf_substitution_matrix_stats.hh LambdaCalculator.hh cbrc_linalg.hh
 tantan.o tantan.o8: tantan.cc tantan.hh

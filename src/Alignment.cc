@@ -4,7 +4,6 @@
 #include "Alphabet.hh"
 #include "Centroid.hh"
 #include "GeneticCode.hh"
-#include "GeneralizedAffineGapCosts.hh"
 #include "GreedyXdropAligner.hh"
 #include "TwoQualityScoreMatrix.hh"
 #include <cassert>
@@ -73,7 +72,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 			   GreedyXdropAligner& greedyAligner, bool isGreedy,
 			   const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix, int smMax,
-			   const GeneralizedAffineGapCosts& gap, int maxDrop,
+			   const mcf::GapCosts& gap, int maxDrop,
 			   int frameshiftCost, size_t frameSize,
 			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
@@ -171,7 +170,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 
 // cost of the gap between x and y
 static int gapCost(const SegmentPair &x, const SegmentPair &y,
-		   const GeneralizedAffineGapCosts &gapCosts,
+		   const mcf::GapCosts &gapCosts,
 		   int frameshiftCost, size_t frameSize) {
   size_t gapSize1 = y.beg1() - x.end1();
   size_t gapSize2, frameshift2;
@@ -183,7 +182,7 @@ static int gapCost(const SegmentPair &x, const SegmentPair &y,
 
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix, int maxDrop,
-			   const GeneralizedAffineGapCosts& gapCosts,
+			   const mcf::GapCosts& gapCosts,
 			   int frameshiftCost, size_t frameSize,
 			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
@@ -226,7 +225,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 
 bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
 			       int minScore, const ScoreMatrixRow *scoreMatrix,
-			       const GeneralizedAffineGapCosts &gapCosts,
+			       const mcf::GapCosts &gapCosts,
 			       int frameshiftCost, size_t frameSize,
 			       const ScoreMatrixRow *pssm2,
 			       const TwoQualityScoreMatrix &sm2qual,
@@ -292,13 +291,15 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
 			const ScoreMatrixRow* sm, int smMax, int maxDrop,
-			const GeneralizedAffineGapCosts& gap,
+			const mcf::GapCosts& gap,
 			int frameshiftCost, size_t frameSize,
 			const ScoreMatrixRow* pssm2,
                         const TwoQualityScoreMatrix& sm2qual,
                         const uchar* qual1, const uchar* qual2,
 			const Alphabet& alph, AlignmentExtras& extras,
 			double gamma, int outputType ){
+  const mcf::GapCosts::Piece &del = gap.delPieces[0];
+  const mcf::GapCosts::Piece &ins = gap.insPieces[0];
   GappedXdropAligner& aligner = centroid.aligner();
 
   if( frameSize ){
@@ -307,7 +308,6 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     assert( !globality );
     assert( !pssm2 );
     assert( !sm2qual );
-    assert( gap.isSymmetric() );
 
     size_t dnaStart = aaToDna( start2, frameSize );
     size_t f = dnaStart + 1;
@@ -317,13 +317,13 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
     score += aligner.align3( seq1 + start1, seq2 + start2,
 			     seq2 + frame1, seq2 + frame2, isForward,
-			     sm, gap.delExist, gap.delExtend, gap.pairExtend,
+			     sm, del.openCost, del.growCost, gap.pairCost,
 			     frameshiftCost, maxDrop, smMax );
 
     size_t end1, end2, size;
     // This should be OK even if end2 < size * 3:
     while( aligner.getNextChunk3( end1, end2, size,
-				  gap.delExist, gap.delExtend, gap.pairExtend,
+				  del.openCost, del.growCost, gap.pairCost,
 				  frameshiftCost ) )
       chunks.push_back( SegmentPair( end1 - size, end2 - size * 3, size ) );
 
@@ -336,19 +336,19 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     : sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
 				    seq2 + start2, qual2 + start2,
 				    isForward, globality, sm2qual,
-				    gap.delExist, gap.delExtend,
-				    gap.insExist, gap.insExtend,
-				    gap.pairExtend, maxDrop, smMax )
+				    del.openCost, del.growCost,
+				    ins.openCost, ins.growCost,
+				    gap.pairCost, maxDrop, smMax )
     : pssm2   ? aligner.alignPssm( seq1 + start1, pssm2 + start2,
 				   isForward, globality,
-				   gap.delExist, gap.delExtend,
-				   gap.insExist, gap.insExtend,
-				   gap.pairExtend, maxDrop, smMax )
+				   del.openCost, del.growCost,
+				   ins.openCost, ins.growCost,
+				   gap.pairCost, maxDrop, smMax )
     :           aligner.align( seq1 + start1, seq2 + start2,
 			       isForward, globality, sm,
-			       gap.delExist, gap.delExtend,
-			       gap.insExist, gap.insExtend,
-			       gap.pairExtend, maxDrop, smMax );
+			       del.openCost, del.growCost,
+			       ins.openCost, ins.growCost,
+			       gap.pairCost, maxDrop, smMax );
 
   if( extensionScore == -INF ){
     score = -INF;  // avoid score overflow
@@ -364,9 +364,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 	chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
     }else{
       while( aligner.getNextChunk( end1, end2, size,
-				   gap.delExist, gap.delExtend,
-				   gap.insExist, gap.insExtend,
-				   gap.pairExtend ) )
+				   del.openCost, del.growCost,
+				   ins.openCost, ins.growCost, gap.pairCost ) )
 	chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
     }
   }
