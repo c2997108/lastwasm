@@ -77,6 +77,7 @@ LastalArguments::LastalArguments() :
   gapPairCost(-1),  // this means: OFF
   frameshiftCost(-1),  // this means: ordinary, non-translated alignment
   matrixFile(""),
+  ambiguousLetterOpt(0),
   maxDropGapped(100),  // depends on maxDropFinal
   maxDropGappedSuffix('%'),
   maxDropGapless(-1),  // depends on the score matrix
@@ -123,6 +124,8 @@ Score options (default settings):\n\
 -r: match score   (2 if -M, else  6 if 0<Q<5, else 1 if DNA)\n\
 -q: mismatch cost (3 if -M, else 18 if 0<Q<5, else 1 if DNA)\n\
 -p: match/mismatch score matrix (protein-protein: BL62, DNA-protein: BL80)\n\
+-X: N/X is ambiguous in: 0=neither sequence, 1=reference, 2=query, 3=both ("
+    + stringify(ambiguousLetterOpt) + ")\n\
 -a: gap existence cost (DNA: 7, protein: 11, 0<Q<5: 21)\n\
 -b: gap extension cost (DNA: 1, protein:  2, 0<Q<5:  9)\n\
 -A: insertion existence cost (a)\n\
@@ -180,7 +183,10 @@ LAST home page: http://last.cbrc.jp/\n\
 ";
 
   int c;
-  const char optionString[] = "hVvf:" "r:q:p:a:b:A:B:c:F:x:y:z:d:e:" "D:E:"
+  const char optionString[] =
+    "hVvf:"
+    "r:q:p:X:a:b:A:B:c:F:x:y:z:d:e:"
+    "D:E:"
     "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:Q:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
@@ -210,6 +216,10 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'p':
       matrixFile = optarg;
+      break;
+    case 'X':
+      unstringify(ambiguousLetterOpt, optarg);
+      if (ambiguousLetterOpt < 0 || ambiguousLetterOpt > 3) badopt(c, optarg);
       break;
     case 'a':
       unstringify( gapExistCost, optarg );

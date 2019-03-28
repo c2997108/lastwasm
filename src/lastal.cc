@@ -155,8 +155,11 @@ void makeScoreMatrix( const std::string& matrixName,
   if (args.outputType > 0) {
     calculateSubstitutionScoreMatrixStatistics();
     const mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
-    if (alph.letters == alph.dna && !stats.isBad()) {
-      scoreMatrix.addAmbiguousScores(alph.encode, stats.lambda(),
+    if (!stats.isBad()) {
+      scoreMatrix.addAmbiguousScores(alph.letters == alph.dna,
+				     args.ambiguousLetterOpt % 2,
+				     args.ambiguousLetterOpt / 2,
+				     alph.encode, stats.lambda(),
 				     stats.letterProbs1(),
 				     stats.letterProbs2());
       scoreMatrix.init(alph.encode);

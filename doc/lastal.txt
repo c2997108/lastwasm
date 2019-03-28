@@ -144,6 +144,14 @@ Score options
       Other options can be specified on lines starting with "#last",
       but command line options override them.
 
+  -X NUMBER
+      How to score a match/mismatch involving N (for DNA) or X
+      (otherwise), if not specified by a score matrix.  By default,
+      the lowest match/mismatch score is used.  0 means the default; 1
+      means treat reference Ns/Xs as fully-ambiguous letters; 2 means
+      treat query Ns/Xs as ambiguous; 3 means treat reference and
+      query Ns/Xs as ambiguous.
+
   -a COST
       Gap existence cost.
 

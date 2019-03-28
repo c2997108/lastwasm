@@ -197,6 +197,11 @@ trap 'rm -f $db*' EXIT
     # fastq-versus-fastq gapless overlap alignment
     lastdb -Q1 -uNEAR -cR01 $db $fastq
     try lastal -Q1 -T1 -j1 -s0 $db $fastq
+
+    lastdb $db dfam3-LTR22B1.fa
+    lastal -r2 -q2 -a10 -X1 $db dfam3-LTR22C.fa
+    lastal -r2 -q2 -a10 -X2 $db dfam3-LTR22C.fa
+    lastal -r2 -q2 -a10 -X3 $db dfam3-LTR22C.fa
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff -u last-test.out -

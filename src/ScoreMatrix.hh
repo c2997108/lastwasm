@@ -32,8 +32,12 @@ struct ScoreMatrix{
 
   void init(const uchar symbolToIndex[]);  // unspecified letters get minScore
 
-  // add scores for e.g. "W" meaning A or T
-  void addAmbiguousScores(const uchar symbolToIndex[],
+  // Add scores for e.g. "W" meaning A or T.  The 2nd and 3rd
+  // arguments specify whether to add a row/column for the
+  // fully-ambiguous letter (N if DNA, else X).
+  void addAmbiguousScores(bool isDna,
+			  bool isFullyAmbiguousRow, bool isFullyAmbiguousCol,
+			  const uchar symbolToIndex[],
 			  double scale,  // "lambda" for getting probabilities
 			  const double rowSymbolProbs[],
 			  const double colSymbolProbs[]);

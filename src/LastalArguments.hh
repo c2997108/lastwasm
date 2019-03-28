@@ -80,6 +80,7 @@ struct LastalArguments{
   int gapPairCost;
   int frameshiftCost;
   std::string matrixFile;
+  int ambiguousLetterOpt;
   int maxDropGapped;
   char maxDropGappedSuffix;
   int maxDropGapless;

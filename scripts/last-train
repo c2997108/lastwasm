@@ -346,6 +346,7 @@ def fixedLastalArgs(opts, lastalProgName):
     if opts.m: x.append("-m" + opts.m)
     if opts.k: x.append("-k" + opts.k)
     if opts.P: x.append("-P" + opts.P)
+    if opts.X: x.append("-X" + opts.X)
     if opts.Q: x.append("-Q" + opts.Q)
     if opts.verbose: x.append("-" + "v" * opts.verbose)
     return x
@@ -415,6 +416,7 @@ def doTraining(opts, args):
             q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
                                  universal_newlines=True)
 
+    if opts.X: print("#last -X", opts.X)
     if opts.Q: print("#last -Q", opts.Q)
     gapCosts = gapCostsFromProbs(externalScale, gapProbs)
     writeGapCosts(gapCosts, sys.stdout)
@@ -496,6 +498,9 @@ if __name__ == "__main__":
                   "every STEP-th position in each query (default: 1)")
     og.add_option("-P", metavar="THREADS",
                   help="number of parallel threads")
+    og.add_option("-X", metavar="NUMBER", help="N/X is ambiguous in: "
+                  "0=neither sequence, 1=reference, 2=query, 3=both "
+                  "(default=0)")
     og.add_option("-Q", metavar="NUMBER", help=
                   "input format: 0=fasta or fastq-ignore, 1=fastq-sanger "
                   "(default=fasta)")

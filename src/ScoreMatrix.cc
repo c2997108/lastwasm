@@ -11,7 +11,6 @@
 #include <cassert>
 #include <cctype>  // toupper, tolower
 #include <stddef.h>  // size_t
-//#include <iostream>  // for debugging
 
 #define ERR(x) throw std::runtime_error(x)
 
@@ -188,7 +187,7 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
   return stream;
 }
 
-const char *ambiguities[] = {
+const char *ntAmbiguities[] = {
   "M" "AC",
   "S" "CG",
   "K" "GT",
@@ -198,16 +197,21 @@ const char *ambiguities[] = {
   "B" "CGT",
   "D" "AGT",
   "H" "ACT",
-  "V" "ACG"
+  "V" "ACG",
+  "N" "ACGT"
 };
 
-const size_t numOfAmbiguousSymbols = COUNTOF(ambiguities);
+const char *aaAmbiguities[] = {
+  "X" "ACDEFGHIKLMNPQRSTVWY"
+};
 
 static bool isIn(const std::string& s, char x) {
   return find(s.begin(), s.end(), x) != s.end();
 }
 
-static const char *ambiguityList(char symbol, char scratch[]) {
+static const char *ambiguityList(const char *ambiguities[],
+				 size_t numOfAmbiguousSymbols,
+				 char symbol, char scratch[]) {
   for (size_t i = 0; i < numOfAmbiguousSymbols; ++i) {
     if (ambiguities[i][0] == symbol) return ambiguities[i] + 1;
   }
@@ -251,7 +255,9 @@ static int jointScore(const uchar symbolToIndex[], int **fastMatrix,
   return scoreFromProb(scale, p / (rowProbSum * colProbSum));
 }
 
-void ScoreMatrix::addAmbiguousScores(const uchar symbolToIndex[],
+void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
+				     bool isFullyAmbiguousCol,
+				     const uchar symbolToIndex[],
 				     double scale,
 				     const double rowSymbolProbs[],
 				     const double colSymbolProbs[]) {
@@ -260,12 +266,18 @@ void ScoreMatrix::addAmbiguousScores(const uchar symbolToIndex[],
 
   char scratch[2] = {0};
 
-  for (size_t k = 0; k < numOfAmbiguousSymbols; ++k) {
+  const char **ambiguities = isDna ? ntAmbiguities : aaAmbiguities;
+  size_t numOfAmbig = isDna ? COUNTOF(ntAmbiguities) : COUNTOF(aaAmbiguities);
+  size_t numOfAmbiguousRows = numOfAmbig - 1 + isFullyAmbiguousRow;
+  size_t numOfAmbiguousCols = numOfAmbig - 1 + isFullyAmbiguousCol;
+
+  for (size_t k = 0; k < numOfAmbiguousCols; ++k) {
     char ambiguousSymbol = ambiguities[k][0];
     if (isIn(colSymbols, ambiguousSymbol)) continue;
     colSymbols.push_back(ambiguousSymbol);
     for (size_t i = 0; i < rowSymbols.size(); ++i) {
-      const char *rSymbols = ambiguityList(rowSymbols[i], scratch);
+      const char *rSymbols = ambiguityList(ambiguities, numOfAmbiguousRows,
+					   rowSymbols[i], scratch);
       const char *cSymbols = ambiguities[k] + 1;
       int s = jointScore(symbolToIndex, fastMatrix, scale,
 			 rowSymbolProbs, colSymbolProbs, rSymbols, cSymbols);
@@ -273,14 +285,15 @@ void ScoreMatrix::addAmbiguousScores(const uchar symbolToIndex[],
     }
   }
 
-  for (size_t k = 0; k < numOfAmbiguousSymbols; ++k) {
+  for (size_t k = 0; k < numOfAmbiguousRows; ++k) {
     char ambiguousSymbol = ambiguities[k][0];
     if (isIn(rowSymbols, ambiguousSymbol)) continue;
     rowSymbols.push_back(ambiguousSymbol);
     cells.resize(cells.size() + 1);
     for (size_t j = 0; j < colSymbols.size(); ++j) {
       const char *rSymbols = ambiguities[k] + 1;
-      const char *cSymbols = ambiguityList(colSymbols[j], scratch);
+      const char *cSymbols = ambiguityList(ambiguities, numOfAmbiguousCols,
+					   colSymbols[j], scratch);
       int s = jointScore(symbolToIndex, fastMatrix, scale,
 			 rowSymbolProbs, colSymbolProbs, rSymbols, cSymbols);
       cells.back().push_back(s);

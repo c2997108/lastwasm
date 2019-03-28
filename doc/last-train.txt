@@ -102,6 +102,16 @@ Alignment options
   -k STEP    Look for initial matches starting only at every STEP-th
              position in each query.
   -P COUNT   Number of parallel threads.
+  -X NUMBER  How to score a match/mismatch involving N (for DNA) or X
+             (otherwise).  By default, the lowest match/mismatch score
+             is used. 0 means the default; 1 means treat reference
+             Ns/Xs as fully-ambiguous letters; 2 means treat query
+             Ns/Xs as ambiguous; 3 means treat reference and query
+             Ns/Xs as ambiguous.
+
+             If specified, this parameter is written in last-train's
+             output, so it will override lastal's default.
+
   -Q NUMBER  How to read the query sequences.  By default, they must
              be in ``fasta`` format.  ``-Q0`` means ``fasta`` or
              ``fastq-ignore``.  ``-Q1`` means ``fastq-sanger``.
