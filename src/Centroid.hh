@@ -16,14 +16,12 @@ namespace cbrc{
   struct ExpectedCount{
   public:
     double emit[scoreMatrixRowSize][scoreMatrixRowSize];
-    double MM, MD, MP, MI, MQ;
+    double MM, MD, MP, MI;
     double DD, DM, DI;
     double PP, PM, PD, PI;
     double II, IM;
-    double SM, SD, SP, SI, SQ;
   public:
     ExpectedCount ();
-    std::ostream& write (std::ostream& os) const;
   };
 
   /**

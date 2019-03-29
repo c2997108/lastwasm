@@ -48,8 +48,6 @@ static void addExpectedCounts( double* expectedCounts,
   // MI = IM - DI - PI + IQ
   // PM = MP - PD - PI - PQ
   // DM + IM + PM = MD + MI + MP - DQ - IQ - PQ
-  // SM, SD, SP, SI seem to be always zero.
-  // MQ, SQ ?
 }
 
 static void countSeedMatches( double* expectedCounts,
