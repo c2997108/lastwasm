@@ -16,10 +16,11 @@ namespace cbrc{
   struct ExpectedCount{
   public:
     double emit[scoreMatrixRowSize][scoreMatrixRowSize];
-    double MM, MD, MP, MI;
-    double DD, DM, DI;
-    double PP, PM, PD, PI;
-    double II, IM;
+    double toMatch;
+    double MD, MP, MI;
+    double DD, DI;
+    double PP, PD, PI;
+    double II;
   public:
     ExpectedCount ();
   };

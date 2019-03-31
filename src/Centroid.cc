@@ -28,10 +28,11 @@ namespace cbrc{
   ExpectedCount::ExpectedCount ()
   {
     double d0 = 0;
-    MM = d0; MD = d0; MP = d0; MI = d0;
-    DD = d0; DM = d0; DI = d0;
-    PP = d0; PM = d0; PD = d0; PI = d0;
-    II = d0; IM = d0;
+    toMatch = d0;
+    MD = d0; MP = d0; MI = d0;
+    DD = d0; DI = d0;
+    PP = d0; PD = d0; PI = d0;
+    II = d0;
 
     for (int n=0; n<scoreMatrixRowSize; n++)
       for (int m=0; m<scoreMatrixRowSize; m++) emit[n][m] = d0;
@@ -795,9 +796,7 @@ namespace cbrc{
 
 	    const double alignProb = xSum * yM;
 	    c.emit[letter1][letter2] += alignProb;
-	    c.MM += xM * yM;
-	    c.DM += xD * yM;
-	    c.IM += xI * yM;
+	    c.toMatch += alignProb;
 	    c.MD += xM * yD * eF;
 	    c.DD += xD * yD;
 	    c.MI += xM * yI * eFI;
@@ -829,10 +828,7 @@ namespace cbrc{
 
 	    const double alignProb = xSum * yM;
 	    c.emit[letter1][letter2] += alignProb;
-	    c.MM += xM * yM;
-	    c.DM += xD * yM;
-	    c.IM += xI * yM;
-	    c.PM += xP * yM;
+	    c.toMatch += alignProb;
 	    c.MD += xM * yD * eF;
 	    c.DD += xD * yD;
 	    c.PD += xP * yD;
@@ -872,9 +868,7 @@ namespace cbrc{
 	    const double alignProb = xSum * yM;
 	    countUncertainLetters(c.emit[letter1], alignProb,
 				  alphabetSize, match_score[letter1], lp2);
-	    c.MM += xM * yM;
-	    c.DM += xD * yM;
-	    c.IM += xI * yM;
+	    c.toMatch += alignProb;
 	    c.MD += xM * yD * eF;
 	    c.DD += xD * yD;
 	    c.MI += xM * yI * eFI;
@@ -907,10 +901,7 @@ namespace cbrc{
 	    const double alignProb = xSum * yM;
 	    countUncertainLetters(c.emit[letter1], alignProb,
 				  alphabetSize, match_score[letter1], lp2);
-	    c.MM += xM * yM;
-	    c.DM += xD * yM;
-	    c.IM += xI * yM;
-	    c.PM += xP * yM;
+	    c.toMatch += alignProb;
 	    c.MD += xM * yD * eF;
 	    c.DD += xD * yD;
 	    c.PD += xP * yD;

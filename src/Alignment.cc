@@ -34,7 +34,7 @@ static void addExpectedCounts( double* expectedCounts,
   const int numEmissionCounts = alph.size * alph.size;
   double* transitionCounts = &expectedCounts[ numEmissionCounts ];
 
-  transitionCounts[0] += ec.MM + ec.DM + ec.IM + ec.PM;  // match count
+  transitionCounts[0] += ec.toMatch;
   transitionCounts[1] += ec.DD + ec.MD + ec.PD;  // deleted letter count
   transitionCounts[2] += ec.II + ec.MI + ec.DI + ec.PI;  // ins. letter count
   transitionCounts[3] += ec.MD + ec.PD;  // deletion open/close count
