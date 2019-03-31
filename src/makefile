@@ -16,7 +16,7 @@ alp/sls_fsa1_utils.o alp/sls_fsa1.o alp/sls_fsa1_parameters.o
 
 indexObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o	\
 ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o	\
-tantan.o LastdbArguments.o
+cbrc_linalg.o tantan.o LastdbArguments.o
 
 indexObj4 = MultiSequence.o MultiSequenceQual.o SubsetSuffixArray.o	\
 SubsetSuffixArraySort.o lastdb.o
@@ -167,7 +167,8 @@ GappedXdropAlignerPssm.o GappedXdropAlignerPssm.o8: GappedXdropAlignerPssm.cc Ga
 GeneticCode.o GeneticCode.o8: GeneticCode.cc GeneticCode.hh Alphabet.hh
 GreedyXdropAligner.o GreedyXdropAligner.o8: GreedyXdropAligner.cc GreedyXdropAligner.hh \
  ScoreMatrixRow.hh
-LambdaCalculator.o LambdaCalculator.o8: LambdaCalculator.cc LambdaCalculator.hh
+LambdaCalculator.o LambdaCalculator.o8: LambdaCalculator.cc LambdaCalculator.hh \
+ cbrc_linalg.hh
 LastEvaluer.o LastEvaluer.o8: LastEvaluer.cc LastEvaluer.hh ScoreMatrixRow.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
  alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \

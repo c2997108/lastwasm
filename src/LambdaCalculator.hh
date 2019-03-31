@@ -50,7 +50,7 @@ class LambdaCalculator{
   bool find_ub(double **matrix, int alpha_size, double *ub);
   bool binary_search(double** matrix, int alpha_size, double lb, double ub, std::vector<double>& letprob1, std::vector<double>& letprob2, double* lambda, int maxiter);
   double calculate_lambda(double** matrix, int alpha_size, std::vector<double>& letprob1, std::vector<double>& letprob2, int maxiter, int max_boundary_search_iter, double lb_ratio);
-  bool check_lambda(double** matrix, double lambda, int alpha_size, std::vector<double>& letprob1, std::vector<double>& letprob2);
+  bool check_lambda(double** matrix, double lambda, int alpha_size, std::vector<double>& letprob1, std::vector<double>& letprob2, double** tmpMat);
 };
 
 }  // end namespace
