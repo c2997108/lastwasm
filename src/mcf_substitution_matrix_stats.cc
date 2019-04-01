@@ -8,6 +8,18 @@
 #include <stdexcept>
 #include <assert.h>
 #include <math.h>
+#include <string.h>  // strcmp
+
+#define COUNTOF(a) (sizeof (a) / sizeof *(a))
+
+const struct {
+  const char *name;
+  double scale;
+} substitutionMatrixScales[] = {
+  {"BL62", 3.0861133577701141},
+  {"BL80", 2.8253295934982616},
+  {"PAM30", 2.8848596855435313},
+};
 
 static double checkedExp(double lambda, int score) {
   double y = exp(lambda * score);
@@ -38,7 +50,7 @@ static double calcLetterProbs(std::vector<double> &probs, unsigned size,
   assert(sum > 0);
   double bias = 1 / sum;
   for (unsigned i = 0; i < size; ++i) {
-    probs[i] *= bias;
+    probs[i] = cbrc::roundToFewDigits(probs[i] * bias);
   }
   return bias;
 }
@@ -70,8 +82,16 @@ void SubstitutionMatrixStats::calcFromScale(const const_int_ptr *scoreMatrix,
   mBias = (bias1 + bias2) / 2;
 }
 
-void SubstitutionMatrixStats::calcUnbiased(const const_int_ptr *scoreMatrix,
+void SubstitutionMatrixStats::calcUnbiased(const char *matrixName,
+					   const const_int_ptr *scoreMatrix,
 					   unsigned size) {
+  for (size_t i = 0; i < COUNTOF(substitutionMatrixScales); ++i) {
+    if (strcmp(matrixName, substitutionMatrixScales[i].name) == 0) {
+      calcFromScale(scoreMatrix, size, substitutionMatrixScales[i].scale);
+      return;
+    }
+  }
+
   cbrc::LambdaCalculator c;
   c.calculate(scoreMatrix, size);
   mLambda = c.lambda();

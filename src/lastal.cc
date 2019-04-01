@@ -95,7 +95,8 @@ void complementMatrix(const ScoreMatrixRow *from, ScoreMatrixRow *to) {
 }
 
 // Meaningless for PSSMs, unless they have the same scale as the score matrix
-static void calculateSubstitutionScoreMatrixStatistics() {
+static void
+calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
   int *scoreMat[scoreMatrixRowSize];
   // the case-sensitivity of the matrix makes no difference here
   std::copy(scoreMatrix.caseSensitive,
@@ -103,8 +104,9 @@ static void calculateSubstitutionScoreMatrixStatistics() {
 
   mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
   if (args.temperature < 0) {
+    const char *canonicalMatrixName = ScoreMatrix::canonicalName(matrixName);
     LOG("calculating matrix probabilities...");
-    stats.calcUnbiased(scoreMat, alph.size);
+    stats.calcUnbiased(canonicalMatrixName, scoreMat, alph.size);
     if (stats.isBad()) {
       static const char msg[] =
 	"can't calculate probabilities: maybe the mismatch costs are too weak";
@@ -152,7 +154,7 @@ void makeScoreMatrix( const std::string& matrixName,
 
   scoreMatrix.init(alph.encode);
   if (args.outputType > 0) {
-    calculateSubstitutionScoreMatrixStatistics();
+    calculateSubstitutionScoreMatrixStatistics(matrixName);
     const mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
     if (!stats.isBad()) {
       scoreMatrix.addAmbiguousScores(alph.letters == alph.dna,

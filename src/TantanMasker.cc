@@ -2,7 +2,7 @@
 
 #include "TantanMasker.hh"
 #include "ScoreMatrix.hh"
-#include "LambdaCalculator.hh"
+#include "mcf_substitution_matrix_stats.hh"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -20,6 +20,7 @@ void TantanMasker::init(bool isProtein,
 
   unsigned alphabetSize;
   ScoreMatrix s;
+  const char *matrixName = "";
 
   if (isATrichDna) {
     repeatProb = 0.01;
@@ -34,7 +35,8 @@ T -5 -5 -5  2\n\
   } else if (isProtein) {
     maxRepeatOffset = 50;
     alphabetSize = 20;
-    s.fromString(ScoreMatrix::stringFromName("BL62"));
+    matrixName = "BL62";
+    s.fromString(ScoreMatrix::stringFromName(matrixName));
   } else {
     alphabetSize = alphabet.size();
     s.setMatchMismatch(1, 1, alphabet);
@@ -45,13 +47,13 @@ T -5 -5 -5  2\n\
   int *scoreMat[scoreMatrixRowSize];
   std::copy(s.caseInsensitive, s.caseInsensitive + alphabetSize, scoreMat);
 
-  LambdaCalculator c;
-  c.calculate(scoreMat, alphabetSize);
-  assert(!c.isBad());
+  mcf::SubstitutionMatrixStats stats;
+  stats.calcUnbiased(matrixName, scoreMat, alphabetSize);
+  assert(!stats.isBad());
 
   for (int i = 0; i < scoreMatrixRowSize; ++i)
     for (int j = 0; j < scoreMatrixRowSize; ++j)
-      probMatrix[i][j] = std::exp(c.lambda() * s.caseInsensitive[i][j]);
+      probMatrix[i][j] = std::exp(stats.lambda() * s.caseInsensitive[i][j]);
 }
 
 }

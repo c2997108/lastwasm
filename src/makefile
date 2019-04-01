@@ -16,7 +16,8 @@ alp/sls_fsa1_utils.o alp/sls_fsa1.o alp/sls_fsa1_parameters.o
 
 indexObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o	\
 ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o	\
-cbrc_linalg.o tantan.o LastdbArguments.o
+cbrc_linalg.o mcf_substitution_matrix_stats.o tantan.o		\
+LastdbArguments.o
 
 indexObj4 = MultiSequence.o MultiSequenceQual.o SubsetSuffixArray.o	\
 SubsetSuffixArraySort.o lastdb.o
@@ -201,7 +202,7 @@ SubsetSuffixArraySearch.o SubsetSuffixArraySearch.o8: SubsetSuffixArraySearch.cc
 SubsetSuffixArraySort.o SubsetSuffixArraySort.o8: SubsetSuffixArraySort.cc SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
 TantanMasker.o TantanMasker.o8: TantanMasker.cc TantanMasker.hh ScoreMatrixRow.hh \
- tantan.hh ScoreMatrix.hh LambdaCalculator.hh
+ tantan.hh ScoreMatrix.hh mcf_substitution_matrix_stats.hh
 TwoQualityScoreMatrix.o TwoQualityScoreMatrix.o8: TwoQualityScoreMatrix.cc \
  TwoQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
  ScoreMatrixRow.hh qualityScoreUtil.hh stringify.hh

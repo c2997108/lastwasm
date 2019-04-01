@@ -48,8 +48,10 @@ public:
   void calcFromScale(const const_int_ptr *scoreMatrix, unsigned size,
 		     double scale);
 
-  // set bias = 1 and calculate the other values
-  void calcUnbiased(const const_int_ptr *scoreMatrix, unsigned size);
+  // Set bias = 1 and calculate the other values.
+  // matrixName is used only to lookup pre-calculated cases.
+  void calcUnbiased(const char *matrixName,
+		    const const_int_ptr *scoreMatrix, unsigned size);
 
   // Set it to the parameters for aligning the reverse DNA strands.
   // j = complement[i] means the j-th letter is the complement of the

@@ -2,25 +2,12 @@
 
 #include "LambdaCalculator.hh"
 #include "cbrc_linalg.hh"
-#include <vector>
 #include <cassert>
-#include <cstdio>  // sprintf
-#include <cstdlib>
 #include <cfloat>
 #include <cmath>
 #include <numeric>
 //#include <iostream>
 using namespace std;
-
-static double roundToFewDigits(double x)
-{
-  // This rounding fixes some inaccuracies, e.g. for DNA with a simple
-  // match/mismatch matrix it's likely to make all the probabilities
-  // exactly 0.25, as they should be.
-  char buffer[32];
-  sprintf(buffer, "%g", x);
-  return atof(buffer);
-}
 
 static bool calculate_inv_sum(double **matrix, int alpha_size, double tau, double* inv_sum, double **tmpMat, double *tmpVec)
 {
