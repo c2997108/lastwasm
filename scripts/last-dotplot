@@ -97,12 +97,37 @@ def mafBlocks(beg1, beg2, seq1, seq2):
             size += 1
     if size: yield beg1, beg2, size
 
+def alignmentFromSegment(qrySeqName, qrySeqLen, segment):
+    refSeqLen = sys.maxsize  # XXX
+    refSeqName, refSeqBeg, qrySeqBeg, size = segment
+    block = refSeqBeg, qrySeqBeg, size
+    return refSeqName, refSeqLen, qrySeqName, qrySeqLen, [block]
+
 def alignmentInput(lines):
     '''Get alignments and sequence lengths, from MAF or tabular format.'''
     mafCount = 0
+    qrySeqName = ""
+    segments = []
     for line in lines:
         w = line.split()
-        if line[0].isdigit():  # tabular format
+        if line[0] == "#":
+            pass
+        elif len(w) == 1:
+            for i in segments:
+                yield alignmentFromSegment(qrySeqName, qrySeqLen, i)
+            qrySeqName = w[0]
+            qrySeqLen = 0
+            segments = []
+        elif len(w) == 2 and qrySeqName and w[1].isdigit():
+            qrySeqLen += int(w[1])
+        elif len(w) == 3 and qrySeqName and w[1].isdigit() and w[2].isdigit():
+            refSeqName, refSeqBeg, refSeqEnd = w[0], int(w[1]), int(w[2])
+            size = abs(refSeqEnd - refSeqBeg)
+            if refSeqBeg > refSeqEnd:
+                refSeqBeg = -refSeqBeg
+            segments.append((refSeqName, refSeqBeg, qrySeqLen, size))
+            qrySeqLen += size
+        elif line[0].isdigit():  # tabular format
             chr1, beg1, seqlen1 = w[1], int(w[2]), int(w[5])
             if w[4] == "-": beg1 -= seqlen1
             chr2, beg2, seqlen2 = w[6], int(w[7]), int(w[10])
@@ -120,6 +145,8 @@ def alignmentInput(lines):
                 blocks = mafBlocks(beg1, beg2, seq1, seq2)
                 yield chr1, seqlen1, chr2, seqlen2, blocks
                 mafCount = 0
+    for i in segments:
+        yield alignmentFromSegment(qrySeqName, qrySeqLen, i)
 
 def seqRequestFromText(text):
     if ":" in text:
@@ -504,6 +531,49 @@ def alignmentPixels(width, height, alignments, bp_per_pix,
                                 ori1 + beg1, ori2 - beg2 - 1, size)
     return hits
 
+def orientedBlocks(alignments, seqIndex):
+    otherIndex = 1 - seqIndex
+    for a in alignments:
+        seq1, seq2, blocks = a
+        for b in blocks:
+            beg1, beg2, size = b
+            if b[seqIndex] < 0:
+                b = -(beg1 + size), -(beg2 + size), size
+            yield a[seqIndex], b[seqIndex], a[otherIndex], b[otherIndex], size
+
+def drawJoins(im, alignments, bpPerPix, seqIndex, rangeDict1, rangeDict2):
+    blocks = orientedBlocks(alignments, seqIndex)
+    oldSeq1 = ""
+    for seq1, beg1, seq2, beg2, size in sorted(blocks):
+        isReverse1, ori1 = strandAndOrigin(rangeDict1[seq1], beg1, size)
+        isReverse2, ori2 = strandAndOrigin(rangeDict2[seq2], beg2, size)
+        end1 = beg1 + size - 1
+        end2 = beg2 + size - 1
+        if isReverse1:
+            beg1 = -(beg1 + 1)
+            end1 = -(end1 + 1)
+        if isReverse2:
+            beg2 = -(beg2 + 1)
+            end2 = -(end2 + 1)
+        newPix1 = (ori1 + beg1) // bpPerPix
+        newPix2 = (ori2 + beg2) // bpPerPix
+        if seq1 == oldSeq1:
+            lowerPix2 = min(oldPix2, newPix2)
+            upperPix2 = max(oldPix2, newPix2)
+            midPix1 = (oldPix1 + newPix1) // 2
+            if isReverse1:
+                midPix1 = (oldPix1 + newPix1 + 1) // 2
+                oldPix1, newPix1 = newPix1, oldPix1
+            if upperPix2 - lowerPix2 > 1 and oldPix1 <= newPix1 <= oldPix1 + 1:
+                if seqIndex == 0:
+                    box = midPix1, lowerPix2, midPix1 + 1, upperPix2 + 1
+                else:
+                    box = lowerPix2, midPix1, upperPix2 + 1, midPix1 + 1
+                im.paste("lightgray", box)
+        oldPix1 = (ori1 + end1) // bpPerPix
+        oldPix2 = (ori2 + end2) // bpPerPix
+        oldSeq1 = seq1
+
 def expandedSeqDict(seqDict):
     '''Allow lookup by short sequence names, e.g. chr7 as well as hg19.chr7.'''
     newDict = seqDict.copy()
@@ -826,7 +896,8 @@ def lastDotplot(opts, args):
     logging.info("height: " + str(height))
 
     logging.info("processing alignments...")
-    hits = alignmentPixels(width, height, alignments + alignmentsB, bpPerPix,
+    allAlignments = alignments + alignmentsB
+    hits = alignmentPixels(width, height, allAlignments, bpPerPix,
                            rangeDict1, rangeDict2)
 
     logging.info("reading annotations...")
@@ -853,6 +924,16 @@ def lastDotplot(opts, args):
     im = Image.new(image_mode, image_size, opts.background_color)
 
     drawAnnotations(im, boxes)
+
+    joinA, joinB = twoValuesFromOption(opts.join, ":")
+    if joinA in "13":
+        drawJoins(im, alignments, bpPerPix, 0, rangeDict1, rangeDict2)
+    if joinB in "13":
+        drawJoins(im, alignmentsB, bpPerPix, 0, rangeDict1, rangeDict2)
+    if joinA in "23":
+        drawJoins(im, alignments, bpPerPix, 1, rangeDict2, rangeDict1)
+    if joinB in "23":
+        drawJoins(im, alignmentsB, bpPerPix, 1, rangeDict2, rangeDict1)
 
     for i in range(height):
         for j in range(width):
@@ -933,6 +1014,9 @@ if __name__ == "__main__":
     op.add_option("--pad", metavar="FRAC", type="float", default=0.04, help=
                   "pad length when cutting unaligned gaps: "
                   "fraction of aligned length (default=%default)")
+    op.add_option("-j", "--join", default="0", metavar="N", help=
+                  "join: 0=nothing, 1=alignments adjacent in genome1, "
+                  "2=alignments adjacent in genome2 (default=%default)")
     op.add_option("--border-pixels", metavar="INT", type="int", default=1,
                   help="number of pixels between sequences (default=%default)")
     op.add_option("--border-color", metavar="COLOR", default="black",

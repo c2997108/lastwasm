@@ -84,6 +84,12 @@ Options
       Maximum unaligned gap in the 2nd genome.
   --pad=FRAC
       Length of pad to leave when cutting unaligned gaps.
+  -j N, --join=N
+      Draw horizontal or vertical lines joining adjacent alignments.
+      0 means don't join, 1 means draw vertical lines joining
+      alignments that are adjacent in the 1st (horizontal) genome, 2
+      means draw horizontal lines joining alignments that are adjacent
+      in the 2nd (vertical) genome.
   --border-pixels=INT
       Number of pixels between sequences.
   --border-color=COLOR
