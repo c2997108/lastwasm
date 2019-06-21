@@ -120,8 +120,8 @@ def alignmentInput(lines):
             segments = []
         elif len(w) == 2 and qrySeqName and w[1].isdigit():
             qrySeqLen += int(w[1])
-        elif len(w) == 3 and qrySeqName and w[1].isdigit() and w[2].isdigit():
-            refSeqName, refSeqBeg, refSeqEnd = w[0], int(w[1]), int(w[2])
+        elif len(w) == 4 and qrySeqName and w[1].isdigit() and w[3].isdigit():
+            refSeqName, refSeqBeg, refSeqEnd = w[0], int(w[1]), int(w[3])
             size = abs(refSeqEnd - refSeqBeg)
             if refSeqBeg > refSeqEnd:
                 refSeqBeg = -refSeqBeg
