@@ -83,11 +83,19 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       bool isSenseStrand, double senseStrandLogOdds,
 			       const LastSplitOptions& opts,
 			       bool isAlreadySplit) {
+  if (qSliceBeg >= a.qend || qSliceEnd <= a.qstart) {
+    return;  // this can happen for spliced alignment!
+  }
+
   unsigned qSliceBegTrimmed = qSliceBeg;
   unsigned qSliceEndTrimmed = qSliceEnd;
   unsigned alnBeg, alnEnd;
   cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBegTrimmed, alnBeg);
   cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEndTrimmed, alnEnd);
+
+  if (qSliceBegTrimmed >= qSliceEndTrimmed) {
+    return;  // I think this can happen for spliced alignment
+  }
 
   int score =
     sa.segmentScore(alnNum, qSliceBeg, qSliceEnd) -
