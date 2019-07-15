@@ -364,7 +364,7 @@ def doTraining(opts, args):
     if opts.A: x.append("-A" + opts.A)
     if opts.B: x.append("-B" + opts.B)
     x += args
-    y = ["last-split", "-n"]
+    y = ["last-split", "-n", "-m0.01"]  # xxx ???
     z = ["last-postmask"]
     p = subprocess.Popen(x, stdout=subprocess.PIPE, universal_newlines=True)
     q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE,

@@ -13,7 +13,7 @@ Options:
  -t, --trans=PROB   trans-splice probability per base (default=1e-05)
  -M, --mean=MEAN    mean of ln[intron length] (default=7)
  -S, --sdev=SDEV    standard deviation of ln[intron length] (default=1.7)
- -m, --mismap=PROB  maximum mismap probability (default=0.01)
+ -m, --mismap=PROB  maximum mismap probability (default=1)
  -s, --score=INT    minimum alignment score (default=e OR e+t*ln[100])
  -n, --no-split     write original, not split, alignments
  -b, --bytes=B      maximum memory (default=8T for split, 8G for spliced)
@@ -46828,7 +46828,7 @@ p                                &,28>DJPV\bhnsxz{{|||||||||||||||||||||||||||||
 # T -21 -11 -20  6
 # N  0  0  0  0
 #
-# m=0.01 s=110
+# m=1 s=110
 #
 a score=291 mismap=1e-10
 s chr19 1395387 97 + 58617616 CAGGCTGCCCACCTACGGCCGAGGCCCTGC-TCTACGGCATCCTGCAGCTGcaGAGGAAGATCAAG-CGGGAGCGG-------AGGCTGCAGATCTGGTACCGCAG
@@ -46901,7 +46901,7 @@ p                              &,0344555555555554430,&
 # T -21 -11 -20  6
 # N  0  0  0  0
 #
-# m=0.01 s=110
+# m=1 s=110
 #
 a score=291 mismap=1e-10
 s chr19 1395387 97 + 58617616 CAGGCTGCCCACCTACGGCCGAGGCCCTGC-TCTACGGCATCCTGCAGCTGcaGAGGAAGATCAAG-CGGGAGCGG-------AGGCTGCAGATCTGGTACCGCAG

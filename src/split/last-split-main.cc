@@ -41,7 +41,7 @@ static void run(int argc, char* argv[]) {
   opts.trans = 1e-05;
   opts.mean = 7.0;
   opts.sdev = 1.7;
-  opts.mismap = 0.01;
+  opts.mismap = 1.0;
   opts.score = -1;
   opts.no_split = false;
   opts.bytes = 0;

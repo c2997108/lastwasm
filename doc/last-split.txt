@@ -1,8 +1,8 @@
 last-split
 ==========
 
-This program estimates "split alignments" (typically for DNA) or
-"spliced alignments" (typically for RNA).
+This program finds "split alignments" (typically for DNA) or "spliced
+alignments" (typically for RNA).
 
 It reads candidate alignments of query sequences to a genome, and
 looks for a unique best alignment for each part of each query.  It
@@ -21,7 +21,8 @@ format), and the genome is in "genome.fasta" (in fasta format).  We
 can do the alignment like this::
 
   lastdb -uNEAR -R01 db genome.fasta
-  lastal -Q1 db q.fastq | last-split > out.maf
+  last-train -Q1 db q.fastq > train.out
+  lastal -p train.out db q.fastq | last-split > out.maf
 
 Spliced alignment of RNA reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,7 +33,8 @@ which causes it to do spliced instead of split alignment, and also
 tells it where the splice signals are (GT, AG, etc)::
 
   lastdb -uNEAR -R01 db genome.fasta
-  lastal -Q1 -D10 db q.fastq | last-split -g db > out.maf
+  last-train -Q1 db q.fastq > train.out
+  lastal -p train.out -D10 db q.fastq | last-split -g db > out.maf
 
 This will favour splices starting at GT (and to a lesser extent GC and
 AT), and ending at AG (and to a lesser extent AC).  However, it allows
@@ -52,16 +54,7 @@ last-split options.
 Alignment of two whole genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We can align the cat and rat genomes like this::
-
-  lastdb -uMAM8 -cR11 catdb cat.fasta
-  lastal -m100 -E0.05 catdb rat.fasta | last-split -m1 > out.maf
-
-This will align each rat base-pair to at most one cat base-pair, but
-not necessarily vice-versa.  We can get 1-to-1 alignments by swapping
-the sequences and running last-split again::
-
-  maf-swap out.maf | last-split -m1 > out2.maf
+See `here <https://github.com/mcfrith/last-genome-alignments>`_.
 
 FAQ
 ---
@@ -72,16 +65,6 @@ FAQ
     tracts tend to have many matches in the genome.  By trimming, you
     can prevent lastal and last-split from wasting time on such
     matches.
-
-Going faster by parallelization
--------------------------------
-
-For example, split alignment of DNA reads to a genome::
-
-  parallel-fastq "lastal -Q1 db | last-split" < q.fastq > out.maf
-
-This requires GNU parallel to be installed
-(http://www.gnu.org/software/parallel/).
 
 Output
 ------
@@ -125,7 +108,7 @@ lowest possible.  In general::
   Error probability <= 10 ^ -((ASCII value - 33) / 10)
 
 The "mismap" is simply the lowest probability from the "p" line.  (If
-you run last-split twice, as in the genome alignment example, the
+you run last-split twice, as in the genome alignment recipes, the
 mismap is the lowest combined error probability from both "p" lines.)
 
 Split versus spliced alignment
@@ -159,8 +142,7 @@ Faster spliced alignment
 Spliced alignment can be slow.  It can be sped up, at a small cost in
 accuracy, by not favouring cis-splices::
 
-  lastdb -uNEAR -R01 db genome.fasta
-  lastal -Q1 -D10 db q.fastq | last-split -c0 -t0.004 -g db > out.maf
+  lastal -p train.out -D10 db q.fastq | last-split -c0 -t0.004 -g db > out.maf
 
 The -c0 turns off cis-splicing, and the -t0.004 specifies a higher
 probability of trans-splicing.
@@ -172,8 +154,7 @@ If we do not wish to allow arbitrarily large unaligned parts in the
 middle of the query, we can do "spliced" alignment without considering
 splice signals or favouring cis-splices::
 
-  lastdb -uNEAR -R01 db genome.fasta
-  lastal -Q1 db q.fastq | last-split -c0 > out.maf
+  lastal -p train.out db q.fastq | last-split -c0 > out.maf
 
 Options
 -------
@@ -221,8 +202,6 @@ Options
 
   -m, --mismap=PROB
          Don't write alignments with mismap probability > PROB.
-         Low-confidence alignments will be discarded unless you
-         increase this value!
 
   -s, --score=INT
          Don't write alignments with score < INT.

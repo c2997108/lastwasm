@@ -123,17 +123,15 @@ Example 6: Find very short DNA alignments
 
 By default, LAST is quite strict, and only reports significant
 alignments that will rarely occur by chance.  In the preceding
-example, the minimum alignment length is about 28 bases (less for
+example, the minimum alignment length is about 26 bases (less for
 smaller genomes).  To find shorter alignments, we must down-tune the
 strictness::
 
   lastdb -uNEAR -R01 humandb human/chr*.fa
-  lastal -D100 humandb queries.fa | last-split -m1 > myalns.maf
+  lastal -D100 humandb queries.fa | last-split > myalns.maf
 
 * -D100 makes lastal report alignments that could occur by chance once
   per hundred query letters.  (The default is once per million.)
-
-* -m1 tells last-split to keep low-confidence alignments.
 
 In this example, the minimum alignment length is about 20 bases (less
 for smaller genomes).
