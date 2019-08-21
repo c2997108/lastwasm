@@ -647,10 +647,10 @@ def readRmsk(fileName, rangeDict):
             beg = int(fields[5]) - 1
             end = int(fields[6])
             strand = fields[8]
-            repeatClass = fields[10]
+            repeatClass = fields[10].split("/")[0]
         else:
             continue
-        if repeatClass in ("Low_complexity", "Simple_repeat"):
+        if repeatClass in ("Low_complexity", "Simple_repeat", "Satellite"):
             yield 200, "#fbf", seqName, beg, end
         elif (strand == "+") != rangeDict[seqName][0][2]:
             yield 100, "#ffe8e8", seqName, beg, end

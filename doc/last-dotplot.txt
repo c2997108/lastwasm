@@ -137,8 +137,8 @@ gene annotations in one small dotplot.
   --rmsk1=FILE
       Read repeat annotations for the 1st genome, in RepeatMasker .out
       or rmsk.txt format.  The color is pale purple for "low
-      complexity" and "simple repeats", else pale red for "+" strand
-      and pale blue for "-" strand.
+      complexity", "simple repeats", and "satellites", else pale red
+      for "+" strand and pale blue for "-" strand.
   --rmsk2=FILE
       Read repeat annotations for the 2nd genome.
 
