@@ -97,7 +97,7 @@ void writeLastalOptions( std::ostream& out, const std::string& seedText ){
 
 void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const Alphabet& alph, countT sequenceCount,
-		   const std::vector<countT>& letterCounts,
+		   size_t maxSeqLen, const std::vector<countT>& letterCounts,
 		   bool isFastq, unsigned volumes, unsigned numOfIndexes,
 		   const std::string& seedText ){
   countT letterTotal = std::accumulate( letterCounts.begin(),
@@ -109,6 +109,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     << '\n';
   f << "alphabet=" << alph << '\n';
   f << "numofsequences=" << sequenceCount << '\n';
+  f << "maxsequencelength=" << maxSeqLen << '\n';
   f << "numofletters=" << letterTotal << '\n';
   f << "letterfreqs=";
   for( unsigned i = 0; i < letterCounts.size(); ++i ){
@@ -176,11 +177,11 @@ static void preprocessSeqs(MultiSequence &multi,
 }
 
 // Make one database volume, from one batch of sequences
-void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
-		 MultiSequence& multi, const LastdbArguments& args,
-		 const Alphabet& alph, std::vector<countT>& letterCounts,
-		 const TantanMasker& masker, unsigned numOfThreads,
-		 const std::string& seedText, const std::string& baseName ){
+void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
+		const LastdbArguments& args, const Alphabet& alph,
+		std::vector<countT>& letterCounts, size_t& maxSeqLenSeen,
+		const TantanMasker& masker, unsigned numOfThreads,
+		const std::string& seedText, const std::string& baseName) {
   size_t numOfIndexes = seeds.size();
   size_t numOfSequences = multi.finishedSequences();
   size_t textLength = multi.seqBeg(numOfSequences);
@@ -192,6 +193,13 @@ void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
     letterCounts[c] += letterCountsInThisVolume[c];
   }
 
+  size_t maxSeqLenInThisVolume = 0;
+  for (size_t i = 0; i < numOfSequences; ++i) {
+    size_t s = multi.seqLen(i);
+    maxSeqLenInThisVolume = std::max(maxSeqLenInThisVolume, s);
+  }
+  maxSeqLenSeen = std::max(maxSeqLenSeen, maxSeqLenInThisVolume);
+
   if (args.isCountsOnly) return;
 
   if( args.tantanSetting ){
@@ -201,8 +209,8 @@ void makeVolume( std::vector< CyclicSubsetSeed >& seeds,
 
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
-		letterCountsInThisVolume, multi.qualsPerLetter(), -1,
-		numOfIndexes, seedText );
+		maxSeqLenInThisVolume, letterCountsInThisVolume,
+		multi.qualsPerLetter(), -1, numOfIndexes, seedText );
   multi.toFiles( baseName );
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
@@ -289,6 +297,7 @@ void lastdb( int argc, char** argv ){
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
   indexT maxSeqLen = 0;
+  size_t maxSeqLenSeen = 0;
 
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
@@ -320,7 +329,7 @@ void lastdb( int argc, char** argv ){
 	    } else {
 	      std::string baseName =
 		args.lastdbName + stringify(volumeNumber++);
-	      makeVolume(seeds, multi, args, alph, letterCounts,
+	      makeVolume(seeds, multi, args, alph, letterCounts, maxSeqLenSeen,
 			 tantanMasker, numOfThreads, seedText, baseName);
 	      multi.eraseAllButTheLastSequence();
 	    }
@@ -332,7 +341,7 @@ void lastdb( int argc, char** argv ){
       }
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
-	makeVolume( seeds, multi, args, alph, letterCounts,
+	makeVolume( seeds, multi, args, alph, letterCounts, maxSeqLenSeen,
 		    tantanMasker, numOfThreads, seedText, baseName );
 	multi.reinitForAppending();
       }
@@ -341,18 +350,18 @@ void lastdb( int argc, char** argv ){
 
   if( multi.finishedSequences() > 0 ){
     if( volumeNumber == 0 && !args.isCountsOnly ){
-      makeVolume( seeds, multi, args, alph, letterCounts,
+      makeVolume( seeds, multi, args, alph, letterCounts, maxSeqLenSeen,
 		  tantanMasker, numOfThreads, seedText, args.lastdbName );
       return;
     }
     std::string baseName = args.lastdbName + stringify(volumeNumber++);
-    makeVolume( seeds, multi, args, alph, letterCounts,
+    makeVolume( seeds, multi, args, alph, letterCounts, maxSeqLenSeen,
 		tantanMasker, numOfThreads, seedText, baseName );
   }
 
   writePrjFile( args.lastdbName + ".prj", args, alph, sequenceCount,
-		letterCounts, multi.qualsPerLetter(), volumeNumber,
-		seeds.size(), seedText );
+		maxSeqLenSeen, letterCounts, multi.qualsPerLetter(),
+		volumeNumber, seeds.size(), seedText );
 }
 
 int main( int argc, char** argv )

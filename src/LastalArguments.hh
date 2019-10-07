@@ -35,12 +35,12 @@ struct LastalArguments{
 
   // set default option values that depend on input files:
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
-				double numLettersInReference,
 				bool isKeepRefLowercase, int refTantanSetting,
                                 bool isCaseSensitiveSeeds, bool isVolumes,
 				size_t refMinimizerWindow,
 				unsigned realNumOfThreads );
-  void setDefaultsFromMatrix( double lambda, int minScore );
+  void setDefaultsFromMatrix(double lambda, int minScore,
+			     double maxEvalueDefault);
 
   // write the parameter settings, starting each line with "#":
   void writeCommented( std::ostream& stream ) const;

@@ -439,7 +439,6 @@ const char* LastalArguments::matrixName( bool isProtein ) const{
 }
 
 void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
-					       double numLettersInReference,
 					       bool isKeepRefLowercase,
 					       int refTantanSetting,
                                                bool isCaseSensitiveSeeds,
@@ -484,11 +483,6 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     // distribution of paired bases ~= 99% identity.  Because the
     // quality scores are unlikely to be perfect, it may be best to
     // use a lower target %identity than we otherwise would.
-  }
-
-  if( maxEvalue < 0 ){
-    double r = std::max( numLettersInReference, 1.0 );  // avoid divide-by-0
-    maxEvalue = 1e18 / (numOfStrands() * r * queryLettersPerRandomAlignment);
   }
 
   if (insOpenCosts.empty()) insOpenCosts = delOpenCosts;
@@ -560,7 +554,9 @@ static int percent(int val, int percentage) {
   return (percentage == 100) ? val : val * percentage / 100;
 }
 
-void LastalArguments::setDefaultsFromMatrix( double lambda, int minScore ){
+void LastalArguments::setDefaultsFromMatrix(double lambda, int minScore,
+					    double maxEvalueDefault) {
+  if (maxEvalue < 0) maxEvalue = maxEvalueDefault;
   if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
   if( minScoreGapped < 0 ){
     if( outputType > 0 && minScore < 0 )
@@ -611,7 +607,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " y=" << maxDropGapless;
   stream << " z=" << maxDropFinal;
   stream << " D=" << queryLettersPerRandomAlignment;
-  stream << " E=" << maxEvalue;
+  if (maxEvalue >= 0)
+    stream << " E=" << maxEvalue;
   stream << '\n';
 
   stream << '#';

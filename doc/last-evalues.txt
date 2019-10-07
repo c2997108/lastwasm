@@ -18,7 +18,7 @@ randomly-shuffled sequences of length 1 billion each.
 
 **E** is the expected number of alignments with greater or equal
 score, between: a random sequence with the same length as the query
-sequence, and a random sequence with the same length as the database.
+sequence, and random sequences with the same length as the database.
 
 In this example, the two alignments are identical, but their "E"
 values are not.  That is because the query sequences have different
@@ -67,7 +67,7 @@ Calculation of EG2
 
 EG2 is calculated from the score like this::
 
-  EG2 = K * (1 billion) * (1 billion) * exp(-lambda * score)
+  EG2 = K * exp(-lambda * score) * (1 billion) * (1 billion)
 
 The parameters lambda and K are printed in the header of lastal's
 output.
@@ -77,22 +77,26 @@ Calculation of E
 
 E is calculated by this formula::
 
-  E = K * area * exp(-lambda * score) * (number of strands)
+  E = K * exp(-lambda * score) * strands * area(m, n, score) * N / n,
 
-This depends on the number of strands that are searched, either 1 or
-2.
+where:
 
-The area is approximately (database length) * (query length). However,
-if the query (or database) is very short, this formula over-estimates
-E.  LAST uses a "finite-size correction" to calculate E more
-accurately.
+* ``strands`` is either 1 or 2 (if forward and reverse DNA strands are
+  searched).
+* ``m`` is the length of the query sequence.
+* ``n`` is the length of the longest sequence in the database.
+* ``N`` is the total length of all database sequences.
+* ``area(m, n, score)`` is `slightly less than
+  <https://doi.org/10.1186/1756-0500-5-286>`_ ``m * n``.
 
 Effect of option -D
 ~~~~~~~~~~~~~~~~~~~
 
-Option -D indirectly sets the EG2 threshold, via this formula::
+Option -D sets the minimum alignment score, by this formula::
 
-  1 = EG2 * (database length)/1e9 * (option -D)/1e9 * (number of strands)
+  K * exp(-lambda * score) * strands * D * length(n, score) * N / n  ≤  1,
+
+where ``length(n, score)`` is slightly less than ``n``.
 
 Bit score
 ~~~~~~~~~

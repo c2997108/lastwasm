@@ -253,7 +253,7 @@ void makeQualityScorers(){
 
 // Calculate statistical parameters for the alignment scoring scheme
 static void calculateScoreStatistics(const std::string& matrixName,
-				     countT refLetters) {
+				     countT refLetters, countT refMaxSeqLen) {
   const mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
   if (stats.isBad()) return;
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
@@ -270,7 +270,8 @@ static void calculateScoreStatistics(const std::string& matrixName,
 		  del.openCost, del.growCost, ins.openCost, ins.growCost,
                   args.frameshiftCost, geneticCode, isStandardGeneticCode,
 		  args.verbosity );
-    evaluer.setSearchSpace( refLetters, args.numOfStrands() );
+    countT m = std::min(refMaxSeqLen, refLetters);
+    evaluer.setSearchSpace(refLetters, m, args.numOfStrands());
     if( args.verbosity > 0 ) evaluer.writeParameters( std::cerr );
   }catch( const Sls::error& e ){
     LOG( "can't get E-value parameters for this scoring scheme" );
@@ -281,7 +282,8 @@ static void calculateScoreStatistics(const std::string& matrixName,
 void readOuterPrj( const std::string& fileName, unsigned& volumes,
                    size_t& refMinimizerWindow, size_t& minSeedLimit,
 		   bool& isKeepRefLowercase, int& refTantanSetting,
-                   countT& refSequences, countT& refLetters ){
+                   countT& refSequences, countT& refLetters,
+		   countT& refMaxSeqLen ){
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
@@ -299,6 +301,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alph;
     if( word == "numofsequences" ) iss >> refSequences;
+    if( word == "maxsequencelength" ) iss >> refMaxSeqLen;
     if( word == "numofletters" ) iss >> refLetters;
     if( word == "maxunsortedinterval" ) iss >> minSeedLimit;
     if( word == "keeplowercase" ) iss >> isKeepRefLowercase;
@@ -313,6 +316,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
 
   if( f.eof() && !f.bad() ) f.clear();
   if( alph.letters.empty() || refSequences+1 == 0 || refLetters+1 == 0 ||
+      (refMaxSeqLen == 0 && refLetters != 0) ||
       isCaseSensitiveSeeds < 0 || numOfIndexes > maxNumOfIndexes ||
       referenceFormat == sequenceFormat::prb ||
       referenceFormat == sequenceFormat::pssm ){
@@ -1106,12 +1110,13 @@ void lastal( int argc, char** argv ){
   size_t minSeedLimit = 0;
   countT refSequences = -1;
   countT refLetters = -1;
+  countT refMaxSeqLen = -1;
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
   readOuterPrj( args.lastdbName + ".prj", volumes,
 		refMinimizerWindow, minSeedLimit,
 		isKeepRefLowercase, refTantanSetting,
-		refSequences, refLetters );
+		refSequences, refLetters, refMaxSeqLen );
   bool isDna = (alph.letters == alph.dna);
   bool isProtein = alph.isProtein();
 
@@ -1140,7 +1145,7 @@ void lastal( int argc, char** argv ){
   aligners.resize( decideNumberOfThreads( args.numOfThreads,
 					  args.programName, args.verbosity ) );
   bool isMultiVolume = (volumes+1 > 0 && volumes > 1);
-  args.setDefaultsFromAlphabet( isDna, isProtein, refLetters,
+  args.setDefaultsFromAlphabet( isDna, isProtein,
 				isKeepRefLowercase, refTantanSetting,
                                 isCaseSensitiveSeeds, isMultiVolume,
 				refMinimizerWindow, aligners.size() );
@@ -1167,9 +1172,16 @@ void lastal( int argc, char** argv ){
     query.initForAppending(1);
   }
 
-  if( args.outputType > 0 ) calculateScoreStatistics( matrixName, refLetters );
-  int minScore = evaluer.minScore( args.maxEvalue, 1e18 );
-  args.setDefaultsFromMatrix( fwdMatrices.stats.lambda(), minScore );
+  if (args.outputType > 0) {
+    calculateScoreStatistics(matrixName, refLetters, refMaxSeqLen);
+  }
+
+  int minScore = (args.maxEvalue > 0) ? evaluer.minScore(args.maxEvalue, 1e18)
+    : evaluer.minScore(args.queryLettersPerRandomAlignment);
+
+  double eg2 = evaluer.isGood() ? 1e18 * evaluer.evaluePerArea(minScore) : -1;
+  args.setDefaultsFromMatrix(fwdMatrices.stats.lambda(), minScore, eg2);
+
   minScoreGapless = calcMinScoreGapless(refLetters);
   if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
   if( args.outputType > 0 ) makeQualityScorers();

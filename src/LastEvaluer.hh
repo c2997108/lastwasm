@@ -54,9 +54,11 @@ public:
 	    int verbosity);
 
   void setSearchSpace(double databaseLength,  // number of database letters
+		      double databaseMaxSeqLength,  // length of longest seq
 		      double numOfStrands) {  // 1 or 2
-    this->databaseLength = databaseLength;
-    this->numOfStrands = numOfStrands;
+    this->databaseSeqLen = databaseMaxSeqLength;
+    if (databaseMaxSeqLength > 0) databaseLength /= databaseMaxSeqLength;
+    this->databaseSeqNum = numOfStrands * databaseLength;
   }
 
   bool isGood() const
@@ -70,10 +72,10 @@ public:
 
   // Don't call this in the "bad" state or before calling setSearchSpace:
   double area(double score, double queryLength) const {
-    return numOfStrands *
+    return databaseSeqNum *
       (evaluer.isGood()
-       ?           evaluer.area(score, queryLength, databaseLength)
-       : frameshiftEvaluer.area(score, queryLength, databaseLength));
+       ?           evaluer.area(score, queryLength, databaseSeqLen)
+       : frameshiftEvaluer.area(score, queryLength, databaseSeqLen));
   }
 
   // Don't call this in the "bad" state:
@@ -86,6 +88,11 @@ public:
   // "evalue", which is always > 0.  Otherwise: returns -1.
   int minScore(double evalue, double area) const;
 
+  // In the "good" state, after calling setSearchSpace: returns the
+  // minimum positive score with E-value <= 1 per this many query
+  // letters.  In the "bad" state: returns -1.
+  int minScore(double queryLettersPerRandomAlignment) const;
+
   // Writes some parameters preceded by "#".  Does nothing in the "bad" state.
   void writeCommented(std::ostream& out) const;
 
@@ -95,8 +102,8 @@ public:
 private:
   Sls::AlignmentEvaluer evaluer;
   Sls::FrameshiftAlignmentEvaluer frameshiftEvaluer;
-  double databaseLength;
-  double numOfStrands;
+  double databaseSeqLen;
+  double databaseSeqNum;
 };
 
 }

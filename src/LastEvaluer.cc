@@ -403,6 +403,16 @@ int LastEvaluer::minScore(double evalue, double area) const {
   }
 }
 
+int LastEvaluer::minScore(double queryLettersPerRandomAlignment) const {
+  if (!isGood()) return -1;
+  double huge = 1e9;
+  double f = queryLettersPerRandomAlignment / huge;
+  for (int score = 1; ; ++score) {
+    double evalue = area(score, huge) * evaluePerArea(score);
+    if (evalue * f <= 1) return score;
+  }
+}
+
 void LastEvaluer::writeCommented(std::ostream& out) const {
   if (evaluer.isGood()) {
     const Sls::ALP_set_of_parameters &p = evaluer.parameters();
