@@ -32,7 +32,7 @@ public:
   // alignment parameters.  It may fail, i.e. set the object to the
   // "bad" state and throw an Sls::error.
   // These arguments are only used to lookup pre-calculated cases:
-  // matrixName, matchScore, mismatchCost, isStandardGeneticCode.
+  // matrixName, matchScore, mismatchCost, geneticCodeName.
   // DNA-versus-protein alignment is indicated by: frameshiftCost >= 0.
   // As a special case, frameshiftCost==0 means no frameshifts.
   // For DNA-versus-protein alignment, letterFreqs2 is not used.
@@ -50,7 +50,7 @@ public:
 	    int insEpen,
 	    int frameshiftCost,
 	    const GeneticCode &geneticCode,
-	    bool isStandardGeneticCode,
+	    const char *geneticCodeName,
 	    int verbosity);
 
   void setSearchSpace(double databaseLength,  // number of database letters

@@ -259,7 +259,6 @@ static void calculateScoreStatistics(const std::string& matrixName,
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
   if (args.temperature > 0 && !matrixName.empty()) canonicalMatrixName = " ";
   bool isGapped = (args.outputType > 1);
-  bool isStandardGeneticCode = (args.geneticCodeFile == "1");
   LOG( "getting E-value parameters..." );
   try{
     const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
@@ -268,8 +267,8 @@ static void calculateScoreStatistics(const std::string& matrixName,
                   alph.letters.c_str(), fwdMatrices.scoresMasked,
 		  stats.letterProbs1(), stats.letterProbs2(), isGapped,
 		  del.openCost, del.growCost, ins.openCost, ins.growCost,
-                  args.frameshiftCost, geneticCode, isStandardGeneticCode,
-		  args.verbosity );
+		  args.frameshiftCost, geneticCode,
+		  args.geneticCodeFile.c_str(), args.verbosity );
     countT m = std::min(refMaxSeqLen, refLetters);
     evaluer.setSearchSpace(refLetters, m, args.numOfStrands());
     if( args.verbosity > 0 ) evaluer.writeParameters( std::cerr );
