@@ -31,15 +31,16 @@ class GeneticCode{
   friend std::istream& operator>>( std::istream& stream, GeneticCode& codon );
 
  public:
-  void fromFile( const std::string& codeTable );
+  // Converts a name to a text string defining a genetic code.
+  // If the name isn't known, it assumes it's a file and tries to read it.
+  static std::string stringFromName(const std::string &name);
+
   void fromString( const std::string& s );
   void codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph );
   void translate( const uchar* beg, const uchar* end, uchar* dest ) const;
 
   uchar translation( const uchar* codon ) const
   { return genome2residue[ codon2number( codon ) ]; }
-
-  static const char* standard;  // the standard genetic code
 };
 
 // Convert an amino-acid (translated) coordinate to a DNA coordinate

@@ -1,38 +1,30 @@
 // Copyright 2009 Toshiyuki Sato
 
 #include "GeneticCode.hh"
+#include "GeneticCodeData.hh"
 #include "Alphabet.hh"
+#include "zio.hh"
+
 #include <cctype>  // toupper, tolower, islower
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 //#include <iostream>  // for debugging
 
+#define COUNTOF(a) (sizeof (a) / sizeof *(a))
+
 namespace cbrc{
 
-const char* GeneticCode::standard = "\
-AAs  =   FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG\n\
-Base1  = TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG\n\
-Base2  = TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG\n\
-Base3  = TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG\n\
-";
-
-//
-void GeneticCode::fromFile( const std::string& tableFile )
-{
-  std::ifstream file(tableFile.c_str(),std::ios::in);
-  if( !file ) throw std::runtime_error("can't open file: " + tableFile);
-  file >> *this;
-
-  return;
+std::string GeneticCode::stringFromName(const std::string &name) {
+  for (size_t i = 0; i < COUNTOF(geneticCodes); ++i)
+    if (name == geneticCodes[i].name)
+      return geneticCodes[i].text;
+  return slurp(name.c_str());
 }
 
-//
 void GeneticCode::fromString( const std::string& s ){
   std::istringstream iss(s);
   iss >> *this;
-
-  return;
 }
 
 //

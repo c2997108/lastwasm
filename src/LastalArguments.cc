@@ -112,7 +112,7 @@ LastalArguments::LastalArguments() :
   maxRepeatDistance(1000),  // sufficiently conservative?
   temperature(-1),  // depends on the score matrix
   gamma(1),
-  geneticCodeFile(""),
+  geneticCodeFile("1"),
   verbosity(0){}
 
 void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
@@ -181,7 +181,7 @@ Miscellaneous options (default settings):\n\
     2=gapless+postmask, 3=always (2 if lastdb -c and Q<5, else 0)\n\
 -w: suppress repeats inside exact matches, offset by <= this distance ("
     + stringify(maxRepeatDistance) + ")\n\
--G: genetic code file\n\
+-G: genetic code (" + geneticCodeFile + ")\n\
 -t: 'temperature' for calculating probabilities (1/lambda)\n\
 -g: 'gamma' parameter for gamma-centroid and LAMA ("
     + stringify(gamma) + ")\n\

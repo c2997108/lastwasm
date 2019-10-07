@@ -40,6 +40,7 @@ trap 'rm -f $db*' EXIT
     # gapless translated alignment & genetic code file
     lastdb -p $db $protSeq
     try lastal -F12 -pBL62 -e40 -G $gc -j1 $db $dnaSeq
+    try lastal -F12 -pBL62 -e40 -G2 -j1 $db $dnaSeq
 
     # subset seed file, soft-masking
     lastdb -c -u ../data/YASS.seed $db $dnaSeq

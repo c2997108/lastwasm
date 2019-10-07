@@ -400,12 +400,14 @@ Miscellaneous options
 
       Use -w0 to turn this off.
 
-  -G FILE
-      Use an alternative genetic code in the specified file.  For an
-      example of the format, see vertebrateMito.gc in the examples
-      directory.  By default, the standard genetic code is used.  This
+  -G GENETIC-CODE
+      Specify the genetic code for translating DNA to protein.  This
       option has no effect unless DNA-versus-protein alignment is
-      selected with option -F.
+      selected with option -F.  Codes are specified by numbers
+      (e.g. 1 = standard, 2 = vertebrate mitochondrial), listed here:
+      https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi.  Any
+      other GENETIC-CODE is assumed to be a file name: for an example
+      of the format, see vertebrateMito.gc in the examples directory.
 
   -t TEMPERATURE
       Parameter for converting between scores and probability ratios.

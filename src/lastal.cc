@@ -259,7 +259,7 @@ static void calculateScoreStatistics(const std::string& matrixName,
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
   if (args.temperature > 0 && !matrixName.empty()) canonicalMatrixName = " ";
   bool isGapped = (args.outputType > 1);
-  bool isStandardGeneticCode = args.geneticCodeFile.empty();
+  bool isStandardGeneticCode = (args.geneticCodeFile == "1");
   LOG( "getting E-value parameters..." );
   try{
     const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
@@ -1160,10 +1160,7 @@ void lastal( int argc, char** argv ){
     if( isDna )  // allow user-defined alphabet
       ERR( "expected protein database, but got DNA" );
     queryAlph.fromString( queryAlph.dna );
-    if( args.geneticCodeFile.empty() )
-      geneticCode.fromString( geneticCode.standard );
-    else
-      geneticCode.fromFile( args.geneticCodeFile );
+    geneticCode.fromString(GeneticCode::stringFromName(args.geneticCodeFile));
     geneticCode.codeTableSet( alph, queryAlph );
     query.initForAppending(3);
   }

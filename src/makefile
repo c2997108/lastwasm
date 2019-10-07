@@ -108,6 +108,9 @@ clean:
 CyclicSubsetSeedData.hh: ../data/*.seed
 	../build/seed-inc.sh ../data/*.seed > $@
 
+GeneticCodeData.hh: ../data/gc.prt
+	../build/gc-inc.sh ../data/gc.prt > $@
+
 ScoreMatrixData.hh: ../data/*.mat
 	../build/mat-inc.sh ../data/*.mat > $@
 
@@ -165,7 +168,8 @@ GappedXdropAligner3framePssm.o GappedXdropAligner3framePssm.o8: GappedXdropAlign
  GappedXdropAligner.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
 GappedXdropAlignerPssm.o GappedXdropAlignerPssm.o8: GappedXdropAlignerPssm.cc GappedXdropAligner.hh \
  ScoreMatrixRow.hh GappedXdropAlignerInl.hh
-GeneticCode.o GeneticCode.o8: GeneticCode.cc GeneticCode.hh Alphabet.hh
+GeneticCode.o GeneticCode.o8: GeneticCode.cc GeneticCode.hh GeneticCodeData.hh \
+ Alphabet.hh zio.hh mcf_zstream.hh
 GreedyXdropAligner.o GreedyXdropAligner.o8: GreedyXdropAligner.cc GreedyXdropAligner.hh \
  ScoreMatrixRow.hh
 LambdaCalculator.o LambdaCalculator.o8: LambdaCalculator.cc LambdaCalculator.hh \
