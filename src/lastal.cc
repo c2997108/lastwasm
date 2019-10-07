@@ -103,19 +103,31 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
 	    scoreMatrix.caseSensitive + alph.size, scoreMat);
 
   mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
-  if (args.temperature < 0) {
-    const char *canonicalMatrixName = ScoreMatrix::canonicalName(matrixName);
-    LOG("calculating matrix probabilities...");
-    stats.calcUnbiased(canonicalMatrixName, scoreMat, alph.size);
-    if (stats.isBad()) {
-      static const char msg[] =
-	"can't calculate probabilities: maybe the mismatch costs are too weak";
-      if (isUseQuality(args.inputFormat) || args.outputType > 3) ERR(msg);
-      LOG(msg);
-      return;
+  if (scoreMatrix.hasLetterFrequencies()) {
+    double *p1 = stats.sizedLetterProbs1(alph.size);
+    double *p2 = stats.sizedLetterProbs2(alph.size);
+    scoreMatrix.calcLetterProbs(p1, p2, alph.size, alph.encode);
+    if (args.temperature < 0) {
+      ERR("not implemented");
+    } else {
+      stats.calcBias(scoreMat, alph.size, args.temperature);
+      LOG("score matrix bias=" << stats.bias());
     }
   } else {
-    stats.calcFromScale(scoreMat, alph.size, args.temperature);
+    if (args.temperature < 0) {
+      const char *canonicalMatrixName = ScoreMatrix::canonicalName(matrixName);
+      LOG("calculating matrix probabilities...");
+      stats.calcUnbiased(canonicalMatrixName, scoreMat, alph.size);
+      if (stats.isBad()) {
+	static const char msg[] = "can't calculate probabilities: "
+	  "maybe the mismatch costs are too weak";
+	if (isUseQuality(args.inputFormat) || args.outputType > 3) ERR(msg);
+	LOG(msg);
+	return;
+      }
+    } else {
+      stats.calcFromScale(scoreMat, alph.size, args.temperature);
+    }
   }
 
   revMatrices.stats = stats;

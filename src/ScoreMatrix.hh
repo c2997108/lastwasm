@@ -44,9 +44,19 @@ struct ScoreMatrix{
 
   void writeCommented( std::ostream& stream ) const;  // write preceded by "#"
 
+  bool hasLetterFrequencies() const
+  { return rowFrequencies.size() && colFrequencies.size(); }
+
+  // store normalized letter frequencies in rowProbs and colProbs
+  void calcLetterProbs(double *rowProbs, double *colProbs,
+		       unsigned alphabetSizeForProbs,
+		       const uchar symbolToIndex[]) const;
+
   std::string rowSymbols;  // row headings (letters)
   std::string colSymbols;  // column headings (letters)
   std::vector< std::vector<int> > cells;  // scores
+  std::vector<double> rowFrequencies;
+  std::vector<double> colFrequencies;
   int caseSensitive[ALPHABET_CAPACITY][ALPHABET_CAPACITY];
   int caseInsensitive[ALPHABET_CAPACITY][ALPHABET_CAPACITY];
   int minScore;

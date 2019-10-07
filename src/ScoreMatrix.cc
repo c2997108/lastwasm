@@ -130,6 +130,39 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
   }
 }
 
+static void calcSomeLetterProbs(const std::string &symbols,
+				const std::vector<double> &freqs,
+				double probs[], unsigned alphabetSizeForProbs,
+				const uchar symbolToIndex[]) {
+  double sum = 0;
+  for (size_t i = 0; i < freqs.size(); ++i) {
+    unsigned j = s2i(symbolToIndex, symbols[i]);
+    if (j < alphabetSizeForProbs) {
+      if (freqs[i] < 0) throw Err("bad score matrix: letter frequency < 0");
+      sum += freqs[i];
+    }
+  }
+  if (sum <= 0) throw Err("bad score matrix: no positive letter frequencies");
+
+  std::fill_n(probs, alphabetSizeForProbs, 0.0);
+
+  for (size_t i = 0; i < freqs.size(); ++i) {
+    unsigned j = s2i(symbolToIndex, symbols[i]);
+    if (j < alphabetSizeForProbs) {
+      probs[j] = freqs[i] / sum;
+    }
+  }
+}
+
+void ScoreMatrix::calcLetterProbs(double rowProbs[], double colProbs[],
+				  unsigned alphabetSizeForProbs,
+				  const uchar symbolToIndex[]) const {
+  calcSomeLetterProbs(rowSymbols, rowFrequencies, rowProbs,
+		      alphabetSizeForProbs, symbolToIndex);
+  calcSomeLetterProbs(colSymbols, colFrequencies, colProbs,
+		      alphabetSizeForProbs, symbolToIndex);
+}
+
 void ScoreMatrix::writeCommented( std::ostream& stream ) const{
   int colWidth = colSymbols.size() < 20 ? 3 : 2;
 
@@ -152,35 +185,63 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
   std::string tmpRowSymbols;
   std::string tmpColSymbols;
   std::vector< std::vector<int> > tmpCells;
-  std::string line;
+  std::vector<double> tmpRowFreqs;
+  std::vector<double> tmpColFreqs;
+  std::string line, word;
 
-  while (getline(stream, line)) {
+  while (stream) {
+    if (!getline(stream, line)) {
+      if (stream.eof() && !stream.bad()) stream.clear(std::ios::eofbit);
+      break;
+    }
     std::istringstream iss(line);
-    char c;
-    if (!(iss >> c)) continue;  // skip blank lines
+    if (!(iss >> word)) continue;  // skip blank lines
     if (tmpColSymbols.empty()) {
-      if (c == '#') continue;  // skip comment lines at the top
+      if (word[0] == '#') continue;  // skip comment lines at the top
       do {
-	tmpColSymbols.push_back(c);
-      } while (iss >> c);
+	if (word.size() > 1) stream.setstate(std::ios::failbit);
+	tmpColSymbols.push_back(word[0]);
+      } while (iss >> word);
     } else {
-      tmpRowSymbols.push_back(c);
-      tmpCells.resize( tmpCells.size() + 1 );
+      std::vector<int> row;
       int score;
-      while( iss >> score ){
-	tmpCells.back().push_back(score);
+      double freq;
+      for (size_t i = 0; i < tmpColSymbols.size(); ++i) {
+	iss >> score;
+	row.push_back(score);
       }
-      if (tmpCells.back().size() != tmpColSymbols.size()) {
-	throw Err("bad score matrix");
+      if (word.size() == 1 && iss) {
+	tmpRowSymbols.push_back(word[0]);
+	tmpCells.push_back(row);
+	if (iss >> freq) {
+	  tmpRowFreqs.push_back(freq);
+	  if (tmpRowFreqs.size() < tmpCells.size()) {
+	    stream.setstate(std::ios::failbit);
+	  }
+	}
+      } else {
+	std::istringstream iss2(line);
+	while (iss2 >> freq) {
+	  tmpColFreqs.push_back(freq);
+	}
+	if (tmpColFreqs.size() > tmpColSymbols.size() || tmpColFreqs.empty()) {
+	  stream.setstate(std::ios::failbit);
+	}
+	break;
       }
     }
   }
 
-  if (stream.eof() && !stream.bad() && !tmpCells.empty()) {
-    stream.clear();
+  if (tmpCells.empty() || tmpRowFreqs.empty() != tmpColFreqs.empty()) {
+    stream.setstate(std::ios::failbit);
+  }
+
+  if (stream) {
     m.rowSymbols.swap(tmpRowSymbols);
     m.colSymbols.swap(tmpColSymbols);
     m.cells.swap(tmpCells);
+    m.rowFrequencies.swap(tmpRowFreqs);
+    m.colFrequencies.swap(tmpColFreqs);
   }
 
   return stream;

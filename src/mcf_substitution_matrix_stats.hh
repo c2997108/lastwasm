@@ -44,6 +44,18 @@ public:
   const double *letterProbs2() const
   { return mLetterProbs2.empty() ? 0 : &mLetterProbs2[0]; }
 
+  // set up an array for writing row-letter probabilities into
+  double *sizedLetterProbs1(unsigned size)
+  { mLetterProbs1.resize(size); return size ? &mLetterProbs1[0] : 0; }
+
+  // set up an array for writing column-letter probabilities into
+  double *sizedLetterProbs2(unsigned size)
+  { mLetterProbs2.resize(size); return size ? &mLetterProbs2[0] : 0; }
+
+  // calculate the bias, given the scale and the letter probabilities
+  // (which need not be homogeneous)
+  void calcBias(const const_int_ptr *scoreMatrix, unsigned size, double scale);
+
   // set scale/lambda and calculate the other values
   void calcFromScale(const const_int_ptr *scoreMatrix, unsigned size,
 		     double scale);
