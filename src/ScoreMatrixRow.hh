@@ -11,11 +11,7 @@
 
 namespace cbrc{
 
-// The row size must be fixed to some value.  It is fixed to 64
-// because: this is big enough for all amino acids, including
-// ambiguous ones, in upper and lower case, and using a power-of-2
-// might be fast.
-enum { scoreMatrixRowSize = 64 };
+enum { scoreMatrixRowSize = ALPHABET_CAPACITY };
 
 typedef int ScoreMatrixRow[scoreMatrixRowSize];
 

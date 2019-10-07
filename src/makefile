@@ -3,6 +3,11 @@ CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 # -Wconversion
 # -fomit-frame-pointer ?
 
+# The number of symbol types that we can keep in sequences (e.g. 20
+# amino acids, plus ambiguous ones, in upper & lower case, plus one
+# delimiter):
+CPPFLAGS = -DALPHABET_CAPACITY=64
+
 CFLAGS = -Wall -O2
 
 alpObj = alp/sls_alignment_evaluer.o alp/sls_pvalues.o		\

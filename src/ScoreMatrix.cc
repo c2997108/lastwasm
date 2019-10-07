@@ -12,8 +12,6 @@
 #include <cctype>  // toupper, tolower
 #include <stddef.h>  // size_t
 
-#define ERR(x) throw std::runtime_error(x)
-
 #define COUNTOF(a) (sizeof (a) / sizeof *(a))
 
 static void makeUppercase(std::string& s) {
@@ -24,6 +22,8 @@ static void makeUppercase(std::string& s) {
 }
 
 namespace cbrc{
+
+typedef std::runtime_error Err;
 
 const char *ScoreMatrix::canonicalName( const std::string& name ){
   for( size_t i = 0; i < COUNTOF(scoreMatrixNicknames); ++i )
@@ -59,7 +59,7 @@ void ScoreMatrix::setMatchMismatch(int matchScore, int mismatchCost,
 void ScoreMatrix::fromString( const std::string& matString ){
   std::istringstream iss(matString);
   iss >> *this;
-  if( !iss ) ERR( "can't read the score matrix" );
+  if (!iss) throw Err("can't read the score matrix");
 }
 
 static unsigned s2i(const uchar symbolToIndex[], uchar c) {
@@ -72,12 +72,14 @@ static void upperAndLowerIndex(unsigned tooBig, const uchar symbolToIndex[],
   upper = symbolToIndex[s];
   lower = symbolToIndex[std::tolower(s)];
   if (upper >= tooBig || lower >= tooBig) {
-    ERR(std::string("bad letter in score matrix: ") + symbol);
+    throw Err(std::string("bad letter in score matrix: ") + symbol);
   }
 }
 
 void ScoreMatrix::init(const uchar symbolToIndex[]) {
-  assert( !rowSymbols.empty() && !colSymbols.empty() );
+  unsigned fastMatrixSize = ALPHABET_CAPACITY;
+  assert(!rowSymbols.empty());
+  assert(!colSymbols.empty());
 
   makeUppercase(rowSymbols);
   makeUppercase(colSymbols);
@@ -93,8 +95,8 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
   }
 
   // set default score = minScore:
-  for( unsigned i = 0; i < MAT; ++i ){
-    for( unsigned j = 0; j < MAT; ++j ){
+  for (unsigned i = 0; i < fastMatrixSize; ++i) {
+    for (unsigned j = 0; j < fastMatrixSize; ++j) {
       caseSensitive[i][j] = minScore;
       caseInsensitive[i][j] = minScore;
     }
@@ -103,8 +105,8 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
   for( size_t i = 0; i < rowSymbols.size(); ++i ){
     for( size_t j = 0; j < colSymbols.size(); ++j ){
       unsigned iu, il, ju, jl;
-      upperAndLowerIndex(MAT, symbolToIndex, rowSymbols[i], iu, il);
-      upperAndLowerIndex(MAT, symbolToIndex, colSymbols[j], ju, jl);
+      upperAndLowerIndex(fastMatrixSize, symbolToIndex, rowSymbols[i], iu, il);
+      upperAndLowerIndex(fastMatrixSize, symbolToIndex, colSymbols[j], ju, jl);
       caseSensitive[iu][jl] = std::min( cells[i][j], 0 );
       caseSensitive[il][ju] = std::min( cells[i][j], 0 );
       caseSensitive[il][jl] = std::min( cells[i][j], 0 );
@@ -119,8 +121,8 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
   // set a hugely negative score for the delimiter symbol:
   uchar delimiter = ' ';
   uchar z = symbolToIndex[delimiter];
-  assert( z < MAT );
-  for( unsigned i = 0; i < MAT; ++i ){
+  assert(z < fastMatrixSize);
+  for (unsigned i = 0; i < fastMatrixSize; ++i) {
     caseSensitive[z][i] = -INF;
     caseSensitive[i][z] = -INF;
     caseInsensitive[z][i] = -INF;
@@ -151,20 +153,17 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
   std::string tmpColSymbols;
   std::vector< std::vector<int> > tmpCells;
   std::string line;
-  int state = 0;
 
-  while( std::getline( stream, line ) ){
+  while (getline(stream, line)) {
     std::istringstream iss(line);
     char c;
-    if( !(iss >> c) ) continue;  // skip blank lines
-    if( state == 0 ){
-      if( c == '#' ) continue;  // skip comment lines at the top
-      do{
+    if (!(iss >> c)) continue;  // skip blank lines
+    if (tmpColSymbols.empty()) {
+      if (c == '#') continue;  // skip comment lines at the top
+      do {
 	tmpColSymbols.push_back(c);
-      }while( iss >> c );
-      state = 1;
-    }
-    else{
+      } while (iss >> c);
+    } else {
       tmpRowSymbols.push_back(c);
       tmpCells.resize( tmpCells.size() + 1 );
       int score;
@@ -172,12 +171,12 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
 	tmpCells.back().push_back(score);
       }
       if (tmpCells.back().size() != tmpColSymbols.size()) {
-	ERR("bad score matrix");
+	throw Err("bad score matrix");
       }
     }
   }
 
-  if( stream.eof() && !stream.bad() && !tmpRowSymbols.empty() ){
+  if (stream.eof() && !stream.bad() && !tmpCells.empty()) {
     stream.clear();
     m.rowSymbols.swap(tmpRowSymbols);
     m.colSymbols.swap(tmpColSymbols);
@@ -261,8 +260,8 @@ void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
 				     double scale,
 				     const double rowSymbolProbs[],
 				     const double colSymbolProbs[]) {
-  int *fastMatrix[MAT];
-  std::copy(caseInsensitive, caseInsensitive + MAT, fastMatrix);
+  int *fastMatrix[ALPHABET_CAPACITY];
+  std::copy(caseInsensitive, caseInsensitive + ALPHABET_CAPACITY, fastMatrix);
 
   char scratch[2] = {0};
 

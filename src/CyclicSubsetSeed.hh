@@ -33,7 +33,7 @@ typedef unsigned char uchar;
 
 class CyclicSubsetSeed{
 public:
-  enum { MAX_LETTERS = 64 };
+  enum { MAX_LETTERS = ALPHABET_CAPACITY };
   enum { DELIMITER = 255 };
 
   // Converts a name to a text string defining one or more seeds.
