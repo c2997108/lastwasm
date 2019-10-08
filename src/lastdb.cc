@@ -109,8 +109,8 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     << '\n';
   f << "alphabet=" << alph << '\n';
   f << "numofsequences=" << sequenceCount << '\n';
-  f << "maxsequencelength=" << maxSeqLen << '\n';
   f << "numofletters=" << letterTotal << '\n';
+  f << "maxsequenceletters=" << maxSeqLen << '\n';
   f << "letterfreqs=";
   for( unsigned i = 0; i < letterCounts.size(); ++i ){
     if( i > 0 ) f << ' ';
@@ -179,7 +179,7 @@ static void preprocessSeqs(MultiSequence &multi,
 // Make one database volume, from one batch of sequences
 void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
 		const LastdbArguments& args, const Alphabet& alph,
-		std::vector<countT>& letterCounts, size_t& maxSeqLenSeen,
+		std::vector<countT>& letterCountsSeen, size_t& maxSeqLenSeen,
 		const TantanMasker& masker, unsigned numOfThreads,
 		const std::string& seedText, const std::string& baseName) {
   size_t numOfIndexes = seeds.size();
@@ -187,18 +187,20 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
   size_t textLength = multi.seqBeg(numOfSequences);
   const uchar* seq = multi.seqReader();
 
-  std::vector<countT> letterCountsInThisVolume(alph.size);
-  alph.count(seq, seq + textLength, &letterCountsInThisVolume[0]);
-  for (unsigned c = 0; c < alph.size; ++c) {
-    letterCounts[c] += letterCountsInThisVolume[c];
+  std::vector<countT> letterCounts(alph.size);
+  size_t maxSeqLen = 0;
+  size_t letterTotal = 0;
+  for (size_t i = 0; i < numOfSequences; ++i) {
+    alph.count(seq + multi.seqBeg(i), seq + multi.seqEnd(i), &letterCounts[0]);
+    size_t t = accumulate(letterCounts.begin(), letterCounts.end(), countT(0));
+    maxSeqLen = std::max(maxSeqLen, t - letterTotal);
+    letterTotal = t;
   }
 
-  size_t maxSeqLenInThisVolume = 0;
-  for (size_t i = 0; i < numOfSequences; ++i) {
-    size_t s = multi.seqLen(i);
-    maxSeqLenInThisVolume = std::max(maxSeqLenInThisVolume, s);
+  for (unsigned c = 0; c < alph.size; ++c) {
+    letterCountsSeen[c] += letterCounts[c];
   }
-  maxSeqLenSeen = std::max(maxSeqLenSeen, maxSeqLenInThisVolume);
+  maxSeqLenSeen = std::max(maxSeqLenSeen, maxSeqLen);
 
   if (args.isCountsOnly) return;
 
@@ -209,7 +211,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
 
   LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
-		maxSeqLenInThisVolume, letterCountsInThisVolume,
+		maxSeqLen, letterCounts,
 		multi.qualsPerLetter(), -1, numOfIndexes, seedText );
   multi.toFiles( baseName );
 

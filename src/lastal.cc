@@ -312,8 +312,8 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alph;
     if( word == "numofsequences" ) iss >> refSequences;
-    if( word == "maxsequencelength" ) iss >> refMaxSeqLen;
     if( word == "numofletters" ) iss >> refLetters;
+    if( word == "maxsequenceletters" ) iss >> refMaxSeqLen;
     if( word == "maxunsortedinterval" ) iss >> minSeedLimit;
     if( word == "keeplowercase" ) iss >> isKeepRefLowercase;
     if( word == "tantansetting" ) iss >> refTantanSetting;
