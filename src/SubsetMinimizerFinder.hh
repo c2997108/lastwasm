@@ -33,18 +33,16 @@ class CyclicSubsetSeed;
 class SubsetMinimizerFinder {
 public:
   void init(const CyclicSubsetSeed &seed,
-	    const uchar *text,
-	    size_t beg,
-	    size_t end);
+	    const uchar *beg,
+	    const uchar *end);
 
    bool isMinimizer(const CyclicSubsetSeed &seed,
-		    const uchar *text,
-		    size_t pos,
-		    size_t end,
+		    const uchar *pos,
+		    const uchar *end,
 		    size_t window);
 
 private:
-  std::vector<size_t> minima;
+  std::vector<const uchar *> minima;
 };
 
 }

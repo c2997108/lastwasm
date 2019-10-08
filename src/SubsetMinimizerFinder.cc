@@ -6,38 +6,33 @@
 namespace cbrc {
 
 void SubsetMinimizerFinder::init(const CyclicSubsetSeed &seed,
-				 const uchar *text,
-				 size_t beg,
-				 size_t end) {
+				 const uchar *beg,
+				 const uchar *end) {
   const uchar *m = seed.firstMap();
-  while (beg < end && m[text[beg]] == CyclicSubsetSeed::DELIMITER) ++beg;
+  while (beg < end && m[*beg] == CyclicSubsetSeed::DELIMITER) ++beg;
   minima.assign(1, beg);
 }
 
 bool SubsetMinimizerFinder::isMinimizer(const CyclicSubsetSeed &seed,
-					const uchar *text,
-					size_t pos,
-					size_t end,
+					const uchar *pos,
+					const uchar *end,
 					size_t window) {
   const uchar *subsetMap = seed.firstMap();
 
   while (true) {
-    size_t currentMinimum = minima[0];
+    const uchar *currentMinimum = minima[0];
     if (currentMinimum > pos) return false;
     if (currentMinimum == pos) return true;
-    size_t newPos = minima.back() + 1;
+    const uchar *newPos = minima.back() + 1;
     if (newPos == end) return false;
-    const uchar *newText = text + newPos;
-    if (subsetMap[*newText] == CyclicSubsetSeed::DELIMITER) {
-      init(seed, text, newPos + 1, end);
+    if (subsetMap[*newPos] == CyclicSubsetSeed::DELIMITER) {
+      init(seed, newPos + 1, end);
       continue;
     }
-    size_t stop = (newPos - currentMinimum >= window);
+    size_t diff = newPos - currentMinimum;
+    size_t stop = (diff >= window);
     size_t i = minima.size();
-    while (i > stop) {
-      size_t oldPos = minima[i - 1];
-      const uchar *oldText = text + oldPos;
-      if (!seed.isLess(newText, oldText, subsetMap)) break;
+    while (i > stop && seed.isLess(newPos, minima[i - 1], subsetMap)) {
       --i;
     }
     minima.resize(i);

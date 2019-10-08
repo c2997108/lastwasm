@@ -15,11 +15,11 @@ void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
   assert(step > 0);
   const uchar *subsetMap = seed.firstMap();
   SubsetMinimizerFinder f;
-  f.init(seed, text, beg, end);
+  f.init(seed, text + beg, text + end);
 
   while (true) {
     if (minimizerWindow > 1) {
-      if (f.isMinimizer(seed, text, beg, end, minimizerWindow))
+      if (f.isMinimizer(seed, text + beg, text + end, minimizerWindow))
 	suffixArray.v.push_back(beg);
     } else {
       if (subsetMap[text[beg]] < CyclicSubsetSeed::DELIMITER)
