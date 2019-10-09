@@ -1,5 +1,5 @@
-# This protein scoring scheme is good at finding somewhat
-# short-and-strong similarities.  (S Henikoff & JG Henikoff, PNAS 1992
+# This protein scoring scheme is good for finding somewhat strong, and
+# short, similarities.  (S Henikoff & JG Henikoff, PNAS 1992
 # 89(22):10915-9).
 
 #nickname BLOSUM80

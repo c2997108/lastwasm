@@ -1,4 +1,4 @@
-# This protein scoring scheme is good for finding short-and-strong
+# This protein scoring scheme is good for finding strong, and short,
 # similarities (MO Dayhoff et al. 1978).
 
 #last -a13 -b3
