@@ -71,15 +71,6 @@ void GappedXdropAligner::init() {
   bestAntidiagonal = 0;
 }
 
-void GappedXdropAligner::initAntidiagonal(std::size_t seq1beg,
-                                          std::size_t scoreEnd,
-                                          std::size_t numCells) {
-  scoreOrigins.push_back(scoreEnd - seq1beg);
-  std::size_t newEnd = scoreEnd + numCells + 1;  // + 1 pad cell
-  resizeScoresIfSmaller(newEnd);
-  scoreEnds.push_back(newEnd);
-}
-
 int GappedXdropAligner::align(const uchar *seq1,
                               const uchar *seq2,
                               bool isForward,

@@ -157,12 +157,6 @@ namespace cbrc{
 	bestPos1 = cur;
       }
     }
-
-    // start of the x-drop region (i.e. number of skipped seq1 letters
-    // before the x-drop region) for this antidiagonal
-    size_t seq1start( size_t antidiagonal ) const {
-      return xa.scoreEndIndex( antidiagonal ) - xa.scoreOrigin( antidiagonal );
-    }
   };
 
 }

@@ -79,15 +79,6 @@ void GappedXdropAligner::init3() {
   bestAntidiagonal = 8;
 }
 
-void GappedXdropAligner::initAntidiagonal3(std::size_t seq1beg,
-                                           std::size_t scoreEnd,
-                                           std::size_t numCells) {
-  scoreOrigins.push_back(scoreEnd - seq1beg + 1);
-  std::size_t newEnd = scoreEnd + numCells + 2;  // + 2 pad cells
-  resizeScoresIfSmaller(newEnd);
-  scoreEnds.push_back(newEnd);
-}
-
 // If seq2beg is the DNA coordinate relative to the start:
 // seq1end = (antidiagonal - 8 - seq2beg) / 3 + 1
 // seq2beg = antidiagonal - 8 - (seq1end - 1) * 3

@@ -169,14 +169,17 @@ class GappedXdropAligner {
   std::size_t numAntidiagonals() const
   { return scoreOrigins.size() - 2; }
 
-  std::size_t scoreOrigin(std::size_t antidiagonal) const
-  { return scoreOrigins[antidiagonal + 2]; }
-
   std::size_t numCellsAndPads(std::size_t antidiagonal) const
   { return scoreEnds[antidiagonal + 3] - scoreEnds[antidiagonal + 2]; }
 
   std::size_t scoreEndIndex(std::size_t antidiagonal) const
   { return scoreEnds[antidiagonal + 2]; }
+
+  // start of the x-drop region (i.e. number of skipped seq1 letters
+  // before the x-drop region) for this antidiagonal
+  std::size_t seq1start(std::size_t antidiagonal) const {
+    return scoreEnds[antidiagonal + 2] - scoreOrigins[antidiagonal + 2];
+  }
 
   // The index in the score vectors, of the previous "horizontal" cell.
   std::size_t hori(std::size_t antidiagonal, std::size_t seq1coordinate) const
@@ -225,7 +228,12 @@ class GappedXdropAligner {
   void init();
 
   void initAntidiagonal(std::size_t seq1beg, std::size_t scoreEnd,
-                        std::size_t numCells);
+                        std::size_t numCells) {
+    scoreOrigins.push_back(scoreEnd - seq1beg);
+    std::size_t newEnd = scoreEnd + numCells + 1;  // + 1 pad cell
+    resizeScoresIfSmaller(newEnd);
+    scoreEnds.push_back(newEnd);
+  }
 
   void updateBest(int &bestScore, int score, std::size_t antidiagonal,
                   const int *x0, const int *x0ori);
@@ -233,7 +241,12 @@ class GappedXdropAligner {
   void init3();
 
   void initAntidiagonal3(std::size_t seq1beg, std::size_t scoreEnd,
-                         std::size_t numCells);
+                         std::size_t numCells) {
+    scoreOrigins.push_back(scoreEnd - seq1beg + 1);
+    std::size_t newEnd = scoreEnd + numCells + 2;  // + 2 pad cells
+    resizeScoresIfSmaller(newEnd);
+    scoreEnds.push_back(newEnd);
+  }
 };
 
 }

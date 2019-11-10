@@ -6,7 +6,8 @@ CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 # The number of symbol types that we can keep in sequences (e.g. 20
 # amino acids, plus ambiguous ones, in upper & lower case, plus one
 # delimiter):
-CPPFLAGS = -DALPHABET_CAPACITY=64
+ALPHABET_CAPACITY = 64
+CPPF = -DALPHABET_CAPACITY=$(ALPHABET_CAPACITY) $(CPPFLAGS)
 
 CFLAGS = -Wall -O2
 
@@ -99,10 +100,10 @@ last-merge-batches: $(MBOBJ)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 .cc.o:
-	$(CXX) -DLAST_INT_TYPE=unsigned $(CPPFLAGS) $(CXXFLAGS) -I. -c -o $@ $<
+	$(CXX) -DLAST_INT_TYPE=unsigned $(CPPF) $(CXXFLAGS) -I. -c -o $@ $<
 
 .cc.o8:
-	$(CXX) -DLAST_INT_TYPE=size_t $(CPPFLAGS) $(CXXFLAGS) -I. -c -o $@ $<
+	$(CXX) -DLAST_INT_TYPE=size_t $(CPPF) $(CXXFLAGS) -I. -c -o $@ $<
 
 .cpp.o:
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

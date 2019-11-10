@@ -135,7 +135,7 @@ namespace cbrc{
     double Z = 0.0;  // partion function of forward values
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const size_t seq1beg = seq1start( k );
+      const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
       const double scale12 = scale[k+1] * scale[k];
       const double scale1  = scale[k+1];
@@ -299,7 +299,7 @@ namespace cbrc{
     double scaledUnit = 1.0;
 
     for( size_t k = numAntidiagonals; k-- > 0; ){
-      const size_t seq1beg = seq1start( k );
+      const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
       const double scale12 = scale[k+1] * scale[k];
       const double scale1  = scale[k+1];
@@ -512,7 +512,7 @@ namespace cbrc{
     for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
-      size_t seq1pos = seq1start( k );
+      size_t seq1pos = xa.seq1start( k );
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
       const size_t h = xa.hori( k, seq1pos );
@@ -572,7 +572,7 @@ namespace cbrc{
     mX2.assign ( numAntidiagonals + 2, 1.0 );
 
     for (size_t k = 0; k < numAntidiagonals; ++k) {
-      size_t seq1pos = seq1start(k);
+      size_t seq1pos = xa.seq1start(k);
       size_t seq2pos = k - seq1pos;
       size_t loopBeg = xa.diag(k, seq1pos);
       size_t loopEnd = loopBeg + xa.numCellsAndPads(k) - 1;
@@ -586,7 +586,7 @@ namespace cbrc{
     for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* X0 = &X[ scoreEnd ];
-      size_t seq1pos = seq1start( k );
+      size_t seq1pos = xa.seq1start( k );
       size_t seq2pos = k - seq1pos;
 
       const double* const x0end = X0 + xa.numCellsAndPads( k );
@@ -749,7 +749,7 @@ namespace cbrc{
     const double eP = EXP(-gap.pairCost / T);
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const size_t seq1beg = seq1start( k );
+      const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
       const double scale12 = scale[k+1] * scale[k];
       const double scale1  = scale[k+1];
