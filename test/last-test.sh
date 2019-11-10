@@ -23,6 +23,9 @@ db=/tmp/last-test
 trap 'rm -f $db*' EXIT
 
 {
+    lastdb $db /dev/null
+    lastal $db /dev/null
+
     # spaced seeds, soft-masking, centroid alignment, matrix file
     lastdb -c -m110 $db $dnaSeq
     try lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -z3400 -e2500 $db $dnaSeq

@@ -56,9 +56,13 @@ public:
   void setSearchSpace(double databaseLength,  // number of database letters
 		      double databaseMaxSeqLength,  // length of longest seq
 		      double numOfStrands) {  // 1 or 2
-    this->databaseSeqLen = databaseMaxSeqLength;
-    if (databaseMaxSeqLength > 0) databaseLength /= databaseMaxSeqLength;
-    this->databaseSeqNum = numOfStrands * databaseLength;
+    if (databaseMaxSeqLength > 0) {
+      databaseSeqLen = databaseMaxSeqLength;
+      databaseSeqNum = databaseLength / databaseMaxSeqLength * numOfStrands;
+    } else {
+      this->databaseSeqLen = 1;  // ALP doesn't like 0
+      this->databaseSeqNum = 0;
+    }
   }
 
   bool isGood() const
