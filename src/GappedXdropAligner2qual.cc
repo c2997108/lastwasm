@@ -28,28 +28,28 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 				     insExistenceCost, insExtensionCost,
 				     gapUnalignedCost);
 
-  std::size_t maxSeq1begs[] = { 0, 9 };
-  std::size_t minSeq1ends[] = { 1, 0 };
+  size_t maxSeq1begs[] = { 0, 9 };
+  size_t minSeq1ends[] = { 1, 0 };
 
   int bestScore = 0;
   int bestEdgeScore = -INF;
-  std::size_t bestEdgeAntidiagonal = 0;
-  std::size_t bestEdgeSeq1position = 0;
+  size_t bestEdgeAntidiagonal = 0;
+  size_t bestEdgeSeq1position = 0;
 
   init();
 
-  for (std::size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
-    std::size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
-    std::size_t seq1end = std::max(minSeq1ends[0], minSeq1ends[1]);
+  for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
+    size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
+    size_t seq1end = std::max(minSeq1ends[0], minSeq1ends[1]);
 
     if (seq1beg >= seq1end) break;
 
-    std::size_t scoreEnd = scoreEnds.back();
-    std::size_t numCells = seq1end - seq1beg;
+    size_t scoreEnd = scoreEnds.back();
+    size_t numCells = seq1end - seq1beg;
 
     initAntidiagonal(seq1beg, scoreEnd, numCells);
 
-    std::size_t seq2pos = antidiagonal - seq1beg;
+    size_t seq2pos = antidiagonal - seq1beg;
 
     const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg - 1;
     const uchar *q1 = isForward ? qual1 + seq1beg : qual1 - seq1beg - 1;

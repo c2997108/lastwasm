@@ -18,28 +18,28 @@ int GappedXdropAligner::align3pssm(const uchar *seq,
                                    int maxMatchScore) {
   bool isAffine = gapUnalignedCost >= gapExistenceCost + 2 * gapExtensionCost;
 
-  std::size_t maxSeq1begs[] = { 9, 9, 0, 9, 9, 9, 9 };
-  std::size_t minSeq1ends[] = { 0, 0, 1, 0, 0, 0, 0 };
+  size_t maxSeq1begs[] = { 9, 9, 0, 9, 9, 9, 9 };
+  size_t minSeq1ends[] = { 0, 0, 1, 0, 0, 0, 0 };
 
   int bestScore = 0;
 
   init3();
 
-  for (std::size_t antidiagonal = 7; /* noop */; ++antidiagonal) {
-    std::size_t seq1beg = arrayMin(maxSeq1begs);
-    std::size_t seq1end = arrayMax(minSeq1ends);
+  for (size_t antidiagonal = 7; /* noop */; ++antidiagonal) {
+    size_t seq1beg = arrayMin(maxSeq1begs);
+    size_t seq1end = arrayMax(minSeq1ends);
 
     if (seq1beg >= seq1end) break;
 
-    std::size_t scoreEnd = scoreEnds.back();
-    std::size_t numCells = seq1end - seq1beg;
+    size_t scoreEnd = scoreEnds.back();
+    size_t numCells = seq1end - seq1beg;
 
     initAntidiagonal3(seq1beg, scoreEnd, numCells);
 
     const ScoreMatrixRow *pssm =
         whichFrame(antidiagonal, pssmFrame0, pssmFrame1, pssmFrame2);
 
-    std::size_t seq2pos = (antidiagonal - 7) / 3 - seq1beg;
+    size_t seq2pos = (antidiagonal - 7) / 3 - seq1beg;
 
     const uchar *s1 = isForward ? seq + seq1beg : seq - seq1beg - 1;
     const ScoreMatrixRow *s2 = isForward ? pssm + seq2pos : pssm - seq2pos - 1;

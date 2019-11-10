@@ -50,7 +50,7 @@ template<typename T> T maxValue(T a, T b, T c) {
 }
 
 template<typename T>
-T whichFrame(std::size_t antidiagonal, T frame0, T frame1, T frame2) {
+T whichFrame(size_t antidiagonal, T frame0, T frame1, T frame2) {
   switch (antidiagonal % 3) {
     case 0: return frame1;  // the +1 frame
     case 1: return frame2;  // the -1 frame
@@ -95,11 +95,11 @@ inline void checkGappedXdropScore(int bestScore) {
 */
 
 inline void updateBest1(int &bestScore,
-			std::size_t &bestAntidiagonal,
-			std::size_t &bestSeq1position,
+			size_t &bestAntidiagonal,
+			size_t &bestSeq1position,
 			int score,
-			std::size_t antidiagonal,
-			std::size_t seq1position) {
+			size_t antidiagonal,
+			size_t seq1position) {
   if (score > bestScore) {
     bestScore = score;
     bestAntidiagonal = antidiagonal;
@@ -108,17 +108,17 @@ inline void updateBest1(int &bestScore,
 }
 
 inline void GappedXdropAligner::updateBest(int &bestScore, int score,
-                                           std::size_t antidiagonal,
+                                           size_t antidiagonal,
                                            const int *x0, const int *x0base) {
   if (score > bestScore) {
     bestScore = score;
     bestAntidiagonal = antidiagonal;
-    bestSeq1position = static_cast<std::size_t>(x0 - x0base);
+    bestSeq1position = static_cast<size_t>(x0 - x0base);
   }
 }
 
 inline void updateMaxScoreDrop(int &maxScoreDrop,
-                               std::size_t numCells, int maxMatchScore) {
+                               size_t numCells, int maxMatchScore) {
   // If the current antidiagonal touches a sentinel/delimiter, then
   // maxMatches is the maximum possible number of matches starting
   // from the next antidiagonal.
@@ -126,10 +126,9 @@ inline void updateMaxScoreDrop(int &maxScoreDrop,
   maxScoreDrop = std::min(maxScoreDrop, maxMatches * maxMatchScore - 1);
 }
 
-inline void updateFiniteEdges(std::size_t *maxSeq1begs,
-                              std::size_t *minSeq1ends,
+inline void updateFiniteEdges(size_t *maxSeq1begs, size_t *minSeq1ends,
                               const int *x0base, const int *x0end,
-                              std::size_t numCells) {
+                              size_t numCells) {
   const int *x0beg = x0end - numCells;
 
   maxSeq1begs[0] = maxSeq1begs[1] + 1;
@@ -139,10 +138,9 @@ inline void updateFiniteEdges(std::size_t *maxSeq1begs,
   minSeq1ends[1] = finiteEnd(x0beg, x0end) - x0base + 1;
 }
 
-inline void updateFiniteEdges3(std::size_t *maxSeq1begs,
-                               std::size_t *minSeq1ends,
+inline void updateFiniteEdges3(size_t *maxSeq1begs, size_t *minSeq1ends,
                                const int *x0base, const int *x0end,
-                               std::size_t numCells) {
+                               size_t numCells) {
   const int *x0beg = x0end - numCells;
 
   maxSeq1begs[0] = maxSeq1begs[1];

@@ -48,7 +48,7 @@
 
 #include "ScoreMatrixRow.hh"
 
-#include <cstddef>  // size_t
+#include <stddef.h>  // size_t
 #include <vector>
 
 namespace cbrc {
@@ -107,9 +107,9 @@ class GappedXdropAligner {
   // and length are returned in the first 3 parameters.  If there are
   // no more chunks, the 3 parameters are unchanged and "false" is
   // returned.
-  bool getNextChunk(std::size_t &end1,
-                    std::size_t &end2,
-                    std::size_t &length,
+  bool getNextChunk(size_t &end1,
+                    size_t &end2,
+                    size_t &length,
 		    int delExistenceCost,
 		    int delExtensionCost,
 		    int insExistenceCost,
@@ -154,9 +154,9 @@ class GappedXdropAligner {
   // end2 receives a DNA coordinate relative to the in-frame start.
   // The length parameter receives the number of residues/codons, not
   // bases.
-  bool getNextChunk3(std::size_t &end1,
-                     std::size_t &end2,
-                     std::size_t &length,
+  bool getNextChunk3(size_t &end1,
+                     size_t &end2,
+                     size_t &length,
                      int gapExistenceCost,
                      int gapExtensionCost,
                      int gapUnalignedCost,
@@ -166,43 +166,42 @@ class GappedXdropAligner {
   // code gets updated, it might make sense to change these functions too.
 
   // The number of antidiagonals, excluding dummy ones at the beginning.
-  std::size_t numAntidiagonals() const
+  size_t numAntidiagonals() const
   { return scoreOrigins.size() - 2; }
 
-  std::size_t numCellsAndPads(std::size_t antidiagonal) const
+  size_t numCellsAndPads(size_t antidiagonal) const
   { return scoreEnds[antidiagonal + 3] - scoreEnds[antidiagonal + 2]; }
 
-  std::size_t scoreEndIndex(std::size_t antidiagonal) const
+  size_t scoreEndIndex(size_t antidiagonal) const
   { return scoreEnds[antidiagonal + 2]; }
 
   // start of the x-drop region (i.e. number of skipped seq1 letters
   // before the x-drop region) for this antidiagonal
-  std::size_t seq1start(std::size_t antidiagonal) const {
-    return scoreEnds[antidiagonal + 2] - scoreOrigins[antidiagonal + 2];
-  }
+  size_t seq1start(size_t antidiagonal) const
+  { return scoreEnds[antidiagonal + 2] - scoreOrigins[antidiagonal + 2]; }
 
   // The index in the score vectors, of the previous "horizontal" cell.
-  std::size_t hori(std::size_t antidiagonal, std::size_t seq1coordinate) const
+  size_t hori(size_t antidiagonal, size_t seq1coordinate) const
   { return scoreOrigins[antidiagonal + 1] + seq1coordinate; }
 
   // The index in the score vectors, of the previous "vertical" cell.
-  std::size_t vert(std::size_t antidiagonal, std::size_t seq1coordinate) const
+  size_t vert(size_t antidiagonal, size_t seq1coordinate) const
   { return scoreOrigins[antidiagonal + 1] + seq1coordinate + 1; }
 
   // The index in the score vectors, of the previous "diagonal" cell.
-  std::size_t diag(std::size_t antidiagonal, std::size_t seq1coordinate) const
+  size_t diag(size_t antidiagonal, size_t seq1coordinate) const
   { return scoreOrigins[antidiagonal] + seq1coordinate; }
 
   // The index in the score vectors, of the previous in-frame horizontal cell.
-  std::size_t hori3(std::size_t antidiagonal, std::size_t seq1coordinate) const
+  size_t hori3(size_t antidiagonal, size_t seq1coordinate) const
   { return scoreOrigins[antidiagonal - 3] + seq1coordinate; }
 
   // The index in the score vectors, of the previous in-frame vertical cell.
-  std::size_t vert3(std::size_t antidiagonal, std::size_t seq1coordinate) const
+  size_t vert3(size_t antidiagonal, size_t seq1coordinate) const
   { return scoreOrigins[antidiagonal - 3] + seq1coordinate + 1; }
 
   // The index in the score vectors, of the previous in-frame diagonal cell.
-  std::size_t diag3(std::size_t antidiagonal, std::size_t seq1coordinate) const
+  size_t diag3(size_t antidiagonal, size_t seq1coordinate) const
   { return scoreOrigins[antidiagonal - 6] + seq1coordinate; }
 
  private:
@@ -210,14 +209,14 @@ class GappedXdropAligner {
   std::vector<int> yScores;  // best score ending with insertion in seq1
   std::vector<int> zScores;  // best score ending with insertion in seq2
 
-  std::vector<std::size_t> scoreOrigins;  // score origin for each antidiagonal
-  std::vector<std::size_t> scoreEnds;  // score end pos for each antidiagonal
+  std::vector<size_t> scoreOrigins;  // score origin for each antidiagonal
+  std::vector<size_t> scoreEnds;  // score end pos for each antidiagonal
 
   // Our position during the trace-back:
-  std::size_t bestAntidiagonal;
-  std::size_t bestSeq1position;
+  size_t bestAntidiagonal;
+  size_t bestSeq1position;
 
-  void resizeScoresIfSmaller(std::size_t size) {
+  void resizeScoresIfSmaller(size_t size) {
     if (xScores.size() < size) {
       xScores.resize(size);
       yScores.resize(size);
@@ -227,23 +226,21 @@ class GappedXdropAligner {
 
   void init();
 
-  void initAntidiagonal(std::size_t seq1beg, std::size_t scoreEnd,
-                        std::size_t numCells) {
+  void initAntidiagonal(size_t seq1beg, size_t scoreEnd, size_t numCells) {
     scoreOrigins.push_back(scoreEnd - seq1beg);
-    std::size_t newEnd = scoreEnd + numCells + 1;  // + 1 pad cell
+    size_t newEnd = scoreEnd + numCells + 1;  // + 1 pad cell
     resizeScoresIfSmaller(newEnd);
     scoreEnds.push_back(newEnd);
   }
 
-  void updateBest(int &bestScore, int score, std::size_t antidiagonal,
+  void updateBest(int &bestScore, int score, size_t antidiagonal,
                   const int *x0, const int *x0ori);
 
   void init3();
 
-  void initAntidiagonal3(std::size_t seq1beg, std::size_t scoreEnd,
-                         std::size_t numCells) {
+  void initAntidiagonal3(size_t seq1beg, size_t scoreEnd, size_t numCells) {
     scoreOrigins.push_back(scoreEnd - seq1beg + 1);
-    std::size_t newEnd = scoreEnd + numCells + 2;  // + 2 pad cells
+    size_t newEnd = scoreEnd + numCells + 2;  // + 2 pad cells
     resizeScoresIfSmaller(newEnd);
     scoreEnds.push_back(newEnd);
   }

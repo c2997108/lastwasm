@@ -7,7 +7,6 @@
 #include "mcf_gap_costs.hh"
 #include "SegmentPair.hh"
 #include "OneQualityScoreMatrix.hh"
-#include <stddef.h>  // size_t
 #include <vector>
 #include <iostream> // for debug
 

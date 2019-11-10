@@ -106,28 +106,28 @@ int GappedXdropAligner::align3(const uchar *seq1,
                                int maxMatchScore) {
   bool isAffine = gapUnalignedCost >= gapExistenceCost + 2 * gapExtensionCost;
 
-  std::size_t maxSeq1begs[] = { 9, 9, 0, 9, 9, 9, 9 };
-  std::size_t minSeq1ends[] = { 0, 0, 1, 0, 0, 0, 0 };
+  size_t maxSeq1begs[] = { 9, 9, 0, 9, 9, 9, 9 };
+  size_t minSeq1ends[] = { 0, 0, 1, 0, 0, 0, 0 };
 
   int bestScore = 0;
 
   init3();
 
-  for (std::size_t antidiagonal = 7; /* noop */; ++antidiagonal) {
-    std::size_t seq1beg = arrayMin(maxSeq1begs);
-    std::size_t seq1end = arrayMax(minSeq1ends);
+  for (size_t antidiagonal = 7; /* noop */; ++antidiagonal) {
+    size_t seq1beg = arrayMin(maxSeq1begs);
+    size_t seq1end = arrayMax(minSeq1ends);
 
     if (seq1beg >= seq1end) break;
 
-    std::size_t scoreEnd = scoreEnds.back();
-    std::size_t numCells = seq1end - seq1beg;
+    size_t scoreEnd = scoreEnds.back();
+    size_t numCells = seq1end - seq1beg;
 
     initAntidiagonal3(seq1beg, scoreEnd, numCells);
 
     const uchar *seq2 =
         whichFrame(antidiagonal, seq2frame0, seq2frame1, seq2frame2);
 
-    std::size_t seq2pos = (antidiagonal - 7) / 3 - seq1beg;
+    size_t seq2pos = (antidiagonal - 7) / 3 - seq1beg;
 
     const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg - 1;
     const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos - 1;
@@ -228,9 +228,9 @@ int GappedXdropAligner::align3(const uchar *seq1,
   return bestScore;
 }
 
-bool GappedXdropAligner::getNextChunk3(std::size_t &end1,
-                                       std::size_t &end2,
-                                       std::size_t &length,
+bool GappedXdropAligner::getNextChunk3(size_t &end1,
+                                       size_t &end2,
+                                       size_t &length,
                                        int gapExistenceCost,
                                        int gapExtensionCost,
                                        int gapUnalignedCost,
@@ -252,11 +252,11 @@ bool GappedXdropAligner::getNextChunk3(std::size_t &end1,
     assert(bestAntidiagonal >= 7);
     assert(bestSeq1position * 3 <= bestAntidiagonal - 7);
 
-    std::size_t h = hori3(bestAntidiagonal, bestSeq1position);
-    std::size_t v = vert3(bestAntidiagonal, bestSeq1position);
-    std::size_t d = diag3(bestAntidiagonal, bestSeq1position);
-    std::size_t r = diag3(bestAntidiagonal + 1, bestSeq1position);
-    std::size_t f = diag3(bestAntidiagonal - 1, bestSeq1position);
+    size_t h = hori3(bestAntidiagonal, bestSeq1position);
+    size_t v = vert3(bestAntidiagonal, bestSeq1position);
+    size_t d = diag3(bestAntidiagonal, bestSeq1position);
+    size_t r = diag3(bestAntidiagonal + 1, bestSeq1position);
+    size_t f = diag3(bestAntidiagonal - 1, bestSeq1position);
 
     int x = xScores[d];
     int y = yScores[h] - gapExtensionCost;
