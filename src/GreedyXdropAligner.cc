@@ -54,11 +54,6 @@ int GreedyXdropAligner::align(const uchar *seq1,
   const int lookBack = (maxScoreDrop + halfMatchScore) / differenceCost + 1;
   const int minScore0gain = lookBack * differenceCost - maxScoreDrop;
 
-  if (!isForward) {
-    --seq1;
-    --seq2;
-  }
-
   minScore0s.assign(lookBack, 0);
 
   rowOrigins.resize(1);

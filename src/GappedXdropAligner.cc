@@ -109,8 +109,8 @@ int GappedXdropAligner::align(const uchar *seq1,
 
     size_t seq2pos = antidiagonal - seq1beg;
 
-    const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg - 1;
-    const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos - 1;
+    const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
+    const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
 
     if (!globality && isDelimiter(*s2, *scorer))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);

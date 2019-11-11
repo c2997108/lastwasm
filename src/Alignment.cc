@@ -328,6 +328,11 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     return;
   }
 
+  if (!isForward) {
+    --start1;
+    --start2;
+  }
+
   int extensionScore =
     isGreedy  ? greedyAligner.align( seq1 + start1, seq2 + start2,
 				     isForward, sm, maxDrop, alph.size )
@@ -371,10 +376,6 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if( outputType > 3 ){  // calculate match probabilities
     assert( !isGreedy );
     assert( !sm2qual );
-    if (!isForward) {
-      --start1;
-      --start2;
-    }
     centroid.doForwardBackwardAlgorithm(seq1, seq2, start1, start2, isForward,
 					gap, globality);
 

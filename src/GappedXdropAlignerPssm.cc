@@ -42,8 +42,8 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 
     size_t seq2pos = antidiagonal - seq1beg;
 
-    const uchar *s1 = isForward ? seq + seq1beg : seq - seq1beg - 1;
-    const ScoreMatrixRow *s2 = isForward ? pssm + seq2pos : pssm - seq2pos - 1;
+    const uchar *s1 = isForward ? seq + seq1beg : seq - seq1beg;
+    const ScoreMatrixRow *s2 = isForward ? pssm + seq2pos : pssm - seq2pos;
 
     if (!globality && isDelimiter(0, *s2))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);

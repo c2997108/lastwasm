@@ -3,8 +3,7 @@
 // These routines extend an alignment in a given direction (forward or
 // reverse) from given start points in two sequences.
 
-// Forward alignments begin at the given start points, whereas reverse
-// alignments begin one-before the given start points.
+// The start points point at the first positions we'll try to align.
 
 // To use: first call "align", which calculates the alignment but only
 // returns its score.  To get the actual alignment, call

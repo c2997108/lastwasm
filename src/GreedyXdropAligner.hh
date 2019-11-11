@@ -7,8 +7,7 @@
 // aligning DNA sequences" by Z Zhang, S Schwartz, L Wagner, W Miller,
 // J Comput Biol. 2000 7(1-2):203-214.
 
-// Forward alignments begin at the given start points, whereas reverse
-// alignments begin one-before the given start points.
+// The start points point at the first positions we'll try to align.
 
 // To use: first call "align", which calculates the alignment but only
 // returns its score.  To get the actual alignment, call
