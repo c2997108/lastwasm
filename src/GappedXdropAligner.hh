@@ -46,6 +46,7 @@
 #define GAPPED_XDROP_ALIGNER_HH
 
 #include "mcf_contiguous_queue.hh"
+#include "mcf_simd.hh"
 #include "ScoreMatrixRow.hh"
 
 #include <stddef.h>  // size_t
@@ -59,6 +60,8 @@ typedef unsigned char uchar;
 typedef const int *const_int_ptr;
 
 class TwoQualityScoreMatrix;
+
+const int xdropPadLen = simdLen;
 
 class GappedXdropAligner {
  public:
@@ -180,8 +183,10 @@ class GappedXdropAligner {
 
   // start of the x-drop region (i.e. number of skipped seq1 letters
   // before the x-drop region) for this antidiagonal
-  size_t seq1start(size_t antidiagonal) const
-  { return scoreEnds[antidiagonal + 2] + 1 - scoreOrigins[antidiagonal + 2]; }
+  size_t seq1start(size_t antidiagonal) const {
+    size_t a = antidiagonal + 2;
+    return scoreEnds[a] + xdropPadLen - scoreOrigins[a];
+  }
 
   // The index in the score vectors, of the previous "horizontal" cell.
   size_t hori(size_t antidiagonal, size_t seq1coordinate) const
@@ -234,7 +239,7 @@ class GappedXdropAligner {
 
   void initAntidiagonal(size_t seq1end, size_t scoreEnd) {
     scoreOrigins.push_back(scoreEnd - seq1end);
-    resizeScoresIfSmaller(scoreEnd);
+    resizeScoresIfSmaller(scoreEnd + (simdLen-1));
     scoreEnds.push_back(scoreEnd);
   }
 

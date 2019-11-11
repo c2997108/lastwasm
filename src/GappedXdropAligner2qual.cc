@@ -24,6 +24,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
                                    int gapUnalignedCost,
                                    int maxScoreDrop,
                                    int maxMatchScore) {
+  const SimdInt mNegInf = simdSet1(-INF);
   const bool isAffine = isAffineGaps(delExistenceCost, delExtensionCost,
 				     insExistenceCost, insExtensionCost,
 				     gapUnalignedCost);
@@ -46,7 +47,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     size_t scoreEnd = scoreEnds.back();
     size_t numCells = seq1end - seq1beg;
 
-    initAntidiagonal(seq1end, scoreEnd + numCells + 1);  // + 1 pad cell
+    initAntidiagonal(seq1end, scoreEnd + xdropPadLen + numCells);
 
     size_t seq2pos = antidiagonal - seq1beg;
 
@@ -67,10 +68,11 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     const int *z1 = &zScores[vert(antidiagonal, seq1beg)];
     const int *x2 = &xScores[diag(antidiagonal, seq1beg)];
 
-    const int *x0last = x0 + numCells;
+    simdStore(x0, mNegInf);  x0 += xdropPadLen;
+    simdStore(y0, mNegInf);  y0 += xdropPadLen;
+    simdStore(z0, mNegInf);  z0 += xdropPadLen;
 
-    *x0++ = *y0++ = *z0++ = -INF;  // add one pad cell
-
+    const int *x0last = x0 + numCells - 1;
     const int *x0base = x0 - seq1beg;
 
     if (globality && isDelimiter2qual(*s2)) {

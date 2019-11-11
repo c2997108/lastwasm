@@ -1,5 +1,6 @@
-CXXFLAGS = -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
--Wcast-align -pedantic -g -std=c++11 -pthread -DHAS_CXX_THREADS
+CXXFLAGS = -msse4.1 -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum	\
+-Wundef -Wcast-align -pedantic -g -std=c++11 -pthread		\
+-DHAS_CXX_THREADS
 # -Wconversion
 # -fomit-frame-pointer ?
 
@@ -145,7 +146,7 @@ depend:
 	mv m makefile
 Alignment.o Alignment.o8: Alignment.cc Alignment.hh ScoreMatrixRow.hh SegmentPair.hh \
  mcf_gap_costs.hh Alphabet.hh Centroid.hh GappedXdropAligner.hh \
- mcf_contiguous_queue.hh OneQualityScoreMatrix.hh \
+ mcf_contiguous_queue.hh mcf_simd.hh OneQualityScoreMatrix.hh \
  mcf_substitution_matrix_stats.hh GeneticCode.hh GreedyXdropAligner.hh \
  TwoQualityScoreMatrix.hh
 AlignmentPot.o AlignmentPot.o8: AlignmentPot.cc AlignmentPot.hh Alignment.hh \
@@ -158,26 +159,28 @@ AlignmentWrite.o AlignmentWrite.o8: AlignmentWrite.cc Alignment.hh ScoreMatrixRo
  Alphabet.hh
 Alphabet.o Alphabet.o8: Alphabet.cc Alphabet.hh
 Centroid.o Centroid.o8: Centroid.cc Centroid.hh GappedXdropAligner.hh \
- mcf_contiguous_queue.hh ScoreMatrixRow.hh mcf_gap_costs.hh \
+ mcf_contiguous_queue.hh mcf_simd.hh ScoreMatrixRow.hh mcf_gap_costs.hh \
  SegmentPair.hh OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
  GappedXdropAlignerInl.hh
 CyclicSubsetSeed.o CyclicSubsetSeed.o8: CyclicSubsetSeed.cc CyclicSubsetSeed.hh \
  CyclicSubsetSeedData.hh zio.hh mcf_zstream.hh stringify.hh
 DiagonalTable.o DiagonalTable.o8: DiagonalTable.cc DiagonalTable.hh
 GappedXdropAligner.o GappedXdropAligner.o8: GappedXdropAligner.cc GappedXdropAligner.hh \
- mcf_contiguous_queue.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
+ mcf_contiguous_queue.hh mcf_simd.hh ScoreMatrixRow.hh \
+ GappedXdropAlignerInl.hh
 GappedXdropAligner2qual.o GappedXdropAligner2qual.o8: GappedXdropAligner2qual.cc \
- GappedXdropAligner.hh mcf_contiguous_queue.hh ScoreMatrixRow.hh \
- GappedXdropAlignerInl.hh TwoQualityScoreMatrix.hh \
+ GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_simd.hh \
+ ScoreMatrixRow.hh GappedXdropAlignerInl.hh TwoQualityScoreMatrix.hh \
  mcf_substitution_matrix_stats.hh
 GappedXdropAligner3frame.o GappedXdropAligner3frame.o8: GappedXdropAligner3frame.cc \
- GappedXdropAligner.hh mcf_contiguous_queue.hh ScoreMatrixRow.hh \
- GappedXdropAlignerInl.hh
+ GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_simd.hh \
+ ScoreMatrixRow.hh GappedXdropAlignerInl.hh
 GappedXdropAligner3framePssm.o GappedXdropAligner3framePssm.o8: GappedXdropAligner3framePssm.cc \
- GappedXdropAligner.hh mcf_contiguous_queue.hh ScoreMatrixRow.hh \
- GappedXdropAlignerInl.hh
+ GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_simd.hh \
+ ScoreMatrixRow.hh GappedXdropAlignerInl.hh
 GappedXdropAlignerPssm.o GappedXdropAlignerPssm.o8: GappedXdropAlignerPssm.cc GappedXdropAligner.hh \
- mcf_contiguous_queue.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
+ mcf_contiguous_queue.hh mcf_simd.hh ScoreMatrixRow.hh \
+ GappedXdropAlignerInl.hh
 GeneticCode.o GeneticCode.o8: GeneticCode.cc GeneticCode.hh GeneticCodeData.hh \
  Alphabet.hh zio.hh mcf_zstream.hh
 GreedyXdropAligner.o GreedyXdropAligner.o8: GreedyXdropAligner.cc GreedyXdropAligner.hh \
@@ -241,11 +244,11 @@ lastal.o lastal.o8: lastal.cc last.hh Alphabet.hh MultiSequence.hh \
  alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
  GeneticCode.hh SubsetMinimizerFinder.hh SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh Centroid.hh GappedXdropAligner.hh \
- mcf_contiguous_queue.hh mcf_gap_costs.hh SegmentPair.hh AlignmentPot.hh \
- Alignment.hh SegmentPairPot.hh ScoreMatrix.hh TantanMasker.hh tantan.hh \
- DiagonalTable.hh GreedyXdropAligner.hh gaplessXdrop.hh \
- gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh mcf_zstream.hh \
- threadUtil.hh version.hh
+ mcf_contiguous_queue.hh mcf_simd.hh mcf_gap_costs.hh SegmentPair.hh \
+ AlignmentPot.hh Alignment.hh SegmentPairPot.hh ScoreMatrix.hh \
+ TantanMasker.hh tantan.hh DiagonalTable.hh GreedyXdropAligner.hh \
+ gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh \
+ mcf_zstream.hh threadUtil.hh version.hh
 lastdb.o lastdb.o8: lastdb.cc last.hh Alphabet.hh MultiSequence.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
  SequenceFormat.hh qualityScoreUtil.hh LastdbArguments.hh \

@@ -108,7 +108,7 @@ namespace cbrc{
       fI.resize( n );
       fP.resize( n );
     }
-    fM[0] = 1;
+    fM[xdropPadLen-1] = 1;
   }
 
   void Centroid::initBackwardMatrix(){
@@ -163,7 +163,9 @@ namespace cbrc{
 
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
-      *fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;  // add one pad cell
+      for (int i = 0; i < xdropPadLen; ++i) {
+	*fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;
+      }
 
       if (! isPssm) {
 	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
@@ -310,10 +312,10 @@ namespace cbrc{
       const double seP = eP * scale12;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
-      const double* bM0 = &bM[ scoreEnd + 1 ];
-      const double* bD0 = &bD[ scoreEnd + 1 ];
-      const double* bI0 = &bI[ scoreEnd + 1 ];
-      const double* bP0 = &bP[ scoreEnd + 1 ];
+      const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
+      const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
+      const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
+      const double* bP0 = &bP[ scoreEnd + xdropPadLen ];
 
       const size_t horiBeg = xa.hori( k, seq1beg );
       const size_t vertBeg = xa.vert( k, seq1beg );
@@ -327,7 +329,7 @@ namespace cbrc{
       const double* fI1 = &fI[ vertBeg ];
       const double* fP2 = &fP[ diagBeg ];
 
-      const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
+      const double* bM0last = bM0 + xa.numCellsAndPads( k ) - xdropPadLen - 1;
 
       double* mDout = &mD[ seq1beg ];
       double* mIout = &mI[ seq2pos ];
@@ -522,7 +524,9 @@ namespace cbrc{
       const double* fM2 = &fM[d];
       const double* bM2 = &bM[d];
 
-      *X0++ = -DINF;		// add one pad cell
+      for (int i = 0; i < xdropPadLen; ++i) {
+	*X0++ = -DINF;
+      }
 
       do{
 	const double matchProb = (*fM2++) * (*bM2++);
@@ -575,7 +579,7 @@ namespace cbrc{
       size_t seq1pos = xa.seq1start(k);
       size_t seq2pos = k - seq1pos;
       size_t loopBeg = xa.diag(k, seq1pos);
-      size_t loopEnd = loopBeg + xa.numCellsAndPads(k) - 1;
+      size_t loopEnd = loopBeg + xa.numCellsAndPads(k) - xdropPadLen;
       for (size_t i = loopBeg; i < loopEnd; ++i) {
 	const double matchProb = fM[i] * bM[i];
 	mX1[seq1pos++] -= matchProb;
@@ -597,7 +601,9 @@ namespace cbrc{
       const double* fM2 = &fM[d];
       const double* bM2 = &bM[d];
 
-      *X0++ = -DINF;		// add one pad cell
+      for (int i = 0; i < xdropPadLen; ++i) {
+	*X0++ = -DINF;
+      }
 
       do{
 	const double matchProb = (*fM2++) * (*bM2++);
@@ -759,10 +765,10 @@ namespace cbrc{
       const double seP = eP * scale12;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
-      const double* bM0 = &bM[ scoreEnd + 1 ];
-      const double* bD0 = &bD[ scoreEnd + 1 ];
-      const double* bI0 = &bI[ scoreEnd + 1 ];
-      const double* bP0 = &bP[ scoreEnd + 1 ];
+      const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
+      const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
+      const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
+      const double* bP0 = &bP[ scoreEnd + xdropPadLen ];
 
       const size_t horiBeg = xa.hori( k, seq1beg );
       const size_t vertBeg = xa.vert( k, seq1beg );
@@ -772,7 +778,7 @@ namespace cbrc{
       const double* fM2 = &fM[ diagBeg ];
       const double* fP2 = &fP[ diagBeg ];
 
-      const double* bM0last = bM0 + xa.numCellsAndPads( k ) - 2;
+      const double* bM0last = bM0 + xa.numCellsAndPads( k ) - xdropPadLen - 1;
 
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 

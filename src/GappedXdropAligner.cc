@@ -58,15 +58,15 @@ void GappedXdropAligner::init() {
   scoreOrigins.resize(0);
   scoreEnds.resize(1);
 
-  initAntidiagonal(0, 1);
-  xScores[0] = 0;
-  yScores[0] = -INF;
-  zScores[0] = -INF;
+  initAntidiagonal(0, xdropPadLen);
+  initAntidiagonal(0, xdropPadLen * 2);
 
-  initAntidiagonal(0, 2);
-  xScores[1] = -INF;
-  yScores[1] = -INF;
-  zScores[1] = -INF;
+  const SimdInt mNegInf = simdSet1(-INF);
+  simdStore(&xScores[xdropPadLen], mNegInf);
+  simdStore(&yScores[0], mNegInf);
+  simdStore(&yScores[xdropPadLen], mNegInf);
+  simdStore(&zScores[0], mNegInf);
+  simdStore(&zScores[xdropPadLen], mNegInf);
 
   bestAntidiagonal = 0;
 }
@@ -83,6 +83,11 @@ int GappedXdropAligner::align(const uchar *seq1,
                               int gapUnalignedCost,
                               int maxScoreDrop,
                               int maxMatchScore) {
+  const SimdInt mNegInf = simdSet1(-INF);
+  const SimdInt mDelOpenCost = simdSet1(delExistenceCost);
+  const SimdInt mDelGrowCost = simdSet1(delExtensionCost);
+  const SimdInt mInsOpenCost = simdSet1(insExistenceCost);
+  const SimdInt mInsGrowCost = simdSet1(insExtensionCost);
   const int seqIncrement = isForward ? 1 : -1;
   const bool isAffine = isAffineGaps(delExistenceCost, delExtensionCost,
 				     insExistenceCost, insExtensionCost,
@@ -92,12 +97,20 @@ int GappedXdropAligner::align(const uchar *seq1,
   size_t minSeq1ends[] = { 1, 0 };
 
   int bestScore = 0;
+  SimdInt mBestScore = simdSet1(0);
   int bestEdgeScore = -INF;
   size_t bestEdgeAntidiagonal = 0;
 
   init();
   seq1queue.clear();
   seq2queue.clear();
+
+  for (int i = 0; i < simdLen-1; ++i) {
+    const int *scores = scorer[*seq1];
+    seq1queue.push(scores, 0);
+    seq1 += seqIncrement * !isDelimiter(0, scores);
+    seq2queue.push(0, 0);
+  }
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
     size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
@@ -108,25 +121,27 @@ int GappedXdropAligner::align(const uchar *seq1,
     size_t scoreEnd = scoreEnds.back();
     int numCells = seq1end - seq1beg;
 
-    initAntidiagonal(seq1end, scoreEnd + numCells + 1);  // + 1 pad cell
+    initAntidiagonal(seq1end, scoreEnd + xdropPadLen + numCells);
 
-    if (seq1end > seq1queue.size()) {
-      seq1queue.push(scorer[*seq1], seq1beg);
-      seq1 += seqIncrement;
+    if (seq1end + (simdLen-1) > seq1queue.size()) {
+      const int *scores = scorer[*seq1];
+      seq1queue.push(scores, seq1beg);
+      seq1 += seqIncrement * !isDelimiter(0, scores);
     }
     const const_int_ptr *s1 = &seq1queue[seq1beg];
 
     size_t seq2pos = antidiagonal - seq1beg;
-    if (seq2pos + 1 > seq2queue.size()) {
+    if (seq2pos + simdLen > seq2queue.size()) {
       seq2queue.push(*seq2, seq2pos - numCells + 1);
       seq2 += seqIncrement;
     }
-    const uchar *s2 = &seq2queue[seq2pos];
+    const uchar *s2 = &seq2queue[seq2pos + (simdLen-1)];
 
     if (!globality && isDelimiter(*s2, *scorer))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     int minScore = bestScore - maxScoreDrop;
+    SimdInt mMinScore = simdSet1(minScore);
 
     int *x0 = &xScores[scoreEnd];
     int *y0 = &yScores[scoreEnd];
@@ -135,7 +150,9 @@ int GappedXdropAligner::align(const uchar *seq1,
     const int *z1 = &zScores[vert(antidiagonal, seq1beg)];
     const int *x2 = &xScores[diag(antidiagonal, seq1beg)];
 
-    *x0++ = *y0++ = *z0++ = -INF;  // add one pad cell
+    simdStore(x0, mNegInf);  x0 += xdropPadLen;
+    simdStore(y0, mNegInf);  y0 += xdropPadLen;
+    simdStore(z0, mNegInf);  z0 += xdropPadLen;
 
     if (globality && isDelimiter(*s2, *scorer)) {
       const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
@@ -146,23 +163,38 @@ int GappedXdropAligner::align(const uchar *seq1,
     }
 
     if (isAffine) {
-      for (int i = 0; i < numCells; ++i) {
-	int x = x2[i];
-	int y = y1[i] - delExtensionCost;
-	int z = z1[i] - insExtensionCost;
-	int b = maxValue(x, y, z);
-	if (b >= minScore) {
-	  if (b > bestScore) {
-	    bestScore = b;
-	    bestAntidiagonal = antidiagonal;
-	  }
-	  x0[i] = b + s1[0][*s2];
-	  y0[i] = maxValue(b - delExistenceCost, y);
-	  z0[i] = maxValue(b - insExistenceCost, z);
-	}
-	else x0[i] = y0[i] = z0[i] = -INF;
-	++s1;
-	--s2;
+      for (int i = 0; i < numCells; i += simdLen) {
+	SimdInt s = simdSet(
+#ifdef __SSE4_1__
+//#ifdef __AVX2__
+#ifdef AVX2_SEEMS_SLOW
+			    s1[7][s2[-7]],
+			    s1[6][s2[-6]],
+			    s1[5][s2[-5]],
+			    s1[4][s2[-4]],
+#endif
+			    s1[3][s2[-3]],
+			    s1[2][s2[-2]],
+			    s1[1][s2[-1]],
+#endif
+			    s1[0][s2[-0]]);
+	SimdInt x = simdLoad(x2+i);
+	SimdInt y = simdSub(simdLoad(y1+i), mDelGrowCost);
+	SimdInt z = simdSub(simdLoad(z1+i), mInsGrowCost);
+	SimdInt b = simdMax(simdMax(x, y), z);
+	SimdInt isDrop = simdGt(mMinScore, b);
+	mBestScore = simdMax(b, mBestScore);
+	simdStore(x0+i, simdBlend(simdAdd(b, s), mNegInf, isDrop));
+	simdStore(y0+i, simdMax(simdSub(b, mDelOpenCost), y));
+	simdStore(z0+i, simdMax(simdSub(b, mInsOpenCost), z));
+	s1 += simdLen;
+	s2 -= simdLen;
+      }
+
+      int newBestScore = simdHorizontalMax(mBestScore);
+      if (newBestScore > bestScore) {
+	bestScore = newBestScore;
+	bestAntidiagonal = antidiagonal;
       }
     } else {
       const int *y2 = &yScores[diag(antidiagonal, seq1beg)];
