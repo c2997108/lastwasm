@@ -58,12 +58,12 @@ void GappedXdropAligner::init() {
   scoreOrigins.resize(0);
   scoreEnds.resize(1);
 
-  initAntidiagonal(0, 0, 0);
+  initAntidiagonal(0, 1);
   xScores[0] = 0;
   yScores[0] = -INF;
   zScores[0] = -INF;
 
-  initAntidiagonal(0, 1, 0);
+  initAntidiagonal(0, 2);
   xScores[1] = -INF;
   yScores[1] = -INF;
   zScores[1] = -INF;
@@ -105,7 +105,7 @@ int GappedXdropAligner::align(const uchar *seq1,
     size_t scoreEnd = scoreEnds.back();
     size_t numCells = seq1end - seq1beg;
 
-    initAntidiagonal(seq1beg, scoreEnd, numCells);
+    initAntidiagonal(seq1end, scoreEnd + numCells + 1);  // + 1 pad cell
 
     size_t seq2pos = antidiagonal - seq1beg;
 

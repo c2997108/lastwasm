@@ -178,31 +178,31 @@ class GappedXdropAligner {
   // start of the x-drop region (i.e. number of skipped seq1 letters
   // before the x-drop region) for this antidiagonal
   size_t seq1start(size_t antidiagonal) const
-  { return scoreEnds[antidiagonal + 2] - scoreOrigins[antidiagonal + 2]; }
+  { return scoreEnds[antidiagonal + 2] + 1 - scoreOrigins[antidiagonal + 2]; }
 
   // The index in the score vectors, of the previous "horizontal" cell.
   size_t hori(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal + 1] + seq1coordinate; }
+  { return scoreOrigins[antidiagonal + 1] + seq1coordinate - 1; }
 
   // The index in the score vectors, of the previous "vertical" cell.
   size_t vert(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal + 1] + seq1coordinate + 1; }
+  { return scoreOrigins[antidiagonal + 1] + seq1coordinate; }
 
   // The index in the score vectors, of the previous "diagonal" cell.
   size_t diag(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal] + seq1coordinate; }
+  { return scoreOrigins[antidiagonal] + seq1coordinate - 1; }
 
   // The index in the score vectors, of the previous in-frame horizontal cell.
   size_t hori3(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 3] + seq1coordinate; }
+  { return scoreOrigins[antidiagonal - 3] + seq1coordinate - 1; }
 
   // The index in the score vectors, of the previous in-frame vertical cell.
   size_t vert3(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 3] + seq1coordinate + 1; }
+  { return scoreOrigins[antidiagonal - 3] + seq1coordinate; }
 
   // The index in the score vectors, of the previous in-frame diagonal cell.
   size_t diag3(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 6] + seq1coordinate; }
+  { return scoreOrigins[antidiagonal - 6] + seq1coordinate - 1; }
 
  private:
   std::vector<int> xScores;  // best score ending with aligned letters
@@ -226,11 +226,10 @@ class GappedXdropAligner {
 
   void init();
 
-  void initAntidiagonal(size_t seq1beg, size_t scoreEnd, size_t numCells) {
-    scoreOrigins.push_back(scoreEnd - seq1beg);
-    size_t newEnd = scoreEnd + numCells + 1;  // + 1 pad cell
-    resizeScoresIfSmaller(newEnd);
-    scoreEnds.push_back(newEnd);
+  void initAntidiagonal(size_t seq1end, size_t scoreEnd) {
+    scoreOrigins.push_back(scoreEnd - seq1end);
+    resizeScoresIfSmaller(scoreEnd);
+    scoreEnds.push_back(scoreEnd);
   }
 
   void updateBest(int &bestScore, int score, size_t antidiagonal,
@@ -245,13 +244,6 @@ class GappedXdropAligner {
   }
 
   void init3();
-
-  void initAntidiagonal3(size_t seq1beg, size_t scoreEnd, size_t numCells) {
-    scoreOrigins.push_back(scoreEnd - seq1beg + 1);
-    size_t newEnd = scoreEnd + numCells + 2;  // + 2 pad cells
-    resizeScoresIfSmaller(newEnd);
-    scoreEnds.push_back(newEnd);
-  }
 };
 
 }

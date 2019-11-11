@@ -46,7 +46,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     size_t scoreEnd = scoreEnds.back();
     size_t numCells = seq1end - seq1beg;
 
-    initAntidiagonal(seq1beg, scoreEnd, numCells);
+    initAntidiagonal(seq1end, scoreEnd + numCells + 1);  // + 1 pad cell
 
     size_t seq2pos = antidiagonal - seq1beg;
 
