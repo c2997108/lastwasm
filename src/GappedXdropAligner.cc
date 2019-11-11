@@ -106,7 +106,7 @@ int GappedXdropAligner::align(const uchar *seq1,
     if (seq1beg >= seq1end) break;
 
     size_t scoreEnd = scoreEnds.back();
-    size_t numCells = seq1end - seq1beg;
+    int numCells = seq1end - seq1beg;
 
     initAntidiagonal(seq1end, scoreEnd + numCells + 1);  // + 1 pad cell
 
@@ -135,74 +135,74 @@ int GappedXdropAligner::align(const uchar *seq1,
     const int *z1 = &zScores[vert(antidiagonal, seq1beg)];
     const int *x2 = &xScores[diag(antidiagonal, seq1beg)];
 
-    const int *x0last = x0 + numCells;
-
     *x0++ = *y0++ = *z0++ = -INF;  // add one pad cell
-
-    const int *x0base = x0 - seq1beg;
 
     if (globality && isDelimiter(*s2, *scorer)) {
       const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
-      int b = maxValue(*x2, *z1 - insExtensionCost, *z2 - gapUnalignedCost);
+      int b = maxValue(x2[0], z1[0]-insExtensionCost, z2[0]-gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
 		    b, antidiagonal, seq1beg);
     }
 
     if (isAffine) {
-      while (1) {
-	int x = *x2;
-	int y = *y1 - delExtensionCost;
-	int z = *z1 - insExtensionCost;
+      for (int i = 0; i < numCells; ++i) {
+	int x = x2[i];
+	int y = y1[i] - delExtensionCost;
+	int z = z1[i] - insExtensionCost;
 	int b = maxValue(x, y, z);
 	if (b >= minScore) {
 	  if (b > bestScore) {
 	    bestScore = b;
 	    bestAntidiagonal = antidiagonal;
 	  }
-	  *x0 = b + s1[0][*s2];
-	  *y0 = maxValue(b - delExistenceCost, y);
-	  *z0 = maxValue(b - insExistenceCost, z);
+	  x0[i] = b + s1[0][*s2];
+	  y0[i] = maxValue(b - delExistenceCost, y);
+	  z0[i] = maxValue(b - insExistenceCost, z);
 	}
-	else *x0 = *y0 = *z0 = -INF;
-	if (x0 == x0last) break;
-	++s1;  --s2;  ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;
+	else x0[i] = y0[i] = z0[i] = -INF;
+	++s1;
+	--s2;
       }
     } else {
       const int *y2 = &yScores[diag(antidiagonal, seq1beg)];
       const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
-      while (1) {
-        int x = *x2;
-        int y = maxValue(*y1 - delExtensionCost, *y2 - gapUnalignedCost);
-        int z = maxValue(*z1 - insExtensionCost, *z2 - gapUnalignedCost);
+      for (int i = 0; i < numCells; ++i) {
+        int x = x2[i];
+        int y = maxValue(y1[i] - delExtensionCost, y2[i] - gapUnalignedCost);
+        int z = maxValue(z1[i] - insExtensionCost, z2[i] - gapUnalignedCost);
         int b = maxValue(x, y, z);
         if (b >= minScore) {
 	  if (b > bestScore) {
 	    bestScore = b;
 	    bestAntidiagonal = antidiagonal;
 	  }
-          *x0 = b + s1[0][*s2];
-          *y0 = maxValue(b - delExistenceCost, y);
-          *z0 = maxValue(b - insExistenceCost, z);
+          x0[i] = b + s1[0][*s2];
+          y0[i] = maxValue(b - delExistenceCost, y);
+          z0[i] = maxValue(b - insExistenceCost, z);
         }
-        else *x0 = *y0 = *z0 = -INF;
-        if (x0 == x0last) break;
-        ++s1;  --s2;  ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;  ++y2;  ++z2;
+        else x0[i] = y0[i] = z0[i] = -INF;
+	++s1;
+	--s2;
       }
     }
 
-    if (globality && isDelimiter(0, *s1)) {
-      const int *y2 = &yScores[diag(antidiagonal, seq1end-1)];
-      int b = maxValue(*x2, *y1 - delExtensionCost, *y2 - gapUnalignedCost);
+    const int *seq1back = seq1queue[seq1end - 1];
+
+    if (globality && isDelimiter(0, seq1back)) {
+      const int *y2 = &yScores[diag(antidiagonal, seq1beg)];
+      int n = numCells - 1;
+      int b = maxValue(x2[n], y1[n]-delExtensionCost, y2[n]-gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
 		    b, antidiagonal, seq1end-1);
     }
 
-    if (!globality && isDelimiter(0, *s1))
+    if (!globality && isDelimiter(0, seq1back))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
-    updateFiniteEdges(maxSeq1begs, minSeq1ends, x0base, x0 + 1, numCells);
+    const int *x0base = x0 - seq1beg;
+    updateFiniteEdges(maxSeq1begs, minSeq1ends, x0base, x0+numCells, numCells);
   }
 
   if (globality) {
