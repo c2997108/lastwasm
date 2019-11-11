@@ -93,7 +93,6 @@ int GappedXdropAligner::align(const uchar *seq1,
   int bestScore = 0;
   int bestEdgeScore = -INF;
   size_t bestEdgeAntidiagonal = 0;
-  size_t bestEdgeSeq1position = 0;
 
   init();
 
@@ -135,7 +134,7 @@ int GappedXdropAligner::align(const uchar *seq1,
       const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
       int b = maxValue(*x2, *z1 - insExtensionCost, *z2 - gapUnalignedCost);
       if (b >= minScore)
-	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestEdgeSeq1position,
+	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
 		    b, antidiagonal, seq1beg);
     }
 
@@ -148,7 +147,10 @@ int GappedXdropAligner::align(const uchar *seq1,
           int z = *z1 - insExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
-            updateBest(bestScore, b, antidiagonal, x0, x0base);
+	    if (b > bestScore) {
+	      bestScore = b;
+	      bestAntidiagonal = antidiagonal;
+	    }
             *x0 = b + scorer[*s1][*s2];
             *y0 = maxValue(b - delExistenceCost, y);
             *z0 = maxValue(b - insExistenceCost, z);
@@ -164,7 +166,10 @@ int GappedXdropAligner::align(const uchar *seq1,
           int z = *z1 - insExtensionCost;
           int b = maxValue(x, y, z);
           if (b >= minScore) {
-            updateBest(bestScore, b, antidiagonal, x0, x0base);
+	    if (b > bestScore) {
+	      bestScore = b;
+	      bestAntidiagonal = antidiagonal;
+	    }
             *x0 = b + scorer[*s1][*s2];
             *y0 = maxValue(b - delExistenceCost, y);
             *z0 = maxValue(b - insExistenceCost, z);
@@ -182,7 +187,10 @@ int GappedXdropAligner::align(const uchar *seq1,
         int z = maxValue(*z1 - insExtensionCost, *z2 - gapUnalignedCost);
         int b = maxValue(x, y, z);
         if (b >= minScore) {
-          updateBest(bestScore, b, antidiagonal, x0, x0base);
+	  if (b > bestScore) {
+	    bestScore = b;
+	    bestAntidiagonal = antidiagonal;
+	  }
           *x0 = b + scorer[*s1][*s2];
           *y0 = maxValue(b - delExistenceCost, y);
           *z0 = maxValue(b - insExistenceCost, z);
@@ -199,7 +207,7 @@ int GappedXdropAligner::align(const uchar *seq1,
       const int *y2 = &yScores[diag(antidiagonal, seq1end-1)];
       int b = maxValue(*x2, *y1 - delExtensionCost, *y2 - gapUnalignedCost);
       if (b >= minScore)
-	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestEdgeSeq1position,
+	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
 		    b, antidiagonal, seq1end-1);
     }
 
@@ -211,8 +219,9 @@ int GappedXdropAligner::align(const uchar *seq1,
 
   if (globality) {
     bestAntidiagonal = bestEdgeAntidiagonal;
-    bestSeq1position = bestEdgeSeq1position;
     bestScore = bestEdgeScore;
+  } else {
+    calcBestSeq1position(bestScore);
   }
   return bestScore;
 }

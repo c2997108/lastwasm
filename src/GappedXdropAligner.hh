@@ -236,6 +236,14 @@ class GappedXdropAligner {
   void updateBest(int &bestScore, int score, size_t antidiagonal,
                   const int *x0, const int *x0ori);
 
+  void calcBestSeq1position(int bestScore) {
+    size_t seq1beg = seq1start(bestAntidiagonal);
+    const int *x2 = &xScores[diag(bestAntidiagonal, seq1beg)];
+    const int *x2beg = x2;
+    while (*x2 != bestScore) ++x2;
+    bestSeq1position = x2 - x2beg + seq1beg;
+  }
+
   void init3();
 
   void initAntidiagonal3(size_t seq1beg, size_t scoreEnd, size_t numCells) {
