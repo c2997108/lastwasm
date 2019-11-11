@@ -56,7 +56,7 @@ namespace cbrc{
 
     void doForwardBackwardAlgorithm(const uchar* seq1, const uchar* seq2,
 				    size_t start1, size_t start2,
-				    bool isExtendFwd, const mcf::GapCosts& gap,
+				    bool isExtendFwd, const GapCosts& gap,
 				    int globality) {
       seq1 += start1;
       seq2 += start2;
@@ -97,7 +97,7 @@ namespace cbrc{
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
 			       size_t start1, size_t start2, bool isExtendFwd,
-			       const mcf::GapCosts& gap, unsigned alphabetSize,
+			       const GapCosts& gap, unsigned alphabetSize,
 			       ExpectedCount& count) const;
 
   private:
@@ -140,11 +140,11 @@ namespace cbrc{
 
     void forward(const uchar* seq1, const uchar* seq2,
 		 const ExpMatrixRow* pssm, bool isExtendFwd,
-		 const mcf::GapCosts& gap, int globality);
+		 const GapCosts& gap, int globality);
 
     void backward(const uchar* seq1, const uchar* seq2,
 		  const ExpMatrixRow* pssm, bool isExtendFwd,
-		  const mcf::GapCosts& gap, int globality);
+		  const GapCosts& gap, int globality);
 
     void initForwardMatrix();
     void initBackwardMatrix();

@@ -83,6 +83,7 @@ int GappedXdropAligner::align(const uchar *seq1,
                               int gapUnalignedCost,
                               int maxScoreDrop,
                               int maxMatchScore) {
+  const int seqIncrement = isForward ? 1 : -1;
   const bool isAffine = isAffineGaps(delExistenceCost, delExtensionCost,
 				     insExistenceCost, insExtensionCost,
 				     gapUnalignedCost);
@@ -95,6 +96,8 @@ int GappedXdropAligner::align(const uchar *seq1,
   size_t bestEdgeAntidiagonal = 0;
 
   init();
+  seq1queue.clear();
+  seq2queue.clear();
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
     size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
@@ -107,10 +110,18 @@ int GappedXdropAligner::align(const uchar *seq1,
 
     initAntidiagonal(seq1end, scoreEnd + numCells + 1);  // + 1 pad cell
 
-    size_t seq2pos = antidiagonal - seq1beg;
+    if (seq1end > seq1queue.size()) {
+      seq1queue.push(scorer[*seq1], seq1beg);
+      seq1 += seqIncrement;
+    }
+    const const_int_ptr *s1 = &seq1queue[seq1beg];
 
-    const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
-    const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
+    size_t seq2pos = antidiagonal - seq1beg;
+    if (seq2pos + 1 > seq2queue.size()) {
+      seq2queue.push(*seq2, seq2pos - numCells + 1);
+      seq2 += seqIncrement;
+    }
+    const uchar *s2 = &seq2queue[seq2pos];
 
     if (!globality && isDelimiter(*s2, *scorer))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
@@ -139,45 +150,24 @@ int GappedXdropAligner::align(const uchar *seq1,
     }
 
     if (isAffine) {
-      // We could avoid this code duplication, by using: transposed(scorer).
-      if (isForward)
-        while (1) {
-          int x = *x2;
-          int y = *y1 - delExtensionCost;
-          int z = *z1 - insExtensionCost;
-          int b = maxValue(x, y, z);
-          if (b >= minScore) {
-	    if (b > bestScore) {
-	      bestScore = b;
-	      bestAntidiagonal = antidiagonal;
-	    }
-            *x0 = b + scorer[*s1][*s2];
-            *y0 = maxValue(b - delExistenceCost, y);
-            *z0 = maxValue(b - insExistenceCost, z);
-          }
-          else *x0 = *y0 = *z0 = -INF;
-          if (x0 == x0last) break;
-          ++s1;  --s2;  ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;
-        }
-      else
-        while (1) {
-          int x = *x2;
-          int y = *y1 - delExtensionCost;
-          int z = *z1 - insExtensionCost;
-          int b = maxValue(x, y, z);
-          if (b >= minScore) {
-	    if (b > bestScore) {
-	      bestScore = b;
-	      bestAntidiagonal = antidiagonal;
-	    }
-            *x0 = b + scorer[*s1][*s2];
-            *y0 = maxValue(b - delExistenceCost, y);
-            *z0 = maxValue(b - insExistenceCost, z);
-          }
-          else *x0 = *y0 = *z0 = -INF;
-          if (x0 == x0last) break;
-          --s1;  ++s2;  ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;
-        }
+      while (1) {
+	int x = *x2;
+	int y = *y1 - delExtensionCost;
+	int z = *z1 - insExtensionCost;
+	int b = maxValue(x, y, z);
+	if (b >= minScore) {
+	  if (b > bestScore) {
+	    bestScore = b;
+	    bestAntidiagonal = antidiagonal;
+	  }
+	  *x0 = b + s1[0][*s2];
+	  *y0 = maxValue(b - delExistenceCost, y);
+	  *z0 = maxValue(b - insExistenceCost, z);
+	}
+	else *x0 = *y0 = *z0 = -INF;
+	if (x0 == x0last) break;
+	++s1;  --s2;  ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;
+      }
     } else {
       const int *y2 = &yScores[diag(antidiagonal, seq1beg)];
       const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
@@ -191,19 +181,17 @@ int GappedXdropAligner::align(const uchar *seq1,
 	    bestScore = b;
 	    bestAntidiagonal = antidiagonal;
 	  }
-          *x0 = b + scorer[*s1][*s2];
+          *x0 = b + s1[0][*s2];
           *y0 = maxValue(b - delExistenceCost, y);
           *z0 = maxValue(b - insExistenceCost, z);
         }
         else *x0 = *y0 = *z0 = -INF;
         if (x0 == x0last) break;
-        ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;  ++y2;  ++z2;
-        if (isForward) { ++s1;  --s2; }
-        else           { --s1;  ++s2; }
+        ++s1;  --s2;  ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;  ++y2;  ++z2;
       }
     }
 
-    if (globality && isDelimiter(*s1, *scorer)) {
+    if (globality && isDelimiter(0, *s1)) {
       const int *y2 = &yScores[diag(antidiagonal, seq1end-1)];
       int b = maxValue(*x2, *y1 - delExtensionCost, *y2 - gapUnalignedCost);
       if (b >= minScore)
@@ -211,7 +199,7 @@ int GappedXdropAligner::align(const uchar *seq1,
 		    b, antidiagonal, seq1end-1);
     }
 
-    if (!globality && isDelimiter(*s1, *scorer))
+    if (!globality && isDelimiter(0, *s1))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     updateFiniteEdges(maxSeq1begs, minSeq1ends, x0base, x0 + 1, numCells);

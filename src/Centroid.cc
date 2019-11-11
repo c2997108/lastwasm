@@ -121,7 +121,7 @@ namespace cbrc{
 
   void Centroid::forward(const uchar* seq1, const uchar* seq2,
 			 const ExpMatrixRow* pssm, bool isExtendFwd,
-			 const mcf::GapCosts& gap, int globality) {
+			 const GapCosts& gap, int globality) {
     const int seqIncrement = isExtendFwd ? 1 : -1;
     const bool isAffine = isAffineGapCosts(gap);
     initForwardMatrix();
@@ -285,7 +285,7 @@ namespace cbrc{
   // compute posterior probabilities while executing backward algorithm
   void Centroid::backward(const uchar* seq1, const uchar* seq2,
 			  const ExpMatrixRow* pssm, bool isExtendFwd,
-			  const mcf::GapCosts& gap, int globality) {
+			  const GapCosts& gap, int globality) {
     const int seqIncrement = isExtendFwd ? 1 : -1;
     const bool isAffine = isAffineGapCosts(gap);
     initBackwardMatrix();
@@ -725,7 +725,7 @@ namespace cbrc{
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 					 size_t start1, size_t start2,
 					 bool isExtendFwd,
-					 const mcf::GapCosts& gap,
+					 const GapCosts& gap,
 					 unsigned alphabetSize,
 					 ExpectedCount& c ) const{
     seq1 += start1;

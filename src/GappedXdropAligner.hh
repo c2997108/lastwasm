@@ -45,6 +45,7 @@
 #ifndef GAPPED_XDROP_ALIGNER_HH
 #define GAPPED_XDROP_ALIGNER_HH
 
+#include "mcf_contiguous_queue.hh"
 #include "ScoreMatrixRow.hh"
 
 #include <stddef.h>  // size_t
@@ -52,7 +53,10 @@
 
 namespace cbrc {
 
+using namespace mcf;
+
 typedef unsigned char uchar;
+typedef const int *const_int_ptr;
 
 class TwoQualityScoreMatrix;
 
@@ -161,7 +165,7 @@ class GappedXdropAligner {
                      int gapUnalignedCost,
                      int frameshiftCost);
 
-  // The next 4 functions are for use by Centroid.  If the Centroid
+  // The next few functions are for use by Centroid.  If the Centroid
   // code gets updated, it might make sense to change these functions too.
 
   // The number of antidiagonals, excluding dummy ones at the beginning.
@@ -210,6 +214,9 @@ class GappedXdropAligner {
 
   std::vector<size_t> scoreOrigins;  // score origin for each antidiagonal
   std::vector<size_t> scoreEnds;  // score end pos for each antidiagonal
+
+  ContiguousQueue<const int *> seq1queue;
+  ContiguousQueue<uchar> seq2queue;
 
   // Our position during the trace-back:
   size_t bestAntidiagonal;
