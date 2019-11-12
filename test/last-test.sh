@@ -102,6 +102,10 @@ trap 'rm -f $db*' EXIT
     # expected counts
     try lastal -s0 -e18 -j7 $db $dnaSeq
 
+    # overlap alignment, hitting edge of ref seq, fastq
+    head -n21 $dnaSeq | cut -c-35 | lastdb -m1111110 $db
+    try lastal -T1 -Q1 -e60 -a9 -f0 $db $fastq
+
     # named multi-seed, sparse query seeding
     lastdb -c -uMAM8 $db hg19-M.fa
     try lastal -e34 -k128 -f0 $db galGal3-M-32.fa
