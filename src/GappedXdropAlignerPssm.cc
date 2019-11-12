@@ -18,6 +18,10 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
                                   int maxMatchScore) {
   const int *vectorOfMatchScores = *pssm;
   const SimdInt mNegInf = simdSet1(-INF);
+  const SimdInt mDelOpenCost = simdSet1(delExistenceCost);
+  const SimdInt mDelGrowCost = simdSet1(delExtensionCost);
+  const SimdInt mInsOpenCost = simdSet1(insExistenceCost);
+  const SimdInt mInsGrowCost = simdSet1(insExtensionCost);
   const int seqIncrement = isForward ? 1 : -1;
   const bool isAffine = isAffineGaps(delExistenceCost, delExtensionCost,
 				     insExistenceCost, insExtensionCost,
@@ -27,12 +31,22 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
   size_t minSeq1ends[] = { 1, 0 };
 
   int bestScore = 0;
+  SimdInt mBestScore = simdSet1(0);
   int bestEdgeScore = -INF;
   size_t bestEdgeAntidiagonal = 0;
 
   init();
   seq1queue.clear();
   seq2queue.clear();
+
+  // xxx the queue names are flipped: seq1queue <=> seq2queue
+
+  for (int i = 0; i < simdLen-1; ++i) {
+    uchar c = *seq;
+    seq2queue.push(c, 0);
+    seq += seqIncrement * !isDelimiter(c, vectorOfMatchScores);
+    seq1queue.push(vectorOfMatchScores, 0);
+  }
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
     size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
@@ -45,25 +59,25 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 
     initAntidiagonal(seq1end, scoreEnd + xdropPadLen + numCells);
 
-    // xxx the queue names are flipped: seq1queue <=> seq2queue
-
-    if (seq1end > seq2queue.size()) {
-      seq2queue.push(*seq, seq1beg);
-      seq += seqIncrement;
+    if (seq1end + (simdLen-1) > seq2queue.size()) {
+      uchar c = *seq;
+      seq2queue.push(c, seq1beg);
+      seq += seqIncrement * !isDelimiter(c, vectorOfMatchScores);
     }
     const uchar *s1 = &seq2queue[seq1beg];
 
     size_t seq2pos = antidiagonal - seq1beg;
-    if (seq2pos + 1 > seq1queue.size()) {
+    if (seq2pos + simdLen > seq1queue.size()) {
       seq1queue.push(*pssm, seq2pos - numCells + 1);
       pssm += seqIncrement;
     }
-    const const_int_ptr *s2 = &seq1queue[seq2pos];
+    const const_int_ptr *s2 = &seq1queue[seq2pos + (simdLen-1)];
 
     if (!globality && isDelimiter(0, *s2))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     int minScore = bestScore - maxScoreDrop;
+    SimdInt mMinScore = simdSet1(minScore);
 
     int *x0 = &xScores[scoreEnd];
     int *y0 = &yScores[scoreEnd];
@@ -85,23 +99,31 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
     }
 
     if (isAffine) {
-      for (int i = 0; i < numCells; ++i) {
-	int x = x2[i];
-	int y = y1[i] - delExtensionCost;
-	int z = z1[i] - insExtensionCost;
-	int b = maxValue(x, y, z);
-	if (b >= minScore) {
-	  if (b > bestScore) {
-	    bestScore = b;
-	    bestAntidiagonal = antidiagonal;
-	  }
-	  x0[i] = b + (*s2)[*s1];
-	  y0[i] = maxValue(b - delExistenceCost, y);
-	  z0[i] = maxValue(b - insExistenceCost, z);
-	}
-	else x0[i] = y0[i] = z0[i] = -INF;
-	++s1;
-	--s2;
+      for (int i = 0; i < numCells; i += simdLen) {
+	SimdInt s = simdSet(
+#ifdef __SSE4_1__
+			    s2[-3][s1[3]],
+			    s2[-2][s1[2]],
+			    s2[-1][s1[1]],
+#endif
+			    s2[-0][s1[0]]);
+	SimdInt x = simdLoad(x2+i);
+	SimdInt y = simdSub(simdLoad(y1+i), mDelGrowCost);
+	SimdInt z = simdSub(simdLoad(z1+i), mInsGrowCost);
+	SimdInt b = simdMax(simdMax(x, y), z);
+	SimdInt isDrop = simdGt(mMinScore, b);
+	mBestScore = simdMax(b, mBestScore);
+	simdStore(x0+i, simdBlend(simdAdd(b, s), mNegInf, isDrop));
+	simdStore(y0+i, simdMax(simdSub(b, mDelOpenCost), y));
+	simdStore(z0+i, simdMax(simdSub(b, mInsOpenCost), z));
+	s1 += simdLen;
+	s2 -= simdLen;
+      }
+
+      int newBestScore = simdHorizontalMax(mBestScore);
+      if (newBestScore > bestScore) {
+	bestScore = newBestScore;
+	bestAntidiagonal = antidiagonal;
       }
     } else {
       const int *y2 = &yScores[diag(antidiagonal, seq1beg)];
