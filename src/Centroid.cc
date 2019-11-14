@@ -117,10 +117,10 @@ namespace cbrc{
     const int seqIncrement = isExtendFwd ? 1 : -1;
     initForwardMatrix();
 
-    const double eE = EXP(-gap.delPieces[0].growCost / T);
-    const double eF = EXP(-gap.delPieces[0].openCost / T);
-    const double eEI = EXP(-gap.insPieces[0].growCost / T);
-    const double eFI = EXP(-gap.insPieces[0].openCost / T);
+    const double delOpen = EXP(-gap.delPieces[0].openCost / T);
+    const double delGrow = EXP(-gap.delPieces[0].growCost / T);
+    const double insOpen = EXP(-gap.insPieces[0].openCost / T);
+    const double insGrow = EXP(-gap.insPieces[0].growCost / T);
 
     double Z = 0.0;  // partion function of forward values
 
@@ -131,8 +131,8 @@ namespace cbrc{
       const double scale1  = scale[k+1];
       double sum_f = 0.0; // sum of forward values
 
-      const double seE = eE * scale1;
-      const double seEI = eEI * scale1;
+      const double scaledDelGrow = delGrow * scale1;
+      const double scaledInsGrow = insGrow * scale1;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* fM0 = &fM[ scoreEnd ];
@@ -163,12 +163,12 @@ namespace cbrc{
 	  const double matchProb = match_score[letter1][letter2];
 
 	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * seE;
-	  const double xI = *fI1 * seEI;
+	  const double xD = *fD1 * scaledDelGrow;
+	  const double xI = *fI1 * scaledInsGrow;
 	  const double xSum = xM + xD + xI;
 
-	  *fD0 = xM * eF + xD;
-	  *fI0 = (xM + xD) * eFI + xI;
+	  *fD0 = xM * delOpen + xD;
+	  *fI0 = (xM + xD) * insOpen + xI;
 	  *fM0 = xSum * matchProb;
 	  sum_f += xM;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
@@ -188,12 +188,12 @@ namespace cbrc{
 	  const double matchProb = matchProbs[letter1];
 
 	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * seE;
-	  const double xI = *fI1 * seEI;
+	  const double xD = *fD1 * scaledDelGrow;
+	  const double xI = *fI1 * scaledInsGrow;
 	  const double xSum = xM + xD + xI;
 
-	  *fD0 = xM * eF + xD;
-	  *fI0 = (xM + xD) * eFI + xI;
+	  *fD0 = xM * delOpen + xD;
+	  *fI0 = (xM + xD) * insOpen + xI;
 	  *fM0 = xSum * matchProb;
 	  sum_f += xM;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
@@ -224,10 +224,10 @@ namespace cbrc{
     const int seqIncrement = isExtendFwd ? 1 : -1;
     initBackwardMatrix();
 
-    const double eE = EXP(-gap.delPieces[0].growCost / T);
-    const double eF = EXP(-gap.delPieces[0].openCost / T);
-    const double eEI = EXP(-gap.insPieces[0].growCost / T);
-    const double eFI = EXP(-gap.insPieces[0].openCost / T);
+    const double delOpen = EXP(-gap.delPieces[0].openCost / T);
+    const double delGrow = EXP(-gap.delPieces[0].growCost / T);
+    const double insOpen = EXP(-gap.insPieces[0].openCost / T);
+    const double insGrow = EXP(-gap.insPieces[0].growCost / T);
 
     double scaledUnit = 1.0;
 
@@ -238,8 +238,8 @@ namespace cbrc{
       const double scale1  = scale[k+1];
       scaledUnit *= scale[k+2];
 
-      const double seE = eE * scale1;
-      const double seEI = eEI * scale1;
+      const double scaledDelGrow = delGrow * scale1;
+      const double scaledInsGrow = insGrow * scale1;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
@@ -275,8 +275,8 @@ namespace cbrc{
 	  const double yD = *bD0;
 	  const double yI = *bI0;
 
-	  double zM = yM + yD * eF + yI * eFI;
-	  double zD = yM + yD + yI * eFI;
+	  double zM = yM + yD * delOpen + yI * insOpen;
+	  double zD = yM + yD + yI * insOpen;
 	  double zI = yM + yI;
 	  if( globality ){
 	    if( matchProb <= 0 ){
@@ -288,8 +288,8 @@ namespace cbrc{
 	    zM += scaledUnit;
 	  }
 	  *bM2 = zM * scale12;
-	  *bD1 = zD * seE;
-	  *bI1 = zI * seEI;
+	  *bD1 = zD * scaledDelGrow;
+	  *bI1 = zI * scaledInsGrow;
 
 	  *mDout += (*fD1) * (*bD1);
 	  *mIout += (*fI1) * (*bI1);
@@ -313,8 +313,8 @@ namespace cbrc{
 	  const double yD = *bD0;
 	  const double yI = *bI0;
 
-	  double zM = yM + yD * eF + yI * eFI;
-	  double zD = yM + yD + yI * eFI;
+	  double zM = yM + yD * delOpen + yI * insOpen;
+	  double zD = yM + yD + yI * insOpen;
 	  double zI = yM + yI;
 	  if( globality ){
 	    if( matchProb <= 0 ){  // xxx
@@ -324,8 +324,8 @@ namespace cbrc{
 	    zM += scaledUnit;
 	  }
 	  *bM2 = zM * scale12;
-	  *bD1 = zD * seE;
-	  *bI1 = zI * seEI;
+	  *bD1 = zD * scaledDelGrow;
+	  *bI1 = zI * scaledInsGrow;
 
 	  *mDout += (*fD1) * (*bD1);
 	  *mIout += (*fI1) * (*bI1);
@@ -591,10 +591,10 @@ namespace cbrc{
     int alphabetSizeIncrement = alphabetSize;
     if (!isExtendFwd) alphabetSizeIncrement *= -1;
 
-    const double eE = EXP(-gap.delPieces[0].growCost / T);
-    const double eF = EXP(-gap.delPieces[0].openCost / T);
-    const double eEI = EXP(-gap.insPieces[0].growCost / T);
-    const double eFI = EXP(-gap.insPieces[0].openCost / T);
+    const double delOpen = EXP(-gap.delPieces[0].openCost / T);
+    const double delGrow = EXP(-gap.delPieces[0].growCost / T);
+    const double insOpen = EXP(-gap.insPieces[0].openCost / T);
+    const double insGrow = EXP(-gap.insPieces[0].growCost / T);
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
@@ -602,8 +602,8 @@ namespace cbrc{
       const double scale12 = scale[k+1] * scale[k];
       const double scale1  = scale[k+1];
 
-      const double seE = eE * scale1;
-      const double seEI = eEI * scale1;
+      const double scaledDelGrow = delGrow * scale1;
+      const double scaledInsGrow = insGrow * scale1;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
@@ -634,17 +634,17 @@ namespace cbrc{
 	  const double yI = *bI0;
 
 	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * seE;
-	  const double xI = *fI1 * seEI;
+	  const double xD = *fD1 * scaledDelGrow;
+	  const double xI = *fI1 * scaledInsGrow;
 	  const double xSum = xM + xD + xI;
 
 	  const double alignProb = xSum * yM;
 	  c.emit[letter1][letter2] += alignProb;
 	  c.toMatch += alignProb;
-	  c.MD += xM * yD * eF;
+	  c.MD += xM * yD * delOpen;
 	  c.DD += xD * yD;
-	  c.MI += xM * yI * eFI;
-	  c.DI += xD * yI * eFI;
+	  c.MI += xM * yI * insOpen;
+	  c.DI += xD * yI * insOpen;
 	  c.II += xI * yI;
 
 	  if (bM0 == bM0last) break;
@@ -667,18 +667,18 @@ namespace cbrc{
 	  const double yI = *bI0;
 
 	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * seE;
-	  const double xI = *fI1 * seEI;
+	  const double xD = *fD1 * scaledDelGrow;
+	  const double xI = *fI1 * scaledInsGrow;
 	  const double xSum = xM + xD + xI;
 
 	  const double alignProb = xSum * yM;
 	  countUncertainLetters(c.emit[letter1], alignProb,
 				alphabetSize, match_score[letter1], lp2);
 	  c.toMatch += alignProb;
-	  c.MD += xM * yD * eF;
+	  c.MD += xM * yD * delOpen;
 	  c.DD += xD * yD;
-	  c.MI += xM * yI * eFI;
-	  c.DI += xD * yI * eFI;
+	  c.MI += xM * yI * insOpen;
+	  c.DI += xD * yI * insOpen;
 	  c.II += xI * yI;
 
 	  if (bM0 == bM0last) break;
