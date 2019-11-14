@@ -399,6 +399,9 @@ LAST home page: http://last.cbrc.jp/\n\
   if( isGreedy && maskLowercase == 3 )
     ERR( "can't combine option -M with option -u 3" );
 
+  if( gapPairCost > 0 && outputType > 3 )
+    ERR( "can't combine option -c with option -j > 3" );
+
   if( !optionsOnly ){
     if( optind >= argc )
       ERR( "please give me a database name and sequence file(s)\n\n" + usage );

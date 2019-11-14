@@ -463,7 +463,7 @@ Miscellaneous options
       are the expected counts of matches and mismatches: first the
       count of reference As aligned to query As, then the count of
       reference As aligned to query Cs, and so on.  For proteins there
-      will be 400 such numbers.  The final ten numbers are expected
+      will be 400 such numbers.  The next six numbers are expected
       counts related to gaps.  They are:
 
       * The count of matches plus mismatches.  (This may exceed the
@@ -474,14 +474,6 @@ Miscellaneous options
       * The count of delete opens (= count of delete closes).
       * The count of insert opens (= count of insert closes).
       * The count of adjacent pairs of insertions and deletions.
-
-      The final four numbers are always zero, unless you use
-      generalized affine gap costs.  They are:
-
-      * The count of unaligned letter pairs.
-      * The count of unaligned letter pair opens (= count of closes).
-      * The count of adjacent pairs of deletions and unaligned letter pairs.
-      * The count of adjacent pairs of insertions and unaligned letter pairs.
 
   -Q NUMBER
       Specify how to read the query sequences::

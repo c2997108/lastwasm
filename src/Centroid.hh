@@ -16,9 +16,8 @@ namespace cbrc{
   public:
     double emit[scoreMatrixRowSize][scoreMatrixRowSize];
     double toMatch;
-    double MD, MP, MI;
+    double MD, MI;
     double DD, DI;
-    double PP, PD, PI;
     double II;
   public:
     ExpectedCount ();
@@ -118,12 +117,10 @@ namespace cbrc{
     dvec_t fM; // f^M(i,j)
     dvec_t fD; // f^D(i,j) Ix
     dvec_t fI; // f^I(i,j) Iy
-    dvec_t fP; // f^P(i,j)
 
     dvec_t bM; // b^M(i,j)
     dvec_t bD; // b^D(i,j)
     dvec_t bI; // b^I(i,j)
-    dvec_t bP; // b^P(i,j)
 
     dvec_t mD;
     dvec_t mI;

@@ -18,20 +18,14 @@ namespace{
   }
 }
 
-static bool isAffineGapCosts(const mcf::GapCosts &g) {
-  return g.pairCost >= g.delPieces[0].growCost + g.insPieces[0].growCost +
-    std::max(g.delPieces[0].openCost, g.insPieces[0].openCost);
-}
-
 namespace cbrc{
 
   ExpectedCount::ExpectedCount ()
   {
     double d0 = 0;
     toMatch = d0;
-    MD = d0; MP = d0; MI = d0;
+    MD = d0; MI = d0;
     DD = d0; DI = d0;
-    PP = d0; PD = d0; PI = d0;
     II = d0;
 
     for (int n=0; n<scoreMatrixRowSize; n++)
@@ -106,7 +100,6 @@ namespace cbrc{
       fM.resize( n );
       fD.resize( n );
       fI.resize( n );
-      fP.resize( n );
     }
     fM[xdropPadLen-1] = 1;
   }
@@ -116,21 +109,18 @@ namespace cbrc{
     bM.assign( n, 0.0 );
     bD.assign( n, 0.0 );
     bI.assign( n, 0.0 );
-    bP.assign( n, 0.0 );
   }
 
   void Centroid::forward(const uchar* seq1, const uchar* seq2,
 			 const ExpMatrixRow* pssm, bool isExtendFwd,
 			 const GapCosts& gap, int globality) {
     const int seqIncrement = isExtendFwd ? 1 : -1;
-    const bool isAffine = isAffineGapCosts(gap);
     initForwardMatrix();
 
     const double eE = EXP(-gap.delPieces[0].growCost / T);
     const double eF = EXP(-gap.delPieces[0].openCost / T);
     const double eEI = EXP(-gap.insPieces[0].growCost / T);
     const double eFI = EXP(-gap.insPieces[0].openCost / T);
-    const double eP = EXP(-gap.pairCost / T);
 
     double Z = 0.0;  // partion function of forward values
 
@@ -143,13 +133,11 @@ namespace cbrc{
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
-      const double seP = eP * scale12;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* fM0 = &fM[ scoreEnd ];
       double* fD0 = &fD[ scoreEnd ];
       double* fI0 = &fI[ scoreEnd ];
-      double* fP0 = &fP[ scoreEnd ];
 
       const size_t horiBeg = xa.hori( k, seq1beg );
       const size_t vertBeg = xa.vert( k, seq1beg );
@@ -157,119 +145,64 @@ namespace cbrc{
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ vertBeg ];
       const double* fM2 = &fM[ diagBeg ];
-      const double* fP2 = &fP[ diagBeg ];
 
       const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
 
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       for (int i = 0; i < xdropPadLen; ++i) {
-	*fM0++ = *fD0++ = *fI0++ = *fP0++ = 0.0;
+	*fM0++ = *fD0++ = *fI0++ = 0.0;
       }
 
       if (! isPssm) {
 	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
-	if (isAffine) {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const unsigned letter2 = *s2;
-	    const double matchProb = match_score[letter1][letter2];
+	while (1) {
+	  const unsigned letter1 = *s1;
+	  const unsigned letter2 = *s2;
+	  const double matchProb = match_score[letter1][letter2];
 
-	    const double xM = *fM2 * scale12;
-	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seEI;
-	    const double xSum = xM + xD + xI;
+	  const double xM = *fM2 * scale12;
+	  const double xD = *fD1 * seE;
+	  const double xI = *fI1 * seEI;
+	  const double xSum = xM + xD + xI;
 
-	    *fD0 = xM * eF + xD;
-	    *fI0 = (xM + xD) * eFI + xI;
-	    *fM0 = xSum * matchProb;
-	    sum_f += xM;
-	    if (globality && matchProb <= 0) Z += xSum;  // xxx
+	  *fD0 = xM * eF + xD;
+	  *fI0 = (xM + xD) * eFI + xI;
+	  *fM0 = xSum * matchProb;
+	  sum_f += xM;
+	  if (globality && matchProb <= 0) Z += xSum;  // xxx
 
-	    if (fM0 == fM0last) break;
-	    fM0++; fD0++; fI0++;
-	    fM2++; fD1++; fI1++;
-	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
-	  }
-	} else {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const unsigned letter2 = *s2;
-	    const double matchProb = match_score[letter1][letter2];
-
-	    const double xM = *fM2 * scale12;
-	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seEI;
-	    const double xP = *fP2 * seP;
-	    const double xSum = (xM + xD) + (xI + xP);
-
-	    *fP0 = xM * eF + xP;
-	    *fD0 = xM * eF + xP + xD;
-	    *fI0 = (xM + xD) * eFI + (xI + xP);
-	    *fM0 = xSum * matchProb;
-	    sum_f += xM;
-	    if (globality && matchProb <= 0) Z += xSum;  // xxx
-
-	    if (fM0 == fM0last) break;
-	    fM0++; fD0++; fI0++; fP0++;
-	    fM2++; fD1++; fI1++; fP2++;
-	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
-	  }
+	  if (fM0 == fM0last) break;
+	  fM0++; fD0++; fI0++;
+	  fM2++; fD1++; fI1++;
+	  s1 += seqIncrement;
+	  s2 -= seqIncrement;
 	}
       } else {
 	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
 
-	if (isAffine) {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const double *matchProbs = *p2;
-	    const double matchProb = matchProbs[letter1];
+	while (1) {
+	  const unsigned letter1 = *s1;
+	  const double *matchProbs = *p2;
+	  const double matchProb = matchProbs[letter1];
 
-	    const double xM = *fM2 * scale12;
-	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seEI;
-	    const double xSum = xM + xD + xI;
+	  const double xM = *fM2 * scale12;
+	  const double xD = *fD1 * seE;
+	  const double xI = *fI1 * seEI;
+	  const double xSum = xM + xD + xI;
 
-	    *fD0 = xM * eF + xD;
-	    *fI0 = (xM + xD) * eFI + xI;
-	    *fM0 = xSum * matchProb;
-	    sum_f += xM;
-	    if (globality && matchProb <= 0) Z += xSum;  // xxx
+	  *fD0 = xM * eF + xD;
+	  *fI0 = (xM + xD) * eFI + xI;
+	  *fM0 = xSum * matchProb;
+	  sum_f += xM;
+	  if (globality && matchProb <= 0) Z += xSum;  // xxx
 
-	    if (fM0 == fM0last) break;
-	    fM0++; fD0++; fI0++;
-	    fM2++; fD1++; fI1++;
-	    s1 += seqIncrement;
-	    p2 -= seqIncrement;
-	  }
-	} else {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const double *matchProbs = *p2;
-	    const double matchProb = matchProbs[letter1];
-
-	    const double xM = *fM2 * scale12;
-	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seEI;
-	    const double xP = *fP2 * seP;
-	    const double xSum = (xM + xD) + (xI + xP);
-
-	    *fP0 = xM * eF + xP;
-	    *fD0 = xM * eF + xP + xD;
-	    *fI0 = (xM + xD) * eFI + (xI + xP);
-	    *fM0 = xSum * matchProb;
-	    sum_f += xM;
-	    if (globality && matchProb <= 0) Z += xSum;  // xxx
-
-	    if (fM0 == fM0last) break;
-	    fM0++; fD0++; fI0++; fP0++;
-	    fM2++; fD1++; fI1++; fP2++;
-	    s1 += seqIncrement;
-	    p2 -= seqIncrement;
-	  }
+	  if (fM0 == fM0last) break;
+	  fM0++; fD0++; fI0++;
+	  fM2++; fD1++; fI1++;
+	  s1 += seqIncrement;
+	  p2 -= seqIncrement;
 	}
       }
 
@@ -289,14 +222,12 @@ namespace cbrc{
 			  const ExpMatrixRow* pssm, bool isExtendFwd,
 			  const GapCosts& gap, int globality) {
     const int seqIncrement = isExtendFwd ? 1 : -1;
-    const bool isAffine = isAffineGapCosts(gap);
     initBackwardMatrix();
 
     const double eE = EXP(-gap.delPieces[0].growCost / T);
     const double eF = EXP(-gap.delPieces[0].openCost / T);
     const double eEI = EXP(-gap.insPieces[0].growCost / T);
     const double eFI = EXP(-gap.insPieces[0].openCost / T);
-    const double eP = EXP(-gap.pairCost / T);
 
     double scaledUnit = 1.0;
 
@@ -309,13 +240,11 @@ namespace cbrc{
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
-      const double seP = eP * scale12;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
       const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
       const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
-      const double* bP0 = &bP[ scoreEnd + xdropPadLen ];
 
       const size_t horiBeg = xa.hori( k, seq1beg );
       const size_t vertBeg = xa.vert( k, seq1beg );
@@ -323,11 +252,9 @@ namespace cbrc{
       double* bD1 = &bD[ horiBeg ];
       double* bI1 = &bI[ vertBeg ];
       double* bM2 = &bM[ diagBeg ];
-      double* bP2 = &bP[ diagBeg ];
 
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ vertBeg ];
-      const double* fP2 = &fP[ diagBeg ];
 
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - xdropPadLen - 1;
 
@@ -339,160 +266,77 @@ namespace cbrc{
       if (! isPssm ) {
 	const uchar *s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
-	if (isAffine) {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const unsigned letter2 = *s2;
-	    const double matchProb = match_score[letter1][letter2];
+	while (1) {
+	  const unsigned letter1 = *s1;
+	  const unsigned letter2 = *s2;
+	  const double matchProb = match_score[letter1][letter2];
 
-	    const double yM = (*bM0) * matchProb;
-	    const double yD = *bD0;
-	    const double yI = *bI0;
+	  const double yM = (*bM0) * matchProb;
+	  const double yD = *bD0;
+	  const double yI = *bI0;
 
-	    double zM = yM + yD * eF + yI * eFI;
-	    double zD = yM + yD + yI * eFI;
-	    double zI = yM + yI;
-	    if( globality ){
-	      if( matchProb <= 0 ){
-		// xxx should get here only at delimiters, but will get
-		// here for non-delimiters with severe mismatch scores
-		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
-	      }
-	    }else{
-	      zM += scaledUnit;
+	  double zM = yM + yD * eF + yI * eFI;
+	  double zD = yM + yD + yI * eFI;
+	  double zI = yM + yI;
+	  if( globality ){
+	    if( matchProb <= 0 ){
+	      // xxx should get here only at delimiters, but will get
+	      // here for non-delimiters with severe mismatch scores
+	      zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
 	    }
-	    *bM2 = zM * scale12;
-	    *bD1 = zD * seE;
-	    *bI1 = zI * seEI;
-
-	    *mDout += (*fD1) * (*bD1);
-	    *mIout += (*fI1) * (*bI1);
-
-	    if (bM0 == bM0last) break;
-	    mDout++; mIout--;
-	    bM2++; bD1++; bI1++;
-	    bM0++; bD0++; bI0++;
-	    fD1++; fI1++;
-	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
+	  }else{
+	    zM += scaledUnit;
 	  }
-	} else {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const unsigned letter2 = *s2;
-	    const double matchProb = match_score[letter1][letter2];
+	  *bM2 = zM * scale12;
+	  *bD1 = zD * seE;
+	  *bI1 = zI * seEI;
 
-	    const double yM = (*bM0) * matchProb;
-	    const double yD = *bD0;
-	    const double yI = *bI0;
-	    const double yP = *bP0;
+	  *mDout += (*fD1) * (*bD1);
+	  *mIout += (*fI1) * (*bI1);
 
-	    double zM = yM + yD * eF + yI * eFI + yP * eF;
-	    double zD = yM + yD + yI * eFI;
-	    double zI = yM + yI;
-	    double zP = yM + yD + yI + yP;
-	    if( globality ){
-	      if( matchProb <= 0 ){  // xxx
-		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
-		zP += scaledUnit;
-	      }
-	    }else{
-	      zM += scaledUnit;
-	    }
-	    *bM2 = zM * scale12;
-	    *bD1 = zD * seE;
-	    *bI1 = zI * seEI;
-	    *bP2 = zP * seP;
-
-	    double probp = *fP2 * *bP2;
-	    *mDout += (*fD1) * (*bD1) + probp;
-	    *mIout += (*fI1) * (*bI1) + probp;
-
-	    if (bM0 == bM0last) break;
-	    mDout++; mIout--;
-	    bM2++; bD1++; bI1++; bP2++;
-	    bM0++; bD0++; bI0++; bP0++;
-	    fD1++; fI1++; fP2++;
-	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
-	  }
+	  if (bM0 == bM0last) break;
+	  mDout++; mIout--;
+	  bM2++; bD1++; bI1++;
+	  bM0++; bD0++; bI0++;
+	  fD1++; fI1++;
+	  s1 += seqIncrement;
+	  s2 -= seqIncrement;
 	}
       } else {
 	const ExpMatrixRow *p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
 
-	if (isAffine) {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const double matchProb = (*p2)[letter1];
+	while (1) {
+	  const unsigned letter1 = *s1;
+	  const double matchProb = (*p2)[letter1];
 
-	    const double yM = (*bM0) * matchProb;
-	    const double yD = *bD0;
-	    const double yI = *bI0;
+	  const double yM = (*bM0) * matchProb;
+	  const double yD = *bD0;
+	  const double yI = *bI0;
 
-	    double zM = yM + yD * eF + yI * eFI;
-	    double zD = yM + yD + yI * eFI;
-	    double zI = yM + yI;
-	    if( globality ){
-	      if( matchProb <= 0 ){  // xxx
-		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
-	      }
-	    }else{
-	      zM += scaledUnit;
+	  double zM = yM + yD * eF + yI * eFI;
+	  double zD = yM + yD + yI * eFI;
+	  double zI = yM + yI;
+	  if( globality ){
+	    if( matchProb <= 0 ){  // xxx
+	      zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
 	    }
-	    *bM2 = zM * scale12;
-	    *bD1 = zD * seE;
-	    *bI1 = zI * seEI;
-
-	    *mDout += (*fD1) * (*bD1);
-	    *mIout += (*fI1) * (*bI1);
-
-	    if (bM0 == bM0last) break;
-	    mDout++; mIout--;
-	    bM2++; bD1++; bI1++;
-	    bM0++; bD0++; bI0++;
-	    fD1++; fI1++;
-	    s1 += seqIncrement;
-	    p2 -= seqIncrement;
+	  }else{
+	    zM += scaledUnit;
 	  }
-	} else {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const double matchProb = (*p2)[letter1];
+	  *bM2 = zM * scale12;
+	  *bD1 = zD * seE;
+	  *bI1 = zI * seEI;
 
-	    const double yM = (*bM0) * matchProb;
-	    const double yD = *bD0;
-	    const double yI = *bI0;
-	    const double yP = *bP0;
+	  *mDout += (*fD1) * (*bD1);
+	  *mIout += (*fI1) * (*bI1);
 
-	    double zM = yM + yD * eF + yI * eFI + yP * eF;
-	    double zD = yM + yD + yI * eFI;
-	    double zI = yM + yI;
-	    double zP = yM + yD + yI + yP;
-	    if( globality ){
-	      if( matchProb <= 0 ){  // xxx
-		zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
-		zP += scaledUnit;
-	      }
-	    }else{
-	      zM += scaledUnit;
-	    }
-	    *bM2 = zM * scale12;
-	    *bD1 = zD * seE;
-	    *bI1 = zI * seEI;
-	    *bP2 = zP * seP;
-
-	    double probp = *fP2 * *bP2;
-	    *mDout += (*fD1) * (*bD1) + probp;
-	    *mIout += (*fI1) * (*bI1) + probp;
-
-	    if (bM0 == bM0last) break;
-	    mDout++; mIout--;
-	    bM2++; bD1++; bI1++; bP2++;
-	    bM0++; bD0++; bI0++; bP0++;
-	    fD1++; fI1++; fP2++;
-	    s1 += seqIncrement;
-	    p2 -= seqIncrement;
-	  }
+	  if (bM0 == bM0last) break;
+	  mDout++; mIout--;
+	  bM2++; bD1++; bI1++;
+	  bM0++; bD0++; bI0++;
+	  fD1++; fI1++;
+	  s1 += seqIncrement;
+	  p2 -= seqIncrement;
 	}
       }
     }
@@ -746,13 +590,11 @@ namespace cbrc{
     const int seqIncrement = isExtendFwd ? 1 : -1;
     int alphabetSizeIncrement = alphabetSize;
     if (!isExtendFwd) alphabetSizeIncrement *= -1;
-    const bool isAffine = isAffineGapCosts(gap);
 
     const double eE = EXP(-gap.delPieces[0].growCost / T);
     const double eF = EXP(-gap.delPieces[0].openCost / T);
     const double eEI = EXP(-gap.insPieces[0].growCost / T);
     const double eFI = EXP(-gap.insPieces[0].openCost / T);
-    const double eP = EXP(-gap.pairCost / T);
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
@@ -762,13 +604,11 @@ namespace cbrc{
 
       const double seE = eE * scale1;
       const double seEI = eEI * scale1;
-      const double seP = eP * scale12;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
       const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
       const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
-      const double* bP0 = &bP[ scoreEnd + xdropPadLen ];
 
       const size_t horiBeg = xa.hori( k, seq1beg );
       const size_t vertBeg = xa.vert( k, seq1beg );
@@ -776,7 +616,6 @@ namespace cbrc{
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ vertBeg ];
       const double* fM2 = &fM[ diagBeg ];
-      const double* fP2 = &fP[ diagBeg ];
 
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - xdropPadLen - 1;
 
@@ -785,146 +624,69 @@ namespace cbrc{
       if (! isPssm ) {
 	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
-	if (isAffine) {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const unsigned letter2 = *s2;
-	    const double matchProb = match_score[letter1][letter2];
+	while (1) {
+	  const unsigned letter1 = *s1;
+	  const unsigned letter2 = *s2;
+	  const double matchProb = match_score[letter1][letter2];
 
-	    const double yM = *bM0 * matchProb;
-	    const double yD = *bD0;
-	    const double yI = *bI0;
+	  const double yM = *bM0 * matchProb;
+	  const double yD = *bD0;
+	  const double yI = *bI0;
 
-	    const double xM = *fM2 * scale12;
-	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seEI;
-	    const double xSum = xM + xD + xI;
+	  const double xM = *fM2 * scale12;
+	  const double xD = *fD1 * seE;
+	  const double xI = *fI1 * seEI;
+	  const double xSum = xM + xD + xI;
 
-	    const double alignProb = xSum * yM;
-	    c.emit[letter1][letter2] += alignProb;
-	    c.toMatch += alignProb;
-	    c.MD += xM * yD * eF;
-	    c.DD += xD * yD;
-	    c.MI += xM * yI * eFI;
-	    c.DI += xD * yI * eFI;
-	    c.II += xI * yI;
+	  const double alignProb = xSum * yM;
+	  c.emit[letter1][letter2] += alignProb;
+	  c.toMatch += alignProb;
+	  c.MD += xM * yD * eF;
+	  c.DD += xD * yD;
+	  c.MI += xM * yI * eFI;
+	  c.DI += xD * yI * eFI;
+	  c.II += xI * yI;
 
-	    if (bM0 == bM0last) break;
-	    fM2++; fD1++; fI1++;
-	    bM0++; bD0++; bI0++;
-	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
-	  }
-	} else {
-	  while (1) {
-	    const unsigned letter1 = *s1;
-	    const unsigned letter2 = *s2;
-	    const double matchProb = match_score[letter1][letter2];
-
-	    const double yM = *bM0 * matchProb;
-	    const double yD = *bD0;
-	    const double yI = *bI0;
-	    const double yP = *bP0;
-
-	    const double xM = *fM2 * scale12;
-	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seEI;
-	    const double xP = *fP2 * seP;
-	    const double xSum = xM + xD + xI + xP;
-
-	    const double alignProb = xSum * yM;
-	    c.emit[letter1][letter2] += alignProb;
-	    c.toMatch += alignProb;
-	    c.MD += xM * yD * eF;
-	    c.DD += xD * yD;
-	    c.PD += xP * yD;
-	    c.MI += xM * yI * eFI;
-	    c.DI += xD * yI * eFI;
-	    c.II += xI * yI;
-	    c.PI += xP * yI;
-	    c.MP += xM * yP * eF;
-	    c.PP += xP * yP;
-
-	    if (bM0 == bM0last) break;
-	    fM2++; fD1++; fI1++; fP2++;
-	    bM0++; bD0++; bI0++; bP0++;
-	    s1 += seqIncrement;
-	    s2 -= seqIncrement;
-	  }
+	  if (bM0 == bM0last) break;
+	  fM2++; fD1++; fI1++;
+	  bM0++; bD0++; bI0++;
+	  s1 += seqIncrement;
+	  s2 -= seqIncrement;
 	}
       } else {
 	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
 	const size_t a2 = seq2pos * alphabetSize;
 	const double* lp2 = isExtendFwd ? letterProbs + a2 : letterProbs - a2;
 
-	if (isAffine) {
-	  while (1) { // inner most loop
-	    const unsigned letter1 = *s1;
-	    const double matchProb = (*p2)[letter1];
+	while (1) { // inner most loop
+	  const unsigned letter1 = *s1;
+	  const double matchProb = (*p2)[letter1];
 
-	    const double yM = *bM0 * matchProb;
-	    const double yD = *bD0;
-	    const double yI = *bI0;
+	  const double yM = *bM0 * matchProb;
+	  const double yD = *bD0;
+	  const double yI = *bI0;
 
-	    const double xM = *fM2 * scale12;
-	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seEI;
-	    const double xSum = xM + xD + xI;
+	  const double xM = *fM2 * scale12;
+	  const double xD = *fD1 * seE;
+	  const double xI = *fI1 * seEI;
+	  const double xSum = xM + xD + xI;
 
-	    const double alignProb = xSum * yM;
-	    countUncertainLetters(c.emit[letter1], alignProb,
-				  alphabetSize, match_score[letter1], lp2);
-	    c.toMatch += alignProb;
-	    c.MD += xM * yD * eF;
-	    c.DD += xD * yD;
-	    c.MI += xM * yI * eFI;
-	    c.DI += xD * yI * eFI;
-	    c.II += xI * yI;
+	  const double alignProb = xSum * yM;
+	  countUncertainLetters(c.emit[letter1], alignProb,
+				alphabetSize, match_score[letter1], lp2);
+	  c.toMatch += alignProb;
+	  c.MD += xM * yD * eF;
+	  c.DD += xD * yD;
+	  c.MI += xM * yI * eFI;
+	  c.DI += xD * yI * eFI;
+	  c.II += xI * yI;
 
-	    if (bM0 == bM0last) break;
-	    fM2++; fD1++; fI1++;
-	    bM0++; bD0++; bI0++;
-	    s1 += seqIncrement;
-	    p2 -= seqIncrement;
-	    lp2 -= alphabetSizeIncrement;
-	  }
-	} else {
-	  while (1) { // inner most loop
-	    const unsigned letter1 = *s1;
-	    const double matchProb = (*p2)[letter1];
-
-	    const double yM = *bM0 * matchProb;
-	    const double yD = *bD0;
-	    const double yI = *bI0;
-	    const double yP = *bP0;
-
-	    const double xM = *fM2 * scale12;
-	    const double xD = *fD1 * seE;
-	    const double xI = *fI1 * seEI;
-	    const double xP = *fP2 * seP;
-	    const double xSum = xM + xD + xI + xP;
-
-	    const double alignProb = xSum * yM;
-	    countUncertainLetters(c.emit[letter1], alignProb,
-				  alphabetSize, match_score[letter1], lp2);
-	    c.toMatch += alignProb;
-	    c.MD += xM * yD * eF;
-	    c.DD += xD * yD;
-	    c.PD += xP * yD;
-	    c.MI += xM * yI * eFI;
-	    c.DI += xD * yI * eFI;
-	    c.II += xI * yI;
-	    c.PI += xP * yI;
-	    c.MP += xM * yP * eF;
-	    c.PP += xP * yP;
-
-	    if (bM0 == bM0last) break;
-	    fM2++; fD1++; fI1++; fP2++;
-	    bM0++; bD0++; bI0++; bP0++;
-	    s1 += seqIncrement;
-	    p2 -= seqIncrement;
-	    lp2 -= alphabetSizeIncrement;
-	  }
+	  if (bM0 == bM0last) break;
+	  fM2++; fD1++; fI1++;
+	  bM0++; bD0++; bI0++;
+	  s1 += seqIncrement;
+	  p2 -= seqIncrement;
+	  lp2 -= alphabetSizeIncrement;
 	}
       }
     }
