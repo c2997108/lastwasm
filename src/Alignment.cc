@@ -36,10 +36,9 @@ static void addExpectedCounts( double* expectedCounts,
 
   transitionCounts[0] += ec.toMatch;
   transitionCounts[1] += ec.DD + ec.MD;  // deleted letter count
-  transitionCounts[2] += ec.II + ec.MI + ec.DI;  // ins. letter count
+  transitionCounts[2] += ec.II + ec.MI;  // inserted letter count
   transitionCounts[3] += ec.MD;  // deletion open/close count
-  transitionCounts[4] += ec.MI + ec.DI;  // insertion open/close count
-  transitionCounts[5] += ec.DI;  // adjacent insertion & deletion count
+  transitionCounts[4] += ec.MI;  // insertion open/close count
 }
 
 static void countSeedMatches( double* expectedCounts,

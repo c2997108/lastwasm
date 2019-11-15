@@ -16,8 +16,9 @@ namespace cbrc{
   public:
     double emit[scoreMatrixRowSize][scoreMatrixRowSize];
     double toMatch;
-    double MD, MI;
-    double DD, DI;
+    double MD;
+    double DD;
+    double MI;
     double II;
   public:
     ExpectedCount ();

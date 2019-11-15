@@ -24,8 +24,9 @@ namespace cbrc{
   {
     double d0 = 0;
     toMatch = d0;
-    MD = d0; MI = d0;
-    DD = d0; DI = d0;
+    MD = d0;
+    DD = d0;
+    MI = d0;
     II = d0;
 
     for (int n=0; n<scoreMatrixRowSize; n++)
@@ -125,6 +126,13 @@ namespace cbrc{
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert
 
+    // The next 2 subtractions get the path parameters from the
+    // alignment parameters, as in Supplementary section 3.1 of "How
+    // sequence alignment scores correspond to probability models",
+    // Bioinformatics 2019:
+    const double delNext = delGrow - delInit;
+    const double insNext = insGrow - insInit;
+
     double Z = 0.0;  // partion function of forward values
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
@@ -167,10 +175,10 @@ namespace cbrc{
 	  const double xI = *fI1 * scale1;
 	  const double xSum = xM + xD + xI;
 
-	  *fD0 = xM * delInit + xD * delGrow;
-	  *fI0 = (xM + xD) * insInit + xI * insGrow;
+	  *fD0 = xSum * delInit + xD * delNext;
+	  *fI0 = xSum * insInit + xI * insNext;
 	  *fM0 = xSum * matchProb;
-	  sum_f += xM;
+	  sum_f += xSum;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
 
 	  if (fM0 == fM0last) break;
@@ -192,10 +200,10 @@ namespace cbrc{
 	  const double xI = *fI1 * scale1;
 	  const double xSum = xM + xD + xI;
 
-	  *fD0 = xM * delInit + xD * delGrow;
-	  *fI0 = (xM + xD) * insInit + xI * insGrow;
+	  *fD0 = xSum * delInit + xD * delNext;
+	  *fI0 = xSum * insInit + xI * insNext;
 	  *fM0 = xSum * matchProb;
-	  sum_f += xM;
+	  sum_f += xSum;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
 
 	  if (fM0 == fM0last) break;
@@ -231,6 +239,9 @@ namespace cbrc{
 
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert
+
+    const double delNext = delGrow - delInit;
+    const double insNext = insGrow - insInit;
 
     double scaledUnit = 1.0;
 
@@ -271,22 +282,20 @@ namespace cbrc{
 	  const unsigned letter2 = *s2;
 	  const double matchProb = match_score[letter1][letter2];
 
-	  const double yM = (*bM0) * matchProb;
+	  const double yM = *bM0;
 	  const double yD = *bD0;
 	  const double yI = *bI0;
 
-	  double zM = yM + yD * delInit + yI * insInit;
-	  double zD = yM + yD * delGrow + yI * insInit;
-	  double zI = yM + yI * insGrow;
-	  if( globality ){
-	    if( matchProb <= 0 ){
-	      // xxx should get here only at delimiters, but will get
-	      // here for non-delimiters with severe mismatch scores
-	      zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
-	    }
-	  }else{
-	    zM += scaledUnit;
-	  }
+	  double ySum = yM * matchProb + yD * delInit + yI * insInit;
+
+	  if (!globality || matchProb <= 0) ySum += scaledUnit;
+	  // xxx matchProb should be 0 only at delimiters, but will be
+	  // 0 for non-delimiters with severe mismatch scores
+
+	  double zM = ySum;
+	  double zD = ySum + yD * delNext;
+	  double zI = ySum + yI * insNext;
+
 	  *bM2 = zM * scale12;
 	  *bD1 = zD * scale1;
 	  *bI1 = zI * scale1;
@@ -309,20 +318,18 @@ namespace cbrc{
 	  const unsigned letter1 = *s1;
 	  const double matchProb = (*p2)[letter1];
 
-	  const double yM = (*bM0) * matchProb;
+	  const double yM = *bM0;
 	  const double yD = *bD0;
 	  const double yI = *bI0;
 
-	  double zM = yM + yD * delInit + yI * insInit;
-	  double zD = yM + yD * delGrow + yI * insInit;
-	  double zI = yM + yI * insGrow;
-	  if( globality ){
-	    if( matchProb <= 0 ){  // xxx
-	      zM += scaledUnit;  zD += scaledUnit;  zI += scaledUnit;
-	    }
-	  }else{
-	    zM += scaledUnit;
-	  }
+	  double ySum = yM * matchProb + yD * delInit + yI * insInit;
+
+	  if (!globality || matchProb <= 0) ySum += scaledUnit;  // xxx
+
+	  double zM = ySum;
+	  double zD = ySum + yD * delNext;
+	  double zI = ySum + yI * insNext;
+
 	  *bM2 = zM * scale12;
 	  *bD1 = zD * scale1;
 	  *bI1 = zI * scale1;
@@ -599,6 +606,9 @@ namespace cbrc{
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert
 
+    const double delNext = delGrow - delInit;
+    const double insNext = insGrow - insInit;
+
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
@@ -641,11 +651,10 @@ namespace cbrc{
 	  const double alignProb = xSum * yM;
 	  c.emit[letter1][letter2] += alignProb;
 	  c.toMatch += alignProb;
-	  c.MD += xM * yD * delInit;
-	  c.DD += xD * yD * delGrow;
-	  c.MI += xM * yI * insInit;
-	  c.DI += xD * yI * insInit;
-	  c.II += xI * yI * insGrow;
+	  c.MD += xSum * yD * delInit;
+	  c.DD += xD * yD * delNext;
+	  c.MI += xSum * yI * insInit;
+	  c.II += xI * yI * insNext;
 
 	  if (bM0 == bM0last) break;
 	  fM2++; fD1++; fI1++;
@@ -675,11 +684,10 @@ namespace cbrc{
 	  countUncertainLetters(c.emit[letter1], alignProb,
 				alphabetSize, match_score[letter1], lp2);
 	  c.toMatch += alignProb;
-	  c.MD += xM * yD * delInit;
-	  c.DD += xD * yD * delGrow;
-	  c.MI += xM * yI * insInit;
-	  c.DI += xD * yI * insInit;
-	  c.II += xI * yI * insGrow;
+	  c.MD += xSum * yD * delInit;
+	  c.DD += xD * yD * delNext;
+	  c.MI += xSum * yI * insInit;
+	  c.II += xI * yI * insNext;
 
 	  if (bM0 == bM0last) break;
 	  fM2++; fD1++; fI1++;

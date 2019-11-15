@@ -463,7 +463,7 @@ Miscellaneous options
       are the expected counts of matches and mismatches: first the
       count of reference As aligned to query As, then the count of
       reference As aligned to query Cs, and so on.  For proteins there
-      will be 400 such numbers.  The next six numbers are expected
+      will be 400 such numbers.  The next 5 numbers are expected
       counts related to gaps.  They are:
 
       * The count of matches plus mismatches.  (This may exceed the
@@ -473,7 +473,6 @@ Miscellaneous options
       * The count of inserted letters.
       * The count of delete opens (= count of delete closes).
       * The count of insert opens (= count of insert closes).
-      * The count of adjacent pairs of insertions and deletions.
 
   -Q NUMBER
       Specify how to read the query sequences::

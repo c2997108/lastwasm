@@ -243,6 +243,7 @@ def gapProbsFromCounts(counts, opts):
     gaps = deletes + inserts
     gapOpens = delOpens + insOpens
     denominator = matches + gapOpens + (alignments + 1)  # +1 pseudocount
+    matchProb = matches / denominator
     if opts.gapsym:
         delOpenProb = gapOpens / denominator / 2
         insOpenProb = gapOpens / denominator / 2
@@ -273,16 +274,21 @@ def gapProbsFromCounts(counts, opts):
     firstDelProb = delOpenProb * delCloseProb
     firstInsProb = insOpenProb * insCloseProb
 
-    # If we define "an alignment" to mean "a set of indistinguishable
-    # paths", then:
-    #delExtendProb += firstDelProb
-    #insExtendProb += firstInsProb
-    # Else, this ensures gap existence cost >= 0:
-    delExtendProb = max(delExtendProb, firstDelProb)
-    insExtendProb = max(insExtendProb, firstInsProb)
+    endProb = math.sqrt(matchProb)  # uniform length probability (xxx gapless)
+    # probably, endProb is negligibly less than 1
+
+    # The next 2 additions get the alignment parameters from the path
+    # parameters, as in Supplementary section 3.1 of "How sequence
+    # alignment scores correspond to probability models",
+    # Bioinformatics 2019:
+    delExtendProb += firstDelProb
+    insExtendProb += firstInsProb
 
     delExistProb = firstDelProb / delExtendProb
     insExistProb = firstInsProb / insExtendProb
+
+    delExtendProb /= endProb
+    insExtendProb /= endProb
 
     return delExistProb, insExistProb, delExtendProb, insExtendProb
 
