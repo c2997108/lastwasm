@@ -138,9 +138,12 @@ namespace cbrc{
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale12 = scale[k+1] * scale[k];
-      const double scale1  = scale[k+1];
+      const double scale2 = scale[k];
+      const double scale1 = scale[k+1];
       double sum_f = 0.0; // sum of forward values
+
+      const double scaledDelNext = scale1 * delNext;
+      const double scaledInsNext = scale1 * insNext;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       double* fM0 = &fM[ scoreEnd ];
@@ -170,13 +173,13 @@ namespace cbrc{
 	  const unsigned letter2 = *s2;
 	  const double matchProb = match_score[letter1][letter2];
 
-	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * scale1;
-	  const double xI = *fI1 * scale1;
-	  const double xSum = xM + xD + xI;
+	  const double xM = *fM2;
+	  const double xD = *fD1;
+	  const double xI = *fI1;
+	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
-	  *fD0 = xSum * delInit + xD * delNext;
-	  *fI0 = xSum * insInit + xI * insNext;
+	  *fD0 = xSum * delInit + xD * scaledDelNext;
+	  *fI0 = xSum * insInit + xI * scaledInsNext;
 	  *fM0 = xSum * matchProb;
 	  sum_f += xSum;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
@@ -195,13 +198,13 @@ namespace cbrc{
 	  const double *matchProbs = *p2;
 	  const double matchProb = matchProbs[letter1];
 
-	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * scale1;
-	  const double xI = *fI1 * scale1;
-	  const double xSum = xM + xD + xI;
+	  const double xM = *fM2;
+	  const double xD = *fD1;
+	  const double xI = *fI1;
+	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
-	  *fD0 = xSum * delInit + xD * delNext;
-	  *fI0 = xSum * insInit + xI * insNext;
+	  *fD0 = xSum * delInit + xD * scaledDelNext;
+	  *fI0 = xSum * insInit + xI * scaledInsNext;
 	  *fM0 = xSum * matchProb;
 	  sum_f += xSum;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
@@ -248,9 +251,12 @@ namespace cbrc{
     for( size_t k = numAntidiagonals; k-- > 0; ){
       const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale12 = scale[k+1] * scale[k];
-      const double scale1  = scale[k+1];
+      const double scale2 = scale[k];
+      const double scale1 = scale[k+1];
       scaledUnit *= scale[k+2];
+
+      const double scaledDelNext = scale1 * delNext;
+      const double scaledInsNext = scale1 * insNext;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
@@ -292,13 +298,11 @@ namespace cbrc{
 	  // xxx matchProb should be 0 only at delimiters, but will be
 	  // 0 for non-delimiters with severe mismatch scores
 
-	  double zM = ySum;
-	  double zD = ySum + yD * delNext;
-	  double zI = ySum + yI * insNext;
+	  ySum *= scale1;
 
-	  *bM2 = zM * scale12;
-	  *bD1 = zD * scale1;
-	  *bI1 = zI * scale1;
+	  *bM2 = ySum * scale2;
+	  *bD1 = ySum + yD * scaledDelNext;
+	  *bI1 = ySum + yI * scaledInsNext;
 
 	  *mDout += (*fD1) * (*bD1);
 	  *mIout += (*fI1) * (*bI1);
@@ -326,13 +330,11 @@ namespace cbrc{
 
 	  if (!globality || matchProb <= 0) ySum += scaledUnit;  // xxx
 
-	  double zM = ySum;
-	  double zD = ySum + yD * delNext;
-	  double zI = ySum + yI * insNext;
+	  ySum *= scale1;
 
-	  *bM2 = zM * scale12;
-	  *bD1 = zD * scale1;
-	  *bI1 = zI * scale1;
+	  *bM2 = ySum * scale2;
+	  *bD1 = ySum + yD * scaledDelNext;
+	  *bI1 = ySum + yI * scaledInsNext;
 
 	  *mDout += (*fD1) * (*bD1);
 	  *mIout += (*fI1) * (*bI1);
@@ -612,8 +614,11 @@ namespace cbrc{
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale12 = scale[k+1] * scale[k];
-      const double scale1  = scale[k+1];
+      const double scale2 = scale[k];
+      const double scale1 = scale[k+1];
+
+      const double scaledDelNext = scale1 * delNext;
+      const double scaledInsNext = scale1 * insNext;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
@@ -639,22 +644,22 @@ namespace cbrc{
 	  const unsigned letter2 = *s2;
 	  const double matchProb = match_score[letter1][letter2];
 
-	  const double yM = *bM0 * matchProb;
+	  const double yM = *bM0;
 	  const double yD = *bD0;
 	  const double yI = *bI0;
 
-	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * scale1;
-	  const double xI = *fI1 * scale1;
-	  const double xSum = xM + xD + xI;
+	  const double xM = *fM2;
+	  const double xD = *fD1;
+	  const double xI = *fI1;
+	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
-	  const double alignProb = xSum * yM;
+	  const double alignProb = xSum * yM * matchProb;
 	  c.emit[letter1][letter2] += alignProb;
 	  c.toMatch += alignProb;
 	  c.MD += xSum * yD * delInit;
-	  c.DD += xD * yD * delNext;
+	  c.DD += xD * yD * scaledDelNext;
 	  c.MI += xSum * yI * insInit;
-	  c.II += xI * yI * insNext;
+	  c.II += xI * yI * scaledInsNext;
 
 	  if (bM0 == bM0last) break;
 	  fM2++; fD1++; fI1++;
@@ -671,23 +676,23 @@ namespace cbrc{
 	  const unsigned letter1 = *s1;
 	  const double matchProb = (*p2)[letter1];
 
-	  const double yM = *bM0 * matchProb;
+	  const double yM = *bM0;
 	  const double yD = *bD0;
 	  const double yI = *bI0;
 
-	  const double xM = *fM2 * scale12;
-	  const double xD = *fD1 * scale1;
-	  const double xI = *fI1 * scale1;
-	  const double xSum = xM + xD + xI;
+	  const double xM = *fM2;
+	  const double xD = *fD1;
+	  const double xI = *fI1;
+	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
-	  const double alignProb = xSum * yM;
+	  const double alignProb = xSum * yM * matchProb;
 	  countUncertainLetters(c.emit[letter1], alignProb,
 				alphabetSize, match_score[letter1], lp2);
 	  c.toMatch += alignProb;
 	  c.MD += xSum * yD * delInit;
-	  c.DD += xD * yD * delNext;
+	  c.DD += xD * yD * scaledDelNext;
 	  c.MI += xSum * yI * insInit;
-	  c.II += xI * yI * insNext;
+	  c.II += xI * yI * scaledInsNext;
 
 	  if (bM0 == bM0last) break;
 	  fM2++; fD1++; fI1++;
