@@ -9,6 +9,8 @@
 #ifndef SCOREMATRIX_HH
 #define SCOREMATRIX_HH
 
+#include "ScoreMatrixRow.hh"
+
 #include <string>
 #include <vector>
 #include <iosfwd>
@@ -19,8 +21,6 @@ namespace cbrc{
 typedef unsigned char uchar;
 
 struct ScoreMatrix{
-  enum { INF = INT_MAX / 2 };  // big, but try to avoid overflow
-
   static const char *canonicalName( const std::string& name );
   static std::string stringFromName( const std::string& name );
 
@@ -57,8 +57,8 @@ struct ScoreMatrix{
   std::vector< std::vector<int> > cells;  // scores
   std::vector<double> rowFrequencies;
   std::vector<double> colFrequencies;
-  int caseSensitive[ALPHABET_CAPACITY][ALPHABET_CAPACITY];
-  int caseInsensitive[ALPHABET_CAPACITY][ALPHABET_CAPACITY];
+  int caseSensitive[scoreMatrixRowSize][scoreMatrixRowSize];
+  int caseInsensitive[scoreMatrixRowSize][scoreMatrixRowSize];
   int minScore;
   int maxScore;
 };

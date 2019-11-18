@@ -9,7 +9,7 @@
 namespace mcf {
 
 //#if defined __AVX2__
-#if defined AVX2_SEEMS_SLOW
+#if defined WANT_AVX2
 
 typedef __m256i SimdInt;
 
@@ -24,11 +24,11 @@ static inline SimdInt simdSet1(int x) {
   return _mm256_set1_epi32(x);
 }
 
-static inline SimdInt simdLoad(const int *p) {
+static inline SimdInt simdLoad(const void *p) {
   return _mm256_loadu_si256((const SimdInt *)p);
 }
 
-static inline void simdStore(int *p, SimdInt x) {
+static inline void simdStore(void *p, SimdInt x) {
   _mm256_storeu_si256((SimdInt *)p, x);
 }
 
@@ -53,11 +53,11 @@ static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
 }
 
 static inline int simdHorizontalMax(SimdInt x) {
-  x = simdMax(x, _mm256_permute4x64_epi64(x, 0x4E));
-  x = simdMax(x, _mm256_shuffle_epi32(x, 0x4E));
-  x = simdMax(x, _mm256_shuffle_epi32(x, 0xB1));
-  //return _mm256_cvtsi256_si32(x);  // doesn't work with gcc 4.8.5?
-  return _mm256_extract_epi32(x, 0);
+  __m128i z = _mm256_castsi256_si128(x);
+  z = _mm_max_epi32(z, _mm256_extracti128_si256(x, 1));
+  z = _mm_max_epi32(z, _mm_shuffle_epi32(z, 0x4E));
+  z = _mm_max_epi32(z, _mm_shuffle_epi32(z, 0xB1));
+  return _mm_cvtsi128_si32(z);
 }
 
 #elif defined __SSE4_1__
@@ -74,11 +74,11 @@ static inline SimdInt simdSet1(int x) {
   return _mm_set1_epi32(x);
 }
 
-static inline SimdInt simdLoad(const int *p) {
+static inline SimdInt simdLoad(const void *p) {
   return _mm_loadu_si128((const SimdInt *)p);
 }
 
-static inline void simdStore(int *p, SimdInt x) {
+static inline void simdStore(void *p, SimdInt x) {
   _mm_storeu_si128((SimdInt *)p, x);
 }
 

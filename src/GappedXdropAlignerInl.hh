@@ -41,11 +41,11 @@ template<typename T> int maxIndex(T a, T b, T c, T d, T e, T f, T g) {
   return g > a ? maxIndex(b, c, d, e, f, g) + 1 : maxIndex(a, b, c, d, e, f);
 }
 
-template<typename T> T maxValue(T a, T b) {
+static inline int maxValue(int a, int b) {
   return std::max(a, b);
 }
 
-template<typename T> T maxValue(T a, T b, T c) {
+static inline int maxValue(int a, int b, int c) {
   return maxValue(maxValue(a, b), c);
 }
 

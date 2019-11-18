@@ -169,7 +169,7 @@ int GappedXdropAligner::align(const uchar *seq1,
 	SimdInt s = simdSet(
 #ifdef __SSE4_1__
 //#ifdef __AVX2__
-#ifdef AVX2_SEEMS_SLOW
+#ifdef WANT_AVX2
 			    s1[7][s2[-7]],
 			    s1[6][s2[-6]],
 			    s1[5][s2[-5]],

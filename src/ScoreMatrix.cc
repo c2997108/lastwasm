@@ -77,7 +77,7 @@ static void upperAndLowerIndex(unsigned tooBig, const uchar symbolToIndex[],
 }
 
 void ScoreMatrix::init(const uchar symbolToIndex[]) {
-  unsigned fastMatrixSize = ALPHABET_CAPACITY;
+  unsigned fastMatrixSize = scoreMatrixRowSize;
   assert(!rowSymbols.empty());
   assert(!colSymbols.empty());
 
@@ -321,8 +321,8 @@ void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
 				     double scale,
 				     const double rowSymbolProbs[],
 				     const double colSymbolProbs[]) {
-  int *fastMatrix[ALPHABET_CAPACITY];
-  std::copy(caseInsensitive, caseInsensitive + ALPHABET_CAPACITY, fastMatrix);
+  int *fastMatrix[scoreMatrixRowSize];
+  std::copy(caseInsensitive, caseInsensitive + scoreMatrixRowSize, fastMatrix);
 
   char scratch[2] = {0};
 

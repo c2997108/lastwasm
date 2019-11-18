@@ -102,6 +102,13 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       for (int i = 0; i < numCells; i += simdLen) {
 	SimdInt s = simdSet(
 #ifdef __SSE4_1__
+//#ifdef __AVX2__
+#ifdef WANT_AVX2
+			    s2[-7][s1[7]],
+			    s2[-6][s1[6]],
+			    s2[-5][s1[5]],
+			    s2[-4][s1[4]],
+#endif
 			    s2[-3][s1[3]],
 			    s2[-2][s1[2]],
 			    s2[-1][s1[1]],
