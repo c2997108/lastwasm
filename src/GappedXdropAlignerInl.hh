@@ -70,13 +70,13 @@ inline bool isAffineGaps(int delExistenceCost, int delExtensionCost,
 // this is not guaranteed if bestScore > INF / 2.  We could avoid this
 // restriction by replacing -INF / 2 with bestScore - INF.
 
-inline const int *finiteBeg(const int *beg, const int *end) {
+inline const Score *finiteBeg(const Score *beg, const Score *end) {
   while (beg < end && *beg <= -INF / 2)
     ++beg;
   return beg;
 }
 
-inline const int *finiteEnd(const int *beg, const int *end) {
+inline const Score *finiteEnd(const Score *beg, const Score *end) {
   while (end > beg && *(end-1) <= -INF / 2)
     --end;
   return end;
@@ -109,7 +109,8 @@ inline void updateBest1(int &bestScore,
 
 inline void GappedXdropAligner::updateBest(int &bestScore, int score,
                                            size_t antidiagonal,
-                                           const int *x0, const int *x0base) {
+                                           const Score *x0,
+					   const Score *x0base) {
   if (score > bestScore) {
     bestScore = score;
     bestAntidiagonal = antidiagonal;
@@ -127,9 +128,9 @@ inline void updateMaxScoreDrop(int &maxScoreDrop,
 }
 
 inline void updateFiniteEdges(size_t *maxSeq1begs, size_t *minSeq1ends,
-                              const int *x0base, const int *x0end,
+                              const Score *x0base, const Score *x0end,
                               size_t numCells) {
-  const int *x0beg = x0end - numCells;
+  const Score *x0beg = x0end - numCells;
 
   maxSeq1begs[0] = maxSeq1begs[1] + 1;
   maxSeq1begs[1] = finiteBeg(x0beg, x0end) - x0base;
@@ -139,9 +140,9 @@ inline void updateFiniteEdges(size_t *maxSeq1begs, size_t *minSeq1ends,
 }
 
 inline void updateFiniteEdges3(size_t *maxSeq1begs, size_t *minSeq1ends,
-                               const int *x0base, const int *x0end,
+                               const Score *x0base, const Score *x0end,
                                size_t numCells) {
-  const int *x0beg = x0end - numCells;
+  const Score *x0beg = x0end - numCells;
 
   maxSeq1begs[0] = maxSeq1begs[1];
   maxSeq1begs[1] = maxSeq1begs[2];

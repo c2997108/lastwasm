@@ -53,22 +53,22 @@ int GappedXdropAligner::align3pssm(const uchar *seq,
 
     int minScore = bestScore - maxScoreDrop;
 
-    int *x0 = &xScores[scoreEnd];
-    int *y0 = &yScores[scoreEnd];
-    int *z0 = &zScores[scoreEnd];
-    const int *y3 = &yScores[hori3(antidiagonal, seq1beg)];
-    const int *z3 = &zScores[vert3(antidiagonal, seq1beg)];
-    const int *x6 = &xScores[diag3(antidiagonal, seq1beg)];
-    const int *x5 = &xScores[diag3(antidiagonal + 1, seq1beg)];
-    const int *x7 = &xScores[diag3(antidiagonal - 1, seq1beg)];
+    Score *x0 = &xScores[scoreEnd];
+    Score *y0 = &yScores[scoreEnd];
+    Score *z0 = &zScores[scoreEnd];
+    const Score *y3 = &yScores[hori3(antidiagonal, seq1beg)];
+    const Score *z3 = &zScores[vert3(antidiagonal, seq1beg)];
+    const Score *x6 = &xScores[diag3(antidiagonal, seq1beg)];
+    const Score *x5 = &xScores[diag3(antidiagonal + 1, seq1beg)];
+    const Score *x7 = &xScores[diag3(antidiagonal - 1, seq1beg)];
 
     *x0++ = *y0++ = *z0++ = -INF;  // add one pad cell
 
-    const int *x0last = x0 + numCells;
+    const Score *x0last = x0 + numCells;
 
     *x0++ = *y0++ = *z0++ = -INF;  // add one pad cell
 
-    const int *x0base = x0 - seq1beg;
+    const Score *x0base = x0 - seq1beg;
 
     if (isAffine) {
       if (isForward)
@@ -108,8 +108,8 @@ int GappedXdropAligner::align3pssm(const uchar *seq,
           --s1;  ++s2;  ++x0;  ++y0;  ++z0;  ++y3;  ++z3;  ++x5;  ++x6;  ++x7;
         }
     } else {
-      const int *y6 = &yScores[diag3(antidiagonal, seq1beg)];
-      const int *z6 = &zScores[diag3(antidiagonal, seq1beg)];
+      const Score *y6 = &yScores[diag3(antidiagonal, seq1beg)];
+      const Score *z6 = &zScores[diag3(antidiagonal, seq1beg)];
       while (1) {
         int s = maxValue(*x5, *x7);
         int x = maxValue(*x6, s - frameshiftCost);

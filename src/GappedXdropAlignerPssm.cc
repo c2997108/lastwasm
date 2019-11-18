@@ -79,19 +79,19 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
     int minScore = bestScore - maxScoreDrop;
     SimdInt mMinScore = simdSet1(minScore);
 
-    int *x0 = &xScores[scoreEnd];
-    int *y0 = &yScores[scoreEnd];
-    int *z0 = &zScores[scoreEnd];
-    const int *y1 = &yScores[hori(antidiagonal, seq1beg)];
-    const int *z1 = &zScores[vert(antidiagonal, seq1beg)];
-    const int *x2 = &xScores[diag(antidiagonal, seq1beg)];
+    Score *x0 = &xScores[scoreEnd];
+    Score *y0 = &yScores[scoreEnd];
+    Score *z0 = &zScores[scoreEnd];
+    const Score *y1 = &yScores[hori(antidiagonal, seq1beg)];
+    const Score *z1 = &zScores[vert(antidiagonal, seq1beg)];
+    const Score *x2 = &xScores[diag(antidiagonal, seq1beg)];
 
     simdStore(x0, mNegInf);  x0 += xdropPadLen;
     simdStore(y0, mNegInf);  y0 += xdropPadLen;
     simdStore(z0, mNegInf);  z0 += xdropPadLen;
 
     if (globality && isDelimiter(0, *s2)) {
-      const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
+      const Score *z2 = &zScores[diag(antidiagonal, seq1beg)];
       int b = maxValue(x2[0], z1[0]-insExtensionCost, z2[0]-gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
@@ -133,8 +133,8 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 	bestAntidiagonal = antidiagonal;
       }
     } else {
-      const int *y2 = &yScores[diag(antidiagonal, seq1beg)];
-      const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
+      const Score *y2 = &yScores[diag(antidiagonal, seq1beg)];
+      const Score *z2 = &zScores[diag(antidiagonal, seq1beg)];
       for (int i = 0; i < numCells; ++i) {
         int x = x2[i];
         int y = maxValue(y1[i] - delExtensionCost, y2[i] - gapUnalignedCost);
@@ -158,7 +158,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
     uchar seq1back = seq2queue[seq1end - 1];
 
     if (globality && isDelimiter(seq1back, vectorOfMatchScores)) {
-      const int *y2 = &yScores[diag(antidiagonal, seq1beg)];
+      const Score *y2 = &yScores[diag(antidiagonal, seq1beg)];
       int n = numCells - 1;
       int b = maxValue(x2[n], y1[n]-delExtensionCost, y2[n]-gapUnalignedCost);
       if (b >= minScore)
@@ -169,7 +169,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
     if (!globality && isDelimiter(seq1back, vectorOfMatchScores))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
-    const int *x0base = x0 - seq1beg;
+    const Score *x0base = x0 - seq1beg;
     updateFiniteEdges(maxSeq1begs, minSeq1ends, x0base, x0+numCells, numCells);
   }
 

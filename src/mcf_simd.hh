@@ -13,6 +13,18 @@ namespace mcf {
 
 typedef __m256i SimdInt;
 
+static inline SimdInt simdLoad(const void *p) {
+  return _mm256_loadu_si256((const SimdInt *)p);
+}
+
+static inline void simdStore(void *p, SimdInt x) {
+  _mm256_storeu_si256((SimdInt *)p, x);
+}
+
+static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
+  return _mm256_blendv_epi8(x, y, mask);
+}
+
 const int simdLen = 8;
 
 static inline SimdInt simdSet(int i7, int i6, int i5, int i4,
@@ -22,14 +34,6 @@ static inline SimdInt simdSet(int i7, int i6, int i5, int i4,
 
 static inline SimdInt simdSet1(int x) {
   return _mm256_set1_epi32(x);
-}
-
-static inline SimdInt simdLoad(const void *p) {
-  return _mm256_loadu_si256((const SimdInt *)p);
-}
-
-static inline void simdStore(void *p, SimdInt x) {
-  _mm256_storeu_si256((SimdInt *)p, x);
 }
 
 static inline SimdInt simdGt(SimdInt x, SimdInt y) {
@@ -48,10 +52,6 @@ static inline SimdInt simdMax(SimdInt x, SimdInt y) {
   return _mm256_max_epi32(x, y);
 }
 
-static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
-  return _mm256_blendv_epi8(x, y, mask);
-}
-
 static inline int simdHorizontalMax(SimdInt x) {
   __m128i z = _mm256_castsi256_si128(x);
   z = _mm_max_epi32(z, _mm256_extracti128_si256(x, 1));
@@ -64,6 +64,18 @@ static inline int simdHorizontalMax(SimdInt x) {
 
 typedef __m128i SimdInt;
 
+static inline SimdInt simdLoad(const void *p) {
+  return _mm_loadu_si128((const SimdInt *)p);
+}
+
+static inline void simdStore(void *p, SimdInt x) {
+  _mm_storeu_si128((SimdInt *)p, x);
+}
+
+static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
+  return _mm_blendv_epi8(x, y, mask);  // SSE4.1
+}
+
 const int simdLen = 4;
 
 static inline SimdInt simdSet(int i3, int i2, int i1, int i0) {
@@ -72,14 +84,6 @@ static inline SimdInt simdSet(int i3, int i2, int i1, int i0) {
 
 static inline SimdInt simdSet1(int x) {
   return _mm_set1_epi32(x);
-}
-
-static inline SimdInt simdLoad(const void *p) {
-  return _mm_loadu_si128((const SimdInt *)p);
-}
-
-static inline void simdStore(void *p, SimdInt x) {
-  _mm_storeu_si128((SimdInt *)p, x);
 }
 
 static inline SimdInt simdGt(SimdInt x, SimdInt y) {
@@ -96,10 +100,6 @@ static inline SimdInt simdSub(SimdInt x, SimdInt y) {
 
 static inline SimdInt simdMax(SimdInt x, SimdInt y) {
   return _mm_max_epi32(x, y);  // SSE4.1
-}
-
-static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
-  return _mm_blendv_epi8(x, y, mask);  // SSE4.1
 }
 
 static inline int simdHorizontalMax(SimdInt x) {

@@ -60,6 +60,8 @@ using namespace mcf;
 typedef unsigned char uchar;
 typedef const int *const_int_ptr;
 
+typedef int Score;
+
 class TwoQualityScoreMatrix;
 
 const int xdropPadLen = simdLen;
@@ -216,9 +218,9 @@ class GappedXdropAligner {
   { return scoreOrigins[antidiagonal - 6] + seq1coordinate - 1; }
 
  private:
-  std::vector<int> xScores;  // best score ending with aligned letters
-  std::vector<int> yScores;  // best score ending with insertion in seq1
-  std::vector<int> zScores;  // best score ending with insertion in seq2
+  std::vector<Score> xScores;  // best score ending with aligned letters
+  std::vector<Score> yScores;  // best score ending with insertion in seq1
+  std::vector<Score> zScores;  // best score ending with insertion in seq2
 
   std::vector<size_t> scoreOrigins;  // score origin for each antidiagonal
   std::vector<size_t> scoreEnds;  // score end pos for each antidiagonal
@@ -247,12 +249,12 @@ class GappedXdropAligner {
   }
 
   void updateBest(int &bestScore, int score, size_t antidiagonal,
-                  const int *x0, const int *x0ori);
+                  const Score *x0, const Score *x0ori);
 
   void calcBestSeq1position(int bestScore) {
     size_t seq1beg = seq1start(bestAntidiagonal);
-    const int *x2 = &xScores[diag(bestAntidiagonal, seq1beg)];
-    const int *x2beg = x2;
+    const Score *x2 = &xScores[diag(bestAntidiagonal, seq1beg)];
+    const Score *x2beg = x2;
     while (*x2 != bestScore) ++x2;
     bestSeq1position = x2 - x2beg + seq1beg;
   }

@@ -61,22 +61,22 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 
     int minScore = bestScore - maxScoreDrop;
 
-    int *x0 = &xScores[scoreEnd];
-    int *y0 = &yScores[scoreEnd];
-    int *z0 = &zScores[scoreEnd];
-    const int *y1 = &yScores[hori(antidiagonal, seq1beg)];
-    const int *z1 = &zScores[vert(antidiagonal, seq1beg)];
-    const int *x2 = &xScores[diag(antidiagonal, seq1beg)];
+    Score *x0 = &xScores[scoreEnd];
+    Score *y0 = &yScores[scoreEnd];
+    Score *z0 = &zScores[scoreEnd];
+    const Score *y1 = &yScores[hori(antidiagonal, seq1beg)];
+    const Score *z1 = &zScores[vert(antidiagonal, seq1beg)];
+    const Score *x2 = &xScores[diag(antidiagonal, seq1beg)];
 
     simdStore(x0, mNegInf);  x0 += xdropPadLen;
     simdStore(y0, mNegInf);  y0 += xdropPadLen;
     simdStore(z0, mNegInf);  z0 += xdropPadLen;
 
-    const int *x0last = x0 + numCells - 1;
-    const int *x0base = x0 - seq1beg;
+    const Score *x0last = x0 + numCells - 1;
+    const Score *x0base = x0 - seq1beg;
 
     if (globality && isDelimiter2qual(*s2)) {
-      const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
+      const Score *z2 = &zScores[diag(antidiagonal, seq1beg)];
       int b = maxValue(*x2, *z1 - insExtensionCost, *z2 - gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
@@ -123,8 +123,8 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
           --s1;  --q1;  ++s2;  ++q2;  ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;
         }
     } else {
-      const int *y2 = &yScores[diag(antidiagonal, seq1beg)];
-      const int *z2 = &zScores[diag(antidiagonal, seq1beg)];
+      const Score *y2 = &yScores[diag(antidiagonal, seq1beg)];
+      const Score *z2 = &zScores[diag(antidiagonal, seq1beg)];
       while (1) {
         int x = *x2;
         int y = maxValue(*y1 - delExtensionCost, *y2 - gapUnalignedCost);
@@ -148,7 +148,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     }
 
     if (globality && isDelimiter2qual(*s1)) {
-      const int *y2 = &yScores[diag(antidiagonal, seq1end-1)];
+      const Score *y2 = &yScores[diag(antidiagonal, seq1end-1)];
       int b = maxValue(*x2, *y1 - delExtensionCost, *y2 - gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
