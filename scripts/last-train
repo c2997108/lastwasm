@@ -133,6 +133,7 @@ def scaleFromHeader(lines):
     raise Exception("couldn't read the scale")
 
 def countsFromLastOutput(lines, opts):
+    numTransitionCounts = 5
     matrix = []
     # use +1 pseudocounts as a kludge to mitigate numerical problems:
     matches = 1.0
@@ -146,11 +147,12 @@ def countsFromLastOutput(lines, opts):
             strand = line.split()[4]  # slow?
         if line[0] == "c":
             c = [float(i) for i in line.split()[1:]]
+            transCounts = c[-numTransitionCounts:]
             if not matrix:
-                matrixSize = int(math.sqrt(len(c) - 10))
+                matrixSize = int(math.sqrt(len(c) - numTransitionCounts))
                 matrix = [[1.0] * matrixSize for i in range(matrixSize)]
             identities = sum(c[i * matrixSize + i] for i in range(matrixSize))
-            alignmentLength = c[-10] + c[-9] + c[-8]
+            alignmentLength = transCounts[0] + transCounts[1] + transCounts[2]
             if 100 * identities > opts.pid * alignmentLength: continue
             for i in range(matrixSize):
                 for j in range(matrixSize):
@@ -158,11 +160,11 @@ def countsFromLastOutput(lines, opts):
                         matrix[i][j]       += c[i * matrixSize + j]
                     else:
                         matrix[-1-i][-1-j] += c[i * matrixSize + j]
-            matches += c[-10]
-            deletes += c[-9]
-            inserts += c[-8]
-            delOpens += c[-7]
-            insOpens += c[-6]
+            matches += transCounts[0]
+            deletes += transCounts[1]
+            inserts += transCounts[2]
+            delOpens += transCounts[3]
+            insOpens += transCounts[4]
             alignments += 1
     gapCounts = matches, deletes, inserts, delOpens, insOpens, alignments
     return matrix, gapCounts

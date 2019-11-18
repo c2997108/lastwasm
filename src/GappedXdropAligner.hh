@@ -49,6 +49,7 @@
 #include "mcf_simd.hh"
 #include "ScoreMatrixRow.hh"
 
+#include <iosfwd>
 #include <stddef.h>  // size_t
 #include <vector>
 
@@ -167,6 +168,8 @@ class GappedXdropAligner {
                      int gapExtensionCost,
                      int gapUnalignedCost,
                      int frameshiftCost);
+
+  void writeShape(std::ostream &out) const;
 
   // The next few functions are for use by Centroid.  If the Centroid
   // code gets updated, it might make sense to change these functions too.

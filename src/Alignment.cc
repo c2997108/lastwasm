@@ -35,10 +35,10 @@ static void addExpectedCounts( double* expectedCounts,
   double* transitionCounts = &expectedCounts[ numEmissionCounts ];
 
   transitionCounts[0] += ec.toMatch;
-  transitionCounts[1] += ec.DD + ec.MD;  // deleted letter count
-  transitionCounts[2] += ec.II + ec.MI;  // inserted letter count
-  transitionCounts[3] += ec.MD;  // deletion open/close count
-  transitionCounts[4] += ec.MI;  // insertion open/close count
+  transitionCounts[1] += ec.delNext + ec.delInit;  // deleted letter count
+  transitionCounts[2] += ec.insNext + ec.insInit;  // inserted letter count
+  transitionCounts[3] += ec.delInit;  // deletion open/close count
+  transitionCounts[4] += ec.insInit;  // insertion open/close count
 }
 
 static void countSeedMatches( double* expectedCounts,
@@ -74,7 +74,7 @@ void Alignment::makeXdrop( Centroid& centroid,
   if( outputType == 7 ){
     assert( seed.size > 0 );  // makes things easier to understand
     const int numEmissionCounts = alph.size * alph.size;
-    const int numTransitionCounts = 10;  // xxx ???
+    const int numTransitionCounts = 5;
     std::vector<double>& expectedCounts = extras.expectedCounts;
     expectedCounts.resize( numEmissionCounts + numTransitionCounts );
     countSeedMatches( &expectedCounts[0],

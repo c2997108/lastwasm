@@ -24,10 +24,10 @@ namespace cbrc{
   {
     double d0 = 0;
     toMatch = d0;
-    MD = d0;
-    DD = d0;
-    MI = d0;
-    II = d0;
+    delInit = d0;
+    delNext = d0;
+    insInit = d0;
+    insNext = d0;
 
     for (int n=0; n<scoreMatrixRowSize; n++)
       for (int m=0; m<scoreMatrixRowSize; m++) emit[n][m] = d0;
@@ -656,10 +656,10 @@ namespace cbrc{
 	  const double alignProb = xSum * yM * matchProb;
 	  c.emit[letter1][letter2] += alignProb;
 	  c.toMatch += alignProb;
-	  c.MD += xSum * yD * delInit;
-	  c.DD += xD * yD * scaledDelNext;
-	  c.MI += xSum * yI * insInit;
-	  c.II += xI * yI * scaledInsNext;
+	  c.delInit += xSum * yD * delInit;
+	  c.delNext += xD * yD * scaledDelNext;
+	  c.insInit += xSum * yI * insInit;
+	  c.insNext += xI * yI * scaledInsNext;
 
 	  if (bM0 == bM0last) break;
 	  fM2++; fD1++; fI1++;
@@ -689,10 +689,10 @@ namespace cbrc{
 	  countUncertainLetters(c.emit[letter1], alignProb,
 				alphabetSize, match_score[letter1], lp2);
 	  c.toMatch += alignProb;
-	  c.MD += xSum * yD * delInit;
-	  c.DD += xD * yD * scaledDelNext;
-	  c.MI += xSum * yI * insInit;
-	  c.II += xI * yI * scaledInsNext;
+	  c.delInit += xSum * yD * delInit;
+	  c.delNext += xD * yD * scaledDelNext;
+	  c.insInit += xSum * yI * insInit;
+	  c.insNext += xI * yI * scaledInsNext;
 
 	  if (bM0 == bM0last) break;
 	  fM2++; fD1++; fI1++;

@@ -48,6 +48,8 @@
 
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
+
+#include <ostream>
 //#include <iostream>  // for debugging
 
 namespace cbrc {
@@ -299,6 +301,13 @@ bool GappedXdropAligner::getNextChunk(size_t &end1,
     else                        bestAntidiagonal -= 1;
 
     if (state != 2) bestSeq1position -= 1;
+  }
+}
+
+void GappedXdropAligner::writeShape(std::ostream &out) const {
+  for (size_t i = 0; i < numAntidiagonals(); ++i) {
+    size_t s = seq1start(i);
+    out << s << "\t" << (s + numCellsAndPads(i) - xdropPadLen) << "\n";
   }
 }
 
