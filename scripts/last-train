@@ -1,6 +1,10 @@
 #! /usr/bin/env python
 # Copyright 2015 Martin C. Frith
 
+# References:
+# [Fri19] How sequence alignment scores correspond to probability models,
+#         MC Frith, Bioinformatics, 2019.
+
 from __future__ import print_function
 
 import gzip
@@ -182,10 +186,6 @@ def guessAlphabet(matrixSize):
     if matrixSize == 20: return "ACDEFGHIKLMNPQRSTVWY"
     raise Exception("can't handle unusual alphabets")
 
-def matrixWithLetters(matrix):
-    alphabet = guessAlphabet(len(matrix))
-    return [alphabet] + [[a] + i for a, i in zip(alphabet, matrix)]
-
 def writeMatrixHead(outFile, prefix, alphabet, formatString):
     writeWords(outFile, [prefix + " "] + [formatString % k for k in alphabet])
 
@@ -207,14 +207,6 @@ def writeScoreMatrix(outFile, matrix, prefix):
     alphabet = guessAlphabet(len(matrix))
     writeMatrixHead(outFile, prefix, alphabet, "%6s")
     writeMatrixBody(outFile, prefix, alphabet, matrix, "%6s")
-
-def writeMatrixWithLetters(outFile, matrix, prefix):
-    head = matrix[0]
-    tail = matrix[1:]
-    left = [i[0] for i in tail]
-    body = [i[1:] for i in tail]
-    writeMatrixHead(outFile, prefix, head, "%6s")
-    writeMatrixBody(outFile, prefix, left, body, "%6s")
 
 def matProbsFromCounts(counts, opts):
     r = range(len(counts))
@@ -272,17 +264,16 @@ def gapProbsFromCounts(counts, opts):
     print()
 
     delCloseProb = 1 - delExtendProb
-    insCloseProb = 1 - insExtendProb
     firstDelProb = delOpenProb * delCloseProb
+
+    insCloseProb = 1 - insExtendProb
     firstInsProb = insOpenProb * insCloseProb
 
     endProb = math.sqrt(matchProb)  # uniform length probability (xxx gapless)
     # probably, endProb is negligibly less than 1
 
     # The next 2 additions get the alignment parameters from the path
-    # parameters, as in Supplementary section 3.1 of "How sequence
-    # alignment scores correspond to probability models",
-    # Bioinformatics 2019:
+    # parameters, as in Supplementary section 3.1 of [Fri19]:
     delExtendProb += firstDelProb
     insExtendProb += firstInsProb
 
@@ -408,14 +399,13 @@ def doTraining(opts, args):
         parameters = gapCosts, matScores
         if parameters in oldParameters: break
         oldParameters.append(parameters)
-        internalMatrix = matrixWithLetters(matScores)
         x = fixedLastalArgs(opts, lastalProgName)
         x.append("-p-")
         x += args
         p = subprocess.Popen(x, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              universal_newlines=True)
         writeGapCosts(gapCosts, p.stdin)
-        writeMatrixWithLetters(p.stdin, internalMatrix, "")
+        writeScoreMatrix(p.stdin, matScores, "")
         p.stdin.close()
         # in python2.6, the next line must come after p.stdin.close()
         q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE,
@@ -431,10 +421,9 @@ def doTraining(opts, args):
     if opts.s: print("#last -s", opts.s)
     if opts.S: print("#last -S", opts.S)
     matScores = matScoresFromProbs(externalScale, matProbs)
-    externalMatrix = matrixWithLetters(matScores)
     print("# score matrix "
           "(query letters = columns, reference letters = rows):")
-    writeMatrixWithLetters(sys.stdout, externalMatrix, "")
+    writeScoreMatrix(sys.stdout, matScores, "")
 
 def lastTrain(opts, args):
     if opts.sample_number:
