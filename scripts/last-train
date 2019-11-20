@@ -283,7 +283,7 @@ def gapProbsFromCounts(counts, opts):
     delExtendProb /= endProb
     insExtendProb /= endProb
 
-    return delExistProb, insExistProb, delExtendProb, insExtendProb
+    return (delExistProb, delExtendProb), (insExistProb, insExtendProb)
 
 def scoreFromLetterProbs(scale, pairProb, prob1, prob2):
     probRatio = pairProb / (prob1 * prob2)
@@ -295,25 +295,21 @@ def matScoresFromProbs(scale, probs):
     return [[scoreFromLetterProbs(scale, j, x, y) for j, y in zip(i, colProbs)]
             for i, x in zip(probs, rowProbs)]
 
-def gapCostsFromProbs(scale, probs):
-    delExistProb, insExistProb, delExtendProb, insExtendProb = probs
-    delExistCost = costFromProb(scale, delExistProb)
-    insExistCost = costFromProb(scale, insExistProb)
-    delExtendCost = costFromProb(scale, delExtendProb)
-    insExtendCost = costFromProb(scale, insExtendProb)
-    if delExtendCost == 0: delExtendCost = 1
-    if insExtendCost == 0: insExtendCost = 1
-    return delExistCost, insExistCost, delExtendCost, insExtendCost
+def gapCostsFromProbs(scale, gapExistProb, gapExtendProb):
+    gapExistCost = costFromProb(scale, gapExistProb)
+    gapExtendCost = costFromProb(scale, gapExtendProb)
+    if gapExtendCost == 0: gapExtendCost = 1
+    return gapExistCost, gapExtendCost
 
 def writeGapCosts(gapCosts, out):
-    delExistCost, insExistCost, delExtendCost, insExtendCost = gapCosts
+    delExistCost, delExtendCost, insExistCost, insExtendCost = gapCosts
     print("#last -a", delExistCost, file=out)
     print("#last -A", insExistCost, file=out)
     print("#last -b", delExtendCost, file=out)
     print("#last -B", insExtendCost, file=out)
 
 def printGapCosts(gapCosts):
-    delExistCost, insExistCost, delExtendCost, insExtendCost = gapCosts
+    delExistCost, delExtendCost, insExistCost, insExtendCost = gapCosts
     print("# delExistCost:", delExistCost)
     print("# insExistCost:", insExistCost)
     print("# delExtendCost:", delExtendCost)
@@ -387,16 +383,17 @@ def doTraining(opts, args):
         print()
         sys.stdout.flush()
         matCounts, gapCounts = countsFromLastOutput(q.stdout, opts)
-        gapProbs = gapProbsFromCounts(gapCounts, opts)
-        gapCosts = gapCostsFromProbs(internalScale, gapProbs)
-        printGapCosts(gapCosts)
+        delProbs, insProbs = gapProbsFromCounts(gapCounts, opts)
+        delCosts = gapCostsFromProbs(internalScale, *delProbs)
+        insCosts = gapCostsFromProbs(internalScale, *insProbs)
+        printGapCosts(delCosts + insCosts)
         matProbs = matProbsFromCounts(matCounts, opts)
         matScores = matScoresFromProbs(internalScale, matProbs)
         print("# score matrix "
               "(query letters = columns, reference letters = rows):")
         writeScoreMatrix(sys.stdout, matScores, "# ")
         print()
-        parameters = gapCosts, matScores
+        parameters = delCosts, insCosts, matScores
         if parameters in oldParameters: break
         oldParameters.append(parameters)
         x = fixedLastalArgs(opts, lastalProgName)
@@ -404,7 +401,7 @@ def doTraining(opts, args):
         x += args
         p = subprocess.Popen(x, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              universal_newlines=True)
-        writeGapCosts(gapCosts, p.stdin)
+        writeGapCosts(delCosts + insCosts, p.stdin)
         writeScoreMatrix(p.stdin, matScores, "")
         p.stdin.close()
         # in python2.6, the next line must come after p.stdin.close()
@@ -416,8 +413,9 @@ def doTraining(opts, args):
 
     if opts.X: print("#last -X", opts.X)
     if opts.Q: print("#last -Q", opts.Q)
-    gapCosts = gapCostsFromProbs(externalScale, gapProbs)
-    writeGapCosts(gapCosts, sys.stdout)
+    delCosts = gapCostsFromProbs(externalScale, *delProbs)
+    insCosts = gapCostsFromProbs(externalScale, *insProbs)
+    writeGapCosts(delCosts + insCosts, sys.stdout)
     if opts.s: print("#last -s", opts.s)
     if opts.S: print("#last -S", opts.S)
     matScores = matScoresFromProbs(externalScale, matProbs)
