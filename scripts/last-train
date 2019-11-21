@@ -231,7 +231,7 @@ def matProbsFromCounts(counts, opts):
 
     return probs
 
-def gapProbsFromCounts(counts, opts):
+def gapRatiosFromCounts(counts, opts):
     matches, deletes, inserts, delOpens, insOpens, alignments = counts
     if not alignments: raise Exception("no alignments")
     gaps = deletes + inserts
@@ -272,32 +272,39 @@ def gapProbsFromCounts(counts, opts):
     endProb = math.sqrt(matchProb)  # uniform length probability (xxx gapless)
     # probably, endProb is negligibly less than 1
 
-    # The next 2 additions get the alignment parameters from the path
-    # parameters, as in Supplementary section 3.1 of [Fri19]:
-    delExtendProb += firstDelProb
-    insExtendProb += firstInsProb
+    matchRatio = matchProb / (endProb * endProb)
 
-    delExistProb = firstDelProb / delExtendProb
-    insExistProb = firstInsProb / insExtendProb
+    firstDelRatio = firstDelProb / endProb
+    delExtendRatio = delExtendProb / endProb
+    delRatios = firstDelRatio, delExtendRatio
 
-    delExtendProb /= endProb
-    insExtendProb /= endProb
+    firstInsRatio = firstInsProb / endProb
+    insExtendRatio = insExtendProb / endProb
+    insRatios = firstInsRatio, insExtendRatio
 
-    return (delExistProb, delExtendProb), (insExistProb, insExtendProb)
+    return matchRatio, delRatios, insRatios
 
-def scoreFromLetterProbs(scale, pairProb, prob1, prob2):
-    probRatio = pairProb / (prob1 * prob2)
-    return scoreFromProb(scale, probRatio)
+def scoreFromLetterProbs(scale, matchRatio, pairProb, rowProb, colProb):
+    # Equation (4) in [Fri19]
+    probRatio = pairProb / (rowProb * colProb)
+    return scoreFromProb(scale, matchRatio * probRatio)
 
-def matScoresFromProbs(scale, probs):
+def matScoresFromProbs(scale, probs, matchRatio):
     rowProbs = [sum(i) for i in probs]
     colProbs = [sum(i) for i in zip(*probs)]
-    return [[scoreFromLetterProbs(scale, j, x, y) for j, y in zip(i, colProbs)]
-            for i, x in zip(probs, rowProbs)]
+    r = range(len(probs))
+    return [[scoreFromLetterProbs(scale, matchRatio, probs[i][j],
+                                  rowProbs[i], colProbs[j]) for j in r]
+            for i in r]
 
-def gapCostsFromProbs(scale, gapExistProb, gapExtendProb):
-    gapExistCost = costFromProb(scale, gapExistProb)
-    gapExtendCost = costFromProb(scale, gapExtendProb)
+def gapCostsFromProbRatios(scale, firstGapRatio, gapExtendRatio):
+    # This addition gets the alignment parameter from the path
+    # parameter, as in Supplementary section 3.1 of [Fri19]:
+    gapExtendRatio += firstGapRatio
+
+    gapExistRatio = firstGapRatio / gapExtendRatio
+    gapExistCost = costFromProb(scale, gapExistRatio)
+    gapExtendCost = costFromProb(scale, gapExtendRatio)
     if gapExtendCost == 0: gapExtendCost = 1
     return gapExistCost, gapExtendCost
 
@@ -383,12 +390,12 @@ def doTraining(opts, args):
         print()
         sys.stdout.flush()
         matCounts, gapCounts = countsFromLastOutput(q.stdout, opts)
-        delProbs, insProbs = gapProbsFromCounts(gapCounts, opts)
-        delCosts = gapCostsFromProbs(internalScale, *delProbs)
-        insCosts = gapCostsFromProbs(internalScale, *insProbs)
+        matchRatio, delRatios, insRatios = gapRatiosFromCounts(gapCounts, opts)
+        delCosts = gapCostsFromProbRatios(internalScale, *delRatios)
+        insCosts = gapCostsFromProbRatios(internalScale, *insRatios)
         printGapCosts(delCosts + insCosts)
         matProbs = matProbsFromCounts(matCounts, opts)
-        matScores = matScoresFromProbs(internalScale, matProbs)
+        matScores = matScoresFromProbs(internalScale, matProbs, matchRatio)
         print("# score matrix "
               "(query letters = columns, reference letters = rows):")
         writeScoreMatrix(sys.stdout, matScores, "# ")
@@ -413,12 +420,12 @@ def doTraining(opts, args):
 
     if opts.X: print("#last -X", opts.X)
     if opts.Q: print("#last -Q", opts.Q)
-    delCosts = gapCostsFromProbs(externalScale, *delProbs)
-    insCosts = gapCostsFromProbs(externalScale, *insProbs)
+    delCosts = gapCostsFromProbRatios(externalScale, *delRatios)
+    insCosts = gapCostsFromProbRatios(externalScale, *insRatios)
     writeGapCosts(delCosts + insCosts, sys.stdout)
     if opts.s: print("#last -s", opts.s)
     if opts.S: print("#last -S", opts.S)
-    matScores = matScoresFromProbs(externalScale, matProbs)
+    matScores = matScoresFromProbs(externalScale, matProbs, matchRatio)
     print("# score matrix "
           "(query letters = columns, reference letters = rows):")
     writeScoreMatrix(sys.stdout, matScores, "")
