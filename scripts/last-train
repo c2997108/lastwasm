@@ -303,27 +303,25 @@ def matScoresFromProbs(scale, matchRatio, matProbs, rowProbs, colProbs):
             for i in r]
 
 def gapCostsFromProbRatios(scale, firstGapRatio, gapExtendRatio):
-    # This addition gets the alignment parameter from the path
-    # parameter, as in Supplementary section 3.1 of [Fri19]:
+    # The next addition gets the alignment parameter from the path
+    # parameters, as in Supplementary section 3.1 of [Fri19]:
     gapExtendRatio += firstGapRatio
-
-    gapExistRatio = firstGapRatio / gapExtendRatio
-    gapExistCost = costFromProb(scale, gapExistRatio)
-    gapExtendCost = costFromProb(scale, gapExtendRatio)
-    if gapExtendCost == 0: gapExtendCost = 1
-    return gapExistCost, gapExtendCost
+    gapExistCost = costFromProb(scale, firstGapRatio / gapExtendRatio)
+    gapExtendCost = max(costFromProb(scale, gapExtendRatio), 1)
+    firstGapCost = gapExistCost + gapExtendCost
+    return firstGapCost, gapExtendCost
 
 def writeGapCosts(gapCosts, out):
-    delExistCost, delExtendCost, insExistCost, insExtendCost = gapCosts
-    print("#last -a", delExistCost, file=out)
-    print("#last -A", insExistCost, file=out)
+    firstDelCost, delExtendCost, firstInsCost, insExtendCost = gapCosts
+    print("#last -a", firstDelCost - delExtendCost, file=out)
+    print("#last -A", firstInsCost - insExtendCost, file=out)
     print("#last -b", delExtendCost, file=out)
     print("#last -B", insExtendCost, file=out)
 
 def printGapCosts(gapCosts):
-    delExistCost, delExtendCost, insExistCost, insExtendCost = gapCosts
-    print("# delExistCost:", delExistCost)
-    print("# insExistCost:", insExistCost)
+    firstDelCost, delExtendCost, firstInsCost, insExtendCost = gapCosts
+    print("# delExistCost:", firstDelCost - delExtendCost)
+    print("# insExistCost:", firstInsCost - insExtendCost)
     print("# delExtendCost:", delExtendCost)
     print("# insExtendCost:", insExtendCost)
     print()
@@ -426,14 +424,14 @@ def doTraining(opts, args):
             q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
                                  universal_newlines=True)
 
-    if opts.X: print("#last -X", opts.X)
-    if opts.Q: print("#last -Q", opts.Q)
     delCosts = gapCostsFromProbRatios(externalScale, *delRatios)
     insCosts = gapCostsFromProbRatios(externalScale, *insRatios)
+    matScores = matScoresFromProbs(externalScale, *matParams)
+    if opts.X: print("#last -X", opts.X)
+    if opts.Q: print("#last -Q", opts.Q)
     writeGapCosts(delCosts + insCosts, sys.stdout)
     if opts.s: print("#last -s", opts.s)
     if opts.S: print("#last -S", opts.S)
-    matScores = matScoresFromProbs(externalScale, *matParams)
     print("# score matrix "
           "(query letters = columns, reference letters = rows):")
     writeScoreMatrix(sys.stdout, matScores, "")
