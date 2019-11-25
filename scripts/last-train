@@ -8,7 +8,14 @@
 from __future__ import print_function
 
 import gzip
-import math, optparse, os, random, signal, subprocess, sys, tempfile
+import math
+import optparse
+import os
+import random
+import signal
+import subprocess
+import sys
+import tempfile
 
 def myOpen(fileName):  # faster than fileinput
     if fileName == "-":
@@ -289,11 +296,9 @@ def scoreFromLetterProbs(scale, matchRatio, pairProb, rowProb, colProb):
     probRatio = pairProb / (rowProb * colProb)
     return scoreFromProb(scale, matchRatio * probRatio)
 
-def matScoresFromProbs(scale, probs, matchRatio):
-    rowProbs = [sum(i) for i in probs]
-    colProbs = [sum(i) for i in zip(*probs)]
-    r = range(len(probs))
-    return [[scoreFromLetterProbs(scale, matchRatio, probs[i][j],
+def matScoresFromProbs(scale, matchRatio, matProbs, rowProbs, colProbs):
+    r = range(len(matProbs))
+    return [[scoreFromLetterProbs(scale, matchRatio, matProbs[i][j],
                                   rowProbs[i], colProbs[j]) for j in r]
             for i in r]
 
@@ -395,7 +400,10 @@ def doTraining(opts, args):
         insCosts = gapCostsFromProbRatios(internalScale, *insRatios)
         printGapCosts(delCosts + insCosts)
         matProbs = matProbsFromCounts(matCounts, opts)
-        matScores = matScoresFromProbs(internalScale, matProbs, matchRatio)
+        rowProbs = [sum(i) for i in matProbs]
+        colProbs = [sum(i) for i in zip(*matProbs)]
+        matParams = matchRatio, matProbs, rowProbs, colProbs
+        matScores = matScoresFromProbs(internalScale, *matParams)
         print("# score matrix "
               "(query letters = columns, reference letters = rows):")
         writeScoreMatrix(sys.stdout, matScores, "# ")
@@ -425,7 +433,7 @@ def doTraining(opts, args):
     writeGapCosts(delCosts + insCosts, sys.stdout)
     if opts.s: print("#last -s", opts.s)
     if opts.S: print("#last -S", opts.S)
-    matScores = matScoresFromProbs(externalScale, matProbs, matchRatio)
+    matScores = matScoresFromProbs(externalScale, *matParams)
     print("# score matrix "
           "(query letters = columns, reference letters = rows):")
     writeScoreMatrix(sys.stdout, matScores, "")
