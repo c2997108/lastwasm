@@ -149,7 +149,7 @@ Score options (default settings):\n\
 -x: maximum score drop for preliminary gapped alignments (z)\n\
 -y: maximum score drop for gapless alignments (min[t*10, x])\n\
 -z: maximum score drop for final gapped alignments (e-1)\n\
--d: minimum score for gapless alignments (min[e, t*ln(1000*refSize/n)])\n\
+-d: minimum score for gapless alignments (min[e, 2500/n query letters per hit])\n\
 -e: minimum score for gapped alignments\n\
 \n\
 Initial-match options (default settings):\n\

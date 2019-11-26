@@ -79,6 +79,7 @@ namespace {
   mcf::GapCosts gapCosts;
   std::vector<LastAligner> aligners;
   LastEvaluer evaluer;
+  LastEvaluer gaplessEvaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence text;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
@@ -273,6 +274,13 @@ static void calculateScoreStatistics(const std::string& matrixName,
   bool isGapped = (args.outputType > 1);
   LOG( "getting E-value parameters..." );
   try{
+    gaplessEvaluer.init(canonicalMatrixName,
+			args.matchScore, args.mismatchCost,
+			alph.letters.c_str(), fwdMatrices.scoresMasked,
+			stats.letterProbs1(), stats.letterProbs2(), false,
+			0, 0, 0, 0, args.frameshiftCost, geneticCode,
+			args.geneticCodeFile.c_str(), args.verbosity);
+
     const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
     const mcf::GapCosts::Piece &ins = gapCosts.insPieces[0];
     evaluer.init( canonicalMatrixName, args.matchScore, args.mismatchCost,
@@ -1011,28 +1019,22 @@ int calcMinScoreGapless(double numLettersInReference) {
   // This attempts to ensure that the gapped alignment phase will be
   // reasonably fast relative to the gapless alignment phase.
 
-  // The expected number of gapped extensions per query position is:
-  // kGapless * referenceSize * exp(-lambdaGapless * minScoreGapless).
+  if (!gaplessEvaluer.isGood()) return args.minScoreGapped;
+
+  double n = args.maxGaplessAlignmentsPerQueryPosition;
+  if (args.maxGaplessAlignmentsPerQueryPosition + 1 == 0) n = 10;  // ?
 
   // The number of gapless extensions per query position is
   // proportional to: maxGaplessAlignmentsPerQueryPosition * numOfIndexes.
-
-  // So we want exp(lambdaGapless * minScoreGapless) to be
-  // proportional to: kGapless * referenceSize / (n * numOfIndexes).
-
-  // But we crudely ignore kGapless.
-
+  // We want the number of gapped extensions per query position to be
+  // proportional to this:
+  double propConst = 0.0004;  // xxx ???
+  double e = n * numOfIndexes * propConst;
   // The proportionality constant was guesstimated by some limited
   // trial-and-error.  It should depend on the relative speeds of
   // gapless and gapped extensions.
 
-  if (args.temperature < 0) return args.minScoreGapped;  // shouldn't happen
-
-  double n = args.maxGaplessAlignmentsPerQueryPosition;
-  if (args.maxGaplessAlignmentsPerQueryPosition + 1 == 0) n = 10;  // ?
-  double x = 1000.0 * numLettersInReference / (n * numOfIndexes);
-  if (x < 1) x = 1;
-  int s = int(args.temperature * std::log(x) + 0.5);
+  int s = gaplessEvaluer.minScore(e, numLettersInReference);
   return std::min(s, args.minScoreGapped);
 }
 

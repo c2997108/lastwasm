@@ -1,5 +1,5 @@
 #
-# a=7 b=1 A=7 B=1 e=1 d=0 x=0 y=0 z=0 D=1e+06 E=1.12086e+17
+# a=7 b=1 A=7 B=1 e=1 d=1 x=0 y=0 z=0 D=1e+06 E=1.12086e+17
 # R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=0 normal letters=0
@@ -29,7 +29,7 @@
 # Query sequences=0
 TEST lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -z3400 -e2500 /tmp/last-test galGal3-M-32.fa
 #
-# a=400 b=30 A=400 B=30 e=2500 d=1384 x=3400 y=962 z=3400 D=1e+06 E=2.80488e+07
+# a=400 b=30 A=400 B=30 e=2500 d=1311 x=3400 y=962 z=3400 D=1e+06 E=2.80488e+07
 # R=10 u=1 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=96.1735 g=1 j=5 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -112,6 +112,16 @@ a score=2715 EG2=6.9e+05 E=0.00041 fullScore=1.47e+04
 s chrM 15021 1550 + 16775 ACCCAAATCCTCACCGGCCTACTA---------------------CTAGCCATG-CACTACACAGCAGACACATCCCTA----------GCCTTCTCCTCCGTAGCCCACACTTGCCGGAACGTACAATACGGCTGACT---------------------------CATCCGGAATCTCCACGCAAACGGCGCCTCATTCTTCTTCATCTGTATCTTCCTTCACATCGGACGAGGCCTATACTACGGCTCCT---------------------------------------------------ACCTCTACAAGGAAACCTGAAACACAGGAG-------------------------TAATCCTCCTCCTCA----CACTCATAGCCACCG--------CCTTTGTGGGCTATGTTCT--CCCATGGGG----CCAAATATCATTCTGAGGGGCCACCGTT-----ATCACAAACCTATTCTCAGCAATTCCCTACATTGGACACACCCTAG-------------------------TAGAGTGAGCCTGAGGGGGATTTTCAG---------------------------TCGACAACCCA---------------ACCCTTACCCGATTCTTCGCTT--TACACTTCCT-------CCTCCCCTTTGCAATCGCAGGTATTACTATCATCCACC--------------TCACCTTCCTACACGAATCAGGCTCAAACAACCCCCTAGGCATCTCATCCGACTCTGACAAAATTCCATTTCACCCATACTACTCCTT--------------------------------------------CAAAGA-CATTCTGGGCT--------TAACTCTCATACTCACCCCATTCCTAACACTAGCCCTATTCTCCCCCAACCTC-------------------------------CTAGGAGACCCAGAAAACTTCACCCCAGCAAACCCACTAGTA---------------------------------------------------ACCCCCCCACATATC-----------AAACCAGAATGATATTTTCTATTCGCCTATGCCATCCTAC--GCTCCATCCCCAACA-----AACTTGGAGGTGTAC----TAGCCCTAGCAGCCTCAGTCCTCA--TCCTCTTC--CTAATCCCCTTCCTCCACAA--ATCTAAACAACGA----ACAATAACCTTCC---GACCACT-CTCCCAAACCCTATTCTGACTTCTAGTAGCCAACCTTCTTA----------------------------TCCTAACCTGAATCGGAAGCCAACCAGTAG------------------------------------AACACCCCTTCATCATCATTGGCCAAATAGCATCCCTCTCTTACTT-------------------CACCAT----CCTACTTATCCTCTTCCCCACAATCGGAACACTAGAAAACAAAATACTCAACTACTAAAATACTCTA----------------------------ATAGTTTATGAAAAACATTGGTCTTGTAAACCAAAAACTGAAGACTCCACCCTTCTTAGAGTATCAGA-------AAAGGAGGGCTCAAACCTCCATCTCCAG------------CTCCCAAAGCTGGTATTTTCAAATAAACTACT----------------CTCTGAAACCCTTAAACCGCCCGAA----------------TTGCCCCCCGAGACAACCCACGCACAAGCTCTAGTACAACAAACAAAGCTAACAACAAACCTCACCCAGCCACCAAAAACAACCCAACCCCACATGAATAAAACACCGCAACTCCACTAAAATCCAACCGAGCAAAAGACACACCCCCGC-------------------------------------------------------------------------------------------------------------------------------------CATCAACAGTAACCACCCCC------------------ACCTTTCAAAAATCAACGAGCCCTCCCAGA--------------------ACCACCCCCATTCAAACCACCAAGACAAAACCTAGCCCATACCCCACCACCCGCCAATCCCCCCAAG------------------------------------------------------CCTCAGGATAAGG--ATCCGCAGCTAATGACACA------GAATAAACAAAAACCACC-----AACATCCCCCCTAAATACACCAAAAATAACGCCAAGGAAACAAAAGAAA------------------------------------CACCCAAA
 s chrM 11863 1543 + 16775 ATCCCAACCCTCAT----------CTTAATCACACGCTGAGGAAACCAACCA--GAACGACTTAGC-------------GCAGGCATTTACCTTCTATTCTATACCCT-------------------------------AATTAGCTCTCTTCCCCTACTAGTCTCCATCCTCTACCTTCACACAAAT----------------------------------------------------------------ACTGGAACCCTCCACCTACCCATTATCAAACTCACCCACCCCAACCTACCTGCC---------------------------TCCTGAACAAGCTTATTATCTAGCCTAGCTCTCCTA----ATAGCCTTTATAGTC----AAAGCACCCCTATACGGACTA------CACCTATGA--CTGCCTAAAGCCCATGTAGAAG----------CACCAATCGCAGGC-------------------------------------TCCATACTACTCGCTGCTCTACTACTAA------------------------AACTAGGCGGATATGGCATCATACGAGT----------CACCCTCCTAATGGAGCCCGTATCCAACTT-------CTTACACT----ACCCCTTCCTCACCCTAGCCCTATGAGGTGC--------------CCTAATAACTAGCTCTATCTGCTTACGCCAAACAGACCTAAAATCCCTCATTGCCTACTCATCCG-------------------------------------TAAGCCATATGGGCCTAGTCATCGCTGCAAGTATAATCCAAACCCAATGATCATTCTC----AGGTGCAATAATCCTCATAATCTC-------------------------------------CCATGGACTAACCTCTTCCCTTTTATTCTGCCTAGCAAACAC-------------------------------AAACTACGAACGGACACACAGCCGCATTCTTATCCTGACACGAGGCCTCCAACCCC----------TCCTACCATTGATATCAGTATGATGATTACTAGCCAACTTAACCAACA---TGGCCCTGCCCCCAA--CCACCAACCTG---------ATAGCAGAACTAACAATTATAGT-----TGCCCTCTTCAACTGATCC---TCCCCCACAATTATCTTAAC-----CGGCACTGCAACACT--CCTAACCG--CCTCTTACACCCTCTACATACT--------------------ACTCTCAACCCAACGAGGCACTCTTCCAT-----------------------------CCCACATCACAACAACCCCCAACTCAAACACTCGAGAACATC----------------------------------------TTCTCATAACCCTCCACATCA----TCCCCATACTAACACTCATCCTCA-AACCAGAA--------------------------------------CTAATCTCAGGAACCCCTCTATGCAAACATAGTTTAACCCAAACATTAGA-TTGTGATTCTAAAAATAGGAGTTTAACCCTCCTT-----------GTTCGCCGAGGGGAGGCCCAAGCCAGC--------AAGAACTGCTAATTCCTGCATCTG--------------------AGCTTTAAACCTCAGTCCCCTTAACTTTTAAA---------GGATAAGAGCAATCCGTTGGTCTTAGGAACCACCTA----------------------------------------------------------------------------------------------------------------------------------TCTTGGTGCAAATCCAAGTAAAAGTAATGGAGACTCCACTGCTCCTTAACACCCTCACAACATTAACACTACTCACCCTCCTTACCCCTATTATCCTTCCCCCCCTCCTAAATCTAAAAAACTCCCCCATATCCATC----------------ACCAAAACCATTAAAACCGCCTTCC-----------------------TAATCAGCCTAATCCCAACAACAATCTTCAT--------------------------------------------------------CCACTCAGGGGCAGAAAGCATTGCCACCCACTGAGAATGACAATTTATCCCCAACTTCA--------AGATCCCCATCT---------CCCTAAAAATAGACATATAC----TCCATAATATTCTTCCCCATTGCACTATTTGTAA--------------------CCTGATCCATCTTAGAGTTCGCAACATGATACATAGCATCCGAA
 p                         $$%%%%&&&&&%%$!"""""""!!!""##""""""""#$%&&%$"$$$$$$$#!!$%&&&&%%&%$!!!!!!!"###"""!!!!!!!!!$&'()))((((((('%%%$!"!!!!!!"$&&%$$##"#####$#####"!"#$$####""""!!!!!!!!!!!!!!"&)***))*,,.../////.,)%!!!""""####""""""!!"""#""""""""""""""""####$$$#"!"""""""#$$##"!!##"""""!!!!!!!!!!!!!!!!!!!!"""!!!!!!!!!!!!!!!!!!!!!$$$!!"""""#####"!!""""""""""""!!!!!!!!!!!!"""""""""!!!!$$$%%%%%%%$!!!!""""$$$$$%%%%$$!!!"!"#"""""$%&&'(()*))('##%%#"!!%&&&&&$!!$$!!$$%%%%%&&'&%%%%%%%!""!!##$&%!!!!!%&&&&&%%$"""""""""""#"""!!!!!"###$%%%%$$$#"!!!"""""!!!!!!!!!!!!!!!!!!!!$$$""""""""""""!!!!!"""!!!!!!!!!!!!!!!!"""""""""""""""$!!!!!!!!!!!!!!""#####%&%#$(*++--,,,+*&%$""#$#"!!!$$$$$$!!!!!!!!!!!$$%%%%%&&&&%%$$$$%'(('&$!"!!!!!!!!!!!!!!!!!!!!!!!!!!$$)+,-.013776434447752/,+*)&$$$$$$$$%%&&'''~~~~~~~~"###""""""""""!!!!!!!!!!!!!!!!"""""""####""""##$$##"""""""""""""""""""!!!!!!""""!$$$$$$$%'((''$!!!!""""$%%$&'())***+**)((%$!!""""""""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!""!!!!!!!!!!!!!!""""!!!!!"!$$$$$$$$$$$!!"!!!!!!!!!!!!!!!!!!!!!!!""#""!"""""####$###""""""###########""""###""##""####""!$$$$$!!!!!!!!!!!!!!!!!!"""$%)*,.1145553/...---,((('&&&%%&&&&%$$!!"""%&&&&&''''''%!!"###"$%&&&%"#$$$#"""!!!!$$%%%&'''''''&&&&&$###""!!$%&&&&&%%%&(()(&%###$%&'()**)'%%%%&&%%$$"""""!!!!$$$$%%&%$$$!!!!!$$$$$!"!%&&&''''(''&%%$$$$$$$!!!!!!!!!!!!!!!!!!"!!!!!!!!!!""""#$$$$#""!!!!!!!$!!!!!!""""!!!""""""!!!!!!!!!!!!!""""""""""""""""""!"""!!!!!""##!!$$$$$$!!!!!"""""##$%&&%%%%$$$$###"""""#$$#""""!!!!!!!!!!!!!!!!!!!$$!!!!!!!!$$%&&&&'''''''''''&%$$$%%%%%$"##"############"!!!"""!""""""""#$%%$$!"""""""!!!!!!!!!!!!!"""""""%(+,--,*(((),.1442/*)$"&'**))'&&%%%%%%%$$$$$%&&'())))(((&#$&%$#!!!!"!!!!!!!$%%&&&')+--..,*(&$$$"""""!!!"#$#""!!!!!!$$$$$$$$$$$$""!!!""#####""""""!!!!!!!!!!!!"""""!$$$$$$%&&&&'&&%$!!!""""###$$$$$$$$##"""""$%%%%%%%%&&&&&&&&%%$"""#"#"""!!!!!!!!!!!!!!!!!!!!!!!!"""""!!!!!!!"""""!"!"""""""""""!""!!!!!!""""""""""!!!!"!""!!!!!!!!"""!!""#$$%%%$#""""""!!!!!!!!!!"####!!!!!!"""!!!!!!!!!!!!!!!!!!!!!!!!""""""""""!!!!!!!!!!!!!!""!!!!!"!!"!!!"""""#"""""!!!!!!""""""""""""""""!!!!!!!!!!!!!!!!!!!"#$#!$$$$!!!!""!!!!!!!!!!!!!!!!!!!!"""##"!!$$$$$$$"###"!!!""""!!!!!!!!!!!!!!!!!!!!"#"!!!!!!"!$$$$$$$$$$$"""##"""!!!!!!!!!!!""""""###$##"""!!!!!!!!!!!!!!!!!!!!!"!!!!!!!"""""""!!!!!!!!!!!!!!!!!"#$%$$###"""####"!!!!!!%%%%$"###$##"!!$$%%%%%%$$"#######"""!!!!$&&''''''&&%%$!!!!"!!""%&'''''&&&&&&'''''''&&%$$$$$$!!!!!!!!!!!!!!!!!!!!"#$$$$$$$%$%$####%%$#"!!"!""!""""#""$$$$$$$$
+
+a score=2674 EG2=1e+06 E=0.0006 fullScore=8.51e+03
+s chrM 3803 587 + 16775 GAGCAATCCAGGTCGGTTTCTATCTATGGACACTCCTCCTAGTACGAAAGGACCGGAGAAGTGGGGTCAATACCACT---------------------------------------------------------GAGCACACCCCAACCT---------------TCTAAGCAATGAATACAACTCAACTGCCAAGAACCCCTCCCCCACACCCGAACTCCTAGAAAAGGATCCAGCTAGCGTGGCAGAGCTCGGCAAATGCAAAA------------------------------------------------------------------GGCTTAAGCCCTTTAT-----------------CCAGAGGT---TCAAATCCTCTCCCTAGCTACCCCGGACATGACCCTG-------------CCCACCCTAACAAACCT----TCTAATCATAACCT----TATCCTAT--------ATTCTCC------CCATCCTAATCGCCGTGG----------CCTTCTTAACACTT----GTAGAACGAAAAATCCTAAGCTACATGCAGGCCCGAAAGGGCCCAAACATTGTGGGCCC---TTTTGGTCTACTCCAAC----CCGTTGCAGACGGGGTAA----------AACTATTCATTAAAGAGCCAATCCGACCATCTACCTCCTC---------------------------CCCCTTCCTCTTC------ATTATTACTCCAATCCTAGCACTACTCCTAGCCCTGACTATTT---GAGTCCCCCTCCCACTACCATTCCCCCTTGCAG----------------------------------ACCTCAACCTAGGAC-------------------TACTATTTCTCCTAGC
+s chrM 5391 598 + 16775 GAGCGATTGA-------------------------------------------------------------------AGCCACTATCAAATATTTCCTCACCCAATCAACTGCATCAGCCCTAATCCTCTTCTCGAGCATA---------ACCAACGCCTGATCCACCGGACAATGA-----------------------------------------------------------------------------------------GACATTACACAACTAAACCACCCGACATCATGCCTAATATTAACAATAGCAATCGCAATCAAATTAGGACTAGTCC------CATTCCACTTCTGATTCCCAGAAGTACTCCAAGGCTCCTCCCTAATCAC----------------TGCCCTACTACTCTCCACCCTAATAAAAC-TCCCCCCAATCACAC---TCCTCCTCCT--AACATCACAGTCTC-TTAATACCACCTTACTCACC----CTCCTAGCAATCTCCTCCACCCT-AATCGGAGGCTGAATGGGCCTAAACCAAACACAAACACGAAAAATCCTA--------------GCCTTCTCATCCA-------TCTCCCATTTAGGAT-------GAATAATTATAATTAT----------------------------------CTCCTATAACCCACAACTCACTATTCTCACCTTCATCCTCTACACAATTATGACCTCAACTGTATTCCTATCCCTAGCCCAAA------TCAAAGTCCT--------------------------AAAACTGTCAACACTACTCATCTCATGAACTAAAACCCCA---------ATACTAAATGCAACTGTAATACTAACCCTCCTCTC
+p                       $$$$$$$$$$!!!!!""""!!!!!"""""""!!!!!!!!!"""""""""""!!!""""""""""""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"""""#####%&&&%%$!!!!!!!!!"""""##"""""""!$%%%&&'((('%!!!!!!!!!!!!"#$$$$$########"""""!!!!""""""""""""""##$#$$###"""""####"###$$###""!!!!"""""!$#$#$#"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!""""!!!!!!!!!!!!!!!!!""!!"""!$$$$$$$$$$!!!!!!"""#$%%%%$%%&%$$#&)+,+*)$%&#%&)))***+,./00.,'%%$$!"#$$$##"""!!!!"!"!!!!!!!"!!!$*-35788631.,)$$!#""#$%',..-,*($!!!"""!$$%%%$!!#$%%$%$#$$%%%$!"%&&&%$%&&&&&&&&&&%$!!!!##$$$$""""$%%%&&&%&%$$$!"""!$$%%%%&'''''((034544422011122211110.,*('&&&%$$%&&&''''&%$"!!!!$$$$$$$$$$"!""$$"!!!!$%&&&$$$$$$!!!!!!!!!""""""""$$$$$$!!!!!""#$$$#""##""""!!!!!!!!!!!!!!"""!!!!!!!!!!!!!!!!!!!!!!!!%'~~~~~))(''%&''(('&)*+++,------++******++,++,,,,,,+*'&%"""###!!!&())(&$!!!!!!!!!!!!!!!!!!!!!!!!!!$&%#!!"!!!!!!!!!!!!"!!!!"""#####""$$$$$$!!!!!!!!!""#""##$$$$$####"""$$$%%$$$%%%$$$$$
+
+a score=2674 EG2=1e+06 E=0.0006 fullScore=8.51e+03
+s chrM 5391 598 + 16775 GAGCGATTGAAGCCACTATCAAATATTTCCTCACCCAATCAACTGCATCAGCCCTAATCCTCTTCTC-------------------------------------------------------------------GAGCATAACCAACGCCTGATCC---------ACCGGACAATGAGACATTACACAACTAAACCACCCGACATCATGCCTAATATTAACAATAGCAATCGCAATCAAATTA-----------------------------------------------------------------------------------------GGACTAGTCCCATTCCACTTCTGATTC------CCAGAAGTACTCCAAGGCTCCTCCCTAATCACTGCCCTACTACTC----------------TCCACCCTAATAAAACTCCC-CCCAATCACACTCCT---CCTCCTAACATCAC--AGTCTCTTAATA-CCACCTTACTCACCCTCCTAGCAA----TCTCCTCCACCCTAATC-GGAGGCTGAATGGGCCTAAACCAAACACAAACACGAAAAATCCTAGCC--------------TTCTCATCCATCTC-------CCATTTAGGATGAATAATTAT-------AATTATCTCCTATAACCCACAACTCACTATTCT----------------------------------CACCTTCATCCTCTACACAATTATGACCTCAACTGTATTCCTATCCCTAGCCCAAATCA------AAGTCCTAAAACTGTCAACACTACTCATCTCATGAACTAAA--------------------------ACCCCAATACTAAATGCAACTGTAA---------TACTAACCCTCCTCTC
+s chrM 3803 587 + 16775 GAGCAATCCA---------------------------------------------------------GGTCGGTTTCTATCTATGGACACTCCTCCTAGTACGAAAGGACCGGAGAAGTGGGGTCAATACCACTGAGCACA---------------CCCCAACCTTCTAAGCAATGA------------------------------------------------------------------ATACAACTCAACTGCCAAGAACCCCTCCCCCACACCCGAACTCCTAGAAAAGGATCCAGCTAGCGTGGCAGAGCTCGGCAAATGCAAAAGGCTTAAGCC-----------------CTTTATCCAGAGGT---TCAAATCCTCTCCCTAGCTAC-------------CCCGGACATGACCCTGCCCACCCTAACAAACC----TTCTAATCATAA----CCTTATCCT--------ATATTCTC------CCCATCCTAATCGCC----------GTGGCCTTCTTAACACT----TGTAGAACGAAAAATCCTAAGCTACATGCAGGCCCGAAAGGGCCCA---AACATTGTGGGCCCTTTTGGTCTA----CTCCAACCCGTTGCAGAC----------GGGGTAAAACTAT---------------------------TCATTAAAGAGCCAATCCGACCATCTACCTCCTCCCCCTTCCTCTTC------ATTATTACTCCAATCCTAGCACTACTCCTAGCCCTGA---CTATTTGAGTCCC----------------------------------CCTCCCACTACCATTCCCCCTTGCAGACCTCA-------------------ACCTAGGACTACTATTTCTCCTAGC
+p                       $$$$$$$$$$!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"""""#####!!!!!""""!!!!!"""""""!!!!!!!!!"""""""""""!!!""""""""""""!!!!!!!!!!!%&&&%%$"""""##"""""""!!!!!!!!!!$%%%&&'((('%$#$#$#"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!""""!!!!!!!!!!!!!!!!!""!!"""!!!!!!!!!!!!!"#$$$$$########"""""!!!!""""""""""""""##$#$$###"""""####"###$$###""!!!!"""""!$$$$$$$$$$"""#$%%%%$%%&%$$#!!!!!!&)+,+*)$%&#%&)))***+,./00.,'%%$$!"!!!!!!!"!!!!"#$$$##"""!!!!"$*-35788631.,)$$#""#!$%',..-,*($"""!!!!$$%%%$#$%%$%$#!!$$%%%$"%&&&%!$%&&&&&&&&&&%$##$$$$""""!!!!$%%%&&&%&%$$$"""!!$$%%%%&'''''((034544422011122211110.,*('&&&%$!!!$%&&&''''&%$"!$$$$$$$$$$!!!!"!""$$"$%&&&$$$$$$!!""""""""!!!!!!!$$$$$$"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!""#$$$#""##""""!!!!!!!!!!!!!!%'~~~~~))(''%&''(('&)*+++,------++******++,++,,,,,,+*'&%!!!"""###&())(&$$&%#!!"!!!!!!!!!!!!"!!!!"""#####""!!!!!!!!!!!!!!!!!!!!!!!!!!$$$$$$""#""##$$$$$####"""!!!!!!!!!$$$%%$$$%%%$$$$$
 
 a score=2768 EG2=4.2e+05 E=0.00025 fullScore=3.41e+03
 s chrM  3957 89 + 16775 AAGGATCCAGCTAGCGTGGCAGAGCTCGGCAAAT------GCAAAAGGCTTAAGCCCTTTATCCAGAGGTTCAAATCCTCTCCCTAGCTACCCCG
@@ -523,7 +533,7 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 
 TEST lastal -s0 -f0 -p asymmetric.mat -e2000 /tmp/last-test galGal3-M-32.fa
 #
-# a=500 b=50 A=500 B=50 e=2000 d=1428 x=1999 y=992 z=1999 D=1e+06 E=5.62802e+07
+# a=500 b=50 A=500 B=50 e=2000 d=1265 x=1999 y=992 z=1999 D=1e+06 E=5.62802e+07
 # R=10 u=2 s=0 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=99.2157 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -553,13 +563,14 @@ TEST lastal -s0 -f0 -p asymmetric.mat -e2000 /tmp/last-test galGal3-M-32.fa
 2475	chrM	3957	91	+	16775	chrM	10123	88	-	16775	31,3:0,57	EG2=1.4e+06	E=0.00041
 2122	chrM	6564	57	+	16775	chrM	12727	57	-	16775	57	EG2=4.6e+07	E=0.014
 2102	chr32	665	274	+	1028	chrM	7941	268	-	16775	117,5:0,72,1:0,79	EG2=5.6e+07	E=0.016
+2089	chr32	690	217	+	1028	chrM	6958	219	-	16775	43,0:4,138,2:0,34	EG2=6.4e+07	E=0.019
 2060	chr32	721	195	+	1028	chrM	7144	192	-	16775	91,3:0,101	EG2=8.5e+07	E=0.025
 # batch 1
 # Query sequences=2
 
 TEST lastal -Q3 -e110 /tmp/last-test illumina100.txt
 #
-# a=21 b=9 A=21 B=9 e=110 d=63 x=109 y=44 z=109 D=1e+06 E=2.59649e+07
+# a=21 b=9 A=21 B=9 e=110 d=66 x=109 y=44 z=109 D=1e+06 E=2.59649e+07
 # R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=3
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -601,7 +612,7 @@ q HWW-E2:1:1:10:1477#0/1              aaaYaaa`aXaaB\bZ`Y_aa]_Q^b]G]O^aaS\RMX]\
 
 TEST lastal -Q4 -e90 /tmp/last-test mouse_tss_prb.txt
 #
-# a=21 b=9 A=21 B=9 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.59649e+07
+# a=21 b=9 A=21 B=9 e=90 d=66 x=89 y=44 z=89 D=1e+06 E=2.59649e+07
 # R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=4
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -658,7 +669,7 @@ q 36                   hhhhhhhhhhhhhhhhhhhhhhhhhhh
 
 TEST lastal -Q1 -j6 -e90 -a9 /tmp/last-test SRR001981-1k.fastq
 #
-# a=9 b=9 A=9 B=9 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.38195e+07
+# a=9 b=9 A=9 B=9 e=90 d=66 x=89 y=44 z=89 D=1e+06 E=2.38195e+07
 # R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 g=1 j=6 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -808,7 +819,7 @@ TEST lastal -r3 -q3 -a21 -c2 -e60 -f0 /tmp/last-test galGal3-M-32.fa
 
 TEST lastal -F12 -pBL62 -c2 -e40 -f0 /tmp/last-test galGal3-M-32.fa
 #
-# a=11 b=2 A=11 B=2 c=2 F=12 e=40 d=33 x=39 y=31 z=39 D=1e+06 E=8.45245e+08
+# a=11 b=2 A=11 B=2 c=2 F=12 e=40 d=29 x=39 y=31 z=39 D=1e+06 E=8.45245e+08
 # R=10 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
@@ -849,16 +860,21 @@ TEST lastal -F12 -pBL62 -c2 -e40 -f0 /tmp/last-test galGal3-M-32.fa
 118	Q2LCP8	110	232	+	491	chrM	5258	639	+	16775	83,6:0,15,5:0,45,4:0,6,3:0,14,1:0,50	EG2=1.8	E=2.4e-11
 72	Q2LCP8	379	52	+	491	chrM	5972	156	+	16775	52	EG2=6.3e+06	E=9e-05
 55	Q2LCP8	101	87	+	491	chrM	11752	255	+	16775	18,3:0,28,0:3,38	EG2=1.6e+09	E=0.024
+51	Q2LCP8	170	49	+	491	chrM	13892	141	+	16775	10,0:3,23,3:0,13	EG2=6e+09	E=0.09
 48	Q2LCP8	394	27	+	491	chrM	11767	81	+	16775	27	EG2=1.6e+10	E=0.24
 46	Q2LCP8	16	38	+	491	chrM	14080	115	+	16775	7,0:1,31	EG2=3.1e+10	E=0.47
 44	Q2LCP8	27	57	+	491	chrM	13941	170	+	16775	5,0:-1,52	EG2=5.9e+10	E=0.91
+42	Q2LCP8	117	200	+	491	chrM	13445	576	+	16775	21,0:3,43,3:0,41,4:3,33,2:0,26,1:0,26	EG2=1.1e+11	E=1.8
 42	Q2LCP8	166	24	+	491	chrM	54	72	+	16775	24	EG2=1.1e+11	E=1.8
 42	Q2LCP8	292	22	+	491	chrM	12313	66	+	16775	22	EG2=1.1e+11	E=1.8
 42	Q2LCP8	388	15	+	491	chrM	12589	45	+	16775	15	EG2=1.1e+11	E=1.8
 41	Q2LCP8	10	66	+	491	chrM	11677	204	+	16775	52,0:6,14	EG2=1.6e+11	E=2.4
+41	Q2LCP8	15	44	+	491	chrM	8444	129	+	16775	13,1:0,30	EG2=1.6e+11	E=2.4
 41	Q2LCP8	375	42	+	491	chrM	5606	108	+	16775	18,6:0,18	EG2=1.6e+11	E=2.4
 40	Q2LCP8	374	30	+	491	chrM	7064	99	+	16775	18,0:9,12	EG2=2.2e+11	E=3.4
+43	Q2LCP8	202	20	+	491	chrM	9413	57	-	16775	9,1:0,10	EG2=8.2e+10	E=1.3
 41	Q2LCP8	0	34	+	491	chrM	196	102	-	16775	34	EG2=1.6e+11	E=2.4
+40	Q2LCP8	133	57	+	491	chrM	14165	168	-	16775	15,2:0,1,0:1,15,2:9,16,0:-1,6	EG2=2.2e+11	E=3.4
 40	Q2LCP8	406	20	+	491	chrM	2209	60	-	16775	20	EG2=2.2e+11	E=3.4
 # batch 1
 # Query sequences=2
@@ -922,7 +938,7 @@ TEST lastal -j1 -f0 -e37 -m100 /tmp/last-test Q2LCP8.fa
 
 TEST lastal -Q1 -r1 -q2 -a1 -b1 -e44 -m100 -s0 /tmp/last-test sd-ccs-100.fq
 #
-# a=1 b=1 A=1 B=1 e=44 d=10 x=43 y=8 z=43 D=1e+06 E=1.06199e+07
+# a=1 b=1 A=1 B=1 e=44 d=11 x=43 y=8 z=43 D=1e+06 E=1.06199e+07
 # R=10 u=0 s=0 S=0 M=0 T=0 m=100 l=1 n=100 k=1 w=1000 t=0.750353 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
@@ -971,7 +987,7 @@ q S1_100              <i~'a;><q<f*`kduZ-LNlIBn@-2KH*~aLG44oC+H9]-A@9;WJ7.P~L?1h~
 
 TEST lastal -Q1 -e90 -a9 -f0 /tmp/last-test0 SRR001981-1k.fastq
 #
-# a=9 b=9 A=9 B=9 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.97882e+07
+# a=9 b=9 A=9 B=9 e=90 d=66 x=89 y=44 z=89 D=1e+06 E=2.97882e+07
 # R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test0
 # Reference sequences=1 normal letters=16775
@@ -1019,7 +1035,7 @@ TEST lastal -Q1 -e90 -a9 -f0 /tmp/last-test0 SRR001981-1k.fastq
 
 TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 #
-# a=7 b=1 A=7 B=1 e=18 d=12 x=17 y=9 z=17 D=1e+06 E=3.38586e+07
+# a=7 b=1 A=7 B=1 e=18 d=13 x=17 y=9 z=17 D=1e+06 E=3.38586e+07
 # R=10 u=2 s=0 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -1293,7 +1309,7 @@ c 4.89 0.00223 0.25 0.93 2.08 8.23 2 0.247 0.963 3.26e-07 8.23 0.00218 0.711 0.9
 
 TEST lastal -T1 -Q1 -e60 -a9 -f0 /tmp/last-test SRR001981-1k.fastq
 #
-# a=9 b=9 A=9 B=9 e=60 d=49 x=59 y=44 z=59 D=1e+06 E=6.81745e+08
+# a=9 b=9 A=9 B=9 e=60 d=52 x=59 y=44 z=59 D=1e+06 E=6.81745e+08
 # R=10 u=0 s=2 S=0 M=0 T=1 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=700
@@ -1382,7 +1398,7 @@ TEST lastal -e34 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 
 TEST lastal -pHOXD70 -e4500 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 #
-# a=400 b=30 A=400 B=30 e=4500 d=1177 x=4499 y=962 z=4499 D=1e+06 E=3.02506e+07
+# a=400 b=30 A=400 B=30 e=4500 d=1104 x=4499 y=962 z=4499 D=1e+06 E=3.02506e+07
 # R=10 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=128 w=1000 t=96.1735 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
@@ -1589,7 +1605,7 @@ s chrM 1742 281 + 16571 AGTATAGGCGATAGAAATTGAAACCT-GGCGCAATAGAT----ATAGTACCGCAAG
 
 TEST lastal -e100 /tmp/last-test Q5GS15.fa
 #
-# a=11 b=2 A=11 B=2 e=100 d=33 x=99 y=31 z=99 D=1e+06 E=2.01411e+09
+# a=11 b=2 A=11 B=2 e=100 d=31 x=99 y=31 z=99 D=1e+06 E=2.01411e+09
 # R=01 u=2 s=1 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
@@ -1636,7 +1652,7 @@ s sp|Q5GS15|NUON_WOLTR 16 405 + 465 LVLLLLGIVFNRRTINLLALGCTVITLIILI-LSAKDSGFFPFN
 
 TEST lastal -F15 -pBLOSUM62 -e100 /tmp/last-test galGal3-M-32.fa
 #
-# a=11 b=2 A=11 B=2 F=15 e=100 d=33 x=99 y=31 z=99 D=1e+06 E=8.74201e+08
+# a=11 b=2 A=11 B=2 F=15 e=100 d=29 x=99 y=31 z=99 D=1e+06 E=8.74201e+08
 # R=01 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
@@ -1684,7 +1700,7 @@ s chrM   5258 870 + 16775 LICTVSLIMGTSITISSNH*ILA*TGLEINTLAIIPLISKSHHPRAIEATIKYF
 
 TEST lastal -pAT77 -e100 -s0 /tmp/last-test at-rich.fa
 #
-# a=15 b=2 A=15 B=2 e=100 d=46 x=99 y=29 z=99 D=1e+06 E=1.60098e+07
+# a=15 b=2 A=15 B=2 e=100 d=44 x=99 y=29 z=99 D=1e+06 E=1.60098e+07
 # R=02 u=2 s=0 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=2.9408 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=59940
@@ -1796,7 +1812,7 @@ s Pf3D7_01_v3  8300 748 - 59940 ATATTTATTCTTCTAATAATTTTATATATTGGAGTTTTTTCTTCAATT
 
 TEST lastal -Q1 -a15 -b3 -e80 /tmp/last-test nano.fq
 #
-# a=15 b=3 A=15 B=3 e=80 d=63 x=79 y=44 z=79 D=1e+06 E=2.60518e+07
+# a=15 b=3 A=15 B=3 e=80 d=66 x=79 y=44 z=79 D=1e+06 E=2.60518e+07
 # R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -1884,7 +1900,7 @@ s chrM  1295 63 + 16775 CAAAAGACTT-AGTCCTAACC--TTT-CTATTGGTTTTTGCTAGACATATACATGC
 TEST lastal -Q4 -a1 -D100 /tmp/last-test mouse_tss_prb.txt
 lastal: quality data not used for non-fastq query versus fastq reference
 #
-# a=1 b=9 A=1 B=9 e=75 d=67 x=74 y=44 z=74 D=100 E=1.07541e+11
+# a=1 b=9 A=1 B=9 e=75 d=70 x=74 y=44 z=74 D=100 E=1.07541e+11
 # R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=4
 # /tmp/last-test
 # Reference sequences=100 normal letters=45801
@@ -1953,7 +1969,7 @@ q 94                 hhhhhhhhhXhh---hhhh-FB]
 TEST lastal -Q1 -pBL62 -F12 -D1000 /tmp/last-test sd-ccs-100.fq
 lastal: quality data not used for DNA-versus-protein alignment
 #
-# a=11 b=2 A=11 B=2 F=12 e=36 d=33 x=35 y=31 z=35 D=1000 E=8.12312e+11
+# a=11 b=2 A=11 B=2 F=12 e=36 d=29 x=35 y=31 z=35 D=1000 E=8.12312e+11
 # R=00 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
@@ -2041,6 +2057,10 @@ a score=39 EG2=3e+11 E=0.2
 s Q2LCP8 323  39 + 491 ELMVNSVYYLINYIIGLTVLMSLIMGFLRLNDRGTIEDI
 s S1_26  297 117 + 786 EFFLNLINHRIGKSAGWVFLLCLLLGFRGKYSVGSNDEI
 
+a score=36 EG2=8.1e+11 E=0.54
+s Q2LCP8  98  39 + 491 TEGKKTKITDEGLILIYSSIIGM-LISMEAHNLITLFLSL
+s S1_26  483 116 + 786 TQGKKV*IIEAWFLFITCGIVAV/LFCGFIHDLYEMILCL
+
 a score=40 EG2=2.2e+11 E=0.14
 s Q2LCP8 333 16 + 491 INYIIGLTVLMSLIMG
 s S1_26  673 48 - 786 VNYILSSTVVITIFFG
@@ -2059,6 +2079,10 @@ s Q2LCP8 88  53 + 491 MIIKMFEEGVTEGKKTKITDEGLILIYSSIIGMLISMEAHNLITLFLSLEISS
 s S1_40   3 159 - 579 ILLSLVIGAVTCFRRLPTTLAGRIYSYVSIIGHFSFLVFATYLLILFPLTLSS
 
 # batch 3
+a score=38 EG2=4.2e+11 E=0.23
+s Q2LCP8 422 28 + 491 GVMIYYMNLVKIIIIDK-VQTHEQGVAEL
+s S1_54  177 87 + 662 GAMMLQAPQVALIVDDEFIQTHTVGFDEL
+
 a score=36 EG2=8.1e+11 E=0.44
 s Q2LCP8 183 11 + 491 STGSLMYTDLL
 s S1_54   23 33 + 662 STGTLAWSDLL
@@ -2070,6 +2094,10 @@ s S1_54    7 30 + 662 MIAINLYRNV
 a score=37 EG2=5.9e+11 E=0.2
 s Q2LCP8 251  50 + 491 VTLMVLINLYQNLIIYTNAIMFTNGLIILILVTLVVGTIGSLRQQKLIRF
 s S1_61   95 150 + 442 ITLSGIIAVGMTFVILSGGIDLSVGSVIAFTGVFLAKVIGDFGLSPLLAF
+
+a score=43 EG2=8.2e+10 E=0.03
+s Q2LCP8 205  72 + 491 IQMGIALIVLGLILKLGIAPFHGWLIDVYEGAGMLMTFYLTITQKLVTLMVLINLYQNLIIYTNAIMFTNGL
+s S1_67  215 207 - 496 LELAISSVVLAVIIGLIGA---GGKLSQNRLSGLIFEGYTTLIRGVPDLVLMLLIFYGLQIALNTVTEAMGV
 
 # batch 4
 a score=37 EG2=5.9e+11 E=0.21
@@ -2084,6 +2112,10 @@ s S1_80  199 80 - 550 PPTARFVAEYSIQLSYGCIGKI/YLLLI
 a score=41 EG2=1.6e+11 E=0.039
 s Q2LCP8 437 21 + 491 DKVQTHEQGVAELEITSKPTK
 s S1_85  153 63 + 361 DSVKSSQLTRARLEVISTPTK
+
+a score=42 EG2=1.1e+11 E=0.028
+s Q2LCP8 204  47 + 491 RIQMGIALIVLGLILKLGI-APFHGWLIDVYEGAGMLMTFYLTITQKL
+s S1_85   34 142 - 361 RCRTGLTAVVVGVMFLLVM\SSHRGGMVPPYATAGALIFVGVLMTSSL
 
 a score=56 EG2=1.2e+09 E=0.0003
 s Q2LCP8 395  44 + 491 ISKILILLPYMVLGRVYLTMLAFFLSVGVM-IYYMNLVKIIIIDK
@@ -2105,7 +2137,7 @@ s S1_99  437 45 + 621 TLTMGFMPVNPRATI
 
 TEST lastal -fBlastTab -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 #
-# a=11 b=1 A=11 B=1 F=15 e=36 d=33 x=35 y=31 z=35 D=1000 E=9.29879e+11
+# a=11 b=1 A=11 B=1 F=15 e=36 d=29 x=35 y=31 z=35 D=1000 E=9.29879e+11
 # R=00 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
@@ -2142,25 +2174,35 @@ TEST lastal -fBlastTab -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 # batch 0
 chrM	Q2LCP8	24.22	322	211	8	5259	6128	111	431	2.6e-19	84.9
 chrM	Q2LCP8	27.27	88	60	2	11753	12007	102	188	0.0097	30.5
+chrM	Q2LCP8	32.00	50	30	2	13893	14033	171	219	0.034	28.7
 chrM	Q2LCP8	20.69	290	206	8	13446	14258	118	402	0.089	27.3
 chrM	Q2LCP8	22.53	182	122	5	12314	12811	293	471	0.32	25.5
 chrM	Q2LCP8	29.63	27	19	0	11768	11848	395	421	0.32	25.5
 chrM	Q2LCP8	20.61	262	171	10	13572	12843	113	353	0.44	25
 chrM	Q2LCP8	35.71	42	21	1	5607	5714	376	417	0.44	25
+chrM	Q2LCP8	55.00	20	8	1	7362	7306	203	222	1.1	23.7
 chrM	Q2LCP8	25.00	68	49	1	11678	11881	11	76	1.6	23.2
 chrM	Q2LCP8	16.98	53	44	0	13953	14111	32	84	1.6	23.2
 chrM	Q2LCP8	25.64	39	28	1	14081	14195	17	54	1.6	23.2
+chrM	Q2LCP8	23.08	39	26	2	7710	7823	315	350	1.6	23.2
 chrM	Q2LCP8	36.36	33	18	1	7065	7163	375	404	1.6	23.2
+chrM	Q2LCP8	22.99	87	56	4	15931	16185	404	481	2.1	22.8
+chrM	Q2LCP8	29.55	44	30	1	8445	8573	16	59	2.1	22.8
 chrM	Q2LCP8	41.67	24	14	0	55	126	167	190	2.1	22.8
 chrM	Q2LCP8	28.57	42	26	1	9224	9099	338	375	2.9	22.3
 chrM	Q2LCP8	20.59	34	27	0	16579	16478	1	34	2.9	22.3
 chrM	Q2LCP8	28.57	56	30	3	15331	15495	370	416	4	21.9
 chrM	Q2LCP8	40.00	20	12	0	14566	14507	407	426	4	21.9
 chrM	Q2LCP8	55.56	18	3	1	6123	6070	459	471	4	21.9
+chrM	Q2LCP8	25.93	81	50	2	6693	6914	160	237	5.5	21.4
+chrM	Q2LCP8	27.59	58	38	2	16660	16490	194	248	5.5	21.4
+chrM	Q2LCP8	27.16	81	48	4	9282	9497	208	286	7.6	20.9
 chrM	Q2LCP8	28.85	52	35	1	13083	13232	239	290	7.6	20.9
 chrM	Q2LCP8	30.00	30	21	0	16312	16223	110	139	7.6	20.9
+chrM	Q2LCP8	26.17	107	67	4	12449	12748	191	292	10	20.5
 chrM	Q2LCP8	27.59	58	38	1	11798	11959	164	221	10	20.5
 chrM	Q2LCP8	26.67	45	31	1	14562	14696	133	175	10	20.5
+chrM	Q2LCP8	31.43	35	20	1	10944	10840	154	184	10	20.5
 chrM	Q2LCP8	30.00	30	18	1	15928	15848	212	241	10	20.5
 chrM	Q2LCP8	29.63	27	18	1	9354	9277	141	167	10	20.5
 chrM	Q2LCP8	29.63	27	19	0	2512	2432	374	400	10	20.5
@@ -2170,6 +2212,7 @@ chrM	Q2LCP8	33.33	18	12	0	16589	16536	368	385	10	20.5
 chrM	Q2LCP8	23.40	94	68	2	9651	9920	130	223	14	20
 chrM	Q2LCP8	21.57	51	33	1	13195	13064	193	243	14	20
 chrM	Q2LCP8	34.48	29	19	0	12881	12795	160	188	14	20
+chrM	Q2LCP8	34.78	23	14	1	10307	10239	157	178	14	20
 chrM	Q2LCP8	42.11	19	11	0	13299	13355	131	149	14	20
 chrM	Q2LCP8	47.06	17	8	1	12569	12522	277	293	14	20
 chrM	Q2LCP8	40.00	15	9	0	15562	15606	331	345	14	20
@@ -2181,7 +2224,7 @@ chr32	Q2LCP8	23.21	56	42	1	43	210	8	62	0.59	20.5
 
 TEST lastal -fBlastTab+ -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 #
-# a=11 b=1 A=11 B=1 F=15 e=36 d=33 x=35 y=31 z=35 D=1000 E=9.29879e+11
+# a=11 b=1 A=11 B=1 F=15 e=36 d=29 x=35 y=31 z=35 D=1000 E=9.29879e+11
 # R=00 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
@@ -2218,25 +2261,35 @@ TEST lastal -fBlastTab+ -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 # batch 0
 chrM	Q2LCP8	24.22	322	211	8	5259	6128	111	431	2.6e-19	84.9	16775	491	179
 chrM	Q2LCP8	27.27	88	60	2	11753	12007	102	188	0.0097	30.5	16775	491	59
+chrM	Q2LCP8	32.00	50	30	2	13893	14033	171	219	0.034	28.7	16775	491	55
 chrM	Q2LCP8	20.69	290	206	8	13446	14258	118	402	0.089	27.3	16775	491	52
 chrM	Q2LCP8	22.53	182	122	5	12314	12811	293	471	0.32	25.5	16775	491	48
 chrM	Q2LCP8	29.63	27	19	0	11768	11848	395	421	0.32	25.5	16775	491	48
 chrM	Q2LCP8	20.61	262	171	10	13572	12843	113	353	0.44	25	16775	491	47
 chrM	Q2LCP8	35.71	42	21	1	5607	5714	376	417	0.44	25	16775	491	47
+chrM	Q2LCP8	55.00	20	8	1	7362	7306	203	222	1.1	23.7	16775	491	44
 chrM	Q2LCP8	25.00	68	49	1	11678	11881	11	76	1.6	23.2	16775	491	43
 chrM	Q2LCP8	16.98	53	44	0	13953	14111	32	84	1.6	23.2	16775	491	43
 chrM	Q2LCP8	25.64	39	28	1	14081	14195	17	54	1.6	23.2	16775	491	43
+chrM	Q2LCP8	23.08	39	26	2	7710	7823	315	350	1.6	23.2	16775	491	43
 chrM	Q2LCP8	36.36	33	18	1	7065	7163	375	404	1.6	23.2	16775	491	43
+chrM	Q2LCP8	22.99	87	56	4	15931	16185	404	481	2.1	22.8	16775	491	42
+chrM	Q2LCP8	29.55	44	30	1	8445	8573	16	59	2.1	22.8	16775	491	42
 chrM	Q2LCP8	41.67	24	14	0	55	126	167	190	2.1	22.8	16775	491	42
 chrM	Q2LCP8	28.57	42	26	1	9224	9099	338	375	2.9	22.3	16775	491	41
 chrM	Q2LCP8	20.59	34	27	0	16579	16478	1	34	2.9	22.3	16775	491	41
 chrM	Q2LCP8	28.57	56	30	3	15331	15495	370	416	4	21.9	16775	491	40
 chrM	Q2LCP8	40.00	20	12	0	14566	14507	407	426	4	21.9	16775	491	40
 chrM	Q2LCP8	55.56	18	3	1	6123	6070	459	471	4	21.9	16775	491	40
+chrM	Q2LCP8	25.93	81	50	2	6693	6914	160	237	5.5	21.4	16775	491	39
+chrM	Q2LCP8	27.59	58	38	2	16660	16490	194	248	5.5	21.4	16775	491	39
+chrM	Q2LCP8	27.16	81	48	4	9282	9497	208	286	7.6	20.9	16775	491	38
 chrM	Q2LCP8	28.85	52	35	1	13083	13232	239	290	7.6	20.9	16775	491	38
 chrM	Q2LCP8	30.00	30	21	0	16312	16223	110	139	7.6	20.9	16775	491	38
+chrM	Q2LCP8	26.17	107	67	4	12449	12748	191	292	10	20.5	16775	491	37
 chrM	Q2LCP8	27.59	58	38	1	11798	11959	164	221	10	20.5	16775	491	37
 chrM	Q2LCP8	26.67	45	31	1	14562	14696	133	175	10	20.5	16775	491	37
+chrM	Q2LCP8	31.43	35	20	1	10944	10840	154	184	10	20.5	16775	491	37
 chrM	Q2LCP8	30.00	30	18	1	15928	15848	212	241	10	20.5	16775	491	37
 chrM	Q2LCP8	29.63	27	18	1	9354	9277	141	167	10	20.5	16775	491	37
 chrM	Q2LCP8	29.63	27	19	0	2512	2432	374	400	10	20.5	16775	491	37
@@ -2246,6 +2299,7 @@ chrM	Q2LCP8	33.33	18	12	0	16589	16536	368	385	10	20.5	16775	491	37
 chrM	Q2LCP8	23.40	94	68	2	9651	9920	130	223	14	20	16775	491	36
 chrM	Q2LCP8	21.57	51	33	1	13195	13064	193	243	14	20	16775	491	36
 chrM	Q2LCP8	34.48	29	19	0	12881	12795	160	188	14	20	16775	491	36
+chrM	Q2LCP8	34.78	23	14	1	10307	10239	157	178	14	20	16775	491	36
 chrM	Q2LCP8	42.11	19	11	0	13299	13355	131	149	14	20	16775	491	36
 chrM	Q2LCP8	47.06	17	8	1	12569	12522	277	293	14	20	16775	491	36
 chrM	Q2LCP8	40.00	15	9	0	15562	15606	331	345	14	20	16775	491	36
@@ -2257,7 +2311,7 @@ chr32	Q2LCP8	23.21	56	42	1	43	210	8	62	0.59	20.5	1028	491	37
 
 TEST lastal -fTAB -pBL62 -b1 -F0 -D1e3 /tmp/last-test galGal3-M-32.fa
 #
-# a=11 b=1 A=11 B=1 F=0 e=36 d=33 x=35 y=31 z=35 D=1000 E=8.72478e+11
+# a=11 b=1 A=11 B=1 F=0 e=36 d=29 x=35 y=31 z=35 D=1000 E=8.72478e+11
 # R=00 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
@@ -2297,37 +2351,48 @@ TEST lastal -fTAB -pBL62 -b1 -F0 -D1e3 /tmp/last-test galGal3-M-32.fa
 # batch 0
 179	Q2LCP8	110	321	+	491	chrM	5258	870	+	16775	83,11:0,60,4:0,6,3:0,14,1:0,25,2:0,8,2:0,18,0:3,24,9:0,51	EG2=9.5e-09	E=1e-19
 59	Q2LCP8	101	87	+	491	chrM	11752	255	+	16775	18,3:0,28,0:3,38	EG2=5.4e+08	E=0.0079
+55	Q2LCP8	170	49	+	491	chrM	13892	141	+	16775	10,0:3,23,3:0,13	EG2=1.9e+09	E=0.029
 52	Q2LCP8	117	285	+	491	chrM	13445	813	+	16775	21,0:3,43,3:0,39,3:0,36,2:0,26,1:0,32,0:12,23,7:0,31,3:0,15	EG2=5.1e+09	E=0.077
 48	Q2LCP8	292	179	+	491	chrM	12313	498	+	16775	21,3:0,25,2:0,22,0:3,41,0:6,23,11:0,31	EG2=1.8e+10	E=0.28
 48	Q2LCP8	394	27	+	491	chrM	11767	81	+	16775	27	EG2=1.8e+10	E=0.28
 47	Q2LCP8	375	42	+	491	chrM	5606	108	+	16775	18,6:0,18	EG2=2.5e+10	E=0.39
 43	Q2LCP8	10	66	+	491	chrM	11677	204	+	16775	52,0:6,14	EG2=9.2e+10	E=1.4
 43	Q2LCP8	31	53	+	491	chrM	13952	159	+	16775	53	EG2=9.2e+10	E=1.4
+43	Q2LCP8	314	36	+	491	chrM	7709	114	+	16775	6,1:0,13,0:9,16	EG2=9.2e+10	E=1.4
 43	Q2LCP8	374	30	+	491	chrM	7064	99	+	16775	18,0:9,12	EG2=9.2e+10	E=1.4
+42	Q2LCP8	15	44	+	491	chrM	8444	129	+	16775	13,1:0,30	EG2=1.3e+11	E=1.9
 42	Q2LCP8	166	24	+	491	chrM	54	72	+	16775	24	EG2=1.3e+11	E=1.9
+42	Q2LCP8	403	78	+	491	chrM	15930	255	+	16775	8,0:12,3,0:3,11,0:12,6,2:0,48	EG2=1.3e+11	E=1.9
 40	Q2LCP8	369	47	+	491	chrM	15330	165	+	16775	15,0:21,13,1:0,11,0:6,7	EG2=2.4e+11	E=3.7
+39	Q2LCP8	159	78	+	491	chrM	6692	222	+	16775	8,0:9,37,7:0,26	EG2=3.3e+11	E=5.1
+38	Q2LCP8	207	79	+	491	chrM	9281	216	+	16775	21,0:6,2,6:0,13,1:0,10,2:0,24	EG2=4.6e+11	E=7.1
 38	Q2LCP8	238	52	+	491	chrM	13082	150	+	16775	10,2:0,40	EG2=4.6e+11	E=7.1
 37	Q2LCP8	23	31	+	491	chrM	14102	93	+	16775	31	EG2=6.3e+11	E=9.8
 37	Q2LCP8	132	43	+	491	chrM	14561	135	+	16775	32,0:6,11	EG2=6.3e+11	E=9.8
 37	Q2LCP8	163	58	+	491	chrM	11797	162	+	16775	13,4:0,41	EG2=6.3e+11	E=9.8
+37	Q2LCP8	190	102	+	491	chrM	12448	300	+	16775	20,6:0,12,1:0,24,0:3,9,0:12,30	EG2=6.3e+11	E=9.8
 37	Q2LCP8	266	19	+	491	chrM	10030	57	+	16775	19	EG2=6.3e+11	E=9.8
 36	Q2LCP8	17	12	+	491	chrM	8525	36	+	16775	12	EG2=8.7e+11	E=14
 36	Q2LCP8	129	94	+	491	chrM	9650	270	+	16775	31,2:0,14,2:0,45	EG2=8.7e+11	E=14
 36	Q2LCP8	130	19	+	491	chrM	13298	57	+	16775	19	EG2=8.7e+11	E=14
 36	Q2LCP8	224	10	+	491	chrM	1313	30	+	16775	10	EG2=8.7e+11	E=14
 36	Q2LCP8	330	15	+	491	chrM	15561	45	+	16775	15	EG2=8.7e+11	E=14
+44	Q2LCP8	202	20	+	491	chrM	9413	57	-	16775	9,1:0,10	EG2=6.7e+10	E=1
 41	Q2LCP8	0	34	+	491	chrM	196	102	-	16775	34	EG2=1.7e+11	E=2.7
 41	Q2LCP8	337	38	+	491	chrM	7551	126	-	16775	20,0:12,18	EG2=1.7e+11	E=2.7
 40	Q2LCP8	406	20	+	491	chrM	2209	60	-	16775	20	EG2=2.4e+11	E=3.7
 40	Q2LCP8	458	13	+	491	chrM	10652	54	-	16775	9,0:15,4	EG2=2.4e+11	E=3.7
+39	Q2LCP8	193	55	+	491	chrM	115	171	-	16775	17,0:9,26,1:0,11	EG2=3.3e+11	E=5.1
 38	Q2LCP8	109	30	+	491	chrM	463	90	-	16775	30	EG2=4.6e+11	E=7.1
 38	Q2LCP8	217	41	+	491	chrM	3475	120	-	16775	35,1:0,5	EG2=4.6e+11	E=7.1
 37	Q2LCP8	50	21	+	491	chrM	7433	63	-	16775	21	EG2=6.3e+11	E=9.8
 37	Q2LCP8	112	32	+	491	chrM	3203	96	-	16775	32	EG2=6.3e+11	E=9.8
 37	Q2LCP8	140	27	+	491	chrM	7421	78	-	16775	10,1:0,16	EG2=6.3e+11	E=9.8
+37	Q2LCP8	153	31	+	491	chrM	5831	105	-	16775	16,0:12,15	EG2=6.3e+11	E=9.8
 37	Q2LCP8	211	30	+	491	chrM	847	81	-	16775	12,3:0,15	EG2=6.3e+11	E=9.8
 37	Q2LCP8	367	18	+	491	chrM	186	54	-	16775	18	EG2=6.3e+11	E=9.8
 37	Q2LCP8	373	27	+	491	chrM	14263	81	-	16775	27	EG2=6.3e+11	E=9.8
+36	Q2LCP8	156	22	+	491	chrM	6468	69	-	16775	7,0:3,15	EG2=8.7e+11	E=14
 36	Q2LCP8	159	29	+	491	chrM	3894	87	-	16775	29	EG2=8.7e+11	E=14
 36	Q2LCP8	192	51	+	491	chrM	3580	132	-	16775	31,7:0,13	EG2=8.7e+11	E=14
 36	Q2LCP8	276	17	+	491	chrM	4206	48	-	16775	9,1:0,7	EG2=8.7e+11	E=14
@@ -2337,7 +2402,7 @@ TEST lastal -fTAB -pBL62 -b1 -F0 -D1e3 /tmp/last-test galGal3-M-32.fa
 
 TEST lastal -S1 -pBISF -Q1 -e120 -f0 -j4 /tmp/last-test bs100.fastq
 #
-# a=21 b=9 A=21 B=9 e=120 d=63 x=119 y=44 z=119 D=1e+06 E=2.97648e+07
+# a=21 b=9 A=21 B=9 e=120 d=64 x=119 y=44 z=119 D=1e+06 E=2.97648e+07
 # R=10 u=0 s=2 S=1 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.37109 j=4 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
@@ -2798,7 +2863,7 @@ TEST lastal -fTAB -j4 -A2 -B2 /tmp/last-test hg19-M.fa
 
 TEST lastal -fTAB -j4 -Q1 -e90 -a7 -A12 -B4 /tmp/last-test SRR001981-1k.fastq
 #
-# a=7 b=9 A=12 B=4 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.41478e+07
+# a=7 b=9 A=12 B=4 e=90 d=66 x=89 y=44 z=89 D=1e+06 E=2.41478e+07
 # R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 W=3 w=1000 t=4.36661 j=4 Q=1
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
@@ -2846,7 +2911,7 @@ TEST lastal -fTAB -j4 -Q1 -e90 -a7 -A12 -B4 /tmp/last-test SRR001981-1k.fastq
 
 TEST lastal -fTAB -j4 -Q0 -e90 -a7 -A12 -B4 -b9 -r6 -q18 /tmp/last-test SRR001981-1k.fastq
 #
-# a=7 b=9 A=12 B=4 e=90 d=63 x=89 y=44 z=89 D=1e+06 E=2.41478e+07
+# a=7 b=9 A=12 B=4 e=90 d=66 x=89 y=44 z=89 D=1e+06 E=2.41478e+07
 # R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 W=3 w=1000 t=4.36661 j=4 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
