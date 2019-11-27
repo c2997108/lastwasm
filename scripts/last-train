@@ -306,9 +306,8 @@ def gapCostsFromProbRatios(scale, firstGapRatio, gapExtendRatio):
     # The next addition gets the alignment parameter from the path
     # parameters, as in Supplementary section 3.1 of [Fri19]:
     gapExtendRatio += firstGapRatio
-    gapExistCost = costFromProb(scale, firstGapRatio / gapExtendRatio)
+    firstGapCost = max(costFromProb(scale, firstGapRatio), 1)
     gapExtendCost = max(costFromProb(scale, gapExtendRatio), 1)
-    firstGapCost = gapExistCost + gapExtendCost
     return firstGapCost, gapExtendCost
 
 def writeGapCosts(gapCosts, out):

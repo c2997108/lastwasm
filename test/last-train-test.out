@@ -143,7 +143,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.486805
 # insExtendProb: 0.425453
 
-# delExistCost: 496
+# delExistCost: 495
 # insExistCost: 462
 # delExtendCost: 65
 # insExtendCost: 77
@@ -173,17 +173,17 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 
 
 # aligned letter pairs: 15522
-# deletes: 113.64
-# inserts: 114.81
-# delOpens: 57.42
+# deletes: 113.85
+# inserts: 114.91
+# delOpens: 57.43
 # insOpens: 65.47
 # alignments: 3
-# mean delete size: 1.9791
-# mean insert size: 1.75363
-# delOpenProb: 0.00366927
+# mean delete size: 1.98241
+# mean insert size: 1.75516
+# delOpenProb: 0.00366991
 # insOpenProb: 0.00418368
-# delExtendProb: 0.49472
-# insExtendProb: 0.429754
+# delExtendProb: 0.495564
+# insExtendProb: 0.43025
 
 # delExistCost: 509
 # insExistCost: 473
@@ -195,16 +195,16 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 3776.8         361.35         244.218        416.69        
-# C 825.26         2942.2         88.868         979           
-# G 352.69         55.36          1555.1         91.1          
-# T 390.27         448.86         45.739         2955.2        
+# C 825.26         2942.2         88.869         979           
+# G 352.69         55.36          1555.1         91.09         
+# T 390.27         448.86         45.738         2955.2        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 0.243214       0.0232698      0.0157269      0.0268335     
-# C 0.0531442      0.189468       0.00572282     0.0630445     
-# G 0.0227121      0.00356501     0.100144       0.00586655    
-# T 0.0251322      0.0289052      0.00294545     0.190306      
+# C 0.0531442      0.189469       0.00572289     0.0630446     
+# G 0.0227121      0.00356501     0.100144       0.00586591    
+# T 0.0251322      0.0289052      0.00294539     0.190306      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -227,8 +227,8 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.500045
 # insExtendProb: 0.433032
 
-# delExistCost: 514
-# insExistCost: 477
+# delExistCost: 515
+# insExistCost: 478
 # delExtendCost: 62
 # insExtendCost: 75
 
@@ -257,80 +257,38 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 
 
 # aligned letter pairs: 15522
-# deletes: 109.86
-# inserts: 111.03
-# delOpens: 54.666
-# insOpens: 62.74
+# deletes: 109.55
+# inserts: 110.72
+# delOpens: 54.455
+# insOpens: 62.54
 # alignments: 3
-# mean delete size: 2.00966
-# mean insert size: 1.76968
-# delOpenProb: 0.00349451
-# insOpenProb: 0.00401064
-# delExtendProb: 0.502403
-# insExtendProb: 0.434927
+# mean delete size: 2.01175
+# mean insert size: 1.77039
+# delOpenProb: 0.00348111
+# insOpenProb: 0.00399796
+# delExtendProb: 0.502921
+# insExtendProb: 0.435152
 
-# delExistCost: 516
+# delExistCost: 517
 # insExistCost: 479
 # delExtendCost: 62
 # insExtendCost: 75
 
-# substitution percent identity: 72.2605
+# substitution percent identity: 72.2553
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 3776.7         362.36         244.228        417.79        
 # C 828.26         2942           89.059         980.1         
-# G 352.72         55.87          1555           91.58         
-# T 392.35         449.97         46.164         2954.9        
+# G 352.72         55.98          1555           91.59         
+# T 393.35         449.97         46.165         2954.9        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 0.243046       0.0233193      0.015717       0.0268865     
-# C 0.0533018      0.189329       0.0057313      0.0630733     
-# G 0.0226989      0.00359546     0.10007        0.00589354    
-# T 0.0252493      0.0289574      0.00297084     0.19016       
-
-# score matrix (query letters = columns, reference letters = rows):
-#        A      C      G      T
-# A     75   -107    -81   -108
-# C    -64     83   -174    -31
-# G    -63   -200    164   -169
-# T   -111    -67   -213     90
-
-
-# aligned letter pairs: 15522
-# deletes: 109.13
-# inserts: 110.41
-# delOpens: 54.245
-# insOpens: 62.33
-# alignments: 3
-# mean delete size: 2.0118
-# mean insert size: 1.77138
-# delOpenProb: 0.00346778
-# insOpenProb: 0.00398464
-# delExtendProb: 0.502932
-# insExtendProb: 0.435468
-
-# delExistCost: 517
-# insExistCost: 480
-# delExtendCost: 62
-# insExtendCost: 75
-
-# substitution percent identity: 72.2491
-
-# count matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 3776.7         363.36         244.228        417.8         
-# C 828.26         2942           89.058         980.1         
-# G 352.73         56.08          1555           91.69         
-# T 393.35         449.98         46.267         2954.9        
-
-# probability matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 0.243007       0.02338        0.0157146      0.0268829     
-# C 0.0532934      0.1893         0.00573033     0.0630634     
-# G 0.022696       0.0036084      0.100055       0.00589969    
-# T 0.0253096      0.0289534      0.002977       0.19013       
+# A 0.243028       0.0233176      0.0157159      0.0268845     
+# C 0.053298       0.189316       0.00573089     0.0630688     
+# G 0.0226973      0.00360228     0.100063       0.00589376    
+# T 0.0253118      0.0289553      0.00297069     0.190146      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -341,17 +299,59 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 
 
 # aligned letter pairs: 15522
+# deletes: 108.92
+# inserts: 110.2
+# delOpens: 54.137
+# insOpens: 62.22
+# alignments: 3
+# mean delete size: 2.01193
+# mean insert size: 1.77113
+# delOpenProb: 0.00346092
+# insOpenProb: 0.00397766
+# delExtendProb: 0.502965
+# insExtendProb: 0.43539
+
+# delExistCost: 517
+# insExistCost: 480
+# delExtendCost: 62
+# insExtendCost: 75
+
+# substitution percent identity: 72.2537
+
+# count matrix (query letters = columns, reference letters = rows):
+#   A              C              G              T             
+# A 3776.7         363.36         243.228        417.8         
+# C 828.26         2942           89.058         980.1         
+# G 352.73         56.08          1555           91.7          
+# T 393.36         449.98         46.268         2954.9        
+
+# probability matrix (query letters = columns, reference letters = rows):
+#   A              C              G              T             
+# A 0.243023       0.0233815      0.0156512      0.0268846     
+# C 0.0532968      0.189312       0.00573069     0.0630674     
+# G 0.0226974      0.00360863     0.100061       0.0059007     
+# T 0.0253119      0.0289553      0.00297725     0.190142      
+
+# score matrix (query letters = columns, reference letters = rows):
+#        A      C      G      T
+# A     75   -107    -82   -108
+# C    -64     83   -174    -31
+# G    -63   -200    164   -169
+# T   -110    -67   -213     90
+
+
+# aligned letter pairs: 15522
 # deletes: 108.82
 # inserts: 109.99
-# delOpens: 54.034
-# insOpens: 62.12
+# delOpens: 53.933
+# insOpens: 62.02
 # alignments: 3
-# mean delete size: 2.01392
-# mean insert size: 1.77061
-# delOpenProb: 0.00345438
-# insOpenProb: 0.00397132
-# delExtendProb: 0.503455
-# insExtendProb: 0.435221
+# mean delete size: 2.01769
+# mean insert size: 1.77346
+# delOpenProb: 0.00344797
+# insOpenProb: 0.00396498
+# delExtendProb: 0.504383
+# insExtendProb: 0.436131
 
 # delExistCost: 518
 # insExistCost: 480
@@ -362,17 +362,17 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 3776.7         363.36         243.228        417.81        
-# C 828.26         2942           89.158         980.1         
+# A 3776.7         363.36         243.226        417.81        
+# C 828.26         2942           89.157         980.1         
 # G 352.73         56.08          1555           91.8          
-# T 394.36         449.99         46.268         2954.9        
+# T 394.36         449.99         46.269         2954.9        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 0.243004       0.0233796      0.01565        0.0268831     
-# C 0.0532926      0.189297       0.00573668     0.0630624     
+# A 0.243004       0.0233796      0.0156499      0.0268831     
+# C 0.0532926      0.189297       0.00573662     0.0630624     
 # G 0.0226957      0.00360835     0.100053       0.00590667    
-# T 0.0253742      0.0289536      0.00297701     0.190127      
+# T 0.0253742      0.0289536      0.00297708     0.190127      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -395,7 +395,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.50349
 # insExtendProb: 0.435194
 
-# delExistCost: 518
+# delExistCost: 517
 # insExistCost: 480
 # delExtendCost: 62
 # insExtendCost: 75
@@ -497,7 +497,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # insExtendProb: 0.423622
 
 # delExistCost: 416
-# insExistCost: 395
+# insExistCost: 396
 # delExtendCost: 68
 # insExtendCost: 76
 
@@ -526,38 +526,38 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 
 
 # aligned letter pairs: 15469
-# deletes: 171.19
-# inserts: 172.04
-# delOpens: 90.4
-# insOpens: 99.63
+# deletes: 170.78
+# inserts: 170.73
+# delOpens: 90.1
+# insOpens: 99.32
 # alignments: 3
-# mean delete size: 1.89369
-# mean insert size: 1.72679
-# delOpenProb: 0.00577155
-# insOpenProb: 0.00636084
-# delExtendProb: 0.471932
-# insExtendProb: 0.42089
+# mean delete size: 1.89545
+# mean insert size: 1.71899
+# delOpenProb: 0.00575262
+# insOpenProb: 0.00634129
+# delExtendProb: 0.472421
+# insExtendProb: 0.418263
 
 # delExistCost: 460
-# insExistCost: 432
+# insExistCost: 431
 # delExtendCost: 67
-# insExtendCost: 77
+# insExtendCost: 78
 
-# substitution percent identity: 73.0384
+# substitution percent identity: 73.0331
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 6767.5         385.27         677.422        772.5         
-# C 895.47         4536.9         132.176        1310.11       
-# G 1310.11        132.176        4536.9         895.47        
-# T 772.5          677.422        385.27         6767.5        
+# A 6767.5         385.27         677.421        773.5         
+# C 895.47         4536.9         132.286        1310.11       
+# G 1310.11        132.286        4536.9         895.47        
+# T 773.5          677.421        385.27         6767.5        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 0.218626       0.0124463      0.0218843      0.0249558     
-# C 0.0289284      0.146566       0.00426998     0.0423235     
-# G 0.0423235      0.00426998     0.146566       0.0289284     
-# T 0.0249558      0.0218843      0.0124463      0.218626      
+# A 0.21861        0.0124454      0.0218827      0.0249863     
+# C 0.0289263      0.146555       0.00427323     0.0423204     
+# G 0.0423204      0.00427323     0.146555       0.0289263     
+# T 0.0249863      0.0218827      0.0124454      0.21861       
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -568,38 +568,38 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 
 
 # aligned letter pairs: 15509
-# deletes: 136.06
-# inserts: 136.68
-# delOpens: 70.42
-# insOpens: 78.93
+# deletes: 135.55
+# inserts: 136.17
+# delOpens: 70.31
+# insOpens: 78.83
 # alignments: 3
-# mean delete size: 1.93212
-# mean insert size: 1.73166
-# delOpenProb: 0.00449613
-# insOpenProb: 0.00503947
-# delExtendProb: 0.482434
-# insExtendProb: 0.42252
+# mean delete size: 1.92789
+# mean insert size: 1.72739
+# delOpenProb: 0.00448917
+# insOpenProb: 0.00503316
+# delExtendProb: 0.481298
+# insExtendProb: 0.421091
 
-# delExistCost: 486
-# insExistCost: 454
-# delExtendCost: 65
-# insExtendCost: 77
+# delExistCost: 485
+# insExistCost: 453
+# delExtendCost: 66
+# insExtendCost: 78
 
-# substitution percent identity: 72.6558
+# substitution percent identity: 72.6511
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 6746           397.49         685.593        793.97        
-# C 908.84         4525.1         136.505        1319.5        
-# G 1319.5         136.505        4525.1         908.84        
-# T 793.97         685.593        397.49         6746          
+# A 6746           397.49         685.592        793.97        
+# C 908.85         4525.1         136.505        1320.5        
+# G 1320.5         136.505        4525.1         908.85        
+# T 793.97         685.592        397.49         6746          
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 0.217431       0.0128115      0.0220974      0.0255905     
-# C 0.0292929      0.145849       0.0043997      0.0425289     
-# G 0.0425289      0.0043997      0.145849       0.0292929     
-# T 0.0255905      0.0220974      0.0128115      0.217431      
+# A 0.217416       0.0128107      0.0220959      0.0255888     
+# C 0.0292913      0.145839       0.00439941     0.0425583     
+# G 0.0425583      0.00439941     0.145839       0.0292913     
+# T 0.0255888      0.0220959      0.0128107      0.217416      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -610,38 +610,80 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 
 
 # aligned letter pairs: 15508
-# deletes: 123.83
-# inserts: 124.6
-# delOpens: 63.22
-# insOpens: 71.48
+# deletes: 123.01
+# inserts: 123.78
+# delOpens: 63.01
+# insOpens: 71.27
 # alignments: 3
-# mean delete size: 1.95872
-# mean insert size: 1.74314
-# delOpenProb: 0.00404047
-# insOpenProb: 0.00456838
-# delExtendProb: 0.489461
-# insExtendProb: 0.426324
+# mean delete size: 1.95223
+# mean insert size: 1.73678
+# delOpenProb: 0.00402716
+# insOpenProb: 0.00455508
+# delExtendProb: 0.487765
+# insExtendProb: 0.42422
 
-# delExistCost: 498
+# delExistCost: 497
 # insExistCost: 464
+# delExtendCost: 65
+# insExtendCost: 77
+
+# substitution percent identity: 72.49
+
+# count matrix (query letters = columns, reference letters = rows):
+#   A              C              G              T             
+# A 6745.2         403            688.7493       804.28        
+# C 913.89         4514.7         138.453        1324.77       
+# G 1324.77        138.453        4514.7         913.89        
+# T 804.28         688.7493       403            6745.2        
+
+# probability matrix (query letters = columns, reference letters = rows):
+#   A              C              G              T             
+# A 0.217124       0.0129723      0.0221705      0.0258893     
+# C 0.0294176      0.145326       0.00445673     0.0426436     
+# G 0.0426436      0.00445673     0.145326       0.0294176     
+# T 0.0258893      0.0221705      0.0129723      0.217124      
+
+# score matrix (query letters = columns, reference letters = rows):
+#        A      C      G      T
+# A     83   -125    -77   -111
+# C    -79    115   -202    -45
+# G    -45   -202    115    -79
+# T   -111    -77   -125     83
+
+
+# aligned letter pairs: 15518
+# deletes: 119.06
+# inserts: 119.85
+# delOpens: 60.5
+# insOpens: 68.68
+# alignments: 3
+# mean delete size: 1.96793
+# mean insert size: 1.74505
+# delOpenProb: 0.00386552
+# insOpenProb: 0.00438817
+# delExtendProb: 0.491853
+# insExtendProb: 0.42695
+
+# delExistCost: 503
+# insExistCost: 467
 # delExtendCost: 64
 # insExtendCost: 77
 
-# substitution percent identity: 72.4998
+# substitution percent identity: 72.4476
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 6745.2         402.9          688.751        803.27        
-# C 912.89         4514.7         138.453        1324.77       
-# G 1324.77        138.453        4514.7         912.89        
-# T 803.27         688.751        402.9          6745.2        
+# A 6744.9         405.21         688.8051       808.41        
+# C 915.89         4514.6         138.971        1324.8        
+# G 1324.8         138.971        4514.6         915.89        
+# T 808.41         688.8051       405.21         6744.9        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 0.217154       0.0129709      0.0221735      0.0258603     
-# C 0.0293894      0.145345       0.00445733     0.0426494     
-# G 0.0426494      0.00445733     0.145345       0.0293894     
-# T 0.0258603      0.0221735      0.0129709      0.217154      
+# A 0.216995       0.0130363      0.0221601      0.026008      
+# C 0.0294658      0.145243       0.00447094     0.0426211     
+# G 0.0426211      0.00447094     0.145243       0.0294658     
+# T 0.026008       0.0221601      0.0130363      0.216995      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -652,62 +694,20 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 
 
 # aligned letter pairs: 15518
-# deletes: 119.37
-# inserts: 120.25
-# delOpens: 60.5
-# insOpens: 68.88
-# alignments: 3
-# mean delete size: 1.97306
-# mean insert size: 1.74579
-# delOpenProb: 0.00386547
-# insOpenProb: 0.00440089
-# delExtendProb: 0.493172
-# insExtendProb: 0.427193
-
-# delExistCost: 504
-# insExistCost: 468
-# delExtendCost: 64
-# insExtendCost: 76
-
-# substitution percent identity: 72.448
-
-# count matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 6744.9         405.21         688.8062       808.41        
-# C 915.9          4514.6         138.871        1324.8        
-# G 1324.8         138.871        4514.6         915.9         
-# T 808.41         688.8062       405.21         6744.9        
-
-# probability matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 0.216996       0.0130364      0.0221602      0.0260081     
-# C 0.0294663      0.145243       0.00446775     0.0426214     
-# G 0.0426214      0.00446775     0.145243       0.0294663     
-# T 0.0260081      0.0221602      0.0130364      0.216996      
-
-# score matrix (query letters = columns, reference letters = rows):
-#        A      C      G      T
-# A     83   -125    -77   -111
-# C    -79    115   -202    -45
-# G    -45   -202    115    -79
-# T   -111    -77   -125     83
-
-
-# aligned letter pairs: 15518
-# deletes: 118.1
-# inserts: 118.81
-# delOpens: 59.54
+# deletes: 117.9
+# inserts: 118.8
+# delOpens: 59.65
 # insOpens: 67.94
 # alignments: 3
-# mean delete size: 1.98354
-# mean insert size: 1.74875
-# delOpenProb: 0.0038046
-# insOpenProb: 0.00434136
-# delExtendProb: 0.495851
-# insExtendProb: 0.428163
+# mean delete size: 1.97653
+# mean insert size: 1.7486
+# delOpenProb: 0.0038116
+# insOpenProb: 0.00434133
+# delExtendProb: 0.494063
+# insExtendProb: 0.428114
 
 # delExistCost: 506
-# insExistCost: 469
+# insExistCost: 470
 # delExtendCost: 63
 # insExtendCost: 76
 
@@ -715,17 +715,17 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 6744.7         405.29         688.834        808.45        
-# C 915.89         4514.5         139.27         1325.91       
-# G 1325.91        139.27         4514.5         915.89        
-# T 808.45         688.834        405.29         6744.7        
+# A 6744.7         405.3          688.8338       808.45        
+# C 915.89         4514.5         139.27         1325.9        
+# G 1325.9         139.27         4514.5         915.89        
+# T 808.45         688.8338       405.3          6744.7        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 0.216971       0.0130378      0.0221592      0.0260071     
-# C 0.0294634      0.145228       0.0044802      0.0426534     
-# G 0.0426534      0.0044802      0.145228       0.0294634     
-# T 0.0260071      0.0221592      0.0130378      0.216971      
+# A 0.216971       0.0130382      0.0221592      0.0260071     
+# C 0.0294634      0.145228       0.0044802      0.0426531     
+# G 0.0426531      0.0044802      0.145228       0.0294634     
+# T 0.0260071      0.0221592      0.0130382      0.216971      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -736,80 +736,38 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 
 
 # aligned letter pairs: 15518
-# deletes: 117.99
-# inserts: 118.9
-# delOpens: 59.44
-# insOpens: 67.74
-# alignments: 3
-# mean delete size: 1.98503
-# mean insert size: 1.75524
-# delOpenProb: 0.00379828
-# insOpenProb: 0.00432866
-# delExtendProb: 0.496228
-# insExtendProb: 0.430278
-
-# delExistCost: 506
-# insExistCost: 470
-# delExtendCost: 63
-# insExtendCost: 76
-
-# substitution percent identity: 72.4223
-
-# count matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 6734.7         405.29         688.8445       808.47        
-# C 915.89         4514.5         139.17         1325.91       
-# G 1325.91        139.17         4514.5         915.89        
-# T 808.47         688.8445       405.29         6734.7        
-
-# probability matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 0.21679        0.0130463      0.0221739      0.0260246     
-# C 0.0294825      0.145322       0.00447988     0.042681      
-# G 0.042681       0.00447988     0.145322       0.0294825     
-# T 0.0260246      0.0221739      0.0130463      0.21679       
-
-# score matrix (query letters = columns, reference letters = rows):
-#        A      C      G      T
-# A     83   -125    -77   -110
-# C    -79    115   -202    -45
-# G    -45   -202    115    -79
-# T   -110    -77   -125     83
-
-
-# aligned letter pairs: 15518
-# deletes: 117.58
-# inserts: 118.49
+# deletes: 117.78
+# inserts: 118.69
 # delOpens: 59.23
 # insOpens: 67.63
 # alignments: 3
-# mean delete size: 1.98514
-# mean insert size: 1.75203
+# mean delete size: 1.98852
+# mean insert size: 1.75499
 # delOpenProb: 0.00378494
 # insOpenProb: 0.00432172
-# delExtendProb: 0.496258
-# insExtendProb: 0.429235
+# delExtendProb: 0.497113
+# insExtendProb: 0.430196
 
 # delExistCost: 507
 # insExistCost: 470
 # delExtendCost: 63
 # insExtendCost: 76
 
-# substitution percent identity: 72.4124
+# substitution percent identity: 72.4126
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 6734.7         405.3          689.8445       809.48        
-# C 915.91         4514.5         139.27         1325.91       
-# G 1325.91        139.27         4514.5         915.91        
-# T 809.48         689.8445       405.3          6734.7        
+# A 6734.7         405.29         689.8442       809.47        
+# C 915.89         4514.5         139.27         1325.91       
+# G 1325.91        139.27         4514.5         915.89        
+# T 809.47         689.8442       405.29         6734.7        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 0.21676        0.0130448      0.022203       0.0260536     
-# C 0.0294791      0.145302       0.00448248     0.0426752     
-# G 0.0426752      0.00448248     0.145302       0.0294791     
-# T 0.0260536      0.022203       0.0130448      0.21676       
+# A 0.216761       0.0130445      0.0222031      0.0260533     
+# C 0.0294785      0.145302       0.0044825      0.0426753     
+# G 0.0426753      0.0044825      0.145302       0.0294785     
+# T 0.0260533      0.0222031      0.0130445      0.216761      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -875,7 +833,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # insExtendProb: 0.430682
 
 # delExistCost: 508
-# insExistCost: 473
+# insExistCost: 472
 # delExtendCost: 63
 # insExtendCost: 76
 
@@ -902,134 +860,8 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # G    -45   -202    115    -79
 # T   -110    -76   -125     82
 
-
-# aligned letter pairs: 15527
-# deletes: 115.38
-# inserts: 116.21
-# delOpens: 57.95
-# insOpens: 66.17
-# alignments: 3
-# mean delete size: 1.99103
-# mean insert size: 1.75623
-# delOpenProb: 0.00370166
-# insOpenProb: 0.00422673
-# delExtendProb: 0.497747
-# insExtendProb: 0.4306
-
-# delExistCost: 509
-# insExistCost: 473
-# delExtendCost: 63
-# insExtendCost: 76
-
-# substitution percent identity: 72.387
-
-# count matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 6734.3         405.36         689.8799       812.54        
-# C 916.89         4514.4         139.377        1326.92       
-# G 1326.92        139.377        4514.4         916.89        
-# T 812.54         689.8799       405.36         6734.3        
-
-# probability matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 0.216681       0.0130428      0.0221974      0.0261441     
-# C 0.0295016      0.145254       0.00448456     0.0426946     
-# G 0.0426946      0.00448456     0.145254       0.0295016     
-# T 0.0261441      0.0221974      0.0130428      0.216681      
-
-# score matrix (query letters = columns, reference letters = rows):
-#        A      C      G      T
-# A     82   -125    -76   -110
-# C    -79    115   -202    -45
-# G    -45   -202    115    -79
-# T   -110    -76   -125     82
-
-
-# aligned letter pairs: 15527
-# deletes: 115.17
-# inserts: 116.11
-# delOpens: 57.85
-# insOpens: 66.07
-# alignments: 3
-# mean delete size: 1.99084
-# mean insert size: 1.75738
-# delOpenProb: 0.00369532
-# insOpenProb: 0.0042204
-# delExtendProb: 0.497699
-# insExtendProb: 0.430971
-
-# delExistCost: 509
-# insExistCost: 473
-# delExtendCost: 63
-# insExtendCost: 76
-
-# substitution percent identity: 72.3865
-
-# count matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 6734.3         405.36         689.8796       812.54        
-# C 916.89         4514.4         139.476        1326.93       
-# G 1326.93        139.476        4514.4         916.89        
-# T 812.54         689.8796       405.36         6734.3        
-
-# probability matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 0.216679       0.0130427      0.0221972      0.0261439     
-# C 0.0295014      0.145253       0.00448771     0.0426946     
-# G 0.0426946      0.00448771     0.145253       0.0295014     
-# T 0.0261439      0.0221972      0.0130427      0.216679      
-
-# score matrix (query letters = columns, reference letters = rows):
-#        A      C      G      T
-# A     82   -125    -76   -110
-# C    -79    115   -201    -45
-# G    -45   -201    115    -79
-# T   -110    -76   -125     82
-
-
-# aligned letter pairs: 15527
-# deletes: 115.17
-# inserts: 116.1
-# delOpens: 57.85
-# insOpens: 66.07
-# alignments: 3
-# mean delete size: 1.99084
-# mean insert size: 1.75723
-# delOpenProb: 0.00369532
-# insOpenProb: 0.0042204
-# delExtendProb: 0.497699
-# insExtendProb: 0.430922
-
-# delExistCost: 509
-# insExistCost: 473
-# delExtendCost: 63
-# insExtendCost: 76
-
-# substitution percent identity: 72.3843
-
-# count matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 6734.3         405.36         689.8798       812.54        
-# C 916.89         4513.4         139.579        1326.92       
-# G 1326.92        139.579        4513.4         916.89        
-# T 812.54         689.8798       405.36         6734.3        
-
-# probability matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 0.216692       0.0130434      0.0221985      0.0261454     
-# C 0.0295031      0.145229       0.00449129     0.0426968     
-# G 0.0426968      0.00449129     0.145229       0.0295031     
-# T 0.0261454      0.0221985      0.0130434      0.216692      
-
-# score matrix (query letters = columns, reference letters = rows):
-#        A      C      G      T
-# A     82   -125    -76   -110
-# C    -79    115   -201    -45
-# G    -45   -201    115    -79
-# T   -110    -76   -125     82
-
-#last -a 25
-#last -A 24
+#last -a 26
+#last -A 23
 #last -b 3
 #last -B 4
 #last -S 1
@@ -1311,8 +1143,8 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.468054
 # insExtendProb: 0.468054
 
-# delExistCost: 500
-# insExistCost: 500
+# delExistCost: 501
+# insExistCost: 501
 # delExtendCost: 68
 # insExtendCost: 68
 
@@ -1331,48 +1163,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0384527      0.189226       0.00468933     0.0460575     
 # G 0.019134       0.00468933     0.0999481      0.00445238    
 # T 0.0261502      0.0460575      0.00445238     0.190049      
-
-# score matrix (query letters = columns, reference letters = rows):
-#        A      C      G      T
-# A     75    -78    -71   -110
-# C    -78     81   -185    -43
-# G    -71   -185    164   -186
-# T   -110    -43   -186     89
-
-
-# aligned letter pairs: 15522
-# deletes: 106.19
-# inserts: 107.35
-# delOpens: 53.629
-# insOpens: 59.78
-# alignments: 3
-# mean delete size: 1.98009
-# mean insert size: 1.79575
-# delOpenProb: 0.00362574
-# insOpenProb: 0.00362574
-# delExtendProb: 0.46891
-# insExtendProb: 0.46891
-
-# delExistCost: 501
-# insExistCost: 501
-# delExtendCost: 68
-# insExtendCost: 68
-
-# substitution percent identity: 72.2127
-
-# count matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 7553.4         1195.74        595.008        813.18        
-# C 1195.74        5884           145.72         1432.22       
-# G 595.008        145.72         3108           138.46        
-# T 813.18         1432.22        138.46         5909.6        
-
-# probability matrix (query letters = columns, reference letters = rows):
-#   A              C              G              T             
-# A 0.242909       0.0384536      0.0191348      0.0261509     
-# C 0.0384536      0.189223       0.00468619     0.0460585     
-# G 0.0191348      0.00468619     0.0999497      0.00445271    
-# T 0.0261509      0.0460585      0.00445271     0.190046      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1454,8 +1244,8 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.430957
 # insExtendProb: 0.44734
 
-# delExistCost: 641
-# insExistCost: 654
+# delExistCost: 640
+# insExistCost: 653
 # delExtendCost: 73
 # insExtendCost: 70
 
@@ -1484,20 +1274,20 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 
 
 # aligned letter pairs: 7761.3
-# deletes: 2.314965
-# inserts: 2.369392
-# delOpens: 1.193754
-# insOpens: 1.20356
+# deletes: 2.318563
+# inserts: 2.373631
+# delOpens: 1.196257
+# insOpens: 1.20601
 # alignments: 94
-# mean delete size: 1.93923
-# mean insert size: 1.96865
-# delOpenProb: 0.000151902
-# insOpenProb: 0.00015315
-# delExtendProb: 0.484332
-# insExtendProb: 0.492038
+# mean delete size: 1.93818
+# mean insert size: 1.96817
+# delOpenProb: 0.000152221
+# insOpenProb: 0.000153462
+# delExtendProb: 0.484052
+# insExtendProb: 0.491913
 
 # delExistCost: 762
-# insExistCost: 764
+# insExistCost: 765
 # delExtendCost: 63
 # insExtendCost: 61
 
@@ -1505,17 +1295,17 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 2252.1         2.42744507     2.6547379      2.3614734     
-# C 3.3659221      244.06576      2.4419546      1732.95       
-# G 3.244123049    2.366496756    1422.95        3.235288217   
-# T 2.68369118     2.73152112     2.40035185     2095.3        
+# A 2252.1         2.42754508     2.654748       2.3614747     
+# C 3.3659242      244.06576      2.4420556      1732.95       
+# G 3.244133059    2.366496756    1422.95        3.235288427   
+# T 2.68370118     2.73154022     2.40036186     2095.3        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
-# A 0.289574       0.00031212     0.000341345    0.000303637   
-# C 0.000432789    0.0313819      0.000313986    0.222822      
-# G 0.000417128    0.000304283    0.182962       0.000415992   
-# T 0.000345068    0.000351218    0.000308636    0.269413      
+# A 0.289574       0.000312133    0.000341347    0.000303638   
+# C 0.000432789    0.0313819      0.000313999    0.222822      
+# G 0.00041713     0.000304283    0.182962       0.000415992   
+# T 0.000345069    0.000351221    0.000308638    0.269413      
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1526,20 +1316,20 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 
 
 # aligned letter pairs: 7721.8
-# deletes: 2.0978216
-# inserts: 2.1026797
-# delOpens: 1.0543469
-# insOpens: 1.0561296
+# deletes: 2.0978392
+# inserts: 2.1015302
+# delOpens: 1.0543576
+# insOpens: 1.0554976
 # alignments: 94
-# mean delete size: 1.98969
-# mean insert size: 1.99093
-# delOpenProb: 0.000134846
-# insOpenProb: 0.000135074
-# delExtendProb: 0.497409
-# insExtendProb: 0.497722
+# mean delete size: 1.98968
+# mean insert size: 1.99103
+# delOpenProb: 0.000134847
+# insOpenProb: 0.000134993
+# delExtendProb: 0.497408
+# insExtendProb: 0.497748
 
-# delExistCost: 777
-# insExistCost: 777
+# delExistCost: 778
+# insExistCost: 778
 # delExtendCost: 60
 # insExtendCost: 60
 
@@ -1548,15 +1338,15 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # count matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 2238           2.27669891     2.21189326     1.80632274    
-# C 1.83391932     214.984739     1.86557462     1753.41       
-# G 3.064854982    2.538826195    1426.68        2.476969861   
-# T 2.19024642     3.09482099     2.54174517     2078.1        
+# C 1.83391932     214.984739     1.86547462     1753.41       
+# G 3.064854982    2.538826185    1426.68        2.476959861   
+# T 2.19024642     3.09482089     2.54174517     2078.1        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 0.289257       0.000294258    0.000285882    0.000233463   
-# C 0.00023703     0.0277863      0.000241121    0.226624      
-# G 0.000396126    0.000328138    0.184395       0.000320143   
+# C 0.00023703     0.0277863      0.000241108    0.226624      
+# G 0.000396126    0.000328138    0.184395       0.000320142   
 # T 0.000283084    0.000399999    0.000328515    0.26859       
 
 # score matrix (query letters = columns, reference letters = rows):
@@ -1568,17 +1358,17 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 
 
 # aligned letter pairs: 7723.1
-# deletes: 2.094919
-# inserts: 2.093505
-# delOpens: 1.0504994
-# insOpens: 1.0505739
+# deletes: 2.0937793
+# inserts: 2.0924555
+# delOpens: 1.0499351
+# insOpens: 1.0499916
 # alignments: 94
-# mean delete size: 1.99421
-# mean insert size: 1.99273
-# delOpenProb: 0.000134332
-# insOpenProb: 0.000134341
-# delExtendProb: 0.498549
-# insExtendProb: 0.498175
+# mean delete size: 1.9942
+# mean insert size: 1.99283
+# delOpenProb: 0.000134259
+# insOpenProb: 0.000134267
+# delExtendProb: 0.498545
+# insExtendProb: 0.498201
 
 # delExistCost: 778
 # insExistCost: 778
@@ -1591,14 +1381,14 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 #   A              C              G              T             
 # A 2238.2         2.35117514     2.05550739     1.7212782     
 # C 1.50128113     214.128399     1.68942152     1755.1        
-# G 3.042117146    2.640881362    1426.87        2.291018534   
-# T 2.08187256     3.59109374     2.5899042      2078.2        
+# G 3.042117146    2.640781352    1426.87        2.291018524   
+# T 2.08187256     3.59109374     2.58990419     2078.2        
 
 # probability matrix (query letters = columns, reference letters = rows):
 #   A              C              G              T             
 # A 0.289246       0.000303846    0.000265636    0.000222443   
 # C 0.000194013    0.0276721      0.000218326    0.226814      
-# G 0.000393137    0.000341285    0.184396       0.000296072   
+# G 0.000393137    0.000341272    0.184396       0.000296072   
 # T 0.000269043    0.000464082    0.000334697    0.268569      
 
 # score matrix (query letters = columns, reference letters = rows):
