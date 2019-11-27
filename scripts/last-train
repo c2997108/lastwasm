@@ -24,6 +24,38 @@ def myOpen(fileName):  # faster than fileinput
         return gzip.open(fileName, "rt")  # xxx dubious for Python2
     return open(fileName)
 
+def rootOfIncreasingFunction(func, lowerBound, upperBound, *args):
+    # Find x such that func(x, *args) == 0
+    while True:
+        mid = 0.5 * (lowerBound + upperBound)
+        if mid <= lowerBound or mid >= upperBound:
+            return mid
+        if func(mid, *args) < 0:
+            lowerBound = mid
+        else:
+            upperBound = mid
+
+def homogeneousLetterFreqs(scale, matScores):
+    # Solve the simultaneous equations in Section 2.1 of [Fri19]
+    expMat = [[math.exp(j / scale) for j in i] for i in matScores]
+    m = [row[:] + [1.0] for row in expMat]  # augmented matrix
+    n = len(expMat)
+    for k in range(n):
+        iMax = k
+        for i in range(k, n):
+            if abs(m[i][k]) > abs(m[iMax][k]):
+                iMax = i
+        if iMax > k:
+            m[k], m[iMax] = m[iMax], m[k]
+        if abs(m[k][k]) <= 0:
+            raise ArithmeticError("singular matrix")
+        for i in range(n):
+            if i != k:
+                mul = m[i][k] / m[k][k]
+                for j in range(k + 1, n + 1):
+                    m[i][j] -= m[k][j] * mul
+    return [m[k][n] / m[k][k] for k in range(n)]
+
 def randomSample(things, sampleSize):
     """Randomly get sampleSize things (or all if fewer)."""
     reservoir = []  # "reservoir sampling" algorithm
@@ -238,6 +270,20 @@ def matProbsFromCounts(counts, opts):
 
     return probs
 
+def probImbalance(endProb, matchProb, firstDelProb, delExtendProb,
+                  firstInsProb, insExtendProb):
+    # (RHS - LHS) of Equation (12) in [Fri19]
+    d = firstDelProb / (endProb - delExtendProb)
+    i = firstInsProb / (endProb - insExtendProb)
+    return 1 - matchProb / (endProb * endProb) - d - i
+
+def balancedEndProb(*args):
+    matchProb, firstDelProb, delExtendProb, firstInsProb, insExtendProb = args
+    lowerBound = max(delExtendProb, insExtendProb)
+    upperBound = 1.0
+    r = rootOfIncreasingFunction(probImbalance, lowerBound, upperBound, *args)
+    return r
+
 def gapRatiosFromCounts(counts, opts):
     matches, deletes, inserts, delOpens, insOpens, alignments = counts
     if not alignments: raise Exception("no alignments")
@@ -264,6 +310,7 @@ def gapRatiosFromCounts(counts, opts):
     print("# alignments:", alignments)
     print("# mean delete size: %g" % (deletes / delOpens))
     print("# mean insert size: %g" % (inserts / insOpens))
+    print("# matchProb: %g" % matchProb)
     print("# delOpenProb: %g" % delOpenProb)
     print("# insOpenProb: %g" % insOpenProb)
     print("# delExtendProb: %g" % delExtendProb)
@@ -276,7 +323,8 @@ def gapRatiosFromCounts(counts, opts):
     insCloseProb = 1 - insExtendProb
     firstInsProb = insOpenProb * insCloseProb
 
-    endProb = math.sqrt(matchProb)  # uniform length probability (xxx gapless)
+    endProb = balancedEndProb(matchProb, firstDelProb, delExtendProb,
+                              firstInsProb, insExtendProb)
     # probably, endProb is negligibly less than 1
 
     matchRatio = matchProb / (endProb * endProb)
@@ -309,6 +357,44 @@ def gapCostsFromProbRatios(scale, firstGapRatio, gapExtendRatio):
     firstGapCost = max(costFromProb(scale, firstGapRatio), 1)
     gapExtendCost = max(costFromProb(scale, gapExtendRatio), 1)
     return firstGapCost, gapExtendCost
+
+def imbalanceFromGap(scale, firstGapCost, gapExtendCost):
+    firstGapRatio = math.exp(-firstGapCost / scale)
+    gapExtendRatio = math.exp(-gapExtendCost / scale)
+    # The next subtraction gets the path parameter from the alignment
+    # parameters, as in Supplementary section 3.1 of [Fri19]:
+    gapExtendRatio -= firstGapRatio
+    return firstGapRatio / (1 - gapExtendRatio)
+
+def scoreImbalance(scale, matScores, delCosts, insCosts):
+    # C' - 1, where C' is defined in Equation (13) of [Fri19]
+    d = imbalanceFromGap(scale, *delCosts)
+    i = imbalanceFromGap(scale, *insCosts)
+    return 1 / sum(homogeneousLetterFreqs(scale, matScores)) + d + i - 1
+
+def negScoreImbalance(*args):
+    return -scoreImbalance(*args)
+
+def balancedScale(nearScale, *args):
+    # Find a scale, near nearScale, with balanced length probability
+    bump = 1.000001
+    value = scoreImbalance(nearScale, *args)
+    if abs(value) <= 0:
+        return nearScale
+    oldLower = oldUpper = nearScale
+    while True:  # xxx
+        newLower = oldLower / bump
+        lowerValue = scoreImbalance(newLower, *args)
+        if (lowerValue < 0) != (value < 0):
+            func = scoreImbalance if value > 0 else negScoreImbalance
+            return rootOfIncreasingFunction(func, newLower, oldLower, *args)
+        oldLower = newLower
+        newUpper = oldUpper * bump
+        upperValue = scoreImbalance(newUpper, *args)
+        if (upperValue < 0) != (value < 0):
+            func = scoreImbalance if value < 0 else negScoreImbalance
+            return rootOfIncreasingFunction(func, oldUpper, newUpper, *args)
+        oldUpper = newUpper
 
 def writeGapCosts(gapCosts, out):
     firstDelCost, delExtendCost, firstInsCost, insExtendCost = gapCosts
@@ -408,7 +494,9 @@ def doTraining(opts, args):
         parameters = delCosts, insCosts, matScores
         if parameters in oldParameters: break
         oldParameters.append(parameters)
+        scale = balancedScale(internalScale, matScores, delCosts, insCosts)
         x = fixedLastalArgs(opts, lastalProgName)
+        x.append("-t{0:.6}".format(scale))
         x.append("-p-")
         x += args
         p = subprocess.Popen(x, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -426,8 +514,10 @@ def doTraining(opts, args):
     delCosts = gapCostsFromProbRatios(externalScale, *delRatios)
     insCosts = gapCostsFromProbRatios(externalScale, *insRatios)
     matScores = matScoresFromProbs(externalScale, *matParams)
+    scale = balancedScale(externalScale, matScores, delCosts, insCosts)
     if opts.X: print("#last -X", opts.X)
     if opts.Q: print("#last -Q", opts.Q)
+    print("#last -t{0:.6}".format(scale))
     writeGapCosts(delCosts + insCosts, sys.stdout)
     if opts.s: print("#last -s", opts.s)
     if opts.S: print("#last -S", opts.S)
