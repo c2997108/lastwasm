@@ -18,11 +18,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.466969
 # insExtendProb: 0.435396
 
-# delExistCost: 358
-# insExistCost: 346
-# delExtendCost: 68
-# insExtendCost: 74
-
 # substitution percent identity: 75.196
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -38,6 +33,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.0478939      0.198086       0.00623669     0.0565876     
 # G 0.0203696      0.00358095     0.101871       0.00661003    
 # T 0.0222858      0.0241062      0.00321543     0.198353      
+
+# delExistCost: 358
+# insExistCost: 346
+# delExtendCost: 68
+# insExtendCost: 74
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -61,11 +61,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.463038
 # insExtendProb: 0.424217
 
-# delExistCost: 421
-# insExistCost: 401
-# delExtendCost: 69
-# insExtendCost: 77
-
 # substitution percent identity: 73.6782
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -81,6 +76,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.051033       0.19365        0.00552621     0.0616686     
 # G 0.0222071      0.00308742     0.101417       0.0055018     
 # T 0.0228341      0.0276589      0.00256418     0.194526      
+
+# delExistCost: 421
+# insExistCost: 401
+# delExtendCost: 69
+# insExtendCost: 77
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -104,11 +104,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.474978
 # insExtendProb: 0.421916
 
-# delExistCost: 468
-# insExistCost: 439
-# delExtendCost: 67
-# insExtendCost: 78
-
 # substitution percent identity: 72.8361
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -124,6 +119,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.0523608      0.191232       0.00563539     0.0625684     
 # G 0.0226865      0.00331155     0.100579       0.00561951    
 # T 0.0240677      0.0286165      0.00271094     0.192097      
+
+# delExistCost: 468
+# insExistCost: 439
+# delExtendCost: 67
+# insExtendCost: 78
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -147,11 +147,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.489016
 # insExtendProb: 0.4194
 
-# delExistCost: 497
-# insExistCost: 462
-# delExtendCost: 65
-# insExtendCost: 79
-
 # substitution percent identity: 72.5763
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -167,6 +162,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.0528682      0.190467       0.0056335      0.0628443     
 # G 0.0225757      0.00349725     0.10061        0.00579745    
 # T 0.0246472      0.0288421      0.00282099     0.191128      
+
+# delExistCost: 497
+# insExistCost: 462
+# delExtendCost: 65
+# insExtendCost: 79
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -190,11 +190,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.495883
 # insExtendProb: 0.423597
 
-# delExistCost: 511
-# insExistCost: 474
-# delExtendCost: 63
-# insExtendCost: 78
-
 # substitution percent identity: 72.4303
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -210,6 +205,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.0531173      0.190136       0.00563864     0.0629031     
 # G 0.0225355      0.00358142     0.100374       0.0058772     
 # T 0.0250104      0.0289294      0.00288441     0.190718      
+
+# delExistCost: 511
+# insExistCost: 474
+# delExtendCost: 63
+# insExtendCost: 78
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -233,11 +233,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.501396
 # insExtendProb: 0.426354
 
-# delExistCost: 517
-# insExistCost: 479
-# delExtendCost: 63
-# insExtendCost: 77
-
 # substitution percent identity: 72.3895
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -253,6 +248,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.0531632      0.190065       0.00565424     0.0629025     
 # G 0.0225356      0.00361317     0.100269       0.00591981    
 # T 0.0251034      0.0289261      0.00292041     0.190576      
+
+# delExistCost: 517
+# insExistCost: 479
+# delExtendCost: 63
+# insExtendCost: 77
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -276,11 +276,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.502994
 # insExtendProb: 0.42933
 
-# delExistCost: 520
-# insExistCost: 482
-# delExtendCost: 62
-# insExtendCost: 76
-
 # substitution percent identity: 72.3637
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -296,6 +291,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.0532857      0.189947       0.00565257     0.0629514     
 # G 0.0225307      0.00362649     0.100244       0.00592609    
 # T 0.0251049      0.0289208      0.00292802     0.190522      
+
+# delExistCost: 520
+# insExistCost: 482
+# delExtendCost: 62
+# insExtendCost: 76
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -319,11 +319,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.50643
 # insExtendProb: 0.429692
 
-# delExistCost: 521
-# insExistCost: 483
-# delExtendCost: 62
-# insExtendCost: 76
-
 # substitution percent identity: 72.3502
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -339,6 +334,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.053281       0.18993        0.005652       0.0629458     
 # G 0.0225293      0.00363263     0.100235       0.00593332    
 # T 0.0251751      0.0289195      0.00292737     0.190505      
+
+# delExistCost: 521
+# insExistCost: 483
+# delExtendCost: 62
+# insExtendCost: 76
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -362,11 +362,6 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # delExtendProb: 0.505515
 # insExtendProb: 0.430986
 
-# delExistCost: 521
-# insExistCost: 483
-# delExtendCost: 62
-# insExtendCost: 76
-
 # substitution percent identity: 72.3486
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -382,6 +377,11 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # C 0.0532798      0.189925       0.00565834     0.0629444     
 # G 0.0225288      0.00363255     0.100233       0.00593319    
 # T 0.0251745      0.0289195      0.00293448     0.190501      
+
+# delExistCost: 521
+# insExistCost: 483
+# delExtendCost: 62
+# insExtendCost: 76
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -423,11 +423,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.466969
 # insExtendProb: 0.435396
 
-# delExistCost: 358
-# insExistCost: 346
-# delExtendCost: 68
-# insExtendCost: 74
-
 # substitution percent identity: 75.196
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -443,6 +438,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.027252       0.149978       0.00490882     0.0384786     
 # G 0.0384786      0.00490882     0.149978       0.027252      
 # T 0.0230142      0.0189824      0.011384       0.226002      
+
+# delExistCost: 358
+# insExistCost: 346
+# delExtendCost: 68
+# insExtendCost: 74
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -466,11 +466,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.459595
 # insExtendProb: 0.419746
 
-# delExistCost: 414
-# insExistCost: 393
-# delExtendCost: 70
-# insExtendCost: 78
-
 # substitution percent identity: 73.8937
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -486,6 +481,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.0281907      0.148205       0.00411683     0.0415456     
 # G 0.0415456      0.00411683     0.148205       0.0281907     
 # T 0.0237883      0.021166       0.0117238      0.221263      
+
+# delExistCost: 414
+# insExistCost: 393
+# delExtendCost: 70
+# insExtendCost: 78
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -509,11 +509,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.46863
 # insExtendProb: 0.415271
 
-# delExistCost: 458
-# insExistCost: 429
-# delExtendCost: 68
-# insExtendCost: 79
-
 # substitution percent identity: 73.0662
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -529,6 +524,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.028917       0.146493       0.00426486     0.0422692     
 # G 0.0422692      0.00426486     0.146493       0.028917      
 # T 0.024942       0.0218414      0.0124345      0.218838      
+
+# delExistCost: 458
+# insExistCost: 429
+# delExtendCost: 68
+# insExtendCost: 79
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -552,11 +552,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.48032
 # insExtendProb: 0.419755
 
-# delExistCost: 485
-# insExistCost: 452
-# delExtendCost: 66
-# insExtendCost: 78
-
 # substitution percent identity: 72.6658
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -572,6 +567,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.0292641      0.145869       0.00440009     0.0425339     
 # G 0.0425339      0.00440009     0.145869       0.0292641     
 # T 0.025593       0.0220682      0.0128117      0.21746       
+
+# delExistCost: 485
+# insExistCost: 452
+# delExtendCost: 66
+# insExtendCost: 78
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -595,11 +595,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.48913
 # insExtendProb: 0.424807
 
-# delExistCost: 498
-# insExistCost: 464
-# delExtendCost: 65
-# insExtendCost: 77
-
 # substitution percent identity: 72.4953
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -615,6 +610,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.0294193      0.145337       0.00445707     0.0426446     
 # G 0.0426446      0.00445707     0.145337       0.0294193     
 # T 0.0258584      0.0221722      0.012972       0.217139      
+
+# delExistCost: 498
+# insExistCost: 464
+# delExtendCost: 65
+# insExtendCost: 77
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -638,11 +638,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.492845
 # insExtendProb: 0.427736
 
-# delExistCost: 504
-# insExistCost: 468
-# delExtendCost: 64
-# insExtendCost: 77
-
 # substitution percent identity: 72.4478
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -658,6 +653,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.029466       0.145245       0.00446783     0.0426225     
 # G 0.0426225      0.00446783     0.145245       0.029466      
 # T 0.0260087      0.0221611      0.0130349      0.216994      
+
+# delExistCost: 504
+# insExistCost: 468
+# delExtendCost: 64
+# insExtendCost: 77
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -681,11 +681,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.495475
 # insExtendProb: 0.428983
 
-# delExistCost: 506
-# insExistCost: 470
-# delExtendCost: 64
-# insExtendCost: 77
-
 # substitution percent identity: 72.4132
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -701,6 +696,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.0294792      0.145305       0.00447948     0.0426736     
 # G 0.0426736      0.00447948     0.145305       0.0294792     
 # T 0.0260542      0.0222039      0.0130435      0.216761      
+
+# delExistCost: 506
+# insExistCost: 470
+# delExtendCost: 64
+# insExtendCost: 77
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -724,11 +724,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.495572
 # insExtendProb: 0.429424
 
-# delExistCost: 507
-# insExistCost: 472
-# delExtendCost: 64
-# insExtendCost: 76
-
 # substitution percent identity: 72.4062
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -744,6 +739,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.0295091      0.145293       0.00448916     0.0426699     
 # G 0.0426699      0.00448916     0.145293       0.0295091     
 # T 0.0260528      0.0222023      0.0130456      0.216738      
+
+# delExistCost: 507
+# insExistCost: 472
+# delExtendCost: 64
+# insExtendCost: 76
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -767,11 +767,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.496389
 # insExtendProb: 0.430596
 
-# delExistCost: 508
-# insExistCost: 472
-# delExtendCost: 63
-# insExtendCost: 76
-
 # substitution percent identity: 72.4067
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -787,6 +782,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.0295093      0.145293       0.00448915     0.0426705     
 # G 0.0426705      0.00448915     0.145293       0.0295093     
 # T 0.026053       0.0222027      0.0130421      0.21674       
+
+# delExistCost: 508
+# insExistCost: 472
+# delExtendCost: 63
+# insExtendCost: 76
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -810,11 +810,6 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # delExtendProb: 0.497253
 # insExtendProb: 0.430347
 
-# delExistCost: 508
-# insExistCost: 472
-# delExtendCost: 63
-# insExtendCost: 76
-
 # substitution percent identity: 72.4067
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -830,6 +825,11 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # C 0.029509       0.145294       0.00448915     0.0426705     
 # G 0.0426705      0.00448915     0.145294       0.029509      
 # T 0.026053       0.0222028      0.0130421      0.21674       
+
+# delExistCost: 508
+# insExistCost: 472
+# delExtendCost: 63
+# insExtendCost: 76
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -871,11 +871,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.451596
 # insExtendProb: 0.451596
 
-# delExistCost: 353
-# insExistCost: 353
-# delExtendCost: 70
-# insExtendCost: 70
-
 # substitution percent identity: 75.196
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -891,6 +886,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0337232      0.198086       0.00490882     0.0403469     
 # G 0.017114       0.00490882     0.101871       0.00491273    
 # T 0.0230142      0.0403469      0.00491273     0.198353      
+
+# delExistCost: 353
+# insExistCost: 353
+# delExtendCost: 70
+# insExtendCost: 70
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -914,11 +914,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.44535
 # insExtendProb: 0.44535
 
-# delExistCost: 413
-# insExistCost: 413
-# delExtendCost: 73
-# insExtendCost: 73
-
 # substitution percent identity: 73.5727
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -934,6 +929,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0364046      0.193065       0.00430299     0.0449419     
 # G 0.0186794      0.00430299     0.101447       0.00405408    
 # T 0.0237533      0.0449419      0.00405408     0.193941      
+
+# delExistCost: 413
+# insExistCost: 413
+# delExtendCost: 73
+# insExtendCost: 73
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -957,11 +957,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.446086
 # insExtendProb: 0.446086
 
-# delExistCost: 457
-# insExistCost: 457
-# delExtendCost: 73
-# insExtendCost: 73
-
 # substitution percent identity: 72.7368
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -977,6 +972,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0375983      0.190496       0.00450126     0.0458016     
 # G 0.0191525      0.00450126     0.100525       0.00419646    
 # T 0.025066       0.0458016      0.00419646     0.192005      
+
+# delExistCost: 457
+# insExistCost: 457
+# delExtendCost: 73
+# insExtendCost: 73
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1000,11 +1000,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.454422
 # insExtendProb: 0.454422
 
-# delExistCost: 482
-# insExistCost: 482
-# delExtendCost: 71
-# insExtendCost: 71
-
 # substitution percent identity: 72.3952
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1020,6 +1015,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0381185      0.189669       0.00462203     0.0460427     
 # G 0.0191736      0.00462203     0.100304       0.00435878    
 # T 0.0257083      0.0460427      0.00435878     0.190513      
+
+# delExistCost: 482
+# insExistCost: 482
+# delExtendCost: 71
+# insExtendCost: 71
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1043,11 +1043,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.460432
 # insExtendProb: 0.460432
 
-# delExistCost: 495
-# insExistCost: 495
-# delExtendCost: 70
-# insExtendCost: 70
-
 # substitution percent identity: 72.3763
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1063,6 +1058,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0382483      0.189473       0.00463843     0.0459483     
 # G 0.0190254      0.00463843     0.100396       0.00441427    
 # T 0.0258439      0.0459483      0.00441427     0.19076       
+
+# delExistCost: 495
+# insExistCost: 495
+# delExtendCost: 70
+# insExtendCost: 70
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1086,11 +1086,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.464405
 # insExtendProb: 0.464405
 
-# delExistCost: 500
-# insExistCost: 500
-# delExtendCost: 69
-# insExtendCost: 69
-
 # substitution percent identity: 72.331
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1106,6 +1101,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0383073      0.18939        0.00465221     0.0460323     
 # G 0.0190181      0.00465221     0.100285       0.00444288    
 # T 0.0258923      0.0460323      0.00444288     0.190605      
+
+# delExistCost: 500
+# insExistCost: 500
+# delExtendCost: 69
+# insExtendCost: 69
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1129,11 +1129,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.467134
 # insExtendProb: 0.467134
 
-# delExistCost: 503
-# insExistCost: 503
-# delExtendCost: 69
-# insExtendCost: 69
-
 # substitution percent identity: 72.3022
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1149,6 +1144,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0383928      0.18933        0.00465733     0.0459912     
 # G 0.0190127      0.00465733     0.100192       0.00444515    
 # T 0.0259897      0.0459912      0.00444515     0.190545      
+
+# delExistCost: 503
+# insExistCost: 503
+# delExtendCost: 69
+# insExtendCost: 69
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1172,11 +1172,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.467671
 # insExtendProb: 0.467671
 
-# delExistCost: 504
-# insExistCost: 504
-# delExtendCost: 69
-# insExtendCost: 69
-
 # substitution percent identity: 72.2973
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1192,6 +1187,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0383943      0.189331       0.00466392     0.0459905     
 # G 0.0190138      0.00466392     0.100196       0.00445254    
 # T 0.0259982      0.0459905      0.00445254     0.190546      
+
+# delExistCost: 504
+# insExistCost: 504
+# delExtendCost: 69
+# insExtendCost: 69
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1215,11 +1215,6 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # delExtendProb: 0.467604
 # insExtendProb: 0.467604
 
-# delExistCost: 504
-# insExistCost: 504
-# delExtendCost: 69
-# insExtendCost: 69
-
 # substitution percent identity: 72.2948
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1235,6 +1230,11 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # C 0.0383962      0.189324       0.00466307     0.0459892     
 # G 0.01902        0.00466307     0.100192       0.00445642    
 # T 0.0260012      0.0459892      0.00445642     0.19054       
+
+# delExistCost: 504
+# insExistCost: 504
+# delExtendCost: 69
+# insExtendCost: 69
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1276,11 +1276,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.430957
 # insExtendProb: 0.44734
 
-# delExistCost: 640
-# insExistCost: 653
-# delExtendCost: 73
-# insExtendCost: 70
-
 # substitution percent identity: 92.2437
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1296,6 +1291,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000778437    0.0466162      0.000450195    0.070203      
 # G 0.000836809    0.000414865    0.294417       0.00115482    
 # T 0.000778017    0.000464631    0.000482336    0.310309      
+
+# delExistCost: 640
+# insExistCost: 653
+# delExtendCost: 73
+# insExtendCost: 70
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1319,11 +1319,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.484166
 # insExtendProb: 0.492031
 
-# delExistCost: 762
-# insExistCost: 765
-# delExtendCost: 63
-# insExtendCost: 61
-
 # substitution percent identity: 77.3593
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1339,6 +1334,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000431093    0.0314967      0.000312274    0.222573      
 # G 0.000416277    0.000304496    0.182993       0.000415103   
 # T 0.000343848    0.000350048    0.000307372    0.269475      
+
+# delExistCost: 762
+# insExistCost: 765
+# delExtendCost: 63
+# insExtendCost: 61
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1362,11 +1362,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.497425
 # insExtendProb: 0.497742
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 77.0023
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1382,6 +1377,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000236181    0.0277875      0.00024024     0.226633      
 # G 0.000396206    0.000328241    0.18439        0.000320194   
 # T 0.000283131    0.000400214    0.00032876     0.268589      
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1405,11 +1405,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.498563
 # insExtendProb: 0.498194
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 76.9888
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1425,6 +1420,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000194039    0.0276705      0.000218396    0.226811      
 # G 0.000393196    0.000341353    0.184395       0.000296235   
 # T 0.000269106    0.000464536    0.00033493     0.268567      
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1448,11 +1448,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.498563
 # insExtendProb: 0.498198
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 76.9857
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1468,6 +1463,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000183738    0.0276775      0.000210628    0.226827      
 # G 0.000392533    0.000345117    0.184382       0.00028924    
 # T 0.000265771    0.000506999    0.000337054    0.268515      
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1491,11 +1491,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.498567
 # insExtendProb: 0.4982
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 76.9835
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1511,6 +1506,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000180884    0.0276818      0.000208213    0.226826      
 # G 0.000392535    0.000345929    0.184382       0.000287252   
 # T 0.000264878    0.000535689    0.000337021    0.268476      
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1534,11 +1534,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.498516
 # insExtendProb: 0.498189
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 76.9815
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1554,6 +1549,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.00018043     0.02768        0.00020736     0.226835      
 # G 0.000392507    0.00034574     0.184387       0.000286344   
 # T 0.000264098    0.000550131    0.000336969    0.268451      
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1577,11 +1577,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.498555
 # insExtendProb: 0.498175
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 76.982
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1597,6 +1592,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000180433    0.0276863      0.000207374    0.226818      
 # G 0.000392524    0.000345924    0.184403       0.000286342   
 # T 0.000264108    0.000561846    0.000337015    0.268443      
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1620,11 +1620,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.498554
 # insExtendProb: 0.498174
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 76.9817
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1640,6 +1635,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000180433    0.0276862      0.000207373    0.226817      
 # G 0.000392524    0.000345922    0.184402       0.000286341   
 # T 0.000264105    0.000566004    0.000337012    0.268442      
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1663,11 +1663,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.498553
 # insExtendProb: 0.498176
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 76.9811
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1683,6 +1678,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000180435    0.0276864      0.000207375    0.226819      
 # G 0.000392529    0.000345927    0.184404       0.000286343   
 # T 0.000264103    0.00057002     0.000337012    0.268431      
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T
@@ -1706,11 +1706,6 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # delExtendProb: 0.498553
 # insExtendProb: 0.498175
 
-# delExistCost: 778
-# insExistCost: 778
-# delExtendCost: 60
-# insExtendCost: 60
-
 # substitution percent identity: 76.9808
 
 # count matrix (query letters = columns, reference letters = rows):
@@ -1726,6 +1721,11 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # C 0.000180434    0.0276876      0.000207387    0.226818      
 # G 0.000392541    0.000345927    0.184403       0.000286355   
 # T 0.000264097    0.000573635    0.000337007    0.26843       
+
+# delExistCost: 778
+# insExistCost: 778
+# delExtendCost: 60
+# insExtendCost: 60
 
 # score matrix (query letters = columns, reference letters = rows):
 #        A      C      G      T

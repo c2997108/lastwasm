@@ -396,6 +396,20 @@ def balancedScale(nearScale, *args):
             return rootOfIncreasingFunction(func, oldUpper, newUpper, *args)
         oldUpper = newUpper
 
+def scoresAndScale(originalScale, matParams, delRatios, insRatios):
+    while True:
+        matScores = matScoresFromProbs(originalScale, *matParams)
+        delCosts = gapCostsFromProbRatios(originalScale, *delRatios)
+        insCosts = gapCostsFromProbRatios(originalScale, *insRatios)
+        scale = balancedScale(originalScale, matScores, delCosts, insCosts)
+        rowFreqs = homogeneousLetterFreqs(scale, zip(*matScores))
+        colFreqs = homogeneousLetterFreqs(scale, matScores)
+        if all(i >= 0 for i in rowFreqs + colFreqs):
+            return matScores, delCosts, insCosts, scale
+        print("# the integer-rounded scores are too inaccurate: "
+              "doubling the scale")
+        originalScale *= 2
+
 def writeGapCosts(gapCosts, out):
     firstDelCost, delExtendCost, firstInsCost, insExtendCost = gapCosts
     print("#last -a", firstDelCost - delExtendCost, file=out)
@@ -479,14 +493,13 @@ def doTraining(opts, args):
         sys.stdout.flush()
         matCounts, gapCounts = countsFromLastOutput(q.stdout, opts)
         matchRatio, delRatios, insRatios = gapRatiosFromCounts(gapCounts, opts)
-        delCosts = gapCostsFromProbRatios(internalScale, *delRatios)
-        insCosts = gapCostsFromProbRatios(internalScale, *insRatios)
-        printGapCosts(delCosts + insCosts)
         matProbs = matProbsFromCounts(matCounts, opts)
         rowProbs = [sum(i) for i in matProbs]
         colProbs = [sum(i) for i in zip(*matProbs)]
         matParams = matchRatio, matProbs, rowProbs, colProbs
-        matScores = matScoresFromProbs(internalScale, *matParams)
+        sas = scoresAndScale(internalScale, matParams, delRatios, insRatios)
+        matScores, delCosts, insCosts, scale = sas
+        printGapCosts(delCosts + insCosts)
         print("# score matrix "
               "(query letters = columns, reference letters = rows):")
         writeScoreMatrix(sys.stdout, matScores, "# ")
@@ -494,7 +507,6 @@ def doTraining(opts, args):
         parameters = delCosts, insCosts, matScores
         if parameters in oldParameters: break
         oldParameters.append(parameters)
-        scale = balancedScale(internalScale, matScores, delCosts, insCosts)
         x = fixedLastalArgs(opts, lastalProgName)
         x.append("-t{0:.6}".format(scale))
         x.append("-p-")
@@ -511,10 +523,8 @@ def doTraining(opts, args):
             q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
                                  universal_newlines=True)
 
-    delCosts = gapCostsFromProbRatios(externalScale, *delRatios)
-    insCosts = gapCostsFromProbRatios(externalScale, *insRatios)
-    matScores = matScoresFromProbs(externalScale, *matParams)
-    scale = balancedScale(externalScale, matScores, delCosts, insCosts)
+    sas = scoresAndScale(externalScale, matParams, delRatios, insRatios)
+    matScores, delCosts, insCosts, scale = sas
     if opts.X: print("#last -X", opts.X)
     if opts.Q: print("#last -Q", opts.Q)
     print("#last -t{0:.6}".format(scale))

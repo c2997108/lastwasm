@@ -82,6 +82,8 @@ Alignment options
   -E EG2     Maximum expected alignments per square giga.  (See `here
              <last-evalues.html>`_.)
   -s NUMBER  Which query strand to use: 0=reverse, 1=forward, 2=both.
+             If specified, this parameter is written in last-train's
+             output, so it will override lastal's default.
   -S NUMBER  Specify how to use the substitution score matrix for
              reverse strands.  If you use ``--revsym``, this makes no
              difference.  "0" means that the matrix is used as-is for
@@ -132,6 +134,36 @@ Alignment options
 
              If specified, this parameter is written in last-train's
              output, so it will override lastal's default.
+
+Details
+-------
+
+* last-train (and lastal) uses "Model A", in Figure 5A of btz576_.
+
+* last-train (and lastal) converts between path and alignment
+  parameters as in Supplementary Section 3.1 of btz576_.
+
+* last-train converts probabilities to scores using an arbitrary scale
+  factor.  (If all the scores are multiplied by any positive constant,
+  it makes no difference to alignment.)  This scale is determined by
+  the initial score parameters.
+
+* last-train uses parameters with "homogeneous letter probabilities"
+  and "balanced length probability" (btz576_).
+
+* last-train rounds the scores to integers, which makes them slightly
+  inaccurate.  It then finds an adjusted scale factor (without
+  changing the scores), which makes the integer-rounded scores
+  correspond to homogeneous letter probabilities and balanced length
+  probability.  It writes this adjusted scale as a "-t" option for
+  lastal, e.g. "-t4.4363".
+
+* In rare cases, it may be impossible to find such an adjusted scale
+  factor.  If that happens, last-train doubles the original scale (to
+  reduce the inaccuracy of integer rounding), until the problem goes
+  away.
+
+.. _btz576: https://doi.org/10.1093/bioinformatics/btz576
 
 Bugs
 ----
