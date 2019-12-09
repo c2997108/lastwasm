@@ -127,18 +127,6 @@ inline void updateMaxScoreDrop(int &maxScoreDrop,
   maxScoreDrop = std::min(maxScoreDrop, maxMatches * maxMatchScore - 1);
 }
 
-inline void updateFiniteEdges(size_t *maxSeq1begs, size_t *minSeq1ends,
-                              const Score *x0base, const Score *x0end,
-                              size_t numCells) {
-  const Score *x0beg = x0end - numCells;
-
-  maxSeq1begs[0] = maxSeq1begs[1] + 1;
-  maxSeq1begs[1] = finiteBeg(x0beg, x0end) - x0base;
-
-  minSeq1ends[0] = minSeq1ends[1];
-  minSeq1ends[1] = finiteEnd(x0beg, x0end) - x0base + 1;
-}
-
 inline void updateFiniteEdges3(size_t *maxSeq1begs, size_t *minSeq1ends,
                                const Score *x0base, const Score *x0end,
                                size_t numCells) {

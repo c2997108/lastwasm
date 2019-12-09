@@ -95,8 +95,8 @@ int GappedXdropAligner::align(const uchar *seq1,
 				     insExistenceCost, insExtensionCost,
 				     gapUnalignedCost);
 
-  size_t maxSeq1begs[] = { 0, 9 };
-  size_t minSeq1ends[] = { 1, 0 };
+  size_t seq1beg = 0;
+  size_t seq1end = 1;
 
   int bestScore = 0;
   SimdInt mBestScore = simdSet1(0);
@@ -115,13 +115,9 @@ int GappedXdropAligner::align(const uchar *seq1,
   }
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
-    size_t seq1beg = std::min(maxSeq1begs[0], maxSeq1begs[1]);
-    size_t seq1end = std::max(minSeq1ends[0], minSeq1ends[1]);
-
-    if (seq1beg >= seq1end) break;
-
     size_t scoreEnd = scoreEnds.back();
     int numCells = seq1end - seq1beg;
+    int n = numCells - 1;
 
     initAntidiagonal(seq1end, scoreEnd + xdropPadLen + numCells);
 
@@ -225,7 +221,6 @@ int GappedXdropAligner::align(const uchar *seq1,
 
     if (globality && isDelimiter(0, seq1back)) {
       const Score *y2 = &yScores[diag(antidiagonal, seq1beg)];
-      int n = numCells - 1;
       int b = maxValue(x2[n], y1[n]-delExtensionCost, y2[n]-gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
@@ -235,8 +230,14 @@ int GappedXdropAligner::align(const uchar *seq1,
     if (!globality && isDelimiter(0, seq1back))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
-    const Score *x0base = x0 - seq1beg;
-    updateFiniteEdges(maxSeq1begs, minSeq1ends, x0base, x0+numCells, numCells);
+    if (x0[n] > -INF / 2) {
+      ++seq1end;
+    }
+
+    if (x0[0] <= -INF / 2) {
+      ++seq1beg;
+      if (seq1beg == seq1end) break;
+    }
   }
 
   if (globality) {
