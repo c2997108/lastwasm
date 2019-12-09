@@ -32,7 +32,7 @@ static inline SimdInt simdSet(int i7, int i6, int i5, int i4,
   return _mm256_set_epi32(i7, i6, i5, i4, i3, i2, i1, i0);
 }
 
-static inline SimdInt simdSet1(int x) {
+static inline SimdInt simdFill(int x) {
   return _mm256_set1_epi32(x);
 }
 
@@ -82,7 +82,7 @@ static inline SimdInt simdSet(int i3, int i2, int i1, int i0) {
   return _mm_set_epi32(i3, i2, i1, i0);
 }
 
-static inline SimdInt simdSet1(int x) {
+static inline SimdInt simdFill(int x) {
   return _mm_set1_epi32(x);
 }
 
@@ -113,7 +113,7 @@ static inline int simdHorizontalMax(SimdInt x) {
 typedef int SimdInt;
 const int simdLen = 1;
 static inline int simdSet(int x) { return x; }
-static inline int simdSet1(int x) { return x; }
+static inline int simdFill(int x) { return x; }
 static inline int simdLoad(const int *p) { return *p; }
 static inline void simdStore(int *p, int x) { *p = x; }
 static inline int simdGt(int x, int y) { return x > y; }

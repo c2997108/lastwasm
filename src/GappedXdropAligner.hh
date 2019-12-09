@@ -241,7 +241,7 @@ class GappedXdropAligner {
   }
 
   void initAntidiagonal(size_t seq1end, size_t thisEnd, int numCells) {
-    const SimdInt mNegInf = simdSet1(-INF);
+    const SimdInt mNegInf = simdFill(-INF);
     size_t nextEnd = thisEnd + xdropPadLen + numCells;
     scoreEnds.push_back(nextEnd);
     scoreOrigins.push_back(nextEnd - seq1end);

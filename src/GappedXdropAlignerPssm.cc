@@ -17,11 +17,11 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
                                   int maxScoreDrop,
                                   int maxMatchScore) {
   const int *vectorOfMatchScores = *pssm;
-  const SimdInt mNegInf = simdSet1(-INF);
-  const SimdInt mDelOpenCost = simdSet1(delExistenceCost);
-  const SimdInt mDelGrowCost = simdSet1(delExtensionCost);
-  const SimdInt mInsOpenCost = simdSet1(insExistenceCost);
-  const SimdInt mInsGrowCost = simdSet1(insExtensionCost);
+  const SimdInt mNegInf = simdFill(-INF);
+  const SimdInt mDelOpenCost = simdFill(delExistenceCost);
+  const SimdInt mDelGrowCost = simdFill(delExtensionCost);
+  const SimdInt mInsOpenCost = simdFill(insExistenceCost);
+  const SimdInt mInsGrowCost = simdFill(insExtensionCost);
   const int seqIncrement = isForward ? 1 : -1;
   const bool isAffine = isAffineGaps(delExistenceCost, delExtensionCost,
 				     insExistenceCost, insExtensionCost,
@@ -34,7 +34,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
   size_t thisPos = xdropPadLen * 2;
 
   int bestScore = 0;
-  SimdInt mBestScore = simdSet1(0);
+  SimdInt mBestScore = simdFill(0);
   int bestEdgeScore = -INF;
   size_t bestEdgeAntidiagonal = 0;
 
@@ -76,7 +76,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     int minScore = bestScore - maxScoreDrop;
-    SimdInt mMinScore = simdSet1(minScore);
+    SimdInt mMinScore = simdFill(minScore);
 
     if (globality && isDelimiter2) {
       const Score *z2 = &zScores[diagPos];
