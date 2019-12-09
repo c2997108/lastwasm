@@ -42,8 +42,6 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     size_t scoreEnd = scoreEnds.back();
     size_t numCells = seq1end - seq1beg;
 
-    initAntidiagonal(seq1end, scoreEnd + xdropPadLen + numCells);
-
     size_t seq2pos = antidiagonal - seq1beg;
 
     const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
@@ -51,10 +49,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
     const uchar *q2 = isForward ? qual2 + seq2pos : qual2 - seq2pos;
 
-    if (!globality && isDelimiter2qual(*s2))
-      updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
-
-    int minScore = bestScore - maxScoreDrop;
+    initAntidiagonal(seq1end, scoreEnd + xdropPadLen + numCells);
 
     Score *x0 = &xScores[scoreEnd];
     Score *y0 = &yScores[scoreEnd];
@@ -66,6 +61,11 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     simdStore(x0, mNegInf);  x0 += xdropPadLen;
     simdStore(y0, mNegInf);  y0 += xdropPadLen;
     simdStore(z0, mNegInf);  z0 += xdropPadLen;
+
+    if (!globality && isDelimiter2qual(*s2))
+      updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
+
+    int minScore = bestScore - maxScoreDrop;
 
     const Score *x0last = x0 + numCells - 1;
 
