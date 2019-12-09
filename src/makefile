@@ -1,6 +1,5 @@
-CXXFLAGS = -msse4.1 -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum	\
--Wundef -Wcast-align -pedantic -g -std=c++11 -pthread		\
--DHAS_CXX_THREADS
+CXXFLAGS = -msse4 -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
+-Wcast-align -pedantic -g -std=c++11 -pthread -DHAS_CXX_THREADS
 # -Wconversion
 # -fomit-frame-pointer ?
 
