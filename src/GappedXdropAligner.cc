@@ -126,14 +126,14 @@ int GappedXdropAligner::align(const uchar *seq1,
       seq1queue.push(scores, seq1beg);
       seq1 += seqIncrement * !isDelimiter(0, scores);
     }
-    const const_int_ptr *s1 = &seq1queue[seq1beg];
+    const const_int_ptr *s1 = &seq1queue.fromEnd(n + simdLen);
 
     size_t seq2pos = antidiagonal - seq1beg;
     if (seq2pos + simdLen > seq2queue.size()) {
       seq2queue.push(*seq2, seq2pos - numCells + 1);
       seq2 += seqIncrement;
     }
-    const uchar *s2 = &seq2queue[seq2pos + (simdLen-1)];
+    const uchar *s2 = &seq2queue.fromEnd(1);
 
     if (!globality && isDelimiter(*s2, *scorer))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
@@ -217,7 +217,7 @@ int GappedXdropAligner::align(const uchar *seq1,
       }
     }
 
-    const int *seq1back = seq1queue[seq1end - 1];
+    const int *seq1back = seq1queue.fromEnd(simdLen);
 
     if (globality && isDelimiter(0, seq1back)) {
       const Score *y2 = &yScores[diag(antidiagonal, seq1beg)];

@@ -60,14 +60,14 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       seq2queue.push(c, seq1beg);
       seq += seqIncrement * !isDelimiter(c, vectorOfMatchScores);
     }
-    const uchar *s1 = &seq2queue[seq1beg];
+    const uchar *s1 = &seq2queue.fromEnd(n + simdLen);
 
     size_t seq2pos = antidiagonal - seq1beg;
     if (seq2pos + simdLen > seq1queue.size()) {
       seq1queue.push(*pssm, seq2pos - numCells + 1);
       pssm += seqIncrement;
     }
-    const const_int_ptr *s2 = &seq1queue[seq2pos + (simdLen-1)];
+    const const_int_ptr *s2 = &seq1queue.fromEnd(1);
 
     if (!globality && isDelimiter(0, *s2))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
@@ -151,7 +151,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       }
     }
 
-    uchar seq1back = seq2queue[seq1end - 1];
+    uchar seq1back = seq2queue.fromEnd(simdLen);
 
     if (globality && isDelimiter(seq1back, vectorOfMatchScores)) {
       const Score *y2 = &yScores[diag(antidiagonal, seq1beg)];

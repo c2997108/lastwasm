@@ -27,7 +27,7 @@ public:
     v.push_back(item);
   }
 
-  const T &operator [] (size_t n) const { return v[n - start]; }
+  const T &fromEnd(int n) const { return v.end()[-n]; }
 
 private:
   std::vector<T> v;
