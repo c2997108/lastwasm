@@ -31,6 +31,9 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 
   size_t seq1beg = 0;
   size_t seq1end = 1;
+  size_t diagPos = xdropPadLen - 1;
+  size_t horiPos = xdropPadLen * 2 - 1;
+  size_t thisPos = xdropPadLen * 2;
 
   int bestScore = 0;
   int bestEdgeScore = -INF;
@@ -39,7 +42,6 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
   init();
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
-    size_t scoreEnd = scoreEnds.back();
     size_t numCells = seq1end - seq1beg;
 
     size_t seq2pos = antidiagonal - seq1beg;
@@ -49,18 +51,20 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
     const uchar *q2 = isForward ? qual2 + seq2pos : qual2 - seq2pos;
 
-    initAntidiagonal(seq1end, scoreEnd + xdropPadLen + numCells);
+    initAntidiagonal(seq1end, thisPos + xdropPadLen + numCells);
 
-    Score *x0 = &xScores[scoreEnd];
-    Score *y0 = &yScores[scoreEnd];
-    Score *z0 = &zScores[scoreEnd];
-    const Score *y1 = &yScores[hori(antidiagonal, seq1beg)];
-    const Score *z1 = &zScores[vert(antidiagonal, seq1beg)];
-    const Score *x2 = &xScores[diag(antidiagonal, seq1beg)];
+    Score *x0 = &xScores[thisPos];
+    Score *y0 = &yScores[thisPos];
+    Score *z0 = &zScores[thisPos];
+    const Score *y1 = &yScores[horiPos];
+    const Score *z1 = &zScores[horiPos + 1];
+    const Score *x2 = &xScores[diagPos];
 
     simdStore(x0, mNegInf);  x0 += xdropPadLen;
     simdStore(y0, mNegInf);  y0 += xdropPadLen;
     simdStore(z0, mNegInf);  z0 += xdropPadLen;
+
+    thisPos += xdropPadLen;
 
     if (!globality && isDelimiter2qual(*s2))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
@@ -70,7 +74,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     const Score *x0last = x0 + numCells - 1;
 
     if (globality && isDelimiter2qual(*s2)) {
-      const Score *z2 = &zScores[diag(antidiagonal, seq1beg)];
+      const Score *z2 = &zScores[diagPos];
       int b = maxValue(*x2, *z1 - insExtensionCost, *z2 - gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
@@ -117,8 +121,8 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
           --s1;  --q1;  ++s2;  ++q2;  ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;
         }
     } else {
-      const Score *y2 = &yScores[diag(antidiagonal, seq1beg)];
-      const Score *z2 = &zScores[diag(antidiagonal, seq1beg)];
+      const Score *y2 = &yScores[diagPos];
+      const Score *z2 = &zScores[diagPos];
       while (1) {
         int x = *x2;
         int y = maxValue(*y1 - delExtensionCost, *y2 - gapUnalignedCost);
@@ -142,7 +146,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     }
 
     if (globality && isDelimiter2qual(*s1)) {
-      const Score *y2 = &yScores[diag(antidiagonal, seq1end-1)];
+      const Score *y2 = &yScores[diagPos + numCells - 1];
       int b = maxValue(*x2, *y1 - delExtensionCost, *y2 - gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
@@ -152,12 +156,18 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     if (!globality && isDelimiter2qual(*s1))
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
+    diagPos = horiPos;
+    horiPos = thisPos - 1;
+    thisPos += numCells;
+
     if (x0[0] > -INF / 2) {
       ++seq1end;
     }
 
     if (x0[1 - numCells] <= -INF / 2) {
       ++seq1beg;
+      ++diagPos;
+      ++horiPos;
       if (seq1beg >= seq1end) break;
     }
   }
