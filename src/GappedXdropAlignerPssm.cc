@@ -42,6 +42,9 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
   seq1queue.clear();
   seq2queue.clear();
 
+  bool isDelimiter1 = false;
+  bool isDelimiter2 = false;
+
   // xxx the queue names are flipped: seq1queue <=> seq2queue
 
   for (int i = 0; i < simdLen-1; ++i) {
@@ -56,15 +59,18 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
     int n = numCells - 1;
 
     if (seq1end + (simdLen-1) > seq2queue.size()) {
-      uchar c = *seq;
-      seq2queue.push(c, seq1beg);
-      seq += seqIncrement * !isDelimiter(c, vectorOfMatchScores);
+      uchar seq1item = *seq;
+      seq2queue.push(seq1item, seq1beg);
+      seq += seqIncrement * !isDelimiter(seq1item, vectorOfMatchScores);
+      isDelimiter1 = isDelimiter(seq2queue.fromEnd(simdLen), vectorOfMatchScores);
     }
 
     size_t seq2pos = antidiagonal - seq1beg;
     if (seq2pos + simdLen > seq1queue.size()) {
-      seq1queue.push(*pssm, seq2pos - numCells + 1);
+      const int *seq2scores = *pssm;
+      seq1queue.push(seq2scores, seq2pos - numCells + 1);
       pssm += seqIncrement;
+      isDelimiter2 = isDelimiter(0, seq2scores);
     }
 
     const uchar *s1 = &seq2queue.fromEnd(n + simdLen);
@@ -85,13 +91,13 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 
     thisPos += xdropPadLen;
 
-    if (!globality && isDelimiter(0, *s2))
+    if (!globality && isDelimiter2)
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     int minScore = bestScore - maxScoreDrop;
     SimdInt mMinScore = simdSet1(minScore);
 
-    if (globality && isDelimiter(0, *s2)) {
+    if (globality && isDelimiter2) {
       const Score *z2 = &zScores[diagPos];
       int b = maxValue(x2[0], z1[0]-insExtensionCost, z2[0]-gapUnalignedCost);
       if (b >= minScore)
@@ -99,9 +105,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 		    b, antidiagonal, seq1beg);
     }
 
-    uchar seq1back = seq2queue.fromEnd(simdLen);
-
-    if (globality && isDelimiter(seq1back, vectorOfMatchScores)) {
+    if (globality && isDelimiter1) {
       const Score *y2 = &yScores[diagPos];
       int b = maxValue(x2[n], y1[n]-delExtensionCost, y2[n]-gapUnalignedCost);
       if (b >= minScore)
@@ -109,7 +113,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 		    b, antidiagonal, seq1end-1);
     }
 
-    if (!globality && isDelimiter(seq1back, vectorOfMatchScores))
+    if (!globality && isDelimiter1)
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
 
     if (isAffine) {
