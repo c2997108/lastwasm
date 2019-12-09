@@ -34,7 +34,7 @@ int GappedXdropAligner::align3pssm(const uchar *seq,
     size_t scoreEnd = scoreEnds.back();
     size_t numCells = seq1end - seq1beg;
 
-    initAntidiagonal(seq1end, scoreEnd + numCells + 2);  // + 2 pad cells
+    initAntidiagonal3(seq1end, scoreEnd + numCells + 2);  // + 2 pad cells
 
     const ScoreMatrixRow *pssm =
         whichFrame(antidiagonal, pssmFrame0, pssmFrame1, pssmFrame2);

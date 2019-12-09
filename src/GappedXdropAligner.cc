@@ -54,25 +54,6 @@
 
 namespace cbrc {
 
-// Puts 2 "dummy" antidiagonals at the start, so that we can safely
-// look-back from subsequent antidiagonals.
-void GappedXdropAligner::init() {
-  scoreOrigins.resize(0);
-  scoreEnds.resize(1);
-
-  initAntidiagonal(0, xdropPadLen);
-  initAntidiagonal(0, xdropPadLen * 2);
-
-  const SimdInt mNegInf = simdSet1(-INF);
-  simdStore(&xScores[xdropPadLen], mNegInf);
-  simdStore(&yScores[0], mNegInf);
-  simdStore(&yScores[xdropPadLen], mNegInf);
-  simdStore(&zScores[0], mNegInf);
-  simdStore(&zScores[xdropPadLen], mNegInf);
-
-  bestAntidiagonal = 0;
-}
-
 int GappedXdropAligner::align(const uchar *seq1,
                               const uchar *seq2,
                               bool isForward,
@@ -129,20 +110,14 @@ int GappedXdropAligner::align(const uchar *seq1,
     const const_int_ptr *s1 = &seq1queue.fromEnd(n + simdLen);
     const uchar *s2 = &seq2queue.fromEnd(1);
 
-    initAntidiagonal(seq1end, thisPos + xdropPadLen + numCells);
-
+    initAntidiagonal(seq1end, thisPos, numCells);
+    thisPos += xdropPadLen;
     Score *x0 = &xScores[thisPos];
     Score *y0 = &yScores[thisPos];
     Score *z0 = &zScores[thisPos];
     const Score *y1 = &yScores[horiPos];
     const Score *z1 = &zScores[horiPos + 1];
     const Score *x2 = &xScores[diagPos];
-
-    simdStore(x0, mNegInf);  x0 += xdropPadLen;
-    simdStore(y0, mNegInf);  y0 += xdropPadLen;
-    simdStore(z0, mNegInf);  z0 += xdropPadLen;
-
-    thisPos += xdropPadLen;
 
     if (!globality && isDelimiter2)
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);

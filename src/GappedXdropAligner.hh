@@ -240,9 +240,29 @@ class GappedXdropAligner {
     }
   }
 
-  void init();
+  void initAntidiagonal(size_t seq1end, size_t thisEnd, int numCells) {
+    const SimdInt mNegInf = simdSet1(-INF);
+    size_t nextEnd = thisEnd + xdropPadLen + numCells;
+    scoreEnds.push_back(nextEnd);
+    scoreOrigins.push_back(nextEnd - seq1end);
+    resizeScoresIfSmaller(nextEnd + (simdLen-1));
+    simdStore(&xScores[thisEnd], mNegInf);
+    simdStore(&yScores[thisEnd], mNegInf);
+    simdStore(&zScores[thisEnd], mNegInf);
+  }
 
-  void initAntidiagonal(size_t seq1end, size_t scoreEnd) {
+  // Puts 2 "dummy" antidiagonals at the start, so that we can safely
+  // look-back from subsequent antidiagonals
+  void init() {
+    scoreOrigins.resize(0);
+    scoreEnds.resize(1);
+    initAntidiagonal(0, 0, 0);
+    initAntidiagonal(0, xdropPadLen, 0);
+    xScores[xdropPadLen - 1] = 0;
+    bestAntidiagonal = 0;
+  }
+
+  void initAntidiagonal3(size_t seq1end, size_t scoreEnd) {
     scoreOrigins.push_back(scoreEnd - seq1end);
     resizeScoresIfSmaller(scoreEnd + (simdLen-1));
     scoreEnds.push_back(scoreEnd);

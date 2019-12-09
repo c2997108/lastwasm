@@ -63,20 +63,14 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
     const uchar *s1 = &seq2queue.fromEnd(n + simdLen);
     const const_int_ptr *s2 = &seq1queue.fromEnd(1);
 
-    initAntidiagonal(seq1end, thisPos + xdropPadLen + numCells);
-
+    initAntidiagonal(seq1end, thisPos, numCells);
+    thisPos += xdropPadLen;
     Score *x0 = &xScores[thisPos];
     Score *y0 = &yScores[thisPos];
     Score *z0 = &zScores[thisPos];
     const Score *y1 = &yScores[horiPos];
     const Score *z1 = &zScores[horiPos + 1];
     const Score *x2 = &xScores[diagPos];
-
-    simdStore(x0, mNegInf);  x0 += xdropPadLen;
-    simdStore(y0, mNegInf);  y0 += xdropPadLen;
-    simdStore(z0, mNegInf);  z0 += xdropPadLen;
-
-    thisPos += xdropPadLen;
 
     if (!globality && isDelimiter2)
       updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);

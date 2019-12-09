@@ -62,13 +62,13 @@ void GappedXdropAligner::init3() {
   scoreOrigins.resize(0);
   scoreEnds.resize(1);
 
-  initAntidiagonal(0, 2);
-  initAntidiagonal(0, 4);
-  initAntidiagonal(0, 6);
-  initAntidiagonal(0, 8);
-  initAntidiagonal(0, 10);
-  initAntidiagonal(0, 12);
-  initAntidiagonal(0, 14);
+  initAntidiagonal3(0, 2);
+  initAntidiagonal3(0, 4);
+  initAntidiagonal3(0, 6);
+  initAntidiagonal3(0, 8);
+  initAntidiagonal3(0, 10);
+  initAntidiagonal3(0, 12);
+  initAntidiagonal3(0, 14);
 
   std::fill_n(xScores.begin(), 14, -INF);
   std::fill_n(yScores.begin(), 14, -INF);
@@ -122,7 +122,7 @@ int GappedXdropAligner::align3(const uchar *seq1,
     size_t scoreEnd = scoreEnds.back();
     size_t numCells = seq1end - seq1beg;
 
-    initAntidiagonal(seq1end, scoreEnd + numCells + 2);  // + 2 pad cells
+    initAntidiagonal3(seq1end, scoreEnd + numCells + 2);  // + 2 pad cells
 
     const uchar *seq2 =
         whichFrame(antidiagonal, seq2frame0, seq2frame1, seq2frame2);
