@@ -13,16 +13,11 @@ template <typename T> class ContiguousQueue {
 public:
   void clear() {
     v.clear();
-    start = 0;
   }
 
-  size_t size() const { return start + v.size(); }
-
-  void push(const T &item, size_t newStart) {
-    size_t oldSize = newStart - start;
-    if (oldSize > v.size() / 2) {
-      v.erase(v.begin(), v.begin() + oldSize);
-      start = newStart;
+  void push(const T &item, size_t numOfOldItemsToKeep) {
+    if (numOfOldItemsToKeep <= v.size() / 2) {
+      v.erase(v.begin(), v.end() - numOfOldItemsToKeep);
     }
     v.push_back(item);
   }
@@ -31,7 +26,6 @@ public:
 
 private:
   std::vector<T> v;
-  size_t start;
 };
 
 }

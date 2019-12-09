@@ -110,34 +110,21 @@ int GappedXdropAligner::align(const uchar *seq1,
   seq1queue.clear();
   seq2queue.clear();
 
-  bool isDelimiter1 = false;
-  bool isDelimiter2 = false;
+  bool isDelimiter1 = isDelimiter(0, scorer[*seq1]);
+  bool isDelimiter2 = isDelimiter(*seq2, scorer[0]);
 
-  for (int i = 0; i < simdLen-1; ++i) {
-    const int *scores = scorer[*seq1];
-    seq1queue.push(scores, 0);
-    seq1 += seqIncrement * !isDelimiter(0, scores);
-    seq2queue.push(0, 0);
+  for (int i = 0; i < simdLen; ++i) {
+    const int *seq1scores = scorer[*seq1];
+    seq1queue.push(seq1scores, i);
+    seq1 += seqIncrement * !isDelimiter(0, seq1scores);
+    seq2queue.push(*seq2, i);
   }
+
+  seq2 += seqIncrement;
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
     int numCells = seq1end - seq1beg;
     int n = numCells - 1;
-
-    if (seq1end + (simdLen-1) > seq1queue.size()) {
-      const int *seq1scores = scorer[*seq1];
-      seq1queue.push(seq1scores, seq1beg);
-      seq1 += seqIncrement * !isDelimiter(0, seq1scores);
-      isDelimiter1 = isDelimiter(0, seq1queue.fromEnd(simdLen));
-    }
-
-    size_t seq2pos = antidiagonal - seq1beg;
-    if (seq2pos + simdLen > seq2queue.size()) {
-      uchar seq2item = *seq2;
-      seq2queue.push(seq2item, seq2pos - numCells + 1);
-      seq2 += seqIncrement;
-      isDelimiter2 = isDelimiter(seq2item, scorer[0]);
-    }
 
     const const_int_ptr *s1 = &seq1queue.fromEnd(n + simdLen);
     const uchar *s2 = &seq2queue.fromEnd(1);
@@ -245,9 +232,18 @@ int GappedXdropAligner::align(const uchar *seq1,
 
     if (x0[n] > -INF / 2) {
       ++seq1end;
+      const int *seq1scores = scorer[*seq1];
+      seq1queue.push(seq1scores, n + simdLen);
+      seq1 += seqIncrement * !isDelimiter(0, seq1scores);
+      isDelimiter1 = isDelimiter(0, seq1queue.fromEnd(simdLen));
     }
 
-    if (x0[0] <= -INF / 2) {
+    if (x0[0] > -INF / 2) {
+      uchar seq2item = *seq2;
+      seq2queue.push(seq2item, n + simdLen);
+      seq2 += seqIncrement;
+      isDelimiter2 = isDelimiter(seq2item, scorer[0]);
+    } else {
       ++seq1beg;
       ++diagPos;
       ++horiPos;
