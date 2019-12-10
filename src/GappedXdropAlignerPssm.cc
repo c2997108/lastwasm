@@ -34,7 +34,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
   size_t thisPos = xdropPadLen * 2;
 
   int bestScore = 0;
-  SimdInt mBestScore = simdFill(0);
+  SimdInt mBestScore = simdZero();
   int bestEdgeScore = -INF;
   size_t bestEdgeAntidiagonal = 0;
 

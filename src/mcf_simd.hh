@@ -13,6 +13,10 @@ namespace mcf {
 
 typedef __m256i SimdInt;
 
+static inline SimdInt simdZero() {
+  return _mm256_setzero_si256();
+}
+
 static inline SimdInt simdLoad(const void *p) {
   return _mm256_loadu_si256((const SimdInt *)p);
 }
@@ -63,6 +67,10 @@ static inline int simdHorizontalMax(SimdInt x) {
 #elif defined __SSE4_1__
 
 typedef __m128i SimdInt;
+
+static inline SimdInt simdZero() {
+  return _mm_setzero_si128();
+}
 
 static inline SimdInt simdLoad(const void *p) {
   return _mm_loadu_si128((const SimdInt *)p);
