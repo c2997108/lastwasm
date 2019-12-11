@@ -25,6 +25,8 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 				   bool isAffine,
                                    int maxScoreDrop,
                                    int maxMatchScore) {
+  const int seqIncrement = isForward ? 1 : -1;
+
   size_t seq1beg = 0;
   size_t seq1end = 1;
   size_t diagPos = xdropPadLen - 1;
@@ -62,15 +64,26 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 
     int minScore = bestScore - maxScoreDrop;
 
-    const Score *x0last = x0 + n;
-
     if (globality && isDelimiter2qual(*s2)) {
       const Score *z2 = &zScores[diagPos];
-      int b = maxValue(*x2, *z1 - insExtensionCost, *z2 - gapUnalignedCost);
+      int b = maxValue(x2[0], z1[0]-insExtensionCost, z2[0]-gapUnalignedCost);
       if (b >= minScore)
 	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
 		    b, antidiagonal, seq1beg);
     }
+
+    if (globality && isDelimiter2qual(s1[n * seqIncrement])) {
+      const Score *y2 = &yScores[diagPos];
+      int b = maxValue(x2[n], y1[n]-delExtensionCost, y2[n]-gapUnalignedCost);
+      if (b >= minScore)
+	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
+		    b, antidiagonal, seq1end-1);
+    }
+
+    if (!globality && isDelimiter2qual(s1[n * seqIncrement]))
+      updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
+
+    const Score *x0last = x0 + n;
 
     if (isAffine) {
       if (isForward)
@@ -131,21 +144,10 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
         else *x0 = *y0 = *z0 = -INF;
         if (x0 == x0last) break;
         ++x0;  ++y0;  ++z0;  ++y1;  ++z1;  ++x2;  ++y2;  ++z2;
-        if (isForward) { ++s1;  ++q1;  --s2;  --q2; }
-        else           { --s1;  --q1;  ++s2;  ++q2; }
+	s1 += seqIncrement;  q1 += seqIncrement;
+	s2 -= seqIncrement;  q2 -= seqIncrement;
       }
     }
-
-    if (globality && isDelimiter2qual(*s1)) {
-      const Score *y2 = &yScores[diagPos + n];
-      int b = maxValue(*x2, *y1 - delExtensionCost, *y2 - gapUnalignedCost);
-      if (b >= minScore)
-	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
-		    b, antidiagonal, seq1end-1);
-    }
-
-    if (!globality && isDelimiter2qual(*s1))
-      updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
 
     diagPos = horiPos;
     horiPos = thisPos - 1;
