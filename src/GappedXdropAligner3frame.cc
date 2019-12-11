@@ -220,7 +220,7 @@ int GappedXdropAligner::align3(const uchar *seq1,
     }
 
     if (isDelimiter(*s1, *scorer))
-      updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
+      updateMaxScoreDrop(maxScoreDrop, numCells-1, maxMatchScore);
 
     updateFiniteEdges3(maxSeq1begs, minSeq1ends, x0base, x0 + 1, numCells);
   }

@@ -112,11 +112,10 @@ inline void GappedXdropAligner::updateBest(int &bestScore, int score,
 }
 
 inline void updateMaxScoreDrop(int &maxScoreDrop,
-                               size_t numCells, int maxMatchScore) {
+                               int maxMatches, int maxMatchScore) {
   // If the current antidiagonal touches a sentinel/delimiter, then
   // maxMatches is the maximum possible number of matches starting
   // from the next antidiagonal.
-  int maxMatches = static_cast<int>(numCells - 1);
   maxScoreDrop = std::min(maxScoreDrop, maxMatches * maxMatchScore - 1);
 }
 

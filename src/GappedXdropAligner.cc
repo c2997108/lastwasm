@@ -118,7 +118,7 @@ int GappedXdropAligner::align(const uchar *seq1,
     const Score *x2 = &xScores[diagPos];
 
     if (!globality && isDelimiter2)
-      updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
+      updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
 
     int minScore = bestScore - maxScoreDrop;
     SimdInt mMinScore = simdFill(minScore);
@@ -140,7 +140,7 @@ int GappedXdropAligner::align(const uchar *seq1,
     }
 
     if (!globality && isDelimiter1)
-      updateMaxScoreDrop(maxScoreDrop, numCells, maxMatchScore);
+      updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
 
     if (isAffine) {
       for (int i = 0; i < numCells; i += simdLen) {
