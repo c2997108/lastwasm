@@ -78,6 +78,7 @@ class GappedXdropAligner {
 	    int insExistenceCost,
 	    int insExtensionCost,
             int gapUnalignedCost,
+	    bool isAffine,
             int maxScoreDrop,
             int maxMatchScore);
 
@@ -91,6 +92,7 @@ class GappedXdropAligner {
 		int insExistenceCost,
 		int insExtensionCost,
                 int gapUnalignedCost,
+		bool isAffine,
                 int maxScoreDrop,
                 int maxMatchScore);
 
@@ -107,6 +109,7 @@ class GappedXdropAligner {
 		 int insExistenceCost,
 		 int insExtensionCost,
                  int gapUnalignedCost,
+		 bool isAffine,
                  int maxScoreDrop,
                  int maxMatchScore);
 

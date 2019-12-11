@@ -39,6 +39,9 @@ void GapCosts::assign(const std::vector<int> &delOpenCosts,
     pairCost = delPieces[0].openCost + delPieces[0].growCost +
       insPieces[0].openCost + insPieces[0].growCost;
   }
+  isAffine = (delPieces.size() < 2 && insPieces.size() < 2 &&
+	      pairCost >= delPieces[0].growCost + insPieces[0].growCost +
+	      std::max(delPieces[0].openCost, insPieces[0].openCost));
 }
 
 int GapCosts::cost(int refInsertLen, int qryInsertLen) const {

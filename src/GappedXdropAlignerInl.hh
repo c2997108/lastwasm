@@ -59,13 +59,6 @@ T whichFrame(size_t antidiagonal, T frame0, T frame1, T frame2) {
   }
 }
 
-inline bool isAffineGaps(int delExistenceCost, int delExtensionCost,
-			 int insExistenceCost, int insExtensionCost,
-			 int gapUnalignedCost) {
-  return gapUnalignedCost >= delExtensionCost + insExtensionCost +
-    std::max(delExistenceCost, insExistenceCost);
-}
-
 // The next two functions will stop the alignment at delimiters.  But
 // this is not guaranteed if bestScore > INF / 2.  We could avoid this
 // restriction by replacing -INF / 2 with bestScore - INF.

@@ -31,6 +31,8 @@ struct GapCosts {
   std::vector<Piece> insPieces;
   int pairCost;
 
+  bool isAffine;
+
   // Assign piecewise linear open and grow costs, and one pairCost.
   // If unalignedPairCost <= 0, assign non-generalized costs.
   // Throw a runtime_error if any growCost is <= 0.

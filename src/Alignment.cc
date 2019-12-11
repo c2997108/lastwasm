@@ -325,24 +325,24 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   }
 
   int extensionScore =
-    isGreedy  ? greedyAligner.align( seq1 + start1, seq2 + start2,
-				     isForward, sm, maxDrop, alph.size )
-    : sm2qual ? aligner.align2qual( seq1 + start1, qual1 + start1,
-				    seq2 + start2, qual2 + start2,
-				    isForward, globality, sm2qual,
-				    del.openCost, del.growCost,
-				    ins.openCost, ins.growCost,
-				    gap.pairCost, maxDrop, smMax )
-    : pssm2   ? aligner.alignPssm( seq1 + start1, pssm2 + start2,
-				   isForward, globality,
+    isGreedy  ? greedyAligner.align(seq1 + start1, seq2 + start2,
+				    isForward, sm, maxDrop, alph.size)
+    : sm2qual ? aligner.align2qual(seq1 + start1, qual1 + start1,
+				   seq2 + start2, qual2 + start2,
+				   isForward, globality, sm2qual,
 				   del.openCost, del.growCost,
 				   ins.openCost, ins.growCost,
-				   gap.pairCost, maxDrop, smMax )
-    :           aligner.align( seq1 + start1, seq2 + start2,
-			       isForward, globality, sm,
-			       del.openCost, del.growCost,
-			       ins.openCost, ins.growCost,
-			       gap.pairCost, maxDrop, smMax );
+				   gap.pairCost, gap.isAffine, maxDrop, smMax)
+    : pssm2   ? aligner.alignPssm(seq1 + start1, pssm2 + start2,
+				  isForward, globality,
+				  del.openCost, del.growCost,
+				  ins.openCost, ins.growCost,
+				  gap.pairCost, gap.isAffine, maxDrop, smMax)
+    :           aligner.align(seq1 + start1, seq2 + start2,
+			      isForward, globality, sm,
+			      del.openCost, del.growCost,
+			      ins.openCost, ins.growCost,
+			      gap.pairCost, gap.isAffine, maxDrop, smMax);
 
   if( extensionScore == -INF ){
     score = -INF;  // avoid score overflow

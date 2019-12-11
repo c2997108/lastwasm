@@ -64,6 +64,7 @@ int GappedXdropAligner::align(const uchar *seq1,
                               int insExistenceCost,
                               int insExtensionCost,
                               int gapUnalignedCost,
+			      bool isAffine,
                               int maxScoreDrop,
                               int maxMatchScore) {
   const SimdInt mNegInf = simdFill(-INF);
@@ -72,9 +73,6 @@ int GappedXdropAligner::align(const uchar *seq1,
   const SimdInt mInsOpenCost = simdFill(insExistenceCost);
   const SimdInt mInsGrowCost = simdFill(insExtensionCost);
   const int seqIncrement = isForward ? 1 : -1;
-  const bool isAffine = isAffineGaps(delExistenceCost, delExtensionCost,
-				     insExistenceCost, insExtensionCost,
-				     gapUnalignedCost);
 
   size_t seq1beg = 0;
   size_t seq1end = 1;

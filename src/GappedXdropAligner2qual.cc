@@ -22,12 +22,9 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 				   int insExistenceCost,
 				   int insExtensionCost,
                                    int gapUnalignedCost,
+				   bool isAffine,
                                    int maxScoreDrop,
                                    int maxMatchScore) {
-  const bool isAffine = isAffineGaps(delExistenceCost, delExtensionCost,
-				     insExistenceCost, insExtensionCost,
-				     gapUnalignedCost);
-
   size_t seq1beg = 0;
   size_t seq1end = 1;
   size_t diagPos = xdropPadLen - 1;
