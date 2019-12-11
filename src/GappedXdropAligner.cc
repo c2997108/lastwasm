@@ -127,17 +127,15 @@ int GappedXdropAligner::align(const uchar *seq1,
     if (globality && isDelimiter2) {
       const Score *z2 = &zScores[diagPos];
       int b = maxValue(x2[0], z1[0]-insExtensionCost, z2[0]-gapUnalignedCost);
-      if (b >= minScore)
-	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
-		    b, antidiagonal, seq1beg);
+      updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
+		  minScore, b, antidiagonal, seq1beg);
     }
 
     if (globality && isDelimiter1) {
       const Score *y2 = &yScores[diagPos];
       int b = maxValue(x2[n], y1[n]-delExtensionCost, y2[n]-gapUnalignedCost);
-      if (b >= minScore)
-	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
-		    b, antidiagonal, seq1end-1);
+      updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
+		  minScore, b, antidiagonal, seq1end-1);
     }
 
     if (isAffine) {

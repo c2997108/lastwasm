@@ -90,10 +90,11 @@ inline void checkGappedXdropScore(int bestScore) {
 inline void updateBest1(int &bestScore,
 			size_t &bestAntidiagonal,
 			size_t &bestSeq1position,
+			int minScore,
 			int score,
 			size_t antidiagonal,
 			size_t seq1position) {
-  if (score > bestScore) {
+  if (score >= minScore && score > bestScore) {
     bestScore = score;
     bestAntidiagonal = antidiagonal;
     bestSeq1position = seq1position;

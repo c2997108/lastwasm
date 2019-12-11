@@ -59,27 +59,27 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     const Score *z1 = &zScores[horiPos + 1];
     const Score *x2 = &xScores[diagPos];
 
-    if (!globality && (isDelimiter2qual(s1[n * seqIncrement]) ||
-		       isDelimiter2qual(s2[0]))) {
+    bool isDelimiter1 = isDelimiter2qual(s1[n * seqIncrement]);
+    bool isDelimiter2 = isDelimiter2qual(s2[0]);
+
+    if (!globality && (isDelimiter1 || isDelimiter2)) {
       updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
     }
 
     int minScore = bestScore - maxScoreDrop;
 
-    if (globality && isDelimiter2qual(s2[0])) {
+    if (globality && isDelimiter2) {
       const Score *z2 = &zScores[diagPos];
       int b = maxValue(x2[0], z1[0]-insExtensionCost, z2[0]-gapUnalignedCost);
-      if (b >= minScore)
-	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
-		    b, antidiagonal, seq1beg);
+      updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
+		  minScore, b, antidiagonal, seq1beg);
     }
 
-    if (globality && isDelimiter2qual(s1[n * seqIncrement])) {
+    if (globality && isDelimiter1) {
       const Score *y2 = &yScores[diagPos];
       int b = maxValue(x2[n], y1[n]-delExtensionCost, y2[n]-gapUnalignedCost);
-      if (b >= minScore)
-	updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
-		    b, antidiagonal, seq1end-1);
+      updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
+		  minScore, b, antidiagonal, seq1end-1);
     }
 
     const Score *x0last = x0 + n;
