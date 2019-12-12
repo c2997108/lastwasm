@@ -8,8 +8,15 @@
 
 namespace mcf {
 
-//#if defined __AVX2__
-#if defined WANT_AVX2
+#if defined __SSE2__
+
+static inline __m128i simdLoad128(const void *p) {
+  return _mm_loadu_si128((const __m128i *)p);
+}
+
+#endif
+
+#if defined __AVX2__
 
 typedef __m256i SimdInt;
 
@@ -58,6 +65,10 @@ static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return _mm256_sub_epi32(x, y);
 }
 
+static inline SimdInt simdLeft(SimdInt x, int bits) {
+  return _mm256_slli_epi32(x, bits);
+}
+
 static inline SimdInt simdMax(SimdInt x, SimdInt y) {
   return _mm256_max_epi32(x, y);
 }
@@ -68,6 +79,10 @@ static inline int simdHorizontalMax(SimdInt x) {
   z = _mm_max_epi32(z, _mm_shuffle_epi32(z, 0x4E));
   z = _mm_max_epi32(z, _mm_shuffle_epi32(z, 0xB1));
   return _mm_cvtsi128_si32(z);
+}
+
+static inline SimdInt simdBytesToInts(__m128i x) {
+  return _mm256_cvtepi8_epi32(x);
 }
 
 #elif defined __SSE4_1__
@@ -118,6 +133,10 @@ static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return _mm_sub_epi32(x, y);
 }
 
+static inline SimdInt simdLeft(SimdInt x, int bits) {
+  return _mm_slli_epi32(x, bits);
+}
+
 static inline SimdInt simdMax(SimdInt x, SimdInt y) {
   return _mm_max_epi32(x, y);  // SSE4.1
 }
@@ -126,6 +145,10 @@ static inline int simdHorizontalMax(SimdInt x) {
   x = simdMax(x, _mm_shuffle_epi32(x, 0x4E));
   x = simdMax(x, _mm_shuffle_epi32(x, 0xB1));
   return _mm_cvtsi128_si32(x);
+}
+
+static inline SimdInt simdBytesToInts(SimdInt x) {
+  return _mm_cvtepi8_epi32(x);
 }
 
 #else

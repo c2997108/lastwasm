@@ -31,12 +31,12 @@ SubsetSuffixArraySort.o lastdb.o
 alignObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o		\
 ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o		\
 tantan.o LastalArguments.o GappedXdropAligner.o				\
-GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
-GappedXdropAligner3frame.o mcf_gap_costs.o GeneticCode.o	\
-GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
-QualityPssmMaker.o TwoQualityScoreMatrix.o gaplessXdrop.o		\
-gaplessPssmXdrop.o gaplessTwoQualityXdrop.o cbrc_linalg.o		\
-mcf_substitution_matrix_stats.o $(alpObj)
+GappedXdropAlignerDna.o GappedXdropAlignerPssm.o			\
+GappedXdropAligner2qual.o GappedXdropAligner3frame.o mcf_gap_costs.o	\
+GeneticCode.o GreedyXdropAligner.o LastEvaluer.o			\
+OneQualityScoreMatrix.o QualityPssmMaker.o TwoQualityScoreMatrix.o	\
+gaplessXdrop.o gaplessPssmXdrop.o gaplessTwoQualityXdrop.o		\
+cbrc_linalg.o mcf_substitution_matrix_stats.o $(alpObj)
 
 alignObj4 = Alignment.o AlignmentPot.o AlignmentWrite.o Centroid.o	\
 DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\
@@ -177,6 +177,9 @@ GappedXdropAligner3frame.o GappedXdropAligner3frame.o8: GappedXdropAligner3frame
 GappedXdropAligner3framePssm.o GappedXdropAligner3framePssm.o8: GappedXdropAligner3framePssm.cc \
  GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_simd.hh \
  ScoreMatrixRow.hh GappedXdropAlignerInl.hh
+GappedXdropAlignerDna.o GappedXdropAlignerDna.o8: GappedXdropAlignerDna.cc GappedXdropAligner.hh \
+ mcf_contiguous_queue.hh mcf_simd.hh ScoreMatrixRow.hh \
+ GappedXdropAlignerInl.hh
 GappedXdropAlignerPssm.o GappedXdropAlignerPssm.o8: GappedXdropAlignerPssm.cc GappedXdropAligner.hh \
  mcf_contiguous_queue.hh mcf_simd.hh ScoreMatrixRow.hh \
  GappedXdropAlignerInl.hh

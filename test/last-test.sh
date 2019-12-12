@@ -131,6 +131,9 @@ trap 'rm -f $db*' EXIT
     lastdb -cR01 $db galGal3-M-32.fa
     try lastal -e40 $db hg19-M.fa
 
+    # hard-masking
+    try lastal -e40 -u3 -fTAB $db hg19-M.fa
+
     # tantan masking on protein
     lastdb -pcR01 $db Q2LCP8.fa
     try lastal -e100 $db Q5GS15.fa

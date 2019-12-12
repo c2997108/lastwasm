@@ -113,6 +113,22 @@ class GappedXdropAligner {
                  int maxScoreDrop,
                  int maxMatchScore);
 
+  // Like "align", but maybe faster for DNA.  Assumes that
+  // scorer[i<4][j<4] fits in signed char.  Each sequence element is
+  // first mapped through "toUnmasked".  If an unmasked sequence
+  // element >= 4 appears, alignDna falls back to a slower algorithm.
+  int alignDna(const uchar *seq1,
+	       const uchar *seq2,
+	       bool isForward,
+	       const ScoreMatrixRow *scorer,
+	       int delExistenceCost,
+	       int delExtensionCost,
+	       int insExistenceCost,
+	       int insExtensionCost,
+	       int maxScoreDrop,
+	       int maxMatchScore,
+	       const uchar *toUnmasked);
+
   // Call this repeatedly to get each gapless chunk of the alignment.
   // The chunks are returned in far-to-near order.  The chunk's end
   // coordinates in each sequence (relative to the start of extension)

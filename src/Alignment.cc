@@ -324,6 +324,13 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     --start2;
   }
 
+  bool isSimdMatrix = (alph.size == 4 && smMax < 128 &&
+		       !globality && gap.isAffine);
+  for (int i = 0; i < 4; ++i)
+    for (int j = 0; j < 4; ++j)
+      if (sm[i][j] < -128 || sm[i][j] != sm[alph.numbersToLowercase[i]][j])
+	isSimdMatrix = false;
+
   int extensionScore =
     isGreedy  ? greedyAligner.align(seq1 + start1, seq2 + start2,
 				    isForward, sm, maxDrop, alph.size)
@@ -338,6 +345,11 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 				  del.openCost, del.growCost,
 				  ins.openCost, ins.growCost,
 				  gap.pairCost, gap.isAffine, maxDrop, smMax)
+    : isSimdMatrix ? aligner.alignDna(seq1 + start1, seq2 + start2,
+				      isForward, sm,
+				      del.openCost, del.growCost,
+				      ins.openCost, ins.growCost,
+				      maxDrop, smMax, alph.numbersToUppercase)
     :           aligner.align(seq1 + start1, seq2 + start2,
 			      isForward, globality, sm,
 			      del.openCost, del.growCost,
