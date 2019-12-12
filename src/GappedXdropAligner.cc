@@ -93,9 +93,9 @@ int GappedXdropAligner::align(const uchar *seq1,
   bool isDelimiter2 = isDelimiter(*seq2, scorer[0]);
 
   for (int i = 0; i < simdLen; ++i) {
-    const int *seq1scores = scorer[*seq1];
-    pssmQueue.push(seq1scores, i);
-    seq1 += seqIncrement * !isDelimiter(0, seq1scores);
+    const int *x = scorer[*seq1];
+    pssmQueue.push(x, i);
+    seq1 += seqIncrement * !isDelimiter(0, x);
     seq2queue.push(*seq2, i);
   }
 
@@ -201,17 +201,17 @@ int GappedXdropAligner::align(const uchar *seq1,
 
     if (x0[n] > -INF / 2) {
       ++seq1end;
-      const int *seq1scores = scorer[*seq1];
-      pssmQueue.push(seq1scores, n + simdLen);
-      seq1 += seqIncrement * !isDelimiter(0, seq1scores);
+      const int *x = scorer[*seq1];
+      pssmQueue.push(x, n + simdLen);
+      seq1 += seqIncrement * !isDelimiter(0, x);
       isDelimiter1 = isDelimiter(0, pssmQueue.fromEnd(simdLen));
     }
 
     if (x0[0] > -INF / 2) {
-      uchar seq2item = *seq2;
-      seq2queue.push(seq2item, n + simdLen);
+      uchar y = *seq2;
+      seq2queue.push(y, n + simdLen);
       seq2 += seqIncrement;
-      isDelimiter2 = isDelimiter(seq2item, scorer[0]);
+      isDelimiter2 = isDelimiter(y, scorer[0]);
     } else {
       ++seq1beg;
       ++diagPos;

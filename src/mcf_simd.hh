@@ -13,6 +13,8 @@ namespace mcf {
 
 typedef __m256i SimdInt;
 
+const int simdBytes = 32;
+
 static inline SimdInt simdZero() {
   return _mm256_setzero_si256();
 }
@@ -23,6 +25,10 @@ static inline SimdInt simdLoad(const void *p) {
 
 static inline void simdStore(void *p, SimdInt x) {
   _mm256_storeu_si256((SimdInt *)p, x);
+}
+
+static inline SimdInt simdOr(SimdInt x, SimdInt y) {
+  return _mm256_or_si256(x, y);
 }
 
 static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
@@ -68,6 +74,8 @@ static inline int simdHorizontalMax(SimdInt x) {
 
 typedef __m128i SimdInt;
 
+const int simdBytes = 16;
+
 static inline SimdInt simdZero() {
   return _mm_setzero_si128();
 }
@@ -78,6 +86,10 @@ static inline SimdInt simdLoad(const void *p) {
 
 static inline void simdStore(void *p, SimdInt x) {
   _mm_storeu_si128((SimdInt *)p, x);
+}
+
+static inline SimdInt simdOr(SimdInt x, SimdInt y) {
+  return _mm_or_si128(x, y);
 }
 
 static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {

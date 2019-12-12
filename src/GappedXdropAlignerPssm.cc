@@ -44,9 +44,9 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
   bool isDelimiter2 = isDelimiter(0, vectorOfMatchScores);
 
   for (int i = 0; i < simdLen; ++i) {
-    uchar seq1item = *seq;
-    seq1queue.push(seq1item, i);
-    seq += seqIncrement * !isDelimiter(seq1item, vectorOfMatchScores);
+    uchar x = *seq;
+    seq1queue.push(x, i);
+    seq += seqIncrement * !isDelimiter(x, vectorOfMatchScores);
     pssmQueue.push(vectorOfMatchScores, i);
   }
 
@@ -152,18 +152,18 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 
     if (x0[n] > -INF / 2) {
       ++seq1end;
-      uchar seq1item = *seq;
-      seq1queue.push(seq1item, n + simdLen);
-      seq += seqIncrement * !isDelimiter(seq1item, vectorOfMatchScores);
+      uchar x = *seq;
+      seq1queue.push(x, n + simdLen);
+      seq += seqIncrement * !isDelimiter(x, vectorOfMatchScores);
       isDelimiter1 = isDelimiter(seq1queue.fromEnd(simdLen),
 				 vectorOfMatchScores);
     }
 
     if (x0[0] > -INF / 2) {
-      const int *seq2scores = *pssm;
-      pssmQueue.push(seq2scores, n + simdLen);
+      const int *y = *pssm;
+      pssmQueue.push(y, n + simdLen);
       pssm += seqIncrement;
-      isDelimiter2 = isDelimiter(0, seq2scores);
+      isDelimiter2 = isDelimiter(0, y);
     } else {
       ++seq1beg;
       ++diagPos;
