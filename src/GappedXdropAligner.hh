@@ -228,7 +228,8 @@ class GappedXdropAligner {
   std::vector<size_t> scoreOrigins;  // score origin for each antidiagonal
   std::vector<size_t> scoreEnds;  // score end pos for each antidiagonal
 
-  ContiguousQueue<const int *> seq1queue;
+  ContiguousQueue<const int *> pssmQueue;
+  ContiguousQueue<uchar> seq1queue;
   ContiguousQueue<uchar> seq2queue;
 
   // Our position during the trace-back:

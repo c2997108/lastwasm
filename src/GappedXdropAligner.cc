@@ -86,7 +86,7 @@ int GappedXdropAligner::align(const uchar *seq1,
   size_t bestEdgeAntidiagonal = 0;
 
   init();
-  seq1queue.clear();
+  pssmQueue.clear();
   seq2queue.clear();
 
   bool isDelimiter1 = isDelimiter(0, scorer[*seq1]);
@@ -94,7 +94,7 @@ int GappedXdropAligner::align(const uchar *seq1,
 
   for (int i = 0; i < simdLen; ++i) {
     const int *seq1scores = scorer[*seq1];
-    seq1queue.push(seq1scores, i);
+    pssmQueue.push(seq1scores, i);
     seq1 += seqIncrement * !isDelimiter(0, seq1scores);
     seq2queue.push(*seq2, i);
   }
@@ -105,7 +105,7 @@ int GappedXdropAligner::align(const uchar *seq1,
     int numCells = seq1end - seq1beg;
     int n = numCells - 1;
 
-    const const_int_ptr *s1 = &seq1queue.fromEnd(n + simdLen);
+    const const_int_ptr *s1 = &pssmQueue.fromEnd(n + simdLen);
     const uchar *s2 = &seq2queue.fromEnd(1);
 
     initAntidiagonal(seq1end, thisPos, numCells);
@@ -202,9 +202,9 @@ int GappedXdropAligner::align(const uchar *seq1,
     if (x0[n] > -INF / 2) {
       ++seq1end;
       const int *seq1scores = scorer[*seq1];
-      seq1queue.push(seq1scores, n + simdLen);
+      pssmQueue.push(seq1scores, n + simdLen);
       seq1 += seqIncrement * !isDelimiter(0, seq1scores);
-      isDelimiter1 = isDelimiter(0, seq1queue.fromEnd(simdLen));
+      isDelimiter1 = isDelimiter(0, pssmQueue.fromEnd(simdLen));
     }
 
     if (x0[0] > -INF / 2) {
