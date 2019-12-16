@@ -15,10 +15,17 @@ enum { scoreMatrixRowSize = ALPHABET_CAPACITY };
 
 typedef int ScoreMatrixRow[scoreMatrixRowSize];
 
-// An "infinite" score.  Delimiters at the ends of sequences get a
-// score of -INF.  We want it high enough to terminate alignments
-// immediately, but not so high that it causes overflow errors.
-enum { INF = INT_MAX / 2 };
+// Substitution score for delimiter symbols at the ends of sequences.
+// It should be highly negative, to terminate alignments immediately,
+// but not so negative that it causes overflow errors.
+
+// The delimiter score when using short ints:
+const int shortDelimiterScore = SHRT_MIN/2 + SCHAR_MIN;
+
+// We want: short(delimiterScore) = shortDelimiterScore
+const int delimiterScore = INT_MIN/2 + (unsigned short)shortDelimiterScore;
+
+enum { INF = -delimiterScore };
 
 }
 

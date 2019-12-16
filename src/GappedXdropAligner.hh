@@ -61,10 +61,13 @@ typedef unsigned char uchar;
 typedef const int *const_int_ptr;
 
 typedef int Score;
+typedef short TinyScore;
 
 class TwoQualityScoreMatrix;
 
-const int xdropPadLen = simdLen;
+const int xdropPadLen = simdLen2;
+
+const int droppedTinyScore = shortDelimiterScore + SCHAR_MAX;
 
 class GappedXdropAligner {
  public:
@@ -143,6 +146,15 @@ class GappedXdropAligner {
 		    int insExistenceCost,
 		    int insExtensionCost,
                     int gapUnalignedCost);
+
+  // After "alignDna", must use this instead of "getNextChunk"
+  bool getNextChunkDna(size_t &end1,
+		       size_t &end2,
+		       size_t &length,
+		       int delExistenceCost,
+		       int delExtensionCost,
+		       int insExistenceCost,
+		       int insExtensionCost);
 
   // Like "align", but it aligns a protein sequence to a DNA sequence.
   // The DNA should be provided as 3 protein sequences, one for each
@@ -266,9 +278,11 @@ class GappedXdropAligner {
     scoreEnds.push_back(nextEnd);
     scoreOrigins.push_back(nextEnd - seq1end);
     resizeScoresIfSmaller(nextEnd + (simdLen-1));
-    simdStore(&xScores[thisEnd], mNegInf);
-    simdStore(&yScores[thisEnd], mNegInf);
-    simdStore(&zScores[thisEnd], mNegInf);
+    for (int i = 0; i < xdropPadLen; i += simdLen) {
+      simdStore(&xScores[thisEnd + i], mNegInf);
+      simdStore(&yScores[thisEnd + i], mNegInf);
+      simdStore(&zScores[thisEnd + i], mNegInf);
+    }
   }
 
   // Puts 2 "dummy" antidiagonals at the start, so that we can safely
@@ -300,6 +314,53 @@ class GappedXdropAligner {
   }
 
   void init3();
+
+  // Everything below here is for alignDna & getNextChunkDna
+
+  std::vector<TinyScore> xTinyScores;
+  std::vector<TinyScore> yTinyScores;
+  std::vector<TinyScore> zTinyScores;
+
+  std::vector<int> scoreRises;  // increase of best score, per antidiagonal
+
+  void resizeTinyScoresIfSmaller(size_t size) {
+    if (xTinyScores.size() < size) {
+      xTinyScores.resize(size);
+      yTinyScores.resize(size);
+      zTinyScores.resize(size);
+    }
+  }
+
+  void initAntidiagonalTiny(size_t seq1end, size_t thisEnd, int numCells) {
+    const SimdInt mNegInf = simdFill2(droppedTinyScore);
+    size_t nextEnd = thisEnd + xdropPadLen + numCells;
+    scoreEnds.push_back(nextEnd);
+    scoreOrigins.push_back(nextEnd - seq1end);
+    resizeTinyScoresIfSmaller(nextEnd + (simdLen2-1));
+    simdStore(&xTinyScores[thisEnd], mNegInf);
+    simdStore(&yTinyScores[thisEnd], mNegInf);
+    simdStore(&zTinyScores[thisEnd], mNegInf);
+  }
+
+  void initTiny() {
+    scoreOrigins.resize(0);
+    scoreEnds.resize(1);
+    initAntidiagonalTiny(0, 0, 0);
+    initAntidiagonalTiny(0, xdropPadLen, 0);
+    xTinyScores[xdropPadLen - 1] = 0;
+    bestAntidiagonal = 0;
+    scoreRises.resize(2);
+  }
+
+  void calcBestSeq1positionTiny() {
+    size_t seq1beg = seq1start(bestAntidiagonal);
+    const TinyScore *x2 = &xTinyScores[diag(bestAntidiagonal, seq1beg)];
+    const TinyScore *x2beg = x2;
+    int target = scoreRises[bestAntidiagonal] +
+      scoreRises[bestAntidiagonal + 1] + scoreRises[bestAntidiagonal + 2];
+    while (*x2 != target) ++x2;
+    bestSeq1position = x2 - x2beg + seq1beg;
+  }
 };
 
 }

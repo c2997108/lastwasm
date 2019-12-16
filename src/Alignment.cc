@@ -369,6 +369,11 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     if( isGreedy ){
       while( greedyAligner.getNextChunk( end1, end2, size ) )
 	chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
+    } else if (isSimdMatrix && !pssm2 && !sm2qual) {
+      while (aligner.getNextChunkDna(end1, end2, size,
+				     del.openCost, del.growCost,
+				     ins.openCost, ins.growCost))
+	chunks.push_back(SegmentPair(end1 - size, end2 - size, size));
     }else{
       while( aligner.getNextChunk( end1, end2, size,
 				   del.openCost, del.growCost,
