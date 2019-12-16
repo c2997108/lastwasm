@@ -326,7 +326,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   }
 
   bool isSimdMatrix = (alph.size == 4 && !globality && gap.isAffine &&
-		       smMax <= SCHAR_MAX && smMin >= SCHAR_MIN);
+		       smMin >= SCHAR_MIN &&
+		       maxDrop + smMax * 2 - smMin < UCHAR_MAX);
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
       if (sm[i][j] != sm[alph.numbersToLowercase[i]][j])

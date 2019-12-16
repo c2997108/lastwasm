@@ -58,12 +58,30 @@ static inline SimdInt simdSet2(short iF, short iE, short iD, short iC,
 			  i7, i6, i5, i4, i3, i2, i1, i0);
 }
 
+static inline SimdInt simdSet1(char jF, char jE, char jD, char jC,
+			       char jB, char jA, char j9, char j8,
+			       char j7, char j6, char j5, char j4,
+			       char j3, char j2, char j1, char j0,
+			       char iF, char iE, char iD, char iC,
+			       char iB, char iA, char i9, char i8,
+			       char i7, char i6, char i5, char i4,
+			       char i3, char i2, char i1, char i0) {
+  return _mm256_set_epi8(jF, jE, jD, jC, jB, jA, j9, j8,
+			 j7, j6, j5, j4, j3, j2, j1, j0,
+			 iF, iE, iD, iC, iB, iA, i9, i8,
+			 i7, i6, i5, i4, i3, i2, i1, i0);
+}
+
 static inline SimdInt simdFill(int x) {
   return _mm256_set1_epi32(x);
 }
 
 static inline SimdInt simdFill2(short x) {
   return _mm256_set1_epi16(x);
+}
+
+static inline SimdInt simdFill1(char x) {
+  return _mm256_set1_epi8(x);
 }
 
 static inline SimdInt simdGt(SimdInt x, SimdInt y) {
@@ -74,6 +92,10 @@ static inline SimdInt simdGt2(SimdInt x, SimdInt y) {
   return _mm256_cmpgt_epi16(x, y);
 }
 
+static inline SimdInt simdGt1(SimdInt x, SimdInt y) {
+  return _mm256_cmpgt_epi8(x, y);
+}
+
 static inline SimdInt simdAdd(SimdInt x, SimdInt y) {
   return _mm256_add_epi32(x, y);
 }
@@ -82,12 +104,20 @@ static inline SimdInt simdAdd2(SimdInt x, SimdInt y) {
   return _mm256_add_epi16(x, y);
 }
 
+static inline SimdInt simdAdd1(SimdInt x, SimdInt y) {
+  return _mm256_add_epi8(x, y);
+}
+
 static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return _mm256_sub_epi32(x, y);
 }
 
 static inline SimdInt simdSub2(SimdInt x, SimdInt y) {
   return _mm256_sub_epi16(x, y);
+}
+
+static inline SimdInt simdSubs1(SimdInt x, SimdInt y) {
+  return _mm256_subs_epi8(x, y);
 }
 
 static inline SimdInt simdLeft(SimdInt x, int bits) {
@@ -100,6 +130,10 @@ static inline SimdInt simdMax(SimdInt x, SimdInt y) {
 
 static inline SimdInt simdMax2(SimdInt x, SimdInt y) {
   return _mm256_max_epi16(x, y);
+}
+
+static inline SimdInt simdMax1(SimdInt x, SimdInt y) {
+  return _mm256_max_epi8(x, y);
 }
 
 static inline int simdHorizontalMax(SimdInt x) {
@@ -118,12 +152,34 @@ static inline int simdHorizontalMax2(SimdInt x) {
   return 32767 - _mm_extract_epi16(z, 0);
 }
 
+static inline int simdHorizontalMax1(SimdInt x) {
+  __m128i z = _mm256_castsi256_si128(x);
+  z = _mm_max_epi8(z, _mm256_extracti128_si256(x, 1));
+  z = _mm_sub_epi8(_mm_set1_epi8(127), z);
+  z = _mm_min_epu8(z, _mm_srli_epi16(z, 8));
+  z = _mm_minpos_epu16(z);
+  return 127 - _mm_extract_epi16(z, 0);
+}
+
 static inline SimdInt simdBytesToInts(__m128i x) {
   return _mm256_cvtepi8_epi32(x);
 }
 
 static inline SimdInt simdBytesToInts2(__m128i x) {
   return _mm256_cvtepi8_epi16(x);
+}
+
+static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
+  return _mm256_shuffle_epi8(items, choices);
+}
+
+static inline SimdInt simdLoadRev1(const void *p) {
+  const SimdInt i = simdSet1(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
+			     0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15);
+  // maybe there's a faster way?
+  SimdInt x = simdLoad(p);
+  x = _mm256_permute4x64_epi64(x, 0x4E);
+  return simdChoose1(x, i);
 }
 
 #elif defined __SSE4_1__
@@ -164,12 +220,24 @@ static inline SimdInt simdSet2(short i7, short i6, short i5, short i4,
   return _mm_set_epi16(i7, i6, i5, i4, i3, i2, i1, i0);
 }
 
+static inline SimdInt simdSet1(char iF, char iE, char iD, char iC,
+			       char iB, char iA, char i9, char i8,
+			       char i7, char i6, char i5, char i4,
+			       char i3, char i2, char i1, char i0) {
+  return _mm_set_epi8(iF, iE, iD, iC, iB, iA, i9, i8,
+		      i7, i6, i5, i4, i3, i2, i1, i0);
+}
+
 static inline SimdInt simdFill(int x) {
   return _mm_set1_epi32(x);
 }
 
 static inline SimdInt simdFill2(short x) {
   return _mm_set1_epi16(x);
+}
+
+static inline SimdInt simdFill1(char x) {
+  return _mm_set1_epi8(x);
 }
 
 static inline SimdInt simdGt(SimdInt x, SimdInt y) {
@@ -180,6 +248,10 @@ static inline SimdInt simdGt2(SimdInt x, SimdInt y) {
   return _mm_cmpgt_epi16(x, y);
 }
 
+static inline SimdInt simdGt1(SimdInt x, SimdInt y) {
+  return _mm_cmpgt_epi8(x, y);
+}
+
 static inline SimdInt simdAdd(SimdInt x, SimdInt y) {
   return _mm_add_epi32(x, y);
 }
@@ -188,12 +260,20 @@ static inline SimdInt simdAdd2(SimdInt x, SimdInt y) {
   return _mm_add_epi16(x, y);
 }
 
+static inline SimdInt simdAdd1(SimdInt x, SimdInt y) {
+  return _mm_add_epi8(x, y);
+}
+
 static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return _mm_sub_epi32(x, y);
 }
 
 static inline SimdInt simdSub2(SimdInt x, SimdInt y) {
   return _mm_sub_epi16(x, y);
+}
+
+static inline SimdInt simdSubs1(SimdInt x, SimdInt y) {
+  return _mm_subs_epi8(x, y);
 }
 
 static inline SimdInt simdLeft(SimdInt x, int bits) {
@@ -208,6 +288,10 @@ static inline SimdInt simdMax2(SimdInt x, SimdInt y) {
   return _mm_max_epi16(x, y);
 }
 
+static inline SimdInt simdMax1(SimdInt x, SimdInt y) {
+  return _mm_max_epi8(x, y);  // SSE4.1
+}
+
 static inline int simdHorizontalMax(SimdInt x) {
   x = simdMax(x, _mm_shuffle_epi32(x, 0x4E));
   x = simdMax(x, _mm_shuffle_epi32(x, 0xB1));
@@ -220,12 +304,29 @@ static inline int simdHorizontalMax2(SimdInt x) {
   return 32767 - _mm_extract_epi16(x, 0);
 }
 
+static inline int simdHorizontalMax1(SimdInt x) {
+  x = _mm_sub_epi8(simdFill1(127), x);
+  x = _mm_min_epu8(x, _mm_srli_epi16(x, 8));
+  x = _mm_minpos_epu16(x);  // SSE4.1
+  return 127 - _mm_extract_epi16(x, 0);
+}
+
 static inline SimdInt simdBytesToInts(SimdInt x) {
   return _mm_cvtepi8_epi32(x);  // SSE4.1
 }
 
 static inline SimdInt simdBytesToInts2(SimdInt x) {
   return _mm_cvtepi8_epi16(x);  // SSE4.1
+}
+
+static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
+  return _mm_shuffle_epi8(items, choices);
+}
+
+static inline SimdInt simdLoadRev1(const void *p) {
+  const SimdInt i = simdSet1(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15);
+  SimdInt x = simdLoad(p);
+  return simdChoose1(x, i);
 }
 
 #else

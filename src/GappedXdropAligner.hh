@@ -61,13 +61,13 @@ typedef unsigned char uchar;
 typedef const int *const_int_ptr;
 
 typedef int Score;
-typedef short TinyScore;
+typedef signed char TinyScore;
 
 class TwoQualityScoreMatrix;
 
-const int xdropPadLen = simdLen2;
+const int xdropPadLen = simdBytes;
 
-const int droppedTinyScore = shortDelimiterScore + SCHAR_MAX;
+const int droppedTinyScore = SCHAR_MIN;
 
 class GappedXdropAligner {
  public:
@@ -332,31 +332,31 @@ class GappedXdropAligner {
   }
 
   void initAntidiagonalTiny(size_t seq1end, size_t thisEnd, int numCells) {
-    const SimdInt mNegInf = simdFill2(droppedTinyScore);
+    const SimdInt mNegInf = simdFill1(droppedTinyScore);
     size_t nextEnd = thisEnd + xdropPadLen + numCells;
     scoreEnds.push_back(nextEnd);
     scoreOrigins.push_back(nextEnd - seq1end);
-    resizeTinyScoresIfSmaller(nextEnd + (simdLen2-1));
+    resizeTinyScoresIfSmaller(nextEnd + (simdBytes-1));
     simdStore(&xTinyScores[thisEnd], mNegInf);
     simdStore(&yTinyScores[thisEnd], mNegInf);
     simdStore(&zTinyScores[thisEnd], mNegInf);
   }
 
-  void initTiny() {
+  void initTiny(int scoreOffset) {
     scoreOrigins.resize(0);
     scoreEnds.resize(1);
     initAntidiagonalTiny(0, 0, 0);
     initAntidiagonalTiny(0, xdropPadLen, 0);
-    xTinyScores[xdropPadLen - 1] = 0;
+    xTinyScores[xdropPadLen - 1] = scoreOffset;
     bestAntidiagonal = 0;
     scoreRises.resize(2);
   }
 
-  void calcBestSeq1positionTiny() {
+  void calcBestSeq1positionTiny(int scoreOffset) {
     size_t seq1beg = seq1start(bestAntidiagonal);
     const TinyScore *x2 = &xTinyScores[diag(bestAntidiagonal, seq1beg)];
     const TinyScore *x2beg = x2;
-    int target = scoreRises[bestAntidiagonal] +
+    int target = scoreOffset + scoreRises[bestAntidiagonal] +
       scoreRises[bestAntidiagonal + 1] + scoreRises[bestAntidiagonal + 2];
     while (*x2 != target) ++x2;
     bestSeq1position = x2 - x2beg + seq1beg;

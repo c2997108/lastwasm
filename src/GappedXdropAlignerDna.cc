@@ -8,7 +8,7 @@
 
 namespace cbrc {
 
-const int seqLoadLen = 16;
+const int seqLoadLen = simdBytes;
 
 const int delimiter = 4;
 
@@ -23,29 +23,29 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 				 int maxScoreDrop,
 				 int maxMatchScore,
 				 const uchar *toUnmasked) {
-  // This guarantees that we avoid false-positive drops > maxScoreDrop:
-  assert(maxScoreDrop < SCHAR_MIN - droppedTinyScore);
-  // With non-saturating arithmetic, we also require:
-  // -maxScoreDrop + shortDelimiterScore >= SHRT_MIN,
-  // which is guaranteed by the definition of shortDelimiterScore.
-
   delGrowCost = std::min(delGrowCost, maxScoreDrop + 1);
   delOpenCost = std::min(delOpenCost, maxScoreDrop + 1 - delGrowCost);
 
   insGrowCost = std::min(insGrowCost, maxScoreDrop + 1);
   insOpenCost = std::min(insOpenCost, maxScoreDrop + 1 - insGrowCost);
 
-  const SimdInt mNegInf = simdFill2(droppedTinyScore);
-  const SimdInt mDelOpenCost = simdFill2(delOpenCost);
-  const SimdInt mDelGrowCost = simdFill2(delGrowCost);
-  const SimdInt mInsOpenCost = simdFill2(insOpenCost);
-  const SimdInt mInsGrowCost = simdFill2(insGrowCost);
+  const SimdInt mNegInf = simdFill1(droppedTinyScore);
+  const SimdInt mDelOpenCost = simdFill1(delOpenCost);
+  const SimdInt mDelGrowCost = simdFill1(delGrowCost);
+  const SimdInt mInsOpenCost = simdFill1(insOpenCost);
+  const SimdInt mInsGrowCost = simdFill1(insGrowCost);
   const int seqIncrement = isForward ? 1 : -1;
+  const int scoreOffset = SCHAR_MAX - maxMatchScore * 2;
 
-  const __m128i reverse = _mm_set_epi8(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15);
-
-  const __m128i scorer4x4 =
-    _mm_set_epi8(scorer[3][3], scorer[3][2], scorer[3][1], scorer[3][0],
+  const SimdInt scorer4x4 =
+    simdSet1(
+#ifdef __AVX2__
+		 scorer[3][3], scorer[3][2], scorer[3][1], scorer[3][0],
+		 scorer[2][3], scorer[2][2], scorer[2][1], scorer[2][0],
+		 scorer[1][3], scorer[1][2], scorer[1][1], scorer[1][0],
+		 scorer[0][3], scorer[0][2], scorer[0][1], scorer[0][0],
+#endif
+		 scorer[3][3], scorer[3][2], scorer[3][1], scorer[3][0],
 		 scorer[2][3], scorer[2][2], scorer[2][1], scorer[2][0],
 		 scorer[1][3], scorer[1][2], scorer[1][1], scorer[1][0],
 		 scorer[0][3], scorer[0][2], scorer[0][1], scorer[0][0]);
@@ -57,12 +57,12 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
   size_t thisPos = xdropPadLen * 2;
 
   int bestScore = 0;
-  SimdInt mBestScore = simdZero();
-  SimdInt mMinScore = simdFill2(-maxScoreDrop);
+  SimdInt mBestScore = mNegInf;
+  SimdInt mMinScore = simdFill1(scoreOffset - maxScoreDrop);
   SimdInt mScoreRise1 = simdZero();
   SimdInt mScoreRise2 = simdZero();
 
-  initTiny();
+  initTiny(scoreOffset);
   seq1queue.clear();
   seq2queue.clear();
 
@@ -93,39 +93,57 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
     const TinyScore *z1 = &zTinyScores[horiPos + 1];
     const TinyScore *x2 = &xTinyScores[diagPos];
 
-    const SimdInt mScoreRise12 = simdAdd2(mScoreRise1, mScoreRise2);
-    const SimdInt mDelGrowCost1 = simdAdd2(mDelGrowCost, mScoreRise1);
-    const SimdInt mInsGrowCost1 = simdAdd2(mInsGrowCost, mScoreRise1);
+    const SimdInt mScoreRise12 = simdAdd1(mScoreRise1, mScoreRise2);
+    const SimdInt mDelGrowCost1 = simdAdd1(mDelGrowCost, mScoreRise1);
+    const SimdInt mInsGrowCost1 = simdAdd1(mInsGrowCost, mScoreRise1);
 
     if (isDna) {
-      for (int i = 0; i < numCells; i += simdLen2) {
-	__m128i fwd1 = simdLoad128(s1);
-	__m128i fwd2 = simdLoad128(s2 - (seqLoadLen-1));
-	__m128i rev2 = _mm_shuffle_epi8(fwd2, reverse);
-	__m128i j = _mm_or_si128(_mm_slli_epi32(fwd1, 2), rev2);
-	SimdInt s = simdBytesToInts2(_mm_shuffle_epi8(scorer4x4, j));
-	SimdInt x = simdSub2(simdLoad(x2+i), mScoreRise12);
-	SimdInt y = simdSub2(simdLoad(y1+i), mDelGrowCost1);
-	SimdInt z = simdSub2(simdLoad(z1+i), mInsGrowCost1);
-	SimdInt b = simdMax2(simdMax2(x, y), z);
-	SimdInt isDrop = simdGt2(mMinScore, b);
-	mBestScore = simdMax2(b, mBestScore);
-	simdStore(x0+i, simdBlend(simdAdd2(b, s), mNegInf, isDrop));
-	simdStore(y0+i, simdMax2(simdSub2(b, mDelOpenCost), y));
-	simdStore(z0+i, simdMax2(simdSub2(b, mInsOpenCost), z));
-	s1 += simdLen2;
-	s2 -= simdLen2;
+      for (int i = 0; i < numCells; i += simdBytes) {
+	SimdInt fwd1 = simdLoad(s1);
+	SimdInt rev2 = simdLoadRev1(s2 - (seqLoadLen-1));
+	SimdInt j = simdOr(simdLeft(fwd1, 2), rev2);
+	SimdInt s = simdChoose1(scorer4x4, j);
+	SimdInt x = simdSubs1(simdLoad(x2+i), mScoreRise12);
+	SimdInt y = simdSubs1(simdLoad(y1+i), mDelGrowCost1);
+	SimdInt z = simdSubs1(simdLoad(z1+i), mInsGrowCost1);
+	SimdInt b = simdMax1(simdMax1(x, y), z);
+	SimdInt isDrop = simdGt1(mMinScore, b);
+	mBestScore = simdMax1(b, mBestScore);
+	simdStore(x0+i, simdBlend(simdAdd1(b, s), mNegInf, isDrop));
+	simdStore(y0+i, simdMax1(simdSubs1(b, mDelOpenCost), y));
+	simdStore(z0+i, simdMax1(simdSubs1(b, mInsOpenCost), z));
+	s1 += simdBytes;
+	s2 -= simdBytes;
       }
     } else {
-      if (s1[n] == delimiter || s2[0] == delimiter) {
+      bool isDelimiter1 = (s1[n] == delimiter);
+      bool isDelimiter2 = (s2[0] == delimiter);
+      if (isDelimiter1 || isDelimiter2) {
 	updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
-	mMinScore = simdFill2(-maxScoreDrop);
+	mMinScore = simdFill1(scoreOffset - maxScoreDrop);
       }
 
-      for (int i = 0; i < numCells; i += simdLen2) {
-	SimdInt s = simdSet2(
+      for (int i = 0; i < numCells; i += simdBytes) {
+	SimdInt s = simdSet1(
 #ifdef __SSE4_1__
 #ifdef __AVX2__
+			     scorer[s1[31]][s2[-31]],
+			     scorer[s1[30]][s2[-30]],
+			     scorer[s1[29]][s2[-29]],
+			     scorer[s1[28]][s2[-28]],
+			     scorer[s1[27]][s2[-27]],
+			     scorer[s1[26]][s2[-26]],
+			     scorer[s1[25]][s2[-25]],
+			     scorer[s1[24]][s2[-24]],
+			     scorer[s1[23]][s2[-23]],
+			     scorer[s1[22]][s2[-22]],
+			     scorer[s1[21]][s2[-21]],
+			     scorer[s1[20]][s2[-20]],
+			     scorer[s1[19]][s2[-19]],
+			     scorer[s1[18]][s2[-18]],
+			     scorer[s1[17]][s2[-17]],
+			     scorer[s1[16]][s2[-16]],
+#endif
 			     scorer[s1[15]][s2[-15]],
 			     scorer[s1[14]][s2[-14]],
 			     scorer[s1[13]][s2[-13]],
@@ -134,7 +152,6 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 			     scorer[s1[10]][s2[-10]],
 			     scorer[s1[9]][s2[-9]],
 			     scorer[s1[8]][s2[-8]],
-#endif
 			     scorer[s1[7]][s2[-7]],
 			     scorer[s1[6]][s2[-6]],
 			     scorer[s1[5]][s2[-5]],
@@ -145,30 +162,34 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 #endif
 			     scorer[s1[0]][s2[-0]]);
 
-	SimdInt x = simdSub2(simdLoad(x2+i), mScoreRise12);
-	SimdInt y = simdSub2(simdLoad(y1+i), mDelGrowCost1);
-	SimdInt z = simdSub2(simdLoad(z1+i), mInsGrowCost1);
-	SimdInt b = simdMax2(simdMax2(x, y), z);
-	SimdInt isDrop = simdGt2(mMinScore, b);
-	mBestScore = simdMax2(b, mBestScore);
-	simdStore(x0+i, simdBlend(simdAdd2(b, s), mNegInf, isDrop));
-	simdStore(y0+i, simdMax2(simdSub2(b, mDelOpenCost), y));
-	simdStore(z0+i, simdMax2(simdSub2(b, mInsOpenCost), z));
-	s1 += simdLen2;
-	s2 -= simdLen2;
+	SimdInt x = simdSubs1(simdLoad(x2+i), mScoreRise12);
+	SimdInt y = simdSubs1(simdLoad(y1+i), mDelGrowCost1);
+	SimdInt z = simdSubs1(simdLoad(z1+i), mInsGrowCost1);
+	SimdInt b = simdMax1(simdMax1(x, y), z);
+	SimdInt isDrop = simdGt1(mMinScore, b);
+	mBestScore = simdMax1(b, mBestScore);
+	simdStore(x0+i, simdBlend(simdAdd1(b, s), mNegInf, isDrop));
+	simdStore(y0+i, simdMax1(simdSubs1(b, mDelOpenCost), y));
+	simdStore(z0+i, simdMax1(simdSubs1(b, mInsOpenCost), z));
+	s1 += simdBytes;
+	s2 -= simdBytes;
       }
+      if (isDelimiter2) x0[0] = droppedTinyScore;
+      if (isDelimiter1) x0[n] = droppedTinyScore;  // maybe n=0
     }
 
     mScoreRise2 = mScoreRise1;
     mScoreRise1 = simdZero();
-    int newBestScore = simdHorizontalMax2(mBestScore);
-    if (newBestScore > 0) {
-      bestScore += newBestScore;
+    int newBestScore = simdHorizontalMax1(mBestScore);
+    int rise = 0;
+    if (newBestScore > scoreOffset) {
+      rise = newBestScore - scoreOffset;
+      bestScore += rise;
       bestAntidiagonal = antidiagonal;
-      mBestScore = simdZero();
-      mScoreRise1 = simdFill2(newBestScore);
+      mBestScore = mNegInf;
+      mScoreRise1 = simdFill1(rise);
     }
-    scoreRises.push_back(newBestScore);
+    scoreRises.push_back(rise);
 
     diagPos = horiPos;
     horiPos = thisPos - 1;
@@ -200,7 +221,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
     }
   }
 
-  calcBestSeq1positionTiny();
+  calcBestSeq1positionTiny(scoreOffset);
   return bestScore;
 }
 
