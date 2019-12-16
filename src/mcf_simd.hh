@@ -148,7 +148,7 @@ static inline int simdHorizontalMax(SimdInt x) {
 }
 
 static inline SimdInt simdBytesToInts(SimdInt x) {
-  return _mm_cvtepi8_epi32(x);
+  return _mm_cvtepi8_epi32(x);  // SSE4.1
 }
 
 #else

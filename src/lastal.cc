@@ -673,7 +673,8 @@ void alignGapped( LastAligner& aligner,
 
     // do gapped extension from each end of the seed:
     aln.makeXdrop( aligner.centroid, aligner.greedyAligner, args.isGreedy,
-		   dis.a, dis.b, args.globality, dis.m, scoreMatrix.maxScore,
+		   dis.a, dis.b, args.globality,
+		   dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 		   gapCosts, dis.d, args.frameshiftCost, frameSize,
 		   dis.p, dis.t, dis.i, dis.j, alph, extras );
     ++gappedExtensionCount;
@@ -742,8 +743,8 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       probAln.seed = aln.seed;
       probAln.makeXdrop( centroid, aligner.greedyAligner, args.isGreedy,
 			 dis.a, dis.b, args.globality,
-			 dis.m, scoreMatrix.maxScore, gapCosts, dis.d,
-                         args.frameshiftCost, frameSize,
+			 dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
+			 gapCosts, dis.d, args.frameshiftCost, frameSize,
 			 dis.p, dis.t, dis.i, dis.j, alph, extras,
 			 args.gamma, args.outputType );
       assert( aln.score != -INF );

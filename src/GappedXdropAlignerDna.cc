@@ -46,13 +46,12 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 
   int bestScore = 0;
   SimdInt mBestScore = simdZero();
+  SimdInt mMinScore = simdFill(-maxScoreDrop);
 
   init();
   seq1queue.clear();
   seq2queue.clear();
 
-  bool isDelimiter1 = (*seq1 == delimiter);
-  bool isDelimiter2 = (*seq2 == delimiter);
   bool isDna = (toUnmasked[*seq1] < 4 && toUnmasked[*seq2] < 4);
 
   for (int i = 0; i < seqLoadLen; ++i) {
@@ -80,13 +79,6 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
     const Score *z1 = &zScores[horiPos + 1];
     const Score *x2 = &xScores[diagPos];
 
-    if (isDelimiter1 || isDelimiter2) {
-      updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
-    }
-
-    int minScore = bestScore - maxScoreDrop;
-    SimdInt mMinScore = simdFill(minScore);
-
     if (isDna) {
       for (int i = 0; i < numCells; i += simdLen) {
 	__m128i fwd1 = simdLoad128(s1);
@@ -107,6 +99,11 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	s2 -= simdLen;
       }
     } else {
+      if (s1[n] == delimiter || s2[0] == delimiter) {
+	updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
+	mMinScore = simdFill(bestScore - maxScoreDrop);
+      }
+
       for (int i = 0; i < numCells; i += simdLen) {
 	SimdInt s = simdSet(
 #ifdef __SSE4_1__
@@ -121,6 +118,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 			    scorer[s1[1]][s2[-1]],
 #endif
 			    scorer[s1[0]][s2[-0]]);
+
 	SimdInt x = simdLoad(x2+i);
 	SimdInt y = simdSub(simdLoad(y1+i), mDelGrowCost);
 	SimdInt z = simdSub(simdLoad(z1+i), mInsGrowCost);
@@ -139,6 +137,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
     if (newBestScore > bestScore) {
       bestScore = newBestScore;
       bestAntidiagonal = antidiagonal;
+      mMinScore = simdFill(bestScore - maxScoreDrop);
     }
 
     diagPos = horiPos;
@@ -153,7 +152,6 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
       uchar z = seq1queue.fromEnd(seqLoadLen);
       if (z >= 4) {
 	isDna = false;
-	isDelimiter1 = (z == delimiter);
       }
     }
 
@@ -163,7 +161,6 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
       seq2 += seqIncrement;
       if (y >= 4) {
 	isDna = false;
-	isDelimiter2 = (y == delimiter);
       }
     } else {
       ++seq1beg;

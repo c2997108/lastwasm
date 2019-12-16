@@ -60,7 +60,8 @@ static bool isNext( const SegmentPair& x, const SegmentPair& y ){
 void Alignment::makeXdrop( Centroid& centroid,
 			   GreedyXdropAligner& greedyAligner, bool isGreedy,
 			   const uchar* seq1, const uchar* seq2, int globality,
-			   const ScoreMatrixRow* scoreMatrix, int smMax,
+			   const ScoreMatrixRow* scoreMatrix,
+			   int smMax, int smMin,
 			   const mcf::GapCosts& gap, int maxDrop,
 			   int frameshiftCost, size_t frameSize,
 			   const ScoreMatrixRow* pssm2,
@@ -87,7 +88,7 @@ void Alignment::makeXdrop( Centroid& centroid,
   std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
   extend( blocks, columnAmbiguityCodes, centroid, greedyAligner, isGreedy,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
-	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
+	  scoreMatrix, smMax, smMin, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
 	  extras, gamma, outputType );
 
@@ -107,7 +108,7 @@ void Alignment::makeXdrop( Centroid& centroid,
   std::vector<char> forwardAmbiguities;
   extend( forwardBlocks, forwardAmbiguities, centroid, greedyAligner, isGreedy,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
-	  scoreMatrix, smMax, maxDrop, gap, frameshiftCost,
+	  scoreMatrix, smMax, smMin, maxDrop, gap, frameshiftCost,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
 	  extras, gamma, outputType );
 
@@ -279,8 +280,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			const uchar* seq1, const uchar* seq2,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
-			const ScoreMatrixRow* sm, int smMax, int maxDrop,
-			const mcf::GapCosts& gap,
+			const ScoreMatrixRow* sm, int smMax, int smMin,
+			int maxDrop, const mcf::GapCosts& gap,
 			int frameshiftCost, size_t frameSize,
 			const ScoreMatrixRow* pssm2,
                         const TwoQualityScoreMatrix& sm2qual,
@@ -324,11 +325,11 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     --start2;
   }
 
-  bool isSimdMatrix = (alph.size == 4 && smMax < 128 &&
-		       !globality && gap.isAffine);
+  bool isSimdMatrix = (alph.size == 4 && !globality && gap.isAffine &&
+		       smMax <= SCHAR_MAX && smMin >= SCHAR_MIN);
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
-      if (sm[i][j] < -128 || sm[i][j] != sm[alph.numbersToLowercase[i]][j])
+      if (sm[i][j] != sm[alph.numbersToLowercase[i]][j])
 	isSimdMatrix = false;
 
   int extensionScore =
