@@ -82,7 +82,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
     int n = numCells - 1;
 
     const uchar *s1 = &seq1queue.fromEnd(n + seqLoadLen);
-    const uchar *s2 = &seq2queue.fromEnd(1);
+    const uchar *s2 = seq2queue.begin();
 
     initAntidiagonalTiny(seq1end, thisPos, numCells);
     thisPos += xdropPadLen;
@@ -99,8 +99,8 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 
     if (isDna) {
       for (int i = 0; i < numCells; i += simdBytes) {
-	SimdInt fwd1 = simdLoad(s1);
-	SimdInt rev2 = simdLoadRev1(s2 - (seqLoadLen-1));
+	SimdInt fwd1 = simdLoad(s1+i);
+	SimdInt rev2 = simdLoad(s2+i);
 	SimdInt j = simdOr(simdLeft(fwd1, 2), rev2);
 	SimdInt s = simdChoose1(scorer4x4, j);
 	SimdInt x = simdSubs1(simdLoad(x2+i), mScoreRise12);
@@ -112,8 +112,6 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	simdStore(x0+i, simdBlend(simdAdd1(b, s), mNegInf, isDrop));
 	simdStore(y0+i, simdMax1(simdSubs1(b, mDelOpenCost), y));
 	simdStore(z0+i, simdMax1(simdSubs1(b, mInsOpenCost), z));
-	s1 += simdBytes;
-	s2 -= simdBytes;
       }
     } else {
       bool isDelimiter1 = (s1[n] == delimiter);
@@ -127,40 +125,40 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	SimdInt s = simdSet1(
 #ifdef __SSE4_1__
 #ifdef __AVX2__
-			     scorer[s1[31]][s2[-31]],
-			     scorer[s1[30]][s2[-30]],
-			     scorer[s1[29]][s2[-29]],
-			     scorer[s1[28]][s2[-28]],
-			     scorer[s1[27]][s2[-27]],
-			     scorer[s1[26]][s2[-26]],
-			     scorer[s1[25]][s2[-25]],
-			     scorer[s1[24]][s2[-24]],
-			     scorer[s1[23]][s2[-23]],
-			     scorer[s1[22]][s2[-22]],
-			     scorer[s1[21]][s2[-21]],
-			     scorer[s1[20]][s2[-20]],
-			     scorer[s1[19]][s2[-19]],
-			     scorer[s1[18]][s2[-18]],
-			     scorer[s1[17]][s2[-17]],
-			     scorer[s1[16]][s2[-16]],
+			     scorer[s1[31]][s2[31]],
+			     scorer[s1[30]][s2[30]],
+			     scorer[s1[29]][s2[29]],
+			     scorer[s1[28]][s2[28]],
+			     scorer[s1[27]][s2[27]],
+			     scorer[s1[26]][s2[26]],
+			     scorer[s1[25]][s2[25]],
+			     scorer[s1[24]][s2[24]],
+			     scorer[s1[23]][s2[23]],
+			     scorer[s1[22]][s2[22]],
+			     scorer[s1[21]][s2[21]],
+			     scorer[s1[20]][s2[20]],
+			     scorer[s1[19]][s2[19]],
+			     scorer[s1[18]][s2[18]],
+			     scorer[s1[17]][s2[17]],
+			     scorer[s1[16]][s2[16]],
 #endif
-			     scorer[s1[15]][s2[-15]],
-			     scorer[s1[14]][s2[-14]],
-			     scorer[s1[13]][s2[-13]],
-			     scorer[s1[12]][s2[-12]],
-			     scorer[s1[11]][s2[-11]],
-			     scorer[s1[10]][s2[-10]],
-			     scorer[s1[9]][s2[-9]],
-			     scorer[s1[8]][s2[-8]],
-			     scorer[s1[7]][s2[-7]],
-			     scorer[s1[6]][s2[-6]],
-			     scorer[s1[5]][s2[-5]],
-			     scorer[s1[4]][s2[-4]],
-			     scorer[s1[3]][s2[-3]],
-			     scorer[s1[2]][s2[-2]],
-			     scorer[s1[1]][s2[-1]],
+			     scorer[s1[15]][s2[15]],
+			     scorer[s1[14]][s2[14]],
+			     scorer[s1[13]][s2[13]],
+			     scorer[s1[12]][s2[12]],
+			     scorer[s1[11]][s2[11]],
+			     scorer[s1[10]][s2[10]],
+			     scorer[s1[9]][s2[9]],
+			     scorer[s1[8]][s2[8]],
+			     scorer[s1[7]][s2[7]],
+			     scorer[s1[6]][s2[6]],
+			     scorer[s1[5]][s2[5]],
+			     scorer[s1[4]][s2[4]],
+			     scorer[s1[3]][s2[3]],
+			     scorer[s1[2]][s2[2]],
+			     scorer[s1[1]][s2[1]],
 #endif
-			     scorer[s1[0]][s2[-0]]);
+			     scorer[s1[0]][s2[0]]);
 
 	SimdInt x = simdSubs1(simdLoad(x2+i), mScoreRise12);
 	SimdInt y = simdSubs1(simdLoad(y1+i), mDelGrowCost1);
@@ -172,7 +170,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	simdStore(y0+i, simdMax1(simdSubs1(b, mDelOpenCost), y));
 	simdStore(z0+i, simdMax1(simdSubs1(b, mInsOpenCost), z));
 	s1 += simdBytes;
-	s2 -= simdBytes;
+	s2 += simdBytes;
       }
       if (isDelimiter2) x0[0] = droppedTinyScore;
       if (isDelimiter1) x0[n] = droppedTinyScore;  // maybe n=0

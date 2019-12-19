@@ -106,7 +106,7 @@ int GappedXdropAligner::align(const uchar *seq1,
     int n = numCells - 1;
 
     const const_int_ptr *s1 = &pssmQueue.fromEnd(n + simdLen);
-    const uchar *s2 = &seq2queue.fromEnd(1);
+    const uchar *s2 = seq2queue.begin();
 
     initAntidiagonal(seq1end, thisPos, numCells);
     thisPos += xdropPadLen;
@@ -143,16 +143,16 @@ int GappedXdropAligner::align(const uchar *seq1,
 	SimdInt s = simdSet(
 #ifdef __SSE4_1__
 #ifdef __AVX2__
-			    s1[7][s2[-7]],
-			    s1[6][s2[-6]],
-			    s1[5][s2[-5]],
-			    s1[4][s2[-4]],
+			    s1[7][s2[7]],
+			    s1[6][s2[6]],
+			    s1[5][s2[5]],
+			    s1[4][s2[4]],
 #endif
-			    s1[3][s2[-3]],
-			    s1[2][s2[-2]],
-			    s1[1][s2[-1]],
+			    s1[3][s2[3]],
+			    s1[2][s2[2]],
+			    s1[1][s2[1]],
 #endif
-			    s1[0][s2[-0]]);
+			    s1[0][s2[0]]);
 	SimdInt x = simdLoad(x2+i);
 	SimdInt y = simdSub(simdLoad(y1+i), mDelGrowCost);
 	SimdInt z = simdSub(simdLoad(z1+i), mInsGrowCost);
@@ -163,7 +163,7 @@ int GappedXdropAligner::align(const uchar *seq1,
 	simdStore(y0+i, simdMax(simdSub(b, mDelOpenCost), y));
 	simdStore(z0+i, simdMax(simdSub(b, mInsOpenCost), z));
 	s1 += simdLen;
-	s2 -= simdLen;
+	s2 += simdLen;
       }
 
       int newBestScore = simdHorizontalMax(mBestScore);
@@ -190,7 +190,7 @@ int GappedXdropAligner::align(const uchar *seq1,
         }
         else x0[i] = y0[i] = z0[i] = -INF;
 	++s1;
-	--s2;
+	++s2;
       }
     }
 

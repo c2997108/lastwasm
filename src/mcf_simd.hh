@@ -173,15 +173,6 @@ static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
   return _mm256_shuffle_epi8(items, choices);
 }
 
-static inline SimdInt simdLoadRev1(const void *p) {
-  const SimdInt i = simdSet1(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
-			     0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15);
-  // maybe there's a faster way?
-  SimdInt x = simdLoad(p);
-  x = _mm256_permute4x64_epi64(x, 0x4E);
-  return simdChoose1(x, i);
-}
-
 #elif defined __SSE4_1__
 
 typedef __m128i SimdInt;
@@ -321,12 +312,6 @@ static inline SimdInt simdBytesToInts2(SimdInt x) {
 
 static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
   return _mm_shuffle_epi8(items, choices);
-}
-
-static inline SimdInt simdLoadRev1(const void *p) {
-  const SimdInt i = simdSet1(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15);
-  SimdInt x = simdLoad(p);
-  return simdChoose1(x, i);
 }
 
 #else

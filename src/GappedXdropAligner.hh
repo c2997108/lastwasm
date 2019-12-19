@@ -46,6 +46,7 @@
 #define GAPPED_XDROP_ALIGNER_HH
 
 #include "mcf_contiguous_queue.hh"
+#include "mcf_reverse_queue.hh"
 #include "mcf_simd.hh"
 #include "ScoreMatrixRow.hh"
 
@@ -258,7 +259,7 @@ class GappedXdropAligner {
 
   ContiguousQueue<const int *> pssmQueue;
   ContiguousQueue<uchar> seq1queue;
-  ContiguousQueue<uchar> seq2queue;
+  ReverseQueue<uchar> seq2queue;
 
   // Our position during the trace-back:
   size_t bestAntidiagonal;
