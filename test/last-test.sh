@@ -213,6 +213,9 @@ trap 'rm -f $db*' EXIT
     lastal -r2 -q2 -a10 -X1 $db dfam3-LTR22C.fa
     lastal -r2 -q2 -a10 -X2 $db dfam3-LTR22C.fa
     lastal -r2 -q2 -a10 -X3 $db dfam3-LTR22C.fa
+
+    # gap cost > SCHAR_MAX
+    lastal -r12 -q12 -a128 $db dfam3-LTR22C.fa
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff -u last-test.out -

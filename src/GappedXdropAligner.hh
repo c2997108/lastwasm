@@ -62,13 +62,13 @@ typedef unsigned char uchar;
 typedef const int *const_int_ptr;
 
 typedef int Score;
-typedef signed char TinyScore;
+typedef uchar TinyScore;
 
 class TwoQualityScoreMatrix;
 
 const int xdropPadLen = simdBytes;
 
-const int droppedTinyScore = SCHAR_MIN;
+const int droppedTinyScore = UCHAR_MAX;
 
 class GappedXdropAligner {
  public:
@@ -333,7 +333,7 @@ class GappedXdropAligner {
   }
 
   void initAntidiagonalTiny(size_t seq1end, size_t thisEnd, int numCells) {
-    const SimdInt mNegInf = simdFill1(droppedTinyScore);
+    const SimdInt mNegInf = simdOnes();
     size_t nextEnd = thisEnd + xdropPadLen + numCells;
     scoreEnds.push_back(nextEnd);
     scoreOrigins.push_back(nextEnd - seq1end);
@@ -357,8 +357,8 @@ class GappedXdropAligner {
     size_t seq1beg = seq1start(bestAntidiagonal);
     const TinyScore *x2 = &xTinyScores[diag(bestAntidiagonal, seq1beg)];
     const TinyScore *x2beg = x2;
-    int target = scoreOffset + scoreRises[bestAntidiagonal] +
-      scoreRises[bestAntidiagonal + 1] + scoreRises[bestAntidiagonal + 2];
+    int target = scoreOffset - scoreRises[bestAntidiagonal] -
+      scoreRises[bestAntidiagonal + 1] - scoreRises[bestAntidiagonal + 2];
     while (*x2 != target) ++x2;
     bestSeq1position = x2 - x2beg + seq1beg;
   }

@@ -23,19 +23,21 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 				 int maxScoreDrop,
 				 int maxMatchScore,
 				 const uchar *toUnmasked) {
-  delGrowCost = std::min(delGrowCost, maxScoreDrop + 1);
-  delOpenCost = std::min(delOpenCost, maxScoreDrop + 1 - delGrowCost);
+  int badScoreDrop = maxScoreDrop + 1;
 
-  insGrowCost = std::min(insGrowCost, maxScoreDrop + 1);
-  insOpenCost = std::min(insOpenCost, maxScoreDrop + 1 - insGrowCost);
+  delGrowCost = std::min(delGrowCost, badScoreDrop);
+  delOpenCost = std::min(delOpenCost, badScoreDrop - delGrowCost);
 
-  const SimdInt mNegInf = simdFill1(droppedTinyScore);
+  insGrowCost = std::min(insGrowCost, badScoreDrop);
+  insOpenCost = std::min(insOpenCost, badScoreDrop - insGrowCost);
+
+  const SimdInt mNegInf = simdOnes();
   const SimdInt mDelOpenCost = simdFill1(delOpenCost);
   const SimdInt mDelGrowCost = simdFill1(delGrowCost);
   const SimdInt mInsOpenCost = simdFill1(insOpenCost);
   const SimdInt mInsGrowCost = simdFill1(insGrowCost);
   const int seqIncrement = isForward ? 1 : -1;
-  const int scoreOffset = SCHAR_MAX - maxMatchScore * 2;
+  const int scoreOffset = maxMatchScore * 2;
 
   const SimdInt scorer4x4 =
     simdSet1(
@@ -58,7 +60,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 
   int bestScore = 0;
   SimdInt mBestScore = mNegInf;
-  SimdInt mMinScore = simdFill1(scoreOffset - maxScoreDrop);
+  SimdInt mBadScore = simdFill1(scoreOffset + badScoreDrop);
   SimdInt mScoreRise1 = simdZero();
   SimdInt mScoreRise2 = simdZero();
 
@@ -103,22 +105,22 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	SimdInt rev2 = simdLoad(s2+i);
 	SimdInt j = simdOr(simdLeft(fwd1, 2), rev2);
 	SimdInt s = simdChoose1(scorer4x4, j);
-	SimdInt x = simdSubs1(simdLoad(x2+i), mScoreRise12);
-	SimdInt y = simdSubs1(simdLoad(y1+i), mDelGrowCost1);
-	SimdInt z = simdSubs1(simdLoad(z1+i), mInsGrowCost1);
-	SimdInt b = simdMax1(simdMax1(x, y), z);
-	SimdInt isDrop = simdGt1(mMinScore, b);
-	mBestScore = simdMax1(b, mBestScore);
-	simdStore(x0+i, simdBlend(simdAdd1(b, s), mNegInf, isDrop));
-	simdStore(y0+i, simdMax1(simdSubs1(b, mDelOpenCost), y));
-	simdStore(z0+i, simdMax1(simdSubs1(b, mInsOpenCost), z));
+	SimdInt x = simdAdds1(simdLoad(x2+i), mScoreRise12);
+	SimdInt y = simdAdds1(simdLoad(y1+i), mDelGrowCost1);
+	SimdInt z = simdAdds1(simdLoad(z1+i), mInsGrowCost1);
+	SimdInt b = simdMin1(simdMin1(x, y), z);
+	SimdInt isDrop = simdEq1(simdMin1(b, mBadScore), mBadScore);
+	mBestScore = simdMin1(b, mBestScore);
+	simdStore(x0+i, simdOr(simdSub1(b, s), isDrop));
+	simdStore(y0+i, simdMin1(simdAdds1(b, mDelOpenCost), y));
+	simdStore(z0+i, simdMin1(simdAdds1(b, mInsOpenCost), z));
       }
     } else {
       bool isDelimiter1 = (s1[n] == delimiter);
       bool isDelimiter2 = (s2[0] == delimiter);
       if (isDelimiter1 || isDelimiter2) {
-	updateMaxScoreDrop(maxScoreDrop, n, maxMatchScore);
-	mMinScore = simdFill1(scoreOffset - maxScoreDrop);
+	badScoreDrop = std::min(badScoreDrop, n * maxMatchScore);
+	mBadScore = simdFill1(scoreOffset + badScoreDrop);
       }
 
       for (int i = 0; i < numCells; i += simdBytes) {
@@ -160,15 +162,15 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 #endif
 			     scorer[s1[0]][s2[0]]);
 
-	SimdInt x = simdSubs1(simdLoad(x2+i), mScoreRise12);
-	SimdInt y = simdSubs1(simdLoad(y1+i), mDelGrowCost1);
-	SimdInt z = simdSubs1(simdLoad(z1+i), mInsGrowCost1);
-	SimdInt b = simdMax1(simdMax1(x, y), z);
-	SimdInt isDrop = simdGt1(mMinScore, b);
-	mBestScore = simdMax1(b, mBestScore);
-	simdStore(x0+i, simdBlend(simdAdd1(b, s), mNegInf, isDrop));
-	simdStore(y0+i, simdMax1(simdSubs1(b, mDelOpenCost), y));
-	simdStore(z0+i, simdMax1(simdSubs1(b, mInsOpenCost), z));
+	SimdInt x = simdAdds1(simdLoad(x2+i), mScoreRise12);
+	SimdInt y = simdAdds1(simdLoad(y1+i), mDelGrowCost1);
+	SimdInt z = simdAdds1(simdLoad(z1+i), mInsGrowCost1);
+	SimdInt b = simdMin1(simdMin1(x, y), z);
+	SimdInt isDrop = simdEq1(simdMin1(b, mBadScore), mBadScore);
+	mBestScore = simdMin1(b, mBestScore);
+	simdStore(x0+i, simdOr(simdSub1(b, s), isDrop));
+	simdStore(y0+i, simdMin1(simdAdds1(b, mDelOpenCost), y));
+	simdStore(z0+i, simdMin1(simdAdds1(b, mInsOpenCost), z));
 	s1 += simdBytes;
 	s2 += simdBytes;
       }
@@ -178,10 +180,10 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 
     mScoreRise2 = mScoreRise1;
     mScoreRise1 = simdZero();
-    int newBestScore = simdHorizontalMax1(mBestScore);
+    int newBestScore = simdHorizontalMin1(mBestScore);
     int rise = 0;
-    if (newBestScore > scoreOffset) {
-      rise = newBestScore - scoreOffset;
+    if (newBestScore < scoreOffset) {
+      rise = scoreOffset - newBestScore;
       bestScore += rise;
       bestAntidiagonal = antidiagonal;
       mBestScore = mNegInf;
@@ -193,7 +195,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
     horiPos = thisPos - 1;
     thisPos += numCells;
 
-    if (x0[n] > droppedTinyScore) {
+    if (x0[n] != droppedTinyScore) {
       ++seq1end;
       uchar x = toUnmasked[*seq1];
       seq1queue.push(x, n + seqLoadLen);
@@ -204,7 +206,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
       }
     }
 
-    if (x0[0] > droppedTinyScore) {
+    if (x0[0] != droppedTinyScore) {
       uchar y = toUnmasked[*seq2];
       seq2queue.push(y, n + seqLoadLen);
       seq2 += seqIncrement;
@@ -240,10 +242,10 @@ bool GappedXdropAligner::getNextChunkDna(size_t &end1,
     size_t h = hori(bestAntidiagonal, bestSeq1position);
     size_t v = vert(bestAntidiagonal, bestSeq1position);
     size_t d = diag(bestAntidiagonal, bestSeq1position);
-    x = xTinyScores[d] - scoreRises[bestAntidiagonal];
-    y = yTinyScores[h] - delGrowCost;
-    z = zTinyScores[v] - insGrowCost;
-    if (x < y || x < z || bestAntidiagonal == 0) break;
+    x = xTinyScores[d] + scoreRises[bestAntidiagonal];
+    y = yTinyScores[h] + delGrowCost;
+    z = zTinyScores[v] + insGrowCost;
+    if (x > y || x > z || bestAntidiagonal == 0) break;
     bestAntidiagonal -= 2;
     bestSeq1position -= 1;
   }
@@ -252,21 +254,21 @@ bool GappedXdropAligner::getNextChunkDna(size_t &end1,
   if (bestAntidiagonal == 0) return true;
 
   while (1) {
-    bool isDel = (y >= z);
+    bool isDel = (y <= z);
     bestAntidiagonal -= 1;
     if (isDel) bestSeq1position -= 1;
     size_t h = hori(bestAntidiagonal, bestSeq1position);
     size_t v = vert(bestAntidiagonal, bestSeq1position);
     size_t d = diag(bestAntidiagonal, bestSeq1position);
-    x = xTinyScores[d] - scoreRises[bestAntidiagonal];
-    y = yTinyScores[h] - delGrowCost;
-    z = zTinyScores[v] - insGrowCost;
+    x = xTinyScores[d] + scoreRises[bestAntidiagonal];
+    y = yTinyScores[h] + delGrowCost;
+    z = zTinyScores[v] + insGrowCost;
     if (isDel) {
-      y += delOpenCost;
+      y -= delOpenCost;
     } else {
-      z += insOpenCost;
+      z -= insOpenCost;
     }
-    if (x >= y && x >= z) return true;
+    if (x <= y && x <= z) return true;
   }
 }
 
