@@ -347,11 +347,13 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 				  del.openCost, del.growCost,
 				  ins.openCost, ins.growCost,
 				  gap.pairCost, gap.isAffine, maxDrop, smMax)
+#if defined __SSE4_1__
     : isSimdMatrix ? aligner.alignDna(seq1 + start1, seq2 + start2,
 				      isForward, sm,
 				      del.openCost, del.growCost,
 				      ins.openCost, ins.growCost,
 				      maxDrop, smMax, alph.numbersToUppercase)
+#endif
     :           aligner.align(seq1 + start1, seq2 + start2,
 			      isForward, globality, sm,
 			      del.openCost, del.growCost,
@@ -370,12 +372,16 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     if( isGreedy ){
       while( greedyAligner.getNextChunk( end1, end2, size ) )
 	chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
-    } else if (isSimdMatrix && !pssm2 && !sm2qual) {
+    }
+#if defined __SSE4_1__
+    else if (isSimdMatrix && !pssm2 && !sm2qual) {
       while (aligner.getNextChunkDna(end1, end2, size,
 				     del.openCost, del.growCost,
 				     ins.openCost, ins.growCost))
 	chunks.push_back(SegmentPair(end1 - size, end2 - size, size));
-    }else{
+    }
+#endif
+    else {
       while( aligner.getNextChunk( end1, end2, size,
 				   del.openCost, del.growCost,
 				   ins.openCost, ins.growCost, gap.pairCost ) )

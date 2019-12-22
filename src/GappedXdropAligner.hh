@@ -317,7 +317,7 @@ class GappedXdropAligner {
   void init3();
 
   // Everything below here is for alignDna & getNextChunkDna
-
+#if defined __SSE4_1__
   std::vector<TinyScore> xTinyScores;
   std::vector<TinyScore> yTinyScores;
   std::vector<TinyScore> zTinyScores;
@@ -362,6 +362,7 @@ class GappedXdropAligner {
     while (*x2 != target) ++x2;
     bestSeq1position = x2 - x2beg + seq1beg;
   }
+#endif
 };
 
 }

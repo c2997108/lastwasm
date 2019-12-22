@@ -1,6 +1,8 @@
 // Author: Martin C. Frith 2019
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#if defined __SSE4_1__
+
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
 
@@ -109,7 +111,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	SimdInt y = simdAdds1(simdLoad(y1+i), mDelGrowCost1);
 	SimdInt z = simdAdds1(simdLoad(z1+i), mInsGrowCost1);
 	SimdInt b = simdMin1(simdMin1(x, y), z);
-	SimdInt isDrop = simdEq1(simdMin1(b, mBadScore), mBadScore);
+	SimdInt isDrop = simdGe1(b, mBadScore);
 	mBestScore = simdMin1(b, mBestScore);
 	simdStore(x0+i, simdOr(simdSub1(b, s), isDrop));
 	simdStore(y0+i, simdMin1(simdAdds1(b, mDelOpenCost), y));
@@ -166,7 +168,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	SimdInt y = simdAdds1(simdLoad(y1+i), mDelGrowCost1);
 	SimdInt z = simdAdds1(simdLoad(z1+i), mInsGrowCost1);
 	SimdInt b = simdMin1(simdMin1(x, y), z);
-	SimdInt isDrop = simdEq1(simdMin1(b, mBadScore), mBadScore);
+	SimdInt isDrop = simdGe1(b, mBadScore);
 	mBestScore = simdMin1(b, mBestScore);
 	simdStore(x0+i, simdOr(simdSub1(b, s), isDrop));
 	simdStore(y0+i, simdMin1(simdAdds1(b, mDelOpenCost), y));
@@ -273,3 +275,5 @@ bool GappedXdropAligner::getNextChunkDna(size_t &end1,
 }
 
 }
+
+#endif

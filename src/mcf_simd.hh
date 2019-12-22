@@ -4,7 +4,9 @@
 #ifndef MCF_SIMD_HH
 #define MCF_SIMD_HH
 
+#if defined __SSE4_1__
 #include <immintrin.h>
+#endif
 
 namespace mcf {
 
@@ -39,19 +41,10 @@ static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
 }
 
 const int simdLen = 8;
-const int simdLen2 = 16;
 
 static inline SimdInt simdSet(int i7, int i6, int i5, int i4,
 			      int i3, int i2, int i1, int i0) {
   return _mm256_set_epi32(i7, i6, i5, i4, i3, i2, i1, i0);
-}
-
-static inline SimdInt simdSet2(short iF, short iE, short iD, short iC,
-			       short iB, short iA, short i9, short i8,
-			       short i7, short i6, short i5, short i4,
-			       short i3, short i2, short i1, short i0) {
-  return _mm256_set_epi16(iF, iE, iD, iC, iB, iA, i9, i8,
-			  i7, i6, i5, i4, i3, i2, i1, i0);
 }
 
 static inline SimdInt simdSet1(char jF, char jE, char jD, char jC,
@@ -72,32 +65,20 @@ static inline SimdInt simdFill(int x) {
   return _mm256_set1_epi32(x);
 }
 
-static inline SimdInt simdFill2(short x) {
-  return _mm256_set1_epi16(x);
-}
-
 static inline SimdInt simdFill1(char x) {
   return _mm256_set1_epi8(x);
-}
-
-static inline SimdInt simdEq1(SimdInt x, SimdInt y) {
-  return _mm256_cmpeq_epi8(x, y);
 }
 
 static inline SimdInt simdGt(SimdInt x, SimdInt y) {
   return _mm256_cmpgt_epi32(x, y);
 }
 
-static inline SimdInt simdGt2(SimdInt x, SimdInt y) {
-  return _mm256_cmpgt_epi16(x, y);
+static inline SimdInt simdGe1(SimdInt x, SimdInt y) {
+  return _mm256_cmpeq_epi8(_mm256_min_epu8(x, y), y);
 }
 
 static inline SimdInt simdAdd(SimdInt x, SimdInt y) {
   return _mm256_add_epi32(x, y);
-}
-
-static inline SimdInt simdAdd2(SimdInt x, SimdInt y) {
-  return _mm256_add_epi16(x, y);
 }
 
 static inline SimdInt simdAdd1(SimdInt x, SimdInt y) {
@@ -112,10 +93,6 @@ static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return _mm256_sub_epi32(x, y);
 }
 
-static inline SimdInt simdSub2(SimdInt x, SimdInt y) {
-  return _mm256_sub_epi16(x, y);
-}
-
 static inline SimdInt simdSub1(SimdInt x, SimdInt y) {
   return _mm256_sub_epi8(x, y);
 }
@@ -128,10 +105,6 @@ static inline SimdInt simdMax(SimdInt x, SimdInt y) {
   return _mm256_max_epi32(x, y);
 }
 
-static inline SimdInt simdMax2(SimdInt x, SimdInt y) {
-  return _mm256_max_epi16(x, y);
-}
-
 static inline SimdInt simdMin1(SimdInt x, SimdInt y) {
   return _mm256_min_epu8(x, y);
 }
@@ -142,14 +115,6 @@ static inline int simdHorizontalMax(SimdInt x) {
   z = _mm_max_epi32(z, _mm_shuffle_epi32(z, 0x4E));
   z = _mm_max_epi32(z, _mm_shuffle_epi32(z, 0xB1));
   return _mm_cvtsi128_si32(z);
-}
-
-static inline int simdHorizontalMax2(SimdInt x) {
-  __m128i z = _mm256_castsi256_si128(x);
-  z = _mm_max_epi16(z, _mm256_extracti128_si256(x, 1));
-  z = _mm_sub_epi16(_mm_set1_epi16(32767), z);
-  z = _mm_minpos_epu16(z);
-  return 32767 - _mm_extract_epi16(z, 0);
 }
 
 static inline int simdHorizontalMin1(SimdInt x) {
@@ -195,15 +160,9 @@ static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
 }
 
 const int simdLen = 4;
-const int simdLen2 = 8;
 
 static inline SimdInt simdSet(int i3, int i2, int i1, int i0) {
   return _mm_set_epi32(i3, i2, i1, i0);
-}
-
-static inline SimdInt simdSet2(short i7, short i6, short i5, short i4,
-			       short i3, short i2, short i1, short i0) {
-  return _mm_set_epi16(i7, i6, i5, i4, i3, i2, i1, i0);
 }
 
 static inline SimdInt simdSet1(char iF, char iE, char iD, char iC,
@@ -218,32 +177,20 @@ static inline SimdInt simdFill(int x) {
   return _mm_set1_epi32(x);
 }
 
-static inline SimdInt simdFill2(short x) {
-  return _mm_set1_epi16(x);
-}
-
 static inline SimdInt simdFill1(char x) {
   return _mm_set1_epi8(x);
-}
-
-static inline SimdInt simdEq1(SimdInt x, SimdInt y) {
-  return _mm_cmpeq_epi8(x, y);
 }
 
 static inline SimdInt simdGt(SimdInt x, SimdInt y) {
   return _mm_cmpgt_epi32(x, y);
 }
 
-static inline SimdInt simdGt2(SimdInt x, SimdInt y) {
-  return _mm_cmpgt_epi16(x, y);
+static inline SimdInt simdGe1(SimdInt x, SimdInt y) {
+  return _mm_cmpeq_epi8(_mm_min_epu8(x, y), y);
 }
 
 static inline SimdInt simdAdd(SimdInt x, SimdInt y) {
   return _mm_add_epi32(x, y);
-}
-
-static inline SimdInt simdAdd2(SimdInt x, SimdInt y) {
-  return _mm_add_epi16(x, y);
 }
 
 static inline SimdInt simdAdd1(SimdInt x, SimdInt y) {
@@ -258,10 +205,6 @@ static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return _mm_sub_epi32(x, y);
 }
 
-static inline SimdInt simdSub2(SimdInt x, SimdInt y) {
-  return _mm_sub_epi16(x, y);
-}
-
 static inline SimdInt simdSub1(SimdInt x, SimdInt y) {
   return _mm_sub_epi8(x, y);
 }
@@ -274,10 +217,6 @@ static inline SimdInt simdMax(SimdInt x, SimdInt y) {
   return _mm_max_epi32(x, y);  // SSE4.1
 }
 
-static inline SimdInt simdMax2(SimdInt x, SimdInt y) {
-  return _mm_max_epi16(x, y);
-}
-
 static inline SimdInt simdMin1(SimdInt x, SimdInt y) {
   return _mm_min_epu8(x, y);
 }
@@ -288,12 +227,6 @@ static inline int simdHorizontalMax(SimdInt x) {
   return _mm_cvtsi128_si32(x);
 }
 
-static inline int simdHorizontalMax2(SimdInt x) {
-  x = simdSub2(simdFill2(32767), x);
-  x = _mm_minpos_epu16(x);  // SSE4.1
-  return 32767 - _mm_extract_epi16(x, 0);
-}
-
 static inline int simdHorizontalMin1(SimdInt x) {
   x = _mm_min_epu8(x, _mm_srli_epi16(x, 8));
   x = _mm_minpos_epu16(x);  // SSE4.1
@@ -301,13 +234,15 @@ static inline int simdHorizontalMin1(SimdInt x) {
 }
 
 static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
-  return _mm_shuffle_epi8(items, choices);
+  return _mm_shuffle_epi8(items, choices);  // SSSE3
 }
 
 #else
 
 typedef int SimdInt;
+const int simdBytes = 1;
 const int simdLen = 1;
+static inline int simdZero() { return 0; }
 static inline int simdSet(int x) { return x; }
 static inline int simdFill(int x) { return x; }
 static inline int simdLoad(const int *p) { return *p; }
