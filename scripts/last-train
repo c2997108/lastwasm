@@ -382,7 +382,7 @@ def balancedScale(nearScale, *args):
     if abs(value) <= 0:
         return nearScale
     oldLower = oldUpper = nearScale
-    while True:  # xxx
+    while oldUpper < 2 * nearScale:  # xxx ???
         newLower = oldLower / bump
         lowerValue = scoreImbalance(newLower, *args)
         if (lowerValue < 0) != (value < 0):
@@ -395,6 +395,7 @@ def balancedScale(nearScale, *args):
             func = scoreImbalance if value < 0 else negScoreImbalance
             return rootOfIncreasingFunction(func, oldUpper, newUpper, *args)
         oldUpper = newUpper
+    return 0.0
 
 def scoresAndScale(originalScale, matParams, delRatios, insRatios):
     while True:
@@ -402,10 +403,11 @@ def scoresAndScale(originalScale, matParams, delRatios, insRatios):
         delCosts = gapCostsFromProbRatios(originalScale, *delRatios)
         insCosts = gapCostsFromProbRatios(originalScale, *insRatios)
         scale = balancedScale(originalScale, matScores, delCosts, insCosts)
-        rowFreqs = homogeneousLetterFreqs(scale, zip(*matScores))
-        colFreqs = homogeneousLetterFreqs(scale, matScores)
-        if all(i >= 0 for i in rowFreqs + colFreqs):
-            return matScores, delCosts, insCosts, scale
+        if scale > 0:
+            rowFreqs = homogeneousLetterFreqs(scale, zip(*matScores))
+            colFreqs = homogeneousLetterFreqs(scale, matScores)
+            if all(i >= 0 for i in rowFreqs + colFreqs):
+                return matScores, delCosts, insCosts, scale
         print("# the integer-rounded scores are too inaccurate: "
               "doubling the scale")
         originalScale *= 2
