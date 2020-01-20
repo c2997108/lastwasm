@@ -111,7 +111,7 @@ def doOneFile(lines):
                     if i.startswith("B="): bIns = int(i[2:])
                     if i.startswith("e="): minScore = int(i[2:])
                     if i.startswith("S="): strandParam = int(i[2:])
-                if nf > 1 and max(map(len, fields)) == 1:
+                if nf > 2 and max(map(len, fields)) == 1:
                     colHeads = fields[1:]
             elif nf == len(colHeads) + 2 and len(fields[1]) == 1:
                 rowHeads.append(fields[1])
