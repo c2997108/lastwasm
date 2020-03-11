@@ -302,7 +302,6 @@ long SplitAligner::viterbi() {
 
     for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
     long maxScore = 0;
-    cell(Vvec, minBeg) = maxScore;
     long scoreFromJump = restartScore;
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
@@ -314,6 +313,7 @@ long SplitAligner::viterbi() {
     for (unsigned j = minBeg; j < maxEnd; j++) {
 	updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
+	cell(Vvec, j) = maxScore;
 	long sMax = INT_MIN/2;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
@@ -332,10 +332,10 @@ long SplitAligner::viterbi() {
 	    sMax = std::max(sMax, s + spliceBegScore(ij + 1));
 	}
 	maxScore = std::max(sMax, maxScore);
-	cell(Vvec, j+1) = maxScore;
 	scoreFromJump = std::max(sMax + jumpScore, maxScore + restartScore);
     }
 
+    cell(Vvec, maxEnd) = maxScore;
     return (restartProb > 0) ? maxScore : endScore();
 }
 
@@ -485,7 +485,6 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 
 void SplitAligner::forward() {
     resizeVector(rescales);
-    cell(rescales, minBeg) = 1.0;
 
     resizeMatrix(Fmat);
     for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
@@ -493,6 +492,7 @@ void SplitAligner::forward() {
     double probFromJump = restartProb;
     double begprob = 1.0;
     double zF = 0.0;  // sum of probabilities from the forward algorithm
+    double rescale = 1;
 
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
 		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
@@ -503,7 +503,7 @@ void SplitAligner::forward() {
     for (unsigned j = minBeg; j < maxEnd; j++) {
 	updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
-	double rescale = cell(rescales, j);
+	cell(rescales, j) = rescale;
 	zF /= rescale;
 	double pSum = 0.0;
 	double rNew = 1.0;
@@ -525,9 +525,9 @@ void SplitAligner::forward() {
 	    rNew += p;
         }
         begprob /= rescale;
-        cell(rescales, j+1) = rNew;
 	sumProb = pSum + sumProb / rescale;
 	probFromJump = pSum * jumpProb + sumProb * restartProb;
+	rescale = rNew;
     }
 
     if (restartProb > 0) zF = sumProb;
