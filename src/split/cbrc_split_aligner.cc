@@ -504,9 +504,9 @@ void SplitAligner::forward() {
 	updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
 	cell(rescales, j) = rescale;
-	zF /= rescale;
+	zF *= rescale;
 	double pSum = 0.0;
-	double rNew = 1.0;
+	double rNew = 0.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
 	    size_t ij = matrixRowOrigins[i] + j;
@@ -517,22 +517,22 @@ void SplitAligner::forward() {
 	    p *= spliceEndProb(ij);
 	    p += Fmat[ij] * Dexp[ij];
 	    if (restartProb <= 0 && alns[i].qstart == j) p += begprob;
-	    p = p * Aexp[ij] / rescale;
+	    p = p * Aexp[ij] * rescale;
 
 	    Fmat[ij + 1] = p;
 	    if (alns[i].qend == j+1) zF += p;
 	    pSum += p * spliceBegProb(ij + 1);
 	    rNew += p;
         }
-        begprob /= rescale;
-	sumProb = pSum + sumProb / rescale;
+        begprob *= rescale;
+	sumProb = pSum + sumProb * rescale;
 	probFromJump = pSum * jumpProb + sumProb * restartProb;
-	rescale = rNew;
+	rescale = 1 / (rNew + 1);
     }
 
     if (restartProb > 0) zF = sumProb;
-    //zF /= cell(rescales, maxEnd);
-    cell(rescales, maxEnd) = zF;  // this causes scaled zF to equal 1
+    //zF *= cell(rescales, maxEnd);
+    cell(rescales, maxEnd) = 1 / zF;  // this causes scaled zF to equal 1
 }
 
 void SplitAligner::backward() {
@@ -555,7 +555,7 @@ void SplitAligner::backward() {
 	updateInplayAlnIndicesB(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
 	double rescale = cell(rescales, j);
-	//zB /= rescale;
+	//zB *= rescale;
 	double pSum = 0.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
@@ -567,19 +567,19 @@ void SplitAligner::backward() {
 	    p *= spliceBegProb(ij);
 	    p += Bmat[ij] * Dexp[ij];
 	    if (restartProb <= 0 && alns[i].qend == j) p += endprob;
-	    p = p * Aexp[ij - 1] / rescale;
+	    p = p * Aexp[ij - 1] * rescale;
 
 	    Bmat[ij - 1] = p;
 	    //if (alns[i].qstart == j-1) zB += p;
 	    pSum += p * spliceEndProb(ij - 1);
         }
-        endprob /= rescale;
-	sumProb = pSum * restartProb + sumProb / rescale;
+        endprob *= rescale;
+	sumProb = pSum * restartProb + sumProb * rescale;
 	probFromJump = pSum * jumpProb + sumProb;
     }
 
     //if (restartProb > 0) zB = sumProb;
-    //zB /= cell(rescales, minBeg);
+    //zB *= cell(rescales, minBeg);
 }
 
 std::vector<double>
@@ -591,7 +591,7 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
     for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
 	size_t ij = matrixRowOrigins[i] + j;
         if (alns[i].qalign[pos] == '-') {
-            double value = Fmat[ij] * Bmat[ij] * Dexp[ij] / cell(rescales, j);
+            double value = Fmat[ij] * Bmat[ij] * Dexp[ij] * cell(rescales, j);
             output.push_back(value);
         } else {
             double value = Fmat[ij + 1] * Bmat[ij] / Aexp[ij];
@@ -992,7 +992,7 @@ double SplitAligner::spliceSignalStrandLogOdds() const {
   assert(rescales.size() == rescalesRev.size());
   double logOdds = 0;
   for (unsigned j = 0; j < rescales.size(); ++j) {
-    logOdds += std::log(rescales[j] / rescalesRev[j]);
+    logOdds += std::log(rescalesRev[j] / rescales[j]);
   }
   return logOdds;
 }
