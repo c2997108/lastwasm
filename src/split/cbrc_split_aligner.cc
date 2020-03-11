@@ -104,9 +104,7 @@ void mergeInto(unsigned* beg1,
 	       const unsigned* end2,
 	       T lessFunc) {
   unsigned* end3 = end1 + (end2 - beg2);
-  for (;;) {
-    if (beg2 == end2)
-      break;
+  while (end2 != beg2) {
     if (beg1 == end1) {
       std::copy(beg2, end2, beg1);
       break;
@@ -300,15 +298,16 @@ long SplitAligner::viterbi() {
     resizeMatrix(Vmat);
     resizeVector(Vvec);
 
-    for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
-    long maxScore = 0;
-    long scoreFromJump = restartScore;
-
-    stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
+
+    stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
+		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
+
+    for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
+    long maxScore = 0;
+    long scoreFromJump = restartScore;
 
     for (unsigned j = minBeg; j < maxEnd; j++) {
 	updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
@@ -485,20 +484,21 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 
 void SplitAligner::forward() {
     resizeVector(rescales);
-
     resizeMatrix(Fmat);
+
+    unsigned sortedAlnPos = 0;
+    unsigned oldNumInplay = 0;
+    unsigned newNumInplay = 0;
+
+    stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
+		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
+
     for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
     double sumProb = 1;
     double probFromJump = restartProb;
     double begprob = 1.0;
     double zF = 0.0;  // sum of probabilities from the forward algorithm
     double rescale = 1;
-
-    stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
-    unsigned sortedAlnPos = 0;
-    unsigned oldNumInplay = 0;
-    unsigned newNumInplay = 0;
 
     for (unsigned j = minBeg; j < maxEnd; j++) {
 	updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
@@ -537,17 +537,19 @@ void SplitAligner::forward() {
 
 void SplitAligner::backward() {
     resizeMatrix(Bmat);
+
+    unsigned sortedAlnPos = 0;
+    unsigned oldNumInplay = 0;
+    unsigned newNumInplay = 0;
+
+    stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
+		QendLess(&dpEnds[0], &rnameAndStrandIds[0], &rEnds[0]));
+
     for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
     double sumProb = (restartProb > 0) ? 1 : 0;
     double probFromJump = sumProb;
     double endprob = 1.0;
     //double zB = 0.0;  // sum of probabilities from the backward algorithm
-
-    stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-		QendLess(&dpEnds[0], &rnameAndStrandIds[0], &rEnds[0]));
-    unsigned sortedAlnPos = 0;
-    unsigned oldNumInplay = 0;
-    unsigned newNumInplay = 0;
 
     for (unsigned j = maxEnd; j > minBeg; j--) {
 	updateInplayAlnIndicesB(sortedAlnPos, oldNumInplay, newNumInplay, j);
