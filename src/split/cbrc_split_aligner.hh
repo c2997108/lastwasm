@@ -74,7 +74,12 @@ public:
     // Call this before viterbi/forward/backward, and after layout
     void initMatricesForOneQuery();
 
-    long viterbi();  // returns the optimal split-alignment score
+    long viterbiSplit();
+    long viterbiSplice();
+
+    long viterbi() {  // returns the optimal split-alignment score
+      return (restartProb > 0) ? viterbiSplit() : viterbiSplice();
+    }
 
     // Gets the chunks of an optimal split alignment.
     // For each chunk, it gets:

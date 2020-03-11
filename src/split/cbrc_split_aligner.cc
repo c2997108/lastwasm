@@ -294,7 +294,38 @@ void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
   newNumInplay = (newEnd - newBeg) + (sortedAlnPos - sortedAlnOldPos);
 }
 
-long SplitAligner::viterbi() {
+long SplitAligner::viterbiSplit() {
+  resizeMatrix(Vmat);
+  resizeVector(Vvec);
+
+  unsigned sortedAlnPos = 0;
+  unsigned oldNumInplay = 0;
+  unsigned newNumInplay = 0;
+
+  stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
+	      QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
+
+  for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
+  long maxScore = 0;
+
+  for (unsigned j = minBeg; j < maxEnd; j++) {
+    updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
+    cell(Vvec, j) = maxScore;
+    long scoreFromJump = maxScore + restartScore;
+    for (unsigned x = 0; x < newNumInplay; ++x) {
+      unsigned i = newInplayAlnIndices[x];
+      size_t ij = matrixRowOrigins[i] + j;
+      long s = std::max(scoreFromJump, Vmat[ij] + Dmat[ij]) + Amat[ij];
+      Vmat[ij + 1] = s;
+      maxScore = std::max(maxScore, s);
+    }
+  }
+
+  cell(Vvec, maxEnd) = maxScore;
+  return maxScore;
+}
+
+long SplitAligner::viterbiSplice() {
     resizeMatrix(Vmat);
     resizeVector(Vvec);
 
@@ -324,7 +355,7 @@ long SplitAligner::viterbi() {
 			   scoreFromSplice(i, j, oldNumInplay, oldInplayPos));
 	    s += spliceEndScore(ij);
 	    s = std::max(s, Vmat[ij] + Dmat[ij]);
-	    if (restartProb <= 0 && alns[i].qstart == j && s < 0) s = 0;
+	    if (alns[i].qstart == j && s < 0) s = 0;
 	    s += Amat[ij];
 
 	    Vmat[ij + 1] = s;
@@ -335,7 +366,7 @@ long SplitAligner::viterbi() {
     }
 
     cell(Vvec, maxEnd) = maxScore;
-    return (restartProb > 0) ? maxScore : endScore();
+    return endScore();
 }
 
 long SplitAligner::endScore() const {
