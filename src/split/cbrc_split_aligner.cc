@@ -503,8 +503,8 @@ void SplitAligner::forward() {
     for (unsigned j = minBeg; j < maxEnd; j++) {
 	updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
-	double r = cell(rescales, j);
-	zF /= r;
+	double rescale = cell(rescales, j);
+	zF /= rescale;
 	double pSum = 0.0;
 	double rNew = 1.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
@@ -517,16 +517,16 @@ void SplitAligner::forward() {
 	    p *= spliceEndProb(ij);
 	    p += Fmat[ij] * Dexp[ij];
 	    if (restartProb <= 0 && alns[i].qstart == j) p += begprob;
-	    p = p * Aexp[ij] / r;
+	    p = p * Aexp[ij] / rescale;
 
 	    Fmat[ij + 1] = p;
 	    if (alns[i].qend == j+1) zF += p;
 	    pSum += p * spliceBegProb(ij + 1);
 	    rNew += p;
         }
-        begprob /= r;
+        begprob /= rescale;
         cell(rescales, j+1) = rNew;
-	sumProb = pSum + sumProb / r;
+	sumProb = pSum + sumProb / rescale;
 	probFromJump = pSum * jumpProb + sumProb * restartProb;
     }
 
@@ -552,8 +552,8 @@ void SplitAligner::backward() {
     for (unsigned j = maxEnd; j > minBeg; j--) {
 	updateInplayAlnIndicesB(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
-	double r = cell(rescales, j);
-	//zB /= r;
+	double rescale = cell(rescales, j);
+	//zB /= rescale;
 	double pSum = 0.0;
 	for (unsigned x = 0; x < newNumInplay; ++x) {
 	    unsigned i = newInplayAlnIndices[x];
@@ -565,14 +565,14 @@ void SplitAligner::backward() {
 	    p *= spliceBegProb(ij);
 	    p += Bmat[ij] * Dexp[ij];
 	    if (restartProb <= 0 && alns[i].qend == j) p += endprob;
-	    p = p * Aexp[ij - 1] / r;
+	    p = p * Aexp[ij - 1] / rescale;
 
 	    Bmat[ij - 1] = p;
 	    //if (alns[i].qstart == j-1) zB += p;
 	    pSum += p * spliceEndProb(ij - 1);
         }
-        endprob /= r;
-	sumProb = pSum * restartProb + sumProb / r;
+        endprob /= rescale;
+	sumProb = pSum * restartProb + sumProb / rescale;
 	probFromJump = pSum * jumpProb + sumProb;
     }
 
