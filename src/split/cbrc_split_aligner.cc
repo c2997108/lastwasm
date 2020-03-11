@@ -24,6 +24,30 @@ template<typename T, int N> T arrayMax(T (&array)[N]) {
 }
 
 // Orders candidate alignments by increasing DP start coordinate.
+// Breaks ties by decreasing DP end coordinate.
+struct DpBegLess {
+  DpBegLess(const unsigned *b, const unsigned *e) : dpBegs(b), dpEnds(e) {}
+  bool operator()(unsigned a, unsigned b) const {
+    return
+      dpBegs[a] != dpBegs[b] ? dpBegs[a] < dpBegs[b] : dpEnds[a] > dpEnds[b];
+  }
+  const unsigned *dpBegs;
+  const unsigned *dpEnds;
+};
+
+// Orders candidate alignments by decreasing DP end coordinate.
+// Breaks ties by increasing DP start coordinate.
+struct DpEndLess {
+  DpEndLess(const unsigned *b, const unsigned *e) : dpBegs(b), dpEnds(e) {}
+  bool operator()(unsigned a, unsigned b) const {
+    return
+      dpEnds[a] != dpEnds[b] ? dpEnds[a] > dpEnds[b] : dpBegs[a] < dpBegs[b];
+  }
+  const unsigned *dpBegs;
+  const unsigned *dpEnds;
+};
+
+// Orders candidate alignments by increasing DP start coordinate.
 // Breaks ties by chromosome & strand, then by increasing genomic
 // start coordinate.
 struct QbegLess {
@@ -298,23 +322,33 @@ long SplitAligner::viterbiSplit() {
   resizeMatrix(Vmat);
   resizeVector(Vvec);
 
-  unsigned sortedAlnPos = 0;
-  unsigned oldNumInplay = 0;
-  unsigned newNumInplay = 0;
+  unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
+  unsigned *inplayAlnEnd = inplayAlnBeg;
+  unsigned *sortedAlnPtr = &sortedAlnIndices[0];
+  unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
-  stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-	      QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
+  std::stable_sort(sortedAlnPtr, sortedAlnEnd,
+		   DpBegLess(&dpBegs[0], &dpEnds[0]));
 
   for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
   long maxScore = 0;
 
   for (unsigned j = minBeg; j < maxEnd; j++) {
-    updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
+    while (inplayAlnEnd > inplayAlnBeg && dpEnd(inplayAlnEnd[-1]) == j) {
+      --inplayAlnEnd;  // it is no longer "in play"
+    }
+    const unsigned *sortedAlnBeg = sortedAlnPtr;
+    while (sortedAlnPtr < sortedAlnEnd && dpBeg(*sortedAlnPtr) == j) {
+      ++sortedAlnPtr;
+    }
+    mergeInto(inplayAlnBeg, inplayAlnEnd, sortedAlnBeg, sortedAlnPtr,
+	      DpEndLess(&dpBegs[0], &dpEnds[0]));
+    inplayAlnEnd += sortedAlnPtr - sortedAlnBeg;
+
     cell(Vvec, j) = maxScore;
     long scoreFromJump = maxScore + restartScore;
-    for (unsigned x = 0; x < newNumInplay; ++x) {
-      unsigned i = newInplayAlnIndices[x];
-      size_t ij = matrixRowOrigins[i] + j;
+    for (const unsigned *x = inplayAlnBeg; x < inplayAlnEnd; ++x) {
+      size_t ij = matrixRowOrigins[*x] + j;
       long s = std::max(scoreFromJump, Vmat[ij] + Dmat[ij]) + Amat[ij];
       Vmat[ij + 1] = s;
       maxScore = std::max(maxScore, s);
@@ -517,25 +551,35 @@ void SplitAligner::forwardSplit() {
   resizeVector(rescales);
   resizeMatrix(Fmat);
 
-  unsigned sortedAlnPos = 0;
-  unsigned oldNumInplay = 0;
-  unsigned newNumInplay = 0;
+  unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
+  unsigned *inplayAlnEnd = inplayAlnBeg;
+  unsigned *sortedAlnPtr = &sortedAlnIndices[0];
+  unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
-  stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-	      QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
+  std::stable_sort(sortedAlnPtr, sortedAlnEnd,
+		   DpBegLess(&dpBegs[0], &dpEnds[0]));
 
   for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
   double sumOfProbs = 1;
   double rescale = 1;
 
   for (unsigned j = minBeg; j < maxEnd; j++) {
-    updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
+    while (inplayAlnEnd > inplayAlnBeg && dpEnd(inplayAlnEnd[-1]) == j) {
+      --inplayAlnEnd;  // it is no longer "in play"
+    }
+    const unsigned *sortedAlnBeg = sortedAlnPtr;
+    while (sortedAlnPtr < sortedAlnEnd && dpBeg(*sortedAlnPtr) == j) {
+      ++sortedAlnPtr;
+    }
+    mergeInto(inplayAlnBeg, inplayAlnEnd, sortedAlnBeg, sortedAlnPtr,
+	      DpEndLess(&dpBegs[0], &dpEnds[0]));
+    inplayAlnEnd += sortedAlnPtr - sortedAlnBeg;
+
     cell(rescales, j) = rescale;
     double probFromJump = sumOfProbs * restartProb;
     double pSum = 0.0;
-    for (unsigned x = 0; x < newNumInplay; ++x) {
-      unsigned i = newInplayAlnIndices[x];
-      size_t ij = matrixRowOrigins[i] + j;
+    for (unsigned *x = inplayAlnBeg; x < inplayAlnEnd; ++x) {
+      size_t ij = matrixRowOrigins[*x] + j;
       double p = (probFromJump + Fmat[ij] * Dexp[ij]) * Aexp[ij] * rescale;
       Fmat[ij + 1] = p;
       pSum += p;
@@ -599,23 +643,33 @@ void SplitAligner::forwardSplice() {
 void SplitAligner::backwardSplit() {
   resizeMatrix(Bmat);
 
-  unsigned sortedAlnPos = 0;
-  unsigned oldNumInplay = 0;
-  unsigned newNumInplay = 0;
+  unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
+  unsigned *inplayAlnEnd = inplayAlnBeg;
+  unsigned *sortedAlnPtr = &sortedAlnIndices[0];
+  unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
-  stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-	      QendLess(&dpEnds[0], &rnameAndStrandIds[0], &rEnds[0]));
+  std::stable_sort(sortedAlnPtr, sortedAlnEnd,
+		   DpEndLess(&dpBegs[0], &dpEnds[0]));
 
   for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
   double sumOfProbs = 1;
 
   for (unsigned j = maxEnd; j > minBeg; j--) {
-    updateInplayAlnIndicesB(sortedAlnPos, oldNumInplay, newNumInplay, j);
+    while (inplayAlnEnd > inplayAlnBeg && dpBeg(inplayAlnEnd[-1]) == j) {
+      --inplayAlnEnd;  // it is no longer "in play"
+    }
+    const unsigned *sortedAlnBeg = sortedAlnPtr;
+    while (sortedAlnPtr < sortedAlnEnd && dpEnd(*sortedAlnPtr) == j) {
+      ++sortedAlnPtr;
+    }
+    mergeInto(inplayAlnBeg, inplayAlnEnd, sortedAlnBeg, sortedAlnPtr,
+	      DpBegLess(&dpBegs[0], &dpEnds[0]));
+    inplayAlnEnd += sortedAlnPtr - sortedAlnBeg;
+
     double rescale = cell(rescales, j);
     double pSum = 0.0;
-    for (unsigned x = 0; x < newNumInplay; ++x) {
-      unsigned i = newInplayAlnIndices[x];
-      size_t ij = matrixRowOrigins[i] + j;
+    for (const unsigned *x = inplayAlnBeg; x < inplayAlnEnd; ++x) {
+      size_t ij = matrixRowOrigins[*x] + j;
       double p = (sumOfProbs + Bmat[ij] * Dexp[ij]) * Aexp[ij - 1] * rescale;
       Bmat[ij - 1] = p;
       pSum += p;
