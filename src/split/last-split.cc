@@ -184,13 +184,11 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
   sa.initMatricesForOneQuery();
 
   if (opts.direction != 0) {
-    sa.forward();
-    sa.backward();
+    sa.forwardBackward();
   }
   if (opts.direction != 1) {
     sa.flipSpliceSignals();
-    sa.forward();
-    sa.backward();
+    sa.forwardBackward();
     sa.flipSpliceSignals();
   }
 

@@ -482,7 +482,41 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
   return sum;
 }
 
-void SplitAligner::forward() {
+void SplitAligner::forwardSplit() {
+  resizeVector(rescales);
+  resizeMatrix(Fmat);
+
+  unsigned sortedAlnPos = 0;
+  unsigned oldNumInplay = 0;
+  unsigned newNumInplay = 0;
+
+  stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
+	      QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
+
+  for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
+  double sumOfProbs = 1;
+  double rescale = 1;
+
+  for (unsigned j = minBeg; j < maxEnd; j++) {
+    updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
+    cell(rescales, j) = rescale;
+    double probFromJump = sumOfProbs * restartProb;
+    double pSum = 0.0;
+    for (unsigned x = 0; x < newNumInplay; ++x) {
+      unsigned i = newInplayAlnIndices[x];
+      size_t ij = matrixRowOrigins[i] + j;
+      double p = (probFromJump + Fmat[ij] * Dexp[ij]) * Aexp[ij] * rescale;
+      Fmat[ij + 1] = p;
+      pSum += p;
+    }
+    sumOfProbs = pSum + sumOfProbs * rescale;
+    rescale = 1 / (pSum + 1);
+  }
+
+  cell(rescales, maxEnd) = 1 / sumOfProbs;  // makes scaled sumOfProbs equal 1
+}
+
+void SplitAligner::forwardSplice() {
     resizeVector(rescales);
     resizeMatrix(Fmat);
 
@@ -494,8 +528,7 @@ void SplitAligner::forward() {
 		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
 
     for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
-    double sumProb = 1;
-    double probFromJump = restartProb;
+    double probFromJump = 0;
     double begprob = 1.0;
     double zF = 0.0;  // sum of probabilities from the forward algorithm
     double rescale = 1;
@@ -516,7 +549,7 @@ void SplitAligner::forward() {
 	      p += probFromSpliceF(i, j, oldNumInplay, oldInplayPos);
 	    p *= spliceEndProb(ij);
 	    p += Fmat[ij] * Dexp[ij];
-	    if (restartProb <= 0 && alns[i].qstart == j) p += begprob;
+	    if (alns[i].qstart == j) p += begprob;
 	    p = p * Aexp[ij] * rescale;
 
 	    Fmat[ij + 1] = p;
@@ -525,17 +558,42 @@ void SplitAligner::forward() {
 	    rNew += p;
         }
         begprob *= rescale;
-	sumProb = pSum + sumProb * rescale;
-	probFromJump = pSum * jumpProb + sumProb * restartProb;
+	probFromJump = pSum * jumpProb;
 	rescale = 1 / (rNew + 1);
     }
 
-    if (restartProb > 0) zF = sumProb;
-    //zF *= cell(rescales, maxEnd);
     cell(rescales, maxEnd) = 1 / zF;  // this causes scaled zF to equal 1
 }
 
-void SplitAligner::backward() {
+void SplitAligner::backwardSplit() {
+  resizeMatrix(Bmat);
+
+  unsigned sortedAlnPos = 0;
+  unsigned oldNumInplay = 0;
+  unsigned newNumInplay = 0;
+
+  stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
+	      QendLess(&dpEnds[0], &rnameAndStrandIds[0], &rEnds[0]));
+
+  for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
+  double sumOfProbs = 1;
+
+  for (unsigned j = maxEnd; j > minBeg; j--) {
+    updateInplayAlnIndicesB(sortedAlnPos, oldNumInplay, newNumInplay, j);
+    double rescale = cell(rescales, j);
+    double pSum = 0.0;
+    for (unsigned x = 0; x < newNumInplay; ++x) {
+      unsigned i = newInplayAlnIndices[x];
+      size_t ij = matrixRowOrigins[i] + j;
+      double p = (sumOfProbs + Bmat[ij] * Dexp[ij]) * Aexp[ij - 1] * rescale;
+      Bmat[ij - 1] = p;
+      pSum += p;
+    }
+    sumOfProbs = pSum * restartProb + sumOfProbs * rescale;
+  }
+}
+
+void SplitAligner::backwardSplice() {
     resizeMatrix(Bmat);
 
     unsigned sortedAlnPos = 0;
@@ -546,8 +604,7 @@ void SplitAligner::backward() {
 		QendLess(&dpEnds[0], &rnameAndStrandIds[0], &rEnds[0]));
 
     for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
-    double sumProb = (restartProb > 0) ? 1 : 0;
-    double probFromJump = sumProb;
+    double probFromJump = 0;
     double endprob = 1.0;
     //double zB = 0.0;  // sum of probabilities from the backward algorithm
 
@@ -566,7 +623,7 @@ void SplitAligner::backward() {
 	      p += probFromSpliceB(i, j, oldNumInplay, oldInplayPos);
 	    p *= spliceBegProb(ij);
 	    p += Bmat[ij] * Dexp[ij];
-	    if (restartProb <= 0 && alns[i].qend == j) p += endprob;
+	    if (alns[i].qend == j) p += endprob;
 	    p = p * Aexp[ij - 1] * rescale;
 
 	    Bmat[ij - 1] = p;
@@ -574,12 +631,8 @@ void SplitAligner::backward() {
 	    pSum += p * spliceEndProb(ij - 1);
         }
         endprob *= rescale;
-	sumProb = pSum * restartProb + sumProb * rescale;
-	probFromJump = pSum * jumpProb + sumProb;
+	probFromJump = pSum * jumpProb;
     }
-
-    //if (restartProb > 0) zB = sumProb;
-    //zB *= cell(rescales, minBeg);
 }
 
 std::vector<double>

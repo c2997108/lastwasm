@@ -91,9 +91,20 @@ public:
     int segmentScore(unsigned alnNum,
 		     unsigned queryBeg, unsigned queryEnd) const;
 
-    void forward();
+    void forwardSplit();
+    void backwardSplit();
+    void forwardSplice();
+    void backwardSplice();
 
-    void backward();
+    void forwardBackward() {
+      if (restartProb > 0) {
+	forwardSplit();
+	backwardSplit();
+      } else {
+	forwardSplice();
+	backwardSplice();
+      }
+    }
 
     // Returns one probability per column, for a segment of an alignment
     std::vector<double> marginalProbs(unsigned queryBeg, unsigned alnNum,
