@@ -569,7 +569,7 @@ void SplitAligner::forwardSplit() {
     cell(rescales, j) = rescale;
     double probFromJump = sumOfProbs * restartProb;
     double pSum = 0.0;
-    for (unsigned *x = inplayAlnBeg; x < inplayAlnEnd; ++x) {
+    for (const unsigned *x = inplayAlnBeg; x < inplayAlnEnd; ++x) {
       size_t ij = matrixRowOrigins[*x] + j;
       double p =
 	(probFromJump + Fmat[ij] * Sexp[ij*2]) * Sexp[ij*2+1] * rescale;
@@ -1046,17 +1046,17 @@ void SplitAligner::layout(std::vector<UnsplitAlignment>::const_iterator beg,
 
     sortedAlnIndices.resize(numAlns);
     for (unsigned i = 0; i < numAlns; ++i) sortedAlnIndices[i] = i;
-    oldInplayAlnIndices.resize(numAlns);
     newInplayAlnIndices.resize(numAlns);
 
-    rBegs.resize(numAlns);
-    rEnds.resize(numAlns);
-
-    if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
+    if (restartProb <= 0) {
+      oldInplayAlnIndices.resize(numAlns);
+      rBegs.resize(numAlns);
+      rEnds.resize(numAlns);
+      if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
 	initRbegsAndEnds();
-	//initRnameAndStrandIds();
+      }
+      initRnameAndStrandIds();
     }
-    initRnameAndStrandIds();
 
     initDpBounds();
 }
