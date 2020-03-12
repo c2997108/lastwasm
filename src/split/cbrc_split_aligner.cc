@@ -346,7 +346,7 @@ long SplitAligner::viterbiSplit() {
     long scoreFromJump = maxScore + restartScore;
     for (const unsigned *x = inplayAlnBeg; x < inplayAlnEnd; ++x) {
       size_t ij = matrixRowOrigins[*x] + j;
-      long s = std::max(scoreFromJump, Vmat[ij] + Dmat[ij]) + Amat[ij];
+      long s = std::max(scoreFromJump, Vmat[ij] + Smat[ij*2]) + Smat[ij*2+1];
       Vmat[ij + 1] = s;
       maxScore = std::max(maxScore, s);
     }
@@ -382,9 +382,9 @@ long SplitAligner::viterbiSplice() {
 	      s = std::max(s,
 			   scoreFromSplice(i, j, oldNumInplay, oldInplayPos));
 	    s += spliceEndScore(ij);
-	    s = std::max(s, Vmat[ij] + Dmat[ij]);
+	    s = std::max(s, Vmat[ij] + Smat[ij*2]);
 	    if (alns[i].qstart == j && s < 0) s = 0;
-	    s += Amat[ij];
+	    s += Smat[ij*2+1];
 
 	    Vmat[ij + 1] = s;
 	    sMax = std::max(sMax, s + spliceBegScore(ij + 1));
@@ -435,7 +435,7 @@ void SplitAligner::traceBack(long viterbiScore,
   for (;;) {
     --j;
     size_t ij = matrixRowOrigins[i] + j;
-    long score = Vmat[ij + 1] - Amat[ij];
+    long score = Vmat[ij + 1] - Smat[ij*2+1];
     if (restartProb <= 0 && alns[i].qstart == j && score == 0) {
       queryBegs.push_back(j);
       return;
@@ -447,7 +447,7 @@ void SplitAligner::traceBack(long viterbiScore,
     // makes some other kinds of boundary less clean.  What's the best
     // procedure for tied scores?
 
-    bool isStay = (score == Vmat[ij] + Dmat[ij]);
+    bool isStay = (score == Vmat[ij] + Smat[ij*2]);
     if (isStay && alns[i].isForwardStrand()) continue;
 
     long s = score - spliceEndScore(ij);
@@ -475,8 +475,8 @@ int SplitAligner::segmentScore(unsigned alnNum,
   unsigned i = alnNum;
   for (unsigned j = queryBeg; j < queryEnd; ++j) {
     size_t ij = matrixRowOrigins[i] + j;
-    score += Amat[ij];
-    if (j > queryBeg) score += Dmat[ij];
+    score += Smat[ij*2+1];
+    if (j > queryBeg) score += Smat[ij*2];
   }
   return score;
 }
@@ -571,7 +571,8 @@ void SplitAligner::forwardSplit() {
     double pSum = 0.0;
     for (unsigned *x = inplayAlnBeg; x < inplayAlnEnd; ++x) {
       size_t ij = matrixRowOrigins[*x] + j;
-      double p = (probFromJump + Fmat[ij] * Dexp[ij]) * Aexp[ij] * rescale;
+      double p =
+	(probFromJump + Fmat[ij] * Sexp[ij*2]) * Sexp[ij*2+1] * rescale;
       Fmat[ij + 1] = p;
       pSum += p;
     }
@@ -611,9 +612,9 @@ void SplitAligner::forwardSplice() {
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceF(i, j, oldNumInplay, oldInplayPos);
 	    p *= spliceEndProb(ij);
-	    p += Fmat[ij] * Dexp[ij];
+	    p += Fmat[ij] * Sexp[ij*2];
 	    if (alns[i].qstart == j) p += begprob;
-	    p = p * Aexp[ij] * rescale;
+	    p = p * Sexp[ij*2+1] * rescale;
 
 	    Fmat[ij + 1] = p;
 	    if (alns[i].qend == j+1) zF += p;
@@ -656,7 +657,7 @@ void SplitAligner::backwardSplit() {
     double pSum = 0.0;
     for (const unsigned *x = inplayAlnBeg; x < inplayAlnEnd; ++x) {
       size_t ij = matrixRowOrigins[*x] + j;
-      double p = (sumOfProbs + Bmat[ij] * Dexp[ij]) * Aexp[ij - 1] * rescale;
+      double p = (sumOfProbs + Bmat[ij] * Sexp[ij*2]) * Sexp[ij*2-1] * rescale;
       Bmat[ij - 1] = p;
       pSum += p;
     }
@@ -691,9 +692,9 @@ void SplitAligner::backwardSplice() {
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceB(i, j, oldNumInplay, oldInplayPos);
 	    p *= spliceBegProb(ij);
-	    p += Bmat[ij] * Dexp[ij];
+	    p += Bmat[ij] * Sexp[ij*2];
 	    if (alns[i].qend == j) p += endprob;
-	    p = p * Aexp[ij - 1] * rescale;
+	    p = p * Sexp[ij*2-1] * rescale;
 
 	    Bmat[ij - 1] = p;
 	    //if (alns[i].qstart == j-1) zB += p;
@@ -713,10 +714,10 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
   for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
     size_t ij = matrixRowOrigins[i] + j;
     if (alns[i].qalign[pos] == '-') {
-      double value = Fmat[ij] * Bmat[ij] * Dexp[ij] * cell(rescales, j);
+      double value = Fmat[ij] * Bmat[ij] * Sexp[ij*2] * cell(rescales, j);
       output.push_back(value);
     } else {
-      double value = Fmat[ij + 1] * Bmat[ij] / Aexp[ij];
+      double value = Fmat[ij + 1] * Bmat[ij] / Sexp[ij*2+1];
       if (value != value) value = 0.0;
       output.push_back(value);
       j++;
@@ -726,9 +727,9 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 }
 
 // The next routine represents affine gap scores in a cunning way.
-// Amat holds scores at query bases, and at every base that is aligned
+// Aij holds scores at query bases, and at every base that is aligned
 // to a gap it gets a score of insExistenceScore + insExtensionScore.
-// Dmat holds scores between query bases, and between every pair of
+// Dij holds scores between query bases, and between every pair of
 // bases that are both aligned to gaps it gets a score of
 // -insExistenceScore.  This produces suitable affine gap scores, even
 // if we jump from one alignment to another in the middle of a gap.
@@ -740,18 +741,17 @@ void SplitAligner::calcBaseScores(unsigned i) {
   const UnsplitAlignment& a = alns[i];
   const size_t origin = matrixRowOrigins[i];
 
-  int *AmatB = &Amat[origin + dpBeg(i)];
-  int *DmatB = &Dmat[origin + dpBeg(i)];
-  int *AmatS = &Amat[origin + a.qstart];
-  int *AmatE = &Amat[origin + dpEnd(i)];
+  int *matBeg = &Smat[(origin + dpBeg(i)) * 2];
+  int *alnBeg = &Smat[(origin + a.qstart) * 2];
+  int *matEnd = &Smat[(origin + dpEnd(i)) * 2];
 
   int delScore = 0;
   int insCompensationScore = 0;
 
   // treat any query letters before the alignment as insertions:
-  while (AmatB < AmatS) {
-    *AmatB++ = firstInsScore;
-    *DmatB++ = delScore + insCompensationScore;
+  while (matBeg < alnBeg) {
+    *matBeg++ = delScore + insCompensationScore;
+    *matBeg++ = firstInsScore;
     delScore = 0;
     insCompensationScore = tweenInsScore;
   }
@@ -765,8 +765,8 @@ void SplitAligner::calcBaseScores(unsigned i) {
     unsigned char y = *qAlign++;
     int q = qQual ? (*qQual++ - qualityOffset) : (numQualCodes - 1);
     if (x == '-') {  // gap in reference sequence: insertion
-      *AmatB++ = firstInsScore;
-      *DmatB++ = delScore + insCompensationScore;
+      *matBeg++ = delScore + insCompensationScore;
+      *matBeg++ = firstInsScore;
       delScore = 0;
       insCompensationScore = tweenInsScore;
     } else if (y == '-') {  // gap in query sequence: deletion
@@ -776,8 +776,8 @@ void SplitAligner::calcBaseScores(unsigned i) {
     } else {
       assert(q >= 0);
       if (q >= numQualCodes) q = numQualCodes - 1;
-      *AmatB++ = score_mat[x % 64][y % 64][q];
-      *DmatB++ = delScore;
+      *matBeg++ = delScore;
+      *matBeg++ = score_mat[x % 64][y % 64][q];
       delScore = 0;
       insCompensationScore = 0;
     }
@@ -786,14 +786,14 @@ void SplitAligner::calcBaseScores(unsigned i) {
   }
 
   // treat any query letters after the alignment as insertions:
-  while (AmatB < AmatE) {
-    *AmatB++ = firstInsScore;
-    *DmatB++ = delScore + insCompensationScore;
+  while (matBeg < matEnd) {
+    *matBeg++ = delScore + insCompensationScore;
+    *matBeg++ = firstInsScore;
     delScore = 0;
     insCompensationScore = tweenInsScore;
   }
 
-  *DmatB++ = delScore;
+  *matBeg++ = delScore;
 }
 
 void SplitAligner::initRbegsAndEnds() {
@@ -1072,10 +1072,8 @@ size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
 }
 
 void SplitAligner::initMatricesForOneQuery() {
-  resizeMatrix(Amat);
-  resizeMatrix(Dmat);
-  resizeMatrix(Aexp);
-  resizeMatrix(Dexp);
+  resizeDoubleMatrix(Smat);
+  resizeDoubleMatrix(Sexp);
 
   for (unsigned i = 0; i < numAlns; i++) calcBaseScores(i);
 
@@ -1091,8 +1089,7 @@ void SplitAligner::initMatricesForOneQuery() {
     for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(i);
   }
 
-  transform(Amat.begin(), Amat.end(), Aexp.begin(), scaledExp);
-  transform(Dmat.begin(), Dmat.end(), Dexp.begin(), scaledExp);
+  transform(Smat.begin(), Smat.end(), Sexp.begin(), scaledExp);
   // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 

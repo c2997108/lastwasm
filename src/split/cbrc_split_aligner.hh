@@ -152,12 +152,22 @@ private:
     std::vector<unsigned> dpBegs;  // dynamic programming begin coords
     std::vector<unsigned> dpEnds;  // dynamic programming end coords
     std::vector<size_t> matrixRowOrigins;  // layout of ragged matrices
-    std::vector<int> Amat;  // scores at query bases, for each candidate
-    std::vector<int> Dmat;  // scores between query bases, for each candidate
+
+    std::vector<int> Smat;
+    // Smat holds position-specific substitution, insertion, and
+    // deletion scores for the candidate alignments of one query
+    // sequence to a genome.  These scores, for each candidate
+    // alignment i, are called Aij and Dij in [Frith&Kawaguchi 2015].
+    // Aij holds scores at query bases, in Smat[i][1,3,5,...,2n-1].
+    // Dij holds scores between query bases, in Smat[i][0,2,4,...,2n].
+
     std::vector<long> Vmat;  // DP matrix for Viterbi algorithm
     std::vector<long> Vvec;  // DP vector for Viterbi algorithm
-    std::vector<double> Aexp;
-    std::vector<double> Dexp;
+
+    std::vector<double> Sexp;
+    // Sexp holds exp(Smat / t): these values are called A'ij and D'ij
+    // in [Frith&Kawaguchi 2015].
+
     std::vector<double> Fmat;  // DP matrix for Forward algorithm
     std::vector<double> Bmat;  // DP matrix for Backward algorithm
     std::vector<double> rescales;  // the usual scaling for numerical stability
@@ -285,9 +295,17 @@ private:
     void resizeMatrix(T& m) const {
       // This reserves size for a ragged matrix, which is actually
       // stored in a flat vector.  There are numAlns rows, and row i
-      // has dpEnd(i) - dpBeg(i) + 1 cells.  (The final cell per row
-      // is used in some matrices but not others.)
+      // has dpEnd(i) - dpBeg(i) + 1 cells.
       m.resize(cellsPerDpMatrix());
+    }
+
+    template<typename T>
+    void resizeDoubleMatrix(T& m) const {
+      // This reserves size for Smat and Sexp, which contain 2
+      // interpolated matrices (Aij and Dij).  The final cell per row
+      // is never used, because there's one less Aij than Dij per
+      // candidate alignment.
+      m.resize(cellsPerDpMatrix() * 2);
     }
 
     double probFromSpliceF(unsigned i, unsigned j, unsigned oldNumInplay,
