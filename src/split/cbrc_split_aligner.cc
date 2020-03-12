@@ -319,9 +319,6 @@ void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
 }
 
 long SplitAligner::viterbiSplit() {
-  resizeMatrix(Vmat);
-  resizeVector(Vvec);
-
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
   unsigned *sortedAlnPtr = &sortedAlnIndices[0];
@@ -360,9 +357,6 @@ long SplitAligner::viterbiSplit() {
 }
 
 long SplitAligner::viterbiSplice() {
-    resizeMatrix(Vmat);
-    resizeVector(Vvec);
-
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -548,9 +542,6 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 }
 
 void SplitAligner::forwardSplit() {
-  resizeVector(rescales);
-  resizeMatrix(Fmat);
-
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
   unsigned *sortedAlnPtr = &sortedAlnIndices[0];
@@ -592,9 +583,6 @@ void SplitAligner::forwardSplit() {
 }
 
 void SplitAligner::forwardSplice() {
-    resizeVector(rescales);
-    resizeMatrix(Fmat);
-
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -641,8 +629,6 @@ void SplitAligner::forwardSplice() {
 }
 
 void SplitAligner::backwardSplit() {
-  resizeMatrix(Bmat);
-
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
   unsigned *sortedAlnPtr = &sortedAlnIndices[0];
@@ -679,8 +665,6 @@ void SplitAligner::backwardSplit() {
 }
 
 void SplitAligner::backwardSplice() {
-    resizeMatrix(Bmat);
-
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -723,22 +707,22 @@ void SplitAligner::backwardSplice() {
 std::vector<double>
 SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 			    unsigned alnBeg, unsigned alnEnd) const {
-    std::vector<double> output;
-    unsigned i = alnNum;
-    unsigned j = queryBeg;
-    for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
-	size_t ij = matrixRowOrigins[i] + j;
-        if (alns[i].qalign[pos] == '-') {
-            double value = Fmat[ij] * Bmat[ij] * Dexp[ij] * cell(rescales, j);
-            output.push_back(value);
-        } else {
-            double value = Fmat[ij + 1] * Bmat[ij] / Aexp[ij];
-            if (value != value) value = 0.0;
-            output.push_back(value);
-            j++;
-        }
+  std::vector<double> output;
+  unsigned i = alnNum;
+  unsigned j = queryBeg;
+  for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
+    size_t ij = matrixRowOrigins[i] + j;
+    if (alns[i].qalign[pos] == '-') {
+      double value = Fmat[ij] * Bmat[ij] * Dexp[ij] * cell(rescales, j);
+      output.push_back(value);
+    } else {
+      double value = Fmat[ij + 1] * Bmat[ij] / Aexp[ij];
+      if (value != value) value = 0.0;
+      output.push_back(value);
+      j++;
     }
-    return output;
+  }
+  return output;
 }
 
 // The next routine represents affine gap scores in a cunning way.

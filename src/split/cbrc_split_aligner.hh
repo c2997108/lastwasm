@@ -74,10 +74,9 @@ public:
     // Call this before viterbi/forward/backward, and after layout
     void initMatricesForOneQuery();
 
-    long viterbiSplit();
-    long viterbiSplice();
-
     long viterbi() {  // returns the optimal split-alignment score
+      resizeMatrix(Vmat);
+      resizeVector(Vvec);
       return (restartProb > 0) ? viterbiSplit() : viterbiSplice();
     }
 
@@ -96,12 +95,10 @@ public:
     int segmentScore(unsigned alnNum,
 		     unsigned queryBeg, unsigned queryEnd) const;
 
-    void forwardSplit();
-    void backwardSplit();
-    void forwardSplice();
-    void backwardSplice();
-
     void forwardBackward() {
+      resizeVector(rescales);
+      resizeMatrix(Fmat);
+      resizeMatrix(Bmat);
       if (restartProb > 0) {
 	forwardSplit();
 	backwardSplit();
@@ -242,6 +239,14 @@ private:
     void updateInplayAlnIndicesB(unsigned& sortedAlnPos,
 				 unsigned& oldNumInplay,
 				 unsigned& newNumInplay, unsigned j);
+
+    long viterbiSplit();
+    long viterbiSplice();
+
+    void forwardSplit();
+    void backwardSplit();
+    void forwardSplice();
+    void backwardSplice();
 
     unsigned findScore(unsigned j, long score) const;
     unsigned findSpliceScore(unsigned i, unsigned j, long score) const;
