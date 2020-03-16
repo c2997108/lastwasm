@@ -164,7 +164,7 @@ private:
     std::vector<long> Vmat;  // DP matrix for Viterbi algorithm
     std::vector<long> Vvec;  // DP vector for Viterbi algorithm
 
-    std::vector<double> Sexp;
+    std::vector<float> Sexp;
     // Sexp holds exp(Smat / t): these values are called A'ij and D'ij
     // in [Frith&Kawaguchi 2015].
 

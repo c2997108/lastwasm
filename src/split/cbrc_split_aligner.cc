@@ -1063,7 +1063,7 @@ void SplitAligner::layout(std::vector<UnsplitAlignment>::const_iterator beg,
 
 size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
   size_t numOfStrands = isBothSpliceStrands ? 2 : 1;
-  size_t x = 2 * sizeof(int) + 2 * sizeof(double);
+  size_t x = 2 * sizeof(int) + 2 * sizeof(float);
   if (splicePrior > 0 || !chromosomeIndex.empty()) x += 2 * sizeof(unsigned);
   if (!chromosomeIndex.empty()) x += 2;
   if (isViterbi) x += sizeof(long) * numOfStrands;
