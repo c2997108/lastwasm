@@ -296,16 +296,8 @@ private:
       // This reserves size for a ragged matrix, which is actually
       // stored in a flat vector.  There are numAlns rows, and row i
       // has dpEnd(i) - dpBeg(i) + 1 cells.
-      m.resize(cellsPerDpMatrix());
-    }
-
-    template<typename T>
-    void resizeDoubleMatrix(T& m) const {
-      // This reserves size for Smat and Sexp, which contain 2
-      // interpolated matrices (Aij and Dij).  The final cell per row
-      // is never used, because there's one less Aij than Dij per
-      // candidate alignment.
-      m.resize(cellsPerDpMatrix() * 2);
+      size_t s = cellsPerDpMatrix();
+      if (m.size() < s) m.resize(s);
     }
 
     double probFromSpliceF(unsigned i, unsigned j, unsigned oldNumInplay,

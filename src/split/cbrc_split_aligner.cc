@@ -1072,8 +1072,13 @@ size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
 }
 
 void SplitAligner::initMatricesForOneQuery() {
-  resizeDoubleMatrix(Smat);
-  resizeDoubleMatrix(Sexp);
+  size_t doubleMatrixSize = cellsPerDpMatrix() * 2;
+  // The final cell per row is never used, because there's one less
+  // Aij than Dij per candidate alignment.
+  if (Smat.size() < doubleMatrixSize) {
+    Smat.resize(doubleMatrixSize);
+    Sexp.resize(doubleMatrixSize);
+  }
 
   for (unsigned i = 0; i < numAlns; i++) calcBaseScores(i);
 
@@ -1089,7 +1094,7 @@ void SplitAligner::initMatricesForOneQuery() {
     for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(i);
   }
 
-  transform(Smat.begin(), Smat.end(), Sexp.begin(), scaledExp);
+  std::transform(&Smat[0], &Smat[0] + doubleMatrixSize, &Sexp[0], scaledExp);
   // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
