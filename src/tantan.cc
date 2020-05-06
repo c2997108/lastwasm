@@ -274,6 +274,10 @@ struct Tantan {
     return seqPtr - seqBeg < maxRepeatOffset;
   }
 
+  int maxOffsetInTheSequence() {
+    return isNearSeqBeg() ? (seqPtr - seqBeg) : maxRepeatOffset;
+  }
+
   const uchar *seqFurthestBack() {
     return isNearSeqBeg() ? seqBeg : seqPtr - maxRepeatOffset;
   }
@@ -294,6 +298,50 @@ struct Tantan {
       *foregroundPtr *= 0;
       ++foregroundPtr;
     }
+  }
+
+  void calcForwardTransitionAndEmissionProbs() {
+    if (endGapProb > 0) {
+      calcForwardTransitionProbsWithGaps();
+      calcEmissionProbs();
+      return;
+    }
+
+    double b = backgroundProb;
+    double fromForeground = 0;
+    double *foregroundBeg = BEG(foregroundProbs);
+    const double *lrRow = likelihoodRatioMatrix[*seqPtr];
+    int maxOffset = maxOffsetInTheSequence();
+
+    for (int i = 0; i < maxOffset; ++i) {
+      double f = foregroundBeg[i];
+      fromForeground += f;
+      foregroundBeg[i] = (b * b2fProbs[i] + f * f2f0) * lrRow[seqPtr[-i-1]];
+    }
+
+    backgroundProb = b * b2b + fromForeground * f2b;
+  }
+
+  void calcEmissionAndBackwardTransitionProbs() {
+    if (endGapProb > 0) {
+      calcEmissionProbs();
+      calcBackwardTransitionProbsWithGaps();
+      return;
+    }
+
+    double toBackground = f2b * backgroundProb;
+    double toForeground = 0;
+    double *foregroundBeg = BEG(foregroundProbs);
+    const double *lrRow = likelihoodRatioMatrix[*seqPtr];
+    int maxOffset = maxOffsetInTheSequence();
+
+    for (int i = 0; i < maxOffset; ++i) {
+      double f = foregroundBeg[i] * lrRow[seqPtr[-i-1]];
+      toForeground += b2fProbs[i] * f;
+      foregroundBeg[i] = toBackground + f2f0 * f;
+    }
+
+    backgroundProb = b2b * backgroundProb + toForeground;
   }
 
   void rescale(double scale) {
@@ -322,8 +370,7 @@ struct Tantan {
     initializeForwardAlgorithm();
 
     while (seqPtr < seqEnd) {
-      calcForwardTransitionProbs();
-      calcEmissionProbs();
+      calcForwardTransitionAndEmissionProbs();
       rescaleForward();
       *letterProbs = static_cast<float>(backgroundProb);
       ++letterProbs;
@@ -343,8 +390,7 @@ struct Tantan {
       // a sequence:
       *letterProbs = 1 - static_cast<float>(nonRepeatProb);
       rescaleBackward();
-      calcEmissionProbs();
-      calcBackwardTransitionProbs();
+      calcEmissionAndBackwardTransitionProbs();
     }
 
     double z2 = backwardTotal();
