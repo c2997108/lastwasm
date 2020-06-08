@@ -35,9 +35,17 @@ Options
          columns).
 
   -j N, --join=N
-         Join neighboring alignments if they are co-linear and
-         separated by at most N letters.  This affects psl and gff
-         formats only.
+         Join alignments that are co-linear (align different parts of
+         the same sequences and strands, with the parts being in the
+         same order in each sequence), are separated by at most N
+         letters in each sequence, and are consecutive in the input.
+         This affects psl and gff formats only.
+
+  -J N, --Join=N
+         Join alignments that are co-linear, are separated by at most
+         N letters in each sequence, and are nearest in each sequence.
+         This affects psl and gff formats only, and reads the whole
+         input into memory.
 
   -n, --noheader
          Omit any header lines from the output.  This may be useful if

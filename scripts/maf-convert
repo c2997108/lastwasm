@@ -10,8 +10,10 @@ from __future__ import print_function
 
 from itertools import *
 import collections
+import functools
 import gzip
 import math
+import operator
 import optparse
 import os
 import signal
@@ -165,6 +167,37 @@ def mafGroupInput(opts, lines):
     if x:
         fixOrder(x)
         yield x
+
+def linkedMafBegSortKey(sequenceNumber, mafAndLinks):
+    return operator.itemgetter(0, 2, 4)(mafAndLinks[0][1][sequenceNumber])
+
+def colinearMafInput(opts, lines):
+    mafs = list(mafInput(opts, lines))
+    if not mafs:
+        return
+    numOfSeqs = max(len(maf[1]) for maf in mafs)
+    linkedMafs = [(maf, [None] * numOfSeqs) for maf in mafs]
+    for s in range(numOfSeqs):
+        linkedMafs.sort(key=functools.partial(linkedMafBegSortKey, s))
+        maxEnd = "", "+", 0
+        for i in range(len(linkedMafs) - 1):
+            xMaf, xLinks = linkedMafs[i]
+            yMaf, yLinks = linkedMafs[i + 1]
+            x = xMaf[1][s]
+            y = yMaf[1][s]
+            newEnd = x[0], x[2], x[5]
+            if newEnd > maxEnd:
+                maxEnd = newEnd
+                if (x[:4] == y[:4] and 0 <= y[4] - x[5] <= opts.Join):
+                    yLinks[s] = xMaf
+    colinearMafs = []
+    for maf, links in linkedMafs:
+        if colinearMafs:
+            if any(i is not colinearMafs[-1] for i in links):
+                yield colinearMafs
+                colinearMafs = []
+        colinearMafs.append(maf)
+    yield colinearMafs
 
 ##### Routines for converting to AXT format: #####
 
@@ -371,7 +404,10 @@ def writePsl(opts, mafs):
           blockCount, blockSizes, blockStartsB, blockStartsA, sep="\t")
 
 def mafConvertToPsl(opts, lines):
-    if opts.join:
+    if opts.Join:
+        for i in colinearMafInput(opts, lines):
+            writePsl(opts, i)
+    elif opts.join:
         for i in mafGroupInput(opts, lines):
             writePsl(opts, i)
     else:
@@ -755,7 +791,10 @@ def writeGffGroup(qryNameCounts, mafs):
 
 def mafConvertToGff(opts, lines):
     qryNameCounts = collections.defaultdict(int)
-    if opts.join:
+    if opts.Join:
+        for i in colinearMafInput(opts, lines):
+            writeGffGroup(qryNameCounts, i)
+    elif opts.join:
         for i in mafGroupInput(opts, lines):
             writeGffGroup(qryNameCounts, i)
     else:
@@ -941,8 +980,10 @@ if __name__ == "__main__":
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-p", "--protein", action="store_true",
                   help="assume protein alignments, for psl match counts")
-    op.add_option("-j", "--join", type="float", metavar="N",
-                  help="join co-linear alignments separated by <= N letters")
+    op.add_option("-j", "--join", type="float", metavar="N", help="join "
+                  "consecutive co-linear alignments separated by <= N letters")
+    op.add_option("-J", "--Join", type="float", metavar="N", help=
+                  "join nearest co-linear alignments separated by <= N letters")
     op.add_option("-n", "--noheader", action="store_true",
                   help="omit any header lines from the output")
     op.add_option("-d", "--dictionary", action="store_true",
