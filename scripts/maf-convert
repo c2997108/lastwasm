@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Copyright 2010, 2011, 2013, 2014 Martin C. Frith
-# Read MAF-format alignments: write them in other formats.
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Seems to work with Python 2.x, x>=6
 
 # By "MAF" we mean "multiple alignment format" described in the UCSC
@@ -9,8 +9,13 @@
 from __future__ import print_function
 
 from itertools import *
+import collections
 import gzip
-import math, optparse, os, signal, sys
+import math
+import optparse
+import os
+import signal
+import sys
 
 try:
     from future_builtins import map, zip
@@ -185,7 +190,7 @@ def writeAxt(maf):
     if score:
         outWords.append(score)
 
-    print(" ".join(outWords))
+    print(*outWords)
     for i in sLines:
         print(i[6])
     print()  # print a blank line at the end
@@ -243,7 +248,7 @@ def writeChain(maf):
 
     outWords.append(str(next(axtCounter) + 1))
 
-    print(" ".join(outWords))
+    print(*outWords)
 
     letterSizes = [i[3] for i in sLines]
     rows = [i[6] for i in sLines]
@@ -360,12 +365,10 @@ def writePsl(opts, mafs):
     blockCount = len(blocks)
     blockSizes, blockStartsA, blockStartsB = map(pslCommaString, zip(*blocks))
 
-    outWords = (matches, mismatches, repMatches, nCount,
-                numInsertB, baseInsertB, numInsertA, baseInsertA, strand,
-                seqNameB, seqLenB, begB, endB, seqNameA, seqLenA, begA, endA,
-                blockCount, blockSizes, blockStartsB, blockStartsA)
-
-    print("\t".join(map(str, outWords)))
+    print(matches, mismatches, repMatches, nCount,
+          numInsertB, baseInsertB, numInsertA, baseInsertA, strand,
+          seqNameB, seqLenB, begB, endB, seqNameA, seqLenA, begA, endA,
+          blockCount, blockSizes, blockStartsB, blockStartsA, sep="\t")
 
 def mafConvertToPsl(opts, lines):
     if opts.join:
@@ -679,8 +682,8 @@ def writeBlastTab(opts, maf):
     mismatches = alnSize - matches - rowA.count("-") - rowB.count("-")
     gapOpens = gapRunCount(rowA) + gapRunCount(rowB)
 
-    out = [seqNameB, seqNameA, matchPercent, str(alnSize), str(mismatches),
-           str(gapOpens), begB, endB, begA, endA]
+    out = [seqNameB, seqNameA, matchPercent, alnSize, mismatches,
+           gapOpens, begB, endB, begA, endA]
 
     score, evalue = scoreAndEvalue(aLine)
     if evalue:
@@ -689,11 +692,75 @@ def writeBlastTab(opts, maf):
             bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
             out.append("%.3g" % bitScore)
 
-    print("\t".join(out))
+    print(*out, sep="\t")
 
 def mafConvertToBlastTab(opts, lines):
     for maf in mafInput(opts, lines):
         writeBlastTab(opts, maf)
+
+##### Routines for converting to GFF format: #####
+
+def writeGffHeader():
+    print("##gff-version 3")
+
+def gffFromMaf(maf):
+    aLine, sLines, qLines, pLines = maf
+    fieldsA, fieldsB = pairOrDie(sLines, "GFF")
+    seqNameA, seqLenA, strandA, letterSizeA, begA, endA, rowA = fieldsA
+    seqNameB, seqLenB, strandB, letterSizeB, begB, endB, rowB = fieldsB
+
+    score = "."
+    for i in aLine.split():
+        if i.startswith("score="):
+            score = i[6:]
+
+    if strandA == "-":
+        begA, endA = seqLenA - endA, seqLenA - begA
+    if strandB == "-":
+        begB, endB = seqLenB - endB, seqLenB - begB
+    begA += 1
+    begB += 1
+
+    strand = "+" if strandA == strandB else "-"
+
+    return seqNameA, begA, endA, strand, score, seqNameB, begB, endB
+
+def writeOneGff(gff, typeOfThing, parentId):
+    seqNameA, begA, endA, strand, score, seqNameB, begB, endB = gff
+    target = "Target={0} {1} {2}".format(seqNameB, begB, endB)
+    name = "Name={0}:{1}-{2}".format(seqNameB, begB, endB)
+    attributes = [target, name]
+    if parentId:
+        attributes.append("Parent=" + parentId)
+    print(seqNameA, "maf-convert", typeOfThing, begA, endA, score, strand, ".",
+          ";".join(attributes), sep="\t")
+
+def writeGffGroup(qryNameCounts, mafs):
+    gffs = [gffFromMaf(i) for i in mafs]
+    seqNameA, begA, endA, strand, score, seqNameB, begB, endB = gffs[0]
+    endA = gffs[-1][2]
+    if strand == "+":
+        endB = gffs[-1][7]
+    else:
+        begB = gffs[-1][6]
+    qryNameCounts[seqNameB] += 1
+    parentId = "{0}.{1}".format(seqNameB, qryNameCounts[seqNameB])
+    myId = "ID=" + parentId
+    name = "Name={0}:{1}-{2}".format(seqNameB, begB, endB)
+    attributes = [myId, name]
+    print(seqNameA, "maf-convert", "match", begA, endA, ".", strand, ".",
+          ";".join(attributes), sep="\t")
+    for i in gffs:
+        writeOneGff(i, "match_part", parentId)
+
+def mafConvertToGff(opts, lines):
+    qryNameCounts = collections.defaultdict(int)
+    if opts.join:
+        for i in mafGroupInput(opts, lines):
+            writeGffGroup(qryNameCounts, i)
+    else:
+        for i in mafInput(opts, lines):
+            writeOneGff(gffFromMaf(i), "match", None)
 
 ##### Routines for converting to HTML format: #####
 
@@ -812,6 +879,8 @@ def mafConvertOneFile(opts, formatName, lines):
         mafConvertToBlastTab(opts, lines)
     elif isFormat(formatName, "chain"):
         mafConvertToChain(opts, lines)
+    elif isFormat(formatName, "gff"):
+        mafConvertToGff(opts, lines)
     elif isFormat(formatName, "html"):
         mafConvertToHtml(opts, lines)
     elif isFormat(formatName, "psl"):
@@ -832,6 +901,8 @@ def mafConvert(opts, args):
     opts.bitScoreB = None
 
     if not opts.noheader:
+        if isFormat(formatName, "gff"):
+            writeGffHeader()
         if isFormat(formatName, "html"):
             writeHtmlHeader()
         if isFormat(formatName, "sam"):
@@ -859,6 +930,7 @@ if __name__ == "__main__":
   %prog blast mafFile(s)
   %prog blasttab mafFile(s)
   %prog chain mafFile(s)
+  %prog gff mafFile(s)
   %prog html mafFile(s)
   %prog psl mafFile(s)
   %prog sam mafFile(s)

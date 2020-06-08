@@ -4,6 +4,7 @@ Usage:
   maf-convert blast mafFile(s)
   maf-convert blasttab mafFile(s)
   maf-convert chain mafFile(s)
+  maf-convert gff mafFile(s)
   maf-convert html mafFile(s)
   maf-convert psl mafFile(s)
   maf-convert sam mafFile(s)
@@ -8706,6 +8707,81 @@ chain 156 chr16 90354753 + 30335586 30335632 SRR359290.9033 75 + 0 46 195
 46
 chain 156 chr3 198022430 + 37456613 37456655 SRR359290.9033 75 + 0 42 196
 42
+##gff-version 3
+chr3	maf-convert	match	23607557	23607579	138	+	.	Target=102 674 696;Name=102:674-696
+chr14	maf-convert	match	104715673	104715703	126	+	.	Target=102 480 508;Name=102:480-508
+chr2	maf-convert	match	240456632	240456656	125	+	.	Target=102 92 118;Name=102:92-118
+chr11	maf-convert	match	67464147	67464169	124	+	.	Target=102 477 499;Name=102:477-499
+chr1	maf-convert	match	21590631	21590682	121	+	.	Target=102 468 504;Name=102:468-504
+chr10	maf-convert	match	122813035	122813060	120	+	.	Target=102 473 499;Name=102:473-499
+chr10	maf-convert	match	124281395	124281414	120	+	.	Target=102 619 638;Name=102:619-638
+chr1	maf-convert	match	161050906	161050943	119	+	.	Target=102 459 490;Name=102:459-490
+chr5	maf-convert	match	93489543	93489564	118	+	.	Target=102 7 28;Name=102:7-28
+chr14	maf-convert	match	80332130	80332156	118	+	.	Target=102 641 667;Name=102:641-667
+chr15	maf-convert	match	45614750	45614773	118	+	.	Target=102 468 491;Name=102:468-491
+chr8	maf-convert	match	76840859	76840909	117	+	.	Target=102 426 465;Name=102:426-465
+chr3	maf-convert	match	152862894	152862920	116	+	.	Target=102 88 112;Name=102:88-112
+chr1	maf-convert	match	145870018	145870036	114	+	.	Target=102 141 159;Name=102:141-159
+chr5	maf-convert	match	4867426	4867444	114	+	.	Target=102 473 491;Name=102:473-491
+chr5	maf-convert	match	74376578	74376596	114	+	.	Target=102 11 29;Name=102:11-29
+chr7	maf-convert	match	157969524	157969545	114	+	.	Target=102 494 515;Name=102:494-515
+chr13	maf-convert	match	113342216	113342234	114	+	.	Target=102 471 489;Name=102:471-489
+chr17	maf-convert	match	19079610	19079628	114	+	.	Target=102 471 489;Name=102:471-489
+chr17	maf-convert	match	19205792	19205810	114	+	.	Target=102 471 489;Name=102:471-489
+chr17	maf-convert	match	27793640	27793658	114	+	.	Target=102 547 565;Name=102:547-565
+chr18	maf-convert	match	8561209	8561245	114	+	.	Target=102 460 490;Name=102:460-490
+chr21	maf-convert	match	14291181	14291209	114	+	.	Target=102 667 693;Name=102:667-693
+chr22	maf-convert	match	23657491	23657509	114	+	.	Target=102 471 489;Name=102:471-489
+chrX	maf-convert	match	83302602	83302620	114	+	.	Target=102 681 699;Name=102:681-699
+chr5	maf-convert	match	173701200	173701222	113	+	.	Target=102 509 533;Name=102:509-533
+chr3	maf-convert	match	127741376	127741402	112	+	.	Target=102 486 508;Name=102:486-508
+chr4	maf-convert	match	3839063	3839083	112	+	.	Target=102 434 454;Name=102:434-454
+chr18	maf-convert	match	55335093	55335113	112	+	.	Target=102 257 277;Name=102:257-277
+chr17	maf-convert	match	28925930	28925955	111	+	.	Target=102 465 494;Name=102:465-494
+chr3	maf-convert	match	186865652	186865672	110	+	.	Target=102 443 463;Name=102:443-463
+chr5	maf-convert	match	169763616	169763644	110	+	.	Target=102 488 512;Name=102:488-512
+chr7	maf-convert	match	65260307	65260327	110	+	.	Target=102 443 463;Name=102:443-463
+chr19	maf-convert	match	47072202	47072237	110	+	.	Target=102 372 403;Name=102:372-403
+chr20	maf-convert	match	4034148	4034168	110	+	.	Target=102 443 463;Name=102:443-463
+chr19	maf-convert	match	1390856	1391052	954	-	.	Target=102 222 410;Name=102:222-410
+chr19	maf-convert	match	1388830	1388938	495	-	.	Target=102 402 509;Name=102:402-509
+chr19	maf-convert	match	1388524	1388593	321	-	.	Target=102 507 575;Name=102:507-575
+chr19	maf-convert	match	1393241	1393331	320	-	.	Target=102 99 178;Name=102:99-178
+chr19	maf-convert	match	1395388	1395484	291	-	.	Target=102 4 102;Name=102:4-102
+chr19	maf-convert	match	1391117	1391163	237	-	.	Target=102 179 225;Name=102:179-225
+chr19	maf-convert	match	1387808	1387847	215	-	.	Target=102 575 616;Name=102:575-616
+chr19	maf-convert	match	1383911	1383942	178	-	.	Target=102 614 645;Name=102:614-645
+chr7	maf-convert	match	101590380	101590420	133	-	.	Target=102 484 524;Name=102:484-524
+chr12	maf-convert	match	71544987	71545025	129	-	.	Target=102 459 490;Name=102:459-490
+chr19	maf-convert	match	17615431	17615451	126	-	.	Target=102 626 646;Name=102:626-646
+chr19	maf-convert	match	18430560	18430588	124	-	.	Target=102 481 505;Name=102:481-505
+chr8	maf-convert	match	98433262	98433291	121	-	.	Target=102 485 509;Name=102:485-509
+chr4	maf-convert	match	54783705	54783740	120	-	.	Target=102 459 488;Name=102:459-488
+chr3	maf-convert	match	130609409	130609434	119	-	.	Target=102 486 510;Name=102:486-510
+chr3	maf-convert	match	37588377	37588414	117	-	.	Target=102 90 126;Name=102:90-126
+chr16	maf-convert	match	722484	722513	116	-	.	Target=102 88 113;Name=102:88-113
+chr2	maf-convert	match	192414463	192414489	115	-	.	Target=102 501 526;Name=102:501-526
+chr7	maf-convert	match	101723246	101723286	115	-	.	Target=102 458 491;Name=102:458-491
+chr10	maf-convert	match	126932870	126932910	115	-	.	Target=102 605 637;Name=102:605-637
+chr22	maf-convert	match	20726589	20726617	115	-	.	Target=102 69 95;Name=102:69-95
+chr22	maf-convert	match	46458801	46458822	115	-	.	Target=102 636 657;Name=102:636-657
+chr3	maf-convert	match	89815480	89815498	114	-	.	Target=102 503 521;Name=102:503-521
+chr5	maf-convert	match	171574455	171574473	114	-	.	Target=102 457 475;Name=102:457-475
+chr6	maf-convert	match	1842832	1842850	114	-	.	Target=102 471 489;Name=102:471-489
+chr7	maf-convert	match	100370597	100370615	114	-	.	Target=102 471 489;Name=102:471-489
+chr12	maf-convert	match	19357536	19357554	114	-	.	Target=102 489 507;Name=102:489-507
+chr17	maf-convert	match	19172451	19172469	114	-	.	Target=102 471 489;Name=102:471-489
+chr17	maf-convert	match	29190070	29190088	114	-	.	Target=102 478 496;Name=102:478-496
+chr17	maf-convert	match	58670491	58670509	114	-	.	Target=102 471 489;Name=102:471-489
+chr20	maf-convert	match	17684745	17684763	114	-	.	Target=102 103 121;Name=102:103-121
+chr21	maf-convert	match	43027935	43027953	114	-	.	Target=102 485 503;Name=102:485-503
+chrX	maf-convert	match	39928417	39928435	114	-	.	Target=102 471 489;Name=102:471-489
+chr3	maf-convert	match	33026625	33026648	112	-	.	Target=102 503 526;Name=102:503-526
+chr5	maf-convert	match	177958542	177958564	111	-	.	Target=102 541 563;Name=102:541-563
+chr1	maf-convert	match	155997874	155997913	110	-	.	Target=102 486 524;Name=102:486-524
+chr6	maf-convert	match	65786102	65786124	110	-	.	Target=102 224 246;Name=102:224-246
+chr6	maf-convert	match	170257702	170257727	110	-	.	Target=102 485 508;Name=102:485-508
+chr15	maf-convert	match	78230486	78230510	110	-	.	Target=102 510 533;Name=102:510-533
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
  "http://www.w3.org/TR/html4/strict.dtd">

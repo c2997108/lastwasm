@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+# Author: Martin C. Frith 2008
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Read pair-wise alignments in MAF or LAST tabular format: write an
 # "Oxford grid", a.k.a. dotplot.

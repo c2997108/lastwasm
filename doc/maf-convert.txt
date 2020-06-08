@@ -3,7 +3,7 @@ maf-convert
 
 This script reads alignments in maf_ format, and writes them in
 another format.  It can write them in these formats: axt_, blast,
-blasttab, chain_, html, psl_, sam, tab.  You can use it like this::
+blasttab, chain_, gff, html, psl_, sam, tab.  You can use it like this::
 
   maf-convert psl my-alignments.maf > my-alignments.psl
 
@@ -36,8 +36,8 @@ Options
 
   -j N, --join=N
          Join neighboring alignments if they are co-linear and
-         separated by at most N letters.  This affects psl format
-         only.
+         separated by at most N letters.  This affects psl and gff
+         formats only.
 
   -n, --noheader
          Omit any header lines from the output.  This may be useful if

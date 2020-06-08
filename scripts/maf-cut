@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# Author: Martin C. Frith 2018
 
 from __future__ import print_function
 

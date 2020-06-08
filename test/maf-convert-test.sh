@@ -19,6 +19,7 @@ maf2=bs100.maf
     $r blast $maf2
     $r blasttab $maf2
     head -n999 $maf1 | $r chain
+    $r gff 102.maf
     $r html -l100 $maf2
     head -n999 $maf1 | $r -n html
     head -n999 $maf1 | $r psl
@@ -31,5 +32,4 @@ maf2=bs100.maf
     $r -d sam $maf1
     head -n999 $maf1 | $r -n tab
     head -n999 $maf1 | $r tab
-} |
-diff maf-convert-test.out -
+} | diff -u maf-convert-test.out -
