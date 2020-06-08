@@ -178,18 +178,22 @@ def colinearMafInput(opts, lines):
     numOfSeqs = max(len(maf[1]) for maf in mafs)
     linkedMafs = [(maf, [None] * numOfSeqs) for maf in mafs]
     for s in range(numOfSeqs):
-        linkedMafs.sort(key=functools.partial(linkedMafBegSortKey, s))
+        begFunc = functools.partial(linkedMafBegSortKey, s)
+        linkedMafs.sort(key=begFunc)
         maxEnd = "", "+", 0
-        for i in range(len(linkedMafs) - 1):
-            xMaf, xLinks = linkedMafs[i]
-            yMaf, yLinks = linkedMafs[i + 1]
+        for j in range(1, len(linkedMafs)):
+            xMaf, xLinks = linkedMafs[j - 1]
+            yMaf, yLinks = linkedMafs[j]
             x = xMaf[1][s]
             y = yMaf[1][s]
             newEnd = x[0], x[2], x[5]
             if newEnd > maxEnd:
                 maxEnd = newEnd
                 if (x[:4] == y[:4] and 0 <= y[4] - x[5] <= opts.Join):
-                    yLinks[s] = xMaf
+                    k = j + 1
+                    yBeg = y[0], y[2], y[4]
+                    if k == len(linkedMafs) or yBeg < begFunc(linkedMafs[k]):
+                        yLinks[s] = xMaf
     colinearMafs = []
     for maf, links in linkedMafs:
         if colinearMafs:
