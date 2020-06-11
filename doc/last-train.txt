@@ -114,23 +114,24 @@ Alignment options
              If specified, this parameter is written in last-train's
              output, so it will override lastal's default.
 
-  -Q NUMBER  How to read the query sequences.  By default, they must
-             be in ``fasta`` format.  ``-Q0`` means ``fasta`` or
-             ``fastq-ignore``.  ``-Q1`` means ``fastq-sanger``.
+  -Q NAME    How to read the query sequences (the NAME is not
+             case-sensitive)::
+
+               Default         fasta
+               "0", "fastx"    fasta or fastq: discard per-base quality data
+               "keep"          fasta or fastq: keep but ignore per-base quality data
+               "1", "sanger"   fastq-sanger
 
              The ``fastq`` formats are described here:
-             `<lastal.html>`_.  ``fastq-ignore`` means that the
-             quality data is ignored, so the results will be the same
-             as for ``fasta``.
-
-             For ``fastq-sanger``, last-train assumes the quality
-             codes indicate substitution error probabilities, *not*
+             `<lastal.html>`_.  last-train assumes the quality codes
+             indicate substitution error probabilities, *not*
              insertion or deletion error probabilities.  If this
              assumption is dubious (e.g. for data with many insertion
-             or deletion errors), it may be better to use
-             ``fastq-ignore``.  For ``fastq-sanger``, last-train finds
-             the rates of substitutions not explained by the quality
-             data (ideally, real substitutions as opposed to errors).
+             or deletion errors), it may be better to discard or
+             ignore the quality data.  For ``fastq-sanger``,
+             last-train finds the rates of substitutions not explained
+             by the quality data (ideally, real substitutions as
+             opposed to errors).
 
              If specified, this parameter is written in last-train's
              output, so it will override lastal's default.

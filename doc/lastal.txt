@@ -474,16 +474,18 @@ Miscellaneous options
       * The count of delete opens (= count of delete closes).
       * The count of insert opens (= count of insert closes).
 
-  -Q NUMBER
-      Specify how to read the query sequences::
+  -Q NAME
+      Specify how to read the query sequences (the NAME is not
+      case-sensitive)::
 
-        Default    fasta
-           0       fasta or fastq-ignore
-           1       fastq-sanger
-           2       fastq-solexa
-           3       fastq-illumina
-           4       prb
-           5       PSSM
+        Default           fasta
+        "0", "fastx"      fasta or fastq: discard per-base quality data
+        "keep"            fasta or fastq: keep but ignore per-base quality data
+        "1", "sanger"     fastq-sanger
+        "2", "solexa"     fastq-solexa
+        "3", "illumina"   fastq-illumina
+        "4", "prb"        prb
+        "5", "pssm"       PSSM
 
       *Warning*: Illumina data is not necessarily in fastq-illumina
       format; it is often in fastq-sanger format.
@@ -499,12 +501,10 @@ Miscellaneous options
       the "+" are quality codes, one per sequence letter.  The
       sequence and quality codes may wrap onto more than one line.
 
-      fastq-ignore means that the quality codes are ignored.  For the
-      other fastq variants, lastal assumes the quality codes indicate
-      substitution error probabilities, *not* insertion or deletion
-      error probabilities.  If this assumption is dubious (e.g. for
-      data with many insertion or deletion errors), it may be better
-      to use fastq-ignore.
+      lastal assumes the quality codes indicate substitution error
+      probabilities, *not* insertion or deletion error probabilities.
+      If this assumption is dubious (e.g. for data with many insertion
+      or deletion errors), it may be better to discard or ignore them.
 
       For fastq-sanger, quality scores are obtained by subtracting 33
       from the ASCII values of the quality codes.  For fastq-solexa

@@ -758,7 +758,7 @@ void SplitAligner::calcBaseScores(unsigned i) {
 
   const char *rAlign = a.ralign;
   const char *qAlign = a.qalign;
-  const char *qQual = a.qQual;
+  const char *qQual = qualityOffset ? a.qQual : 0;
 
   while (*qAlign) {
     unsigned char x = *rAlign++;

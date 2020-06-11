@@ -370,7 +370,8 @@ void lastSplit(LastSplitOptions& opts) {
 	    : 0.0;
 	  int jumpCost =
 	    (jumpProb > 0.0) ? -scoreFromProb(jumpProb, scale) : -(INT_MIN/2);
-	  int qualityOffset = (sequenceFormat == 3) ? 64 : 33;
+	  int qualityOffset =
+            (sequenceFormat == 0) ? 0 : (sequenceFormat == 3) ? 64 : 33;
 	  printParameters(opts);
 	  sa.setParams(-gapExistenceCost, -gapExtensionCost,
 		       -insExistenceCost, -insExtensionCost,

@@ -189,6 +189,7 @@ trap 'rm -f $db*' EXIT
 
     # fastq-ignore
     try lastal -fTAB -j4 -Q0 -e90 -a7 -A12 -B4 -b9 -r6 -q18 $db $fastq
+    try lastal -j4 -Qkeep -e90 -a7 -A12 -B4 -b9 -r6 -q18 $db $fastq
 
     # first alignments only
     try lastal -N2 $db hg19-M.fa

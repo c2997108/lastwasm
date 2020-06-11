@@ -135,13 +135,13 @@ E-value options (default settings):\n\
 -E: maximum expected alignments per square giga (1e+18/D/refSize/numOfStrands)\n\
 \n\
 Score options (default settings):\n\
--r: match score   (2 if -M, else  6 if 0<Q<5, else 1 if DNA)\n\
--q: mismatch cost (3 if -M, else 18 if 0<Q<5, else 1 if DNA)\n\
+-r: match score   (2 if -M, else  6 if 1<=Q<=4, else 1 if DNA)\n\
+-q: mismatch cost (3 if -M, else 18 if 1<=Q<=4, else 1 if DNA)\n\
 -p: match/mismatch score matrix (protein-protein: BL62, DNA-protein: BL80)\n\
 -X: N/X is ambiguous in: 0=neither sequence, 1=reference, 2=query, 3=both ("
     + stringify(ambiguousLetterOpt) + ")\n\
--a: gap existence cost (DNA: 7, protein: 11, 0<Q<5: 21)\n\
--b: gap extension cost (DNA: 1, protein:  2, 0<Q<5:  9)\n\
+-a: gap existence cost (DNA: 7, protein: 11, 1<=Q<=4: 21)\n\
+-b: gap extension cost (DNA: 1, protein:  2, 1<=Q<=4:  9)\n\
 -A: insertion existence cost (a)\n\
 -B: insertion extension cost (b)\n\
 -c: unaligned residue pair cost (off)\n\
@@ -178,7 +178,7 @@ Miscellaneous options (default settings):\n\
 -N: stop after the first N alignments per query strand\n\
 -R: repeat-marking options (the same as was used for lastdb)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
-    2=gapless+postmask, 3=always (2 if lastdb -c and Q<5, else 0)\n\
+    2=gapless+postmask, 3=always (2 if lastdb -c and Q!=pssm, else 0)\n\
 -w: suppress repeats inside exact matches, offset by <= this distance ("
     + stringify(maxRepeatDistance) + ")\n\
 -G: genetic code (" + geneticCodeFile + ")\n\
@@ -189,8 +189,8 @@ Miscellaneous options (default settings):\n\
                  4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA,\n\
                  7=expected counts ("
     + stringify(outputType) + ")\n\
--Q: input format: 0=fasta or fastq-ignore, 1=fastq-sanger, 2=fastq-solexa,\n\
-                  3=fastq-illumina, 4=prb, 5=PSSM (fasta)\n\
+-Q: input format: fastx, keep, sanger, solexa, illumina, prb, pssm\n\
+                  (default=fasta)\n\
 \n\
 Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
@@ -640,7 +640,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   if( outputType > 4 && outputType < 7 )
     stream << " g=" << gamma;
   stream << " j=" << outputType;
-  stream << " Q=" << (inputFormat % sequenceFormat::fasta);
+  stream << " Q=" << (inputFormat < sequenceFormat::fasta ? inputFormat : 0);
   stream << '\n';
 
   stream << "# " << lastdbName << '\n';

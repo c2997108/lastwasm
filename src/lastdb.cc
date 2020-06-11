@@ -126,7 +126,8 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     }
     f << "masklowercase=" << args.isCaseSensitive << '\n';
     if( isFastq ){
-      f << "sequenceformat=" << args.inputFormat << '\n';
+      f << "sequenceformat="
+	<< (args.inputFormat % sequenceFormat::fastxKeep) << '\n';
     }
     if( args.minimizerWindow > 1 ){
       // Maybe this should be written (and read) by the indexes, so

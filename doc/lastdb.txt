@@ -124,11 +124,17 @@ Advanced Options
       lastdb will refuse to process any single sequence longer than
       about 4 billion.
 
-  -Q NUMBER
-      Specify how to read the sequences.  The default is fasta, 0
-      means fasta or fastq-ignore, 1 means fastq-sanger, 2 means
-      fastq-solexa, and 3 means fastq-illumina.  The fastq formats are
-      described in `<lastal.html>`_.
+  -Q NAME
+      Specify how to read the sequences (the NAME is not case-sensitive)::
+
+        Default           fasta
+        "0", "fastx"      fasta or fastq: discard per-base quality data
+        "keep"            fasta or fastq: keep but ignore per-base quality data
+        "1", "sanger"     fastq-sanger
+        "2", "solexa"     fastq-solexa
+        "3", "illumina"   fastq-illumina
+
+      The fastq formats are described in `<lastal.html>`_.
 
   -P THREADS
       Divide the work between this number of threads running in

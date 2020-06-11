@@ -577,14 +577,14 @@ if __name__ == "__main__":
     op.add_option_group(og)
     og = optparse.OptionGroup(op, "Initial parameter options")
     og.add_option("-r", metavar="SCORE",
-                  help="match score (default: 6 if Q>0, else 5)")
+                  help="match score (default: 6 if Q>=1, else 5)")
     og.add_option("-q", metavar="COST",
-                  help="mismatch cost (default: 18 if Q>0, else 5)")
+                  help="mismatch cost (default: 18 if Q>=1, else 5)")
     og.add_option("-p", metavar="NAME", help="match/mismatch score matrix")
     og.add_option("-a", metavar="COST",
-                  help="gap existence cost (default: 21 if Q>0, else 15)")
+                  help="gap existence cost (default: 21 if Q>=1, else 15)")
     og.add_option("-b", metavar="COST",
-                  help="gap extension cost (default: 9 if Q>0, else 3)")
+                  help="gap extension cost (default: 9 if Q>=1, else 3)")
     og.add_option("-A", metavar="COST", help="insertion existence cost")
     og.add_option("-B", metavar="COST", help="insertion extension cost")
     op.add_option_group(og)
@@ -611,16 +611,15 @@ if __name__ == "__main__":
     og.add_option("-X", metavar="NUMBER", help="N/X is ambiguous in: "
                   "0=neither sequence, 1=reference, 2=query, 3=both "
                   "(default=0)")
-    og.add_option("-Q", metavar="NUMBER", help=
-                  "input format: 0=fasta or fastq-ignore, 1=fastq-sanger "
-                  "(default=fasta)")
+    og.add_option("-Q", metavar="NAME",
+                  help="input format: fastx, keep, sanger (default=fasta)")
     op.add_option_group(og)
     (opts, args) = op.parse_args()
     if len(args) < 1:
         op.error("I need a lastdb index and query sequences")
     if not opts.sample_number and (len(args) < 2 or "-" in args):
         op.error("sorry, can't use stdin when --sample-number=0")
-    if not opts.p and (not opts.Q or opts.Q == "0"):
+    if not opts.p and (not opts.Q or opts.Q in ("0", "fastx", "keep")):
         if not opts.r: opts.r = "5"
         if not opts.q: opts.q = "5"
         if not opts.a: opts.a = "15"

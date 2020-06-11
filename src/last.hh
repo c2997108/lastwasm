@@ -27,6 +27,8 @@ inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
     m.appendFromFasta(in, maxSeqLen);
   } else if (f == sequenceFormat::fastx) {
     m.appendFromFastx(in, maxSeqLen, false);
+  } else if (f == sequenceFormat::fastxKeep) {
+    m.appendFromFastx(in, maxSeqLen, true);
   } else if (f == sequenceFormat::prb) {
     m.appendFromPrb(in, maxSeqLen, a.size, a.decode);
   } else if (f == sequenceFormat::pssm) {

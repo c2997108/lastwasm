@@ -70,8 +70,7 @@ Advanced Options (default settings):\n\
 -S: strand: 0=reverse, 1=forward, 2=both ("
     + stringify(strand) + ")\n\
 -s: volume size (unlimited)\n\
--Q: input format: 0=fasta or fastq-ignore,\n\
-                  1=fastq-sanger, 2=fastq-solexa, 3=fastq-illumina (fasta)\n\
+-Q: input format: fastx, keep, sanger, solexa, illumina (default=fasta)\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
 -m: seed pattern\n\
@@ -160,7 +159,8 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'Q':
       unstringify( inputFormat, optarg );
-      if( inputFormat >= sequenceFormat::prb ) badopt( c, optarg );
+      if (inputFormat == sequenceFormat::prb ||
+	  inputFormat == sequenceFormat::pssm) badopt(c, optarg);
       break;
     case '?':
       ERR( "bad option" );
