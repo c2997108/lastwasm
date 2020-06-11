@@ -612,7 +612,7 @@ if __name__ == "__main__":
                   "0=neither sequence, 1=reference, 2=query, 3=both "
                   "(default=0)")
     og.add_option("-Q", metavar="NAME",
-                  help="input format: fastx, keep, sanger (default=fasta)")
+                  help="input format: fastx, sanger (default=fasta)")
     op.add_option_group(og)
     (opts, args) = op.parse_args()
     if len(args) < 1:

@@ -1143,7 +1143,11 @@ void lastal( int argc, char** argv ){
     matrixFile = ScoreMatrix::stringFromName( matrixName );
     args.resetCumulativeOptions();
     args.fromString( matrixFile );  // read options from the matrix file
+    sequenceFormat::Enum f = args.inputFormat;
     args.fromArgs( argc, argv );  // command line overrides matrix file
+    if (isUseQuality(f) != isUseQuality(args.inputFormat)) {
+      ERR("option -Q is inconsistent with the matrix file");
+    }
   }
 
   if( minSeedLimit > 1 ){

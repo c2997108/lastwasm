@@ -119,19 +119,17 @@ Alignment options
 
                Default         fasta
                "0", "fastx"    fasta or fastq: discard per-base quality data
-               "keep"          fasta or fastq: keep but ignore per-base quality data
                "1", "sanger"   fastq-sanger
 
              The ``fastq`` formats are described here:
-             `<lastal.html>`_.  last-train assumes the quality codes
-             indicate substitution error probabilities, *not*
-             insertion or deletion error probabilities.  If this
+             `<lastal.html>`_.  last-train assumes the per-base
+             quality codes indicate substitution error probabilities,
+             *not* insertion or deletion error probabilities.  If this
              assumption is dubious (e.g. for data with many insertion
-             or deletion errors), it may be better to discard or
-             ignore the quality data.  For ``fastq-sanger``,
-             last-train finds the rates of substitutions not explained
-             by the quality data (ideally, real substitutions as
-             opposed to errors).
+             or deletion errors), it may be better to discard the
+             quality data.  For ``fastq-sanger``, last-train finds the
+             rates of substitutions not explained by the quality data
+             (ideally, real substitutions as opposed to errors).
 
              If specified, this parameter is written in last-train's
              output, so it will override lastal's default.
