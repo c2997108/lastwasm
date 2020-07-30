@@ -588,6 +588,7 @@ def readBed(fileName, rangeDict):
         if not w: continue
         seqName = w[0]
         if seqName not in rangeDict: continue
+        seqRanges = rangeDict[seqName]
         beg = int(w[1])
         end = int(w[2])
         layer = 900
@@ -600,7 +601,7 @@ def readBed(fileName, rangeDict):
                     color = "rgb(" + w[8] + ")"
                 else:
                     strand = w[5]
-                    isRev = rangeDict[seqName][0][2]
+                    isRev = (seqRanges[0][3] > 1)
                     if strand == "+" and not isRev or strand == "-" and isRev:
                         color = "#ffe8e8"
                     if strand == "-" and not isRev or strand == "+" and isRev:
@@ -648,9 +649,10 @@ def readRmsk(fileName, rangeDict):
             repeatClass = fields[10].split("/")[0]
         else:
             continue
+        seqRanges = rangeDict[seqName]
         if repeatClass in ("Low_complexity", "Simple_repeat", "Satellite"):
             yield 200, "#fbf", seqName, beg, end
-        elif (strand == "+") != rangeDict[seqName][0][2]:
+        elif (strand == "+") != (seqRanges[0][3] > 1):
             yield 100, "#ffe8e8", seqName, beg, end
         else:
             yield 100, "#e8e8ff", seqName, beg, end
@@ -756,6 +758,10 @@ def axisImage(labels, rangePixBegs, rangePixLens, textRot,
         draw.text(position, text, font=font, fill=fill)
     return im
 
+def rangesPerSeq(sortedRanges):
+    for seqName, group in itertools.groupby(sortedRanges, itemgetter(0)):
+        yield seqName, sorted(group)
+
 def rangesWithOrigins(sortedRanges, rangePixBegs, rangePixLens, bpPerPix):
     for i, j, k in zip(sortedRanges, rangePixBegs, rangePixLens):
         seqName, rangeBeg, rangeEnd, strandNum = i
@@ -809,7 +815,8 @@ def remainingSequenceRanges(seqRanges, alignments, seqIndex):
     remainingSequences = set(i[seqIndex] for i in alignments)
     return [i for i in seqRanges if i[0] in remainingSequences]
 
-def readAnnotations(opts, rangeDict, bedFile, repFile, geneFile, gapFile):
+def readAnnotations(opts, sortedRanges, bedFile, repFile, geneFile, gapFile):
+    rangeDict = expandedSeqDict(dict(rangesPerSeq(sortedRanges)))
     annots = itertools.chain(readBed(bedFile, rangeDict),
                              readRmsk(repFile, rangeDict),
                              readGenePred(opts, geneFile, rangeDict),
@@ -910,12 +917,12 @@ def lastDotplot(opts, args):
     logging.info("reading annotations...")
 
     rangeDict1 = expandedSeqDict(rangeDict1)
-    annots1 = readAnnotations(opts, rangeDict1,
+    annots1 = readAnnotations(opts, sortedRanges1,
                               opts.bed1, opts.rmsk1, opts.genePred1, opts.gap1)
     boxes1 = bedBoxes(annots1, rangeDict1, tMargin, height, True, bpPerPix)
 
     rangeDict2 = expandedSeqDict(rangeDict2)
-    annots2 = readAnnotations(opts, rangeDict2,
+    annots2 = readAnnotations(opts, sortedRanges2,
                               opts.bed2, opts.rmsk2, opts.genePred2, opts.gap2)
     boxes2 = bedBoxes(annots2, rangeDict2, lMargin, width, False, bpPerPix)
 
