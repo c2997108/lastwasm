@@ -420,21 +420,17 @@ def labelText(seqRange, labelOpt):
         return seqName + ":" + prettyNum(beg) + "-" + prettyNum(end)
     return seqName
 
-def rangeLabels(seqRanges, labelOpt, font, fontsize, image_mode, textRot):
-    if fontsize:
-        image_size = 1, 1
-        im = Image.new(image_mode, image_size)
-        draw = ImageDraw.Draw(im)
+def rangeLabels(seqRanges, labelOpt, font, textDraw, textRot):
     x = y = 0
     for r in seqRanges:
         text = labelText(r, labelOpt)
-        if fontsize:
-            x, y = draw.textsize(text, font=font)
+        if textDraw is not None:
+            x, y = textDraw.textsize(text, font=font)
             if textRot:
                 x, y = y, x
         yield text, x, y, r[3]
 
-def dataFromRanges(sortedRanges, font, fontSize, imageMode, labelOpt, textRot):
+def dataFromRanges(sortedRanges, font, textDraw, labelOpt, textRot):
     for seqName, rangeBeg, rangeEnd, strandNum in sortedRanges:
         out = [seqName, str(rangeBeg), str(rangeEnd)]
         if strandNum > 0:
@@ -442,8 +438,7 @@ def dataFromRanges(sortedRanges, font, fontSize, imageMode, labelOpt, textRot):
         logging.info("\t".join(out))
     logging.info("")
     rangeSizes = [e - b for n, b, e, s in sortedRanges]
-    labs = list(rangeLabels(sortedRanges, labelOpt, font, fontSize,
-                            imageMode, textRot))
+    labs = list(rangeLabels(sortedRanges, labelOpt, font, textDraw, textRot))
     margin = max(i[2] for i in labs)
     # xxx the margin may be too big, because some labels may get omitted
     return rangeSizes, labs, margin
@@ -867,14 +862,16 @@ def lastDotplot(opts, args):
                               cutRanges1, cutRangesB1, cutRanges2, cutRangesB2)
     sortedRanges1, sortedRanges2 = sortOut
 
+    textDraw = None
+    if opts.fontsize:
+        textDraw = ImageDraw.Draw(Image.new(image_mode, (1, 1)))
+
     textRot1 = "vertical".startswith(opts.rot1)
-    i1 = dataFromRanges(sortedRanges1, font,
-                        opts.fontsize, image_mode, opts.labels1, textRot1)
+    i1 = dataFromRanges(sortedRanges1, font, textDraw, opts.labels1, textRot1)
     rangeSizes1, labelData1, tMargin = i1
 
     textRot2 = "horizontal".startswith(opts.rot2)
-    i2 = dataFromRanges(sortedRanges2, font,
-                        opts.fontsize, image_mode, opts.labels2, textRot2)
+    i2 = dataFromRanges(sortedRanges2, font, textDraw, opts.labels2, textRot2)
     rangeSizes2, labelData2, lMargin = i2
 
     maxPixels1 = opts.width  - lMargin
