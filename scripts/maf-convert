@@ -12,6 +12,7 @@ from itertools import *
 import collections
 import functools
 import gzip
+import logging
 import math
 import operator
 import optparse
@@ -479,9 +480,15 @@ mapqMaximum = "254"
 mapqMaximumNum = float(mapqMaximum)
 
 def mapqFromProb(probString):
-    try: p = float(probString)
-    except ValueError: raise Exception("bad probability: " + probString)
-    if p < 0 or p > 1: raise Exception("bad probability: " + probString)
+    try:
+        p = float(probString)
+    except ValueError:
+        raise ValueError("bad probability: " + probString)
+    if math.isnan(p):
+        logging.warning("bad probability: " + probString)
+        return mapqMissing
+    if p < 0 or p > 1:
+        raise ValueError("bad probability: " + probString)
     if p == 0: return mapqMaximum
     phred = -10 * math.log(p, 10)
     if phred >= mapqMaximumNum: return mapqMaximum
@@ -936,6 +943,8 @@ def mafConvertOneFile(opts, formatName, lines):
         raise Exception("unknown format: " + formatName)
 
 def mafConvert(opts, args):
+    logging.basicConfig(format="%(filename)s: %(message)s")
+
     formatName = args[0].lower()
     fileNames = args[1:]
 
