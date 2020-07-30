@@ -809,6 +809,13 @@ def remainingSequenceRanges(seqRanges, alignments, seqIndex):
     remainingSequences = set(i[seqIndex] for i in alignments)
     return [i for i in seqRanges if i[0] in remainingSequences]
 
+def readAnnotations(opts, rangeDict, bedFile, repFile, geneFile, gapFile):
+    annots = itertools.chain(readBed(bedFile, rangeDict),
+                             readRmsk(repFile, rangeDict),
+                             readGenePred(opts, geneFile, rangeDict),
+                             readGaps(opts, gapFile, rangeDict))
+    return annots
+
 def lastDotplot(opts, args):
     logLevel = logging.INFO if opts.verbose else logging.WARNING
     logging.basicConfig(format="%(filename)s: %(message)s", level=logLevel)
@@ -903,18 +910,14 @@ def lastDotplot(opts, args):
     logging.info("reading annotations...")
 
     rangeDict1 = expandedSeqDict(rangeDict1)
-    beds1 = itertools.chain(readBed(opts.bed1, rangeDict1),
-                            readRmsk(opts.rmsk1, rangeDict1),
-                            readGenePred(opts, opts.genePred1, rangeDict1),
-                            readGaps(opts, opts.gap1, rangeDict1))
-    boxes1 = bedBoxes(beds1, rangeDict1, tMargin, height, True, bpPerPix)
+    annots1 = readAnnotations(opts, rangeDict1,
+                              opts.bed1, opts.rmsk1, opts.genePred1, opts.gap1)
+    boxes1 = bedBoxes(annots1, rangeDict1, tMargin, height, True, bpPerPix)
 
     rangeDict2 = expandedSeqDict(rangeDict2)
-    beds2 = itertools.chain(readBed(opts.bed2, rangeDict2),
-                            readRmsk(opts.rmsk2, rangeDict2),
-                            readGenePred(opts, opts.genePred2, rangeDict2),
-                            readGaps(opts, opts.gap2, rangeDict2))
-    boxes2 = bedBoxes(beds2, rangeDict2, lMargin, width, False, bpPerPix)
+    annots2 = readAnnotations(opts, rangeDict2,
+                              opts.bed2, opts.rmsk2, opts.genePred2, opts.gap2)
+    boxes2 = bedBoxes(annots2, rangeDict2, lMargin, width, False, bpPerPix)
 
     boxes = sorted(itertools.chain(boxes1, boxes2))
 
