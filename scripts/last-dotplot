@@ -694,8 +694,9 @@ def readGaps(opts, fileName, rangeDict):
         else:
             yield 2000, opts.unbridged_color, seqName, beg, end, ""
 
-def bedBoxes(beds, rangeDict, margin, edge, isTop, bpPerPix):
-    for layer, color, seqName, bedBeg, bedEnd, name in beds:
+def bedBoxes(beds, rangeDict, edge, isTop, bpPerPix, textSizes):
+    cover = [(edge, edge)]
+    for layer, color, seqName, bedBeg, bedEnd, name in reversed(beds):
         for rangeBeg, rangeEnd, isReverseRange, origin in rangeDict[seqName]:
             beg = max(bedBeg, rangeBeg)
             end = min(bedEnd, rangeEnd)
@@ -716,15 +717,22 @@ def bedBoxes(beds, rangeDict, margin, edge, isTop, bpPerPix):
                         pixBeg = (origin + beg) // bpPerPix
                     else:
                         pixEnd = div_ceil(origin + end, bpPerPix)
-            if isTop:
-                box = pixBeg, margin, pixEnd, edge
+            textWidth, textHeight = textSizes[name]
+            nameBeg = (pixBeg + pixEnd - textHeight) // 2
+            nameEnd = nameBeg + textHeight
+            if name and all(e <= nameBeg or b >= nameEnd for b, e in cover):
+                cover.append((nameBeg, nameEnd))
             else:
-                box = margin, pixBeg, edge, pixEnd
-            yield layer, color, box
+                name = ""
+            yield layer, color, isTop, pixBeg, pixEnd, name, nameBeg, textWidth
 
-def drawAnnotations(im, boxes):
+def drawAnnotations(im, boxes, tMargin, bMarginBeg, lMargin, rMarginBeg):
     # xxx use partial transparency for different-color overlaps?
-    for layer, color, box in boxes:
+    for layer, color, isTop, beg, end, name, nameBeg, nameLen in boxes:
+        if isTop:
+            box = beg, tMargin, end, bMarginBeg
+        else:
+            box = lMargin, beg, rMarginBeg, end
         im.paste(color, box)
 
 def placedLabels(labels, rangePixBegs, rangePixLens, beg, end):
@@ -952,8 +960,10 @@ def lastDotplot(opts, args):
     rangeDict1 = expandedSeqDict(rangeDict1)
     rangeDict2 = expandedSeqDict(rangeDict2)
 
-    boxes1 = bedBoxes(annots1, rangeDict1, tMargin, bMarginBeg, 1, bpPerPix)
-    boxes2 = bedBoxes(annots2, rangeDict2, lMargin, rMarginBeg, 0, bpPerPix)
+    boxes1 = list(bedBoxes(annots1, rangeDict1, bMarginBeg, True, bpPerPix,
+                           annoTextSizes1))
+    boxes2 = list(bedBoxes(annots2, rangeDict2, rMarginBeg, False, bpPerPix,
+                           annoTextSizes2))
     boxes = sorted(itertools.chain(boxes1, boxes2))
 
     logging.info("drawing...")
@@ -961,7 +971,7 @@ def lastDotplot(opts, args):
     image_size = width, height
     im = Image.new(image_mode, image_size, opts.background_color)
 
-    drawAnnotations(im, boxes)
+    drawAnnotations(im, boxes, tMargin, bMarginBeg, lMargin, rMarginBeg)
 
     joinA, joinB = twoValuesFromOption(opts.join, ":")
     if joinA in "13":
