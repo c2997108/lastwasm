@@ -591,6 +591,8 @@ def readBed(fileName, rangeDict):
         seqRanges = rangeDict[seqName]
         beg = int(w[1])
         end = int(w[2])
+        if all(beg >= i[2] or end <= i[1] for i in seqRanges):
+            continue
         layer = 900
         color = "#fbf"
         if len(w) > 4:
@@ -619,12 +621,15 @@ def readGenePred(opts, fileName, rangeDict):
             fields = fields[1:]
         seqName = fields[1]
         if seqName not in rangeDict: continue
+        seqRanges = rangeDict[seqName]
         #strand = fields[2]
         cdsBeg = int(fields[5])
         cdsEnd = int(fields[6])
         exonBegs = commaSeparatedInts(fields[8])
         exonEnds = commaSeparatedInts(fields[9])
         for beg, end in zip(exonBegs, exonEnds):
+            if all(beg >= i[2] or end <= i[1] for i in seqRanges):
+                continue
             yield 300, opts.exon_color, seqName, beg, end
             b = max(beg, cdsBeg)
             e = min(end, cdsEnd)
@@ -650,6 +655,8 @@ def readRmsk(fileName, rangeDict):
         else:
             continue
         seqRanges = rangeDict[seqName]
+        if all(beg >= i[2] or end <= i[1] for i in seqRanges):
+            continue
         if repeatClass in ("Low_complexity", "Simple_repeat", "Satellite"):
             yield 200, "#fbf", seqName, beg, end
         elif (strand == "+") != (seqRanges[0][3] > 1):
