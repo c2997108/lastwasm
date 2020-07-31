@@ -593,6 +593,7 @@ def readBed(fileName, rangeDict):
         end = int(w[2])
         if all(beg >= i[2] or end <= i[1] for i in seqRanges):
             continue
+        itemName = w[3] if len(w) > 3 and w[3] != "." else ""
         layer = 900
         color = "#fbf"
         if len(w) > 4:
@@ -608,15 +609,16 @@ def readBed(fileName, rangeDict):
                         color = "#ffe8e8"
                     if strand == "-" and not isRev or strand == "+" and isRev:
                         color = "#e8e8ff"
-        yield layer, color, seqName, beg, end
+        yield layer, color, seqName, beg, end, itemName
 
 def commaSeparatedInts(text):
     return map(int, text.rstrip(",").split(","))
 
 def readGenePred(opts, fileName, rangeDict):
     for line in myOpen(fileName):
-        fields = line.split()
+        fields = line.split()  # xxx tab ???
         if not fields: continue
+        geneName = fields[12 if len(fields) > 12 else 0]  # XXX ???
         if fields[2] not in "+-":
             fields = fields[1:]
         seqName = fields[1]
@@ -630,10 +632,10 @@ def readGenePred(opts, fileName, rangeDict):
         for beg, end in zip(exonBegs, exonEnds):
             if all(beg >= i[2] or end <= i[1] for i in seqRanges):
                 continue
-            yield 300, opts.exon_color, seqName, beg, end
+            yield 300, opts.exon_color, seqName, beg, end, geneName
             b = max(beg, cdsBeg)
             e = min(end, cdsEnd)
-            if b < e: yield 400, opts.cds_color, seqName, b, e
+            if b < e: yield 400, opts.cds_color, seqName, b, e, ""
 
 def readRmsk(fileName, rangeDict):
     for line in myOpen(fileName):
@@ -644,6 +646,7 @@ def readRmsk(fileName, rangeDict):
             beg = int(fields[6])
             end = int(fields[7])
             strand = fields[9]
+            repeatName = fields[10]
             repeatClass = fields[11]
         elif len(fields) == 15:  # .out
             seqName = fields[4]
@@ -651,6 +654,7 @@ def readRmsk(fileName, rangeDict):
             beg = int(fields[5]) - 1
             end = int(fields[6])
             strand = fields[8]
+            repeatName = fields[9]
             repeatClass = fields[10].split("/")[0]
         else:
             continue
@@ -658,11 +662,11 @@ def readRmsk(fileName, rangeDict):
         if all(beg >= i[2] or end <= i[1] for i in seqRanges):
             continue
         if repeatClass in ("Low_complexity", "Simple_repeat", "Satellite"):
-            yield 200, "#fbf", seqName, beg, end
+            yield 200, "#fbf", seqName, beg, end, repeatName
         elif (strand == "+") != (seqRanges[0][3] > 1):
-            yield 100, "#ffe8e8", seqName, beg, end
+            yield 100, "#ffe8e8", seqName, beg, end, repeatName
         else:
-            yield 100, "#e8e8ff", seqName, beg, end
+            yield 100, "#e8e8ff", seqName, beg, end, repeatName
 
 def isExtraFirstGapField(fields):
     return fields[4].isdigit()
@@ -679,12 +683,12 @@ def readGaps(opts, fileName, rangeDict):
         end = int(w[2])
         beg = end - int(w[5])  # zero-based coordinate
         if w[7] == "yes":
-            yield 3000, opts.bridged_color, seqName, beg, end
+            yield 3000, opts.bridged_color, seqName, beg, end, ""
         else:
-            yield 2000, opts.unbridged_color, seqName, beg, end
+            yield 2000, opts.unbridged_color, seqName, beg, end, ""
 
 def bedBoxes(beds, rangeDict, margin, edge, isTop, bpPerPix):
-    for layer, color, seqName, bedBeg, bedEnd in beds:
+    for layer, color, seqName, bedBeg, bedEnd, name in beds:
         for rangeBeg, rangeEnd, isReverseRange, origin in rangeDict[seqName]:
             beg = max(bedBeg, rangeBeg)
             end = min(bedEnd, rangeEnd)
