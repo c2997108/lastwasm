@@ -784,6 +784,16 @@ def axisImage(labels, rangePixBegs, rangePixLens, textRot,
         draw.text(position, text, font=font, fill=fill)
     return im
 
+def annoTextImage(opts, image_mode, font, margin, length, boxes, isLeftAlign):
+    image_size = margin, length
+    im = Image.new(image_mode, image_size, opts.margin_color)
+    draw = ImageDraw.Draw(im)
+    for layer, color, isTop, beg, end, name, nameBeg, nameLen in boxes:
+        xPosition = 0 if isLeftAlign else margin - nameLen
+        position = xPosition, nameBeg
+        draw.text(position, name, font=font, fill="black")
+    return im
+
 def rangesPerSeq(sortedRanges):
     for seqName, group in itertools.groupby(sortedRanges, itemgetter(0)):
         yield seqName, sorted(group)
@@ -850,7 +860,8 @@ def readAnnotations(opts, font, textDraw, sortedRanges,
                                     readGaps(opts, gapFile, rangeDict)))
     names = set(i[5] for i in annots)
     textSizes = dict(sizesPerText(names, font, textDraw))
-    return annots, textSizes
+    margin = max(i[0] for i in textSizes.values()) if textSizes else 0
+    return annots, textSizes, margin
 
 def lastDotplot(opts, args):
     logLevel = logging.INFO if opts.verbose else logging.WARNING
@@ -922,13 +933,11 @@ def lastDotplot(opts, args):
 
     a1 = readAnnotations(opts, font, textDraw, sortedRanges1,
                          opts.bed1, opts.rmsk1, opts.genePred1, opts.gap1)
-    annots1, annoTextSizes1 = a1
+    annots1, annoTextSizes1, bMargin = a1
 
     a2 = readAnnotations(opts, font, textDraw, sortedRanges2,
                          opts.bed2, opts.rmsk2, opts.genePred2, opts.gap2)
-    annots2, annoTextSizes2 = a2
-
-    bMargin = rMargin = 0  # xxx
+    annots2, annoTextSizes2, rMargin = a2
 
     maxPixels1 = opts.width  - lMargin - rMargin
     maxPixels2 = opts.height - tMargin - bMargin
@@ -1002,6 +1011,14 @@ def lastDotplot(opts, args):
             axis2 = axis2.transpose(Image.ROTATE_270)
         im.paste(axis1, (0, 0))
         im.paste(axis2, (0, 0))
+
+        annoImage1 = annoTextImage(opts, image_mode, font, bMargin, width,
+                                   boxes1, False)
+        annoImage1 = annoImage1.transpose(Image.ROTATE_90)
+        annoImage2 = annoTextImage(opts, image_mode, font, rMargin, height,
+                                   boxes2, True)
+        im.paste(annoImage1, (0, bMarginBeg))
+        im.paste(annoImage2, (rMarginBeg, 0))
 
     for i in rangePixBegs1[1:]:
         box = i - opts.border_pixels, tMargin, i, bMarginBeg
