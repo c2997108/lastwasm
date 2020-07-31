@@ -593,6 +593,8 @@ def readBed(fileName, rangeDict):
     for line in myOpen(fileName):
         w = line.split()
         if not w: continue
+        if not w[1].isdigit():
+            w = w[1:]
         seqName = w[0]
         if seqName not in rangeDict: continue
         seqRanges = rangeDict[seqName]
