@@ -393,6 +393,13 @@ def allSortedRanges(opts, alignments, alignmentsB,
     t2 = mySortedRanges(seqRangesB2, oB2, 1, alignmentsB, s1)
     return s1 + t1, s2 + t2
 
+def sizesPerText(texts, font, textDraw):
+    sizes = 0, 0
+    for t in texts:
+        if textDraw is not None:
+            sizes = textDraw.textsize(t, font=font)
+        yield t, sizes
+
 def prettyNum(n):
     t = str(n)
     groups = []
@@ -826,13 +833,16 @@ def remainingSequenceRanges(seqRanges, alignments, seqIndex):
     remainingSequences = set(i[seqIndex] for i in alignments)
     return [i for i in seqRanges if i[0] in remainingSequences]
 
-def readAnnotations(opts, sortedRanges, bedFile, repFile, geneFile, gapFile):
+def readAnnotations(opts, font, textDraw, sortedRanges,
+                    bedFile, repFile, geneFile, gapFile):
     rangeDict = expandedSeqDict(dict(rangesPerSeq(sortedRanges)))
-    annots = itertools.chain(readBed(bedFile, rangeDict),
-                             readRmsk(repFile, rangeDict),
-                             readGenePred(opts, geneFile, rangeDict),
-                             readGaps(opts, gapFile, rangeDict))
-    return annots
+    annots = sorted(itertools.chain(readBed(bedFile, rangeDict),
+                                    readRmsk(repFile, rangeDict),
+                                    readGenePred(opts, geneFile, rangeDict),
+                                    readGaps(opts, gapFile, rangeDict)))
+    names = set(i[5] for i in annots)
+    textSizes = dict(sizesPerText(names, font, textDraw))
+    return annots, textSizes
 
 def lastDotplot(opts, args):
     logLevel = logging.INFO if opts.verbose else logging.WARNING
@@ -900,6 +910,16 @@ def lastDotplot(opts, args):
     i2 = dataFromRanges(sortedRanges2, font, textDraw, opts.labels2, textRot2)
     rangeSizes2, labelData2, lMargin = i2
 
+    logging.info("reading annotations...")
+
+    a1 = readAnnotations(opts, font, textDraw, sortedRanges1,
+                         opts.bed1, opts.rmsk1, opts.genePred1, opts.gap1)
+    annots1, annoTextSizes1 = a1
+
+    a2 = readAnnotations(opts, font, textDraw, sortedRanges2,
+                         opts.bed2, opts.rmsk2, opts.genePred2, opts.gap2)
+    annots2, annoTextSizes2 = a2
+
     bMargin = rMargin = 0  # xxx
 
     maxPixels1 = opts.width  - lMargin - rMargin
@@ -929,18 +949,11 @@ def lastDotplot(opts, args):
     hits = alignmentPixels(width, height, allAlignments, bpPerPix,
                            rangeDict1, rangeDict2)
 
-    logging.info("reading annotations...")
-
     rangeDict1 = expandedSeqDict(rangeDict1)
-    annots1 = readAnnotations(opts, sortedRanges1,
-                              opts.bed1, opts.rmsk1, opts.genePred1, opts.gap1)
-    boxes1 = bedBoxes(annots1, rangeDict1, tMargin, bMarginBeg, 1, bpPerPix)
-
     rangeDict2 = expandedSeqDict(rangeDict2)
-    annots2 = readAnnotations(opts, sortedRanges2,
-                              opts.bed2, opts.rmsk2, opts.genePred2, opts.gap2)
-    boxes2 = bedBoxes(annots2, rangeDict2, lMargin, rMarginBeg, 0, bpPerPix)
 
+    boxes1 = bedBoxes(annots1, rangeDict1, tMargin, bMarginBeg, 1, bpPerPix)
+    boxes2 = bedBoxes(annots2, rangeDict2, lMargin, rMarginBeg, 0, bpPerPix)
     boxes = sorted(itertools.chain(boxes1, boxes2))
 
     logging.info("drawing...")
