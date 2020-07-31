@@ -696,8 +696,8 @@ def readGaps(opts, fileName, rangeDict):
         else:
             yield 2000, opts.unbridged_color, seqName, beg, end, ""
 
-def bedBoxes(beds, rangeDict, edge, isTop, bpPerPix, textSizes):
-    cover = [(edge, edge)]
+def bedBoxes(beds, rangeDict, limit, isTop, bpPerPix, textSizes):
+    cover = [(limit, limit)]
     for layer, color, seqName, bedBeg, bedEnd, name in reversed(beds):
         for rangeBeg, rangeEnd, isReverseRange, origin in rangeDict[seqName]:
             beg = max(bedBeg, rangeBeg)
@@ -971,9 +971,9 @@ def lastDotplot(opts, args):
     rangeDict1 = expandedSeqDict(rangeDict1)
     rangeDict2 = expandedSeqDict(rangeDict2)
 
-    boxes1 = list(bedBoxes(annots1, rangeDict1, bMarginBeg, True, bpPerPix,
+    boxes1 = list(bedBoxes(annots1, rangeDict1, rMarginBeg, True, bpPerPix,
                            annoTextSizes1))
-    boxes2 = list(bedBoxes(annots2, rangeDict2, rMarginBeg, False, bpPerPix,
+    boxes2 = list(bedBoxes(annots2, rangeDict2, bMarginBeg, False, bpPerPix,
                            annoTextSizes2))
     boxes = sorted(itertools.chain(boxes1, boxes2))
 
