@@ -13,6 +13,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <float.h>
+
 static void err(const std::string& s) {
   throw std::runtime_error(s);
 }
@@ -696,6 +698,11 @@ void SplitAligner::backwardSplice() {
 	    if (alns[i].qend == j) p += endprob;
 	    p = p * Sexp[ij*2-1] * rescale;
 
+	    // XXX p can overflow to inf.  This can happen if there is
+	    // a large unaligned part in the middle of the query
+	    // sequence.  Then, in forwardSplice, Fmat may underflow
+	    // to 0, so the subsequent rescales are all 1.
+
 	    Bmat[ij - 1] = p;
 	    //if (alns[i].qstart == j-1) zB += p;
 	    pSum += p * spliceEndProb(ij - 1);
@@ -713,7 +720,9 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
   unsigned j = queryBeg;
   for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
     size_t ij = matrixRowOrigins[i] + j;
-    if (alns[i].qalign[pos] == '-') {
+    if (Bmat[ij] > DBL_MAX) {  // can happen for spliced alignment
+      output.push_back(0);
+    } else if (alns[i].qalign[pos] == '-') {
       double value = Fmat[ij] * Bmat[ij] * Sexp[ij*2] * cell(rescales, j);
       output.push_back(value);
     } else {
@@ -1113,6 +1122,7 @@ void SplitAligner::flipSpliceSignals() {
 }
 
 double SplitAligner::spliceSignalStrandLogOdds() const {
+  // XXX if Bmat overflowed to inf, then I think this is unreliable
   assert(rescales.size() == rescalesRev.size());
   double logOdds = 0;
   for (unsigned j = 0; j < rescales.size(); ++j) {

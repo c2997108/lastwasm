@@ -31,5 +31,6 @@ maf=SRR359290-1k.maf
 
     last-split 102.maf
     last-split -fMAF 102.maf
-} |
-diff -u last-split-test.out -
+
+    last-split -d1 spliceWithGap.maf
+} | diff -u last-split-test.out -
