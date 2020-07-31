@@ -686,22 +686,22 @@ def bedBoxes(beds, rangeDict, margin, edge, isTop, bpPerPix):
                 beg, end = -end, -beg
             if layer <= 1000:
                 # include partly-covered pixels
-                b = (origin + beg) // bpPerPix
-                e = div_ceil(origin + end, bpPerPix)
+                pixBeg = (origin + beg) // bpPerPix
+                pixEnd = div_ceil(origin + end, bpPerPix)
             else:
                 # exclude partly-covered pixels
-                b = div_ceil(origin + beg, bpPerPix)
-                e = (origin + end) // bpPerPix
-                if e <= b: continue
+                pixBeg = div_ceil(origin + beg, bpPerPix)
+                pixEnd = (origin + end) // bpPerPix
+                if pixEnd <= pixBeg: continue
                 if bedEnd >= rangeEnd:  # include partly-covered end pixels
                     if isReverseRange:
-                        b = (origin + beg) // bpPerPix
+                        pixBeg = (origin + beg) // bpPerPix
                     else:
-                        e = div_ceil(origin + end, bpPerPix)
+                        pixEnd = div_ceil(origin + end, bpPerPix)
             if isTop:
-                box = b, margin, e, edge
+                box = pixBeg, margin, pixEnd, edge
             else:
-                box = margin, b, edge, e
+                box = margin, pixBeg, edge, pixEnd
             yield layer, color, box
 
 def drawAnnotations(im, boxes):
@@ -889,20 +889,24 @@ def lastDotplot(opts, args):
     i2 = dataFromRanges(sortedRanges2, font, textDraw, opts.labels2, textRot2)
     rangeSizes2, labelData2, lMargin = i2
 
-    maxPixels1 = opts.width  - lMargin
-    maxPixels2 = opts.height - tMargin
+    bMargin = rMargin = 0  # xxx
+
+    maxPixels1 = opts.width  - lMargin - rMargin
+    maxPixels2 = opts.height - tMargin - bMargin
     bpPerPix1 = get_bp_per_pix(rangeSizes1, opts.border_pixels, maxPixels1)
     bpPerPix2 = get_bp_per_pix(rangeSizes2, opts.border_pixels, maxPixels2)
     bpPerPix = max(bpPerPix1, bpPerPix2)
     logging.info("bp per pixel = " + str(bpPerPix))
 
     p1 = pixelData(rangeSizes1, bpPerPix, opts.border_pixels, lMargin)
-    rangePixBegs1, rangePixLens1, width = p1
+    rangePixBegs1, rangePixLens1, rMarginBeg = p1
+    width = rMarginBeg + rMargin
     rangeDict1 = dict(rangesAndOriginsPerSeq(sortedRanges1, rangePixBegs1,
                                              rangePixLens1, bpPerPix))
 
     p2 = pixelData(rangeSizes2, bpPerPix, opts.border_pixels, tMargin)
-    rangePixBegs2, rangePixLens2, height = p2
+    rangePixBegs2, rangePixLens2, bMarginBeg = p2
+    height = bMarginBeg + bMargin
     rangeDict2 = dict(rangesAndOriginsPerSeq(sortedRanges2, rangePixBegs2,
                                              rangePixLens2, bpPerPix))
 
@@ -919,12 +923,12 @@ def lastDotplot(opts, args):
     rangeDict1 = expandedSeqDict(rangeDict1)
     annots1 = readAnnotations(opts, sortedRanges1,
                               opts.bed1, opts.rmsk1, opts.genePred1, opts.gap1)
-    boxes1 = bedBoxes(annots1, rangeDict1, tMargin, height, True, bpPerPix)
+    boxes1 = bedBoxes(annots1, rangeDict1, tMargin, bMarginBeg, 1, bpPerPix)
 
     rangeDict2 = expandedSeqDict(rangeDict2)
     annots2 = readAnnotations(opts, sortedRanges2,
                               opts.bed2, opts.rmsk2, opts.genePred2, opts.gap2)
-    boxes2 = bedBoxes(annots2, rangeDict2, lMargin, width, False, bpPerPix)
+    boxes2 = bedBoxes(annots2, rangeDict2, lMargin, rMarginBeg, 0, bpPerPix)
 
     boxes = sorted(itertools.chain(boxes1, boxes2))
 
@@ -966,11 +970,11 @@ def lastDotplot(opts, args):
         im.paste(axis2, (0, 0))
 
     for i in rangePixBegs1[1:]:
-        box = i - opts.border_pixels, tMargin, i, height
+        box = i - opts.border_pixels, tMargin, i, bMarginBeg
         im.paste(opts.border_color, box)
 
     for i in rangePixBegs2[1:]:
-        box = lMargin, i - opts.border_pixels, width, i
+        box = lMargin, i - opts.border_pixels, rMarginBeg, i
         im.paste(opts.border_color, box)
 
     im.save(args[1])
