@@ -1,10 +1,10 @@
 // Author: Martin C. Frith 2019
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#if defined __SSE4_1__
-
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
+
+#if defined __SSE4_1__
 
 //#include <iostream>  // for debugging
 
