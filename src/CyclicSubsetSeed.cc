@@ -100,14 +100,14 @@ void CyclicSubsetSeed::init( const std::vector< std::string >& seedAlphabet,
   }
 }
 
-static void addLetter( uchar numbersToSubsets[], uchar letter, uchar subsetNum,
+static void addLetter( uchar toSubsetNum[], uchar letter, uchar subsetNum,
 		       const uchar letterCode[] ){
   uchar number = letterCode[letter];
   if( number >= CyclicSubsetSeed::MAX_LETTERS )
     ERR( "bad symbol in subset-seed: " + stringify(letter) );
-  if( numbersToSubsets[number] < CyclicSubsetSeed::DELIMITER )
+  if( toSubsetNum[number] < CyclicSubsetSeed::DELIMITER )
     ERR( "repeated symbol in subset-seed: " + stringify(letter) );
-  numbersToSubsets[number] = subsetNum;
+  toSubsetNum[number] = subsetNum;
 }
 
 void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
@@ -115,9 +115,10 @@ void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
 				       const uchar letterCode[] ){
   std::string inputWord;
   std::vector<std::string> subsetList;
-  std::vector<uchar> numbersToSubsets( MAX_LETTERS, DELIMITER );
+  std::vector<uchar> toSubsetNum(MAX_LETTERS, DELIMITER);
+  unsigned subsetNum = 0;
 
-  for( unsigned subsetNum = 0; inputLine >> inputWord; ++subsetNum ){
+  while (inputLine >> inputWord) {
     assert( subsetNum < DELIMITER );
     std::string subset;
 
@@ -125,20 +126,20 @@ void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
       uchar c = inputWord[i];
       uchar upper = std::toupper(c);
       uchar lower = std::tolower(c);
-      addLetter( &numbersToSubsets[0], upper, subsetNum, letterCode );
+      addLetter(&toSubsetNum[0], upper, subsetNum, letterCode);
       subset += upper;
       if( !isMaskLowercase && lower != upper ){
-	addLetter( &numbersToSubsets[0], lower, subsetNum, letterCode );
+	addLetter(&toSubsetNum[0], lower, subsetNum, letterCode);
       }
     }
 
     sort( subset.begin(), subset.end() );  // canonicalize
     subsetList.push_back( subset );
+    ++subsetNum;
   }
 
   subsetLists.push_back( subsetList );
-  subsetMaps.insert( subsetMaps.end(),
-		     numbersToSubsets.begin(), numbersToSubsets.end() );
+  subsetMaps.insert(subsetMaps.end(), toSubsetNum.begin(), toSubsetNum.end());
 }
 
 void CyclicSubsetSeed::writePosition( std::ostream& out,

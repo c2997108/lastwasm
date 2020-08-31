@@ -9,6 +9,10 @@
 
 using namespace cbrc;
 
+static void err(const std::string &s) {
+  throw std::runtime_error(s);
+}
+
 void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
 				     size_t step, size_t minimizerWindow) {
   if (beg >= end) return;
@@ -40,7 +44,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
   std::string fileName = baseName + ".prj";
   std::ifstream f( fileName.c_str() );
-  if( !f ) throw std::runtime_error( "can't open file: " + fileName );
+  if (!f) err("can't open file: " + fileName);
 
   std::string line, word;
   while( getline( f, line ) ){
@@ -56,7 +60,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
   if( textLength == 0 || unindexedPositions == 0 || bucketDepth+1 == 0 ||
       !seed.span() || !f.eof() ){
-    throw std::runtime_error( "can't read file: " + fileName );
+    err("can't read file: " + fileName);
   }
 
   indexT indexedPositions = textLength - unindexedPositions;
@@ -96,7 +100,7 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   }
 
   f.close();
-  if( !f ) throw std::runtime_error( "can't write file: " + fileName );
+  if (!f) err("can't write file: " + fileName);
 
   memoryToBinaryFile( suffixArray.begin(), suffixArray.end(),
 		      baseName + ".suf" );
