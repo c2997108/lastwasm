@@ -55,6 +55,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   size_t textLength = 0;  // 0 never occurs in a valid file
   size_t unindexedPositions = 0;  // 0 never occurs in a valid file
   unsigned bucketDepth = -1;
+  unsigned version = 0;
   seed.clear();
 
   std::string fileName = baseName + ".prj";
@@ -65,6 +66,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   while( getline( f, line ) ){
     std::istringstream iss(line);
     getline( iss, word, '=' );
+    if( word == "version" ) iss >> version;
     if( word == "totallength" ) iss >> textLength;
     if( word == "specialcharacters" ) iss >> unindexedPositions;
     if( word == "prefixlength" ) iss >> bucketDepth;
@@ -78,10 +80,14 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
     err("can't read file: " + fileName);
   }
 
+  if (bucketDepth == 0 && version < 1087) {
+    err("the lastdb files are too old: please re-run lastdb");
+  }
+
   size_t indexedPositions = textLength - unindexedPositions;
   suffixArray.m.open( baseName + ".suf", indexedPositions );
   makeBucketSteps( bucketDepth );
-  buckets.m.open( baseName + ".bck", bucketSteps[0] );
+  buckets.m.open(baseName + ".bck", bucketsSize());
 
   try{
     childTable.m.open( baseName + ".chi", indexedPositions );
@@ -141,7 +147,7 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
   }
 
   makeBucketSteps(bucketDepth);
-  buckets.v.resize(bucketSteps[0]);
+  buckets.v.resize(bucketsSize());
 
   indexT *myBuckets = &buckets.v[0];
   indexT *bucketPtr = myBuckets;
@@ -155,7 +161,7 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
     while( depth < bucketDepth ){
       uchar subset = subsetMap[ *textPtr ];
       if( subset == CyclicSubsetSeed::DELIMITER ){
-	bucketIndex += bucketSteps[depth] - 1;
+	bucketIndex += bucketSteps[depth] - 1;  // depth > 0
 	break;
       }
       ++textPtr;
@@ -171,7 +177,7 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
     bucketPtr = newBucketPtr;
   }
 
-  std::fill(bucketPtr, myBuckets + bucketSteps[0], suffixArray.size());
+  std::fill(bucketPtr, myBuckets + bucketSteps[0] + 1, suffixArray.size());
 }
 
 void SubsetSuffixArray::makeBucketSteps(unsigned bucketDepth) {
@@ -181,7 +187,8 @@ void SubsetSuffixArray::makeBucketSteps(unsigned bucketDepth) {
 
   while( depth > 0 ){
     --depth;
-    step = step * seed.subsetCount(depth) + 1;
+    step = step * seed.subsetCount(depth);
+    if (depth != 0 || bucketDepth == 0) ++step;
     bucketSteps[depth] = step;
   }
 }

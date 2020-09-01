@@ -31,7 +31,7 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
   }
 
   indexT beg = *bucketPtr;
-  indexT end = depth ? *(bucketPtr + bucketSteps[depth]) : suffixArray.size();
+  indexT end = *(bucketPtr + bucketSteps[depth]);
 
   while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
@@ -39,8 +39,7 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
     uchar subset = oldMap[ queryPtr[depth-1] ];
     bucketPtr -= subset * bucketSteps[depth];
     indexT oldBeg = *bucketPtr;
-    indexT oldEnd =
-      (depth > 1) ? *(bucketPtr + bucketSteps[depth-1]) : suffixArray.size();
+    indexT oldEnd = *(bucketPtr + bucketSteps[depth-1]);
     if( oldEnd - oldBeg > maxHits ) break;
     subsetMap = oldMap;
     beg = oldBeg;

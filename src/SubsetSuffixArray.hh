@@ -119,6 +119,12 @@ private:
 
   void makeBucketSteps(unsigned bucketDepth);
 
+  size_t bucketsSize() const {
+    size_t n = 1;
+    n += bucketSteps[0];
+    return n;
+  }
+
   void sort2( const uchar* text, indexT* beg, const uchar* subsetMap );
 
   void radixSort1( std::vector<Range>& rangeStack,
