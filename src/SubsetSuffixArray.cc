@@ -124,7 +124,10 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
 
   makeBucketSteps( bucketDepth );
 
-  buckets.v.clear();
+  buckets.v.resize(bucketSteps[0]);
+
+  indexT *myBuckets = &buckets.v[0];
+  indexT *bucketPtr = myBuckets;
 
   for( indexT i = 0; i < suffixArray.size(); ++i ){
     const uchar* textPtr = text + suffixArray[i];
@@ -144,10 +147,14 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
       subsetMap = seed.nextMap( subsetMap );
     }
 
-    buckets.v.resize( bucketIndex+1, i );
+    indexT *newBucketPtr = myBuckets + bucketIndex + 1;
+    if (newBucketPtr > bucketPtr) {
+      std::fill(bucketPtr, newBucketPtr, i);
+    }
+    bucketPtr = newBucketPtr;
   }
 
-  buckets.v.resize( bucketSteps[0], suffixArray.size() );
+  std::fill(bucketPtr, myBuckets + bucketSteps[0], suffixArray.size());
 }
 
 void SubsetSuffixArray::makeBucketSteps(unsigned bucketDepth) {
