@@ -117,8 +117,6 @@ private:
   // Return the maximum prefix size covered by the buckets.
   size_t maxBucketPrefix() const { return bucketSteps.size() - 1; }
 
-  unsigned defaultBucketDepth();
-
   void makeBucketSteps(unsigned bucketDepth);
 
   void sort2( const uchar* text, indexT* beg, const uchar* subsetMap );
