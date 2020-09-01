@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <cassert>
 #include <cctype>  // toupper, tolower
-#include <stddef.h>  // size_t
 //#include <iostream>  // for debugging
 
 #define ERR(x) throw std::runtime_error(x)
@@ -100,7 +99,7 @@ void CyclicSubsetSeed::init( const std::vector< std::string >& seedAlphabet,
   }
 }
 
-static void addLetter( uchar toSubsetNum[], uchar letter, uchar subsetNum,
+static void addLetter( uchar toSubsetNum[], uchar letter, unsigned subsetNum,
 		       const uchar letterCode[] ){
   uchar number = letterCode[letter];
   if( number >= CyclicSubsetSeed::MAX_LETTERS )
@@ -143,7 +142,7 @@ void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
 }
 
 void CyclicSubsetSeed::writePosition( std::ostream& out,
-				      unsigned position ) const{
+				      size_t position ) const{
   assert( position < subsetLists.size() );
   for( size_t i = 0; i < subsetLists[position].size(); ++i ){
     if( i > 0 ) out << ' ';

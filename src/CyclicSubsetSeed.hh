@@ -23,6 +23,8 @@
 #ifndef CYCLIC_SUBSET_SEED_HH
 #define CYCLIC_SUBSET_SEED_HH
 
+#include <stddef.h>
+
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -80,17 +82,17 @@ public:
 
   // Writes the grouping of sequence letters at the given position.
   // The position must be less than the span.
-  void writePosition( std::ostream& out, unsigned position ) const;
+  void writePosition(std::ostream& out, size_t position) const;
 
-  unsigned span() const{
+  size_t span() const {
     return subsetLists.size();
   }
 
-  const uchar* subsetMap( unsigned depth ) const{
+  const uchar* subsetMap(size_t depth) const {
     return &subsetMaps[0] + (depth % span()) * MAX_LETTERS;
   }
 
-  unsigned subsetCount( unsigned depth ) const{
+  unsigned subsetCount(size_t depth) const {
     return subsetLists[ depth % span() ].size();
   }
 

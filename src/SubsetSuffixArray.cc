@@ -37,9 +37,9 @@ void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
 				   bool isMaskLowercase,
 				   const uchar letterCode[] ){
-  indexT textLength = 0;  // 0 never occurs in a valid file
-  indexT unindexedPositions = 0;  // 0 never occurs in a valid file
-  indexT bucketDepth = -1;
+  size_t textLength = 0;  // 0 never occurs in a valid file
+  size_t unindexedPositions = 0;  // 0 never occurs in a valid file
+  unsigned bucketDepth = -1;
   seed.clear();
 
   std::string fileName = baseName + ".prj";
@@ -63,7 +63,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
     err("can't read file: " + fileName);
   }
 
-  indexT indexedPositions = textLength - unindexedPositions;
+  size_t indexedPositions = textLength - unindexedPositions;
   suffixArray.m.open( baseName + ".suf", indexedPositions );
   makeBucketSteps( bucketDepth );
   buckets.m.open( baseName + ".bck", bucketSteps[0] );
@@ -82,7 +82,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 }
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
-				 bool isAppendPrj, indexT textLength ) const{
+				 bool isAppendPrj, size_t textLength ) const{
   assert( textLength > suffixArray.size() );
 
   std::string fileName = baseName + ".prj";
@@ -93,9 +93,9 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   f << "specialcharacters=" << textLength - suffixArray.size() << '\n';
   f << "prefixlength=" << maxBucketPrefix() << '\n';
 
-  for( unsigned i = 0; i < seed.span(); ++i ){
+  for (size_t i = 0; i < seed.span(); ++i) {
     f << "subsetseed=";
-    seed.writePosition( f, i );
+    seed.writePosition(f, i);
     f << '\n';
   }
 
@@ -150,7 +150,7 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
   buckets.v.resize( bucketSteps[0], suffixArray.size() );
 }
 
-void SubsetSuffixArray::makeBucketSteps( indexT bucketDepth ){
+void SubsetSuffixArray::makeBucketSteps(unsigned bucketDepth) {
   indexT step = 0;
   indexT depth = bucketDepth + 1;
   bucketSteps.resize( depth );

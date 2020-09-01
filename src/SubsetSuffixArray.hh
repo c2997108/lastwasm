@@ -59,7 +59,7 @@ public:
 		  bool isMaskLowercase, const uchar letterCode[] );
 
   void toFiles( const std::string& baseName,
-		bool isAppendPrj, indexT textLength ) const;
+		bool isAppendPrj, size_t textLength ) const;
 
   // Find the smallest match to the text, starting at the given
   // position in the query, such that there are at most maxHits
@@ -119,7 +119,7 @@ private:
 
   unsigned defaultBucketDepth();
 
-  void makeBucketSteps( indexT bucketDepth );
+  void makeBucketSteps(unsigned bucketDepth);
 
   void sort2( const uchar* text, indexT* beg, const uchar* subsetMap );
 

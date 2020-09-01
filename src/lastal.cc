@@ -532,9 +532,11 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 
   size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
   size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
+
   if( args.minHitDepth > 1 ){
     loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
   }
+
   const uchar *qryBeg = querySeq + loopBeg;
   const uchar *qryEnd = querySeq + loopEnd;
 
