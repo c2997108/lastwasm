@@ -11,6 +11,7 @@
 
 #include <cstdio>  // BUFSIZ
 #include <istream>
+#include <stdexcept>
 #include <streambuf>
 
 namespace mcf {
@@ -41,7 +42,7 @@ protected:
   int underflow() {
     if (gptr() == egptr()) {
       int size = gzread(input, buffer, BUFSIZ);
-      if (size < 0) throw std::ios_base::failure("gzread error");
+      if (size < 0) throw std::runtime_error("gzread error");
       setg(buffer, buffer, buffer + size);
     }
     return (gptr() == egptr()) ?
