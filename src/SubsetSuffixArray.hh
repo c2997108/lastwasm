@@ -37,6 +37,8 @@ public:
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
 
+  size_t size() const { return suffixArray.size(); }
+
   // Add every step-th text position in the range [beg,end).
   // Positions starting with delimiters aren't added.
   // The positions aren't sorted.
@@ -46,8 +48,9 @@ public:
 		     size_t step, size_t minimizerWindow );
 
   // Sort the suffix array (but don't make the buckets).
-  void sortIndex( const uchar* text, size_t maxUnsortedInterval,
-		  int childTableType, size_t numOfThreads );
+  void sortIndex(const uchar* text, const size_t *cumulativeCounts,
+		 size_t maxUnsortedInterval, int childTableType,
+		 size_t numOfThreads);
 
   // Make the buckets.  If bucketDepth+1 == 0, then a default
   // bucketDepth is used.  The default is: the maximum possible

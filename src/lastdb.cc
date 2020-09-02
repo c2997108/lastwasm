@@ -220,6 +220,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
     SubsetSuffixArray myIndex;
     std::vector<CyclicSubsetSeed> &indexSeeds = myIndex.getSeeds();
 
+    size_t wordCounts[1];
     LOG( "gathering..." );
     indexSeeds.resize(1);
     seeds[x].swap(indexSeeds[0]);
@@ -227,10 +228,11 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
       myIndex.addPositions( seq, multi.seqBeg(i), multi.seqEnd(i),
 			    args.indexStep, args.minimizerWindow );
     }
+    wordCounts[0] = myIndex.size();
 
     LOG( "sorting..." );
-    myIndex.sortIndex( seq, args.minSeedLimit, args.childTableType,
-		       numOfThreads );
+    myIndex.sortIndex(seq, wordCounts,
+		      args.minSeedLimit, args.childTableType, numOfThreads);
 
     LOG( "bucketing..." );
     myIndex.makeBuckets( seq, args.bucketDepth );

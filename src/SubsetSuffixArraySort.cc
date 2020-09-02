@@ -433,6 +433,7 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 }
 
 void SubsetSuffixArray::sortIndex( const uchar* text,
+				   const size_t* cumulativeCounts,
 				   size_t maxUnsortedInterval,
 				   int childTableType,
 				   size_t numOfThreads ){
@@ -442,10 +443,15 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 
   std::vector< std::vector<Range> > stacks(numOfThreads);
   std::vector<indexT> bucketSizes(numOfThreads * numOfBuckets);
+  indexT *a = &suffixArray.v[0];
 
-  pushRange( stacks[0], &suffixArray.v.front(), &suffixArray.v.back() + 1, 0 );
-  setChildReverse( &suffixArray.v.back() + 1, &suffixArray.v.front() );
-
-  sortRanges(&stacks[0], &bucketSizes[0], text, seeds[0], maxUnsortedInterval,
-	     numOfThreads);
+  indexT *beg = a;
+  for (size_t i = 0; i < seeds.size(); ++i) {
+    indexT *end = a + cumulativeCounts[i];
+    pushRange(stacks[0], beg, end, 0);
+    setChildReverse(end, beg);
+    sortRanges(&stacks[0], &bucketSizes[0], text, seeds[i],
+	       maxUnsortedInterval, numOfThreads);
+    beg = end;
+  }
 }
