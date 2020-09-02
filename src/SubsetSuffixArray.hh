@@ -71,17 +71,18 @@ public:
   // match-depth is maxDepth.  Return the range of matching indices
   // via begPtr and endPtr.
   void match( const indexT*& begPtr, const indexT*& endPtr,
-              const uchar* queryPtr, const uchar* text,
+              const uchar* queryPtr, const uchar* text, unsigned seedNum,
               size_t maxHits, size_t minDepth, size_t maxDepth ) const;
 
   // Count matches of all sizes (up to maxDepth), starting at the
   // given position in the query.
   void countMatches( std::vector<unsigned long long>& counts,
 		     const uchar* queryPtr, const uchar* text,
-		     size_t maxDepth ) const;
+		     unsigned seedNum, size_t maxDepth ) const;
 
 private:
   std::vector<CyclicSubsetSeed> seeds;
+  std::vector<const indexT *> bucketEnds;
   std::vector<const indexT *> bucketStepEnds;
 
   VectorOrMmap<indexT> suffixArray;  // sorted indices
@@ -124,14 +125,26 @@ private:
 		      const uchar* subsetMap ) const;
 
   // Return the maximum prefix size covered by the buckets.
-  size_t maxBucketPrefix() const { return bucketSteps.size() - 1; }
+  size_t maxBucketPrefix(unsigned seedNum) const
+  { return bucketStepEnds[seedNum + 1] - bucketStepEnds[seedNum] - 1; }
 
   void makeBucketSteps(const unsigned *bucketDepth);
 
   size_t bucketsSize() const {
     size_t n = 1;
-    n += bucketSteps[0];
+    for (size_t i = 0; i < seeds.size(); ++i) {
+      n += bucketStepEnds[i][0];
+    }
     return n;
+  }
+
+  void initBucketEnds() {
+    bucketEnds.resize(seeds.size());
+    const indexT *p = &buckets[0];
+    for (size_t i = 0; i < seeds.size(); ++i) {
+      bucketEnds[i] = p;
+      p += bucketStepEnds[i][0];
+    }
   }
 
   void sort2( const uchar* text, const CyclicSubsetSeed& seed,

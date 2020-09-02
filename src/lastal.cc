@@ -397,7 +397,7 @@ void countMatches( size_t queryNum, const uchar* querySeq ){
   for( size_t i = loopBeg; i < loopEnd; i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x )
       suffixArrays[x].countMatches( matchCounts[queryNum], querySeq + i,
-				    text.seqReader(), args.maxHitDepth );
+				    text.seqReader(), 0, args.maxHitDepth );
   }
 }
 
@@ -554,7 +554,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 				     args.minimizerWindow)) continue;
       const indexT* beg;
       const indexT* end;
-      sax.match( beg, end, qryPtr, dis.a,
+      sax.match( beg, end, qryPtr, dis.a, 0,
 		 args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth );
       matchCount += end - beg;
 

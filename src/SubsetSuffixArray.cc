@@ -88,8 +88,10 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
   size_t indexedPositions = textLength - unindexedPositions;
   suffixArray.m.open( baseName + ".suf", indexedPositions );
+
   makeBucketSteps(&bucketDepth);
   buckets.m.open(baseName + ".bck", bucketsSize());
+  initBucketEnds();
 
   try{
     childTable.m.open( baseName + ".chi", indexedPositions );
@@ -114,9 +116,9 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 
   f << "totallength=" << textLength << '\n';
   f << "specialcharacters=" << textLength - suffixArray.size() << '\n';
-  f << "prefixlength=" << maxBucketPrefix() << '\n';
 
   for (size_t s = 0; s < seeds.size(); ++s) {
+    f << "prefixlength=" << maxBucketPrefix(s) << '\n';
     for (size_t i = 0; i < seeds[s].span(); ++i) {
       f << "subsetseed=";
       seeds[s].writePosition(f, i);
@@ -161,6 +163,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 
   makeBucketSteps(&bucketDepths[0]);
   buckets.v.resize(bucketsSize());
+  initBucketEnds();
 
   indexT *myBuckets = &buckets.v[0];
   indexT *bucketPtr = myBuckets;

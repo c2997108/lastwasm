@@ -9,38 +9,39 @@ using namespace cbrc;
 // could & probably should return the match depth
 void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
                                const uchar* queryPtr, const uchar* text,
-                               size_t maxHits,
+                               unsigned seedNum, size_t maxHits,
                                size_t minDepth, size_t maxDepth ) const{
   // the next line is unnecessary, but makes it faster in some cases:
   if( maxHits == 0 && minDepth < maxDepth ) minDepth = maxDepth;
 
   size_t depth = 0;
-  const CyclicSubsetSeed &seed = seeds[0];
+  const CyclicSubsetSeed &seed = seeds[seedNum];
   const uchar* subsetMap = seed.firstMap();
 
   // match using buckets:
-  size_t bucketDepth = maxBucketPrefix();
+  size_t bucketDepth = maxBucketPrefix(seedNum);
   size_t startDepth = std::min( bucketDepth, maxDepth );
-  const indexT* bucketPtr = &buckets[0];
+  const indexT* bucketPtr = bucketEnds[seedNum];
+  const indexT* myBucketSteps = bucketStepEnds[seedNum];
 
   while( depth < startDepth ){
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) break;
     ++depth;
-    bucketPtr += subset * bucketSteps[depth];
+    bucketPtr += subset * myBucketSteps[depth];
     subsetMap = seed.nextMap( subsetMap );
   }
 
   indexT beg = *bucketPtr;
-  indexT end = *(bucketPtr + bucketSteps[depth]);
+  indexT end = *(bucketPtr + myBucketSteps[depth]);
 
   while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
     const uchar* oldMap = seed.prevMap( subsetMap );
     uchar subset = oldMap[ queryPtr[depth-1] ];
-    bucketPtr -= subset * bucketSteps[depth];
+    bucketPtr -= subset * myBucketSteps[depth];
     indexT oldBeg = *bucketPtr;
-    indexT oldEnd = *(bucketPtr + bucketSteps[depth-1]);
+    indexT oldEnd = *(bucketPtr + myBucketSteps[depth-1]);
     if( oldEnd - oldBeg > maxHits ) break;
     subsetMap = oldMap;
     beg = oldBeg;
@@ -84,17 +85,18 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
 
 void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
 				      const uchar* queryPtr,
-				      const uchar* text,
+				      const uchar* text, unsigned seedNum,
 				      size_t maxDepth ) const{
   size_t depth = 0;
-  const CyclicSubsetSeed &seed = seeds[0];
+  const CyclicSubsetSeed &seed = seeds[seedNum];
   const uchar* subsetMap = seed.firstMap();
 
   // match using buckets:
-  size_t bucketDepth = maxBucketPrefix();
-  const indexT* bucketPtr = &buckets[0];
-  indexT beg = 0;
-  indexT end = suffixArray.size();
+  size_t bucketDepth = maxBucketPrefix(seedNum);
+  const indexT* bucketPtr = bucketEnds[seedNum];
+  const indexT* myBucketSteps = bucketStepEnds[seedNum];
+  indexT beg = *bucketPtr;
+  indexT end = *(bucketPtr + myBucketSteps[depth]);
 
   while( depth < bucketDepth ){
     if( beg == end ) return;
@@ -104,7 +106,7 @@ void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
     ++depth;
-    indexT step = bucketSteps[depth];
+    indexT step = myBucketSteps[depth];
     bucketPtr += subset * step;
     beg = *bucketPtr;
     end = *(bucketPtr + step);
