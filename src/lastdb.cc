@@ -218,9 +218,11 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     SubsetSuffixArray myIndex;
-    seeds[x].swap( myIndex.getSeed() );
+    std::vector<CyclicSubsetSeed> &indexSeeds = myIndex.getSeeds();
 
     LOG( "gathering..." );
+    indexSeeds.resize(1);
+    seeds[x].swap(indexSeeds[0]);
     for( size_t i = 0; i < numOfSequences; ++i ){
       myIndex.addPositions( seq, multi.seqBeg(i), multi.seqEnd(i),
 			    args.indexStep, args.minimizerWindow );
@@ -241,7 +243,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
       myIndex.toFiles( baseName, true, textLength );
     }
 
-    seeds[x].swap( myIndex.getSeed() );
+    seeds[x].swap(indexSeeds[0]);
   }
 
   LOG( "done!" );

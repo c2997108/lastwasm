@@ -542,7 +542,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 
   std::vector< SubsetMinimizerFinder > minFinders( numOfIndexes );
   for( unsigned x = 0; x < numOfIndexes; ++x ){
-    minFinders[x].init(suffixArrays[x].getSeed(), qryBeg, qryEnd);
+    minFinders[x].init(suffixArrays[x].getSeeds()[0], qryBeg, qryEnd);
   }
 
   for( indexT i = loopBeg; i < loopEnd; i += args.queryStep ){
@@ -550,7 +550,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
     for( unsigned x = 0; x < numOfIndexes; ++x ){
       const SubsetSuffixArray& sax = suffixArrays[x];
       if (args.minimizerWindow > 1 &&
-	  !minFinders[x].isMinimizer(sax.getSeed(), qryPtr, qryEnd,
+	  !minFinders[x].isMinimizer(sax.getSeeds()[0], qryPtr, qryEnd,
 				     args.minimizerWindow)) continue;
       const indexT* beg;
       const indexT* end;

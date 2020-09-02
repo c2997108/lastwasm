@@ -34,8 +34,8 @@ public:
 
   struct Range {indexT* beg; indexT* end; indexT depth;};
 
-  CyclicSubsetSeed& getSeed() { return seed; }
-  const CyclicSubsetSeed& getSeed() const { return seed; }
+  std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
+  const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
 
   // Add every step-th text position in the range [beg,end).
   // Positions starting with delimiters aren't added.
@@ -77,7 +77,8 @@ public:
 		     size_t maxDepth ) const;
 
 private:
-  CyclicSubsetSeed seed;
+  std::vector<CyclicSubsetSeed> seeds;
+
   VectorOrMmap<indexT> suffixArray;  // sorted indices
   VectorOrMmap<indexT> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
@@ -106,13 +107,16 @@ private:
   // within the suffix array range [beg, end):
   void equalRange2( indexT& beg, indexT& end,
 		    const uchar* queryBeg, const uchar* queryEnd,
-		    const uchar* textBase, const uchar* subsetMap ) const;
+		    const uchar* textBase, const CyclicSubsetSeed& seed,
+		    const uchar* subsetMap ) const;
   indexT lowerBound2( indexT beg, indexT end,
 		      const uchar* queryBeg, const uchar* queryEnd,
-		      const uchar* textBase, const uchar* subsetMap ) const;
+		      const uchar* textBase, const CyclicSubsetSeed& seed,
+		      const uchar* subsetMap ) const;
   indexT upperBound2( indexT beg, indexT end,
 		      const uchar* queryBeg, const uchar* queryEnd,
-		      const uchar* textBase, const uchar* subsetMap ) const;
+		      const uchar* textBase, const CyclicSubsetSeed& seed,
+		      const uchar* subsetMap ) const;
 
   // Return the maximum prefix size covered by the buckets.
   size_t maxBucketPrefix() const { return bucketSteps.size() - 1; }
@@ -125,7 +129,8 @@ private:
     return n;
   }
 
-  void sort2( const uchar* text, indexT* beg, const uchar* subsetMap );
+  void sort2( const uchar* text, const CyclicSubsetSeed& seed,
+	      indexT* beg, const uchar* subsetMap );
 
   void radixSort1( std::vector<Range>& rangeStack,
 		   const uchar* text, const uchar* subsetMap,
@@ -145,8 +150,8 @@ private:
 		   unsigned subsetCount, indexT* bucketSize );
 
   void sortRanges( std::vector<Range>* stacks, indexT* bucketSizes,
-		   const uchar* text, size_t maxUnsortedInterval,
-		   size_t numOfThreads );
+		   const uchar* text, const CyclicSubsetSeed& seed,
+		   size_t maxUnsortedInterval, size_t numOfThreads );
 
   // Same as the 1st equalRange, but uses more info and may be faster:
   void equalRange( indexT& beg, indexT& end, const uchar* textBase,

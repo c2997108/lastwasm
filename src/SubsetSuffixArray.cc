@@ -32,6 +32,7 @@ void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
 				     size_t step, size_t minimizerWindow) {
   if (beg >= end) return;
   assert(step > 0);
+  const CyclicSubsetSeed &seed = seeds[0];
   const uchar *subsetMap = seed.firstMap();
   SubsetMinimizerFinder f;
   f.init(seed, text + beg, text + end);
@@ -56,7 +57,8 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   size_t unindexedPositions = 0;  // 0 never occurs in a valid file
   unsigned bucketDepth = -1;
   unsigned version = 0;
-  seed.clear();
+  seeds.clear();
+  seeds.resize(1);
 
   std::string fileName = baseName + ".prj";
   std::ifstream f( fileName.c_str() );
@@ -71,12 +73,12 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
     if( word == "specialcharacters" ) iss >> unindexedPositions;
     if( word == "prefixlength" ) iss >> bucketDepth;
     if( word == "subsetseed" ){
-      seed.appendPosition( iss, isMaskLowercase, letterCode );
+      seeds.back().appendPosition(iss, isMaskLowercase, letterCode);
     }
   }
 
   if( textLength == 0 || unindexedPositions == 0 || bucketDepth+1 == 0 ||
-      !seed.span() || !f.eof() ){
+      !seeds.back().span() || !f.eof() ){
     err("can't read file: " + fileName);
   }
 
@@ -114,10 +116,12 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   f << "specialcharacters=" << textLength - suffixArray.size() << '\n';
   f << "prefixlength=" << maxBucketPrefix() << '\n';
 
-  for (size_t i = 0; i < seed.span(); ++i) {
-    f << "subsetseed=";
-    seed.writePosition(f, i);
-    f << '\n';
+  for (size_t s = 0; s < seeds.size(); ++s) {
+    for (size_t i = 0; i < seeds[s].span(); ++i) {
+      f << "subsetseed=";
+      seeds[s].writePosition(f, i);
+      f << '\n';
+    }
   }
 
   f.close();
@@ -141,6 +145,7 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 }
 
 void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
+  const CyclicSubsetSeed &seed = seeds[0];
   if (bucketDepth+1 == 0) {
     size_t maxBucketItems = suffixArray.size() / 4;
     bucketDepth = maxBucketDepth(seed, maxBucketItems);
@@ -184,6 +189,7 @@ void SubsetSuffixArray::makeBucketSteps(unsigned bucketDepth) {
   indexT step = 0;
   indexT depth = bucketDepth + 1;
   bucketSteps.resize( depth );
+  const CyclicSubsetSeed &seed = seeds[0];
 
   while( depth > 0 ){
     --depth;

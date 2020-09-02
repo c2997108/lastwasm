@@ -39,8 +39,8 @@ static void insertionSort( const uchar* text, const CyclicSubsetSeed& seed,
   }
 }
 
-void SubsetSuffixArray::sort2( const uchar* text, indexT* beg,
-			       const uchar* subsetMap ){
+void SubsetSuffixArray::sort2(const uchar* text, const CyclicSubsetSeed &seed,
+			      indexT* beg, const uchar* subsetMap) {
   indexT* mid = beg + 1;
 
   const uchar* s = text + *beg;
@@ -349,6 +349,7 @@ static size_t numOfThreadsForOneRange(size_t numOfThreads,
 void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 				   indexT *bucketSizes,
 				   const uchar *text,
+				   const CyclicSubsetSeed &seed,
 				   size_t maxUnsortedInterval,
 				   size_t numOfThreads) {
   std::vector<Range> &myStack = stacks[0];
@@ -381,9 +382,10 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 	threads[i] = std::thread(&SubsetSuffixArray::sortRanges, this,
 				 stacks + numOfThreads,
 				 bucketSizes + numOfThreads * numOfBuckets,
-				 text, maxUnsortedInterval, thisThreads);
+				 text, seed, maxUnsortedInterval, thisThreads);
       }
-      sortRanges(stacks, bucketSizes, text, maxUnsortedInterval, numOfThreads);
+      sortRanges(stacks, bucketSizes, text, seed,
+		 maxUnsortedInterval, numOfThreads);
       for (size_t i = 0; i < numOfNewThreads; ++i) {
 	threads[i].join();
       }
@@ -410,7 +412,7 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
       }
     }else{
       if( interval == 2 ){
-	sort2( textBase, beg, subsetMap );
+	sort2( textBase, seed, beg, subsetMap );
 	continue;
       }
     }
@@ -444,6 +446,6 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
   pushRange( stacks[0], &suffixArray.v.front(), &suffixArray.v.back() + 1, 0 );
   setChildReverse( &suffixArray.v.back() + 1, &suffixArray.v.front() );
 
-  sortRanges(&stacks[0], &bucketSizes[0], text, maxUnsortedInterval,
+  sortRanges(&stacks[0], &bucketSizes[0], text, seeds[0], maxUnsortedInterval,
 	     numOfThreads);
 }
