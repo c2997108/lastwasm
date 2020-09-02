@@ -56,7 +56,8 @@ public:
   // bucketDepth is used.  The default is: the maximum possible
   // bucketDepth such that the number of bucket entries is at most 1/4
   // the number of suffix array entries.
-  void makeBuckets( const uchar* text, unsigned bucketDepth );
+  void makeBuckets(const uchar* text, const size_t *cumulativeCounts,
+		   unsigned bucketDepth);
 
   void fromFiles( const std::string& baseName,
 		  bool isMaskLowercase, const uchar letterCode[] );

@@ -235,7 +235,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
 		      args.minSeedLimit, args.childTableType, numOfThreads);
 
     LOG( "bucketing..." );
-    myIndex.makeBuckets( seq, args.bucketDepth );
+    myIndex.makeBuckets(seq, wordCounts, args.bucketDepth);
 
     LOG( "writing..." );
     if( numOfIndexes > 1 ){

@@ -144,18 +144,28 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   memoryToBinaryFile( chibiTable.begin(), chibiTable.end(), fileName );
 }
 
-void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
-  const CyclicSubsetSeed &seed = seeds[0];
+void SubsetSuffixArray::makeBuckets(const uchar *text,
+				    const size_t *cumulativeCounts,
+				    unsigned bucketDepth) {
+  std::vector<unsigned> bucketDepths(seeds.size(), bucketDepth);
   if (bucketDepth+1 == 0) {
-    size_t maxBucketItems = suffixArray.size() / 4;
-    bucketDepth = maxBucketDepth(seed, maxBucketItems);
+    size_t minPositionsPerBucket = 4;
+    size_t oldCount = 0;
+    for (size_t s = 0; s < seeds.size(); ++s) {
+      size_t newCount = cumulativeCounts[s];
+      size_t maxBucketItems = (newCount - oldCount) / minPositionsPerBucket;
+      bucketDepths[s] = maxBucketDepth(seeds[s], maxBucketItems);
+      oldCount = newCount;
+    }
   }
 
-  makeBucketSteps(bucketDepth);
+  makeBucketSteps(bucketDepths[0]);
   buckets.v.resize(bucketsSize());
 
   indexT *myBuckets = &buckets.v[0];
   indexT *bucketPtr = myBuckets;
+  const CyclicSubsetSeed &seed = seeds[0];
+  unsigned myBucketDepth = bucketDepths[0];
 
   for( indexT i = 0; i < suffixArray.size(); ++i ){
     const uchar* textPtr = text + suffixArray[i];
@@ -163,7 +173,7 @@ void SubsetSuffixArray::makeBuckets( const uchar* text, unsigned bucketDepth ){
     indexT bucketIndex = 0;
     unsigned depth = 0;
 
-    while( depth < bucketDepth ){
+    while( depth < myBucketDepth ){
       uchar subset = subsetMap[ *textPtr ];
       if( subset == CyclicSubsetSeed::DELIMITER ){
 	bucketIndex += bucketSteps[depth] - 1;  // depth > 0
