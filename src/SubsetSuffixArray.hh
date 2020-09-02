@@ -82,6 +82,7 @@ public:
 
 private:
   std::vector<CyclicSubsetSeed> seeds;
+  std::vector<const indexT *> bucketStepEnds;
 
   VectorOrMmap<indexT> suffixArray;  // sorted indices
   VectorOrMmap<indexT> buckets;
@@ -125,7 +126,7 @@ private:
   // Return the maximum prefix size covered by the buckets.
   size_t maxBucketPrefix() const { return bucketSteps.size() - 1; }
 
-  void makeBucketSteps(unsigned bucketDepth);
+  void makeBucketSteps(const unsigned *bucketDepth);
 
   size_t bucketsSize() const {
     size_t n = 1;
