@@ -206,15 +206,14 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 }
 
 static void makeBucketStepsForOneSeed(SubsetSuffixArray::indexT *steps,
-				      unsigned bucketDepth,
+				      unsigned depth,
 				      const CyclicSubsetSeed &seed) {
-  SubsetSuffixArray::indexT step = 0;
-  SubsetSuffixArray::indexT depth = bucketDepth + 1;
+  SubsetSuffixArray::indexT step = 1;
+  steps[depth] = step;
 
   while (depth > 0) {
     --depth;
-    step = step * seed.subsetCount(depth);
-    if (depth != 0 || bucketDepth == 0) ++step;
+    step = step * seed.subsetCount(depth) + (depth > 0);
     steps[depth] = step;
   }
 }
