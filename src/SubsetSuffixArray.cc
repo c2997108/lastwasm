@@ -95,7 +95,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   size_t indexedPositions = textLength - unindexedPositions;
   suffixArray.m.open( baseName + ".suf", indexedPositions );
 
-  size_t wordLength = 0;
+  size_t wordLength = maxRestrictedSpan(&seeds[0], seeds.size());
   makeBucketSteps(&bucketDepth, wordLength);
   buckets.m.open(baseName + ".bck", bucketsSize());
   initBucketEnds();

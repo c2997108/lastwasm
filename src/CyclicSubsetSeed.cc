@@ -56,6 +56,27 @@ T  AG CT\n\
 " + p;
 }
 
+std::string
+CyclicSubsetSeed::stringFromDnaPatterns(std::string patterns) {
+  for (size_t i = 0; i < patterns.size(); ++i) {
+    if (patterns[i] == ',') patterns[i] = '\n';
+  }
+
+  return "\
+A  A\n\
+C  C\n\
+G  G\n\
+T  T\n\
+R  A G\n\
+r  AG\n\
+Y  C T\n\
+y  CT\n\
+N  A C G T\n\
+n  ACGT\n\
+@  AG CT\n\
+" + patterns;
+}
+
 bool CyclicSubsetSeed::nextPattern( std::istream& in,
 				    std::vector< std::string >& seedAlphabet,
 				    std::string& pattern ){

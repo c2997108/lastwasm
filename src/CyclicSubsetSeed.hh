@@ -56,6 +56,14 @@ public:
   static std::string stringFromPatterns( const std::string& patterns,
 					 const std::string& sequenceLetters );
 
+  // Converts patterns to a text string defining one or more seeds.
+  // "patterns" should be something like: "RYynN@,RyR@nN".  Uppercase
+  // letters are must-match positions; lowercase letters are
+  // mismatch-tolerant positions.  The possible letters are NRYACGT:
+  // they only allow bases that match according to IUPAC ambiguity
+  // codes.  Finally, "@" allows any match or transition.
+  static std::string stringFromDnaPatterns(std::string patterns);
+
   // Reads lines from "in" until it finds a pattern line.  Any seed
   // alphabet lines are appended to "seedAlphabet".  If it finds a
   // pattern line, it stores it in "pattern" and returns true, else it
@@ -105,6 +113,14 @@ public:
     return numOfSubsetsPerPosition[depth % numOfSubsetsPerPosition.size()];
   }
 
+  // Number of positions up to & including the rightmost restricted position
+  size_t restrictedSpan() const {
+    for (size_t i = subsetLists.size(); i > 0; --i) {
+      if (subsetLists[i-1].size() < numOfSubsetsPerPosition[i-1]) return i;
+    }
+    return 0;
+  }
+
   const uchar* firstMap() const{
     return &subsetMaps[0];
   }
@@ -143,6 +159,15 @@ private:
   std::vector<uchar> subsetMaps;
   std::vector<unsigned> numOfSubsetsPerPosition;
 };
+
+inline size_t maxRestrictedSpan(const CyclicSubsetSeed *seeds, size_t n) {
+  size_t x = 0;
+  for (size_t i = 0; i < n; ++i) {
+    size_t y = seeds[i].restrictedSpan();
+    if (y > x) x = y;
+  }
+  return x;
+}
 
 }
 
