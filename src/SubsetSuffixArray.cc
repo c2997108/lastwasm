@@ -167,35 +167,42 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 
   indexT *myBuckets = &buckets.v[0];
   indexT *bucketPtr = myBuckets;
-  const CyclicSubsetSeed &seed = seeds[0];
-  unsigned myBucketDepth = bucketDepths[0];
+  indexT posInSuffixArray = 0;
+  for (size_t s = 0; s < seeds.size(); ++s) {
+    const CyclicSubsetSeed &seed = seeds[s];
+    unsigned myBucketDepth = bucketDepths[s];
+    const indexT *steps = bucketStepEnds[s];
+    indexT endInSuffixArray = cumulativeCounts[s];
 
-  for( indexT i = 0; i < suffixArray.size(); ++i ){
-    const uchar* textPtr = text + suffixArray[i];
-    const uchar* subsetMap = seed.firstMap();
-    indexT bucketIndex = 0;
-    unsigned depth = 0;
+    for (; posInSuffixArray < endInSuffixArray; ++posInSuffixArray) {
+      const uchar* textPtr = text + suffixArray[posInSuffixArray];
+      const uchar* subsetMap = seed.firstMap();
+      indexT bucketIndex = 0;
+      unsigned depth = 0;
 
-    while( depth < myBucketDepth ){
-      uchar subset = subsetMap[ *textPtr ];
-      if( subset == CyclicSubsetSeed::DELIMITER ){
-	bucketIndex += bucketSteps[depth] - 1;  // depth > 0
-	break;
+      while (depth < myBucketDepth) {
+	uchar subset = subsetMap[ *textPtr ];
+	if( subset == CyclicSubsetSeed::DELIMITER ){
+	  bucketIndex += steps[depth] - 1;  // depth > 0
+	  break;
+	}
+	++textPtr;
+	++depth;
+	bucketIndex += subset * steps[depth];
+	subsetMap = seed.nextMap( subsetMap );
       }
-      ++textPtr;
-      ++depth;
-      bucketIndex += subset * bucketSteps[depth];
-      subsetMap = seed.nextMap( subsetMap );
+
+      indexT *newBucketPtr = myBuckets + bucketIndex + 1;
+      if (newBucketPtr > bucketPtr) {
+	std::fill(bucketPtr, newBucketPtr, posInSuffixArray);
+      }
+      bucketPtr = newBucketPtr;
     }
 
-    indexT *newBucketPtr = myBuckets + bucketIndex + 1;
-    if (newBucketPtr > bucketPtr) {
-      std::fill(bucketPtr, newBucketPtr, i);
-    }
-    bucketPtr = newBucketPtr;
+    myBuckets += steps[0];
   }
 
-  std::fill(bucketPtr, myBuckets + bucketSteps[0] + 1, suffixArray.size());
+  std::fill(bucketPtr, myBuckets + 1, posInSuffixArray);
 }
 
 static void makeBucketStepsForOneSeed(SubsetSuffixArray::indexT *steps,
