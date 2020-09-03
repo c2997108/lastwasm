@@ -231,11 +231,11 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
     wordCounts[0] = myIndex.size();
 
     LOG( "sorting..." );
-    myIndex.sortIndex(seq, wordCounts,
+    myIndex.sortIndex(seq, 0, wordCounts,
 		      args.minSeedLimit, args.childTableType, numOfThreads);
 
     LOG( "bucketing..." );
-    myIndex.makeBuckets(seq, wordCounts, args.bucketDepth);
+    myIndex.makeBuckets(seq, 0, wordCounts, args.bucketDepth);
 
     LOG( "writing..." );
     if( numOfIndexes > 1 ){

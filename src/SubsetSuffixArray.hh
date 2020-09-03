@@ -48,7 +48,8 @@ public:
 		     size_t step, size_t minimizerWindow );
 
   // Sort the suffix array (but don't make the buckets).
-  void sortIndex(const uchar* text, const size_t *cumulativeCounts,
+  void sortIndex(const uchar *text,
+		 unsigned wordLength, const size_t *cumulativeCounts,
 		 size_t maxUnsortedInterval, int childTableType,
 		 size_t numOfThreads);
 
@@ -56,8 +57,8 @@ public:
   // bucketDepth is used.  The default is: the maximum possible
   // bucketDepth such that the number of bucket entries is at most 1/4
   // the number of suffix array entries.
-  void makeBuckets(const uchar* text, const size_t *cumulativeCounts,
-		   unsigned bucketDepth);
+  void makeBuckets(const uchar *text, unsigned wordLength,
+		   const size_t *cumulativeCounts, unsigned bucketDepth);
 
   void fromFiles( const std::string& baseName,
 		  bool isMaskLowercase, const uchar letterCode[] );
@@ -128,7 +129,7 @@ private:
   size_t maxBucketPrefix(unsigned seedNum) const
   { return bucketStepEnds[seedNum + 1] - bucketStepEnds[seedNum] - 1; }
 
-  void makeBucketSteps(const unsigned *bucketDepth);
+  void makeBucketSteps(const unsigned *bucketDepths, size_t wordLength);
 
   size_t bucketsSize() const {
     size_t n = 1;
@@ -168,7 +169,8 @@ private:
 		   unsigned subsetCount, indexT* bucketSize );
 
   void sortRanges( std::vector<Range>* stacks, indexT* bucketSizes,
-		   const uchar* text, const CyclicSubsetSeed& seed,
+		   const uchar* text,
+		   unsigned wordLength, const CyclicSubsetSeed& seed,
 		   size_t maxUnsortedInterval, size_t numOfThreads );
 
   // Same as the 1st equalRange, but uses more info and may be faster:

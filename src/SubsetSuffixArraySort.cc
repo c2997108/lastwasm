@@ -349,6 +349,7 @@ static size_t numOfThreadsForOneRange(size_t numOfThreads,
 void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 				   indexT *bucketSizes,
 				   const uchar *text,
+				   unsigned wordLength,
 				   const CyclicSubsetSeed &seed,
 				   size_t maxUnsortedInterval,
 				   size_t numOfThreads) {
@@ -382,9 +383,10 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 	threads[i] = std::thread(&SubsetSuffixArray::sortRanges, this,
 				 stacks + numOfThreads,
 				 bucketSizes + numOfThreads * numOfBuckets,
-				 text, seed, maxUnsortedInterval, thisThreads);
+				 text, wordLength, seed,
+				 maxUnsortedInterval, thisThreads);
       }
-      sortRanges(stacks, bucketSizes, text, seed,
+      sortRanges(stacks, bucketSizes, text, wordLength, seed,
 		 maxUnsortedInterval, numOfThreads);
       for (size_t i = 0; i < numOfNewThreads; ++i) {
 	threads[i].join();
@@ -417,7 +419,13 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
       }
     }
 
-    unsigned subsetCount = seed.subsetCount(depth);
+    unsigned subsetCount;
+    if (depth < wordLength) {
+      subsetCount = seed.restrictedSubsetCount(depth);
+      // xxx inefficient
+    } else {
+      subsetCount = seed.unrestrictedSubsetCount(depth);
+    }
 
     ++depth;
 
@@ -433,6 +441,7 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 }
 
 void SubsetSuffixArray::sortIndex( const uchar* text,
+				   unsigned wordLength,
 				   const size_t* cumulativeCounts,
 				   size_t maxUnsortedInterval,
 				   int childTableType,
@@ -450,7 +459,7 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
     indexT *end = a + cumulativeCounts[i];
     pushRange(stacks[0], beg, end, 0);
     setChildReverse(end, beg);
-    sortRanges(&stacks[0], &bucketSizes[0], text, seeds[i],
+    sortRanges(&stacks[0], &bucketSizes[0], text, wordLength, seeds[i],
 	       maxUnsortedInterval, numOfThreads);
     beg = end;
   }

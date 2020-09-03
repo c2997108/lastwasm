@@ -139,6 +139,7 @@ void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
 
   subsetLists.push_back( subsetList );
   subsetMaps.insert(subsetMaps.end(), toSubsetNum.begin(), toSubsetNum.end());
+  numOfSubsetsPerPosition.push_back(subsetNum);
 }
 
 void CyclicSubsetSeed::writePosition( std::ostream& out,

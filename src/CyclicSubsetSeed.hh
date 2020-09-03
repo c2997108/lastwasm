@@ -16,6 +16,9 @@
 // (such as "N" in this case) will get mapped to the special DELIMITER
 // subset.
 
+// A "restricted" position is one that omits letters from the main
+// sequence alphabet, e.g. "A G".
+
 // If the isMaskLowercase argument of the reading routines is true,
 // then all lowercase letters will get mapped to the DELIMITER subset,
 // otherwise they will be treated like their uppercase equivalents.
@@ -62,11 +65,13 @@ public:
 			   std::vector< std::string >& seedAlphabet,
 			   std::string& pattern );
 
-  void clear() { subsetLists.clear(); subsetMaps.clear(); }
+  void clear()
+  { subsetLists.clear(); subsetMaps.clear(); numOfSubsetsPerPosition.clear(); }
 
   void swap( CyclicSubsetSeed& x ){
     subsetLists.swap( x.subsetLists );
     subsetMaps.swap( x.subsetMaps );
+    numOfSubsetsPerPosition.swap( x.numOfSubsetsPerPosition );
   }
 
   // Seed letters are case-sensitive.
@@ -92,8 +97,12 @@ public:
     return &subsetMaps[0] + (depth % span()) * MAX_LETTERS;
   }
 
-  unsigned subsetCount(size_t depth) const {
-    return subsetLists[ depth % span() ].size();
+  unsigned restrictedSubsetCount(size_t depth) const {
+    return subsetLists[depth].size();
+  }
+
+  unsigned unrestrictedSubsetCount(size_t depth) const {
+    return numOfSubsetsPerPosition[depth % numOfSubsetsPerPosition.size()];
   }
 
   const uchar* firstMap() const{
@@ -132,6 +141,7 @@ public:
 private:
   std::vector< std::vector<std::string> > subsetLists;
   std::vector<uchar> subsetMaps;
+  std::vector<unsigned> numOfSubsetsPerPosition;
 };
 
 }

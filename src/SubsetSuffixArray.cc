@@ -14,12 +14,18 @@ static void err(const std::string &s) {
 }
 
 static unsigned maxBucketDepth(const CyclicSubsetSeed &seed,
-			       size_t maxBucketItems) {
+			       size_t maxBucketItems, unsigned wordLength) {
   unsigned depth = 0;
   size_t kmerItems = 1;
-  size_t bucketItems = 1;
+  while (depth < wordLength) {
+    size_t c = seed.restrictedSubsetCount(depth);
+    if (kmerItems > maxBucketItems / c) return depth;
+    kmerItems *= c;
+    ++depth;
+  }
+  size_t bucketItems = kmerItems;
   while (1) {
-    size_t c = seed.subsetCount(depth);
+    size_t c = seed.unrestrictedSubsetCount(depth);
     if (kmerItems > maxBucketItems / c) return depth;
     kmerItems *= c;
     if (bucketItems > maxBucketItems - kmerItems) return depth;
@@ -89,7 +95,8 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   size_t indexedPositions = textLength - unindexedPositions;
   suffixArray.m.open( baseName + ".suf", indexedPositions );
 
-  makeBucketSteps(&bucketDepth);
+  size_t wordLength = 0;
+  makeBucketSteps(&bucketDepth, wordLength);
   buckets.m.open(baseName + ".bck", bucketsSize());
   initBucketEnds();
 
@@ -147,6 +154,7 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 }
 
 void SubsetSuffixArray::makeBuckets(const uchar *text,
+				    unsigned wordLength,
 				    const size_t *cumulativeCounts,
 				    unsigned bucketDepth) {
   std::vector<unsigned> bucketDepths(seeds.size(), bucketDepth);
@@ -156,12 +164,12 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     for (size_t s = 0; s < seeds.size(); ++s) {
       size_t newCount = cumulativeCounts[s];
       size_t maxBucketItems = (newCount - oldCount) / minPositionsPerBucket;
-      bucketDepths[s] = maxBucketDepth(seeds[s], maxBucketItems);
+      bucketDepths[s] = maxBucketDepth(seeds[s], maxBucketItems, wordLength);
       oldCount = newCount;
     }
   }
 
-  makeBucketSteps(&bucketDepths[0]);
+  makeBucketSteps(&bucketDepths[0], wordLength);
   buckets.v.resize(bucketsSize());
   initBucketEnds();
 
@@ -207,18 +215,25 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 
 static void makeBucketStepsForOneSeed(SubsetSuffixArray::indexT *steps,
 				      unsigned depth,
-				      const CyclicSubsetSeed &seed) {
+				      const CyclicSubsetSeed &seed,
+				      size_t wordLength) {
   SubsetSuffixArray::indexT step = 1;
   steps[depth] = step;
 
   while (depth > 0) {
     --depth;
-    step = step * seed.subsetCount(depth) + (depth > 0);
+    if (depth < wordLength) {
+      step = step * seed.restrictedSubsetCount(depth);
+    } else {
+      step = step * seed.unrestrictedSubsetCount(depth) + (depth > 0);
+      // Add one for delimiters, except when depth==0
+    }
     steps[depth] = step;
   }
 }
 
-void SubsetSuffixArray::makeBucketSteps(const unsigned *bucketDepths) {
+void SubsetSuffixArray::makeBucketSteps(const unsigned *bucketDepths,
+					size_t wordLength) {
   size_t numOfSeeds = seeds.size();
   size_t numOfBucketSteps = numOfSeeds;
   for (size_t i = 0; i < numOfSeeds; ++i) {
@@ -230,7 +245,7 @@ void SubsetSuffixArray::makeBucketSteps(const unsigned *bucketDepths) {
   for (size_t i = 0; i < numOfSeeds; ++i) {
     bucketStepEnds[i] = steps;
     unsigned depth = bucketDepths[i];
-    makeBucketStepsForOneSeed(steps, depth, seeds[i]);
+    makeBucketStepsForOneSeed(steps, depth, seeds[i], wordLength);
     steps += depth + 1;
   }
   bucketStepEnds[numOfSeeds] = steps;
