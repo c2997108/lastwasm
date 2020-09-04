@@ -4,8 +4,10 @@
 #define LAST_HH
 
 #include "Alphabet.hh"
+#include "CyclicSubsetSeed.hh"
 #include "MultiSequence.hh"
 #include "SequenceFormat.hh"
+#include "dna_words_finder.hh"
 #include "qualityScoreUtil.hh"
 
 namespace cbrc {
@@ -52,6 +54,30 @@ inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
   }  // assumes one quality code per letter
 
   return in;
+}
+
+inline void makeWordsFinder(DnaWordsFinder &wordsFinder,
+			    const CyclicSubsetSeed *seeds, size_t numOfSeeds,
+			    const uchar *lettersToNumbers,
+			    bool isMaskLowercase) {
+  wordsFinder.wordLength = 0;
+  size_t wordLength = maxRestrictedSpan(seeds, numOfSeeds);
+  if (wordLength) {
+    if (numOfSeeds > dnaWordsFinderNull) {
+      err("I can't handle so many word-restricted seed patterns, sorry");
+    }
+    if (wordLength >= CHAR_BIT * sizeof(unsigned) / 2) {
+      err("I can't handle such long word restrictions in seed patterns, sorry");
+    }
+    assert(numOfSeeds > 0);
+    size_t lengthOfAllWords = numOfSeeds * wordLength;
+    std::vector<uchar> dnaMatches(lengthOfAllWords);
+    for (size_t i = 0; i < numOfSeeds; ++i) {
+      seeds[i].matchingDna(&dnaMatches[i * wordLength], wordLength);
+    }
+    wordsFinder.set(wordLength, numOfSeeds, &dnaMatches[0],
+		    lettersToNumbers, isMaskLowercase);
+  }
 }
 
 }

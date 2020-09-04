@@ -297,6 +297,11 @@ void lastdb( int argc, char** argv ){
 		       alph.letters, alph.encode );
   std::vector< CyclicSubsetSeed > seeds;
   makeSubsetSeeds( seeds, seedText, args, alph );
+
+  DnaWordsFinder wordsFinder;
+  makeWordsFinder(wordsFinder, &seeds[0], seeds.size(), alph.encode,
+		  args.isCaseSensitive);
+
   MultiSequence multi;
   multi.initForAppending(1);
   alph.tr(multi.seqWriter(), multi.seqWriter() + multi.seqBeg(0));

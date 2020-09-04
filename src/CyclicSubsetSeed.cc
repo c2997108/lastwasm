@@ -6,7 +6,6 @@
 #include "stringify.hh"
 #include <algorithm>  // sort
 #include <sstream>
-#include <stdexcept>
 #include <cassert>
 #include <cctype>  // toupper, tolower
 //#include <iostream>  // for debugging

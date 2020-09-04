@@ -29,6 +29,7 @@
 #include <stddef.h>
 
 #include <iosfwd>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -151,6 +152,27 @@ public:
       ++text1;
       ++text2;
       startMap = nextMap(startMap);
+    }
+  }
+
+  // Which DNA sequences, of length wordLength (which must be <= the
+  // span), can match the start of the seed.  The output is written in
+  // dnaMatches, which should point to wordLength zeros.
+  void matchingDna(uchar *dnaMatches, unsigned wordLength) const {
+    for (unsigned i = 0; i < wordLength; ++i) {
+      for (unsigned j = 0; j < subsetLists[i].size(); ++j) {
+	for (unsigned k = 0; k < subsetLists[i][j].size(); ++k) {
+	  switch (subsetLists[i][j][k]) {
+	  case 'A': dnaMatches[i] |= 1; break;
+	  case 'C': dnaMatches[i] |= 2; break;
+	  case 'G': dnaMatches[i] |= 4; break;
+	  case 'T': dnaMatches[i] |= 8; break;
+	  default:
+	    throw std::runtime_error("I can't handle non-DNA in "
+				     "word-restricted seeds, sorry");
+	  }
+	}
+      }
     }
   }
 
