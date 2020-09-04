@@ -23,6 +23,7 @@
 #define SUBSET_SUFFIX_ARRAY_HH
 
 #include "CyclicSubsetSeed.hh"
+#include "dna_words_finder.hh"
 #include "VectorOrMmap.hh"
 #include <climits>
 
@@ -46,6 +47,12 @@ public:
   // are "minimizers" for the given window and seed pattern.
   void addPositions( const uchar* text, indexT beg, indexT end,
 		     size_t step, size_t minimizerWindow );
+
+  // Store positions in [seqBeg, seqEnd) where certain "words" start.
+  // The cumulative word counts must be provided.  (cumulativeCounts
+  // is internally modified and restored to its original values).
+  void setWordPositions(const DnaWordsFinder &finder, size_t *cumulativeCounts,
+			const uchar *seqBeg, const uchar *seqEnd);
 
   // Sort the suffix array (but don't make the buckets).
   void sortIndex(const uchar *text,

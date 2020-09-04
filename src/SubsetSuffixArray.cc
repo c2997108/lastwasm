@@ -56,6 +56,35 @@ void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
   }
 }
 
+void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
+					 size_t *cumulativeCounts,
+					 const uchar *seqBeg,
+					 const uchar *seqEnd) {
+  size_t numOfSeeds = seeds.size();
+  size_t sumOfCounts = 0;
+  for (size_t i = 0; i < numOfSeeds; ++i) {
+    std::swap(cumulativeCounts[i], sumOfCounts);
+  }
+  suffixArray.v.resize(sumOfCounts);
+  indexT *a = &suffixArray.v[0];
+
+  unsigned hash = 0;
+  const uchar *seqPos = finder.init(seqBeg, seqEnd, &hash);
+  while (seqPos < seqEnd) {
+    unsigned c = finder.baseToCode[*seqPos];
+    ++seqPos;
+    if (c != dnaWordsFinderNull) {
+      unsigned w = finder.next(&hash, c);
+      if (w != dnaWordsFinderNull) {
+	a[cumulativeCounts[w]] = seqPos - seqBeg - finder.wordLength;
+	++cumulativeCounts[w];
+      }
+    } else {
+      seqPos = finder.init(seqPos, seqEnd, &hash);
+    }
+  }
+}
+
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
 				   bool isMaskLowercase,
 				   const uchar letterCode[] ){
