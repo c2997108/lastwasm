@@ -178,12 +178,13 @@ static void preprocessSeqs(MultiSequence &multi,
 }
 
 // Make one database volume, from one batch of sequences
-void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
+void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
+		const DnaWordsFinder& wordsFinder, MultiSequence& multi,
 		const LastdbArguments& args, const Alphabet& alph,
 		std::vector<countT>& letterCountsSeen, size_t& maxSeqLenSeen,
 		const TantanMasker& masker, unsigned numOfThreads,
 		const std::string& seedText, const std::string& baseName) {
-  size_t numOfIndexes = seeds.size();
+  size_t numOfIndexes = wordsFinder.wordLength ? 1 : seeds.size();
   size_t numOfSequences = multi.finishedSequences();
   size_t textLength = multi.seqBeg(numOfSequences);
   const uchar* seq = multi.seqReader();
@@ -219,23 +220,34 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     SubsetSuffixArray myIndex;
     std::vector<CyclicSubsetSeed> &indexSeeds = myIndex.getSeeds();
+    size_t wordCounts[dnaWordsFinderNull + 1] = {0};
 
-    size_t wordCounts[1];
-    LOG( "gathering..." );
-    indexSeeds.resize(1);
-    seeds[x].swap(indexSeeds[0]);
-    for( size_t i = 0; i < numOfSequences; ++i ){
-      myIndex.addPositions( seq, multi.seqBeg(i), multi.seqEnd(i),
-			    args.indexStep, args.minimizerWindow );
+    if (wordsFinder.wordLength) {
+      const uchar *seqEnd = seq + textLength;
+      LOG("counting...");
+      wordsFinder.count(seq, seqEnd, wordCounts);
+      std::partial_sum(wordCounts, wordCounts + seeds.size(), wordCounts);
+      LOG("gathering...");
+      seeds.swap(indexSeeds);
+      myIndex.setWordPositions(wordsFinder, wordCounts, seq, seqEnd);
+    } else {
+      LOG("gathering...");
+      indexSeeds.resize(1);
+      seeds[x].swap(indexSeeds[0]);
+      for (size_t i = 0; i < numOfSequences; ++i) {
+	myIndex.addPositions(seq, multi.seqBeg(i), multi.seqEnd(i),
+			     args.indexStep, args.minimizerWindow);
+      }
+      wordCounts[0] = myIndex.size();
     }
-    wordCounts[0] = myIndex.size();
 
     LOG( "sorting..." );
-    myIndex.sortIndex(seq, 0, wordCounts,
+    myIndex.sortIndex(seq, wordsFinder.wordLength, wordCounts,
 		      args.minSeedLimit, args.childTableType, numOfThreads);
 
     LOG( "bucketing..." );
-    myIndex.makeBuckets(seq, 0, wordCounts, args.bucketDepth);
+    myIndex.makeBuckets(seq, wordsFinder.wordLength, wordCounts,
+			args.bucketDepth);
 
     LOG( "writing..." );
     if( numOfIndexes > 1 ){
@@ -245,7 +257,11 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds, MultiSequence& multi,
       myIndex.toFiles( baseName, true, textLength );
     }
 
-    seeds[x].swap(indexSeeds[0]);
+    if (wordsFinder.wordLength) {
+      seeds.swap(indexSeeds);
+    } else {
+      seeds[x].swap(indexSeeds[0]);
+    }
   }
 
   LOG( "done!" );
@@ -341,8 +357,9 @@ void lastdb( int argc, char** argv ){
 	    } else {
 	      std::string baseName =
 		args.lastdbName + stringify(volumeNumber++);
-	      makeVolume(seeds, multi, args, alph, letterCounts, maxSeqLenSeen,
-			 tantanMasker, numOfThreads, seedText, baseName);
+	      makeVolume(seeds, wordsFinder, multi, args, alph, letterCounts,
+			 maxSeqLenSeen, tantanMasker, numOfThreads, seedText,
+			 baseName);
 	      multi.eraseAllButTheLastSequence();
 	    }
 	  }
@@ -353,8 +370,9 @@ void lastdb( int argc, char** argv ){
       }
       else{
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
-	makeVolume( seeds, multi, args, alph, letterCounts, maxSeqLenSeen,
-		    tantanMasker, numOfThreads, seedText, baseName );
+	makeVolume(seeds, wordsFinder, multi, args, alph, letterCounts,
+		   maxSeqLenSeen, tantanMasker, numOfThreads, seedText,
+		   baseName);
 	multi.reinitForAppending();
       }
     }
@@ -362,13 +380,14 @@ void lastdb( int argc, char** argv ){
 
   if( multi.finishedSequences() > 0 ){
     if( volumeNumber == 0 && !args.isCountsOnly ){
-      makeVolume( seeds, multi, args, alph, letterCounts, maxSeqLenSeen,
-		  tantanMasker, numOfThreads, seedText, args.lastdbName );
+      makeVolume(seeds, wordsFinder, multi, args, alph, letterCounts,
+		 maxSeqLenSeen, tantanMasker, numOfThreads, seedText,
+		 args.lastdbName);
       return;
     }
     std::string baseName = args.lastdbName + stringify(volumeNumber++);
-    makeVolume( seeds, multi, args, alph, letterCounts, maxSeqLenSeen,
-		tantanMasker, numOfThreads, seedText, baseName );
+    makeVolume(seeds, wordsFinder, multi, args, alph, letterCounts,
+	       maxSeqLenSeen, tantanMasker, numOfThreads, seedText, baseName);
   }
 
   writePrjFile( args.lastdbName + ".prj", args, alph, sequenceCount,
