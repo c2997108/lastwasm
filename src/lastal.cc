@@ -520,15 +520,82 @@ static void writeSegmentPair(LastAligner &aligner, const SegmentPair &s,
   writeAlignment(aligner, a, queryNum, querySeq);
 }
 
+struct GaplessAlignmentCounts {
+  countT matchCount;
+  countT gaplessExtensionCount;
+  countT gaplessAlignmentCount;
+  size_t significantAlignmentCount;
+};
+
+// Get seed hits and gapless alignments at one query-sequence position
+void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
+		   size_t queryNum, const Dispatcher &dis, DiagonalTable &dt,
+		   GaplessAlignmentCounts &counts, const SubsetSuffixArray &sa,
+		   const uchar *qryPtr) {
+  const bool isOverlap = (args.globality && args.outputType == 1);
+
+  const indexT *beg;
+  const indexT *end;
+  sa.match(beg, end, qryPtr, dis.a, 0,
+	   args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth);
+  counts.matchCount += end - beg;
+
+  indexT qryPos = qryPtr - dis.b;  // coordinate in the query sequence
+  size_t gaplessAlignmentsPerQueryPosition = 0;
+
+  for (/* noop */; beg < end; ++beg) {  // loop over suffix-array matches
+    if (gaplessAlignmentsPerQueryPosition ==
+	args.maxGaplessAlignmentsPerQueryPosition) break;
+
+    indexT refPos = *beg;  // coordinate in the reference sequence
+    if (dt.isCovered(qryPos, refPos)) continue;
+    ++counts.gaplessExtensionCount;
+    int score;
+
+    if (isOverlap) {
+      size_t revLen, fwdLen;
+      score = dis.gaplessOverlap(refPos, qryPos, revLen, fwdLen);
+      if (score < minScoreGapless) continue;
+      SegmentPair sp(refPos - revLen, qryPos - revLen, revLen + fwdLen, score);
+      dt.addEndpoint(sp.end2(), sp.end1());
+      writeSegmentPair(aligner, sp, queryNum, dis.b);
+    } else {
+      int fs = dis.forwardGaplessScore(refPos, qryPos);
+      int rs = dis.reverseGaplessScore(refPos, qryPos);
+      score = fs + rs;
+
+      if (score < minScoreGapless) continue;
+
+      indexT tEnd = dis.forwardGaplessEnd(refPos, qryPos, fs);
+      indexT tBeg = dis.reverseGaplessEnd(refPos, qryPos, rs);
+      indexT qBeg = qryPos - (refPos - tBeg);
+      if (!dis.isOptimalGapless(tBeg, tEnd, qBeg)) continue;
+      SegmentPair sp(tBeg, qBeg, tEnd - tBeg, score);
+      dt.addEndpoint(sp.end2(), sp.end1());
+
+      if (args.outputType == 1) {  // we just want gapless alignments
+	writeSegmentPair(aligner, sp, queryNum, dis.b);
+      } else {
+	gaplessAlns.add(sp);
+      }
+    }
+
+    ++gaplessAlignmentsPerQueryPosition;
+    ++counts.gaplessAlignmentCount;
+
+    if (score >= args.minScoreGapped &&
+	++counts.significantAlignmentCount >= args.maxAlignmentsPerQueryStrand)
+      break;
+  }
+}
+
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 		   size_t queryNum, const SubstitutionMatrices &matrices,
 		   const uchar* querySeq ){
-  const bool isOverlap = (args.globality && args.outputType == 1);
   Dispatcher dis(Phase::gapless, aligner, queryNum, matrices, querySeq);
   DiagonalTable dt;  // record already-covered positions on each diagonal
-  countT matchCount = 0, gaplessExtensionCount = 0, gaplessAlignmentCount = 0;
-  size_t significantAlignmentCount = 0;
+  GaplessAlignmentCounts counts = {0, 0, 0, 0};
 
   size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
   size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
@@ -552,74 +619,16 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
       if (args.minimizerWindow > 1 &&
 	  !minFinders[x].isMinimizer(sax.getSeeds()[0], qryPtr, qryEnd,
 				     args.minimizerWindow)) continue;
-      const indexT* beg;
-      const indexT* end;
-      sax.match( beg, end, qryPtr, dis.a, 0,
-		 args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth );
-      matchCount += end - beg;
-
-      // Tried: if we hit a delimiter when using contiguous seeds, then
-      // increase "i" to the delimiter position.  This gave a speed-up
-      // of only 3%, with 34-nt tags.
-
-      size_t gaplessAlignmentsPerQueryPosition = 0;
-
-      for( /* noop */; beg < end; ++beg ){  // loop over suffix-array matches
-	if( gaplessAlignmentsPerQueryPosition ==
-	    args.maxGaplessAlignmentsPerQueryPosition ) break;
-
-	indexT j = *beg;  // coordinate in the reference sequence
-	if( dt.isCovered( i, j ) ) continue;
-	++gaplessExtensionCount;
-	int score;
-
-	if( isOverlap ){
-	  size_t revLen, fwdLen;
-	  score = dis.gaplessOverlap( j, i, revLen, fwdLen );
-	  if( score < minScoreGapless ) continue;
-	  SegmentPair sp( j - revLen, i - revLen, revLen + fwdLen, score );
-	  dt.addEndpoint( sp.end2(), sp.end1() );
-	  writeSegmentPair( aligner, sp, queryNum, querySeq );
-	}else{
-	  int fs = dis.forwardGaplessScore( j, i );
-	  int rs = dis.reverseGaplessScore( j, i );
-	  score = fs + rs;
-
-	  // Tried checking the score after isOptimal & addEndpoint,
-	  // but the number of extensions decreased by < 10%, and it
-	  // was slower overall.
-	  if( score < minScoreGapless ) continue;
-
-	  indexT tEnd = dis.forwardGaplessEnd( j, i, fs );
-	  indexT tBeg = dis.reverseGaplessEnd( j, i, rs );
-	  indexT qBeg = i - (j - tBeg);
-	  if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ) continue;
-	  SegmentPair sp( tBeg, qBeg, tEnd - tBeg, score );
-	  dt.addEndpoint( sp.end2(), sp.end1() );
-
-	  if( args.outputType == 1 ){  // we just want gapless alignments
-	    writeSegmentPair( aligner, sp, queryNum, querySeq );
-	  }
-	  else{
-	    gaplessAlns.add(sp);  // add the gapless alignment to the pot
-	  }
-	}
-
-	++gaplessAlignmentsPerQueryPosition;
-	++gaplessAlignmentCount;
-
-	if( score >= args.minScoreGapped &&
-	    ++significantAlignmentCount >= args.maxAlignmentsPerQueryStrand ) {
-	  i = loopEnd;
-	  break;
-	}
-      }
+      alignGapless1(aligner, gaplessAlns, queryNum, dis, dt, counts,
+		    sax, qryPtr);
     }
+    if (counts.significantAlignmentCount >= args.maxAlignmentsPerQueryStrand)
+      break;
   }
 
-  LOG2( "initial matches=" << matchCount );
-  LOG2( "gapless extensions=" << gaplessExtensionCount );
-  LOG2( "gapless alignments=" << gaplessAlignmentCount );
+  LOG2( "initial matches=" << counts.matchCount );
+  LOG2( "gapless extensions=" << counts.gaplessExtensionCount );
+  LOG2( "gapless alignments=" << counts.gaplessAlignmentCount );
 }
 
 // Shrink the SegmentPair to its longest run of identical matches.
