@@ -54,7 +54,8 @@ static void addSeeds( std::vector< CyclicSubsetSeed >& seeds,
   std::string pattern;
   while( CyclicSubsetSeed::nextPattern( iss, seedAlphabet, pattern ) ){
     CyclicSubsetSeed s;
-    s.init( seedAlphabet, pattern, args.isCaseSensitive, alph.encode );
+    s.init(seedAlphabet, pattern, args.isCaseSensitive, alph.encode,
+	   alph.letters);
     seeds.push_back(s);
   }
 }

@@ -87,7 +87,8 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
 
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
 				   bool isMaskLowercase,
-				   const uchar letterCode[] ){
+				   const uchar letterCode[],
+				   const std::string &mainSequenceAlphabet ){
   size_t textLength = 0;  // 0 never occurs in a valid file
   size_t unindexedPositions = 0;  // 0 never occurs in a valid file
   unsigned bucketDepth = -1;
@@ -108,12 +109,13 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
     if( word == "specialcharacters" ) iss >> unindexedPositions;
     if( word == "prefixlength" ) iss >> bucketDepth;
     if( word == "subsetseed" ){
-      seeds.back().appendPosition(iss, isMaskLowercase, letterCode);
+      seeds.back().appendPosition(iss, isMaskLowercase, letterCode,
+				  mainSequenceAlphabet);
     }
   }
 
-  if( textLength == 0 || unindexedPositions == 0 || bucketDepth+1 == 0 ||
-      !seeds.back().span() || !f.eof() ){
+  if (textLength == 0 || unindexedPositions == 0 || bucketDepth+1 == 0 ||
+      !seeds.back().span() || !f.eof()) {
     err("can't read file: " + fileName);
   }
 

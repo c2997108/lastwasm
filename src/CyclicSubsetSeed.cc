@@ -107,7 +107,8 @@ static size_t findSeedLetter( const std::vector< std::string >& seedAlphabet,
 void CyclicSubsetSeed::init( const std::vector< std::string >& seedAlphabet,
 			     const std::string& pattern,
 			     bool isMaskLowercase,
-			     const uchar letterCode[] ){
+			     const uchar letterCode[],
+			     const std::string &mainSequenceAlphabet ){
   clear();
   for( size_t i = 0; i < pattern.size(); ++i ){
     char seedLetter = pattern[i];
@@ -115,7 +116,7 @@ void CyclicSubsetSeed::init( const std::vector< std::string >& seedAlphabet,
     size_t j = findSeedLetter( seedAlphabet, seedLetter );
     std::istringstream iss( seedAlphabet[j] );
     iss >> seedLetter;
-    appendPosition( iss, isMaskLowercase, letterCode );
+    appendPosition( iss, isMaskLowercase, letterCode, mainSequenceAlphabet );
   }
 }
 
@@ -129,9 +130,10 @@ static void addLetter( uchar toSubsetNum[], uchar letter, unsigned subsetNum,
   toSubsetNum[number] = subsetNum;
 }
 
-void CyclicSubsetSeed::appendPosition( std::istream& inputLine,
-				       bool isMaskLowercase,
-				       const uchar letterCode[] ){
+void CyclicSubsetSeed::appendPosition(std::istream& inputLine,
+				      bool isMaskLowercase,
+				      const uchar letterCode[],
+				      const std::string &mainSequenceAlphabet){
   std::string inputWord;
   std::vector<std::string> subsetList;
   std::vector<uchar> toSubsetNum(MAX_LETTERS, DELIMITER);

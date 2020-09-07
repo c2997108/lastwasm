@@ -87,12 +87,14 @@ public:
   void init( const std::vector< std::string >& seedAlphabet,
 	     const std::string& pattern,
 	     bool isMaskLowercase,
-	     const uchar letterCode[] );
+	     const uchar letterCode[],
+	     const std::string& mainSequenceAlphabet );
 
   // "inputLine" should be a grouping of sequence letters.
   void appendPosition( std::istream& inputLine,
 		       bool isMaskLowercase,
-		       const uchar letterCode[] );
+		       const uchar letterCode[],
+		       const std::string& mainSequenceAlphabet );
 
   // Writes the grouping of sequence letters at the given position.
   // The position must be less than the span.

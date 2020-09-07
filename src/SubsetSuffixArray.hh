@@ -19,6 +19,13 @@
 // end in the suffix array of all size-k prefixes of the suffixes.
 // They store this information for all values of k from 1 to, say, 12.
 
+// This class can store multiple concatenated suffix arrays: each
+// array holds suffixes starting with each pattern (of length
+// "wordLength") in a DnaWordsFinder.  The endpoints of the
+// concatenated arrays are specified by "cumulativeCounts".  Each
+// array has its own letter-subsets.  "seedNum" specifies one of the
+// arrays.
+
 #ifndef SUBSET_SUFFIX_ARRAY_HH
 #define SUBSET_SUFFIX_ARRAY_HH
 
@@ -38,7 +45,7 @@ public:
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
 
-  size_t size() const { return suffixArray.size(); }
+  size_t size() const { return suffixArray.size(); }  // stored positions
 
   // Add every step-th text position in the range [beg,end).
   // Positions starting with delimiters aren't added.
@@ -67,8 +74,9 @@ public:
   void makeBuckets(const uchar *text, unsigned wordLength,
 		   const size_t *cumulativeCounts, unsigned bucketDepth);
 
-  void fromFiles( const std::string& baseName,
-		  bool isMaskLowercase, const uchar letterCode[] );
+  void fromFiles(const std::string &baseName,
+		 bool isMaskLowercase, const uchar letterCode[],
+		 const std::string &mainSequenceAlphabet);
 
   void toFiles( const std::string& baseName,
 		bool isAppendPrj, size_t textLength ) const;

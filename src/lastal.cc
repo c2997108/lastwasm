@@ -1040,10 +1040,11 @@ void readIndex( const std::string& baseName, indexT seqCount ) {
   text.fromFiles(baseName, seqCount, referenceFormat != sequenceFormat::fasta);
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     if( numOfIndexes > 1 ){
-      suffixArrays[x].fromFiles( baseName + char('a' + x),
-				 isCaseSensitiveSeeds, alph.encode );
+      suffixArrays[x].fromFiles(baseName + char('a' + x), isCaseSensitiveSeeds,
+				alph.encode, alph.letters);
     }else{
-      suffixArrays[x].fromFiles( baseName, isCaseSensitiveSeeds, alph.encode );
+      suffixArrays[x].fromFiles(baseName, isCaseSensitiveSeeds,
+				alph.encode, alph.letters);
     }
   }
 
