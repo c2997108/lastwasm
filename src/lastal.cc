@@ -528,7 +528,7 @@ struct GaplessAlignmentCounts {
   countT matchCount;
   countT gaplessExtensionCount;
   countT gaplessAlignmentCount;
-  size_t significantAlignmentCount;
+  size_t maxSignificantAlignments;
 };
 
 // Get seed hits and gapless alignments at one query-sequence position
@@ -545,11 +545,10 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
   counts.matchCount += end - beg;
 
   indexT qryPos = qryPtr - dis.b;  // coordinate in the query sequence
-  size_t gaplessAlignmentsPerQueryPosition = 0;
+  size_t maxAlignments = args.maxGaplessAlignmentsPerQueryPosition;
 
   for (/* noop */; beg < end; ++beg) {  // loop over suffix-array matches
-    if (gaplessAlignmentsPerQueryPosition ==
-	args.maxGaplessAlignmentsPerQueryPosition) break;
+    if (maxAlignments == 0) break;
 
     indexT refPos = *beg;  // coordinate in the reference sequence
     if (dt.isCovered(qryPos, refPos)) continue;
@@ -584,11 +583,10 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       }
     }
 
-    ++gaplessAlignmentsPerQueryPosition;
+    --maxAlignments;
     ++counts.gaplessAlignmentCount;
 
-    if (score >= args.minScoreGapped &&
-	++counts.significantAlignmentCount >= args.maxAlignmentsPerQueryStrand)
+    if (score >= args.minScoreGapped && --counts.maxSignificantAlignments == 0)
       break;
   }
 }
@@ -599,7 +597,9 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 		   const uchar* querySeq ){
   Dispatcher dis(Phase::gapless, aligner, queryNum, matrices, querySeq);
   DiagonalTable dt;  // record already-covered positions on each diagonal
-  GaplessAlignmentCounts counts = {0, 0, 0, 0};
+  size_t maxAlignments =
+    args.maxAlignmentsPerQueryStrand ? args.maxAlignmentsPerQueryStrand : 1;
+  GaplessAlignmentCounts counts = {0, 0, 0, maxAlignments};
 
   size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
   size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
@@ -623,8 +623,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	if (w != dnaWordsFinderNull) {
 	  alignGapless1(aligner, gaplessAlns, queryNum, dis, dt, counts,
 			suffixArrays[0], qryBeg - wordsFinder.wordLength, w);
-	  if (counts.significantAlignmentCount >=
-	      args.maxAlignmentsPerQueryStrand) break;
+	  if (counts.maxSignificantAlignments == 0) break;
 	}
       } else {
 	qryBeg = wordsFinder.init(qryBeg, qryEnd, &hash);
@@ -645,8 +644,7 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 	alignGapless1(aligner, gaplessAlns, queryNum, dis, dt, counts,
 		      sax, qryPtr, 0);
       }
-      if (counts.significantAlignmentCount >= args.maxAlignmentsPerQueryStrand)
-	break;
+      if (counts.maxSignificantAlignments == 0) break;
     }
   }
 
