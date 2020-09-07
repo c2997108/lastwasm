@@ -73,6 +73,7 @@ namespace {
   GeneticCode geneticCode;
   const unsigned maxNumOfIndexes = 16;
   SubsetSuffixArray suffixArrays[maxNumOfIndexes];
+  DnaWordsFinder wordsFinder;
   ScoreMatrix scoreMatrix;
   SubstitutionMatrices fwdMatrices;
   SubstitutionMatrices revMatrices;
@@ -389,6 +390,9 @@ void writeCounts( std::ostream& out ){
 
 // Count all matches, of all sizes, of a query sequence against a suffix array
 void countMatches( size_t queryNum, const uchar* querySeq ){
+  if (wordsFinder.wordLength) {  // YAGNI
+    err("can't count initial matches with word-restricted seeds, sorry");
+  }
   size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
   size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
   if( args.minHitDepth > 1 )
@@ -531,12 +535,12 @@ struct GaplessAlignmentCounts {
 void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 		   size_t queryNum, const Dispatcher &dis, DiagonalTable &dt,
 		   GaplessAlignmentCounts &counts, const SubsetSuffixArray &sa,
-		   const uchar *qryPtr) {
+		   const uchar *qryPtr, unsigned seedNum) {
   const bool isOverlap = (args.globality && args.outputType == 1);
 
   const indexT *beg;
   const indexT *end;
-  sa.match(beg, end, qryPtr, dis.a, 0,
+  sa.match(beg, end, qryPtr, dis.a, seedNum,
 	   args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth);
   counts.matchCount += end - beg;
 
@@ -600,30 +604,50 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
   size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
   size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
 
-  if( args.minHitDepth > 1 ){
-    loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
+  unsigned minDepth = wordsFinder.wordLength ? wordsFinder.wordLength : 1;
+  if (args.minHitDepth > minDepth) {
+    loopEnd -= std::min(args.minHitDepth - minDepth, loopEnd);
   }
 
   const uchar *qryBeg = querySeq + loopBeg;
   const uchar *qryEnd = querySeq + loopEnd;
 
-  std::vector< SubsetMinimizerFinder > minFinders( numOfIndexes );
-  for( unsigned x = 0; x < numOfIndexes; ++x ){
-    minFinders[x].init(suffixArrays[x].getSeeds()[0], qryBeg, qryEnd);
-  }
-
-  for( indexT i = loopBeg; i < loopEnd; i += args.queryStep ){
-    const uchar *qryPtr = querySeq + i;
-    for( unsigned x = 0; x < numOfIndexes; ++x ){
-      const SubsetSuffixArray& sax = suffixArrays[x];
-      if (args.minimizerWindow > 1 &&
-	  !minFinders[x].isMinimizer(sax.getSeeds()[0], qryPtr, qryEnd,
-				     args.minimizerWindow)) continue;
-      alignGapless1(aligner, gaplessAlns, queryNum, dis, dt, counts,
-		    sax, qryPtr);
+  if (wordsFinder.wordLength) {
+    unsigned hash = 0;
+    qryBeg = wordsFinder.init(qryBeg, qryEnd, &hash);
+    while (qryBeg < qryEnd) {
+      unsigned c = wordsFinder.baseToCode[*qryBeg];
+      ++qryBeg;
+      if (c != dnaWordsFinderNull) {
+	unsigned w = wordsFinder.next(&hash, c);
+	if (w != dnaWordsFinderNull) {
+	  alignGapless1(aligner, gaplessAlns, queryNum, dis, dt, counts,
+			suffixArrays[0], qryBeg - wordsFinder.wordLength, w);
+	  if (counts.significantAlignmentCount >=
+	      args.maxAlignmentsPerQueryStrand) break;
+	}
+      } else {
+	qryBeg = wordsFinder.init(qryBeg, qryEnd, &hash);
+      }
     }
-    if (counts.significantAlignmentCount >= args.maxAlignmentsPerQueryStrand)
-      break;
+  } else {
+    std::vector<SubsetMinimizerFinder> minFinders(numOfIndexes);
+    for (unsigned x = 0; x < numOfIndexes; ++x) {
+      minFinders[x].init(suffixArrays[x].getSeeds()[0], qryBeg, qryEnd);
+    }
+    for (size_t qryPos = loopBeg; qryPos < loopEnd; qryPos += args.queryStep) {
+      const uchar *qryPtr = querySeq + qryPos;
+      for (unsigned x = 0; x < numOfIndexes; ++x) {
+	const SubsetSuffixArray& sax = suffixArrays[x];
+	if (args.minimizerWindow > 1 &&
+	    !minFinders[x].isMinimizer(sax.getSeeds()[0], qryPtr, qryEnd,
+				       args.minimizerWindow)) continue;
+	alignGapless1(aligner, gaplessAlns, queryNum, dis, dt, counts,
+		      sax, qryPtr, 0);
+      }
+      if (counts.significantAlignmentCount >= args.maxAlignmentsPerQueryStrand)
+	break;
+    }
   }
 
   LOG2( "initial matches=" << counts.matchCount );
@@ -1024,6 +1048,11 @@ void readIndex( const std::string& baseName, indexT seqCount ) {
       suffixArrays[x].fromFiles( baseName, isCaseSensitiveSeeds, alph.encode );
     }
   }
+
+  const std::vector<CyclicSubsetSeed> &seeds = suffixArrays[0].getSeeds();
+  assert(!seeds.empty());  // xxx what if numOfIndexes==0 ?
+  makeWordsFinder(wordsFinder, &seeds[0], seeds.size(), alph.encode,
+		  isCaseSensitiveSeeds);
 }
 
 int calcMinScoreGapless(double numLettersInReference) {

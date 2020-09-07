@@ -29,9 +29,9 @@ indexObj4 = MultiSequence.o MultiSequenceQual.o SubsetSuffixArray.o	\
 SubsetSuffixArraySort.o lastdb.o
 
 alignObj0 = Alphabet.o CyclicSubsetSeed.o LambdaCalculator.o		\
-ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o fileMap.o		\
-tantan.o LastalArguments.o GappedXdropAligner.o				\
-GappedXdropAlignerDna.o GappedXdropAlignerPssm.o			\
+ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o			\
+dna_words_finder.o fileMap.o tantan.o LastalArguments.o			\
+GappedXdropAligner.o GappedXdropAlignerDna.o GappedXdropAlignerPssm.o	\
 GappedXdropAligner2qual.o GappedXdropAligner3frame.o mcf_gap_costs.o	\
 GeneticCode.o GreedyXdropAligner.o LastEvaluer.o			\
 OneQualityScoreMatrix.o QualityPssmMaker.o TwoQualityScoreMatrix.o	\
