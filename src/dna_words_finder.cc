@@ -28,6 +28,7 @@ void DnaWordsFinder::set(unsigned wordLength, unsigned numOfPatterns,
   numOfAllWords <<= (wordLength * bitsPerBase);
   mask = numOfAllWords - 1;
   wordLookup.assign(numOfAllWords, dnaWordsFinderNull);
+  numOfMatchedWords = 0;
 
   for (unsigned i = 0; i < numOfAllWords; ++i) {
     for (unsigned j = 0; j < numOfPatterns; ++j) {
@@ -37,6 +38,7 @@ void DnaWordsFinder::set(unsigned wordLength, unsigned numOfPatterns,
 	  throw runtime_error("2 word-restricted seed patterns match 1 word");
 	}
 	wordLookup[i] = j;
+	++numOfMatchedWords;
       }
     }
   }

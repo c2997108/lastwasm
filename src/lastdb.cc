@@ -272,13 +272,21 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 // neglects memory for the sequence names, and the fact that
 // lowercase-masked letters and DNA "N"s aren't indexed.)
 static indexT maxLettersPerVolume( const LastdbArguments& args,
+				   const DnaWordsFinder& wordsFinder,
 				   size_t qualityCodesPerLetter,
-				   unsigned numOfIndexes ){
+				   unsigned numOfSeeds ){
   size_t bytesPerLetter = 1 + qualityCodesPerLetter;
   size_t maxIndexBytesPerPosition = sizeof(indexT) + 1;
-  maxIndexBytesPerPosition *= numOfIndexes;
-  size_t x = bytesPerLetter * args.indexStep + maxIndexBytesPerPosition;
-  size_t y = args.volumeSize / x * args.indexStep;
+  size_t numer = 1;
+  size_t denom = args.indexStep;
+  if (wordsFinder.wordLength) {
+    numer = wordsFinder.numOfMatchedWords;
+    denom = wordsFinder.wordLookup.size();
+  } else {
+    maxIndexBytesPerPosition *= numOfSeeds;
+  }
+  size_t x = bytesPerLetter * denom + maxIndexBytesPerPosition * numer;
+  size_t y = args.volumeSize / x * denom;
   indexT z = y;
   if( z < y ) z = indexT(-1);
   return z;
@@ -339,8 +347,8 @@ void lastdb( int argc, char** argv ){
     while (appendSequence(multi, in, maxSeqLen, args.inputFormat, alph,
 			  args.isKeepLowercase, 0)) {
       if (sequenceCount == 0) {
-	maxSeqLen =
-	  maxLettersPerVolume(args, multi.qualsPerLetter(), seeds.size());
+	maxSeqLen = maxLettersPerVolume(args, wordsFinder,
+					multi.qualsPerLetter(), seeds.size());
 	if (!args.isProtein && args.userAlphabet.empty() &&
 	    isDubiousDna(alph, multi)) {
 	  std::cerr << args.programName << ": that's some funny-lookin DNA\n";

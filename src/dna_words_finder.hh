@@ -42,6 +42,7 @@ struct DnaWordsFinder {
   unsigned wordLength;
   unsigned bitsPerBase;  // 1 for ry alphabet, 2 for acgt alphabet
   unsigned mask;
+  unsigned numOfMatchedWords;
   std::vector<uchar> wordLookup;
   uchar baseToCode[256];
 
