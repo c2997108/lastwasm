@@ -130,6 +130,14 @@ static void addLetter( uchar toSubsetNum[], uchar letter, unsigned subsetNum,
   toSubsetNum[number] = subsetNum;
 }
 
+static void addLowercase(bool isMaskLowercase, uchar *toSubsetNum, uchar upper,
+			 unsigned subsetNum, const uchar *letterCode) {
+  uchar lower = std::tolower(upper);
+  if (!isMaskLowercase && lower != upper) {
+    addLetter(toSubsetNum, lower, subsetNum, letterCode);
+  }
+}
+
 void CyclicSubsetSeed::appendPosition(std::istream& inputLine,
 				      bool isMaskLowercase,
 				      const uchar letterCode[],
@@ -138,6 +146,7 @@ void CyclicSubsetSeed::appendPosition(std::istream& inputLine,
   std::vector<std::string> subsetList;
   std::vector<uchar> toSubsetNum(MAX_LETTERS, DELIMITER);
   unsigned subsetNum = 0;
+  unsigned letterNum = 0;
 
   while (inputLine >> inputWord) {
     assert( subsetNum < DELIMITER );
@@ -145,13 +154,11 @@ void CyclicSubsetSeed::appendPosition(std::istream& inputLine,
 
     for( size_t i = 0; i < inputWord.size(); ++i ){
       uchar c = inputWord[i];
-      uchar upper = std::toupper(c);
-      uchar lower = std::tolower(c);
-      addLetter(&toSubsetNum[0], upper, subsetNum, letterCode);
-      subset += upper;
-      if( !isMaskLowercase && lower != upper ){
-	addLetter(&toSubsetNum[0], lower, subsetNum, letterCode);
-      }
+      uchar u = std::toupper(c);
+      addLetter(&toSubsetNum[0], u, subsetNum, letterCode);
+      addLowercase(isMaskLowercase, &toSubsetNum[0], u, subsetNum, letterCode);
+      ++letterNum;
+      subset += u;
     }
 
     sort( subset.begin(), subset.end() );  // canonicalize
