@@ -63,8 +63,8 @@ Main Options
       to lowercase letters in *both* sets of sequences.
 
   -u NAME
-      Specify a seeding scheme.  The -m option will then be ignored.
-      The built-in schemes are described in `<last-seeds.html>`_.
+      Specify a seeding scheme.  The -m and -d options will then be
+      ignored.  The built-in schemes are described in `<last-seeds.html>`_.
 
       Any other NAME is assumed to be a file name.  For an example of
       the format, see the seed files in the data directory.  You can
@@ -163,6 +163,27 @@ Advanced Options
 
       You can specify multiple patterns by separating them with commas
       and/or using "-m" multiple times.
+
+  -d PATTERN
+      Specify DNA seed patterns, for example: ``-d RYrNn@N,YyRn@NN`` .
+      The symbols have these meanings::
+
+        N  any match is allowed (a:a, c:c, g:g, t:t)
+        n  any match or mismatch is allowed
+        R  only purine matches are allowed (a:a, g:g)
+        r  purine matches or mismatches are allowed (a:a, g:g, a:g, g:a)
+        Y  only pyrimidine matches are allowed (c:c, t:t)
+        y  pyrimidine matches or mismatches are allowed (c:c, t:t, c:t, t:c)
+        A  only a:a matches are allowed
+        C  only c:c matches are allowed
+        G  only g:g matches are allowed
+        T  only t:t matches are allowed
+        @  any match or transition is allowed
+
+      The pattern will get cyclically repeated as often as necessary
+      to cover any length.  *However*, in 2nd and subsequent cycles,
+      the base-restricted symbols are replaced with unrestricted
+      symbols: ``RYACGT`` => ``N``, ``ry`` => ``@``.
 
   -a SYMBOLS
       Specify your own alphabet, e.g. "-a 0123".  The default (DNA)

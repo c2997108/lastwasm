@@ -73,7 +73,8 @@ Advanced Options (default settings):\n\
 -Q: input format: fastx, keep, sanger, solexa, illumina (default=fasta)\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
--m: seed pattern\n\
+-m: seed patterns (1=match, 0=anything, @=transition)\n\
+-d: DNA seed patterns (N=match, n=anything, R=purine match, etc.)\n\
 -a: user-defined alphabet\n\
 -i: minimum limit on initial matches per query position ("
     + stringify(minSeedLimit) + ")\n\
@@ -88,7 +89,7 @@ Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 
-  static const char sOpts[] = "hVpR:cm:S:s:w:W:P:u:a:i:b:C:xvQ:";
+  static const char sOpts[] = "hVpR:cm:d:S:s:w:W:P:u:a:i:b:C:xvQ:";
 
   int c;
   while ((c = myGetopt(argc, argv, sOpts)) != -1) {
@@ -116,6 +117,9 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'm':
       seedPatterns.push_back(optarg);
+      break;
+    case 'd':
+      dnaSeedPatterns.push_back(optarg);
       break;
     case 'S':
       unstringify( strand, optarg );

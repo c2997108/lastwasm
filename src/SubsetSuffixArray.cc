@@ -91,10 +91,9 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 				   const std::string &mainSequenceAlphabet ){
   size_t textLength = 0;  // 0 never occurs in a valid file
   size_t unindexedPositions = 0;  // 0 never occurs in a valid file
-  unsigned bucketDepth = -1;
   unsigned version = 0;
+  std::vector<unsigned> bucketDepths;
   seeds.clear();
-  seeds.resize(1);
 
   std::string fileName = baseName + ".prj";
   std::ifstream f( fileName.c_str() );
@@ -107,19 +106,29 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
     if( word == "version" ) iss >> version;
     if( word == "totallength" ) iss >> textLength;
     if( word == "specialcharacters" ) iss >> unindexedPositions;
-    if( word == "prefixlength" ) iss >> bucketDepth;
+    if( word == "prefixlength" ){
+      if (!seeds.empty() && !seeds.back().span()) {
+	err("can't read file: " + fileName);
+      }
+      unsigned d = 0;
+      iss >> d;
+      if (!iss) err("can't read file: " + fileName);
+      bucketDepths.push_back(d);
+      seeds.resize(seeds.size() + 1);
+    }
     if( word == "subsetseed" ){
+      if (seeds.empty()) err("can't read file: " + fileName);
       seeds.back().appendPosition(iss, isMaskLowercase, letterCode,
 				  mainSequenceAlphabet);
     }
   }
 
-  if (textLength == 0 || unindexedPositions == 0 || bucketDepth+1 == 0 ||
+  if (textLength == 0 || unindexedPositions == 0 || seeds.empty() ||
       !seeds.back().span() || !f.eof()) {
     err("can't read file: " + fileName);
   }
 
-  if (bucketDepth == 0 && version < 1087) {
+  if (bucketDepths[0] == 0 && version < 1087) {
     err("the lastdb files are too old: please re-run lastdb");
   }
 
@@ -127,7 +136,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   suffixArray.m.open( baseName + ".suf", indexedPositions );
 
   size_t wordLength = maxRestrictedSpan(&seeds[0], seeds.size());
-  makeBucketSteps(&bucketDepth, wordLength);
+  makeBucketSteps(&bucketDepths[0], wordLength);
   buckets.m.open(baseName + ".bck", bucketsSize());
   initBucketEnds();
 

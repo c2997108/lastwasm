@@ -70,6 +70,13 @@ static void makeSubsetSeeds( std::vector< CyclicSubsetSeed >& seeds,
   if( !args.subsetSeedFile.empty() ){
     addSeeds( seeds, seedText, args, alph );
   }
+  else if (!args.dnaSeedPatterns.empty()) {
+    for (size_t x = 0; x < args.dnaSeedPatterns.size(); ++x) {
+      const std::string &p = args.dnaSeedPatterns[x];
+      std::string s = CyclicSubsetSeed::stringFromDnaPatterns(p);
+      addSeeds(seeds, s, args, alph);
+    }
+  }
   else if( !args.seedPatterns.empty() ){
     for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
       const std::string& p = args.seedPatterns[x];
@@ -326,6 +333,7 @@ void lastdb( int argc, char** argv ){
   DnaWordsFinder wordsFinder;
   makeWordsFinder(wordsFinder, &seeds[0], seeds.size(), alph.encode,
 		  args.isCaseSensitive);
+  LOG("wordLength=" << wordsFinder.wordLength);
 
   MultiSequence multi;
   multi.initForAppending(1);

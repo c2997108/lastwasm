@@ -46,13 +46,21 @@ very large values will eventually reduce sensitivity.
 Among other aligners, MegaBLAST indexes every 5th position, and BLAT
 indexes every 11th position.
 
+lastdb -u
+---------
+
+``-u RY4-6`` makes LAST check for initial matches starting at only
+~1/4 of positions, in both query and reference.  This **decreases
+memory and disk use**, and **increases speed** of lastdb and lastal,
+but **reduces sensitivity**.  ``-u RY8-7`` checks only ~1/8 of
+positions.
+
 lastdb -W
 ---------
 
-This makes LAST check for initial matches starting at only some
-positions, in both query and reference.  This **decreases memory and
-disk use**, and **increases speed** of lastdb and lastal, but
-**reduces sensitivity**.
+This is an older method to check for initial matches starting at only
+some positions, in both query and reference.  It's slightly inferior,
+but currently more flexible, because you can use any sparsity.
 
 Specifically, this makes LAST look for initial matches starting only
 at positions that are "minimum" in any window of W consecutive
@@ -69,8 +77,8 @@ may be beneficial.  Ordinary (4-byte) LAST cannot directly handle so
 much data, so it splits it into volumes, which is inefficient.  8-byte
 LAST can handle such data without voluming, but it uses more memory.
 
-8-byte LAST combines well with lastdb option -w or -W, which reduce
-memory usage.  Something like ``lastdb8 -W63`` enables rapid,
+8-byte LAST combines well with the lastdb sparsity options, which
+reduce memory usage.  Something like ``lastdb8 -W63`` enables rapid,
 huge-scale homology search, with moderate memory usage, but low
 sensitivity.
 

@@ -26,7 +26,8 @@ struct LastdbArguments{
   // set parameters from lines beginning with "#lastdb":
   void fromString( const std::string& s );
 
-  void resetCumulativeOptions() { seedPatterns.clear(); verbosity = 0; }
+  void resetCumulativeOptions()
+  { seedPatterns.clear(); dnaSeedPatterns.clear(); verbosity = 0; }
 
   // options:
   bool isProtein;
@@ -34,6 +35,7 @@ struct LastdbArguments{
   int tantanSetting;
   bool isCaseSensitive;
   std::vector< std::string > seedPatterns;
+  std::vector< std::string > dnaSeedPatterns;
   int strand;
   size_t volumeSize;
   size_t indexStep;

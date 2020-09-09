@@ -217,6 +217,10 @@ trap 'rm -f $db*' EXIT
 
     # gap cost > SCHAR_MAX
     lastal -r12 -q12 -a128 $db dfam3-LTR22C.fa
+
+    # word-restricted seeds
+    lastdb -uRY8-7 $db hg19-M.fa
+    lastal -fTAB -q8 -b4 $db galGal3-M-32.fa
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number
 diff -u last-test.out -

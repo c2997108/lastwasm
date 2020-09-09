@@ -16,8 +16,15 @@
 // (such as "N" in this case) will get mapped to the special DELIMITER
 // subset.
 
+// An "exact" position is one with no grouped letters, e.g. "A C G T".
+
 // A "restricted" position is one that omits letters from the main
 // sequence alphabet, e.g. "A G".
+
+// At a restricted position, the omitted main-alphabet letters are not
+// actually mapped to the DELIMITER subset.  If the position is exact,
+// then the omitted letters are mapped to separate subsets, else they
+// are mapped to the same subset.
 
 // If the isMaskLowercase argument of the reading routines is true,
 // then all lowercase letters will get mapped to the DELIMITER subset,

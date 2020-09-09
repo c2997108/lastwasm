@@ -32,6 +32,19 @@ positions.
    not.  LAST finds shorter matches by using a prefix of the pattern,
    and longer matches by cyclically repeating the pattern.
 
+   A *restricted* symbol omits letters of the main sequence alphabet,
+   which are then forbidden at those positions::
+
+     r  AG
+
+   An *exact* symbol groups no letters::
+
+     Y  C T
+
+   In 2nd and subsequent cycles, restricted symbols are made
+   unrestricted: if it is exact then the omitted letters are added as
+   separate groups, else they are added as one group.
+
 EOF
 
 for i in "$@"

@@ -166,6 +166,23 @@ void CyclicSubsetSeed::appendPosition(std::istream& inputLine,
     ++subsetNum;
   }
 
+  const bool isExactSeed = (letterNum == subsetNum);
+
+  bool isNewSubset = false;
+  for (size_t i = 0; i < mainSequenceAlphabet.size(); ++i) {
+    uchar c = mainSequenceAlphabet[i];
+    uchar u = std::toupper(c);
+    uchar number = letterCode[u];
+    assert(number < MAX_LETTERS);
+    if (toSubsetNum[number] == DELIMITER) {
+      toSubsetNum[number] = subsetNum;
+      addLowercase(isMaskLowercase, &toSubsetNum[0], u, subsetNum, letterCode);
+      subsetNum += isExactSeed;
+      isNewSubset = !isExactSeed;
+    }
+  }
+  subsetNum += isNewSubset;
+
   subsetLists.push_back( subsetList );
   subsetMaps.insert(subsetMaps.end(), toSubsetNum.begin(), toSubsetNum.end());
   numOfSubsetsPerPosition.push_back(subsetNum);
