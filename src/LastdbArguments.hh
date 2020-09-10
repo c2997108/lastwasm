@@ -45,6 +45,7 @@ struct LastdbArguments{
   std::string userAlphabet;
   size_t minSeedLimit;
   unsigned bucketDepth;
+  size_t minIndexedPositionsPerBucket;
   int childTableType;
   bool isCountsOnly;
   int verbosity;

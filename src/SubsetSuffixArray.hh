@@ -67,12 +67,12 @@ public:
 		 size_t maxUnsortedInterval, int childTableType,
 		 size_t numOfThreads);
 
-  // Make the buckets.  If bucketDepth+1 == 0, then a default
-  // bucketDepth is used.  The default is: the maximum possible
-  // bucketDepth such that the number of bucket entries is at most 1/4
-  // the number of suffix array entries.
-  void makeBuckets(const uchar *text, unsigned wordLength,
-		   const size_t *cumulativeCounts, unsigned bucketDepth);
+  // Make the buckets.  If bucketDepth+1 == 0, then the bucket depth
+  // is: the maximum possible such that (memory use of buckets) <=
+  // (memory use of stored positions) / minPositionsPerBucket.
+  void makeBuckets(const uchar *text,
+		   unsigned wordLength, const size_t *cumulativeCounts,
+		   size_t minPositionsPerBucket, unsigned bucketDepth);
 
   void fromFiles(const std::string &baseName,
 		 bool isMaskLowercase, const uchar letterCode[],

@@ -116,8 +116,8 @@ Advanced Options
 
       However, the output for one sequence is never split.  Since the
       output files are several-fold bigger than the input (unless you
-      use -w or -W), this means that mammalian chromosomes cannot be
-      processed using much less than 2G (unless you use -w or -W).
+      use -w/-W/-d/-u), this means that mammalian chromosomes cannot
+      be processed using much less than 2G (unless you use -w/-W/-d/-u).
 
       There is a hard upper limit of about 4 billion sequence letters
       per volume.  Together with the previous point, this means that
@@ -199,12 +199,16 @@ Advanced Options
       options with lastal.  If you use (say) "-i 10", then you cannot
       use lastal with option m < 10.
 
-  -b DEPTH
-      Specify the depth of "buckets" used to accelerate initial match
-      finding.  Larger values increase the memory usage of lastdb and
-      lastal, make lastal faster, and have no effect on lastal's
-      results.  The default is to use the maximum depth that consumes
-      at most one byte per possible match start position.
+  -b LENGTH
+      Specify the maximum length for "buckets", a lookup table for all
+      possible sequences of length <= LENGTH.  Larger values increase
+      the memory usage of lastdb and lastal, make lastal faster, and
+      have no effect on lastal's results.
+
+  -B FOLD
+      Use the maximum possible bucket length, such that the buckets'
+      memory use is at most 1/FOLD times that of the stored sequence
+      positions.
 
   -C NUMBER
       Specify the type of "child table" to make: 0 means none, 1 means

@@ -255,7 +255,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 
     LOG( "bucketing..." );
     myIndex.makeBuckets(seq, wordsFinder.wordLength, wordCounts,
-			args.bucketDepth);
+			args.minIndexedPositionsPerBucket, args.bucketDepth);
 
     LOG( "writing..." );
     if( numOfIndexes > 1 ){
@@ -284,7 +284,8 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
 				   size_t qualityCodesPerLetter,
 				   unsigned numOfSeeds ){
   size_t bytesPerLetter = 1 + qualityCodesPerLetter;
-  size_t maxIndexBytesPerPosition = sizeof(indexT) + 1;
+  size_t maxIndexBytesPerPosition =
+    sizeof(indexT) + sizeof(indexT) / args.minIndexedPositionsPerBucket;
   size_t numer = 1;
   size_t denom = args.indexStep;
   if (wordsFinder.wordLength) {
@@ -292,6 +293,10 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
     denom = wordsFinder.wordLookup.size();
   } else {
     maxIndexBytesPerPosition *= numOfSeeds;
+    if (args.minimizerWindow > 1) {
+      numer = 2;
+      denom = args.minimizerWindow + 1;
+    }
   }
   size_t x = bytesPerLetter * denom + maxIndexBytesPerPosition * numer;
   size_t y = args.volumeSize / x * denom;

@@ -196,10 +196,11 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 void SubsetSuffixArray::makeBuckets(const uchar *text,
 				    unsigned wordLength,
 				    const size_t *cumulativeCounts,
+				    size_t minPositionsPerBucket,
 				    unsigned bucketDepth) {
   std::vector<unsigned> bucketDepths(seeds.size(), bucketDepth);
   if (bucketDepth+1 == 0) {
-    size_t minPositionsPerBucket = 4;
+    assert(minPositionsPerBucket > 0);
     size_t oldCount = 0;
     for (size_t s = 0; s < seeds.size(); ++s) {
       size_t newCount = cumulativeCounts[s];

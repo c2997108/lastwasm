@@ -164,8 +164,14 @@ lastdb -C2
 ----------
 
 This option may make lastal a bit **faster**, but **uses more memory
-and disk**, and makes lastdb slower.  If these downsides are no
-problem, you may as well try it.
+and disk**, and makes lastdb slower.  It has no effect on the results.
+If the downsides are no problem, you may as well try it.
+
+lastdb -B
+---------
+
+Lower values (e.g. 1) make lastal **faster**, but use **more memory
+and disk**.  This has no effect on the results.
 
 Repeat masking
 --------------

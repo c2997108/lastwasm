@@ -40,6 +40,7 @@ LastdbArguments::LastdbArguments() :
   userAlphabet(""),
   minSeedLimit(0),
   bucketDepth(-1),  // means: use the default (adapts to the data)
+  minIndexedPositionsPerBucket(4),
   childTableType(0),
   isCountsOnly(false),
   verbosity(0),
@@ -78,7 +79,9 @@ Advanced Options (default settings):\n\
 -a: user-defined alphabet\n\
 -i: minimum limit on initial matches per query position ("
     + stringify(minSeedLimit) + ")\n\
--b: bucket depth\n\
+-b: maximum length for buckets\n\
+-B: use max bucket length with memory <= (memory for stored positions) / B ("
+    + stringify(minIndexedPositionsPerBucket) + ")\n\
 -C: child table type: 0=none, 1=byte-size, 2=short-size, 3=full ("
     + stringify(childTableType) + ")\n\
 -x: just count sequences and letters\n\
@@ -89,7 +92,7 @@ Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 
-  static const char sOpts[] = "hVpR:cm:d:S:s:w:W:P:u:a:i:b:C:xvQ:";
+  static const char sOpts[] = "hVpR:cm:d:S:s:w:W:P:u:a:i:b:B:C:xvQ:";
 
   int c;
   while ((c = myGetopt(argc, argv, sOpts)) != -1) {
@@ -150,6 +153,10 @@ LAST home page: http://last.cbrc.jp/\n\
       break;
     case 'b':
       unstringify( bucketDepth, optarg );
+      break;
+    case 'B':
+      unstringify( minIndexedPositionsPerBucket, optarg );
+      if ( minIndexedPositionsPerBucket == 0 ) badopt( c, optarg );
       break;
     case 'C':
       unstringify( childTableType, optarg );
