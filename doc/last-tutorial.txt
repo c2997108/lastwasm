@@ -118,6 +118,17 @@ This will use about 15 gigabytes of memory.
   which may happen due to rearrangements.  It has several useful
   options, please see `<last-split.html>`_.
 
+Tuning speed, sensitivity, memory and disk usage
+------------------------------------------------
+
+* You can make LAST faster by `using multiple CPUs
+  <last-parallel.html>`_.
+
+* You can `trade off speed, sensitivity, memory and disk usage
+  <last-tuning.html>`_.  To go much faster, try either lastal option
+  ``-k32`` or lastdb option ``-uRY32`` (but not both).  ``-k32`` is a
+  bit more sensitive, but ``-uRY32`` uses less memory.
+
 Example 6: Find very short DNA alignments
 -----------------------------------------
 
@@ -159,10 +170,10 @@ http://nar.oxfordjournals.org/content/38/6/1767.long).  Recently
 (2013) fastq-sanger seems to be dominant, but if you have another
 variant you need to change the -Q option (see `<lastal.html>`_).
 
-Paired reads
-------------
+Paired DNA reads
+----------------
 
-If you have paired reads, there are two options:
+If you have paired DNA reads, there are two options:
 
 1. Use last-pair-probs (see `<last-pair-probs.html>`_).
 
@@ -171,15 +182,6 @@ If you have paired reads, there are two options:
    last-pair-probs does not currently allow different parts of one
    read to match different parts of the genome, though it does allow
    the two reads in a pair to match (e.g.) different chromosomes.
-
-Tuning speed, sensitivity, memory and disk usage
-------------------------------------------------
-
-* You can make LAST faster by `using multiple CPUs
-  <last-parallel.html>`_.
-
-* You can `trade off speed, sensitivity, memory and disk usage
-  <last-tuning.html>`_.
 
 Example 8: Compare the human and mouse genomes
 ----------------------------------------------
@@ -196,7 +198,7 @@ moderate run time and memory use:
 
 * Omit the sensitivity-boosting lastal -m option.
 
-* Add -W99 (or so) to the lastdb options.
+* Replace ``-uNEAR`` with ``-uRY32``.
 
 * If the "reference" genome (the one given to lastdb) is > 4 GB, it's
   probably more efficient to use lastdb8 and lastal8, instead of

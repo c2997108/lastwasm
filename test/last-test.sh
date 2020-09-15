@@ -220,6 +220,7 @@ trap 'rm -f $db*' EXIT
 
     # word-restricted seeds, lastdb -B
     lastdb -uRY8-7 -B1 $db hg19-M.fa
+    lastdb -uRY8 -B1 $db hg19-M.fa
     lastal -fTAB -q8 -b4 $db galGal3-M-32.fa
 } 2>&1 |
 grep -v version |  # omit header lines with the LAST version number

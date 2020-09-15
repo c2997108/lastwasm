@@ -27,4 +27,4 @@ last-matrices.txt: ../data/*.mat
 	../build/mat-doc.sh ../data/*.mat > $@
 
 last-seeds.txt: ../data/*.seed
-	../build/seed-doc.sh ../data/*.seed > $@
+	cd ../data && ../build/seed-doc.sh [!R]*d RY?-*d RY??-*d > ../doc/$@

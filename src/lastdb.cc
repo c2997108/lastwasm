@@ -338,6 +338,8 @@ void lastdb( int argc, char** argv ){
   DnaWordsFinder wordsFinder;
   makeWordsFinder(wordsFinder, &seeds[0], seeds.size(), alph.encode,
 		  args.isCaseSensitive);
+  if (wordsFinder.wordLength && alph.isProtein())
+    err("error: word-restricted DNA seeds on protein");
   LOG("wordLength=" << wordsFinder.wordLength);
 
   MultiSequence multi;

@@ -50,6 +50,8 @@ EOF
 for i in "$@"
 do
     name=$(basename $i .seed)
+    abbr=$(grep '^#abbreviation' $i | cut -d' ' -f2)
+    test "$abbr" && name="$name (abbreviation: $abbr)"
     echo $name
     echo $name | sed 's/./-/g'  # underline
     echo

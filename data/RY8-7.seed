@@ -2,6 +2,8 @@
 # seeking seeds at ~1/8 of positions in each sequence [from Table 3 of
 # MC Frith, L Noé, G Kucherov].
 
+#abbreviation RY8
+
 #lastal -r6 -q18 -a21 -b9
 
 R  A G

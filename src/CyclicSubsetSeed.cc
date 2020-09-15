@@ -8,6 +8,7 @@
 #include <sstream>
 #include <cassert>
 #include <cctype>  // toupper, tolower
+#include <string.h>
 //#include <iostream>  // for debugging
 
 #define ERR(x) throw std::runtime_error(x)
@@ -16,12 +17,21 @@
 
 using namespace cbrc;
 
+static const char *canonicalName(const char *name) {
+  for (size_t i = 0; i < COUNTOF(subsetSeedNicknames); ++i)
+    if (strcmp(name, subsetSeedNicknames[i].nickname) == 0)
+      return subsetSeedNicknames[i].realname;
+  return name;
+}
+
 std::string CyclicSubsetSeed::stringFromName( const std::string& name ){
-  for( size_t i = 0; i < COUNTOF(subsetSeeds); ++i )
-    if( name == subsetSeeds[i].name )
+  const char *n = canonicalName(name.c_str());
+
+  for (size_t i = 0; i < COUNTOF(subsetSeeds); ++i)
+    if (strcmp(n, subsetSeeds[i].name) == 0)
       return subsetSeeds[i].text;
 
-  return slurp( name.c_str() );
+  return slurp(n);
 }
 
 std::string
