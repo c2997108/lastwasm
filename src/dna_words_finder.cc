@@ -8,7 +8,7 @@
 
 #include <stdexcept>
 
-static unsigned getBitsPerBase(const uchar *dnaMatches, unsigned size) {
+static unsigned getBitsPerBase(const unsigned char *dnaMatches, unsigned size){
   for (unsigned i = 0; i < size; ++i) {
     if (dnaMatches[i] % 5) return 2;  // can't use ry alphabet
   }

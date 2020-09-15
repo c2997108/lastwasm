@@ -34,11 +34,11 @@
 
 #include <vector>
 
-typedef unsigned char uchar;
-
 const unsigned dnaWordsFinderNull = 255;
 
 struct DnaWordsFinder {
+  typedef unsigned char uchar;
+
   unsigned wordLength;
   unsigned bitsPerBase;  // 1 for ry alphabet, 2 for acgt alphabet
   unsigned mask;
