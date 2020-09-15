@@ -39,7 +39,8 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 
   init();
 
-  for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
+  size_t antidiagonal;
+  for (antidiagonal = 0; /* noop */; ++antidiagonal) {
     int numCells = seq1end - seq1beg;
     int n = numCells - 1;
 
@@ -50,7 +51,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
     const uchar *q2 = isForward ? qual2 + seq2pos : qual2 - seq2pos;
 
-    initAntidiagonal(seq1end, thisPos, numCells);
+    initAntidiagonal(antidiagonal + 2, seq1end, thisPos, numCells);
     thisPos += xdropPadLen;
     Score *x0 = &xScores[thisPos];
     Score *y0 = &yScores[thisPos];
@@ -170,6 +171,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
   } else {
     calcBestSeq1position(bestScore);
   }
+  numOfAntidiagonals = antidiagonal + 1;
   return bestScore;
 }
 

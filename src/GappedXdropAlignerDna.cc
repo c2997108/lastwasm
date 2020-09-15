@@ -81,14 +81,15 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 
   seq2 += seqIncrement;
 
-  for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
+  size_t antidiagonal;
+  for (antidiagonal = 2; /* noop */; ++antidiagonal) {
     int numCells = seq1end - seq1beg;
     int n = numCells - 1;
 
     const uchar *s1 = &seq1queue.fromEnd(n + seqLoadLen);
     const uchar *s2 = seq2queue.begin();
 
-    initAntidiagonalTiny(seq1end, thisPos, numCells);
+    initAntidiagonalTiny(antidiagonal, seq1end, thisPos, numCells);
     thisPos += xdropPadLen;
     TinyScore *x0 = &xTinyScores[thisPos];
     TinyScore *y0 = &yTinyScores[thisPos];
@@ -191,7 +192,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
       mBestScore = mNegInf;
       mScoreRise1 = simdFill1(rise);
     }
-    scoreRises.push_back(rise);
+    scoreRises[antidiagonal] = rise;
 
     diagPos = horiPos;
     horiPos = thisPos - 1;
@@ -223,7 +224,9 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
     }
   }
 
+  bestAntidiagonal -= 2;
   calcBestSeq1positionTiny(scoreOffset);
+  numOfAntidiagonals = antidiagonal - 1;
   return bestScore;
 }
 

@@ -52,14 +52,15 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 
   pssm += seqIncrement;
 
-  for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
+  size_t antidiagonal;
+  for (antidiagonal = 0; /* noop */; ++antidiagonal) {
     int numCells = seq1end - seq1beg;
     int n = numCells - 1;
 
     const uchar *s1 = &seq1queue.fromEnd(n + simdLen);
     const const_int_ptr *s2 = &pssmQueue.fromEnd(1);
 
-    initAntidiagonal(seq1end, thisPos, numCells);
+    initAntidiagonal(antidiagonal + 2, seq1end, thisPos, numCells);
     thisPos += xdropPadLen;
     Score *x0 = &xScores[thisPos];
     Score *y0 = &yScores[thisPos];
@@ -177,6 +178,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
   } else {
     calcBestSeq1position(bestScore);
   }
+  numOfAntidiagonals = antidiagonal + 1;
   return bestScore;
 }
 

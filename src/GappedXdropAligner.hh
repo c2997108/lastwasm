@@ -210,52 +210,56 @@ class GappedXdropAligner {
 
   // The number of antidiagonals, excluding dummy ones at the beginning.
   size_t numAntidiagonals() const
-  { return scoreOrigins.size() - 2; }
+  { return numOfAntidiagonals; }
 
   size_t numCellsAndPads(size_t antidiagonal) const
-  { return scoreEnds[antidiagonal + 3] - scoreEnds[antidiagonal + 2]; }
+  { return scoreEndsAndOrigins[2 * (antidiagonal + 3)]
+      -    scoreEndsAndOrigins[2 * (antidiagonal + 2)]; }
 
   size_t scoreEndIndex(size_t antidiagonal) const
-  { return scoreEnds[antidiagonal + 2]; }
+  { return scoreEndsAndOrigins[2 * (antidiagonal + 2)]; }
 
   // start of the x-drop region (i.e. number of skipped seq1 letters
   // before the x-drop region) for this antidiagonal
   size_t seq1start(size_t antidiagonal) const {
-    size_t a = antidiagonal + 2;
-    return scoreEnds[a] + xdropPadLen - scoreOrigins[a];
+    size_t a = 2 * (antidiagonal + 2);
+    return scoreEndsAndOrigins[a] + xdropPadLen - scoreEndsAndOrigins[a + 1];
   }
+
+  size_t scoreOrigin(size_t antidiagonalIncludingDummies) const
+  { return scoreEndsAndOrigins[2 * antidiagonalIncludingDummies + 1]; }
 
   // The index in the score vectors, of the previous "horizontal" cell.
   size_t hori(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal + 1] + seq1coordinate - 1; }
+  { return scoreOrigin(antidiagonal + 1) + seq1coordinate - 1; }
 
   // The index in the score vectors, of the previous "vertical" cell.
   size_t vert(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal + 1] + seq1coordinate; }
+  { return scoreOrigin(antidiagonal + 1) + seq1coordinate; }
 
   // The index in the score vectors, of the previous "diagonal" cell.
   size_t diag(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal] + seq1coordinate - 1; }
+  { return scoreOrigin(antidiagonal) + seq1coordinate - 1; }
 
   // The index in the score vectors, of the previous in-frame horizontal cell.
   size_t hori3(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 3] + seq1coordinate - 1; }
+  { return scoreOrigin(antidiagonal - 3) + seq1coordinate - 1; }
 
   // The index in the score vectors, of the previous in-frame vertical cell.
   size_t vert3(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 3] + seq1coordinate; }
+  { return scoreOrigin(antidiagonal - 3) + seq1coordinate; }
 
   // The index in the score vectors, of the previous in-frame diagonal cell.
   size_t diag3(size_t antidiagonal, size_t seq1coordinate) const
-  { return scoreOrigins[antidiagonal - 6] + seq1coordinate - 1; }
+  { return scoreOrigin(antidiagonal - 6) + seq1coordinate - 1; }
 
  private:
   std::vector<Score> xScores;  // best score ending with aligned letters
   std::vector<Score> yScores;  // best score ending with insertion in seq1
   std::vector<Score> zScores;  // best score ending with insertion in seq2
 
-  std::vector<size_t> scoreOrigins;  // score origin for each antidiagonal
-  std::vector<size_t> scoreEnds;  // score end pos for each antidiagonal
+  std::vector<size_t> scoreEndsAndOrigins;  // data for each antidiagonal
+  size_t numOfAntidiagonals;
 
   ContiguousQueue<const int *> pssmQueue;
   ContiguousQueue<uchar> seq1queue;
@@ -273,11 +277,18 @@ class GappedXdropAligner {
     }
   }
 
-  void initAntidiagonal(size_t seq1end, size_t thisEnd, int numCells) {
+  void initAntidiagonal(size_t antidiagonalIncludingDummies,
+			size_t seq1end, size_t thisEnd, int numCells) {
     const SimdInt mNegInf = simdFill(-INF);
     size_t nextEnd = thisEnd + xdropPadLen + numCells;
-    scoreEnds.push_back(nextEnd);
-    scoreOrigins.push_back(nextEnd - seq1end);
+
+    size_t a = 2 * (antidiagonalIncludingDummies + 1);
+    if (scoreEndsAndOrigins.size() <= a) {
+      scoreEndsAndOrigins.resize(a + 1);
+    }
+    scoreEndsAndOrigins[a - 1] = nextEnd - seq1end;
+    scoreEndsAndOrigins[a] = nextEnd;
+
     resizeScoresIfSmaller(nextEnd + (simdLen-1));
     for (int i = 0; i < xdropPadLen; i += simdLen) {
       simdStore(&xScores[thisEnd + i], mNegInf);
@@ -289,18 +300,21 @@ class GappedXdropAligner {
   // Puts 2 "dummy" antidiagonals at the start, so that we can safely
   // look-back from subsequent antidiagonals
   void init() {
-    scoreOrigins.resize(0);
-    scoreEnds.resize(1);
-    initAntidiagonal(0, 0, 0);
-    initAntidiagonal(0, xdropPadLen, 0);
+    initAntidiagonal(0, 0, 0, 0);
+    initAntidiagonal(1, 0, xdropPadLen, 0);
     xScores[xdropPadLen - 1] = 0;
     bestAntidiagonal = 0;
   }
 
-  void initAntidiagonal3(size_t seq1end, size_t scoreEnd) {
-    scoreOrigins.push_back(scoreEnd - seq1end);
+  void initAntidiagonal3(size_t antidiagonalIncludingDummies,
+			 size_t seq1end, size_t scoreEnd) {
+    size_t a = 2 * (antidiagonalIncludingDummies + 1);
+    if (scoreEndsAndOrigins.size() <= a) {
+      scoreEndsAndOrigins.resize(a + 1);
+    }
+    scoreEndsAndOrigins[a - 1] = scoreEnd - seq1end;
+    scoreEndsAndOrigins[a] = scoreEnd;
     resizeScoresIfSmaller(scoreEnd + (simdLen-1));
-    scoreEnds.push_back(scoreEnd);
   }
 
   void updateBest(int &bestScore, int score, size_t antidiagonal,
@@ -332,11 +346,19 @@ class GappedXdropAligner {
     }
   }
 
-  void initAntidiagonalTiny(size_t seq1end, size_t thisEnd, int numCells) {
+  void initAntidiagonalTiny(size_t antidiagonalIncludingDummies,
+			    size_t seq1end, size_t thisEnd, int numCells) {
     const SimdInt mNegInf = simdOnes();
     size_t nextEnd = thisEnd + xdropPadLen + numCells;
-    scoreEnds.push_back(nextEnd);
-    scoreOrigins.push_back(nextEnd - seq1end);
+
+    size_t a = 2 * (antidiagonalIncludingDummies + 1);
+    if (scoreEndsAndOrigins.size() <= a) {
+      scoreEndsAndOrigins.resize(a + 1);
+      scoreRises.resize(antidiagonalIncludingDummies + 1);
+    }
+    scoreEndsAndOrigins[a - 1] = nextEnd - seq1end;
+    scoreEndsAndOrigins[a] = nextEnd;
+
     resizeTinyScoresIfSmaller(nextEnd + (simdBytes-1));
     simdStore(&xTinyScores[thisEnd], mNegInf);
     simdStore(&yTinyScores[thisEnd], mNegInf);
@@ -344,13 +366,10 @@ class GappedXdropAligner {
   }
 
   void initTiny(int scoreOffset) {
-    scoreOrigins.resize(0);
-    scoreEnds.resize(1);
-    initAntidiagonalTiny(0, 0, 0);
-    initAntidiagonalTiny(0, xdropPadLen, 0);
+    initAntidiagonalTiny(0, 0, 0, 0);
+    initAntidiagonalTiny(1, 0, xdropPadLen, 0);
     xTinyScores[xdropPadLen - 1] = scoreOffset;
-    bestAntidiagonal = 0;
-    scoreRises.resize(2);
+    bestAntidiagonal = 2;
   }
 
   void calcBestSeq1positionTiny(int scoreOffset) {
