@@ -219,7 +219,7 @@ trap 'rm -f $db*' EXIT
     lastal -r12 -q12 -a128 $db dfam3-LTR22C.fa
 
     # word-restricted seeds, lastdb -B
-    lastdb -uRY8-7 -B1 $db hg19-M.fa
+    lastdb -uRY8-8 -B1 $db hg19-M.fa
     lastdb -uRY8 -B1 $db hg19-M.fa
     lastal -fTAB -q8 -b4 $db galGal3-M-32.fa
 } 2>&1 |
