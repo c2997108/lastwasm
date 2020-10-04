@@ -60,6 +60,7 @@ private:
 class Writer {  // writes characters to an output buffer
 public:
   explicit Writer(char *startOfOutput) : p(startOfOutput) {}
+  char *pointer() const { return p; }
   void fill(size_t n, char c) {  // write n copies of character c
     std::memset(p, c, n);
     p += n;
@@ -248,12 +249,12 @@ static char *writeMafLineA(char *out, int score, const LastEvaluer& evaluer,
 }
 
 // Write the first part of an "s" line:
-static void writeMafHeadS(char *out,
-			  const std::string &n, size_t nw,
-			  const IntText &b, size_t bw,
-			  const IntText &r, size_t rw,
-			  char strand,
-			  const IntText &s, size_t sw) {
+static char *writeMafHeadS(char *out,
+			   const std::string &n, size_t nw,
+			   const IntText &b, size_t bw,
+			   const IntText &r, size_t rw,
+			   char strand,
+			   const IntText &s, size_t sw) {
   Writer w(out);
   w << 's' << ' ';
   putLeft(w, n, nw);
@@ -261,16 +262,18 @@ static void writeMafHeadS(char *out,
   putRight(w, r, rw);
   w << strand << ' ';
   putRight(w, s, sw);
+  return w.pointer();
 }
 
 // Write the first part of a "q" line:
-static void writeMafHeadQ(char *out,
-			  const std::string &n, size_t nw,
-			  size_t qLineBlankLen) {
+static char *writeMafHeadQ(char *out,
+			   const std::string &n, size_t nw,
+			   size_t qLineBlankLen) {
   Writer w(out);
   w << 'q' << ' ';
   putLeft(w, n, nw);
   w.fill(qLineBlankLen, ' ');
+  return w.pointer();
 }
 
 // Write a "c" line
@@ -331,8 +334,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
 
   size_t qLineBlankLen = bw + 1 + rw + 3 + sw + 1;
   size_t pLineBlankLen = nw + 1 + qLineBlankLen;
-  size_t headLen = 2 + pLineBlankLen;
-  size_t sLineLen = headLen + numColumns( frameSize2 ) + 1;
+  size_t sLineLen = 2 + pLineBlankLen + numColumns(frameSize2) + 1;
 
   std::vector<char> cLine;
   writeMafLineC(cLine, extras.expectedCounts);
@@ -349,26 +351,26 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
 
   char *dest = std::copy(aLine, aLineEnd, text);
 
-  writeMafHeadS(dest, n1, nw, b1, bw, r1, rw, strand1, s1, sw);
-  dest = writeTopSeq(dest + headLen, seq1.seqReader(), alph, 0, frameSize2);
+  dest = writeMafHeadS(dest, n1, nw, b1, bw, r1, rw, strand1, s1, sw);
+  dest = writeTopSeq(dest, seq1.seqReader(), alph, 0, frameSize2);
   *dest++ = '\n';
 
   if (isQuals1) {
-    writeMafHeadQ(dest, n1, nw, qLineBlankLen);
+    dest = writeMafHeadQ(dest, n1, nw, qLineBlankLen);
     const uchar *q = seq1.qualityReader();
-    dest = writeTopSeq(dest + headLen, q, alph, qualsPerBase1, frameSize2);
+    dest = writeTopSeq(dest, q, alph, qualsPerBase1, frameSize2);
     *dest++ = '\n';
   }
 
-  writeMafHeadS(dest, n2, nw, b2, bw, r2, rw, strand2, s2, sw);
-  dest = writeBotSeq(dest + headLen, seqData2, alph, 0, frameSize2);
+  dest = writeMafHeadS(dest, n2, nw, b2, bw, r2, rw, strand2, s2, sw);
+  dest = writeBotSeq(dest, seqData2, alph, 0, frameSize2);
   *dest++ = '\n';
 
   if (isQuals2) {
-    writeMafHeadQ(dest, n2, nw, qLineBlankLen);
+    dest = writeMafHeadQ(dest, n2, nw, qLineBlankLen);
     const uchar *q =
       seq2.qualityReader() + seq2.padBeg(seqNum2) * qualsPerBase2;
-    dest = writeBotSeq(dest + headLen, q, alph, qualsPerBase2, frameSize2);
+    dest = writeBotSeq(dest, q, alph, qualsPerBase2, frameSize2);
     *dest++ = '\n';
   }
 
