@@ -4,20 +4,22 @@
 #include "ScoreMatrixData.hh"
 #include "qualityScoreUtil.hh"
 #include "zio.hh"
-#include <sstream>
-#include <iomanip>
-#include <algorithm>  // min, max
-#include <stdexcept>
-#include <cassert>
-#include <cctype>  // toupper, tolower
+
+#include <assert.h>
+#include <ctype.h>
 #include <stddef.h>  // size_t
+
+#include <algorithm>  // min, max
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
 
 #define COUNTOF(a) (sizeof (a) / sizeof *(a))
 
 static void makeUppercase(std::string& s) {
   for (size_t i = 0; i < s.size(); ++i) {
     unsigned char c = s[i];
-    s[i] = std::toupper(c);
+    s[i] = toupper(c);
   }
 }
 
@@ -70,7 +72,7 @@ static void upperAndLowerIndex(unsigned tooBig, const uchar symbolToIndex[],
 			       char symbol, unsigned& upper, unsigned& lower) {
   uchar s = symbol;
   upper = symbolToIndex[s];
-  lower = symbolToIndex[std::tolower(s)];
+  lower = symbolToIndex[tolower(s)];
   if (upper >= tooBig || lower >= tooBig) {
     throw Err(std::string("bad letter in score matrix: ") + symbol);
   }
@@ -84,9 +86,7 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
   makeUppercase(rowSymbols);
   makeUppercase(colSymbols);
 
-  minScore = cells[0][0];
-  maxScore = cells[0][0];
-
+  minScore = maxScore = cells[0][0];
   for( size_t i = 0; i < rowSymbols.size(); ++i ){
     for( size_t j = 0; j < colSymbols.size(); ++j ){
       minScore = std::min( minScore, cells[i][j] );
@@ -126,7 +126,7 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
     caseSensitive[z][i] = -INF;
     caseSensitive[i][z] = -INF;
     caseInsensitive[z][i] = -INF;
-    caseInsensitive[i][z] = -INF;    
+    caseInsensitive[i][z] = -INF;
   }
 }
 

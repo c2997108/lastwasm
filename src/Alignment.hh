@@ -162,11 +162,11 @@ struct Alignment{
 
   size_t numColumns( size_t frameSize ) const;
 
-  char* writeTopSeq( const uchar* seq, const Alphabet& alph,
-		     size_t qualsPerBase, size_t frameSize, char* dest ) const;
+  char *writeTopSeq(char *dest, const uchar *seq, const Alphabet &alph,
+		    size_t qualsPerBase, size_t frameSize) const;
 
-  char* writeBotSeq( const uchar* seq, const Alphabet& alph,
-		     size_t qualsPerBase, size_t frameSize, char* dest ) const;
+  char *writeBotSeq(char *dest, const uchar *seq, const Alphabet &alph,
+		    size_t qualsPerBase, size_t frameSize) const;
 };
 
 }  // end namespace cbrc

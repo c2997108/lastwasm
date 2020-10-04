@@ -350,25 +350,25 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   char *dest = std::copy(aLine, aLineEnd, text);
 
   writeMafHeadS(dest, n1, nw, b1, bw, r1, rw, strand1, s1, sw);
-  dest = writeTopSeq(seq1.seqReader(), alph, 0, frameSize2, dest + headLen);
+  dest = writeTopSeq(dest + headLen, seq1.seqReader(), alph, 0, frameSize2);
   *dest++ = '\n';
 
   if (isQuals1) {
     writeMafHeadQ(dest, n1, nw, qLineBlankLen);
     const uchar *q = seq1.qualityReader();
-    dest = writeTopSeq(q, alph, qualsPerBase1, frameSize2, dest + headLen);
+    dest = writeTopSeq(dest + headLen, q, alph, qualsPerBase1, frameSize2);
     *dest++ = '\n';
   }
 
   writeMafHeadS(dest, n2, nw, b2, bw, r2, rw, strand2, s2, sw);
-  dest = writeBotSeq(seqData2, alph, 0, frameSize2, dest + headLen);
+  dest = writeBotSeq(dest + headLen, seqData2, alph, 0, frameSize2);
   *dest++ = '\n';
 
   if (isQuals2) {
     writeMafHeadQ(dest, n2, nw, qLineBlankLen);
     const uchar *q =
       seq2.qualityReader() + seq2.padBeg(seqNum2) * qualsPerBase2;
-    dest = writeBotSeq(q, alph, qualsPerBase2, frameSize2, dest + headLen);
+    dest = writeBotSeq(dest + headLen, q, alph, qualsPerBase2, frameSize2);
     *dest++ = '\n';
   }
 
@@ -510,8 +510,8 @@ static char* writeGaps( char* dest, size_t num ){
   return dest;
 }
 
-static char* writeQuals( const uchar* qualities, size_t beg, size_t end,
-			 size_t qualsPerBase, char* dest ){
+static char *writeQuals(char *dest, const uchar *qualities,
+			size_t beg, size_t end, size_t qualsPerBase) {
   for( size_t i = beg; i < end; ++i ){
     const uchar* q = qualities + i * qualsPerBase;
     *dest++ = *std::max_element( q, q + qualsPerBase );
@@ -519,22 +519,22 @@ static char* writeQuals( const uchar* qualities, size_t beg, size_t end,
   return dest;
 }
 
-static char* writeSeq( const uchar* seq, size_t beg, size_t end,
-		       const Alphabet& alph, size_t qualsPerBase, char* dest ){
-  return qualsPerBase ? writeQuals( seq, beg, end, qualsPerBase, dest )
-    :                   alph.rtCopy( seq + beg, seq + end, dest );
+static char *writeSeq(char *dest, const uchar *seq, size_t beg, size_t end,
+		      const Alphabet &alph, size_t qualsPerBase) {
+  return qualsPerBase ? writeQuals(dest, seq, beg, end, qualsPerBase)
+    :                   alph.rtCopy(seq + beg, seq + end, dest);
 }
 
-char* Alignment::writeTopSeq( const uchar* seq, const Alphabet& alph,
-			      size_t qualsPerBase, size_t frameSize,
-			      char* dest ) const{
+char *Alignment::writeTopSeq(char *dest, const uchar *seq,
+			     const Alphabet &alph, size_t qualsPerBase,
+			     size_t frameSize) const {
   for( size_t i = 0; i < blocks.size(); ++i ){
     const SegmentPair& y = blocks[i];
     if( i > 0 ){  // between each pair of aligned blocks:
       const SegmentPair& x = blocks[i - 1];
 
       // append unaligned chunk of top sequence:
-      dest = writeSeq( seq, x.end1(), y.beg1(), alph, qualsPerBase, dest );
+      dest = writeSeq(dest, seq, x.end1(), y.beg1(), alph, qualsPerBase);
 
       // append gaps for unaligned chunk of bottom sequence:
       size_t gap2, frameshift2;
@@ -544,15 +544,15 @@ char* Alignment::writeTopSeq( const uchar* seq, const Alphabet& alph,
     }
 
     // append aligned chunk of top sequence:
-    dest = writeSeq( seq, y.beg1(), y.end1(), alph, qualsPerBase, dest);
+    dest = writeSeq(dest, seq, y.beg1(), y.end1(), alph, qualsPerBase);
   }
 
   return dest;
 }
 
-char* Alignment::writeBotSeq( const uchar* seq, const Alphabet& alph,
-			      size_t qualsPerBase, size_t frameSize,
-			      char* dest ) const{
+char *Alignment::writeBotSeq(char *dest, const uchar *seq,
+			     const Alphabet &alph, size_t qualsPerBase,
+			     size_t frameSize) const {
   for( size_t i = 0; i < blocks.size(); ++i ){
     const SegmentPair& y = blocks[i];
     if( i > 0 ){  // between each pair of aligned blocks:
@@ -567,11 +567,11 @@ char* Alignment::writeBotSeq( const uchar* seq, const Alphabet& alph,
       if( frameshift2 == 1 ) *dest++ = '\\';
       if( frameshift2 == 2 ) *dest++ = '/';
       size_t chunkBeg2 = y.beg2() - gap2;
-      dest = writeSeq( seq, chunkBeg2, y.beg2(), alph, qualsPerBase, dest );
+      dest = writeSeq(dest, seq, chunkBeg2, y.beg2(), alph, qualsPerBase);
     }
 
     // append aligned chunk of bottom sequence:
-    dest = writeSeq( seq, y.beg2(), y.end2(), alph, qualsPerBase, dest );
+    dest = writeSeq(dest, seq, y.beg2(), y.end2(), alph, qualsPerBase);
   }
 
   return dest;

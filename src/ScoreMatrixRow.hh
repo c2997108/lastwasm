@@ -7,7 +7,7 @@
 #ifndef SCORE_MATRIX_ROW_HH
 #define SCORE_MATRIX_ROW_HH
 
-#include <climits>  // INT_MAX
+#include <limits.h>
 
 namespace cbrc{
 
