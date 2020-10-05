@@ -83,10 +83,9 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
   endPtr = &suffixArray[0] + end;
 }
 
-void SubsetSuffixArray::countMatches( std::vector<unsigned long long>& counts,
-				      const uchar* queryPtr,
-				      const uchar* text, unsigned seedNum,
-				      size_t maxDepth ) const{
+void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
+				     const uchar *queryPtr, const uchar *text,
+				     unsigned seedNum, size_t maxDepth) const {
   size_t depth = 0;
   const CyclicSubsetSeed &seed = seeds[seedNum];
   const uchar* subsetMap = seed.firstMap();

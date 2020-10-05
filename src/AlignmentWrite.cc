@@ -95,16 +95,16 @@ AlignmentText Alignment::write(const MultiSequence& seq1,
 			       bool isTranslated, const Alphabet& alph,
 			       const LastEvaluer& evaluer, int format,
 			       const AlignmentExtras& extras) const {
-  assert( !blocks.empty() );
+  assert(!blocks.empty());
 
-  if( format == 'm' )
-    return writeMaf( seq1, seq2, seqNum2, seqData2,
-		     isTranslated, alph, evaluer, extras );
-  if( format == 't' )
-    return writeTab( seq1, seq2, seqNum2, isTranslated, evaluer, extras );
+  if (format == 'm')
+    return writeMaf(seq1, seq2, seqNum2, seqData2,
+		    isTranslated, alph, evaluer, extras);
+  if (format == 't')
+    return writeTab(seq1, seq2, seqNum2, isTranslated, evaluer, extras);
   else
-    return writeBlastTab( seq1, seq2, seqNum2, seqData2,
-			  isTranslated, alph, evaluer, format == 'B' );
+    return writeBlastTab(seq1, seq2, seqNum2, seqData2,
+			 isTranslated, alph, evaluer, format == 'B');
 }
 
 static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
@@ -309,7 +309,8 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
   size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
   size_t alnEnd2 = aaToDna( end2(), frameSize2 );
-  size_t seqStart2 = seq2.seqBeg(seqNum2) - seq2.padBeg(seqNum2);
+  size_t seqOrigin2 = seq2.padBeg(seqNum2);
+  size_t seqStart2 = seq2.seqBeg(seqNum2) - seqOrigin2;
   size_t seqLen2 = seq2.seqLen(seqNum2);
 
   char aLine[256];
@@ -368,8 +369,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
 
   if (isQuals2) {
     dest = writeMafHeadQ(dest, n2, nw, qLineBlankLen);
-    const uchar *q =
-      seq2.qualityReader() + seq2.padBeg(seqNum2) * qualsPerBase2;
+    const uchar *q = seq2.qualityReader() + seqOrigin2 * qualsPerBase2;
     dest = writeBotSeq(dest, q, alph, qualsPerBase2, frameSize2);
     *dest++ = '\n';
   }

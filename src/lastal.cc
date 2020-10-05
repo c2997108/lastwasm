@@ -160,8 +160,7 @@ void makeScoreMatrix( const std::string& matrixName,
 		      const std::string& matrixFile ){
   if( !matrixName.empty() && !args.isGreedy ){
     scoreMatrix.fromString( matrixFile );
-  }
-  else{
+  } else {
     scoreMatrix.setMatchMismatch( args.matchScore, args.mismatchCost,
 				  alph.letters );
   }
