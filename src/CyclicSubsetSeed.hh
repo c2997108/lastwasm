@@ -81,12 +81,17 @@ public:
 			   std::vector< std::string >& seedAlphabet,
 			   std::string& pattern );
 
-  void clear()
-  { subsetLists.clear(); subsetMaps.clear(); numOfSubsetsPerPosition.clear(); }
+  void clear() {
+    subsetLists.clear();
+    subsetMaps.clear();
+    originalSubsetMaps.clear();
+    numOfSubsetsPerPosition.clear();
+  }
 
   void swap( CyclicSubsetSeed& x ){
     subsetLists.swap( x.subsetLists );
     subsetMaps.swap( x.subsetMaps );
+    originalSubsetMaps.swap( x.originalSubsetMaps );
     numOfSubsetsPerPosition.swap( x.numOfSubsetsPerPosition );
   }
 
@@ -102,6 +107,23 @@ public:
 		       bool isMaskLowercase,
 		       const uchar letterCode[],
 		       const std::string& mainSequenceAlphabet );
+
+  // E.g. if the seed maps amino acids to subsets, and initialMap maps
+  // codons to amino acids, then this gives us codons=>subsets:
+  void compose(const uchar *initialMap) {
+    size_t size = subsetMaps.size();
+    for (size_t i = 0; i < size; i += MAX_LETTERS) {
+      for (size_t j = 0; j < MAX_LETTERS; ++j) {
+	subsetMaps[i + j] = originalSubsetMaps[i + initialMap[j]];
+      }
+    }
+  }
+
+  // Get the original map (e.g. amino acids => subsets) at the same
+  // seed position as the composed map (e.g. codons => subsets):
+  const uchar *originalSubsetMap(const uchar *composedMap) const {
+    return &originalSubsetMaps[0] + (composedMap - &subsetMaps[0]);
+  }
 
   // Writes the grouping of sequence letters at the given position.
   // The position must be less than the span.
@@ -188,6 +210,7 @@ public:
 private:
   std::vector< std::vector<std::string> > subsetLists;
   std::vector<uchar> subsetMaps;
+  std::vector<uchar> originalSubsetMaps;
   std::vector<unsigned> numOfSubsetsPerPosition;
 };
 

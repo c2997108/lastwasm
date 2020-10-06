@@ -74,7 +74,8 @@ void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
       beg = end;
       break;
     }
-    childRange( beg, end, childDirection, text+depth, subsetMap, subset );
+    const uchar *textSubsetMap = seed.originalSubsetMap(subsetMap);
+    childRange(beg, end, childDirection, text + depth, textSubsetMap, subset);
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
@@ -121,7 +122,8 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
     if( depth >= maxDepth ) return;
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
-    childRange( beg, end, childDirection, text+depth, subsetMap, subset );
+    const uchar *textSubsetMap = seed.originalSubsetMap(subsetMap);
+    childRange(beg, end, childDirection, text + depth, textSubsetMap, subset);
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
@@ -262,7 +264,8 @@ void SubsetSuffixArray::equalRange2( indexT& beg, indexT& end,
     }
     uchar x, y;
     for( ; ; ){  // loop over consecutive letters
-      x = s[ *t ];  // this text letter's subset
+      const uchar *textSubsetMap = seed.originalSubsetMap(s);
+      x = textSubsetMap[ *t ];  // this text letter's subset
       y = s[ *q ];  // this query letter's subset
       if( x != y ) break;
       ++q;  // next query letter
@@ -303,7 +306,8 @@ SubsetSuffixArray::lowerBound2( indexT beg, indexT end,
     const uchar* q = queryBeg;
     const uchar* s = subsetMap;
     for( ; ; ){  // loop over consecutive letters
-      if( s[ *t ] < s[ *q ] ){
+      const uchar *textSubsetMap = seed.originalSubsetMap(s);
+      if( textSubsetMap[ *t ] < s[ *q ] ){
 	beg = mid + 1;
 	// the next 3 lines are unnecessary, but make it faster:
 	queryBeg = q;
@@ -336,7 +340,8 @@ SubsetSuffixArray::upperBound2( indexT beg, indexT end,
     const uchar* q = queryBeg;
     const uchar* s = subsetMap;
     for( ; ; ){  // loop over consecutive letters
-      if( s[ *t ] > s[ *q ] ){
+      const uchar *textSubsetMap = seed.originalSubsetMap(s);
+      if( textSubsetMap[ *t ] > s[ *q ] ){
 	end = mid;
 	// the next 3 lines are unnecessary, but make it faster:
 	queryBeg = q;
