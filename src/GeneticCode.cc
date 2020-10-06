@@ -27,6 +27,23 @@ void GeneticCode::fromString( const std::string& s ){
   iss >> *this;
 }
 
+static unsigned numberFromBase(const uchar *ntToNumber, uchar base) {
+  unsigned x = ntToNumber[std::toupper(base)];
+  if (x >= 4) throw std::runtime_error("bad genetic code table");
+  return x;
+}
+
+static void setDelimiters(uchar *codonTable, int n, unsigned aaDelimiter) {
+  int d = 4;  // DNA delimiter
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      codonTable[i*n*n + j*n + d] = aaDelimiter;
+      codonTable[i*n*n + d*n + j] = aaDelimiter;
+      codonTable[d*n*n + i*n + j] = aaDelimiter;
+    }
+  }
+}
+
 //
 void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph )
 {
@@ -82,9 +99,47 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
   return;
 }
 
+void GeneticCode::initCodons(const uchar *ntToNumber, const uchar *aaToNumber,
+			     bool isMaskLowercase) {
+  const int n = NumMember;
+  const char dna[] = "ACGTacgt";
+  const unsigned dnaMax = isMaskLowercase ? 4 : 8;
+  const unsigned delimiterCodon = 64;
+  const unsigned unknownCodon = 65;
+
+  genome2residue.assign(n * n * n, unknownCodon);
+
+  for (unsigned i = 0; i < dnaMax; ++i) {
+    for (unsigned j = 0; j < dnaMax; ++j) {
+      for (unsigned k = 0; k < dnaMax; ++k) {
+	uchar a = dna[i];  unsigned x = ntToNumber[a];
+	uchar b = dna[j];  unsigned y = ntToNumber[b];
+	uchar c = dna[k];  unsigned z = ntToNumber[c];
+	unsigned codonNumber = (i % 4) * 16 + (j % 4) * 4 + (k % 4);
+	genome2residue[x*n*n + y*n + z] = codonNumber;
+      }
+    }
+  }
+
+  setDelimiters(&genome2residue[0], n, delimiterCodon);
+
+  uchar unknown = 'X';
+  uchar delimiter = ' ';
+  std::fill_n(codonToAminoAcid, sizeof codonToAminoAcid, aaToNumber[unknown]);
+  for (size_t i = 0; i < AAs.size(); ++i) {
+    uchar a = AAs[i];
+    unsigned x = numberFromBase(ntToNumber, Base[0][i]);
+    unsigned y = numberFromBase(ntToNumber, Base[1][i]);
+    unsigned z = numberFromBase(ntToNumber, Base[2][i]);
+    codonToAminoAcid[x * 16 + y * 4 + z] = aaToNumber[std::toupper(a)];
+  }
+  codonToAminoAcid[delimiterCodon] = aaToNumber[delimiter];
+}
+
 //
 void GeneticCode::translate( const uchar* beg, const uchar* end,
 			     uchar* dest ) const{
+  unsigned delimiter = genome2residue[4];
   size_t size = end - beg;
 
   for( size_t i = 0 ; i < 3 ; i++ ){
@@ -93,14 +148,12 @@ void GeneticCode::translate( const uchar* beg, const uchar* end,
     }
 
     // this ensures that each reading frame has exactly the same size:
-    if( i > size % 3 ) *dest++ = 20;
+    if( i > size % 3 ) *dest++ = delimiter;
   }
 
   // this ensures that the size of the translated sequence is exactly "size":
-  if( size % 3 > 0 ) *dest++ = 20;
-  if( size % 3 > 1 ) *dest++ = 20;
-
-  return;
+  if( size % 3 > 0 ) *dest++ = delimiter;
+  if( size % 3 > 1 ) *dest++ = delimiter;
 }
 
 //

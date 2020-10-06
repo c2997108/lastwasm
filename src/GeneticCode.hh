@@ -1,5 +1,9 @@
 // Copyright 2009 Toshiyuki Sato
 
+// Setup:
+// First, read a genetic code with either operator>> or fromString.
+// Then, initialize with either codeTableSet or initCodons.
+
 #ifndef GENETICCODE_HH
 #define GENETICCODE_HH
 
@@ -22,6 +26,7 @@ class GeneticCode{
   static const int NumMember = 54;  // DNA member
   static const int UNKNOWN = NumMember*NumMember*NumMember;  // unknown residue
   std::vector<uchar> genome2residue;
+  uchar codonToAminoAcid[256];
 
   static int codon2number( const uchar* codon )
   { return codon[0] * NumMember*NumMember + codon[1] * NumMember + codon[2]; }
@@ -36,11 +41,23 @@ class GeneticCode{
   static std::string stringFromName(const std::string &name);
 
   void fromString( const std::string& s );
+
+  // Setup translation from DNA to amino acids
   void codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph );
+
+  // Setup translation from DNA to codons (0=aaa, 1=aac, ..., 63=ttt,
+  // 64=delimiter, 65=unknown).  Also setup codonToAminoAcid.  Any DNA
+  // triplet with non-ACGT (or with lowercase if isMaskLowercase is
+  // true) gets translated to 65=unknown.
+  void initCodons( const uchar *ntToNumber, const uchar *aaToNumber,
+		   bool isMaskLowercase );
+
   void translate( const uchar* beg, const uchar* end, uchar* dest ) const;
 
   uchar translation( const uchar* codon ) const
   { return genome2residue[ codon2number( codon ) ]; }
+
+  const uchar *getCodonToAmino() const { return codonToAminoAcid; }
 };
 
 // Convert an amino-acid (translated) coordinate to a DNA coordinate
