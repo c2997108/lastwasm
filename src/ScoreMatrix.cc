@@ -163,16 +163,21 @@ void ScoreMatrix::calcLetterProbs(double rowProbs[], double colProbs[],
 }
 
 void ScoreMatrix::writeCommented( std::ostream& stream ) const{
-  int colWidth = (numOfCols() < 20) ? 3 : 2;
+  size_t symbolsPerRow = rowSymbols.size() / numOfRows();
+  size_t symbolsPerCol = colSymbols.size() / numOfCols();
+  size_t colWidth = (numOfCols() < 20) ? 3 : 2;
+  if (colWidth < symbolsPerCol) colWidth = symbolsPerCol;
 
-  stream << "# " << ' ';
+  stream << "# " << std::setw(symbolsPerRow) << "";
   for (size_t i = 0; i < numOfCols(); ++i) {
-    stream << ' ' << std::setw(colWidth) << colSymbols[i];
+    stream << ' ' << std::setw(colWidth - symbolsPerCol) << "";
+    stream.write(colSymbols.c_str() + i * symbolsPerCol, symbolsPerCol);
   }
   stream << '\n';
 
   for (size_t i = 0; i < numOfRows(); ++i) {
-    stream << "# " << rowSymbols[i];
+    stream << "# ";
+    stream.write(rowSymbols.c_str() + i * symbolsPerRow, symbolsPerRow);
     for (size_t j = 0; j < numOfCols(); ++j) {
       stream << ' ' << std::setw(colWidth) << cells[i][j];
     }
@@ -187,6 +192,8 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
   std::vector<double> tmpRowFreqs;
   std::vector<double> tmpColFreqs;
   std::string line, word;
+  size_t symbolsPerRow = 1;
+  size_t symbolsPerCol = 1;
 
   while (stream) {
     if (!getline(stream, line)) {
@@ -198,19 +205,20 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
     if (tmpColSymbols.empty()) {
       if (word[0] == '#') continue;  // skip comment lines at the top
       do {
-	if (word.size() > 1) stream.setstate(std::ios::failbit);
-	tmpColSymbols.push_back(word[0]);
+	if (word.size() != symbolsPerCol) stream.setstate(std::ios::failbit);
+	tmpColSymbols.insert(tmpColSymbols.end(), word.begin(), word.end());
       } while (iss >> word);
     } else {
+      size_t numOfColumns = tmpColSymbols.size() / symbolsPerCol;
       std::vector<int> row;
       int score;
       double freq;
-      for (size_t i = 0; i < tmpColSymbols.size(); ++i) {
+      for (size_t i = 0; i < numOfColumns; ++i) {
 	iss >> score;
 	row.push_back(score);
       }
-      if (word.size() == 1 && iss) {
-	tmpRowSymbols.push_back(word[0]);
+      if (word.size() == symbolsPerRow && iss) {
+	tmpRowSymbols.insert(tmpRowSymbols.end(), word.begin(), word.end());
 	tmpCells.push_back(row);
 	if (iss >> freq) {
 	  tmpRowFreqs.push_back(freq);
@@ -223,7 +231,7 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
 	while (iss2 >> freq) {
 	  tmpColFreqs.push_back(freq);
 	}
-	if (tmpColFreqs.size() > tmpColSymbols.size() || tmpColFreqs.empty()) {
+	if (tmpColFreqs.size() > numOfColumns || tmpColFreqs.empty()) {
 	  stream.setstate(std::ios::failbit);
 	}
 	break;
