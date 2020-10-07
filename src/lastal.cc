@@ -507,9 +507,10 @@ static void printAndDelete(char *text) {
 static void writeAlignment(LastAligner &aligner, const Alignment &aln,
 			   size_t queryNum, const uchar* querySeq,
 			   const AlignmentExtras &extras = AlignmentExtras()) {
-  AlignmentText a = aln.write(text, query, queryNum, querySeq,
-			      args.isTranslated(), alph, evaluer,
-			      args.outputFormat, extras);
+  int translationType = args.isTranslated();
+  AlignmentText a = aln.write(text, query, queryNum, querySeq, alph, queryAlph,
+			      translationType, geneticCode.getCodonToAmino(),
+			      evaluer, args.outputFormat, extras);
   if (isCollatedAlignments() || aligners.size() > 1)
     aligner.textAlns.push_back(a);
   else

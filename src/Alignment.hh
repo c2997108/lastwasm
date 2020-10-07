@@ -110,9 +110,14 @@ struct Alignment{
 		      const TwoQualityScoreMatrix &sm2qual,
 		      const uchar *qual1, const uchar *qual2) const;
 
+  // translationType indicates that the 2nd sequence is: 0 = not
+  // translated, 1 = translated into amino acids, 2 = translated into
+  // codons (so codonToAmino is used to count matches & dnaAlph is
+  // used to write the 2nd sequence).
   AlignmentText write(const MultiSequence& seq1, const MultiSequence& seq2,
 		      size_t seqNum2, const uchar* seqData2,
-		      bool isTranslated, const Alphabet& alph,
+		      const Alphabet& alph, const Alphabet& dnaAlph,
+		      int translationType, const uchar *codonToAmino,
 		      const LastEvaluer& evaluer, int format,
 		      const AlignmentExtras& extras) const;
 
@@ -149,14 +154,15 @@ struct Alignment{
 
   AlignmentText writeMaf(const MultiSequence& seq1, const MultiSequence& seq2,
 			 size_t seqNum2, const uchar* seqData2,
-			 bool isTranslated, const Alphabet& alph,
-			 const LastEvaluer& evaluer,
+			 const Alphabet& alph, const Alphabet& dnaAlph,
+			 int translationType, const LastEvaluer& evaluer,
 			 const AlignmentExtras& extras) const;
 
   AlignmentText writeBlastTab(const MultiSequence& seq1,
 			      const MultiSequence& seq2,
 			      size_t seqNum2, const uchar* seqData2,
-			      bool isTranslated, const Alphabet& alph,
+			      const Alphabet& alph, int translationType,
+			      const uchar *codonToAmino,
 			      const LastEvaluer& evaluer,
 			      bool isExtraColumns) const;
 
