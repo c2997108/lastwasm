@@ -52,9 +52,10 @@ public:
   double *sizedLetterProbs2(unsigned size)
   { mLetterProbs2.resize(size); return size ? &mLetterProbs2[0] : 0; }
 
-  // calculate the bias, given the scale and the letter probabilities
-  // (which need not be homogeneous)
-  void calcBias(const const_int_ptr *scoreMatrix, unsigned size, double scale);
+  // Calculate the bias, given the scale and the letter probabilities
+  // (which need not be homogeneous).  A non-square matrix is allowed.
+  void calcBias(const const_int_ptr *scoreMatrix,
+		unsigned numOfRows, unsigned numOfCols, double scale);
 
   // set scale/lambda and calculate the other values
   void calcFromScale(const const_int_ptr *scoreMatrix, unsigned size,

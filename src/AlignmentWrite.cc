@@ -116,7 +116,7 @@ static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
 
 static size_t matchCount(const std::vector<SegmentPair> &blocks,
 			 const uchar *seq1, const uchar *seq2,
-			 const uchar *numbersToUppercase) {
+			 const uchar *map1, const uchar *map2) {
   // no special treatment of ambiguous bases/residues: same as NCBI BLAST
   size_t matches = 0;
   for (size_t i = 0; i < blocks.size(); ++i) {
@@ -124,7 +124,7 @@ static size_t matchCount(const std::vector<SegmentPair> &blocks,
     const uchar *x = seq1 + b.beg1();
     const uchar *y = seq2 + b.beg2();
     for (size_t j = 0; j < b.size; ++j)
-      if (numbersToUppercase[x[j]] == numbersToUppercase[y[j]])
+      if (map1[x[j]] == map2[y[j]])
 	++matches;
   }
   return matches;
@@ -412,8 +412,9 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
   char strand2 = seq2.strand(seqNum2);
 
   size_t alnSize = numColumns( frameSize2 );
-  size_t matches = matchCount( blocks, seq1.seqReader(), seqData2,
-			       alph.numbersToUppercase );
+  const uchar *map1 = alph.numbersToUppercase;
+  const uchar *map2 = alph.numbersToUppercase;
+  size_t matches = matchCount(blocks, seq1.seqReader(), seqData2, map1, map2);
   size_t mismatches = alignedColumnCount(blocks) - matches;
   size_t gapOpens = blocks.size() - 1;
   double matchPercent = 100.0 * matches / alnSize;

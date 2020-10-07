@@ -112,7 +112,7 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
     if (args.temperature < 0) {
       ERR("not implemented");
     } else {
-      stats.calcBias(scoreMat, alph.size, args.temperature);
+      stats.calcBias(scoreMat, alph.size, alph.size, args.temperature);
       LOG("score matrix bias=" << stats.bias());
     }
   } else {
@@ -657,7 +657,8 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 // It may not be the best strategy for protein alignment with subset
 // seeds: there could be few or no identical matches...
 void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
-  sp.maxIdenticalRun( dis.a, dis.b, alph.numbersToUppercase );
+  sp.maxIdenticalRun(dis.a, dis.b,
+		     alph.numbersToUppercase, alph.numbersToUppercase);
   sp.score = dis.gaplessScore( sp.beg1(), sp.end1(), sp.beg2() );
 }
 

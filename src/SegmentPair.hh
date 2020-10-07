@@ -20,9 +20,10 @@ struct SegmentPair{
     : start1(s1), start2(s2), size(sz), score(sc){}
 
   // Shrink the SegmentPair to the longest run of identical letters
-  // within it.  Allow (upper/lower)case to differ, using "canonical".
+  // within it.  Define "identical" as:
+  // map1[ letter from seq1 ] == map2[ letter from seq2 ].
   void maxIdenticalRun( const uchar* seq1, const uchar* seq2,
-			const uchar* canonical );
+			const uchar* map1, const uchar* map2 );
 
   indexT beg1() const{ return start1; }         // start in sequence 1
   indexT beg2() const{ return start2; }         // start in sequence 2

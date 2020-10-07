@@ -83,13 +83,14 @@ void SubstitutionMatrixStats::calcFromScale(const const_int_ptr *scoreMatrix,
 }
 
 void SubstitutionMatrixStats::calcBias(const const_int_ptr *scoreMatrix,
-				       unsigned size, double scale) {
+				       unsigned numOfRows, unsigned numOfCols,
+				       double scale) {
   assert(scale > 0);
   mLambda = 1 / scale;
 
   mBias = 0;
-  for (unsigned i = 0; i < size; ++i) {
-    for (unsigned j = 0; j < size; ++j) {
+  for (unsigned i = 0; i < numOfRows; ++i) {
+    for (unsigned j = 0; j < numOfCols; ++j) {
       double e = checkedExp(mLambda, scoreMatrix[i][j]);
       mBias += mLetterProbs1[i] * mLetterProbs2[j] * e;
     }

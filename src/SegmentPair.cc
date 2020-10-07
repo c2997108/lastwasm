@@ -5,7 +5,7 @@
 namespace cbrc{
 
 void SegmentPair::maxIdenticalRun( const uchar* seq1, const uchar* seq2,
-				   const uchar* canonical ){
+				   const uchar* map1, const uchar* map2 ){
   const uchar* s1 = seq1 + beg1();
   const uchar* s2 = seq2 + beg2();
   const uchar* e1 = seq1 + end1();
@@ -15,7 +15,7 @@ void SegmentPair::maxIdenticalRun( const uchar* seq1, const uchar* seq2,
   indexT runSize = 0;
 
   while( s1 < e1 ){
-    if( canonical[ *s1++ ] == canonical[ *s2++ ] ){
+    if( map1[ *s1++ ] == map2[ *s2++ ] ){
       ++runSize;
       if( runSize > bestSize ){
 	bestSize = runSize;
