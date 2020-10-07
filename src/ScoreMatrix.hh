@@ -11,6 +11,8 @@
 
 #include "ScoreMatrixRow.hh"
 
+#include <stddef.h>
+
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -28,6 +30,12 @@ struct ScoreMatrix{
 			const std::string& symbols);  // case is preserved
 
   void fromString( const std::string& s );
+
+  size_t numOfRows() const { return cells.size(); }
+  size_t numOfCols() const { return cells[0].size(); }
+
+  bool isCodonRows() const { return rowSymbols.size() > numOfRows(); }
+  bool isCodonCols() const { return colSymbols.size() > numOfCols(); }
 
   void init(const uchar symbolToIndex[]);  // unspecified letters get minScore
 

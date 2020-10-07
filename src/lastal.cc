@@ -160,6 +160,8 @@ void makeScoreMatrix( const std::string& matrixName,
 		      const std::string& matrixFile ){
   if( !matrixName.empty() && !args.isGreedy ){
     scoreMatrix.fromString( matrixFile );
+    if (scoreMatrix.isCodonRows())
+      err("unsupported score matrix");
   } else {
     scoreMatrix.setMatchMismatch( args.matchScore, args.mismatchCost,
 				  alph.letters );

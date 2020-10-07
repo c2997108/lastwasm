@@ -7,7 +7,6 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <stddef.h>  // size_t
 
 #include <algorithm>  // min, max
 #include <iomanip>
@@ -87,8 +86,8 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
   makeUppercase(colSymbols);
 
   minScore = maxScore = cells[0][0];
-  for( size_t i = 0; i < rowSymbols.size(); ++i ){
-    for( size_t j = 0; j < colSymbols.size(); ++j ){
+  for (size_t i = 0; i < numOfRows(); ++i) {
+    for (size_t j = 0; j < numOfCols(); ++j) {
       minScore = std::min( minScore, cells[i][j] );
       maxScore = std::max( maxScore, cells[i][j] );
     }
@@ -102,8 +101,8 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
     }
   }
 
-  for( size_t i = 0; i < rowSymbols.size(); ++i ){
-    for( size_t j = 0; j < colSymbols.size(); ++j ){
+  for (size_t i = 0; i < numOfRows(); ++i) {
+    for (size_t j = 0; j < numOfCols(); ++j) {
       unsigned iu, il, ju, jl;
       upperAndLowerIndex(fastMatrixSize, symbolToIndex, rowSymbols[i], iu, il);
       upperAndLowerIndex(fastMatrixSize, symbolToIndex, colSymbols[j], ju, jl);
@@ -164,17 +163,17 @@ void ScoreMatrix::calcLetterProbs(double rowProbs[], double colProbs[],
 }
 
 void ScoreMatrix::writeCommented( std::ostream& stream ) const{
-  int colWidth = colSymbols.size() < 20 ? 3 : 2;
+  int colWidth = (numOfCols() < 20) ? 3 : 2;
 
   stream << "# " << ' ';
-  for( size_t i = 0; i < colSymbols.size(); ++i ){
+  for (size_t i = 0; i < numOfCols(); ++i) {
     stream << ' ' << std::setw(colWidth) << colSymbols[i];
   }
   stream << '\n';
 
-  for( size_t i = 0; i < rowSymbols.size(); ++i ){
+  for (size_t i = 0; i < numOfRows(); ++i) {
     stream << "# " << rowSymbols[i];
-    for( size_t j = 0; j < colSymbols.size(); ++j ){
+    for (size_t j = 0; j < numOfCols(); ++j) {
       stream << ' ' << std::setw(colWidth) << cells[i][j];
     }
     stream << '\n';
@@ -335,7 +334,7 @@ void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
     char ambiguousSymbol = ambiguities[k][0];
     if (isIn(colSymbols, ambiguousSymbol)) continue;
     colSymbols.push_back(ambiguousSymbol);
-    for (size_t i = 0; i < rowSymbols.size(); ++i) {
+    for (size_t i = 0; i < numOfRows(); ++i) {
       const char *rSymbols = ambiguityList(ambiguities, numOfAmbiguousRows,
 					   rowSymbols[i], scratch);
       const char *cSymbols = ambiguities[k] + 1;
@@ -350,7 +349,7 @@ void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
     if (isIn(rowSymbols, ambiguousSymbol)) continue;
     rowSymbols.push_back(ambiguousSymbol);
     cells.resize(cells.size() + 1);
-    for (size_t j = 0; j < colSymbols.size(); ++j) {
+    for (size_t j = 0; j < numOfCols(); ++j) {
       const char *rSymbols = ambiguities[k] + 1;
       const char *cSymbols = ambiguityList(ambiguities, numOfAmbiguousCols,
 					   colSymbols[j], scratch);
