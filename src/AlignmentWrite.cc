@@ -481,6 +481,25 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
 		       alnSize, matches, text);
 }
 
+static void setFrameCoords(size_t &seqBeg, size_t &seqEnd, size_t &frameshift,
+			   size_t alnBeg, size_t alnEnd,
+			   size_t frameSize, bool isCodon) {
+  seqBeg = alnBeg;
+  seqEnd = alnEnd;
+  frameshift = 0;
+  if (frameSize) {
+    seqBeg = aaToDna(alnBeg, frameSize);
+    seqEnd = aaToDna(alnEnd, frameSize);
+    if (seqBeg > seqEnd) frameshift = 2;  // weird reverse frameshift
+    if (!isCodon) {
+      size_t len = seqEnd - seqBeg;
+      seqBeg = alnEnd - (len + 1) / 3;
+      seqEnd = alnEnd;
+      frameshift = (len + 3) % 3;
+    }
+  }
+}
+
 size_t Alignment::numColumns( size_t frameSize ) const{
   size_t num = 0;
 
@@ -493,10 +512,10 @@ size_t Alignment::numColumns( size_t frameSize ) const{
       num += y.beg1() - x.end1();
 
       // length of unaligned chunk of bottom sequence (gaps in top sequence):
-      size_t gap2, frameshift2;
-      sizeAndFrameshift( x.end2(), y.beg2(), frameSize, gap2, frameshift2 );
-      if( frameshift2 ) ++num;
-      num += gap2;
+      size_t beg, end, shift;
+      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, false);
+      if (shift) ++num;
+      if (beg < end) num += end - beg;
     }
 
     num += y.size;  // length of aligned chunk
@@ -540,10 +559,10 @@ char *Alignment::writeTopSeq(char *dest, const uchar *seq,
       dest = writeSeq(dest, seq, x.end1(), y.beg1(), alph, qualsPerBase);
 
       // append gaps for unaligned chunk of bottom sequence:
-      size_t gap2, frameshift2;
-      sizeAndFrameshift( x.end2(), y.beg2(), frameSize, gap2, frameshift2 );
-      if( frameshift2 ) *dest++ = '-';
-      dest = writeGaps( dest, gap2 );
+      size_t beg, end, shift;
+      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, false);
+      if (shift) *dest++ = '-';
+      if (beg < end) dest = writeGaps(dest, end - beg);
     }
 
     // append aligned chunk of top sequence:
@@ -565,12 +584,11 @@ char *Alignment::writeBotSeq(char *dest, const uchar *seq,
       dest = writeGaps( dest, y.beg1() - x.end1() );
 
       //append unaligned chunk of bottom sequence:
-      size_t gap2, frameshift2;
-      sizeAndFrameshift( x.end2(), y.beg2(), frameSize, gap2, frameshift2 );
-      if( frameshift2 == 1 ) *dest++ = '\\';
-      if( frameshift2 == 2 ) *dest++ = '/';
-      size_t chunkBeg2 = y.beg2() - gap2;
-      dest = writeSeq(dest, seq, chunkBeg2, y.beg2(), alph, qualsPerBase);
+      size_t beg, end, shift;
+      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, false);
+      if (shift == 1) *dest++ = '\\';
+      if (shift == 2) *dest++ = '/';
+      dest = writeSeq(dest, seq, beg, end, alph, qualsPerBase);
     }
 
     // append aligned chunk of bottom sequence:
