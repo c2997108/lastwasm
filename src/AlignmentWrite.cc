@@ -11,6 +11,29 @@
 
 using namespace cbrc;
 
+const char aminoTriplets[] =
+  "Ala" "ala"
+  "Cys" "cys"
+  "Asp" "asp"
+  "Glu" "glu"
+  "Phe" "phe"
+  "Gly" "gly"
+  "His" "his"
+  "Ile" "ile"
+  "Lys" "lys"
+  "Leu" "leu"
+  "Met" "met"
+  "Asn" "asn"
+  "Pro" "pro"
+  "Gln" "gln"
+  "Arg" "arg"
+  "Ser" "ser"
+  "Thr" "thr"
+  "Val" "val"
+  "Trp" "trp"
+  "Tyr" "tyr"
+  "Xxx" "xxx";
+
 // This writes a "size_t" integer into a char buffer ending at "end".
 // It writes backwards from the end, because that's easier & faster.
 static char *writeSize(char *end, size_t x) {
@@ -296,6 +319,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
 				  bool isTranslated, const Alphabet& alph,
 				  const LastEvaluer& evaluer,
 				  const AlignmentExtras& extras) const {
+  bool isCodon = false;
   double fullScore = extras.fullScore;
   const std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
 
@@ -335,7 +359,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
 
   size_t qLineBlankLen = bw + 1 + rw + 3 + sw + 1;
   size_t pLineBlankLen = nw + 1 + qLineBlankLen;
-  size_t sLineLen = 2 + pLineBlankLen + numColumns(frameSize2) + 1;
+  size_t sLineLen = 2 + pLineBlankLen + numColumns(frameSize2, isCodon) + 1;
 
   std::vector<char> cLine;
   writeMafLineC(cLine, extras.expectedCounts);
@@ -353,24 +377,24 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   char *dest = std::copy(aLine, aLineEnd, text);
 
   dest = writeMafHeadS(dest, n1, nw, b1, bw, r1, rw, strand1, s1, sw);
-  dest = writeTopSeq(dest, seq1.seqReader(), alph, 0, frameSize2);
+  dest = writeTopSeq(dest, seq1.seqReader(), alph, 0, frameSize2, isCodon);
   *dest++ = '\n';
 
   if (isQuals1) {
     dest = writeMafHeadQ(dest, n1, nw, qLineBlankLen);
     const uchar *q = seq1.qualityReader();
-    dest = writeTopSeq(dest, q, alph, qualsPerBase1, frameSize2);
+    dest = writeTopSeq(dest, q, alph, qualsPerBase1, frameSize2, isCodon);
     *dest++ = '\n';
   }
 
   dest = writeMafHeadS(dest, n2, nw, b2, bw, r2, rw, strand2, s2, sw);
-  dest = writeBotSeq(dest, seqData2, alph, 0, frameSize2);
+  dest = writeBotSeq(dest, seqData2, alph, 0, frameSize2, isCodon);
   *dest++ = '\n';
 
   if (isQuals2) {
     dest = writeMafHeadQ(dest, n2, nw, qLineBlankLen);
     const uchar *q = seq2.qualityReader() + seqOrigin2 * qualsPerBase2;
-    dest = writeBotSeq(dest, q, alph, qualsPerBase2, frameSize2);
+    dest = writeBotSeq(dest, q, alph, qualsPerBase2, frameSize2, isCodon);
     *dest++ = '\n';
   }
 
@@ -411,7 +435,7 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
   size_t seqLen2 = seq2.seqLen(seqNum2);
   char strand2 = seq2.strand(seqNum2);
 
-  size_t alnSize = numColumns( frameSize2 );
+  size_t alnSize = numColumns(frameSize2, false);
   const uchar *map1 = alph.numbersToUppercase;
   const uchar *map2 = alph.numbersToUppercase;
   size_t matches = matchCount(blocks, seq1.seqReader(), seqData2, map1, map2);
@@ -500,7 +524,8 @@ static void setFrameCoords(size_t &seqBeg, size_t &seqEnd, size_t &frameshift,
   }
 }
 
-size_t Alignment::numColumns( size_t frameSize ) const{
+size_t Alignment::numColumns(size_t frameSize, bool isCodon) const {
+  const int aaLen = isCodon ? 3 : 1;
   size_t num = 0;
 
   for( size_t i = 0; i < blocks.size(); ++i ){
@@ -509,16 +534,16 @@ size_t Alignment::numColumns( size_t frameSize ) const{
       const SegmentPair& x = blocks[i - 1];
 
       // length of unaligned chunk of top sequence (gaps in bottom sequence):
-      num += y.beg1() - x.end1();
+      num += (y.beg1() - x.end1()) * aaLen;
 
       // length of unaligned chunk of bottom sequence (gaps in top sequence):
       size_t beg, end, shift;
-      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, false);
+      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, isCodon);
       if (shift) ++num;
       if (beg < end) num += end - beg;
     }
 
-    num += y.size;  // length of aligned chunk
+    num += y.size * aaLen;  // length of aligned chunk
   }
 
   return num;
@@ -541,32 +566,49 @@ static char *writeQuals(char *dest, const uchar *qualities,
   return dest;
 }
 
+static char *writeAmino(char *dest, const uchar *beg, const uchar *end,
+			const uchar *toUnmasked) {
+  for (const uchar *i = beg; i < end; ++i) {
+    unsigned x = toUnmasked[*i];
+    bool isMasked = (x != *i);
+    if (x > 20) x = 20;
+    unsigned y = (x * 2 + isMasked) * 3;
+    *dest++ = aminoTriplets[y];
+    *dest++ = aminoTriplets[y + 1];
+    *dest++ = aminoTriplets[y + 2];
+  }
+  return dest;
+}
+
 static char *writeSeq(char *dest, const uchar *seq, size_t beg, size_t end,
-		      const Alphabet &alph, size_t qualsPerBase) {
+		      const Alphabet &alph, size_t qualsPerBase, bool isAA) {
   return qualsPerBase ? writeQuals(dest, seq, beg, end, qualsPerBase)
-    :                   alph.rtCopy(seq + beg, seq + end, dest);
+    : isAA ? writeAmino(dest, seq + beg, seq + end, alph.numbersToUppercase)
+    :        alph.rtCopy(seq + beg, seq + end, dest);
 }
 
 char *Alignment::writeTopSeq(char *dest, const uchar *seq,
 			     const Alphabet &alph, size_t qualsPerBase,
-			     size_t frameSize) const {
+			     size_t frameSize, bool isCodon) const {
   for( size_t i = 0; i < blocks.size(); ++i ){
     const SegmentPair& y = blocks[i];
     if( i > 0 ){  // between each pair of aligned blocks:
       const SegmentPair& x = blocks[i - 1];
 
       // append unaligned chunk of top sequence:
-      dest = writeSeq(dest, seq, x.end1(), y.beg1(), alph, qualsPerBase);
+      dest =
+	writeSeq(dest, seq, x.end1(), y.beg1(), alph, qualsPerBase, isCodon);
 
       // append gaps for unaligned chunk of bottom sequence:
       size_t beg, end, shift;
-      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, false);
+      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, isCodon);
       if (shift) *dest++ = '-';
       if (beg < end) dest = writeGaps(dest, end - beg);
     }
 
     // append aligned chunk of top sequence:
-    dest = writeSeq(dest, seq, y.beg1(), y.end1(), alph, qualsPerBase);
+    dest =
+      writeSeq(dest, seq, y.beg1(), y.end1(), alph, qualsPerBase, isCodon);
   }
 
   return dest;
@@ -574,25 +616,29 @@ char *Alignment::writeTopSeq(char *dest, const uchar *seq,
 
 char *Alignment::writeBotSeq(char *dest, const uchar *seq,
 			     const Alphabet &alph, size_t qualsPerBase,
-			     size_t frameSize) const {
+			     size_t frameSize, bool isCodon) const {
+  const int aaLen = isCodon ? 3 : 1;
+
   for( size_t i = 0; i < blocks.size(); ++i ){
     const SegmentPair& y = blocks[i];
     if( i > 0 ){  // between each pair of aligned blocks:
       const SegmentPair& x = blocks[i - 1];
 
       // append gaps for unaligned chunk of top sequence:
-      dest = writeGaps( dest, y.beg1() - x.end1() );
+      dest = writeGaps(dest, (y.beg1() - x.end1()) * aaLen);
 
       //append unaligned chunk of bottom sequence:
       size_t beg, end, shift;
-      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, false);
+      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, isCodon);
       if (shift == 1) *dest++ = '\\';
       if (shift == 2) *dest++ = '/';
-      dest = writeSeq(dest, seq, beg, end, alph, qualsPerBase);
+      dest = writeSeq(dest, seq, beg, end, alph, qualsPerBase, false);
     }
 
     // append aligned chunk of bottom sequence:
-    dest = writeSeq(dest, seq, y.beg2(), y.end2(), alph, qualsPerBase);
+    size_t beg = isCodon ? aaToDna(y.beg2(), frameSize) : y.beg2();
+    size_t end = isCodon ? aaToDna(y.end2(), frameSize) : y.end2();
+    dest = writeSeq(dest, seq, beg, end, alph, qualsPerBase, false);
   }
 
   return dest;

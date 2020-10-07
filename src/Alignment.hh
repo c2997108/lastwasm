@@ -160,13 +160,13 @@ struct Alignment{
 			      const LastEvaluer& evaluer,
 			      bool isExtraColumns) const;
 
-  size_t numColumns( size_t frameSize ) const;
+  size_t numColumns(size_t frameSize, bool isCodon) const;
 
   char *writeTopSeq(char *dest, const uchar *seq, const Alphabet &alph,
-		    size_t qualsPerBase, size_t frameSize) const;
+		    size_t qualsPerBase, size_t frameSize, bool isCodon) const;
 
   char *writeBotSeq(char *dest, const uchar *seq, const Alphabet &alph,
-		    size_t qualsPerBase, size_t frameSize) const;
+		    size_t qualsPerBase, size_t frameSize, bool isCodon) const;
 };
 
 }  // end namespace cbrc
