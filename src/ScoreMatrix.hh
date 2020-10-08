@@ -55,8 +55,8 @@ struct ScoreMatrix{
   { return rowFrequencies.size() && colFrequencies.size(); }
 
   // store normalized letter frequencies in rowProbs and colProbs
-  void calcLetterProbs(double *rowProbs, double *colProbs,
-		       unsigned alphabetSizeForProbs,
+  void calcLetterProbs(double *rowProbs, unsigned rowSize,
+		       double *colProbs, unsigned colSize,
 		       const uchar symbolToIndex[]) const;
 
   std::string rowSymbols;  // row headings (letters)

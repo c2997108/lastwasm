@@ -87,6 +87,13 @@ static unsigned s2i(const uchar symbolToIndex[], uchar c) {
   return symbolToIndex[c];
 }
 
+// index in slow matrix => index in fast matrix
+static unsigned fastIndex(size_t slowIndex, const char symbols[],
+			  bool isCodons, const uchar symbolToIndex[]) {
+  return isCodons ? codonToNumber(symbols + slowIndex * 3)
+    :               s2i(symbolToIndex, symbols[slowIndex]);
+}
+
 static void upperAndLowerIndex(unsigned &upper, unsigned &lower,
 			       size_t slowIndex, const char symbols[],
 			       bool isCodons, const uchar symbolToIndex[],
@@ -159,13 +166,13 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
   }
 }
 
-static void calcSomeLetterProbs(const std::string &symbols,
+static void calcSomeLetterProbs(double probs[], unsigned alphabetSizeForProbs,
 				const std::vector<double> &freqs,
-				double probs[], unsigned alphabetSizeForProbs,
+				const char symbols[], bool isCodons,
 				const uchar symbolToIndex[]) {
   double sum = 0;
   for (size_t i = 0; i < freqs.size(); ++i) {
-    unsigned j = s2i(symbolToIndex, symbols[i]);
+    unsigned j = fastIndex(i, symbols, isCodons, symbolToIndex);
     if (j < alphabetSizeForProbs) {
       if (freqs[i] < 0) throw Err("bad score matrix: letter frequency < 0");
       sum += freqs[i];
@@ -176,20 +183,20 @@ static void calcSomeLetterProbs(const std::string &symbols,
   std::fill_n(probs, alphabetSizeForProbs, 0.0);
 
   for (size_t i = 0; i < freqs.size(); ++i) {
-    unsigned j = s2i(symbolToIndex, symbols[i]);
+    unsigned j = fastIndex(i, symbols, isCodons, symbolToIndex);
     if (j < alphabetSizeForProbs) {
       probs[j] = freqs[i] / sum;
     }
   }
 }
 
-void ScoreMatrix::calcLetterProbs(double rowProbs[], double colProbs[],
-				  unsigned alphabetSizeForProbs,
+void ScoreMatrix::calcLetterProbs(double rowProbs[], unsigned rowSize,
+				  double colProbs[], unsigned colSize,
 				  const uchar symbolToIndex[]) const {
-  calcSomeLetterProbs(rowSymbols, rowFrequencies, rowProbs,
-		      alphabetSizeForProbs, symbolToIndex);
-  calcSomeLetterProbs(colSymbols, colFrequencies, colProbs,
-		      alphabetSizeForProbs, symbolToIndex);
+  calcSomeLetterProbs(rowProbs, rowSize, rowFrequencies, rowSymbols.c_str(),
+		      isCodonRows(), symbolToIndex);
+  calcSomeLetterProbs(colProbs, colSize, colFrequencies, colSymbols.c_str(),
+		      isCodonCols(), symbolToIndex);
 }
 
 void ScoreMatrix::writeCommented( std::ostream& stream ) const{

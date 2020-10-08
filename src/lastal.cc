@@ -106,17 +106,21 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
 
   mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
   if (scoreMatrix.hasLetterFrequencies()) {
+    unsigned alphSize2 = scoreMatrix.isCodonCols() ? 64 : alph.size;
     double *p1 = stats.sizedLetterProbs1(alph.size);
-    double *p2 = stats.sizedLetterProbs2(alph.size);
-    scoreMatrix.calcLetterProbs(p1, p2, alph.size, alph.encode);
+    double *p2 = stats.sizedLetterProbs2(alphSize2);
+    scoreMatrix.calcLetterProbs(p1, alph.size, p2, alphSize2, alph.encode);
     if (args.temperature < 0) {
       ERR("not implemented");
     } else {
-      stats.calcBias(scoreMat, alph.size, alph.size, args.temperature);
+      stats.calcBias(scoreMat, alph.size, alphSize2, args.temperature);
       LOG("score matrix bias=" << stats.bias());
     }
   } else {
-    if (args.temperature < 0) {
+    if (scoreMatrix.isCodonCols()) {
+      LOG("can't calculate probabilities");
+      return;
+    } else if (args.temperature < 0) {
       const char *canonicalMatrixName = ScoreMatrix::canonicalName(matrixName);
       LOG("calculating matrix probabilities...");
       stats.calcUnbiased(canonicalMatrixName, scoreMat, alph.size);
@@ -139,6 +143,7 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
   const double *p2 = stats.letterProbs2();
 
   LOG( "matrix lambda=" << stats.lambda() );
+  if (scoreMatrix.isCodonCols()) return;
   LOG( "matrix letter frequencies (upper=reference, lower=query):" );
   if( args.verbosity > 0 ){
     std::cerr << std::left;
