@@ -26,6 +26,26 @@ namespace cbrc{
 
 typedef std::runtime_error Err;
 
+static int baseToNumber(char uppercaseBase) {
+  switch (uppercaseBase) {
+  case 'A': return 0;
+  case 'C': return 1;
+  case 'G': return 2;
+  case 'T': return 3;
+  case 'N': return 4;
+  default: throw Err("bad codon in score matrix");
+  }
+}
+
+static int codonToNumber(const char *uppercaseCodon) {
+  int x = baseToNumber(uppercaseCodon[0]);
+  int y = baseToNumber(uppercaseCodon[1]);
+  int z = baseToNumber(uppercaseCodon[2]);
+  if (x < 4 && y < 4 && z < 4) return x * 16 + y * 4 + z;
+  if (x > 3 && y > 3 && z > 3) return 65;
+  throw Err("bad codon in score matrix");
+}
+
 const char *ScoreMatrix::canonicalName( const std::string& name ){
   for( size_t i = 0; i < COUNTOF(scoreMatrixNicknames); ++i )
     if( name == scoreMatrixNicknames[i].nickname )
@@ -67,13 +87,21 @@ static unsigned s2i(const uchar symbolToIndex[], uchar c) {
   return symbolToIndex[c];
 }
 
-static void upperAndLowerIndex(unsigned tooBig, const uchar symbolToIndex[],
-			       char symbol, unsigned& upper, unsigned& lower) {
-  uchar s = symbol;
-  upper = symbolToIndex[s];
-  lower = symbolToIndex[tolower(s)];
-  if (upper >= tooBig || lower >= tooBig) {
-    throw Err(std::string("bad letter in score matrix: ") + symbol);
+static void upperAndLowerIndex(unsigned &upper, unsigned &lower,
+			       size_t slowIndex, const char symbols[],
+			       bool isCodons, const uchar symbolToIndex[],
+			       unsigned tooBig) {
+  if (isCodons) {
+    upper = lower = codonToNumber(symbols + slowIndex * 3);
+    assert(upper < tooBig);
+  } else {
+    char symbol = symbols[slowIndex];
+    uchar s = symbol;
+    upper = symbolToIndex[s];
+    lower = symbolToIndex[tolower(s)];
+    if (upper >= tooBig || lower >= tooBig) {
+      throw Err(std::string("bad letter in score matrix: ") + symbol);
+    }
   }
 }
 
@@ -104,8 +132,10 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
   for (size_t i = 0; i < numOfRows(); ++i) {
     for (size_t j = 0; j < numOfCols(); ++j) {
       unsigned iu, il, ju, jl;
-      upperAndLowerIndex(fastMatrixSize, symbolToIndex, rowSymbols[i], iu, il);
-      upperAndLowerIndex(fastMatrixSize, symbolToIndex, colSymbols[j], ju, jl);
+      upperAndLowerIndex(iu, il, i, rowSymbols.c_str(), isCodonRows(),
+			 symbolToIndex, fastMatrixSize);
+      upperAndLowerIndex(ju, jl, j, colSymbols.c_str(), isCodonCols(),
+			 symbolToIndex, fastMatrixSize);
       caseSensitive[iu][jl] = std::min( cells[i][j], 0 );
       caseSensitive[il][ju] = std::min( cells[i][j], 0 );
       caseSensitive[il][jl] = std::min( cells[i][j], 0 );
