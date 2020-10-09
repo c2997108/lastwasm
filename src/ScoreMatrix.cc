@@ -156,13 +156,15 @@ void ScoreMatrix::init(const uchar symbolToIndex[]) {
 
   // set a hugely negative score for the delimiter symbol:
   uchar delimiter = ' ';
-  uchar z = symbolToIndex[delimiter];
-  assert(z < fastMatrixSize);
+  unsigned d = isCodonRows() ? 64 : symbolToIndex[delimiter];
+  unsigned e = isCodonCols() ? 64 : symbolToIndex[delimiter];
+  assert(d < fastMatrixSize);
+  assert(e < fastMatrixSize);
   for (unsigned i = 0; i < fastMatrixSize; ++i) {
-    caseSensitive[z][i] = -INF;
-    caseSensitive[i][z] = -INF;
-    caseInsensitive[z][i] = -INF;
-    caseInsensitive[i][z] = -INF;
+    caseSensitive[d][i] = -INF;
+    caseSensitive[i][e] = -INF;
+    caseInsensitive[d][i] = -INF;
+    caseInsensitive[i][e] = -INF;
   }
 }
 
@@ -368,12 +370,16 @@ void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
   int *fastMatrix[scoreMatrixRowSize];
   std::copy(caseInsensitive, caseInsensitive + scoreMatrixRowSize, fastMatrix);
 
+  if ((isFullyAmbiguousRow && isCodonRows()) ||
+      (isFullyAmbiguousCol && isCodonCols()))
+    throw Err("codon ambiguity not implemented");
+
   char scratch[2] = {0};
 
   const char **ambiguities = isDna ? ntAmbiguities : aaAmbiguities;
-  size_t numOfAmbig = isDna ? COUNTOF(ntAmbiguities) : COUNTOF(aaAmbiguities);
-  size_t numOfAmbiguousRows = numOfAmbig - 1 + isFullyAmbiguousRow;
-  size_t numOfAmbiguousCols = numOfAmbig - 1 + isFullyAmbiguousCol;
+  size_t n = isDna ? COUNTOF(ntAmbiguities) : COUNTOF(aaAmbiguities);
+  size_t numOfAmbiguousRows = isCodonRows() ? 0 : n - 1 + isFullyAmbiguousRow;
+  size_t numOfAmbiguousCols = isCodonCols() ? 0 : n - 1 + isFullyAmbiguousCol;
 
   for (size_t k = 0; k < numOfAmbiguousCols; ++k) {
     char ambiguousSymbol = ambiguities[k][0];
