@@ -6,7 +6,7 @@ CXXFLAGS = -msse4 -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
 # The number of symbol types that we can keep in sequences (e.g. 20
 # amino acids, plus ambiguous ones, in upper & lower case, plus one
 # delimiter):
-ALPHABET_CAPACITY = 64
+ALPHABET_CAPACITY = 66
 CPPF = -DALPHABET_CAPACITY=$(ALPHABET_CAPACITY) $(CPPFLAGS)
 
 CFLAGS = -Wall -O2

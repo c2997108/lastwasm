@@ -249,6 +249,7 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
     if (!(iss >> word)) continue;  // skip blank lines
     if (tmpColSymbols.empty()) {
       if (word[0] == '#') continue;  // skip comment lines at the top
+      if (word.size() == 3) symbolsPerCol = 3;
       do {
 	if (word.size() != symbolsPerCol) stream.setstate(std::ios::failbit);
 	tmpColSymbols.insert(tmpColSymbols.end(), word.begin(), word.end());
@@ -262,6 +263,7 @@ std::istream& operator>>( std::istream& stream, ScoreMatrix& m ){
 	iss >> score;
 	row.push_back(score);
       }
+      if (tmpCells.empty() && word.size() == 3) symbolsPerRow = 3;
       if (word.size() == symbolsPerRow && iss) {
 	tmpRowSymbols.insert(tmpRowSymbols.end(), word.begin(), word.end());
 	tmpCells.push_back(row);

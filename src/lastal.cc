@@ -167,6 +167,8 @@ void makeScoreMatrix( const std::string& matrixName,
     scoreMatrix.fromString( matrixFile );
     if (scoreMatrix.isCodonRows())
       err("unsupported score matrix");
+    if (scoreMatrix.isCodonCols() && !args.isTranslated())
+      err("unsuitable score matrix");
   } else {
     scoreMatrix.setMatchMismatch( args.matchScore, args.mismatchCost,
 				  alph.letters );
@@ -514,7 +516,7 @@ static void printAndDelete(char *text) {
 static void writeAlignment(LastAligner &aligner, const Alignment &aln,
 			   size_t queryNum, const uchar* querySeq,
 			   const AlignmentExtras &extras = AlignmentExtras()) {
-  int translationType = args.isTranslated();
+  int translationType = scoreMatrix.isCodonCols() ? 2 : args.isTranslated();
   AlignmentText a = aln.write(text, query, queryNum, querySeq, alph, queryAlph,
 			      translationType, geneticCode.getCodonToAmino(),
 			      evaluer, args.outputFormat, extras);
@@ -665,8 +667,9 @@ void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
 // It may not be the best strategy for protein alignment with subset
 // seeds: there could be few or no identical matches...
 void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
-  sp.maxIdenticalRun(dis.a, dis.b,
-		     alph.numbersToUppercase, alph.numbersToUppercase);
+  const uchar *map2 = scoreMatrix.isCodonCols() ?
+    geneticCode.getCodonToAmino() : alph.numbersToUppercase;
+  sp.maxIdenticalRun(dis.a, dis.b, alph.numbersToUppercase, map2);
   sp.score = dis.gaplessScore( sp.beg1(), sp.end1(), sp.beg2() );
 }
 
@@ -967,7 +970,7 @@ void translateAndScan(LastAligner& aligner,
   if( args.isTranslated() ){
     modifiedQuery.resize( size );
     geneticCode.translate( querySeq, querySeq + size, &modifiedQuery[0] );
-    if( args.tantanSetting ){
+    if( args.tantanSetting && !scoreMatrix.isCodonCols() ){
       tantanMaskTranslatedQuery( queryNum, &modifiedQuery[0] );
     }
     querySeq = &modifiedQuery[0];
@@ -1060,6 +1063,15 @@ void readIndex( const std::string& baseName, indexT seqCount ) {
   assert(!seeds.empty());  // xxx what if numOfIndexes==0 ?
   makeWordsFinder(wordsFinder, &seeds[0], seeds.size(), alph.encode,
 		  isCaseSensitiveSeeds);
+
+  if (scoreMatrix.isCodonCols()) {
+    for (unsigned x = 0; x < numOfIndexes; ++x) {
+      std::vector<CyclicSubsetSeed> &s = suffixArrays[x].getSeeds();
+      for (size_t i = 0; i < s.size(); ++i) {
+	s[i].compose(geneticCode.getCodonToAmino());
+      }
+    }
+  }
 }
 
 int calcMinScoreGapless(double numLettersInReference) {
@@ -1230,7 +1242,12 @@ void lastal( int argc, char** argv ){
       ERR( "expected protein database, but got DNA" );
     queryAlph.fromString( queryAlph.dna );
     geneticCode.fromString(GeneticCode::stringFromName(args.geneticCodeFile));
-    geneticCode.codeTableSet( alph, queryAlph );
+    if (scoreMatrix.isCodonCols()) {
+      geneticCode.initCodons(queryAlph.encode, alph.encode,
+			     args.maskLowercase > 2);
+    } else {
+      geneticCode.codeTableSet( alph, queryAlph );
+    }
     query.initForAppending(3);
   }
   else{
