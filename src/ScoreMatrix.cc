@@ -7,6 +7,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <string.h>
 
 #include <algorithm>  // min, max
 #include <iomanip>
@@ -92,6 +93,11 @@ static unsigned fastIndex(size_t slowIndex, const char symbols[],
 			  bool isCodons, const uchar symbolToIndex[]) {
   return isCodons ? codonToNumber(symbols + slowIndex * 3)
     :               s2i(symbolToIndex, symbols[slowIndex]);
+}
+
+static unsigned fastIndex(const char *symbolPtr,
+			  bool isCodons, const uchar symbolToIndex[]) {
+  return isCodons ? codonToNumber(symbolPtr) : s2i(symbolToIndex, *symbolPtr);
 }
 
 static void upperAndLowerIndex(unsigned &upper, unsigned &lower,
@@ -317,17 +323,18 @@ static bool isIn(const std::string& s, char x) {
 
 static const char *ambiguityList(const char *ambiguities[],
 				 size_t numOfAmbiguousSymbols,
-				 char symbol, char scratch[]) {
+				 const char *symbolPtr, size_t symbolLen,
+				 char scratch[]) {
   for (size_t i = 0; i < numOfAmbiguousSymbols; ++i) {
-    if (ambiguities[i][0] == symbol) return ambiguities[i] + 1;
+    if (ambiguities[i][0] == *symbolPtr) return ambiguities[i] + 1;
   }
-  scratch[0] = symbol;
+  memcpy(scratch, symbolPtr, symbolLen);
   return scratch;
 }
 
-static double symbolProbSum(const uchar symbolToIndex[],
+static double symbolProbSum(bool isOneSymbol, const uchar symbolToIndex[],
 			    const char *symbols, const double probs[]) {
-  if (symbols[1] == 0) return 1;
+  if (isOneSymbol) return 1;
   double p = 0;
   for (size_t i = 0; symbols[i]; ++i) {
     unsigned x = s2i(symbolToIndex, symbols[i]);
@@ -340,23 +347,26 @@ static int jointScore(const uchar symbolToIndex[], int **fastMatrix,
 		      double scale,
 		      const double rowSymbolProbs[],
 		      const double colSymbolProbs[],
-		      const char *rSymbols, const char *cSymbols) {
-  bool isOneRowSymbol = (rSymbols[1] == 0);
-  bool isOneColSymbol = (cSymbols[1] == 0);
+		      const char *rSymbols, const char *cSymbols,
+		      size_t symbolsPerRow, size_t symbolsPerCol) {
+  bool isOneRowSymbol = (rSymbols[symbolsPerRow] == 0);
+  bool isOneColSymbol = (cSymbols[symbolsPerCol] == 0);
 
   double p = 0;
-  for (size_t i = 0; rSymbols[i]; ++i) {
-    for (size_t j = 0; cSymbols[j]; ++j) {
-      unsigned x = s2i(symbolToIndex, rSymbols[i]);
-      unsigned y = s2i(symbolToIndex, cSymbols[j]);
+  for (const char *i = rSymbols; *i; i += symbolsPerRow) {
+    for (const char *j = cSymbols; *j; j += symbolsPerCol) {
+      unsigned x = fastIndex(i, symbolsPerRow > 1, symbolToIndex);
+      unsigned y = fastIndex(j, symbolsPerCol > 1, symbolToIndex);
       double r = isOneRowSymbol ? 1 : rowSymbolProbs[x];
       double c = isOneColSymbol ? 1 : colSymbolProbs[y];
       p += r * c * probFromScore(scale, fastMatrix[x][y]);
     }
   }
 
-  double rowProbSum = symbolProbSum(symbolToIndex, rSymbols, rowSymbolProbs);
-  double colProbSum = symbolProbSum(symbolToIndex, cSymbols, colSymbolProbs);
+  double rowProbSum = symbolProbSum(isOneRowSymbol, symbolToIndex, rSymbols,
+				    rowSymbolProbs);
+  double colProbSum = symbolProbSum(isOneColSymbol, symbolToIndex, cSymbols,
+				    colSymbolProbs);
 
   return scoreFromProb(scale, p / (rowProbSum * colProbSum));
 }
@@ -374,7 +384,10 @@ void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
       (isFullyAmbiguousCol && isCodonCols()))
     throw Err("codon ambiguity not implemented");
 
-  char scratch[2] = {0};
+  size_t symbolsPerRow = rowSymbols.size() / numOfRows();
+  size_t symbolsPerCol = colSymbols.size() / numOfCols();
+
+  char scratch[4] = {0};
 
   const char **ambiguities = isDna ? ntAmbiguities : aaAmbiguities;
   size_t n = isDna ? COUNTOF(ntAmbiguities) : COUNTOF(aaAmbiguities);
@@ -386,11 +399,13 @@ void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
     if (isIn(colSymbols, ambiguousSymbol)) continue;
     colSymbols.push_back(ambiguousSymbol);
     for (size_t i = 0; i < numOfRows(); ++i) {
+      const char *symbolPtr = rowSymbols.c_str() + i * symbolsPerRow;
       const char *rSymbols = ambiguityList(ambiguities, numOfAmbiguousRows,
-					   rowSymbols[i], scratch);
+					   symbolPtr, symbolsPerRow, scratch);
       const char *cSymbols = ambiguities[k] + 1;
       int s = jointScore(symbolToIndex, fastMatrix, scale,
-			 rowSymbolProbs, colSymbolProbs, rSymbols, cSymbols);
+			 rowSymbolProbs, colSymbolProbs, rSymbols, cSymbols,
+			 symbolsPerRow, symbolsPerCol);
       cells[i].push_back(s);
     }
   }
@@ -401,11 +416,13 @@ void ScoreMatrix::addAmbiguousScores(bool isDna, bool isFullyAmbiguousRow,
     rowSymbols.push_back(ambiguousSymbol);
     cells.resize(cells.size() + 1);
     for (size_t j = 0; j < numOfCols(); ++j) {
+      const char *symbolPtr = colSymbols.c_str() + j * symbolsPerCol;
       const char *rSymbols = ambiguities[k] + 1;
       const char *cSymbols = ambiguityList(ambiguities, numOfAmbiguousCols,
-					   colSymbols[j], scratch);
+					   symbolPtr, symbolsPerCol, scratch);
       int s = jointScore(symbolToIndex, fastMatrix, scale,
-			 rowSymbolProbs, colSymbolProbs, rSymbols, cSymbols);
+			 rowSymbolProbs, colSymbolProbs, rSymbols, cSymbols,
+			 symbolsPerRow, symbolsPerCol);
       cells.back().push_back(s);
     }
   }
