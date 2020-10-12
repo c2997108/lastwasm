@@ -287,7 +287,7 @@ static void calculateScoreStatistics(const std::string& matrixName,
 			args.matchScore, args.mismatchCost,
 			alph.letters.c_str(), fwdMatrices.scoresMasked,
 			stats.letterProbs1(), stats.letterProbs2(), false,
-			0, 0, 0, 0, args.frameshiftCost, geneticCode,
+			0, 0, 0, 0, gapCosts.frameshiftCost, geneticCode,
 			args.geneticCodeFile.c_str(), args.verbosity);
 
     const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
@@ -296,7 +296,7 @@ static void calculateScoreStatistics(const std::string& matrixName,
                   alph.letters.c_str(), fwdMatrices.scoresMasked,
 		  stats.letterProbs1(), stats.letterProbs2(), isGapped,
 		  del.openCost, del.growCost, ins.openCost, ins.growCost,
-		  args.frameshiftCost, geneticCode,
+		  gapCosts.frameshiftCost, geneticCode,
 		  args.geneticCodeFile.c_str(), args.verbosity );
     countT m = std::min(refMaxSeqLen, refLetters);
     evaluer.setSearchSpace(refLetters, m, args.numOfStrands());
@@ -719,18 +719,16 @@ void alignGapped( LastAligner& aligner,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop( aligner.centroid, aligner.greedyAligner, args.isGreedy,
-		   dis.a, dis.b, args.globality,
-		   dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
-		   gapCosts, dis.d, args.frameshiftCost, frameSize,
-		   dis.p, dis.t, dis.i, dis.j, alph, extras );
+    aln.makeXdrop(aligner.centroid, aligner.greedyAligner, args.isGreedy,
+		  dis.a, dis.b, args.globality, dis.m,
+		  scoreMatrix.maxScore, scoreMatrix.minScore, gapCosts,
+		  dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
 
     if( !aln.isOptimal( dis.a, dis.b, args.globality, dis.m, dis.d, gapCosts,
-			args.frameshiftCost, frameSize, dis.p,
-                        dis.t, dis.i, dis.j ) ){
+			frameSize, dis.p, dis.t, dis.i, dis.j ) ){
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-redundantization.
       continue;
@@ -788,12 +786,11 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       Alignment probAln;
       AlignmentExtras extras;
       probAln.seed = aln.seed;
-      probAln.makeXdrop( centroid, aligner.greedyAligner, args.isGreedy,
-			 dis.a, dis.b, args.globality,
-			 dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
-			 gapCosts, dis.d, args.frameshiftCost, frameSize,
-			 dis.p, dis.t, dis.i, dis.j, alph, extras,
-			 args.gamma, args.outputType );
+      probAln.makeXdrop(centroid, aligner.greedyAligner, args.isGreedy,
+			dis.a, dis.b, args.globality, dis.m,
+			scoreMatrix.maxScore, scoreMatrix.minScore, gapCosts,
+			dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph,
+			extras, args.gamma, args.outputType);
       assert( aln.score != -INF );
       writeAlignment( aligner, probAln, queryNum, querySeq, extras );
     }
@@ -809,8 +806,7 @@ static void eraseWeakAlignments(LastAligner &aligner, AlignmentPot &gappedAlns,
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &a = gappedAlns.items[i];
     if (!a.hasGoodSegment(dis.a, dis.b, args.minScoreGapped, dis.m, gapCosts,
-			  args.frameshiftCost, frameSize,
-			  dis.p, dis.t, dis.i, dis.j)) {
+			  frameSize, dis.p, dis.t, dis.i, dis.j)) {
       AlignmentPot::mark(a);
     }
   }
@@ -1235,7 +1231,8 @@ void lastal( int argc, char** argv ){
 		       alph.letters, alph.encode );
   makeScoreMatrix( matrixName, matrixFile );
   gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
-		  args.insOpenCosts, args.insGrowCosts, args.gapPairCost);
+		  args.insOpenCosts, args.insGrowCosts,
+		  args.gapPairCost, args.frameshiftCost);
 
   if( args.isTranslated() ){
     if( isDna )  // allow user-defined alphabet

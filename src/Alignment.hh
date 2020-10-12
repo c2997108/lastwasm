@@ -81,8 +81,7 @@ struct Alignment{
 		  GreedyXdropAligner& greedyAligner, bool isGreedy,
 		  const uchar* seq1, const uchar* seq2, int globality,
 		  const ScoreMatrixRow* scoreMatrix, int smMax, int smMin,
-		  const mcf::GapCosts& gap, int maxDrop,
-		  int frameshiftCost, size_t frameSize,
+		  const mcf::GapCosts& gap, int maxDrop, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2,
@@ -95,8 +94,7 @@ struct Alignment{
   // If "globality" is non-zero, skip the prefix and suffix checks.
   bool isOptimal( const uchar* seq1, const uchar* seq2, int globality,
                   const ScoreMatrixRow* scoreMatrix, int maxDrop,
-                  const mcf::GapCosts& gapCosts,
-		  int frameshiftCost, size_t frameSize,
+                  const mcf::GapCosts& gapCosts, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2 ) const;
@@ -104,8 +102,7 @@ struct Alignment{
   // Does the Alignment have any segment with score >= minScore?
   bool hasGoodSegment(const uchar *seq1, const uchar *seq2,
 		      int minScore, const ScoreMatrixRow *scoreMatrix,
-		      const mcf::GapCosts &gapCosts,
-		      int frameshiftCost, size_t frameSize,
+		      const mcf::GapCosts &gapCosts, size_t frameSize,
 		      const ScoreMatrixRow *pssm2,
 		      const TwoQualityScoreMatrix &sm2qual,
 		      const uchar *qual1, const uchar *qual2) const;
@@ -139,8 +136,7 @@ struct Alignment{
 	       size_t start1, size_t start2,
 	       bool isForward, int globality,
 	       const ScoreMatrixRow* sm, int smMax, int smMin, int maxDrop,
-	       const mcf::GapCosts& gap,
-	       int frameshiftCost, size_t frameSize,
+	       const mcf::GapCosts& gap, size_t frameSize,
 	       const ScoreMatrixRow* pssm2,
                const TwoQualityScoreMatrix& sm2qual,
                const uchar* qual1, const uchar* qual2,

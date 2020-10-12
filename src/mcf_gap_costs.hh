@@ -30,6 +30,7 @@ struct GapCosts {
   std::vector<Piece> delPieces;
   std::vector<Piece> insPieces;
   int pairCost;
+  int frameshiftCost;
 
   bool isAffine;
 
@@ -43,7 +44,7 @@ struct GapCosts {
 	      const std::vector<int> &delGrowCosts,
 	      const std::vector<int> &insOpenCosts,
 	      const std::vector<int> &insGrowCosts,
-	      int unalignedPairCost);
+	      int unalignedPairCost, int frameshiftCostIn);
 
   // The cost of a "gap" consisting of unaligned letters in the query
   // and/or reference sequence

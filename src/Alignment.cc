@@ -63,8 +63,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 			   const ScoreMatrixRow* scoreMatrix,
 			   int smMax, int smMin,
 			   const mcf::GapCosts& gap, int maxDrop,
-			   int frameshiftCost, size_t frameSize,
-			   const ScoreMatrixRow* pssm2,
+			   size_t frameSize, const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2,
 			   const Alphabet& alph, AlignmentExtras& extras,
@@ -88,7 +87,7 @@ void Alignment::makeXdrop( Centroid& centroid,
   std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
   extend( blocks, columnAmbiguityCodes, centroid, greedyAligner, isGreedy,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
-	  scoreMatrix, smMax, smMin, maxDrop, gap, frameshiftCost,
+	  scoreMatrix, smMax, smMin, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
 	  extras, gamma, outputType );
 
@@ -108,7 +107,7 @@ void Alignment::makeXdrop( Centroid& centroid,
   std::vector<char> forwardAmbiguities;
   extend( forwardBlocks, forwardAmbiguities, centroid, greedyAligner, isGreedy,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
-	  scoreMatrix, smMax, smMin, maxDrop, gap, frameshiftCost,
+	  scoreMatrix, smMax, smMin, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
 	  extras, gamma, outputType );
 
@@ -160,20 +159,18 @@ void Alignment::makeXdrop( Centroid& centroid,
 
 // cost of the gap between x and y
 static int gapCost(const SegmentPair &x, const SegmentPair &y,
-		   const mcf::GapCosts &gapCosts,
-		   int frameshiftCost, size_t frameSize) {
+		   const mcf::GapCosts &gapCosts, size_t frameSize) {
   size_t gapSize1 = y.beg1() - x.end1();
   size_t gapSize2, frameshift2;
   sizeAndFrameshift(x.end2(), y.beg2(), frameSize, gapSize2, frameshift2);
   int cost = gapCosts.cost(gapSize1, gapSize2);
-  if (frameshift2) cost += frameshiftCost;
+  if (frameshift2) cost += gapCosts.frameshiftCost;
   return cost;
 }
 
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix, int maxDrop,
-			   const mcf::GapCosts& gapCosts,
-			   int frameshiftCost, size_t frameSize,
+			   const mcf::GapCosts& gapCosts, size_t frameSize,
 			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2 ) const{
@@ -185,7 +182,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 
     if( i > 0 ){  // between each pair of aligned blocks:
       const SegmentPair& x = blocks[i - 1];
-      runningScore -= gapCost( x, y, gapCosts, frameshiftCost, frameSize );
+      runningScore -= gapCost( x, y, gapCosts, frameSize );
       if( !globality && runningScore <= 0 ) return false;
       if( runningScore < maxScore - maxDrop ) return false;
     }
@@ -215,8 +212,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 
 bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
 			       int minScore, const ScoreMatrixRow *scoreMatrix,
-			       const mcf::GapCosts &gapCosts,
-			       int frameshiftCost, size_t frameSize,
+			       const mcf::GapCosts &gapCosts, size_t frameSize,
 			       const ScoreMatrixRow *pssm2,
 			       const TwoQualityScoreMatrix &sm2qual,
 			       const uchar *qual1, const uchar *qual2) const {
@@ -226,7 +222,7 @@ bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
     const SegmentPair& y = blocks[i];
 
     if (i > 0) {  // between each pair of aligned blocks:
-      score -= gapCost(blocks[i - 1], y, gapCosts, frameshiftCost, frameSize);
+      score -= gapCost(blocks[i - 1], y, gapCosts, frameSize);
       if (score < 0) score = 0;
     }
 
@@ -282,7 +278,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			bool isForward, int globality,
 			const ScoreMatrixRow* sm, int smMax, int smMin,
 			int maxDrop, const mcf::GapCosts& gap,
-			int frameshiftCost, size_t frameSize,
+			size_t frameSize,
 			const ScoreMatrixRow* pssm2,
                         const TwoQualityScoreMatrix& sm2qual,
                         const uchar* qual1, const uchar* qual2,
@@ -308,13 +304,13 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     score += aligner.align3( seq1 + start1, seq2 + start2,
 			     seq2 + frame1, seq2 + frame2, isForward,
 			     sm, del.openCost, del.growCost, gap.pairCost,
-			     frameshiftCost, maxDrop, smMax );
+			     gap.frameshiftCost, maxDrop, smMax );
 
     size_t end1, end2, size;
     // This should be OK even if end2 < size * 3:
     while( aligner.getNextChunk3( end1, end2, size,
 				  del.openCost, del.growCost, gap.pairCost,
-				  frameshiftCost ) )
+				  gap.frameshiftCost ) )
       chunks.push_back( SegmentPair( end1 - size, end2 - size * 3, size ) );
 
     return;

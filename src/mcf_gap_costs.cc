@@ -30,7 +30,7 @@ void GapCosts::assign(const std::vector<int> &delOpenCosts,
 		      const std::vector<int> &delGrowCosts,
 		      const std::vector<int> &insOpenCosts,
 		      const std::vector<int> &insGrowCosts,
-		      int unalignedPairCost) {
+		      int unalignedPairCost, int frameshiftCostIn) {
   assignGapCostPieces(delOpenCosts, delGrowCosts, delPieces);
   assignGapCostPieces(insOpenCosts, insGrowCosts, insPieces);
   if (unalignedPairCost > 0) {
@@ -42,6 +42,8 @@ void GapCosts::assign(const std::vector<int> &delOpenCosts,
   isAffine = (delPieces.size() < 2 && insPieces.size() < 2 &&
 	      pairCost >= delPieces[0].growCost + insPieces[0].growCost +
 	      std::max(delPieces[0].openCost, insPieces[0].openCost));
+
+  frameshiftCost = frameshiftCostIn;
 }
 
 int GapCosts::cost(int refInsertLen, int qryInsertLen) const {
