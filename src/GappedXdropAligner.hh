@@ -47,6 +47,7 @@
 
 #include "mcf_contiguous_queue.hh"
 #include "mcf_reverse_queue.hh"
+#include "mcf_gap_costs.hh"
 #include "mcf_simd.hh"
 #include "ScoreMatrixRow.hh"
 
@@ -203,6 +204,25 @@ class GappedXdropAligner {
                      int gapUnalignedCost,
                      int frameshiftCost);
 
+  // Like "align3", but does "new style" DNA-protein alignment.
+  int alignFrame(const uchar *seq1,
+		 const uchar *seq2frame0,
+		 const uchar *seq2frame1,  // the +1 frame
+		 const uchar *seq2frame2,  // the +2 frame
+		 bool isForward,
+		 const ScoreMatrixRow *scorer,
+		 const GapCosts &gap,
+		 int maxScoreDrop);
+
+  // Use this after alignFrame.  The cost of the unaligned region
+  // between this chunk and the next chunk is returned in the 4th
+  // parameter.
+  bool getNextChunkFrame(size_t &end1,
+			 size_t &end2,
+			 size_t &length,
+			 int &gapCost,  // cost of the gap before this chunk
+			 const GapCosts &gap);
+
   void writeShape(std::ostream &out) const;
 
   // The next few functions are for use by Centroid.  If the Centroid
@@ -320,8 +340,8 @@ class GappedXdropAligner {
   void updateBest(int &bestScore, int score, size_t antidiagonal,
                   const Score *x0, const Score *x0ori);
 
-  void calcBestSeq1position(int bestScore) {
-    size_t seq1beg = seq1start(bestAntidiagonal);
+  void calcBestSeq1position(int bestScore, size_t numOfDummyAntidiagonals) {
+    size_t seq1beg = seq1start(bestAntidiagonal + numOfDummyAntidiagonals - 2);
     const Score *x2 = &xScores[diag(bestAntidiagonal, seq1beg)];
     const Score *x2beg = x2;
     while (*x2 != bestScore) ++x2;
@@ -329,6 +349,7 @@ class GappedXdropAligner {
   }
 
   void init3();
+  void initFrame();
 
   // Everything below here is for alignDna & getNextChunkDna
 #if defined __SSE4_1__

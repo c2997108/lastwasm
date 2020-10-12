@@ -30,7 +30,16 @@ struct GapCosts {
   std::vector<Piece> delPieces;
   std::vector<Piece> insPieces;
   int pairCost;
+
   int frameshiftCost;
+
+  // these are for "new-style" DNA-protein alignment with frameshifts:
+  int delScore1;
+  int delScore2;
+  int delScore3;
+  int insScore1;
+  int insScore2;
+  int insScore3;
 
   bool isAffine;
 

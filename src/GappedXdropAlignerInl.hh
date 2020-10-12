@@ -49,6 +49,11 @@ static inline int maxValue(int a, int b, int c) {
   return maxValue(maxValue(a, b), c);
 }
 
+static inline int maxValue(int a, int b, int c, int d, int e, int f, int g) {
+  return maxValue(maxValue(maxValue(a, b), maxValue(c, d)),
+		  maxValue(maxValue(e, f), g));
+}
+
 template<typename T>
 T whichFrame(size_t antidiagonal, T frame0, T frame1, T frame2) {
   switch (antidiagonal % 3) {

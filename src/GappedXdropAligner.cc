@@ -224,7 +224,7 @@ int GappedXdropAligner::align(const uchar *seq1,
     bestAntidiagonal = bestEdgeAntidiagonal;
     bestScore = bestEdgeScore;
   } else {
-    calcBestSeq1position(bestScore);
+    calcBestSeq1position(bestScore, 2);
   }
   numOfAntidiagonals = antidiagonal + 1;
   return bestScore;
