@@ -211,11 +211,11 @@ static void copyMatrix(size_t size, const ScoreMatrixRow *in, long **out) {
       out[i][j] = in[j][i];  // transpose
 }
 
-static void copyMatrix(size_t size, const ScoreMatrixRow *in, long **out,
-		       const size_t *usedLetters) {
-  for (size_t i = 0; i < size; ++i)
-    for (size_t j = 0; j < size; ++j)
-      out[i][j] = in[usedLetters[j]][usedLetters[i]];  // transpose
+static void copyMatrix(size_t aaNum, size_t txNum, const ScoreMatrixRow *in,
+		       long **out, const size_t *usedLetters) {
+  for (size_t i = 0; i < txNum; ++i)
+    for (size_t j = 0; j < aaNum; ++j)
+      out[i][j] = in[j][usedLetters[i]];  // transpose
 }
 
 static void makeCodonTable(long *codonTable, const GeneticCode &geneticCode) {
@@ -241,6 +241,20 @@ static void shrinkCodonTable(long *codonTable, const size_t *usedLettersBeg,
   for (size_t i = 0; i < 64; ++i)
     codonTable[i] = std::find(usedLettersBeg,
 			      usedLettersEnd, codonTable[i]) - usedLettersBeg;
+}
+
+static void makeNtFreqs(double *ntFreqs, const double *txFreqs) {
+  ntFreqs[0] = ntFreqs[1] = ntFreqs[2] = ntFreqs[3] = 0;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      for (int k = 0; k < 4; ++k) {
+	ntFreqs[i] += *txFreqs;
+	ntFreqs[j] += *txFreqs;
+	ntFreqs[k] += *txFreqs;
+	++txFreqs;
+      }
+    }
+  }
 }
 
 static void makeTxFreqs(double *txFreqs, const double *ntFreqs,
@@ -296,9 +310,10 @@ void LastEvaluer::init(const char *matrixName,
     std::vector<long> matrixData(matrixSize * matrixSize);
     std::vector<long*> matrix(matrixSize);
     makeMatrix(matrixSize, &matrixData[0], &matrix[0]);
-    copyMatrix(matrixSize, scoreMatrix, &matrix[0], usedLetters);
+    copyMatrix(alphabetSize, matrixSize, scoreMatrix, &matrix[0], usedLetters);
 
     std::vector<double> ntFreqs(4, 0.25);
+    if (letterFreqs2) makeNtFreqs(&ntFreqs[0], letterFreqs2);
     std::vector<double> aaFreqs(matrixSize);
     copy(letterFreqs1, letterFreqs1 + alphabetSize, aaFreqs.begin());
 

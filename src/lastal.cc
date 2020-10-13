@@ -281,23 +281,25 @@ static void calculateScoreStatistics(const std::string& matrixName,
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
   if (args.temperature > 0 && !matrixName.empty()) canonicalMatrixName = " ";
   bool isGapped = (args.outputType > 1);
+  const ScoreMatrixRow *scoreMat = fwdMatrices.scoresMasked;
+  const double *p1 = stats.letterProbs1();
+  const double *p2 = stats.letterProbs2();
+  if (args.isTranslated() && !scoreMatrix.isCodonCols()) p2 = 0;
   LOG( "getting E-value parameters..." );
   try{
     gaplessEvaluer.init(canonicalMatrixName,
 			args.matchScore, args.mismatchCost,
-			alph.letters.c_str(), fwdMatrices.scoresMasked,
-			stats.letterProbs1(), stats.letterProbs2(), false,
+			alph.letters.c_str(), scoreMat, p1, p2, false,
 			0, 0, 0, 0, gapCosts.frameshiftCost, geneticCode,
 			args.geneticCodeFile.c_str(), args.verbosity);
 
     const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
     const mcf::GapCosts::Piece &ins = gapCosts.insPieces[0];
-    evaluer.init( canonicalMatrixName, args.matchScore, args.mismatchCost,
-                  alph.letters.c_str(), fwdMatrices.scoresMasked,
-		  stats.letterProbs1(), stats.letterProbs2(), isGapped,
-		  del.openCost, del.growCost, ins.openCost, ins.growCost,
-		  gapCosts.frameshiftCost, geneticCode,
-		  args.geneticCodeFile.c_str(), args.verbosity );
+    evaluer.init(canonicalMatrixName, args.matchScore, args.mismatchCost,
+		 alph.letters.c_str(), scoreMat, p1, p2, isGapped,
+		 del.openCost, del.growCost, ins.openCost, ins.growCost,
+		 gapCosts.frameshiftCost, geneticCode,
+		 args.geneticCodeFile.c_str(), args.verbosity);
     countT m = std::min(refMaxSeqLen, refLetters);
     evaluer.setSearchSpace(refLetters, m, args.numOfStrands());
     if( args.verbosity > 0 ) evaluer.writeParameters( std::cerr );

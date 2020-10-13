@@ -35,7 +35,8 @@ public:
   // matrixName, matchScore, mismatchCost, geneticCodeName.
   // DNA-versus-protein alignment is indicated by: frameshiftCost >= 0.
   // As a special case, frameshiftCost==0 means no frameshifts.
-  // For DNA-versus-protein alignment, letterFreqs2 is not used.
+  // For DNA-versus-protein alignment, letterFreqs2 should either be
+  // NULL or point to 64 codon frequencies (aaa, aac, etc).
   void init(const char *matrixName,
 	    int matchScore,
 	    int mismatchCost,
