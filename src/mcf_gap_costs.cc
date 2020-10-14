@@ -30,7 +30,8 @@ void GapCosts::assign(const std::vector<int> &delOpenCosts,
 		      const std::vector<int> &delGrowCosts,
 		      const std::vector<int> &insOpenCosts,
 		      const std::vector<int> &insGrowCosts,
-		      int unalignedPairCost, int frameshiftCostIn) {
+		      const std::vector<int> &frameshiftCosts,
+		      int unalignedPairCost) {
   assignGapCostPieces(delOpenCosts, delGrowCosts, delPieces);
   assignGapCostPieces(insOpenCosts, insGrowCosts, insPieces);
   if (unalignedPairCost > 0) {
@@ -43,7 +44,20 @@ void GapCosts::assign(const std::vector<int> &delOpenCosts,
 	      pairCost >= delPieces[0].growCost + insPieces[0].growCost +
 	      std::max(delPieces[0].openCost, insPieces[0].openCost));
 
-  frameshiftCost = frameshiftCostIn;
+  if (frameshiftCosts.empty()) {
+    frameshiftCost = -1;
+  } else if (frameshiftCosts.size() == 1) {
+    frameshiftCost = frameshiftCosts[0];
+    assert(frameshiftCost >= 0);
+  } else {
+    delScore1 = -(1 * delPieces[0].growCost + frameshiftCosts[0]);
+    delScore2 = -(2 * delPieces[0].growCost + frameshiftCosts[1]);
+    delScore3 = -(3 * delPieces[0].growCost);
+    insScore1 = -(1 * insPieces[0].growCost + frameshiftCosts[2]);
+    insScore2 = -(2 * insPieces[0].growCost + frameshiftCosts[3]);
+    insScore3 = -(3 * insPieces[0].growCost);
+    frameshiftCost = -2;
+  }
 }
 
 int GapCosts::cost(int refInsertLen, int qryInsertLen) const {

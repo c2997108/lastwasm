@@ -2523,6 +2523,156 @@ q S1_98               yq{~I8V.~S~XFRM~Sp~~B~?a[bDI~~~aRo~JsTK
 
 # Query sequences=100
 
+TEST lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -e56 /tmp/last-test sd-ccs-100.fq
+lastal: quality data not used for DNA-versus-protein alignment
+#
+# a=17 b=1 A=17 B=1 F=9,9,9,9 e=56 d=45 x=55 y=43 z=55 D=1e+06
+# R=00 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.34294 j=3 Q=1
+# /tmp/last-test
+# Reference sequences=1 normal letters=491
+#
+#   GCC GCG GCA GCT TGC TGT GAC GAT GAG GAA TTC TTT GGC GGT GGA GGG CAC CAT ATC ATT ATA AAG AAA TTG TTA CTT CTA CTC CTG ATG AAC AAT CCC CCG CCA CCT CAG CAA AGG AGA CGG CGC CGT CGA TCC AGC TCG TCA TCT AGT ACC ACT ACA ACG GTC GTG GTT GTA TGG TAC TAT TAG TGA TAA
+# A   9   7   8   9  -9  -9  -1  -1  -5  -3  -4  -5  -1  -1  -2  -4  -9 -10   0   0  -1  -9  -7  -7  -5  -6  -6  -5  -9  -3  -5  -5  -1  -3  -2  -1 -14 -11  -8  -7 -13  -9  -9 -10   0  -5  -1   0   0  -5   5   4   4   3   5   1   5   4 -12  -8  -9 -11  -9  -9
+# C -10 -17 -17 -10  12  12  -5  -5 -14 -13   1   1   0   1  -7  -8   1   1  -8  -8 -15 -13 -12  -7  -5  -4 -11  -4 -13 -16  -4  -4  -5 -12 -12  -5  -8  -6  -7  -6  -2   7   7   0   0   1  -6  -6   0   2  -9  -9 -16 -16  -9 -17  -9 -16   4   7   7  -1   6   0
+# D   0  -7  -6   0  -3  -2   9   9   0   1  -8  -8   5   6  -2  -3   1   1  -3  -3 -10  -4  -3 -16 -14  -9 -16  -9 -18 -12   5   5 -10 -17 -16 -10  -9  -7  -7  -6 -12  -3  -3 -10  -9   1 -15 -15  -9   1  -4  -4 -11 -11   1  -7   2  -6 -10   2   2  -6  -9  -4
+# E  -8   2   1  -7 -11 -10   1   2   9   9 -16 -15  -3  -2   5   5  -7  -6 -12 -11  -3   4   4  -7  -7 -16  -8 -17  -9  -3  -3  -2 -18  -8  -9 -17   0   0   1   1  -4 -12 -10  -3 -17  -8  -7  -8 -16  -6 -12 -11  -4  -3  -7   1  -6   2  -2  -6  -5   2  -1   3
+# F  -5 -12 -12  -5   2   2 -10 -10 -19 -18  10  10 -10  -9 -17 -18  -3  -3   1   1  -6 -18 -16   2   4   5  -2   5  -4  -7  -8  -9   0  -7  -7   0 -13 -11 -17 -16 -12  -3  -3 -10   5  -9  -1  -1   5  -9  -4  -4 -11 -11   0  -8   0  -7  -6   2   2  -6  -4  -4
+# G  -2  -1  -1  -3   1   0   3   2   2   2 -10 -11   9   8   8   8  -5  -6  -5  -6  -5  -2  -2 -10  -9 -11 -10 -11 -12  -6  -1  -2 -12 -11 -11 -12  -7  -6   4   4  -1   0   0   0 -11   4  -9 -10 -12   3  -6  -7  -6  -5  -1  -1  -1   0   1  -4  -5  -4   2  -3
+# H -10 -17 -17 -10   2   2  -1  -1 -10  -9  -3  -3  -5  -5 -12 -13  11  11  -8  -8 -15  -9  -8 -11  -9   1  -5   2  -8 -16   1   0   1  -7  -6   0   1   3 -12 -11  -2   7   7   0  -4  -4 -10 -10  -4  -4  -9  -9 -16 -16  -9 -17  -9 -16  -6   7   6  -1  -4   0
+# I  -1  -6  -4  -1  -8  -8  -6  -6 -13  -9   0   0  -6  -5  -9 -12  -9  -9   9   9   7  -7  -4  -5  -2   0  -3   0  -7   3   0   0  -6 -11  -8  -6 -16 -12  -7  -3 -15  -9  -8 -11  -5  -1  -9  -7  -5   0   4   4   2  -1   4  -2   4   2 -14  -8  -8 -14 -10 -10
+# K -14  -4  -5 -12 -11 -10  -4  -3   3   3 -16 -15  -9  -7   0   0  -7  -6  -7  -6   1   9   9  -7  -7 -16  -8 -17  -9   1   1   2 -18  -8  -9 -17   0   0   5   5  -4 -12 -10  -3 -17  -3  -7  -8 -16  -2  -8  -7   0   2 -12  -4 -11  -4  -2  -6  -5   2  -1   3
+# L  -9  -4  -7  -9  -6  -5 -13 -13 -11 -13   3   3 -13 -13 -12 -10  -2  -2  -3  -3  -1 -10 -12   8   7   7   7   7   8   0 -12 -12   2   5   2   1  -1  -2  -9 -11   0  -2  -1  -1  -2 -12   4   1  -2 -12  -8  -8  -6  -3  -3  -1  -3  -2  -1  -5  -5  -1  -2  -2
+# M  -9   3  -2  -8 -16 -15 -13 -12  -4  -8  -7  -6 -13 -12  -8  -3 -16 -15   2   3   8   1  -3   3   0  -7  -2  -8   1  12  -8  -7 -13  -2  -7 -12  -8 -11   2  -2  -7 -16 -15 -10 -12  -8   0  -6 -11  -7  -4  -2   3   8  -3   6  -2   3  -5 -15 -14  -5  -9  -9
+# N  -5 -12 -12  -5  -3  -2   4   4  -5  -4  -8  -8   0   0  -8  -9   1   1   1   1  -6   0   1 -16 -14  -9 -16  -9 -18  -7   9   9 -10 -17 -16 -10  -9  -7  -3  -2 -12  -3  -3 -10  -9   5 -15 -15  -9   5   0   0  -7  -7  -4 -13  -4 -11 -10   2   2  -6  -9  -4
+# P  -2  -3  -1  -1  -4  -4 -11 -11 -15 -13   0   0 -12 -11 -12 -14   0   0  -5  -5  -5 -14 -11  -2   0   5   4   4   1  -8 -10 -10   9   7   9   9  -4   0 -13 -11  -3   0   1   0   4 -11   4   5   5 -10  -1   0   0  -2  -6  -9  -6  -6  -6  -4  -4  -6  -3  -3
+# Q -18  -8 -10 -17  -6  -5  -9  -8  -1  -2 -11 -10 -13 -12  -6  -4   3   4 -16 -15  -8   1  -1  -2  -3  -6   1  -7   2  -7  -8  -7  -8   2   0  -7  11  10  -3  -5   7  -1   0   6 -12 -12  -1  -4 -11 -11 -17 -16  -9  -7 -17  -8 -16  -9   3  -2  -1   8   3   7
+# R -13  -6  -7 -13   3   2  -8  -8  -4  -3  -8  -8  -2  -2   3   3   2   1  -9  -8  -1   1   2  -5  -5  -4  -2  -3  -3  -2  -4  -4  -4  -2  -3  -5   2   2   7   7   8   7   7   8  -9   1  -5  -6  -9   1 -10  -9  -2  -2 -12  -7 -12  -6   5  -2  -3   0   6   0
+# S  -3  -5  -4  -2   1   1  -3  -4 -12 -10   2   2   1   1  -6  -7  -4  -4  -1  -2  -5  -7  -6  -1   2  -2  -3  -2  -7  -8   2   1   2  -1   1   2 -10  -7  -2  -1  -8   0  -1  -5   7   7   5   7   7   6   0   0  -2  -3  -5 -10  -5  -7  -3   0  -1  -4  -1  -1
+# T   3   2   3   3  -9  -9  -7  -7 -10  -8  -5  -5  -7  -7  -7  -9 -10 -10   4   4   4  -5  -2  -7  -4  -6  -6  -6  -9   1  -1  -1  -1  -3  -1  -1 -14 -10  -4  -2 -13 -10 -10 -10   0  -2  -1   0   0  -2   8   8   9   7  -1  -4  -1  -1 -11  -9  -9 -11  -8  -8
+# V   2   5   3   2 -10 -10  -2  -2  -1  -3  -2  -2  -2  -2  -3  -1 -11 -11   3   3   3  -6  -7   1  -1  -2  -2  -3  -1   5  -7  -7  -8  -5  -7  -8 -10 -11  -5  -7 -10 -11 -10 -11  -7  -7  -3  -6  -7  -7  -2  -2  -2   1   7   9   8   8  -8 -10 -10  -8  -9  -9
+# W -18  -7 -12 -17   3   5 -13 -12  -4  -8  -7  -6  -8  -7  -2   2  -7  -6 -16 -15 -10  -3  -7   3   0 -11  -6 -12  -3  -6 -12 -11 -13  -2  -7 -12   2  -1   3  -1   8  -1   0   5  -8  -7   4  -1  -7  -6 -17 -16 -11  -6 -17  -7 -16 -11  14  -2  -1   9  11   5
+# Y -10 -17 -17 -10   6   6  -1  -1 -10  -9   1   1  -5  -5 -12 -13   6   6  -8  -8 -15  -9  -8  -7  -5  -4 -11  -4 -13 -16   1   0  -5 -12 -12  -5  -4  -2 -12 -11  -7   2   2  -6   0  -4  -6  -6   0  -4  -9  -9 -16 -16  -9 -17  -9 -16  -2  11  11   3   0   5
+# * -18 -10  -8 -17   2   3 -11 -10  -4  -2  -7  -6 -10  -8   0  -4  -4  -3 -16 -15  -6  -3  -1   0   3 -11  -2 -12  -6 -10  -9  -8 -13  -5  -3 -12   2   4  -3   1   2  -3  -2   7  -8  -9   0   2  -7  -8 -17 -16  -7  -9 -17 -11 -16  -7   8   1   2   9  13  11
+# X   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+# batch 0
+a score=57
+s Q2LCP8 237  43 + 491 GlyMetLeuMetThrPheTyrLeuThrIleThrGlnLysLeuValThrLeuMetValLeuIleAsnLeuTyrGln--AsnLeuIleIle-TyrThrAsnAlaIleMetPheThrAsnGlyLeuIleIleLeu
+s S1_1   437 132 - 743 GGAGTGCTTATTTTTGTATTTCTGGTGATATTCTATGGGATTATTATTTTAATGATATTCCCTACCTGATGCTAAAAAACGTAATCATCCCATGCCGACGCCATTCATGTTGCTGGTTGGGTGATCTTTTTA
+q S1_1                 ~~9TPO^~SL.~~J~~AS~L[t~~PlqF~~Yt~>EaMN.m~~O~W~E~Fdcpa{bYy}~Uaf~YEIu~~J[~q~D_~~~o7~_Y0~j_jp~C\~~gxfl4~~sbFd~T~~M~~y3~e~~aQOaCJe~u~{d_
+
+a score=59
+s Q2LCP8 405 14 + 491 MetValLeuGlyArgValTyrLeuThrMetLeuAlaPhePhe
+s S1_5   472 42 + 558 GTGATGGTTGCTCCGGTTCGTCTGATGACGCTGGCTTATTTC
+q S1_5                =w~mon~[~K~cI~Fj7~:rh'~~g~~aPi1VG~rfQh~~xt
+
+a score=72
+s Q2LCP8 426 15 + 491 TyrTyrMetAsnLeuValLysIleIleIleIleAspLysValGln
+s S1_8    93 45 + 438 CGCAATAGGAGACTGATGTGAATCATCATGATTGATGAAATGCAG
+q S1_8                U;BEA:EK&E4%`=6+B;Q?P5cD,_@=1?JrKCXCQ@E3<L4H?
+
+a score=59
+s Q2LCP8 383 12 + 491 MetTyrLeuAlaGlyLeuProProMetThrAsnPhe
+s S1_9   210 36 + 563 ACATACCTGGCTGCACTTCCGCCAGAGGCACGCTTT
+q S1_9                <~M~P~Wp{cI~r~~B6~~~Ski~~;mzH`~~H~~\
+
+# batch 1
+a score=63
+s Q2LCP8 204 25 + 491 ArgIleGlnMetGlyIleAlaLeuIleValLeuGlyLeuIleLeuLysLeuGlyIleAlaProPheHisGlyTrp
+s S1_17  388 72 - 643 CGCGGTGAGACGGAAATAGCATCGACCGATCCGGGACCA---TTGAGGCCGAGGATCTGTTTATCACGTCGCCGG
+q S1_17               =7ACG23;8K*[O82;T89K==8,>9>=O&?6':;88NK---MWF4<PN?-7O\:;[)?=>U*=B9E??a^T,A_
+
+a score=61
+s Q2LCP8 276 16 + 491 LeuIleIleLeuIleLeuValThrLeuValValGlyThrIleGlySer
+s S1_21  109 48 - 510 CTGGTATTGGTGATTCTGACCATGCTGGCGGCAGTCACGACCGGTTCA
+q S1_21               8~d)A5S']cqHE\N[;@+Sc~<U~9FsHJX6'~_@Y29FLM<WhAYp
+
+a score=59
+s Q2LCP8 404 13 + 491 TyrMetValLeuGlyArgValTyrLeuThrMetLeuAla
+s S1_21  100 39 - 510 CACCTGATGCTGGTATTGGTGATTCTGACCATGCTGGCG
+q S1_21               Ab~2M/?7;8~d)A5S']cqHE\N[;@+Sc~<U~9FsHJ
+
+a score=61
+s Q2LCP8  98 21 + 491 ThrGluGlyLysLysThrLysIleThrAspGluGlyLeuIleLeuIleTyrSerSerIleIle
+s S1_26  483 63 + 786 ACTCAGGGAAAAAAAGTATAAATCATCGAGGCTTGGTTTCTATTTATTACTTGTGGTATTGTT
+q S1_26               u}`X~M`SDC~~:~|u`{~~P~v~c~~gb~~3X~C~BUQ~]IwN~X~~~~~~RYwc9L~f~bU
+
+a score=62
+s Q2LCP8 266 17 + 491 TyrThrAsnAlaIleMetPheThrAsnGlyLeuIleIleLeuIleLeuVal
+s S1_26  644 51 - 786 TTCACTATTGCGAACAGCCTCCTCAACAGGTTAATTATATTCTTTCTAGTA
+q S1_26               wd~~~~]F~nep~\=~}d~.~@m~X~yMF~cK~~o|M~{b~[~Pzv~~h7h
+
+# batch 2
+a score=67
+s Q2LCP8 250  35 + 491 LeuValThrLeuMetValLeuIleAsnLeuTyrGlnAsnLeuIleIleTyrThrAsnAlaIleMetPheThrAsnGlyLeuIleIleLeuIleLeuValThrLeu
+s S1_40   51 105 - 579 CCGACAACGCTTGCTGGTCGCATTTATTCCTACGTAAGCATTATCGGCCATTTCAGCTTCCTGGTGTTCGCCACCTACTTGCTGATCCTCTTCCCGCTGACTTTA
+q S1_40                MkG\Hp<CGror?v4]3bdI\OB\4:UAI?@`MNQHdSKNZAeO6U>~1C7&JI58.YCWaaO5~A@EvMZLKND8QznFq$=SGLkJ=fJYeQ:~G/WL-N;D?
+
+a score=60
+s Q2LCP8 280 16 + 491 IleLeuValThrLeuValValGlyThrIleGlySerLeuArgGlnGln
+s S1_40    3 48 - 579 ATTCTGCTTTCGCTCGTCATTGGCGCCGTTACCTGTTTTCGCCGACTG
+q S1_40               P|N_kqaM3BuHMQ~H~IT~>`VdH,VHZ'O13q~HfOn\2W]HRScD
+
+a score=59
+s Q2LCP8 271 27 + 491 MetPheThrAsnGlyLeuIleIleLeuIleLeuValThrLeuValValGlyThrIleGlySerLeuArgGlnGlnLysLeu
+s S1_40  327 69 - 579 ATGTTCATCAGCGTGCCGGTTATTTTATTGCTTGAA---CTGGTGTTTGCGACG---------TGGAGCTGGCAAAAGCTG
+q S1_40               ^RJrHiP~l5eVT:Q\OQjqNK?M&JG8P_~k=mG[---B\L?OY4tXC:u.\Y---------DJ5H;rW=[RGacq~@,>
+
+# batch 3
+a score=66
+s Q2LCP8 384 31 + 491 TyrLeuAlaGlyLeuProProMetThrAsnPheIleSerLysIleLeuIleLeuLeuProTyrMetValLeuGlyArgValTyrLeuThrMet
+s S1_55  247 93 - 578 TGCTTTTTCTGCGTTCATTCAATGTCGAATGCGATGTTGACACGTCTTATCCTTCAATGTCGGATGCGACGCTGCCGCGTCTATCCGACCACG
+q S1_55               325GA,4&47/FN+J9.6?*1S0L-?2<80+>@7>@AJX??)L5*>&)+ME:A9;:.&>&?=-%HAR'5)Z1-7;&8(6B,1M59B(,8%'LW
+
+# batch 4
+a score=56
+s Q2LCP8 409 17 + 491 ArgValTyrLeuThrMetLeuAlaPhePheLeuSerValGlyValMetIle
+s S1_68   38 51 - 460 AAAGTGCAATTAATCAGGCGCGCTTTTTTCCATGCCAGCGTAGTGGTGGTC
+q S1_68               Xgqc~{KG[?~`~CNo~~C]~^tDKvP~cwR~~Hi~ZYvLZxbNbUfnU~~
+
+a score=57
+s Q2LCP8 126 11 + 491 AlaHisAsnLeuIleThrLeuPheLeuSerLeu
+s S1_69    4 33 - 505 GTACACAGCGCGATTTCACCGTTCTCGTCGTTG
+q S1_69               >=<<^A_CkT~jN/WM5-7>^V<B2~}]xY5E_
+
+a score=61
+s Q2LCP8 229 13 + 491 LeuIleAspValTyrGluGlyAlaGlyMetLeuMetThr
+s S1_81  367 39 + 615 CTGGTTAACGTAGGCGCGGCGGCGGGGATGTTACCGACC
+q S1_81               ;8;xX&ML'60<%A23a;9KM>8B~-aAQ4]@O7@IF2>
+
+a score=57
+s Q2LCP8 249 11 + 491 LysLeuValThrLeuMetValLeuIleAsnLeu
+s S1_84  311 33 + 484 AAAATGACTGCCCTGATGATCCTCATCACTCTG
+q S1_84               5~~u~Z~pA<~tm~`Y\xA~hM~YnayNlWA[~
+
+# batch 5
+a score=70
+s Q2LCP8 447 11 + 491 AlaGluLeuGluIleThrSerLysProThrLys
+s S1_85  183 33 + 361 GCCAGGCTCGAAGTCATCAGCACGCCAACAAAG
+q S1_85               SK;)+OKoHe/X0I9^.IPD^C1O*;HD><E6%
+
+a score=57
+s Q2LCP8  44 12 + 491 LeuLysLeuThrLeuIleValIleMetIleValIle
+s S1_93  119 36 - 650 CTCAAAGCCATCCTGGTGATGATTATGGTGGTCATT
+q S1_93               ?_sI~R_lA`PhDjXLL>'am3:HU<5[<JQ6aVXJ
+
+a score=59
+s Q2LCP8 317 10 + 491 AlaGlySerMetSerGluGluLeuMetVal
+s S1_98  195 30 + 401 GCGGGCGGTATGGGTGCGGCGCTGATGGCG
+q S1_98               ^qSm~vj}J~i~~y~~BPs_M~;{~=~2G6
+
+a score=58
+s Q2LCP8 130 13 + 491 IleThrLeuPheLeuSerLeuGluIleSerSerIleCys
+s S1_98    4 39 + 401 ATTGCGTCATTCGCGTCGCTTGTGATGTCACCAATCCGC
+q S1_98               yq{~I8V.~S~XFRM~Sp~~B~?a[bDI~~~aRo~JsTK
+
+# Query sequences=100
+
 TEST lastal -fBlastTab -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 #
 # a=11 b=1 A=11 B=1 F=15 e=36 d=29 x=35 y=31 z=35 D=1000 E=9.29879e+11

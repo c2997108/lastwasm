@@ -146,7 +146,10 @@ void Alignment::makeXdrop( Centroid& centroid,
     forwardBlocks.pop_back();
   }
 
+  size_t oldSize = blocks.size();
   blocks.insert( blocks.end(), forwardBlocks.rbegin(), forwardBlocks.rend() );
+  for (size_t i = oldSize; i < blocks.size(); ++i)
+    blocks[i - 1].score = blocks[i].score;
 
   if( outputType > 3 ){  // set the un-ambiguity of the core to a max value:
     columnAmbiguityCodes.insert( columnAmbiguityCodes.end(), seed.size, 126 );
@@ -160,6 +163,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 // cost of the gap between x and y
 static int gapCost(const SegmentPair &x, const SegmentPair &y,
 		   const mcf::GapCosts &gapCosts, size_t frameSize) {
+  if (gapCosts.isNewFrameshifts()) return x.score;
   size_t gapSize1 = y.beg1() - x.end1();
   size_t gapSize2, frameshift2;
   sizeAndFrameshift(x.end2(), y.beg2(), frameSize, gapSize2, frameshift2);
@@ -296,22 +300,32 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     assert( !sm2qual );
 
     size_t dnaStart = aaToDna( start2, frameSize );
-    size_t f = dnaStart + 1;
-    size_t r = dnaStart - 1;
-    size_t frame1 = dnaToAa( isForward ? f : r, frameSize );
-    size_t frame2 = dnaToAa( isForward ? r : f, frameSize );
-
-    score += aligner.align3( seq1 + start1, seq2 + start2,
-			     seq2 + frame1, seq2 + frame2, isForward,
-			     sm, del.openCost, del.growCost, gap.pairCost,
-			     gap.frameshiftCost, maxDrop, smMax );
-
+    size_t frame1 = isForward ? dnaStart + 1 : dnaStart - 1;
     size_t end1, end2, size;
-    // This should be OK even if end2 < size * 3:
-    while( aligner.getNextChunk3( end1, end2, size,
-				  del.openCost, del.growCost, gap.pairCost,
-				  gap.frameshiftCost ) )
-      chunks.push_back( SegmentPair( end1 - size, end2 - size * 3, size ) );
+    int gapCost;
+
+    if (gap.isNewFrameshifts()) {
+      size_t frame2 = isForward ? dnaStart + 2 : dnaStart - 2;
+      score += aligner.alignFrame(seq1 + start1, seq2 + start2,
+				  seq2 + dnaToAa(frame1, frameSize),
+				  seq2 + dnaToAa(frame2, frameSize),
+				  isForward, sm, gap, maxDrop);
+      while (aligner.getNextChunkFrame(end1, end2, size, gapCost, gap))
+	chunks.push_back(SegmentPair(end1 - size, end2 - size * 3, size,
+				     gapCost));
+    } else {
+      size_t frame2 = isForward ? dnaStart - 1 : dnaStart + 1;
+      score += aligner.align3(seq1 + start1, seq2 + start2,
+			      seq2 + dnaToAa(frame1, frameSize),
+			      seq2 + dnaToAa(frame2, frameSize), isForward,
+			      sm, del.openCost, del.growCost, gap.pairCost,
+			      gap.frameshiftCost, maxDrop, smMax);
+      // This should be OK even if end2 < size * 3:
+      while (aligner.getNextChunk3(end1, end2, size,
+				   del.openCost, del.growCost, gap.pairCost,
+				   gap.frameshiftCost))
+	chunks.push_back(SegmentPair(end1 - size, end2 - size * 3, size));
+    }
 
     return;
   }

@@ -89,7 +89,6 @@ LastalArguments::LastalArguments() :
   matchScore(-1),  // depends on the alphabet
   mismatchCost(-1),  // depends on the alphabet
   gapPairCost(-1),  // this means: OFF
-  frameshiftCost(-1),  // this means: ordinary, non-translated alignment
   matrixFile(""),
   ambiguousLetterOpt(0),
   maxDropGapped(100),  // depends on maxDropFinal
@@ -252,8 +251,10 @@ LAST home page: http://last.cbrc.jp/\n\
       if( gapPairCost <= 0 ) badopt( c, optarg );
       break;
     case 'F':
-      unstringify( frameshiftCost, optarg );
-      if( frameshiftCost < 0 ) badopt( c, optarg );
+      parseIntList(optarg, frameshiftCosts);
+      if (frameshiftCosts.size() != 4 &&
+	  (frameshiftCosts.size() != 1 || frameshiftCosts[0] < 0))
+	badopt(c, optarg);
       break;
     case 'x':
       maxDropGapped = parseScoreAndSuffix(optarg, maxDropGappedSuffix);
@@ -458,7 +459,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     delGrowCosts.assign(1, gapGrowCost);
     insOpenCosts.assign(1, 0);
     insGrowCosts.assign(1, gapGrowCost);
-    if( frameshiftCost > 0 ) frameshiftCost =   0;
+    if (isFrameshift()) frameshiftCosts.assign(1, 0);
     if( matchScore % 2 )
       ERR( "with option -M, the match score (option -r) must be even" );
   }
@@ -542,8 +543,8 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     ERR("piecewise linear gap costs not implemented");
   }
 
-  if (isFrameshift()) {
-    if (frameshiftCost < delGrowCosts[0])
+  if (isFrameshift() && frameshiftCosts.size() == 1) {
+    if (frameshiftCosts[0] < delGrowCosts[0])
       ERR("the frameshift cost must not be less than the gap extension cost");
 
     if (insOpenCosts[0] != delOpenCosts[0] ||
@@ -603,7 +604,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   if( gapPairCost > 0 )
     stream << " c=" << gapPairCost;
   if( isTranslated() )
-    stream << " F=" << frameshiftCost;
+    stream << " F="; writeIntList(stream, frameshiftCosts);
   stream << " e=" << minScoreGapped;
   stream << " d=" << minScoreGapless;
   stream << " x=" << maxDropGapped;

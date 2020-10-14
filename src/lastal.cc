@@ -285,20 +285,18 @@ static void calculateScoreStatistics(const std::string& matrixName,
   const double *p1 = stats.letterProbs1();
   const double *p2 = stats.letterProbs2();
   if (args.isTranslated() && !scoreMatrix.isCodonCols()) p2 = 0;
+  int fsCost = gapCosts.isNewFrameshifts() ? 0 : gapCosts.frameshiftCost;
   LOG( "getting E-value parameters..." );
   try{
-    gaplessEvaluer.init(canonicalMatrixName,
-			args.matchScore, args.mismatchCost,
-			alph.letters.c_str(), scoreMat, p1, p2, false,
-			0, 0, 0, 0, gapCosts.frameshiftCost, geneticCode,
-			args.geneticCodeFile.c_str(), args.verbosity);
-
+    gaplessEvaluer.init(0, 0, 0, alph.letters.c_str(), scoreMat, p1, p2, false,
+			0, 0, 0, 0, fsCost, geneticCode, 0, 0);
+    if (gapCosts.isNewFrameshifts() && isGapped) return;
     const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
     const mcf::GapCosts::Piece &ins = gapCosts.insPieces[0];
     evaluer.init(canonicalMatrixName, args.matchScore, args.mismatchCost,
 		 alph.letters.c_str(), scoreMat, p1, p2, isGapped,
 		 del.openCost, del.growCost, ins.openCost, ins.growCost,
-		 gapCosts.frameshiftCost, geneticCode,
+		 fsCost, geneticCode,
 		 args.geneticCodeFile.c_str(), args.verbosity);
     countT m = std::min(refMaxSeqLen, refLetters);
     evaluer.setSearchSpace(refLetters, m, args.numOfStrands());
@@ -1234,7 +1232,7 @@ void lastal( int argc, char** argv ){
   makeScoreMatrix( matrixName, matrixFile );
   gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
 		  args.insOpenCosts, args.insGrowCosts,
-		  args.gapPairCost, args.frameshiftCost);
+		  args.frameshiftCosts, args.gapPairCost);
 
   if( args.isTranslated() ){
     if( isDna )  // allow user-defined alphabet

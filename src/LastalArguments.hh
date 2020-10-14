@@ -46,10 +46,13 @@ struct LastalArguments{
   void writeCommented( std::ostream& stream ) const;
 
   // are we doing translated alignment (DNA versus protein)?
-  bool isTranslated() const{ return frameshiftCost >= 0; }
+  bool isTranslated() const { return !frameshiftCosts.empty(); }
 
   // are we doing translated alignment with frameshifts?
-  bool isFrameshift() const{ return frameshiftCost > 0; }
+  bool isFrameshift() const {
+    return
+      isTranslated() && (frameshiftCosts.size() > 1 || frameshiftCosts[0] > 0);
+  }
 
   // how many strands are we scanning (1 or 2)?
   int numOfStrands() const{ return (strand == 2) ? 2 : 1; }
@@ -86,7 +89,7 @@ struct LastalArguments{
   std::vector<int> insOpenCosts;
   std::vector<int> insGrowCosts;
   int gapPairCost;
-  int frameshiftCost;
+  std::vector<int> frameshiftCosts;
   std::string matrixFile;
   int ambiguousLetterOpt;
   int maxDropGapped;

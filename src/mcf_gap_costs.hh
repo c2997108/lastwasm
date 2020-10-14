@@ -48,16 +48,21 @@ struct GapCosts {
   // Throw a runtime_error if any growCost is <= 0.
   // delOpenCosts.size() must equal delGrowCosts.size(), and
   // insOpenCosts.size() must equal insGrowCosts.size().
-  // The vectors must not be empty.
+  // The del and ins vectors must not be empty.
+  // The number of frameshift costs should be: 0 (no frameshifts), 1
+  // (old-style frameshifts), or 4 (new-style frameshifts).
   void assign(const std::vector<int> &delOpenCosts,
 	      const std::vector<int> &delGrowCosts,
 	      const std::vector<int> &insOpenCosts,
 	      const std::vector<int> &insGrowCosts,
-	      int unalignedPairCost, int frameshiftCostIn);
+	      const std::vector<int> &frameshiftCosts,
+	      int unalignedPairCost);
 
   // The cost of a "gap" consisting of unaligned letters in the query
   // and/or reference sequence
   int cost(int refInsertLen, int qryInsertLen) const;
+
+  bool isNewFrameshifts() const { return frameshiftCost == -2; }
 };
 
 }
