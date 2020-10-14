@@ -371,7 +371,7 @@ def allSortedRanges(opts, alignments, alignmentsB,
     o1, oB1 = twoValuesFromOption(opts.strands1, ":")
     o2, oB2 = twoValuesFromOption(opts.strands2, ":")
     if o1 == "1" and o2 == "1":
-        raise Exception("the strand options have circular dependency")
+        raise RuntimeError("the strand options have circular dependency")
     seqRanges1 = list(rangesWithStrandInfo(seqRanges1, o1, alignments, 0))
     seqRanges2 = list(rangesWithStrandInfo(seqRanges2, o2, alignments, 1))
     seqRangesB1 = list(rangesWithStrandInfo(seqRangesB1, oB1, alignmentsB, 0))
@@ -380,7 +380,7 @@ def allSortedRanges(opts, alignments, alignmentsB,
     o1, oB1 = twoValuesFromOption(opts.sort1, ":")
     o2, oB2 = twoValuesFromOption(opts.sort2, ":")
     if o1 == "3" and o2 == "3":
-        raise Exception("the sort options have circular dependency")
+        raise RuntimeError("the sort options have circular dependency")
     if o1 != "3":
         s1 = mySortedRanges(seqRanges1, o1, None, None, None)
     if o2 != "3":
@@ -461,7 +461,7 @@ def get_bp_per_pix(rangeSizes, pixTweenRanges, maxPixels):
     numOfRanges = len(rangeSizes)
     maxPixelsInRanges = maxPixels - pixTweenRanges * (numOfRanges - 1)
     if maxPixelsInRanges < numOfRanges:
-        raise Exception("can't fit the image: too many sequences?")
+        raise RuntimeError("can't fit the image: too many sequences?")
     negLimit = -maxPixelsInRanges
     negBpPerPix = sum(rangeSizes) // negLimit
     while True:
@@ -699,6 +699,7 @@ def readGaps(opts, fileName, rangeDict):
 def bedBoxes(beds, rangeDict, limit, isTop, bpPerPix, textSizes):
     cover = [(limit, limit)]
     for layer, color, seqName, bedBeg, bedEnd, name in reversed(beds):
+        textWidth, textHeight = textSizes[name]
         for rangeBeg, rangeEnd, isReverseRange, origin in rangeDict[seqName]:
             beg = max(bedBeg, rangeBeg)
             end = min(bedEnd, rangeEnd)
@@ -719,14 +720,13 @@ def bedBoxes(beds, rangeDict, limit, isTop, bpPerPix, textSizes):
                         pixBeg = (origin + beg) // bpPerPix
                     else:
                         pixEnd = div_ceil(origin + end, bpPerPix)
-            textWidth, textHeight = textSizes[name]
             nameBeg = (pixBeg + pixEnd - textHeight) // 2
             nameEnd = nameBeg + textHeight
+            n = ""
             if name and all(e <= nameBeg or b >= nameEnd for b, e in cover):
                 cover.append((nameBeg, nameEnd))
-            else:
-                name = ""
-            yield layer, color, isTop, pixBeg, pixEnd, name, nameBeg, textWidth
+                n = name
+            yield layer, color, isTop, pixBeg, pixEnd, n, nameBeg, textWidth
 
 def drawAnnotations(im, boxes, tMargin, bMarginBeg, lMargin, rMarginBeg):
     # xxx use partial transparency for different-color overlaps?
@@ -882,7 +882,7 @@ def lastDotplot(opts, args):
     logging.info("reading alignments...")
     alnData = readAlignments(args[0], opts)
     alignments, seqRanges1, coverDict1, seqRanges2, coverDict2 = alnData
-    if not alignments: raise Exception("there are no alignments")
+    if not alignments: raise RuntimeError("there are no alignments")
     logging.info("cutting...")
     coverDict1 = dict(mergedRangesPerSeq(coverDict1))
     coverDict2 = dict(mergedRangesPerSeq(coverDict2))
@@ -1149,6 +1149,6 @@ if __name__ == "__main__":
 
     try: lastDotplot(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message
-    except Exception as e:
+    except RuntimeError as e:
         prog = os.path.basename(sys.argv[0])
         sys.exit(prog + ": error: " + str(e))
