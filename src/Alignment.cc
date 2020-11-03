@@ -6,17 +6,13 @@
 #include "GeneticCode.hh"
 #include "GreedyXdropAligner.hh"
 #include "TwoQualityScoreMatrix.hh"
-#include <cassert>
+
+#include <assert.h>
 
 // make C++ tolerable:
 #define IT(type) std::vector<type>::iterator
 
 using namespace cbrc;
-
-void Alignment::fromSegmentPair( const SegmentPair& sp ){
-  blocks.assign( 1, sp );
-  score = sp.score;
-}
 
 static void addExpectedCounts( double* expectedCounts,
 			       const ExpectedCount& ec,
@@ -62,7 +58,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 			   const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix,
 			   int smMax, int smMin,
-			   const mcf::GapCosts& gap, int maxDrop,
+			   const GapCosts& gap, int maxDrop,
 			   size_t frameSize, const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2,
@@ -162,7 +158,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 
 // cost of the gap between x and y
 static int gapCost(const SegmentPair &x, const SegmentPair &y,
-		   const mcf::GapCosts &gapCosts, size_t frameSize) {
+		   const GapCosts &gapCosts, size_t frameSize) {
   if (gapCosts.isNewFrameshifts()) return x.score;
   size_t gapSize1 = y.beg1() - x.end1();
   size_t gapSize2, frameshift2;
@@ -174,7 +170,7 @@ static int gapCost(const SegmentPair &x, const SegmentPair &y,
 
 bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix, int maxDrop,
-			   const mcf::GapCosts& gapCosts, size_t frameSize,
+			   const GapCosts& gapCosts, size_t frameSize,
 			   const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
                            const uchar* qual1, const uchar* qual2 ) const{
@@ -216,7 +212,7 @@ bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
 
 bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
 			       int minScore, const ScoreMatrixRow *scoreMatrix,
-			       const mcf::GapCosts &gapCosts, size_t frameSize,
+			       const GapCosts &gapCosts, size_t frameSize,
 			       const ScoreMatrixRow *pssm2,
 			       const TwoQualityScoreMatrix &sm2qual,
 			       const uchar *qual1, const uchar *qual2) const {
@@ -281,15 +277,14 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
 			const ScoreMatrixRow* sm, int smMax, int smMin,
-			int maxDrop, const mcf::GapCosts& gap,
-			size_t frameSize,
+			int maxDrop, const GapCosts& gap, size_t frameSize,
 			const ScoreMatrixRow* pssm2,
-                        const TwoQualityScoreMatrix& sm2qual,
+			const TwoQualityScoreMatrix& sm2qual,
                         const uchar* qual1, const uchar* qual2,
 			const Alphabet& alph, AlignmentExtras& extras,
 			double gamma, int outputType ){
-  const mcf::GapCosts::Piece &del = gap.delPieces[0];
-  const mcf::GapCosts::Piece &ins = gap.insPieces[0];
+  const GapCosts::Piece &del = gap.delPieces[0];
+  const GapCosts::Piece &ins = gap.insPieces[0];
   GappedXdropAligner& aligner = centroid.aligner();
 
   if( frameSize ){

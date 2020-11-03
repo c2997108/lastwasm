@@ -4,9 +4,11 @@
 
 #ifndef ALIGNMENT_HH
 #define ALIGNMENT_HH
+
 #include "ScoreMatrixRow.hh"
 #include "SegmentPair.hh"
 #include "mcf_gap_costs.hh"
+
 #include <stddef.h>  // size_t
 #include <string>
 #include <vector>
@@ -70,7 +72,10 @@ struct AlignmentExtras {
 
 struct Alignment{
   // make a single-block alignment:
-  void fromSegmentPair( const SegmentPair& sp );
+  void fromSegmentPair(const SegmentPair &sp) {
+    blocks.assign(1, sp);
+    score = sp.score;
+  }
 
   // Make an Alignment by doing gapped X-drop extension in both
   // directions starting from a seed SegmentPair.  The resulting

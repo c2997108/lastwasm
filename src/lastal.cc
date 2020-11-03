@@ -16,7 +16,6 @@
 #include "AlignmentPot.hh"
 #include "Alignment.hh"
 #include "SegmentPairPot.hh"
-#include "SegmentPair.hh"
 #include "ScoreMatrix.hh"
 #include "TantanMasker.hh"
 #include "DiagonalTable.hh"

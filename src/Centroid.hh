@@ -3,10 +3,12 @@
 
 #ifndef CENTROID_HH
 #define CENTROID_HH
+
 #include "GappedXdropAligner.hh"
 #include "mcf_gap_costs.hh"
 #include "SegmentPair.hh"
 #include "OneQualityScoreMatrix.hh"
+
 #include <vector>
 #include <iostream> // for debug
 
@@ -56,17 +58,17 @@ namespace cbrc{
 
     void doForwardBackwardAlgorithm(const uchar* seq1, const uchar* seq2,
 				    size_t start1, size_t start2,
-				    bool isExtendFwd, const GapCosts& gap,
+				    bool isExtendFwd, const GapCosts& gapCosts,
 				    int globality) {
       seq1 += start1;
       seq2 += start2;
       const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
       numAntidiagonals = xa.numAntidiagonals();
       scale.assign(numAntidiagonals + 2, 1.0);
-      forward(seq1, seq2, pssm, isExtendFwd, gap, globality);
+      forward(seq1, seq2, pssm, isExtendFwd, gapCosts, globality);
       mD.assign(numAntidiagonals + 2, 0.0);
       mI.assign(numAntidiagonals + 2, 0.0);
-      backward(seq1, seq2, pssm, isExtendFwd, gap, globality);
+      backward(seq1, seq2, pssm, isExtendFwd, gapCosts, globality);
     }
 
     double dp( double gamma );
@@ -97,7 +99,7 @@ namespace cbrc{
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
 			       size_t start1, size_t start2, bool isExtendFwd,
-			       const GapCosts& gap, unsigned alphabetSize,
+			       const GapCosts& gapCosts, unsigned alphabetSize,
 			       ExpectedCount& count) const;
 
   private:
@@ -138,11 +140,11 @@ namespace cbrc{
 
     void forward(const uchar* seq1, const uchar* seq2,
 		 const ExpMatrixRow* pssm, bool isExtendFwd,
-		 const GapCosts& gap, int globality);
+		 const GapCosts& gapCosts, int globality);
 
     void backward(const uchar* seq1, const uchar* seq2,
 		  const ExpMatrixRow* pssm, bool isExtendFwd,
-		  const GapCosts& gap, int globality);
+		  const GapCosts& gapCosts, int globality);
 
     void initForwardMatrix();
     void initBackwardMatrix();

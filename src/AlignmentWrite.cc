@@ -324,7 +324,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
 				  const AlignmentExtras& extras) const {
   bool isCodon = (translationType == 2);
   double fullScore = extras.fullScore;
-  const std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
+  const std::vector<char>& columnProbSymbols = extras.columnAmbiguityCodes;
 
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
@@ -372,7 +372,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   bool isQuals1 = qualsPerBase1 && (translationType != 2);
   bool isQuals2 = qualsPerBase2 && (translationType != 1);
 
-  size_t sLineNum = 2 + isQuals1 + isQuals2 + !columnAmbiguityCodes.empty();
+  size_t sLineNum = 2 + isQuals1 + isQuals2 + !columnProbSymbols.empty();
   size_t textLen = aLineLen + sLineLen * sLineNum + cLine.size() + 1;
   char *text = new char[textLen + 1];
 
@@ -404,15 +404,14 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
 
   Writer w(dest);
 
-  if (!columnAmbiguityCodes.empty()) {
+  if (!columnProbSymbols.empty()) {
     w << 'p' << ' ';
     w.fill(pLineBlankLen, ' ');
-    w.copy(&columnAmbiguityCodes[0], columnAmbiguityCodes.size());
+    w.copy(&columnProbSymbols[0], columnProbSymbols.size());
     w << '\n';
   }
 
   if (!cLine.empty()) w.copy(&cLine[0], cLine.size());
-
   w << '\n' << '\0';  // blank line afterwards
 
   return AlignmentText(seqNum2, alnBeg2, alnEnd2, strand2, score, 0, 0, text);

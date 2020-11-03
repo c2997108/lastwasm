@@ -3,12 +3,11 @@
 
 #include "Centroid.hh"
 #include "GappedXdropAlignerInl.hh"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath> // for exp
 #include <cfloat>   // for DBL_MAX
-#include <cstdlib>  // for abs
-#include <iomanip>
 
 static const double DINF = DBL_MAX / 2;
 
@@ -114,14 +113,14 @@ namespace cbrc{
 
   void Centroid::forward(const uchar* seq1, const uchar* seq2,
 			 const ExpMatrixRow* pssm, bool isExtendFwd,
-			 const GapCosts& gap, int globality) {
+			 const GapCosts& gapCosts, int globality) {
     const int seqIncrement = isExtendFwd ? 1 : -1;
     initForwardMatrix();
 
-    const double delOpen = EXP(-gap.delPieces[0].openCost / T);
-    const double delGrow = EXP(-gap.delPieces[0].growCost / T);
-    const double insOpen = EXP(-gap.insPieces[0].openCost / T);
-    const double insGrow = EXP(-gap.insPieces[0].growCost / T);
+    const double delOpen = EXP(-gapCosts.delPieces[0].openCost / T);
+    const double delGrow = EXP(-gapCosts.delPieces[0].growCost / T);
+    const double insOpen = EXP(-gapCosts.insPieces[0].openCost / T);
+    const double insGrow = EXP(-gapCosts.insPieces[0].growCost / T);
 
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert
@@ -231,14 +230,14 @@ namespace cbrc{
   // compute posterior probabilities while executing backward algorithm
   void Centroid::backward(const uchar* seq1, const uchar* seq2,
 			  const ExpMatrixRow* pssm, bool isExtendFwd,
-			  const GapCosts& gap, int globality) {
+			  const GapCosts& gapCosts, int globality) {
     const int seqIncrement = isExtendFwd ? 1 : -1;
     initBackwardMatrix();
 
-    const double delOpen = EXP(-gap.delPieces[0].openCost / T);
-    const double delGrow = EXP(-gap.delPieces[0].growCost / T);
-    const double insOpen = EXP(-gap.insPieces[0].openCost / T);
-    const double insGrow = EXP(-gap.insPieces[0].growCost / T);
+    const double delOpen = EXP(-gapCosts.delPieces[0].openCost / T);
+    const double delGrow = EXP(-gapCosts.delPieces[0].growCost / T);
+    const double insOpen = EXP(-gapCosts.insPieces[0].openCost / T);
+    const double insGrow = EXP(-gapCosts.insPieces[0].growCost / T);
 
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert
@@ -584,7 +583,7 @@ namespace cbrc{
   void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
 					 size_t start1, size_t start2,
 					 bool isExtendFwd,
-					 const GapCosts& gap,
+					 const GapCosts& gapCosts,
 					 unsigned alphabetSize,
 					 ExpectedCount& c ) const{
     seq1 += start1;
@@ -600,10 +599,10 @@ namespace cbrc{
     int alphabetSizeIncrement = alphabetSize;
     if (!isExtendFwd) alphabetSizeIncrement *= -1;
 
-    const double delOpen = EXP(-gap.delPieces[0].openCost / T);
-    const double delGrow = EXP(-gap.delPieces[0].growCost / T);
-    const double insOpen = EXP(-gap.insPieces[0].openCost / T);
-    const double insGrow = EXP(-gap.insPieces[0].growCost / T);
+    const double delOpen = EXP(-gapCosts.delPieces[0].openCost / T);
+    const double delGrow = EXP(-gapCosts.delPieces[0].growCost / T);
+    const double insOpen = EXP(-gapCosts.insPieces[0].openCost / T);
+    const double insGrow = EXP(-gapCosts.insPieces[0].growCost / T);
 
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert
