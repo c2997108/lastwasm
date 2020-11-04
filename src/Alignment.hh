@@ -5,25 +5,24 @@
 #ifndef ALIGNMENT_HH
 #define ALIGNMENT_HH
 
-#include "ScoreMatrixRow.hh"
+#include "Centroid.hh"
+#include "GreedyXdropAligner.hh"
 #include "SegmentPair.hh"
-#include "mcf_gap_costs.hh"
 
-#include <stddef.h>  // size_t
-#include <string>
 #include <vector>
 #include <cstring>
 
 namespace cbrc{
 
-typedef unsigned char uchar;
-
-class GreedyXdropAligner;
 class LastEvaluer;
 class MultiSequence;
 class Alphabet;
-class Centroid;
 class TwoQualityScoreMatrix;
+
+struct Aligners {
+  Centroid centroid;
+  GreedyXdropAligner greedyAligner;
+};
 
 struct AlignmentText {
   // This holds the final text representation of an alignment, along
@@ -82,11 +81,10 @@ struct Alignment{
   // Alignment might not be "optimal" (see below).
   // If outputType > 3: calculates match probabilities.
   // If outputType > 4: does gamma-centroid alignment.
-  void makeXdrop( Centroid& centroid,
-		  GreedyXdropAligner& greedyAligner, bool isGreedy,
+  void makeXdrop( Aligners &aligners, bool isGreedy,
 		  const uchar* seq1, const uchar* seq2, int globality,
 		  const ScoreMatrixRow* scoreMatrix, int smMax, int smMin,
-		  const mcf::GapCosts& gap, int maxDrop, size_t frameSize,
+		  const GapCosts& gap, int maxDrop, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2,
@@ -99,7 +97,7 @@ struct Alignment{
   // If "globality" is non-zero, skip the prefix and suffix checks.
   bool isOptimal( const uchar* seq1, const uchar* seq2, int globality,
                   const ScoreMatrixRow* scoreMatrix, int maxDrop,
-                  const mcf::GapCosts& gapCosts, size_t frameSize,
+                  const GapCosts& gapCosts, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
                   const uchar* qual1, const uchar* qual2 ) const;
@@ -107,7 +105,7 @@ struct Alignment{
   // Does the Alignment have any segment with score >= minScore?
   bool hasGoodSegment(const uchar *seq1, const uchar *seq2,
 		      int minScore, const ScoreMatrixRow *scoreMatrix,
-		      const mcf::GapCosts &gapCosts, size_t frameSize,
+		      const GapCosts &gapCosts, size_t frameSize,
 		      const ScoreMatrixRow *pssm2,
 		      const TwoQualityScoreMatrix &sm2qual,
 		      const uchar *qual1, const uchar *qual2) const;
@@ -135,13 +133,12 @@ struct Alignment{
 
   void extend( std::vector< SegmentPair >& chunks,
 	       std::vector< char >& columnCodes,
-	       Centroid& centroid,
-	       GreedyXdropAligner& greedyAligner, bool isGreedy,
+	       Aligners &aligners, bool isGreedy,
 	       const uchar* seq1, const uchar* seq2,
 	       size_t start1, size_t start2,
 	       bool isForward, int globality,
 	       const ScoreMatrixRow* sm, int smMax, int smMin, int maxDrop,
-	       const mcf::GapCosts& gap, size_t frameSize,
+	       const GapCosts& gap, size_t frameSize,
 	       const ScoreMatrixRow* pssm2,
                const TwoQualityScoreMatrix& sm2qual,
                const uchar* qual1, const uchar* qual2,

@@ -12,14 +12,12 @@
 #include "GeneticCode.hh"
 #include "SubsetMinimizerFinder.hh"
 #include "SubsetSuffixArray.hh"
-#include "Centroid.hh"
 #include "AlignmentPot.hh"
 #include "Alignment.hh"
 #include "SegmentPairPot.hh"
 #include "ScoreMatrix.hh"
 #include "TantanMasker.hh"
 #include "DiagonalTable.hh"
-#include "GreedyXdropAligner.hh"
 #include "gaplessXdrop.hh"
 #include "gaplessPssmXdrop.hh"
 #include "gaplessTwoQualityXdrop.hh"
@@ -44,8 +42,7 @@ static void warn( const char* programName, const char* s ){
 using namespace cbrc;
 
 struct LastAligner {  // data that changes between queries
-  Centroid centroid;
-  GreedyXdropAligner greedyAligner;
+  Aligners engines;
   std::vector<int> qualityPssm;
   std::vector<AlignmentText> textAlns;
 };
@@ -718,7 +715,7 @@ void alignGapped( LastAligner& aligner,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop(aligner.centroid, aligner.greedyAligner, args.isGreedy,
+    aln.makeXdrop(aligner.engines, args.isGreedy,
 		  dis.a, dis.b, args.globality, dis.m,
 		  scoreMatrix.maxScore, scoreMatrix.minScore, gapCosts,
 		  dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
@@ -752,7 +749,7 @@ void alignGapped( LastAligner& aligner,
 void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, const SubstitutionMatrices &matrices,
 		  const uchar* querySeq ){
-  Centroid& centroid = aligner.centroid;
+  Centroid& centroid = aligner.engines.centroid;
   Dispatcher dis(Phase::final, aligner, queryNum, matrices, querySeq);
   size_t queryLen = query.padLen(queryNum);
   size_t frameSize = args.isFrameshift() ? (queryLen / 3) : 0;
@@ -785,7 +782,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       Alignment probAln;
       AlignmentExtras extras;
       probAln.seed = aln.seed;
-      probAln.makeXdrop(centroid, aligner.greedyAligner, args.isGreedy,
+      probAln.makeXdrop(aligner.engines, args.isGreedy,
 			dis.a, dis.b, args.globality, dis.m,
 			scoreMatrix.maxScore, scoreMatrix.minScore, gapCosts,
 			dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph,

@@ -2,9 +2,7 @@
 
 #include "Alignment.hh"
 #include "Alphabet.hh"
-#include "Centroid.hh"
 #include "GeneticCode.hh"
-#include "GreedyXdropAligner.hh"
 #include "TwoQualityScoreMatrix.hh"
 
 #include <assert.h>
@@ -41,8 +39,7 @@ static bool isNext( const SegmentPair& x, const SegmentPair& y ){
   return x.end1() == y.beg1() && x.end2() == y.beg2();
 }
 
-void Alignment::makeXdrop( Centroid& centroid,
-			   GreedyXdropAligner& greedyAligner, bool isGreedy,
+void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
 			   const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix,
 			   int smMax, int smMin,
@@ -65,7 +62,7 @@ void Alignment::makeXdrop( Centroid& centroid,
 
   // extend a gapped alignment in the left/reverse direction from the seed:
   std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
-  extend( blocks, columnAmbiguityCodes, centroid, greedyAligner, isGreedy,
+  extend( blocks, columnAmbiguityCodes, aligners, isGreedy,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, smMin, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -85,7 +82,7 @@ void Alignment::makeXdrop( Centroid& centroid,
   // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
   std::vector<char> forwardAmbiguities;
-  extend( forwardBlocks, forwardAmbiguities, centroid, greedyAligner, isGreedy,
+  extend( forwardBlocks, forwardAmbiguities, aligners, isGreedy,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, smMin, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -255,8 +252,7 @@ static void getColumnCodes(const Centroid& centroid, std::vector<char>& codes,
 
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< char >& columnCodes,
-			Centroid& centroid,
-			GreedyXdropAligner& greedyAligner, bool isGreedy,
+			Aligners &aligners, bool isGreedy,
 			const uchar* seq1, const uchar* seq2,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
@@ -269,7 +265,9 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			double gamma, int outputType ){
   const GapCosts::Piece &del = gap.delPieces[0];
   const GapCosts::Piece &ins = gap.insPieces[0];
+  Centroid &centroid = aligners.centroid;
   GappedXdropAligner& aligner = centroid.aligner();
+  GreedyXdropAligner &greedyAligner = aligners.greedyAligner;
 
   if( frameSize ){
     assert( outputType < 4 );

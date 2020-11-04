@@ -144,15 +144,21 @@ depend:
 	$(CXX) -MM alp/*.cpp | sed 's|.*:|alp/&|' >> m
 	$(CXX) -MM -I. split/*.cc | sed 's|.*:|split/&|' | $(fix8) >> m
 	mv m makefile
-Alignment.o Alignment.o8: Alignment.cc Alignment.hh ScoreMatrixRow.hh SegmentPair.hh \
- mcf_gap_costs.hh Alphabet.hh Centroid.hh GappedXdropAligner.hh \
- mcf_contiguous_queue.hh mcf_reverse_queue.hh mcf_simd.hh \
- OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh GeneticCode.hh \
- GreedyXdropAligner.hh TwoQualityScoreMatrix.hh
-AlignmentPot.o AlignmentPot.o8: AlignmentPot.cc AlignmentPot.hh Alignment.hh \
- ScoreMatrixRow.hh SegmentPair.hh mcf_gap_costs.hh
-AlignmentWrite.o AlignmentWrite.o8: AlignmentWrite.cc Alignment.hh ScoreMatrixRow.hh \
- SegmentPair.hh mcf_gap_costs.hh GeneticCode.hh LastEvaluer.hh \
+Alignment.o Alignment.o8: Alignment.cc Alignment.hh Centroid.hh GappedXdropAligner.hh \
+ mcf_contiguous_queue.hh mcf_reverse_queue.hh mcf_gap_costs.hh \
+ mcf_simd.hh ScoreMatrixRow.hh SegmentPair.hh OneQualityScoreMatrix.hh \
+ mcf_substitution_matrix_stats.hh GreedyXdropAligner.hh Alphabet.hh \
+ GeneticCode.hh TwoQualityScoreMatrix.hh
+AlignmentPot.o AlignmentPot.o8: AlignmentPot.cc AlignmentPot.hh Alignment.hh Centroid.hh \
+ GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
+ mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh SegmentPair.hh \
+ OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
+ GreedyXdropAligner.hh
+AlignmentWrite.o AlignmentWrite.o8: AlignmentWrite.cc Alignment.hh Centroid.hh \
+ GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
+ mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh SegmentPair.hh \
+ OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
+ GreedyXdropAligner.hh GeneticCode.hh LastEvaluer.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
  alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
  MultiSequence.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
@@ -251,13 +257,13 @@ lastal.o lastal.o8: lastal.cc last.hh Alphabet.hh CyclicSubsetSeed.hh \
  mcf_substitution_matrix_stats.hh TwoQualityScoreMatrix.hh LastEvaluer.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
  alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
- GeneticCode.hh SubsetMinimizerFinder.hh SubsetSuffixArray.hh Centroid.hh \
- GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
- mcf_gap_costs.hh mcf_simd.hh SegmentPair.hh AlignmentPot.hh Alignment.hh \
- SegmentPairPot.hh ScoreMatrix.hh TantanMasker.hh tantan.hh \
- DiagonalTable.hh GreedyXdropAligner.hh gaplessXdrop.hh \
- gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh mcf_zstream.hh \
- threadUtil.hh version.hh
+ GeneticCode.hh SubsetMinimizerFinder.hh SubsetSuffixArray.hh \
+ AlignmentPot.hh Alignment.hh Centroid.hh GappedXdropAligner.hh \
+ mcf_contiguous_queue.hh mcf_reverse_queue.hh mcf_gap_costs.hh \
+ mcf_simd.hh SegmentPair.hh GreedyXdropAligner.hh SegmentPairPot.hh \
+ ScoreMatrix.hh TantanMasker.hh tantan.hh DiagonalTable.hh \
+ gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh \
+ mcf_zstream.hh threadUtil.hh version.hh
 lastdb.o lastdb.o8: lastdb.cc last.hh Alphabet.hh CyclicSubsetSeed.hh \
  MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh \
  stringify.hh SequenceFormat.hh dna_words_finder.hh qualityScoreUtil.hh \
