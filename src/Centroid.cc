@@ -117,10 +117,10 @@ namespace cbrc{
     const int seqIncrement = isExtendFwd ? 1 : -1;
     initForwardMatrix();
 
-    const double delOpen = EXP(-gapCosts.delPieces[0].openCost / T);
-    const double delGrow = EXP(-gapCosts.delPieces[0].growCost / T);
-    const double insOpen = EXP(-gapCosts.insPieces[0].openCost / T);
-    const double insGrow = EXP(-gapCosts.insPieces[0].growCost / T);
+    const double delOpen = gapCosts.delProbPieces[0].openProb;
+    const double delGrow = gapCosts.delProbPieces[0].growProb;
+    const double insOpen = gapCosts.insProbPieces[0].openProb;
+    const double insGrow = gapCosts.insProbPieces[0].growProb;
 
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert
@@ -234,10 +234,10 @@ namespace cbrc{
     const int seqIncrement = isExtendFwd ? 1 : -1;
     initBackwardMatrix();
 
-    const double delOpen = EXP(-gapCosts.delPieces[0].openCost / T);
-    const double delGrow = EXP(-gapCosts.delPieces[0].growCost / T);
-    const double insOpen = EXP(-gapCosts.insPieces[0].openCost / T);
-    const double insGrow = EXP(-gapCosts.insPieces[0].growCost / T);
+    const double delOpen = gapCosts.delProbPieces[0].openProb;
+    const double delGrow = gapCosts.delProbPieces[0].growProb;
+    const double insOpen = gapCosts.insProbPieces[0].openProb;
+    const double insGrow = gapCosts.insProbPieces[0].growProb;
 
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert
@@ -599,10 +599,10 @@ namespace cbrc{
     int alphabetSizeIncrement = alphabetSize;
     if (!isExtendFwd) alphabetSizeIncrement *= -1;
 
-    const double delOpen = EXP(-gapCosts.delPieces[0].openCost / T);
-    const double delGrow = EXP(-gapCosts.delPieces[0].growCost / T);
-    const double insOpen = EXP(-gapCosts.insPieces[0].openCost / T);
-    const double insGrow = EXP(-gapCosts.insPieces[0].growCost / T);
+    const double delOpen = gapCosts.delProbPieces[0].openProb;
+    const double delGrow = gapCosts.delProbPieces[0].growProb;
+    const double insOpen = gapCosts.insProbPieces[0].openProb;
+    const double insGrow = gapCosts.insProbPieces[0].growProb;
 
     const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
     const double insInit = insOpen * insGrow;  // for 1st letter in an insert

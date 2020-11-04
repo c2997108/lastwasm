@@ -27,6 +27,11 @@ struct GapCosts {
     int growCost;
   };
 
+  struct ProbPiece {
+    double openProb;
+    double growProb;
+  };
+
   std::vector<Piece> delPieces;
   std::vector<Piece> insPieces;
   int pairCost;
@@ -43,6 +48,16 @@ struct GapCosts {
 
   bool isAffine;
 
+  // these are for calculating alignment probabilities:
+  std::vector<ProbPiece> delProbPieces;
+  std::vector<ProbPiece> insProbPieces;
+  double delProb1;
+  double delProb2;
+  double delProb3;
+  double insProb1;
+  double insProb2;
+  double insProb3;
+
   // Assign piecewise linear open and grow costs, and one pairCost.
   // If unalignedPairCost <= 0, assign non-generalized costs.
   // Throw a runtime_error if any growCost is <= 0.
@@ -56,7 +71,8 @@ struct GapCosts {
 	      const std::vector<int> &insOpenCosts,
 	      const std::vector<int> &insGrowCosts,
 	      const std::vector<int> &frameshiftCosts,
-	      int unalignedPairCost);
+	      int unalignedPairCost,
+	      double scale);  // probability ratio  =  exp(scale * score)
 
   // The cost of a "gap" consisting of unaligned letters in the query
   // and/or reference sequence

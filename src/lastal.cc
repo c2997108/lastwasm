@@ -1228,7 +1228,8 @@ void lastal( int argc, char** argv ){
   makeScoreMatrix( matrixName, matrixFile );
   gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
 		  args.insOpenCosts, args.insGrowCosts,
-		  args.frameshiftCosts, args.gapPairCost);
+		  args.frameshiftCosts, args.gapPairCost,
+		  fwdMatrices.stats.lambda());
 
   if( args.isTranslated() ){
     if( isDna )  // allow user-defined alphabet

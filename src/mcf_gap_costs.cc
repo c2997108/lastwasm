@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <assert.h>
 #include <limits.h>
+#include <math.h>
 #include <stddef.h>  // size_t
 
 static void err(const char *s) {
@@ -26,12 +27,23 @@ static void assignGapCostPieces(const std::vector<int> &openCosts,
   assert(!pieces.empty());
 }
 
+static void assignProbs(std::vector<GapCosts::ProbPiece> &probPieces,
+			const std::vector<GapCosts::Piece> &costPieces,
+			double scale) {
+  probPieces.resize(costPieces.size());
+  for (size_t i = 0; i < costPieces.size(); ++i) {
+    probPieces[i].openProb = exp(scale * -costPieces[i].openCost);
+    probPieces[i].growProb = exp(scale * -costPieces[i].growCost);
+  }
+}
+
 void GapCosts::assign(const std::vector<int> &delOpenCosts,
 		      const std::vector<int> &delGrowCosts,
 		      const std::vector<int> &insOpenCosts,
 		      const std::vector<int> &insGrowCosts,
 		      const std::vector<int> &frameshiftCosts,
-		      int unalignedPairCost) {
+		      int unalignedPairCost,
+		      double scale) {
   assignGapCostPieces(delOpenCosts, delGrowCosts, delPieces);
   assignGapCostPieces(insOpenCosts, insGrowCosts, insPieces);
   if (unalignedPairCost > 0) {
@@ -43,6 +55,9 @@ void GapCosts::assign(const std::vector<int> &delOpenCosts,
   isAffine = (delPieces.size() < 2 && insPieces.size() < 2 &&
 	      pairCost >= delPieces[0].growCost + insPieces[0].growCost +
 	      std::max(delPieces[0].openCost, insPieces[0].openCost));
+
+  assignProbs(delProbPieces, delPieces, scale);
+  assignProbs(insProbPieces, insPieces, scale);
 
   if (frameshiftCosts.empty()) {
     frameshiftCost = -1;
@@ -57,6 +72,13 @@ void GapCosts::assign(const std::vector<int> &delOpenCosts,
     insScore2 = -(2 * insPieces[0].growCost + frameshiftCosts[3]);
     insScore3 = -(3 * insPieces[0].growCost);
     frameshiftCost = -2;
+
+    delProb1 = exp(scale * delScore1);
+    delProb2 = exp(scale * delScore2);
+    delProb3 = exp(scale * delScore3);
+    insProb1 = exp(scale * insScore1);
+    insProb2 = exp(scale * insScore2);
+    insProb3 = exp(scale * insScore3);
   }
 }
 
