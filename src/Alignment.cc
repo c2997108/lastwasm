@@ -14,7 +14,7 @@
 
 using namespace cbrc;
 
-static void addExpectedCounts( double* expectedCounts,
+static void addExpectedCounts( double* totalCounts,
 			       const ExpectedCount& ec,
 			       const Alphabet& alph ){
   for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
@@ -23,29 +23,28 @@ static void addExpectedCounts( double* expectedCounts,
     for( unsigned j = 0; j < scoreMatrixRowSize; ++j ){
       unsigned y = alph.numbersToUppercase[j];
       if( y >= alph.size ) continue;
-      expectedCounts[ x * alph.size + y ] += ec.emit[i][j];
+      totalCounts[ x * alph.size + y ] += ec.emit[i][j];
     }
   }
 
-  const int numEmissionCounts = alph.size * alph.size;
-  double* transitionCounts = &expectedCounts[ numEmissionCounts ];
+  totalCounts += alph.size * alph.size;
 
-  transitionCounts[0] += ec.toMatch;
-  transitionCounts[1] += ec.delNext + ec.delInit;  // deleted letter count
-  transitionCounts[2] += ec.insNext + ec.insInit;  // inserted letter count
-  transitionCounts[3] += ec.delInit;  // deletion open/close count
-  transitionCounts[4] += ec.insInit;  // insertion open/close count
+  totalCounts[0] += ec.toMatch;
+  totalCounts[1] += ec.delNext + ec.delInit;  // deleted letter count
+  totalCounts[2] += ec.insNext + ec.insInit;  // inserted letter count
+  totalCounts[3] += ec.delInit;  // deletion open/close count
+  totalCounts[4] += ec.insInit;  // insertion open/close count
 }
 
-static void countSeedMatches( double* expectedCounts,
-			      const uchar* seq1beg, const uchar* seq1end,
-			      const uchar* seq2beg, const Alphabet& alph ){
-  while( seq1beg < seq1end ){
-    unsigned x1 = alph.numbersToUppercase[ *seq1beg++ ];
-    unsigned x2 = alph.numbersToUppercase[ *seq2beg++ ];
+static void addSeedCounts(const uchar *seq1, const uchar *seq2, size_t size,
+			  double *expectedCounts, const Alphabet &alph) {
+  for (size_t i = 0; i < size; ++i) {
+    unsigned x1 = alph.numbersToUppercase[seq1[i]];
+    unsigned x2 = alph.numbersToUppercase[seq2[i]];
     if( x1 < alph.size && x2 < alph.size )
       ++expectedCounts[ x1 * alph.size + x2 ];
   }
+  expectedCounts[alph.size * alph.size] += size;
 }
 
 // Does x precede and touch y in both sequences?
@@ -69,14 +68,11 @@ void Alignment::makeXdrop( Centroid& centroid,
 
   if( outputType == 7 ){
     assert( seed.size > 0 );  // makes things easier to understand
-    const int numEmissionCounts = alph.size * alph.size;
-    const int numTransitionCounts = 5;
-    std::vector<double>& expectedCounts = extras.expectedCounts;
-    expectedCounts.resize( numEmissionCounts + numTransitionCounts );
-    countSeedMatches( &expectedCounts[0],
-		      seq1 + seed.beg1(), seq1 + seed.end1(),
-		      seq2 + seed.beg2(), alph );
-    expectedCounts[ numEmissionCounts ] += seed.size;  // match count
+    const int numOfTransitions = 5;
+    std::vector<double> &ec = extras.expectedCounts;
+    ec.resize(alph.size * alph.size + numOfTransitions);
+    addSeedCounts(seq1 + seed.beg1(), seq2 + seed.beg2(), seed.size, &ec[0],
+		  alph);
   }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
