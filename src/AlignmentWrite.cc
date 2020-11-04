@@ -302,14 +302,32 @@ static char *writeMafHeadQ(char *out,
 
 // Write a "c" line
 static void writeMafLineC(std::vector<char> &cLine,
-			  const std::vector<double> &counts) {
-  size_t s = counts.size();
-  if (s == 0) return;
-  cLine.resize(2 + 32 * s);
+			  const std::vector<double> &counts,
+			  const Alphabet &alph) {
+  if (counts.empty()) return;
+  unsigned numOfSubstitutions = scoreMatrixRowSize * scoreMatrixRowSize;
+  size_t numOfTransitions = counts.size() - numOfSubstitutions;
+  size_t numOfCounts = alph.size * alph.size + numOfTransitions;
+  cLine.resize(2 + 32 * numOfCounts);
   char *e = &cLine[0];
   *e++ = 'c';
-  for (size_t i = 0; i < s; ++i)
-    e += std::sprintf(e, " %.3g", counts[i]);
+
+  for (unsigned i = 0; i < alph.size; ++i) {
+    unsigned x = alph.numbersToLowercase[i];
+    for (unsigned j = 0; j < alph.size; ++j) {
+      unsigned y = alph.numbersToLowercase[j];
+      double c = counts[i * scoreMatrixRowSize + j];
+      if (x != i) c += counts[x * scoreMatrixRowSize + j];
+      if (y != j) c += counts[i * scoreMatrixRowSize + y];
+      if (x != i && y != j) c += counts[x * scoreMatrixRowSize + y];
+      e += std::sprintf(e, " %.3g", c);
+    }
+  }
+
+  for (size_t i = 0; i < numOfTransitions; ++i) {
+    e += std::sprintf(e, " %.3g", counts[numOfSubstitutions + i]);
+  }
+
   *e++ = '\n';
   cLine.resize(e - &cLine[0]);
 }
@@ -365,7 +383,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   size_t sLineLen = 2 + pLineBlankLen + numColumns(frameSize2, isCodon) + 1;
 
   std::vector<char> cLine;
-  writeMafLineC(cLine, extras.expectedCounts);
+  writeMafLineC(cLine, extras.expectedCounts, alph);
 
   size_t qualsPerBase1 = seq1.qualsPerLetter();
   size_t qualsPerBase2 = seq2.qualsPerLetter();

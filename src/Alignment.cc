@@ -14,21 +14,13 @@
 
 using namespace cbrc;
 
-static void addExpectedCounts( double* totalCounts,
-			       const ExpectedCount& ec,
-			       const Alphabet& alph ){
+static void addExpectedCounts(double *totalCounts, const ExpectedCount &ec) {
   for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
-    unsigned x = alph.numbersToUppercase[i];
-    if( x >= alph.size ) continue;
     for( unsigned j = 0; j < scoreMatrixRowSize; ++j ){
-      unsigned y = alph.numbersToUppercase[j];
-      if( y >= alph.size ) continue;
-      totalCounts[ x * alph.size + y ] += ec.emit[i][j];
+      *totalCounts += ec.emit[i][j];
+      ++totalCounts;
     }
   }
-
-  totalCounts += alph.size * alph.size;
-
   totalCounts[0] += ec.toMatch;
   totalCounts[1] += ec.delNext + ec.delInit;  // deleted letter count
   totalCounts[2] += ec.insNext + ec.insInit;  // inserted letter count
@@ -37,14 +29,11 @@ static void addExpectedCounts( double* totalCounts,
 }
 
 static void addSeedCounts(const uchar *seq1, const uchar *seq2, size_t size,
-			  double *expectedCounts, const Alphabet &alph) {
+			  double *counts) {
   for (size_t i = 0; i < size; ++i) {
-    unsigned x1 = alph.numbersToUppercase[seq1[i]];
-    unsigned x2 = alph.numbersToUppercase[seq2[i]];
-    if( x1 < alph.size && x2 < alph.size )
-      ++expectedCounts[ x1 * alph.size + x2 ];
+    ++counts[seq1[i] * scoreMatrixRowSize + seq2[i]];
   }
-  expectedCounts[alph.size * alph.size] += size;
+  counts[scoreMatrixRowSize * scoreMatrixRowSize] += size;
 }
 
 // Does x precede and touch y in both sequences?
@@ -70,9 +59,8 @@ void Alignment::makeXdrop( Centroid& centroid,
     assert( seed.size > 0 );  // makes things easier to understand
     const int numOfTransitions = 5;
     std::vector<double> &ec = extras.expectedCounts;
-    ec.resize(alph.size * alph.size + numOfTransitions);
-    addSeedCounts(seq1 + seed.beg1(), seq2 + seed.beg2(), seed.size, &ec[0],
-		  alph);
+    ec.resize(scoreMatrixRowSize * scoreMatrixRowSize + numOfTransitions);
+    addSeedCounts(seq1 + seed.beg1(), seq2 + seed.beg2(), seed.size, &ec[0]);
   }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
@@ -408,7 +396,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       ExpectedCount ec;
       centroid.computeExpectedCounts( seq1, seq2, start1, start2,
 				      isForward, gap, alph.size, ec );
-      addExpectedCounts( &extras.expectedCounts[0], ec, alph );
+      addExpectedCounts(&extras.expectedCounts[0], ec);
     }
   }
 }
