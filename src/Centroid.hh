@@ -9,6 +9,10 @@
 #include "SegmentPair.hh"
 #include "OneQualityScoreMatrix.hh"
 
+#include <assert.h>
+#include <math.h>
+
+#include <algorithm>
 #include <vector>
 #include <iostream> // for debug
 
@@ -158,6 +162,20 @@ namespace cbrc{
     }
   };
 
+  // Return an ASCII code representing an error probability.  The
+  // printable codes are 33--126, but here we use a maximum of 125, so
+  // that 126 is reserved for special cases.
+  inline char asciiProbability(double probCorrect) {
+    assert(probCorrect >= 0);
+    //assert(probCorrect <= 1);  // can fail: floating point is imperfect
+    double e = 1 - probCorrect;
+    double f = std::max(e, 1e-10);  // avoid overflow errors
+    double g = -10 * log10(f);
+    int i = static_cast<int>(g);  // round fractions down
+    int j = i + 33;
+    int k = std::min(j, 125);
+    return static_cast<char>(k);
+  }
 }
 
 #endif
