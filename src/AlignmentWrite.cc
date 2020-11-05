@@ -420,15 +420,16 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
     *dest++ = '\n';
   }
 
-  Writer w(dest);
-
   if (!columnProbSymbols.empty()) {
+    Writer w(dest);
     w << 'p' << ' ';
     w.fill(pLineBlankLen, ' ');
-    w.copy(&columnProbSymbols[0], columnProbSymbols.size());
-    w << '\n';
+    dest = w.pointer();
+    dest = writeColumnProbs(dest, &columnProbSymbols[0], frameSize2, isCodon);
+    *dest++ = '\n';
   }
 
+  Writer w(dest);
   if (!cLine.empty()) w.copy(&cLine[0], cLine.size());
   w << '\n' << '\0';  // blank line afterwards
 
@@ -662,6 +663,45 @@ char *Alignment::writeBotSeq(char *dest, const uchar *seq,
     size_t beg = isCodon ? aaToDna(y.beg2(), frameSize) : y.beg2();
     size_t end = isCodon ? aaToDna(y.end2(), frameSize) : y.end2();
     dest = writeSeq(dest, seq, beg, end, alph, qualsPerBase, false);
+  }
+
+  return dest;
+}
+
+static char *writeProbSymbols(char *dest, const char *probSymbols,
+			      size_t size, int aaLen) {
+  for (size_t i = 0; i < size; ++i)
+    for (int j = 0; j < aaLen; ++j)
+      *dest++ = probSymbols[i];
+  return dest;
+}
+
+char *Alignment::writeColumnProbs(char *dest, const char *probSymbols,
+				  size_t frameSize, bool isCodon) const {
+  const int aaLen = isCodon ? 3 : 1;
+
+  for (size_t i = 0; i < blocks.size(); ++i) {
+    const SegmentPair &y = blocks[i];
+    if (i > 0) {  // between each pair of aligned blocks:
+      const SegmentPair &x = blocks[i - 1];
+
+      size_t topLen = y.beg1() - x.end1();
+      dest = writeProbSymbols(dest, probSymbols, topLen, aaLen);
+      probSymbols += topLen;
+
+      size_t beg, end, shift;
+      setFrameCoords(beg, end, shift, x.end2(), y.beg2(), frameSize, isCodon);
+      size_t rawLen = end - beg;
+      size_t botLen = (rawLen + aaLen / 3) / aaLen;
+      if (shift) *dest++ = '-';
+      dest = writeProbSymbols(dest, probSymbols, botLen, aaLen);
+      probSymbols += botLen;
+      if (beg < end && rawLen % aaLen == 1) *dest++ = '-';
+      if (beg < end && rawLen % aaLen == 2) --dest;
+    }
+
+    dest = writeProbSymbols(dest, probSymbols, y.size, aaLen);
+    probSymbols += y.size;
   }
 
   return dest;

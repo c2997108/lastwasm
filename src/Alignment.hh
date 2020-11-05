@@ -171,6 +171,9 @@ struct Alignment{
 
   char *writeBotSeq(char *dest, const uchar *seq, const Alphabet &alph,
 		    size_t qualsPerBase, size_t frameSize, bool isCodon) const;
+
+  char *writeColumnProbs(char *dest, const char *probSymbols,
+			 size_t frameSize, bool isCodon) const;
 };
 
 }  // end namespace cbrc
