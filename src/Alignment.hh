@@ -8,6 +8,7 @@
 #include "Centroid.hh"
 #include "GreedyXdropAligner.hh"
 #include "SegmentPair.hh"
+#include "mcf_frameshift_xdrop_aligner.hh"
 
 #include <vector>
 #include <cstring>
@@ -21,6 +22,7 @@ class TwoQualityScoreMatrix;
 
 struct Aligners {
   Centroid centroid;
+  FrameshiftXdropAligner frameshiftAligner;
   GreedyXdropAligner greedyAligner;
 };
 
@@ -84,6 +86,7 @@ struct Alignment{
   void makeXdrop( Aligners &aligners, bool isGreedy,
 		  const uchar* seq1, const uchar* seq2, int globality,
 		  const ScoreMatrixRow* scoreMatrix, int smMax, int smMin,
+		  const const_dbl_ptr* probMatrix, double scale,
 		  const GapCosts& gap, int maxDrop, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
                   const TwoQualityScoreMatrix& sm2qual,
@@ -138,6 +141,7 @@ struct Alignment{
 	       size_t start1, size_t start2,
 	       bool isForward, int globality,
 	       const ScoreMatrixRow* sm, int smMax, int smMin,
+	       const const_dbl_ptr* probMat, double scale,
 	       int maxDrop, const GapCosts& gap, size_t frameSize,
 	       const ScoreMatrixRow* pssm2,
                const TwoQualityScoreMatrix& sm2qual,

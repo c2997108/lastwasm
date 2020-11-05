@@ -382,7 +382,10 @@ LAST home page: http://last.cbrc.jp/\n\
   if( isTranslated() && inputFormat == 5 )
     ERR( "can't combine option -F with option -Q 5" );
 
-  if( isFrameshift() && outputType > 3 )
+  if( frameshiftCosts.size() == 1 && frameshiftCosts[0] > 0 && outputType > 3 )
+    ERR( "can't combine option -F > 0 with option -j > 3" );
+
+  if( isFrameshift() && outputType > 4 && outputType < 7 )
     ERR( "can't combine option -F > 0 with option -j > 3" );
 
   if( isFrameshift() && globality == 1 )

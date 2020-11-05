@@ -25,6 +25,9 @@
 #include "zio.hh"
 #include "stringify.hh"
 #include "threadUtil.hh"
+
+#include <math.h>
+
 #include <iomanip>  // setw
 #include <iostream>
 #include <fstream>
@@ -48,14 +51,20 @@ struct LastAligner {  // data that changes between queries
 };
 
 struct SubstitutionMatrices {
-  int scores[scoreMatrixRowSize][scoreMatrixRowSize];
-  int scoresMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   mcf::SubstitutionMatrixStats stats;
-  OneQualityScoreMatrix oneQual;
-  OneQualityScoreMatrix oneQualMasked;
   OneQualityExpMatrix oneQualExp;
   QualityPssmMaker maker;
+
+  int scores[scoreMatrixRowSize][scoreMatrixRowSize];
+  double ratiosMatrix[scoreMatrixRowSize][scoreMatrixRowSize];
+  double *ratios[scoreMatrixRowSize];
+  OneQualityScoreMatrix oneQual;
   TwoQualityScoreMatrix twoQual;
+
+  int scoresMasked[scoreMatrixRowSize][scoreMatrixRowSize];
+  double ratiosMaskedMatrix[scoreMatrixRowSize][scoreMatrixRowSize];
+  double *ratiosMasked[scoreMatrixRowSize];
+  OneQualityScoreMatrix oneQualMasked;
   TwoQualityScoreMatrix twoQualMasked;
 };
 
@@ -114,7 +123,9 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
     }
   } else {
     if (scoreMatrix.isCodonCols()) {
-      LOG("can't calculate probabilities");
+      static const char msg[] = "can't calculate probabilities";
+      if (args.outputType > 3) ERR(msg);  // xxx what if temperature is given?
+      LOG(msg);
       return;
     } else if (args.temperature < 0) {
       const char *canonicalMatrixName = ScoreMatrix::canonicalName(matrixName);
@@ -171,9 +182,9 @@ void makeScoreMatrix( const std::string& matrixName,
   }
 
   scoreMatrix.init(alph.encode);
+  const mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
   if (args.outputType > 0) {
     calculateSubstitutionScoreMatrixStatistics(matrixName);
-    const mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
     if (!stats.isBad()) {
       scoreMatrix.addAmbiguousScores(alph.letters == alph.dna,
 				     args.ambiguousLetterOpt % 2,
@@ -203,6 +214,20 @@ void makeScoreMatrix( const std::string& matrixName,
   if( args.isQueryStrandMatrix && args.strand != 1 ){
     complementMatrix(fwdMatrices.scores, revMatrices.scores);
     complementMatrix(fwdMatrices.scoresMasked, revMatrices.scoresMasked);
+  }
+
+  double s = stats.lambda();
+  for (unsigned i = 0; i < scoreMatrixRowSize; ++i) {
+    fwdMatrices.ratios[i] = fwdMatrices.ratiosMatrix[i];
+    revMatrices.ratios[i] = revMatrices.ratiosMatrix[i];
+    fwdMatrices.ratiosMasked[i] = fwdMatrices.ratiosMaskedMatrix[i];
+    revMatrices.ratiosMasked[i] = revMatrices.ratiosMaskedMatrix[i];
+    for (unsigned j = 0; j < scoreMatrixRowSize; ++j) {
+      fwdMatrices.ratios[i][j] = exp(s * fwdMatrices.scores[i][j]);
+      revMatrices.ratios[i][j] = exp(s * revMatrices.scores[i][j]);
+      fwdMatrices.ratiosMasked[i][j] = exp(s * fwdMatrices.scoresMasked[i][j]);
+      revMatrices.ratiosMasked[i][j] = exp(s * revMatrices.scoresMasked[i][j]);
+    }
   }
 }
 
@@ -439,6 +464,7 @@ struct Dispatcher{
   const uchar* j;  // the query quality data
   const ScoreMatrixRow* p;  // the query PSSM
   const ScoreMatrixRow* m;  // the score matrix
+  const const_dbl_ptr* r;   // the substitution probability ratios
   const TwoQualityScoreMatrix& t;
   int d;  // the maximum score drop
   int z;
@@ -451,6 +477,7 @@ struct Dispatcher{
       j( getQueryQual(queryNum) ),
       p( getQueryPssm(aligner, queryNum) ),
       m( isMaskLowercase(e) ? matrices.scoresMasked : matrices.scores ),
+      r( isMaskLowercase(e) ? matrices.ratiosMasked : matrices.ratios ),
       t( isMaskLowercase(e) ? matrices.twoQualMasked : matrices.twoQual ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
          (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
@@ -717,7 +744,8 @@ void alignGapped( LastAligner& aligner,
     // do gapped extension from each end of the seed:
     aln.makeXdrop(aligner.engines, args.isGreedy,
 		  dis.a, dis.b, args.globality, dis.m,
-		  scoreMatrix.maxScore, scoreMatrix.minScore, gapCosts,
+		  scoreMatrix.maxScore, scoreMatrix.minScore,
+		  dis.r, matrices.stats.lambda(), gapCosts,
 		  dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
     ++gappedExtensionCount;
 
@@ -784,7 +812,8 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       probAln.seed = aln.seed;
       probAln.makeXdrop(aligner.engines, args.isGreedy,
 			dis.a, dis.b, args.globality, dis.m,
-			scoreMatrix.maxScore, scoreMatrix.minScore, gapCosts,
+			scoreMatrix.maxScore, scoreMatrix.minScore,
+			dis.r, matrices.stats.lambda(), gapCosts,
 			dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph,
 			extras, args.gamma, args.outputType);
       assert( aln.score != -INF );

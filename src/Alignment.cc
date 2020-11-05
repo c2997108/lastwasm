@@ -43,6 +43,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
 			   const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix,
 			   int smMax, int smMin,
+			   const const_dbl_ptr* probMatrix, double scale,
 			   const GapCosts& gap, int maxDrop,
 			   size_t frameSize, const ScoreMatrixRow* pssm2,
                            const TwoQualityScoreMatrix& sm2qual,
@@ -54,7 +55,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
 
   if( outputType == 7 ){
     assert( seed.size > 0 );  // makes things easier to understand
-    const int numOfTransitions = 5;
+    const int numOfTransitions = frameSize ? 9 : 5;
     std::vector<double> &ec = extras.expectedCounts;
     ec.resize(scoreMatrixRowSize * scoreMatrixRowSize + numOfTransitions);
     addSeedCounts(seq1 + seed.beg1(), seq2 + seed.beg2(), seed.size, &ec[0]);
@@ -64,7 +65,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
   std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
   extend( blocks, columnAmbiguityCodes, aligners, isGreedy,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
-	  scoreMatrix, smMax, smMin, maxDrop, gap,
+	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
 	  extras, gamma, outputType );
 
@@ -84,7 +85,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
   std::vector<char> forwardAmbiguities;
   extend( forwardBlocks, forwardAmbiguities, aligners, isGreedy,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
-	  scoreMatrix, smMax, smMin, maxDrop, gap,
+	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
 	  extras, gamma, outputType );
 
@@ -250,6 +251,25 @@ static void getColumnCodes(const Centroid& centroid, std::vector<char>& codes,
   }
 }
 
+static void getColumnCodes(const FrameshiftXdropAligner &fxa,
+			   std::vector<char> &codes,
+			   const std::vector<SegmentPair> &chunks) {
+  for (size_t i = 0; i < chunks.size(); ++i) {
+    const SegmentPair &x = chunks[i];
+    for (size_t k = x.size; k-- > 0;) {
+      double p = fxa.matchProb(x.beg1() + k, x.beg2() + k * 3);
+      codes.push_back(asciiProbability(p));
+    }
+    size_t j = i + 1;
+    bool isNext = (j < chunks.size());
+    size_t end1 = isNext ? chunks[j].end1() : 0;
+    size_t end2 = isNext ? chunks[j].beg2() + chunks[j].size * 3 : 0;
+    size_t n1 = x.beg1() - end1;
+    size_t n2 = (x.beg2() - end2 + 1) / 3;
+    codes.insert(codes.end(), n1 + n2, '-');
+  }
+}
+
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< char >& columnCodes,
 			Aligners &aligners, bool isGreedy,
@@ -257,6 +277,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
 			const ScoreMatrixRow* sm, int smMax, int smMin,
+			const const_dbl_ptr* probMat, double scale,
 			int maxDrop, const GapCosts& gap, size_t frameSize,
 			const ScoreMatrixRow* pssm2,
 			const TwoQualityScoreMatrix& sm2qual,
@@ -270,7 +291,6 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   GreedyXdropAligner &greedyAligner = aligners.greedyAligner;
 
   if( frameSize ){
-    assert( outputType < 4 );
     assert( !isGreedy );
     assert( !globality );
     assert( !pssm2 );
@@ -290,7 +310,27 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       while (aligner.getNextChunkFrame(end1, end2, size, gapCost, gap))
 	chunks.push_back(SegmentPair(end1 - size, end2 - size * 3, size,
 				     gapCost));
+      if (outputType > 3) {
+	FrameshiftXdropAligner &fxa = aligners.frameshiftAligner;
+	double probDropLimit = exp(scale * -maxDrop);
+	double s = fxa.forward(seq1 + start1, seq2 + start2,
+			       seq2 + dnaToAa(frame1, frameSize),
+			       seq2 + dnaToAa(frame2, frameSize),
+			       isForward, probMat, gap, probDropLimit);
+	extras.fullScore += s / scale;
+	fxa.backward(isForward, probMat, gap);
+	getColumnCodes(fxa, columnCodes, chunks);
+	if (outputType == 7) {
+	  double *ec = &extras.expectedCounts[0];
+	  double *subsCounts[scoreMatrixRowSize];
+	  for (int i = 0; i < scoreMatrixRowSize; ++i)
+	    subsCounts[i] = ec + i * scoreMatrixRowSize;
+	  double *tranCounts = ec + scoreMatrixRowSize * scoreMatrixRowSize;
+	  fxa.count(isForward, gap, subsCounts, tranCounts);
+	}
+      }
     } else {
+      assert(outputType < 4);
       size_t frame2 = isForward ? dnaStart - 1 : dnaStart + 1;
       score += aligner.align3(seq1 + start1, seq2 + start2,
 			      seq2 + dnaToAa(frame1, frameSize),

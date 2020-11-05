@@ -303,19 +303,20 @@ static char *writeMafHeadQ(char *out,
 // Write a "c" line
 static void writeMafLineC(std::vector<char> &cLine,
 			  const std::vector<double> &counts,
-			  const Alphabet &alph) {
+			  const Alphabet &alph, bool isCodon) {
   if (counts.empty()) return;
+  unsigned alphSize2 = isCodon ? 64 : alph.size;
   unsigned numOfSubstitutions = scoreMatrixRowSize * scoreMatrixRowSize;
   size_t numOfTransitions = counts.size() - numOfSubstitutions;
-  size_t numOfCounts = alph.size * alph.size + numOfTransitions;
+  size_t numOfCounts = alph.size * alphSize2 + numOfTransitions;
   cLine.resize(2 + 32 * numOfCounts);
   char *e = &cLine[0];
   *e++ = 'c';
 
   for (unsigned i = 0; i < alph.size; ++i) {
     unsigned x = alph.numbersToLowercase[i];
-    for (unsigned j = 0; j < alph.size; ++j) {
-      unsigned y = alph.numbersToLowercase[j];
+    for (unsigned j = 0; j < alphSize2; ++j) {
+      unsigned y = isCodon ? j : alph.numbersToLowercase[j];
       double c = counts[i * scoreMatrixRowSize + j];
       if (x != i) c += counts[x * scoreMatrixRowSize + j];
       if (y != j) c += counts[i * scoreMatrixRowSize + y];
@@ -383,7 +384,7 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   size_t sLineLen = 2 + pLineBlankLen + numColumns(frameSize2, isCodon) + 1;
 
   std::vector<char> cLine;
-  writeMafLineC(cLine, extras.expectedCounts, alph);
+  writeMafLineC(cLine, extras.expectedCounts, alph, isCodon);
 
   size_t qualsPerBase1 = seq1.qualsPerLetter();
   size_t qualsPerBase2 = seq2.qualsPerLetter();
