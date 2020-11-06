@@ -33,7 +33,7 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
   if (!isForward) {
     --seq1; --seq2frame0; --seq2frame1; --seq2frame2;
   }
-  const const_uchar_ptr frames[] = {seq2frame0, seq2frame1, seq2frame2};
+  const_uchar_ptr frames[] = {seq2frame0, seq2frame1, seq2frame2};
   const int seqIncrement = isForward ? 1 : -1;
 
   const int delOpenScore = -gap.delPieces[0].openCost;
@@ -47,7 +47,7 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
 
   int runOfDrops = 2;
   int runOfEdges = 0;
-  size_t seq1beg = 0;
+  int numCells = 1;
   size_t seq1end = 1;
   size_t diagPos6 = xdropPadLen - 1;
   size_t horiPos5 = xdropPadLen * 2 - 1;
@@ -63,12 +63,9 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
   initFrame();
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
-    int numCells = seq1end - seq1beg;
-
-    const uchar *seq2 = frames[antidiagonal % 3];
-    size_t seq2pos = antidiagonal / 3 - seq1beg;
-    const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
-    const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
+    const uchar *s1 = seq1;
+    const uchar *s2 = frames[antidiagonal % 3];
+    frames[antidiagonal % 3] += seqIncrement;
 
     initAntidiagonal(antidiagonal + 6, seq1end, thisPos, numCells);
     thisPos += xdropPadLen;
@@ -120,6 +117,7 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
     if (X0[n] > -INF / 2 || runOfEdges) {
       ++runOfEdges;
       if (runOfEdges == 3) {
+	++numCells;
 	++seq1end;
 	runOfEdges = 0;
       }
@@ -130,8 +128,12 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
     } else {
       ++runOfDrops;
       if (runOfDrops == 3) {
-	++seq1beg;
-	if (seq1beg == seq1end) break;
+	--numCells;
+	if (numCells == 0) break;
+	seq1 += seqIncrement;
+	frames[0] -= seqIncrement;
+	frames[1] -= seqIncrement;
+	frames[2] -= seqIncrement;
 	++diagPos6;
 	++horiPos5;
 	++horiPos4;
