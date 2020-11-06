@@ -12,11 +12,11 @@
 
 namespace mcf {
 
-typedef unsigned char uchar;
 typedef const double *const_dbl_ptr;
 typedef double *dbl_ptr;
 
 class FrameshiftXdropAligner {
+  typedef unsigned char uchar;
   typedef const uchar *const_uchar_ptr;
   typedef double Prob;
 
