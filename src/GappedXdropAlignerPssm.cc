@@ -25,7 +25,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
   const SimdInt mInsGrowCost = simdFill(insExtensionCost);
   const int seqIncrement = isForward ? 1 : -1;
 
-  size_t seq1beg = 0;
+  int numCells = 1;
   size_t seq1end = 1;
   size_t diagPos = xdropPadLen - 1;
   size_t horiPos = xdropPadLen * 2 - 1;
@@ -54,9 +54,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
 
   size_t antidiagonal;
   for (antidiagonal = 0; /* noop */; ++antidiagonal) {
-    int numCells = seq1end - seq1beg;
     int n = numCells - 1;
-
     const uchar *s1 = &seq1queue.fromEnd(n + simdLen);
     const const_int_ptr *s2 = &pssmQueue.fromEnd(1);
 
@@ -80,7 +78,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       const Score *z2 = &zScores[diagPos];
       int b = maxValue(x2[0], z1[0]-insExtensionCost, z2[0]-gapUnalignedCost);
       updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
-		  minScore, b, antidiagonal, seq1beg);
+		  minScore, b, antidiagonal, seq1end - numCells);
     }
 
     if (globality && isDelimiter1) {
@@ -151,6 +149,7 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
     thisPos += numCells;
 
     if (x0[n] > -INF / 2) {
+      ++numCells;
       ++seq1end;
       uchar x = *seq;
       seq1queue.push(x, n + simdLen);
@@ -165,10 +164,10 @@ int GappedXdropAligner::alignPssm(const uchar *seq,
       pssm += seqIncrement;
       isDelimiter2 = isDelimiter(0, y);
     } else {
-      ++seq1beg;
+      --numCells;
+      if (numCells == 0) break;
       ++diagPos;
       ++horiPos;
-      if (seq1beg == seq1end) break;
     }
   }
 

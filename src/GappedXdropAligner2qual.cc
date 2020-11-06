@@ -27,7 +27,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
                                    int maxMatchScore) {
   const int seqIncrement = isForward ? 1 : -1;
 
-  size_t seq1beg = 0;
+  int numCells = 1;
   size_t seq1end = 1;
   size_t diagPos = xdropPadLen - 1;
   size_t horiPos = xdropPadLen * 2 - 1;
@@ -41,15 +41,13 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
 
   size_t antidiagonal;
   for (antidiagonal = 0; /* noop */; ++antidiagonal) {
-    int numCells = seq1end - seq1beg;
     int n = numCells - 1;
-
-    size_t seq2pos = antidiagonal - seq1beg;
-
-    const uchar *s1 = isForward ? seq1 + seq1beg : seq1 - seq1beg;
-    const uchar *q1 = isForward ? qual1 + seq1beg : qual1 - seq1beg;
-    const uchar *s2 = isForward ? seq2 + seq2pos : seq2 - seq2pos;
-    const uchar *q2 = isForward ? qual2 + seq2pos : qual2 - seq2pos;
+    const uchar *s1 = seq1;
+    const uchar *q1 = qual1;
+    const uchar *s2 = seq2;
+    const uchar *q2 = qual2;
+    seq2 += seqIncrement;
+    qual2 += seqIncrement;
 
     initAntidiagonal(antidiagonal + 2, seq1end, thisPos, numCells);
     thisPos += xdropPadLen;
@@ -73,7 +71,7 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
       const Score *z2 = &zScores[diagPos];
       int b = maxValue(x2[0], z1[0]-insExtensionCost, z2[0]-gapUnalignedCost);
       updateBest1(bestEdgeScore, bestEdgeAntidiagonal, bestSeq1position,
-		  minScore, b, antidiagonal, seq1beg);
+		  minScore, b, antidiagonal, seq1end - numCells);
     }
 
     if (globality && isDelimiter1) {
@@ -154,14 +152,19 @@ int GappedXdropAligner::align2qual(const uchar *seq1,
     thisPos += numCells;
 
     if (x0[0] > -INF / 2) {
+      ++numCells;
       ++seq1end;
     }
 
     if (x0[-n] <= -INF / 2) {
-      ++seq1beg;
+      --numCells;
+      if (numCells == 0) break;
       ++diagPos;
       ++horiPos;
-      if (seq1beg >= seq1end) break;
+      seq1 += seqIncrement;
+      qual1 += seqIncrement;
+      seq2 -= seqIncrement;
+      qual2 -= seqIncrement;
     }
   }
 

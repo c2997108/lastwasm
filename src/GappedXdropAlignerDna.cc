@@ -54,7 +54,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 		 scorer[1][3], scorer[1][2], scorer[1][1], scorer[1][0],
 		 scorer[0][3], scorer[0][2], scorer[0][1], scorer[0][0]);
 
-  size_t seq1beg = 0;
+  int numCells = 1;
   size_t seq1end = 1;
   size_t diagPos = xdropPadLen - 1;
   size_t horiPos = xdropPadLen * 2 - 1;
@@ -83,9 +83,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 
   size_t antidiagonal;
   for (antidiagonal = 2; /* noop */; ++antidiagonal) {
-    int numCells = seq1end - seq1beg;
     int n = numCells - 1;
-
     const uchar *s1 = &seq1queue.fromEnd(n + seqLoadLen);
     const uchar *s2 = seq2queue.begin();
 
@@ -199,6 +197,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
     thisPos += numCells;
 
     if (x0[n] != droppedTinyScore) {
+      ++numCells;
       ++seq1end;
       uchar x = toUnmasked[*seq1];
       seq1queue.push(x, n + seqLoadLen);
@@ -217,10 +216,10 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	isDna = false;
       }
     } else {
-      ++seq1beg;
+      --numCells;
+      if (numCells == 0) break;
       ++diagPos;
       ++horiPos;
-      if (seq1beg == seq1end) break;
     }
   }
 
