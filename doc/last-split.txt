@@ -111,6 +111,14 @@ The "mismap" is simply the lowest probability from the "p" line.  (If
 you run last-split twice, as in the genome alignment recipes, the
 mismap is the lowest combined error probability from both "p" lines.)
 
+Tips
+----
+
+To omit alignments with mismap probability > ``10^-6`` (say), you can
+use the ``-m`` option (see below), or do this::
+
+  awk -F= '/^a/ {i = $3 <= 1e-6} i' out.maf > out2.maf
+
 Split versus spliced alignment
 ------------------------------
 
