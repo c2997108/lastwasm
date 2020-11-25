@@ -311,14 +311,17 @@ static void calculateScoreStatistics(const std::string& matrixName,
   try{
     gaplessEvaluer.init(0, 0, 0, alph.letters.c_str(), scoreMat, p1, p2, false,
 			0, 0, 0, 0, fsCost, geneticCode, 0, 0);
-    if (gapCosts.isNewFrameshifts() && isGapped) return;
-    const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
-    const mcf::GapCosts::Piece &ins = gapCosts.insPieces[0];
-    evaluer.init(canonicalMatrixName, args.matchScore, args.mismatchCost,
-		 alph.letters.c_str(), scoreMat, p1, p2, isGapped,
-		 del.openCost, del.growCost, ins.openCost, ins.growCost,
-		 fsCost, geneticCode,
-		 args.geneticCodeFile.c_str(), args.verbosity);
+    if (gapCosts.isNewFrameshifts() && isGapped) {
+      return;
+    } else {
+      const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
+      const mcf::GapCosts::Piece &ins = gapCosts.insPieces[0];
+      evaluer.init(canonicalMatrixName, args.matchScore, args.mismatchCost,
+		   alph.letters.c_str(), scoreMat, p1, p2, isGapped,
+		   del.openCost, del.growCost, ins.openCost, ins.growCost,
+		   fsCost, geneticCode,
+		   args.geneticCodeFile.c_str(), args.verbosity);
+    }
     countT m = std::min(refMaxSeqLen, refLetters);
     evaluer.setSearchSpace(refLetters, m, args.numOfStrands());
     if( args.verbosity > 0 ) evaluer.writeParameters( std::cerr );
@@ -961,9 +964,9 @@ void scan(LastAligner& aligner, size_t queryNum,
 }
 
 static void tantanMaskOneQuery(size_t queryNum, uchar *querySeq) {
-  size_t beg = query.seqBeg(queryNum) - query.padBeg(queryNum);
-  size_t end = query.seqEnd(queryNum) - query.padBeg(queryNum);
-  tantanMasker.mask(querySeq + beg, querySeq + end, alph.numbersToLowercase);
+  size_t b = query.seqBeg(queryNum) - query.padBeg(queryNum);
+  size_t e = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  tantanMasker.mask(querySeq + b, querySeq + e, queryAlph.numbersToLowercase);
 }
 
 static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
@@ -988,17 +991,17 @@ void translateAndScan(LastAligner& aligner,
   std::vector<uchar> modifiedQuery;
   size_t size = query.padLen(queryNum);
 
-  if( args.isTranslated() ){
-    modifiedQuery.resize( size );
-    geneticCode.translate( querySeq, querySeq + size, &modifiedQuery[0] );
+  if (args.isTranslated()) {
+    modifiedQuery.resize(size);
+    geneticCode.translate(querySeq, querySeq + size, &modifiedQuery[0]);
     if( args.tantanSetting && !scoreMatrix.isCodonCols() ){
       tantanMaskTranslatedQuery( queryNum, &modifiedQuery[0] );
     }
     querySeq = &modifiedQuery[0];
-  }else{
-    if( args.tantanSetting ){
-      modifiedQuery.assign( querySeq, querySeq + size );
-      tantanMaskOneQuery( queryNum, &modifiedQuery[0] );
+  } else {
+    if (args.tantanSetting) {
+      modifiedQuery.assign(querySeq, querySeq + size);
+      tantanMaskOneQuery(queryNum, &modifiedQuery[0]);
       querySeq = &modifiedQuery[0];
     }
   }
@@ -1272,8 +1275,7 @@ void lastal( int argc, char** argv ){
       geneticCode.codeTableSet( alph, queryAlph );
     }
     query.initForAppending(3);
-  }
-  else{
+  } else {
     queryAlph = alph;
     query.initForAppending(1);
   }
