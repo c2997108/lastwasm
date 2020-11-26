@@ -987,28 +987,37 @@ static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
 // after optionally translating and/or masking the query
 void translateAndScan(LastAligner& aligner,
 		      size_t queryNum, const SubstitutionMatrices &matrices) {
-  const uchar* querySeq = query.seqReader() + query.padBeg(queryNum);
+  uchar *querySeqs = query.seqWriter();
+  uchar *querySeq = querySeqs + query.padBeg(queryNum);
   std::vector<uchar> modifiedQuery;
   size_t size = query.padLen(queryNum);
 
   if (args.isTranslated()) {
     modifiedQuery.resize(size);
     geneticCode.translate(querySeq, querySeq + size, &modifiedQuery[0]);
-    if( args.tantanSetting && !scoreMatrix.isCodonCols() ){
-      tantanMaskTranslatedQuery( queryNum, &modifiedQuery[0] );
-    }
     querySeq = &modifiedQuery[0];
+    if (args.tantanSetting && !scoreMatrix.isCodonCols()) {
+      tantanMaskTranslatedQuery(queryNum, querySeq);
+    }
   } else {
     if (args.tantanSetting) {
-      modifiedQuery.assign(querySeq, querySeq + size);
-      tantanMaskOneQuery(queryNum, &modifiedQuery[0]);
-      querySeq = &modifiedQuery[0];
+      if (args.isKeepLowercase) {
+	modifiedQuery.assign(querySeq, querySeq + size);
+	querySeq = &modifiedQuery[0];
+      }
+      tantanMaskOneQuery(queryNum, querySeq);
     }
   }
 
   size_t oldNumOfAlns = aligner.textAlns.size();
   scan( aligner, queryNum, matrices, querySeq );
   cullFinalAlignments( aligner.textAlns, oldNumOfAlns );
+
+  if (args.tantanSetting && !args.isKeepLowercase) {
+    for (size_t i = query.seqBeg(queryNum); i < query.seqEnd(queryNum); ++i) {
+      querySeqs[i] = queryAlph.numbersToUppercase[querySeqs[i]];
+    }
+  }
 }
 
 static void alignOneQuery(LastAligner &aligner,
