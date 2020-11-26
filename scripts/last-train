@@ -306,14 +306,13 @@ def gapRatiosFromCounts(counts, opts):
     if opts.gapsym:
         delOpenProb = gapOpens / denominator / 2
         insOpenProb = gapOpens / denominator / 2
-        delExtendProb = (gaps - gapOpens) / gaps
-        insExtendProb = (gaps - gapOpens) / gaps
+        delGrowProb = (gaps - gapOpens) / gaps
+        insGrowProb = (gaps - gapOpens) / gaps
     else:
         delOpenProb = delOpens / denominator
         insOpenProb = insOpens / denominator
-        delExtendProb = (deletes - delOpens) / deletes
-        insExtendProb = (inserts - insOpens) / inserts
-
+        delGrowProb = (deletes - delOpens) / deletes
+        insGrowProb = (inserts - insOpens) / inserts
     print("# aligned letter pairs: %.12g" % matches)
     print("# deletes: %.12g" % deletes)
     print("# inserts: %.12g" % inserts)
@@ -325,29 +324,29 @@ def gapRatiosFromCounts(counts, opts):
     print("# matchProb: %g" % matchProb)
     print("# delOpenProb: %g" % delOpenProb)
     print("# insOpenProb: %g" % insOpenProb)
-    print("# delExtendProb: %g" % delExtendProb)
-    print("# insExtendProb: %g" % insExtendProb)
+    print("# delExtendProb: %g" % delGrowProb)
+    print("# insExtendProb: %g" % insGrowProb)
     print()
 
-    delCloseProb = 1 - delExtendProb
+    delCloseProb = 1 - delGrowProb
     firstDelProb = delOpenProb * delCloseProb
 
-    insCloseProb = 1 - insExtendProb
+    insCloseProb = 1 - insGrowProb
     firstInsProb = insOpenProb * insCloseProb
 
-    endProb = balancedEndProb(matchProb, firstDelProb, delExtendProb,
-                              firstInsProb, insExtendProb)
+    endProb = balancedEndProb(matchProb, firstDelProb, delGrowProb,
+                              firstInsProb, insGrowProb)
     # probably, endProb is negligibly less than 1
 
     matchRatio = matchProb / (endProb * endProb)
 
     firstDelRatio = firstDelProb / endProb
-    delExtendRatio = delExtendProb / endProb
-    delRatios = firstDelRatio, delExtendRatio
+    delGrowRatio = delGrowProb / endProb
+    delRatios = firstDelRatio, delGrowRatio
 
     firstInsRatio = firstInsProb / endProb
-    insExtendRatio = insExtendProb / endProb
-    insRatios = firstInsRatio, insExtendRatio
+    insGrowRatio = insGrowProb / endProb
+    insRatios = firstInsRatio, insGrowRatio
 
     return matchRatio, delRatios, insRatios
 
@@ -382,26 +381,26 @@ def scoreImbalance(scale, matScores, delCosts, insCosts):
     i = imbalanceFromGap(scale, *insCosts)
     return 1 / sum(homogeneousLetterFreqs(scale, matScores)) + d + i - 1
 
-def balancedScale(nearScale, *args):
+def balancedScale(imbalanceFunc, nearScale, args):
     # Find a scale, near nearScale, with balanced length probability
     bump = 1.000001
     rootFinders = rootOfDecreasingFunction, rootOfIncreasingFunction
-    value = scoreImbalance(nearScale, *args)
+    value = imbalanceFunc(nearScale, *args)
     if abs(value) <= 0:
         return nearScale
     oldLower = oldUpper = nearScale
     while oldUpper < 2 * nearScale:  # xxx ???
         newLower = oldLower / bump
-        lowerValue = scoreImbalance(newLower, *args)
+        lowerValue = imbalanceFunc(newLower, *args)
         if (lowerValue < 0) != (value < 0):
             finder = rootFinders[value > 0]
-            return finder(scoreImbalance, newLower, oldLower, args)
+            return finder(imbalanceFunc, newLower, oldLower, args)
         oldLower = newLower
         newUpper = oldUpper * bump
-        upperValue = scoreImbalance(newUpper, *args)
+        upperValue = imbalanceFunc(newUpper, *args)
         if (upperValue < 0) != (value < 0):
             finder = rootFinders[value < 0]
-            return finder(scoreImbalance, oldUpper, newUpper, args)
+            return finder(imbalanceFunc, oldUpper, newUpper, args)
         oldUpper = newUpper
     return 0.0
 
@@ -410,7 +409,8 @@ def scoresAndScale(originalScale, matParams, delRatios, insRatios):
         matScores = matScoresFromProbs(originalScale, *matParams)
         delCosts = gapCostsFromProbRatios(originalScale, *delRatios)
         insCosts = gapCostsFromProbRatios(originalScale, *insRatios)
-        scale = balancedScale(originalScale, matScores, delCosts, insCosts)
+        args = matScores, delCosts, insCosts
+        scale = balancedScale(scoreImbalance, originalScale, args)
         if scale > 0:
             rowFreqs = homogeneousLetterFreqs(scale, zip(*matScores))
             colFreqs = homogeneousLetterFreqs(scale, matScores)
@@ -420,19 +420,21 @@ def scoresAndScale(originalScale, matParams, delRatios, insRatios):
               "doubling the scale")
         originalScale *= 2
 
-def writeGapCosts(gapCosts, out):
-    firstDelCost, delExtendCost, firstInsCost, insExtendCost = gapCosts
-    print("#last -a", firstDelCost - delExtendCost, file=out)
-    print("#last -A", firstInsCost - insExtendCost, file=out)
-    print("#last -b", delExtendCost, file=out)
-    print("#last -B", insExtendCost, file=out)
-
-def printGapCosts(gapCosts):
-    firstDelCost, delExtendCost, firstInsCost, insExtendCost = gapCosts
-    print("# delExistCost:", firstDelCost - delExtendCost)
-    print("# insExistCost:", firstInsCost - insExtendCost)
-    print("# delExtendCost:", delExtendCost)
-    print("# insExtendCost:", insExtendCost)
+def writeGapCosts(delCosts, insCosts, isLastFormat, outFile):
+    delInit, delGrow = delCosts
+    insInit, insGrow = insCosts
+    delOpen = delInit - delGrow
+    insOpen = insInit - insGrow
+    if isLastFormat:
+        print("#last -a", delOpen, file=outFile)
+        print("#last -A", insOpen, file=outFile)
+        print("#last -b", delGrow, file=outFile)
+        print("#last -B", insGrow, file=outFile)
+    else:
+        print("# delExistCost:", delOpen, file=outFile)
+        print("# insExistCost:", insOpen, file=outFile)
+        print("# delExtendCost:", delGrow, file=outFile)
+        print("# insExtendCost:", insGrow, file=outFile)
 
 def tryToMakeChildProgramsFindable():
     d = os.path.dirname(__file__)
@@ -514,7 +516,7 @@ def doTraining(opts, args):
         matParams = matchRatio, matProbs, rowProbs, colProbs
         sas = scoresAndScale(internalScale, matParams, delRatios, insRatios)
         matScores, delCosts, insCosts, scale = sas
-        printGapCosts(delCosts + insCosts)
+        writeGapCosts(delCosts, insCosts, False, None)
         print()
         print("# score matrix "
               "(query letters = columns, reference letters = rows):")
@@ -528,7 +530,7 @@ def doTraining(opts, args):
         lastalArgs.append("-p-")
         lastalArgs += args
         proc = process(lastalArgs, subprocess.PIPE)
-        writeGapCosts(delCosts + insCosts, proc.stdin)
+        writeGapCosts(delCosts, insCosts, True, proc.stdin)
         writeScoreMatrix(proc.stdin, matScores, "")
         proc.stdin.close()
         proc = lastSplitProcess(opts, proc)
@@ -538,7 +540,7 @@ def doTraining(opts, args):
     if opts.X: print("#last -X", opts.X)
     if opts.Q: print("#last -Q", opts.Q)
     print("#last -t{0:.6}".format(scale))
-    writeGapCosts(delCosts + insCosts, sys.stdout)
+    writeGapCosts(delCosts, insCosts, True, None)
     if opts.s: print("#last -s", opts.s)
     if opts.S: print("#last -S", opts.S)
     print("# score matrix "
