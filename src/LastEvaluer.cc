@@ -319,22 +319,17 @@ void LastEvaluer::init(const char *matrixName,
     std::vector<double> aaFreqs(matrixSize);
     copy(letterFreqs1, letterFreqs1 + alphabetSize, aaFreqs.begin());
 
-    if (frameshiftCost > 0) {  // with frameshifts:
+    if (isGapped && frameshiftCost > 0) {  // with frameshifts:
       Sls::FrameshiftAlignmentEvaluer frameshiftEvaluer;
-      if (isGapped) {
-	frameshiftEvaluer.initFrameshift(4, matrixSize, codonTable,
-					 &matrix[0], &ntFreqs[0], &aaFreqs[0],
-					 delOpen, delEpen, insOpen, insEpen,
-					 frameshiftCost, true,
-					 lambdaTolerance, kTolerance,
-					 0, maxMegabytes, randomSeed);
-      } else {
-	frameshiftEvaluer.initGapless(4, matrixSize, codonTable,
-				      &matrix[0], &ntFreqs[0], &aaFreqs[0]);
-      }
+      frameshiftEvaluer.initFrameshift(4, matrixSize, codonTable,
+				       &matrix[0], &ntFreqs[0], &aaFreqs[0],
+				       delOpen, delEpen, insOpen, insEpen,
+				       frameshiftCost, true,
+				       lambdaTolerance, kTolerance,
+				       0, maxMegabytes, randomSeed);
       const Sls::FALP_set_of_parameters &p = frameshiftEvaluer.parameters();
       Sls::AlignmentEvaluerParameters q = {p.lambda, p.K,
-					   p.a_I, p.b_I,
+					   p.a_I, p.b_I,  // !!! no flip
 					   p.a_J, p.b_J,
 					   p.alpha_I, p.beta_I,
 					   p.alpha_J, p.beta_J,
@@ -352,6 +347,14 @@ void LastEvaluer::init(const char *matrixName,
       } else {
 	evaluer.initGapless(matrixSize, &matrix[0], &txFreqs[0], &aaFreqs[0]);
       }
+      const Sls::ALP_set_of_parameters &p = evaluer.parameters();
+      Sls::AlignmentEvaluerParameters q = {p.lambda, p.K,
+					   p.a_J * 3, p.b_J * 3,
+					   p.a_I, p.b_I,  // !!! flip (I, J)
+					   p.alpha_J * 9, p.beta_J * 9,
+					   p.alpha_I, p.beta_I,
+					   p.sigma * 3, p.tau * 3};
+      evaluer.initParameters(q);
     }
   } else {  // ordinary alignment:
     if (isGapped && insOpen == delOpen && insEpen == delEpen) {
@@ -448,11 +451,12 @@ void LastEvaluer::writeParameters(std::ostream &out) const {
   std::streamsize prec = out.precision(17);
   if (evaluer.isGood()) {
     const Sls::ALP_set_of_parameters &p = evaluer.parameters();
+    // !!! flip (I, J) order, to match AlignmentEvaluer::initParameters
     out << p.lambda << ", " << p.K << ",\n"
-	<< p.a_I << ", " << p.b_I << ",\n"
 	<< p.a_J << ", " << p.b_J << ",\n"
-	<< p.alpha_I << ", " << p.beta_I << ",\n"
+	<< p.a_I << ", " << p.b_I << ",\n"
 	<< p.alpha_J << ", " << p.beta_J << ",\n"
+	<< p.alpha_I << ", " << p.beta_I << ",\n"
 	<< p.sigma << ", " << p.tau << "\n";
   }
   out.precision(prec);
