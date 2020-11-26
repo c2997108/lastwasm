@@ -20,7 +20,6 @@
 #include "ScoreMatrixRow.hh"
 
 #include "alp/sls_alignment_evaluer.hpp"
-#include "alp/sls_falp_alignment_evaluer.hpp"
 
 namespace cbrc {
 
@@ -66,28 +65,18 @@ public:
     }
   }
 
-  bool isGood() const
-  { return evaluer.isGood() || frameshiftEvaluer.isGood(); }
+  bool isGood() const { return evaluer.isGood(); }
 
   // Don't call this in the "bad" state:
-  double evaluePerArea(double score) const {
-    return evaluer.isGood() ?
-      evaluer.evaluePerArea(score) : frameshiftEvaluer.evaluePerArea(score);
-  }
+  double evaluePerArea(double score) const
+  { return evaluer.evaluePerArea(score); }
 
   // Don't call this in the "bad" state or before calling setSearchSpace:
-  double area(double score, double queryLength) const {
-    return databaseSeqNum *
-      (evaluer.isGood()
-       ?           evaluer.area(score, queryLength, databaseSeqLen)
-       : frameshiftEvaluer.area(score, queryLength, databaseSeqLen));
-  }
+  double area(double score, double queryLength) const
+  { return databaseSeqNum * evaluer.area(score, queryLength, databaseSeqLen); }
 
   // Don't call this in the "bad" state:
-  double bitScore(double score) const {
-    return evaluer.isGood() ?
-      evaluer.bitScore(score) : frameshiftEvaluer.bitScore(score);
-  }
+  double bitScore(double score) const { return evaluer.bitScore(score); }
 
   // In the "good" state: returns the minimum score with E-value <=
   // "evalue", which is always > 0.  Otherwise: returns -1.
@@ -106,7 +95,6 @@ public:
 
 private:
   Sls::AlignmentEvaluer evaluer;
-  Sls::FrameshiftAlignmentEvaluer frameshiftEvaluer;
   double databaseSeqLen;
   double databaseSeqNum;
 };

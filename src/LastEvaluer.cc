@@ -4,6 +4,8 @@
 
 #include "GeneticCode.hh"
 
+#include "alp/sls_falp_alignment_evaluer.hpp"
+
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -296,7 +298,7 @@ void LastEvaluer::init(const char *matrixName,
 	  const FrameshiftEvalueParameters &p = frameshiftEvalueParameters[i];
 	  if (isHit(p, geneticCodeName, matrixName, delOpen, delEpen,
 		    frameshiftCost))
-	    return frameshiftEvaluer.initParameters(p.parameters);
+	    return evaluer.initParameters(p.parameters);
 	}
       }
     }
@@ -318,6 +320,7 @@ void LastEvaluer::init(const char *matrixName,
     copy(letterFreqs1, letterFreqs1 + alphabetSize, aaFreqs.begin());
 
     if (frameshiftCost > 0) {  // with frameshifts:
+      Sls::FrameshiftAlignmentEvaluer frameshiftEvaluer;
       if (isGapped) {
 	frameshiftEvaluer.initFrameshift(4, matrixSize, codonTable,
 					 &matrix[0], &ntFreqs[0], &aaFreqs[0],
@@ -329,10 +332,17 @@ void LastEvaluer::init(const char *matrixName,
 	frameshiftEvaluer.initGapless(4, matrixSize, codonTable,
 				      &matrix[0], &ntFreqs[0], &aaFreqs[0]);
       }
+      const Sls::FALP_set_of_parameters &p = frameshiftEvaluer.parameters();
+      Sls::AlignmentEvaluerParameters q = {p.lambda, p.K,
+					   p.a_I, p.b_I,
+					   p.a_J, p.b_J,
+					   p.alpha_I, p.beta_I,
+					   p.alpha_J, p.beta_J,
+					   p.sigma, p.tau};
+      evaluer.initParameters(q);
     } else {  // without frameshifts:
       std::vector<double> txFreqs(matrixSize);
       makeTxFreqs(&txFreqs[0], &ntFreqs[0], codonTable);
-
       if (isGapped) {
 	evaluer.set_gapped_computation_parameters_simplified(maxSeconds);
 	evaluer.initGapped(matrixSize, &matrix[0], &txFreqs[0], &aaFreqs[0],
@@ -412,9 +422,6 @@ int LastEvaluer::minScore(double evalue, double area) const {
   if (evaluer.isGood()) {
     const Sls::ALP_set_of_parameters &p = evaluer.parameters();
     return theMinScore(p.lambda, p.K, evalue, area);
-  } else if (frameshiftEvaluer.isGood()) {
-    const Sls::FALP_set_of_parameters &p = frameshiftEvaluer.parameters();
-    return theMinScore(p.lambda, p.K, evalue, area);
   } else {
     return -1;
   }
@@ -434,9 +441,6 @@ void LastEvaluer::writeCommented(std::ostream& out) const {
   if (evaluer.isGood()) {
     const Sls::ALP_set_of_parameters &p = evaluer.parameters();
     out << "# lambda=" << p.lambda << " K=" << p.K << "\n";
-  } else if (frameshiftEvaluer.isGood()) {
-    const Sls::FALP_set_of_parameters &p = frameshiftEvaluer.parameters();
-    out << "# lambda=" << p.lambda << " K=" << p.K << "\n";
   }
 }
 
@@ -444,14 +448,6 @@ void LastEvaluer::writeParameters(std::ostream &out) const {
   std::streamsize prec = out.precision(17);
   if (evaluer.isGood()) {
     const Sls::ALP_set_of_parameters &p = evaluer.parameters();
-    out << p.lambda << ", " << p.K << ",\n"
-	<< p.a_I << ", " << p.b_I << ",\n"
-	<< p.a_J << ", " << p.b_J << ",\n"
-	<< p.alpha_I << ", " << p.beta_I << ",\n"
-	<< p.alpha_J << ", " << p.beta_J << ",\n"
-	<< p.sigma << ", " << p.tau << "\n";
-  } else if (frameshiftEvaluer.isGood()) {
-    const Sls::FALP_set_of_parameters &p = frameshiftEvaluer.parameters();
     out << p.lambda << ", " << p.K << ",\n"
 	<< p.a_I << ", " << p.b_I << ",\n"
 	<< p.a_J << ", " << p.b_J << ",\n"
