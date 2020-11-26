@@ -36,6 +36,17 @@ def rootOfIncreasingFunction(func, lowerBound, upperBound, args):
         else:
             upperBound = mid
 
+def rootOfDecreasingFunction(func, lowerBound, upperBound, args):
+    # Find x such that func(x, *args) == 0
+    while True:
+        mid = 0.5 * (lowerBound + upperBound)
+        if mid <= lowerBound or mid >= upperBound:
+            return mid
+        if func(mid, *args) < 0:
+            upperBound = mid
+        else:
+            lowerBound = mid
+
 def homogeneousLetterFreqs(scale, matScores):
     # Solve the simultaneous equations in Section 2.1 of [Fri19]
     expMat = [[math.exp(j / scale) for j in i] for i in matScores]
@@ -371,12 +382,10 @@ def scoreImbalance(scale, matScores, delCosts, insCosts):
     i = imbalanceFromGap(scale, *insCosts)
     return 1 / sum(homogeneousLetterFreqs(scale, matScores)) + d + i - 1
 
-def negScoreImbalance(*args):
-    return -scoreImbalance(*args)
-
 def balancedScale(nearScale, *args):
     # Find a scale, near nearScale, with balanced length probability
     bump = 1.000001
+    rootFinders = rootOfDecreasingFunction, rootOfIncreasingFunction
     value = scoreImbalance(nearScale, *args)
     if abs(value) <= 0:
         return nearScale
@@ -385,14 +394,14 @@ def balancedScale(nearScale, *args):
         newLower = oldLower / bump
         lowerValue = scoreImbalance(newLower, *args)
         if (lowerValue < 0) != (value < 0):
-            func = scoreImbalance if value > 0 else negScoreImbalance
-            return rootOfIncreasingFunction(func, newLower, oldLower, args)
+            finder = rootFinders[value > 0]
+            return finder(scoreImbalance, newLower, oldLower, args)
         oldLower = newLower
         newUpper = oldUpper * bump
         upperValue = scoreImbalance(newUpper, *args)
         if (upperValue < 0) != (value < 0):
-            func = scoreImbalance if value < 0 else negScoreImbalance
-            return rootOfIncreasingFunction(func, oldUpper, newUpper, args)
+            finder = rootFinders[value < 0]
+            return finder(scoreImbalance, oldUpper, newUpper, args)
         oldUpper = newUpper
     return 0.0
 
@@ -455,29 +464,35 @@ def fixedLastalArgs(opts, lastalProgName):
     if opts.verbose: x.append("-" + "v" * opts.verbose)
     return x
 
+def process(args, inStream):
+    return subprocess.Popen(args, stdin=inStream, stdout=subprocess.PIPE,
+                            universal_newlines=True)
+
+def lastSplitProcess(opts, proc):
+    splitArgs = ["last-split", "-n", "-m0.01"]  # xxx ???
+    proc = process(splitArgs, proc.stdout)
+    if opts.postmask:
+        maskArgs = ["last-postmask"]
+        proc = process(maskArgs, proc.stdout)
+    return proc
+
 def doTraining(opts, args):
     tryToMakeChildProgramsFindable()
     lastalProgName = readLastalProgName(args[0])
     scaleIncrease = 20  # while training, up-scale the scores by this amount
-    x = fixedLastalArgs(opts, lastalProgName)
-    if opts.r: x.append("-r" + opts.r)
-    if opts.q: x.append("-q" + opts.q)
-    if opts.p: x.append("-p" + opts.p)
-    if opts.a: x.append("-a" + opts.a)
-    if opts.b: x.append("-b" + opts.b)
-    if opts.A: x.append("-A" + opts.A)
-    if opts.B: x.append("-B" + opts.B)
-    x += args
-    y = ["last-split", "-n", "-m0.01"]  # xxx ???
-    z = ["last-postmask"]
-    p = subprocess.Popen(x, stdout=subprocess.PIPE, universal_newlines=True)
-    q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE,
-                         universal_newlines=True)
-    if opts.postmask:
-        q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
-                             universal_newlines=True)
-    lastalVersion = versionFromHeader(q.stdout)
-    externalScale = scaleFromHeader(q.stdout)
+    lastalArgs = fixedLastalArgs(opts, lastalProgName)
+    if opts.r: lastalArgs.append("-r" + opts.r)
+    if opts.q: lastalArgs.append("-q" + opts.q)
+    if opts.p: lastalArgs.append("-p" + opts.p)
+    if opts.a: lastalArgs.append("-a" + opts.a)
+    if opts.b: lastalArgs.append("-b" + opts.b)
+    if opts.A: lastalArgs.append("-A" + opts.A)
+    if opts.B: lastalArgs.append("-B" + opts.B)
+    lastalArgs += args
+    proc = process(lastalArgs, None)
+    proc = lastSplitProcess(opts, proc)
+    lastalVersion = versionFromHeader(proc.stdout)
+    externalScale = scaleFromHeader(proc.stdout)
     internalScale = externalScale * scaleIncrease
     oldParameters = []
 
@@ -488,10 +503,10 @@ def doTraining(opts, args):
     print()
 
     while True:
-        print("#", *x)
+        print("#", *lastalArgs)
         print()
         sys.stdout.flush()
-        matCounts, gapCounts = countsFromLastOutput(q.stdout, opts)
+        matCounts, gapCounts = countsFromLastOutput(proc.stdout, opts)
         matchRatio, delRatios, insRatios = gapRatiosFromCounts(gapCounts, opts)
         matProbs = matProbsFromCounts(matCounts, opts)
         rowProbs = [sum(i) for i in matProbs]
@@ -508,21 +523,15 @@ def doTraining(opts, args):
         parameters = delCosts, insCosts, matScores
         if parameters in oldParameters: break
         oldParameters.append(parameters)
-        x = fixedLastalArgs(opts, lastalProgName)
-        x.append("-t{0:.6}".format(scale))
-        x.append("-p-")
-        x += args
-        p = subprocess.Popen(x, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                             universal_newlines=True)
-        writeGapCosts(delCosts + insCosts, p.stdin)
-        writeScoreMatrix(p.stdin, matScores, "")
-        p.stdin.close()
-        # in python2.6, the next line must come after p.stdin.close()
-        q = subprocess.Popen(y, stdin=p.stdout, stdout=subprocess.PIPE,
-                             universal_newlines=True)
-        if opts.postmask:
-            q = subprocess.Popen(z, stdin=q.stdout, stdout=subprocess.PIPE,
-                                 universal_newlines=True)
+        lastalArgs = fixedLastalArgs(opts, lastalProgName)
+        lastalArgs.append("-t{0:.6}".format(scale))
+        lastalArgs.append("-p-")
+        lastalArgs += args
+        proc = process(lastalArgs, subprocess.PIPE)
+        writeGapCosts(delCosts + insCosts, proc.stdin)
+        writeScoreMatrix(proc.stdin, matScores, "")
+        proc.stdin.close()
+        proc = lastSplitProcess(opts, proc)
 
     sas = scoresAndScale(externalScale, matParams, delRatios, insRatios)
     matScores, delCosts, insCosts, scale = sas
