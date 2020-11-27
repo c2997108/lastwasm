@@ -5,8 +5,10 @@
 #include "LastEvaluer.hh"
 #include "MultiSequence.hh"
 #include "Alphabet.hh"
+
+#include <assert.h>
+
 #include <algorithm>
-#include <cassert>
 #include <cstdio>  // sprintf
 
 using namespace cbrc;
@@ -32,7 +34,8 @@ const char aminoTriplets[] =
   "Val" "val"
   "Trp" "trp"
   "Tyr" "tyr"
-  "Xxx" "xxx";
+  "***" "***"
+  "Xaa" "xaa";
 
 // This writes a "size_t" integer into a char buffer ending at "end".
 // It writes backwards from the end, because that's easier & faster.
@@ -596,7 +599,7 @@ static char *writeAmino(char *dest, const uchar *beg, const uchar *end,
   for (const uchar *i = beg; i < end; ++i) {
     unsigned x = toUnmasked[*i];
     bool isMasked = (x != *i);
-    if (x > 20) x = 20;
+    if (x > 21) x = 21;
     unsigned y = (x * 2 + isMasked) * 3;
     *dest++ = aminoTriplets[y];
     *dest++ = aminoTriplets[y + 1];
