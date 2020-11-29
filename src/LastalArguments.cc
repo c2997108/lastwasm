@@ -3,12 +3,12 @@
 #include "LastalArguments.hh"
 #include "stringify.hh"
 #include "getoptUtil.hh"
+
 #include <algorithm>  // max
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <cctype>
-#include <cmath>  // log
 #include <cstring>  // strtok
 #include <cstdlib>  // EXIT_SUCCESS
 

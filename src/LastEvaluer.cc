@@ -415,28 +415,21 @@ void LastEvaluer::init(const char *matrixName,
   }
 }
 
-static int theMinScore(double lambda, double k, double evalue, double area) {
-  // do log of evalue separately, to reduce the risk of overflow:
-  double s = (std::log(k * area) - std::log(evalue)) / lambda;
-  return std::ceil(std::max(1.0, s));
-}
-
 int LastEvaluer::minScore(double evalue, double area) const {
-  if (evaluer.isGood()) {
-    const Sls::ALP_set_of_parameters &p = evaluer.parameters();
-    return theMinScore(p.lambda, p.K, evalue, area);
-  } else {
-    return -1;
-  }
+  if (!isGood()) return -1;
+  const Sls::ALP_set_of_parameters &p = evaluer.parameters();
+  // do log of evalue separately, to reduce the risk of overflow:
+  double s = (log(p.K * area) - log(evalue)) / p.lambda;
+  return ceil(std::max(1.0, s));
 }
 
 int LastEvaluer::minScore(double queryLettersPerRandomAlignment) const {
   if (!isGood()) return -1;
   double huge = 1e9;
-  double f = queryLettersPerRandomAlignment / huge;
+  double x = queryLettersPerRandomAlignment * databaseSeqNum;
   for (int score = 1; ; ++score) {
-    double evalue = area(score, huge) * evaluePerArea(score);
-    if (evalue * f <= 1) return score;
+    if (evaluer.evalue(score, huge, databaseSeqLen) <= huge / x)
+      return score;
   }
 }
 

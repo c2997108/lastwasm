@@ -184,7 +184,7 @@ static size_t writeBlocks(std::vector<char> &text,
 }
 
 static char* writeTags( const LastEvaluer& evaluer, double queryLength,
-			int score, double fullScore,
+			double score, double fullScore,
 			char separator, char* out ){
   if( evaluer.isGood() ){
     double epa = evaluer.evaluePerArea( score );
