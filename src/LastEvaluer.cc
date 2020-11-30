@@ -415,21 +415,27 @@ void LastEvaluer::init(const char *matrixName,
   }
 }
 
-int LastEvaluer::minScore(double evalue, double area) const {
-  if (!isGood()) return -1;
+double LastEvaluer::minScore(double evalue, double area) const {
   const Sls::ALP_set_of_parameters &p = evaluer.parameters();
   // do log of evalue separately, to reduce the risk of overflow:
   double s = (log(p.K * area) - log(evalue)) / p.lambda;
-  return ceil(std::max(1.0, s));
+  return std::max(0.0, s);
 }
 
-int LastEvaluer::minScore(double queryLettersPerRandomAlignment) const {
-  if (!isGood()) return -1;
+double LastEvaluer::minScore(double queryLettersPerRandomAlignment) const {
   double huge = 1e9;
+  const Sls::ALP_set_of_parameters &p = evaluer.parameters();
   double x = queryLettersPerRandomAlignment * databaseSeqNum;
-  for (int score = 1; ; ++score) {
-    if (evaluer.evalue(score, huge, databaseSeqLen) <= huge / x)
-      return score;
+  double beg = 0;
+  double end = log(x * databaseSeqLen * p.K) / p.lambda;
+
+  while (1) {
+    double mid = (beg + end) / 2;
+    if (mid <= beg || mid >= end) return mid;
+    if (evaluer.evalue(mid, huge, databaseSeqLen) < huge / x)
+      end = mid;
+    else
+      beg = mid;
   }
 }
 

@@ -78,14 +78,13 @@ public:
   // Don't call this in the "bad" state:
   double bitScore(double score) const { return evaluer.bitScore(score); }
 
-  // In the "good" state: returns the minimum score with E-value <=
-  // "evalue", which is always > 0.  Otherwise: returns -1.
-  int minScore(double evalue, double area) const;
+  // Returns max(0, score with E-value == "evalue").
+  // Don't call this in the "bad" state.
+  double minScore(double evalue, double area) const;
 
-  // In the "good" state, after calling setSearchSpace: returns the
-  // minimum positive score with E-value <= 1 per this many query
-  // letters.  In the "bad" state: returns -1.
-  int minScore(double queryLettersPerRandomAlignment) const;
+  // Returns max(0, score with E-value == 1 per this many query letters).
+  // Don't call this in the "bad" state or before calling setSearchSpace.
+  double minScore(double queryLettersPerRandomAlignment) const;
 
   // Writes some parameters preceded by "#".  Does nothing in the "bad" state.
   void writeCommented(std::ostream& out) const;

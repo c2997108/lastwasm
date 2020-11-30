@@ -1130,7 +1130,8 @@ int calcMinScoreGapless(double numLettersInReference) {
   // trial-and-error.  It should depend on the relative speeds of
   // gapless and gapped extensions.
 
-  int s = gaplessEvaluer.minScore(e, numLettersInReference);
+  int s = ceil(gaplessEvaluer.minScore(e, numLettersInReference));
+  s = std::max(1, s);
   return std::min(s, args.minScoreGapped);
 }
 
@@ -1293,10 +1294,14 @@ void lastal( int argc, char** argv ){
     calculateScoreStatistics(matrixName, refLetters, refMaxSeqLen);
   }
 
-  int minScore = (args.maxEvalue > 0) ? evaluer.minScore(args.maxEvalue, 1e18)
-    : evaluer.minScore(args.queryLettersPerRandomAlignment);
-
-  double eg2 = evaluer.isGood() ? 1e18 * evaluer.evaluePerArea(minScore) : -1;
+  double minScore = -1;
+  double eg2 = -1;
+  if (evaluer.isGood()) {
+    minScore = (args.maxEvalue > 0) ? evaluer.minScore(args.maxEvalue, 1e18)
+      : evaluer.minScore(args.queryLettersPerRandomAlignment);
+    minScore = ceil(std::max(1.0, minScore));
+    eg2 = 1e18 * evaluer.evaluePerArea(minScore);
+  }
   args.setDefaultsFromMatrix(fwdMatrices.stats.lambda(), minScore, eg2);
 
   minScoreGapless = calcMinScoreGapless(refLetters);
