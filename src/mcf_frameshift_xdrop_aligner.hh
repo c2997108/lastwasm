@@ -54,6 +54,12 @@ public:
     return xFwdProbs[i] * xBckProbs[totalNumOfCells - j + padSize*7 - 1];
   }
 
+  // tranDna should point to translated DNA: frame 012012012...
+  double maxSumOfProbRatios(const uchar *protein, int proteinLength,
+			    const uchar *tranDna, int tranDnaLength,
+			    const const_dbl_ptr *substitutionProbs,
+			    const GapCosts &gapCosts);
+
 private:
   std::vector<Prob> xFwdProbs;
   std::vector<Prob> yFwdProbs;
