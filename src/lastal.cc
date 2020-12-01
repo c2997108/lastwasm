@@ -833,8 +833,8 @@ static void eraseWeakAlignments(LastAligner &aligner, AlignmentPot &gappedAlns,
   Dispatcher dis(Phase::gapless, aligner, queryNum, matrices, querySeq);
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &a = gappedAlns.items[i];
-    if (!a.hasGoodSegment(dis.a, dis.b, args.minScoreGapped, dis.m, gapCosts,
-			  frameSize, dis.p, dis.t, dis.i, dis.j)) {
+    if (!a.hasGoodSegment(dis.a, dis.b, ceil(args.minScoreGapped), dis.m,
+			  gapCosts, frameSize, dis.p, dis.t, dis.i, dis.j)) {
       AlignmentPot::mark(a);
     }
   }
@@ -1115,7 +1115,7 @@ int calcMinScoreGapless(double numLettersInReference) {
   // This attempts to ensure that the gapped alignment phase will be
   // reasonably fast relative to the gapless alignment phase.
 
-  if (!gaplessEvaluer.isGood()) return args.minScoreGapped;
+  if (!gaplessEvaluer.isGood()) return ceil(args.minScoreGapped);
 
   double n = args.maxGaplessAlignmentsPerQueryPosition;
   if (args.maxGaplessAlignmentsPerQueryPosition + 1 == 0) n = 10;  // ?
@@ -1130,9 +1130,9 @@ int calcMinScoreGapless(double numLettersInReference) {
   // trial-and-error.  It should depend on the relative speeds of
   // gapless and gapped extensions.
 
-  int s = ceil(gaplessEvaluer.minScore(e, numLettersInReference));
-  s = std::max(1, s);
-  return std::min(s, args.minScoreGapped);
+  double s = gaplessEvaluer.minScore(e, numLettersInReference);
+  s = std::max(1.0, s);
+  return ceil(std::min(s, args.minScoreGapped));
 }
 
 // Read one database volume

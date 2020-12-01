@@ -4,6 +4,8 @@
 #include "stringify.hh"
 #include "getoptUtil.hh"
 
+#include <math.h>
+
 #include <algorithm>  // max
 #include <iostream>
 #include <sstream>
@@ -561,7 +563,7 @@ static int percent(int val, int percentage) {
   return (percentage == 100) ? val : val * percentage / 100;
 }
 
-void LastalArguments::setDefaultsFromMatrix(double lambda, int minScore,
+void LastalArguments::setDefaultsFromMatrix(double lambda, double minScore,
 					    double maxEvalueDefault) {
   if (maxEvalue < 0) maxEvalue = maxEvalueDefault;
   if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
@@ -572,11 +574,15 @@ can't calculate E-values: maybe the mismatch or gap costs are too weak.\n\
 To proceed without E-values, set a score threshold with option -e.");
     minScoreGapped = minScore;
   }
-  if( outputType < 2 ) minScoreGapless = minScoreGapped;
+
+  if (minScoreGapped > INT_MAX)
+    ERR("the alignment score threshold is too big");
+
+  if (outputType < 2) minScoreGapless = ceil(minScoreGapped);
 
   if( temperature < 0 ) temperature = 1 / lambda;
 
-  int defaultMaxScoreDrop = std::max(minScoreGapped - 1, 0);
+  int defaultMaxScoreDrop = std::max(ceil(minScoreGapped) - 1, 0.0);  // xxx
   defaultMaxScoreDrop = std::max(defaultMaxScoreDrop, maxDropGapless);
 
   if (maxDropFinalSuffix == '%') {

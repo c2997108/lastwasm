@@ -2,16 +2,17 @@
 
 // This struct holds the command line arguments for lastal.
 
-#ifndef LASTALARGUMENTS_HH
-#define LASTALARGUMENTS_HH
+#ifndef LASTAL_ARGUMENTS_HH
+#define LASTAL_ARGUMENTS_HH
 
 #include "SequenceFormat.hh"
 
-#include <climits>
-#include <string>
+#include <limits.h>
+#include <stddef.h>
+
 #include <iosfwd>
+#include <string>
 #include <vector>
-#include <stddef.h>  // size_t
 
 namespace cbrc{
 
@@ -39,7 +40,7 @@ struct LastalArguments{
                                 bool isCaseSensitiveSeeds, bool isVolumes,
 				size_t refMinimizerWindow,
 				unsigned realNumOfThreads );
-  void setDefaultsFromMatrix(double lambda, int minScore,
+  void setDefaultsFromMatrix(double lambda, double minScore,
 			     double maxEvalueDefault);
 
   // write the parameter settings, starting each line with "#":
@@ -80,7 +81,7 @@ struct LastalArguments{
   int maskLowercase;
   double maxEvalue;
   double queryLettersPerRandomAlignment;
-  int minScoreGapped;
+  double minScoreGapped;
   int minScoreGapless;
   int matchScore;
   int mismatchCost;
@@ -121,5 +122,6 @@ struct LastalArguments{
   int inputStart;  // index in argv of first input filename
 };
 
-}  // end namespace cbrc
-#endif  // LASTALARGUMENTS_HH
+}
+
+#endif
