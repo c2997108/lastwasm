@@ -2544,13 +2544,14 @@ p                     '''))),,,222333~~~~~~===:::777111///(((
 
 # Query sequences=100
 
-TEST lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -e56 -j4 /tmp/last-test sd-ccs-100.fq
+TEST lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -D1e3 -j4 /tmp/last-test sd-ccs-100.fq
 lastal: quality data not used for DNA-versus-protein alignment
 #
-# a=17 b=1 A=17 B=1 F=9,9,9,9 e=56 d=45 x=55 y=43 z=55 D=1e+06
+# a=17 b=1 A=17 B=1 F=9,9,9,9 e=65.4078 d=45 x=65 y=43 z=65 D=1000 E=1.01833e+12
 # R=00 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.34294 j=4 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
+# lambda=0.230259 K=3.53731
 #
 #   GCC GCG GCA GCT TGC TGT GAC GAT GAG GAA TTC TTT GGC GGT GGA GGG CAC CAT ATC ATT ATA AAG AAA TTG TTA CTT CTA CTC CTG ATG AAC AAT CCC CCG CCA CCT CAG CAA AGG AGA CGG CGC CGT CGA TCC AGC TCG TCA TCT AGT ACC ACT ACA ACG GTC GTG GTT GTA TGG TAC TAT TAG TGA TAA
 # A   9   7   8   9  -9  -9  -1  -1  -5  -3  -4  -5  -1  -1  -2  -4  -9 -10   0   0  -1  -9  -7  -7  -5  -6  -6  -5  -9  -3  -5  -5  -1  -3  -2  -1 -14 -11  -8  -7 -13  -9  -9 -10   0  -5  -1   0   0  -5   5   4   4   3   5   1   5   4 -12  -8  -9 -11  -9  -9
@@ -2582,143 +2583,185 @@ lastal: quality data not used for DNA-versus-protein alignment
 # name start alnSize strand seqSize alignment
 #
 # batch 0
-a score=57 fullScore=75
+a score=75.1 EG2=1.1e+11 E=0.079
 s Q2LCP8 237  43 + 491 GlyMetLeuMetThrPheTyrLeuThrIleThrGlnLysLeuValThrLeuMetValLeuIleAsnLeuTyrGln--AsnLeuIleIle-TyrThrAsnAlaIleMetPheThrAsnGlyLeuIleIleLeu
 s S1_1   437 132 - 743 GGAGTGCTTATTTTTGTATTTCTGGTGATATTCTATGGGATTATTATTTTAATGATATTCCCTACCTGATGCTAAAAAACGTAATCATCCCATGCCGACGCCATTCATGTTGCTGGTTGGGTGATCTTTTTA
 q S1_1                 ~~9TPO^~SL.~~J~~AS~L[t~~PlqF~~Yt~>EaMN.m~~O~W~E~Fdcpa{bYy}~Uaf~YEIu~~J[~q~D_~~~o7~_Y0~j_jp~C\~~gxfl4~~sbFd~T~~M~~y3~e~~aQOaCJe~u~{d_
-p                      $$$$$$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%&&&&&&'''***~~~~~~777222//////......***--"""#########-((()))))))))(((%%%%%%%%%%%%%%%%%%%%%$$$###
+p                      $$$$$$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%&&&&&&'''***~~~~~~666222//////......***--"""#########-((()))))))))(((%%%%%%%%%%%%%%%%%%%%%$$$###
 
-a score=59 fullScore=69.2
+a score=69.2 EG2=4.2e+11 E=0.23
 s Q2LCP8 405 14 + 491 MetValLeuGlyArgValTyrLeuThrMetLeuAlaPhePhe
 s S1_5   472 42 + 558 GTGATGGTTGCTCCGGTTCGTCTGATGACGCTGGCTTATTTC
 q S1_5                =w~mon~[~K~cI~Fj7~:rh'~~g~~aPi1VG~rfQh~~xt
 p                     #########%%%&&&,,,000666999@@@~~~~~~///+++
 
-a score=72 fullScore=85.7
+a score=85.7 EG2=9.5e+09 E=0.0041
 s Q2LCP8 426 15 + 491 TyrTyrMetAsnLeuValLysIleIleIleIleAspLysValGln
 s S1_8    93 45 + 438 CGCAATAGGAGACTGATGTGAATCATCATGATTGATGAAATGCAG
 q S1_8                U;BEA:EK&E4%`=6+B;Q?P5cD,_@=1?JrKCXCQ@E3<L4H?
 p                     $$$%%%''')))///333666~~~~~~EEEEEE???666222---
 
-a score=59 fullScore=69.1
+a score=69.1 EG2=4.4e+11 E=0.24
 s Q2LCP8 383 12 + 491 MetTyrLeuAlaGlyLeuProProMetThrAsnPhe
 s S1_9   210 36 + 563 ACATACCTGGCTGCACTTCCGCCAGAGGCACGCTTT
 q S1_9                <~M~P~Wp{cI~r~~B6~~~Ski~~;mzH`~~H~~\
 p                     '''~~~~~~~~~???>>>999444+++***((('''
 
+a score=71.7 EG2=2.4e+11 E=0.069
+s Q2LCP8 21 13 + 491 IleIleLeuIleValLeuSerIleSerIleLysLysAsp
+s S1_15  99 39 + 296 ACTGCTTTTATTGTGTTGTTTATGTCAACTATAACAAAT
+q S1_15              ~H~~d~xl~Nw5~~LhE~~~~Q~~M]wXNQI~HA~q~[~
+p                    ###%%%,,,~~~~~~~~~:::666222,,,(((&&&%%%
+
+a score=70.9 EG2=2.8e+11 E=0.083
+s Q2LCP8  89 29 + 491 IleIleLysMetPheGluGluGlyValThrGluGlyLysLysThrLysIleThrAspGluGlyLeuIle---LeuIleTyrSerSerIle
+s S1_15  174 90 - 296 ATAAACAACACAATAAAAGCAGTTGCAATAAAAAATGTGTTAATAAAAATAAAAGACGAACAAATGATATTTTTGATTTTCTTATTGATT
+q S1_15               ~Q~~~~EhL~~5wN~lx~d~~H~=~~F~~M>5lJ~d~R~ITp\E~'Y~NkNDnK~C~J~~~HcBbs~~~I~I1p3B~~~A~3_{L-RbV~
+p                     """"""#########&&&'''(((((()))************111~~~~~~<<<999222***(((&&&---&&&(((((('''&&&&&&
+
 # batch 1
-a score=63 fullScore=75
+a score=75.0 EG2=1.1e+11 E=0.071
 s Q2LCP8 204 25 + 491 ArgIleGlnMetGlyIleAlaLeuIleValLeuGlyLeuIleLeuLysLeuGlyIleAlaProPheHisGlyTrp
 s S1_17  388 72 - 643 CGCGGTGAGACGGAAATAGCATCGACCGATCCGGGACCA---TTGAGGCCGAGGATCTGTTTATCACGTCGCCGG
 q S1_17               =7ACG23;8K*[O82;T89K==8,>9>=O&?6':;88NK---MWF4<PN?-7O\:;[)?=>U*=B9E??a^T,A_
 p                     $$$$$$&&&...111~~~~~~EEEAAA<<<;;;888***---,,,000000///---''''''&&&&&&%%%$$$
 
-a score=61 fullScore=72.1
+a score=66.2 EG2=8.5e+11 E=0.46
+s Q2LCP8 47  9 + 491 ThrLeuIleValIleMetIleValIle
+s S1_19  61 27 - 552 ATACTTACTGTAATAACGATTATTACA
+q S1_19              ~;~~~g~~~y~s~V0~jD8o~~.~?~z
+p                    %%%,,,000~~~~~~222+++'''###
+
+a score=69.7 EG2=3.8e+11 E=0.19
+s Q2LCP8 287 11 + 491 GlyThrIleGlySerLeuArgGlnGlnLysLeu
+s S1_21  101 33 + 510 GGCACCATCAGCTCTTAGCAACGATAACAATCA
+q S1_21               1\:~LMgWKJGLNb4~'[M~T7O;+K6CJI0<e
+p                     ~~~~~~~~~777333+++(((((('''$$$"""
+
+a score=72.1 EG2=2.2e+11 E=0.11
 s Q2LCP8 276 16 + 491 LeuIleIleLeuIleLeuValThrLeuValValGlyThrIleGlySer
 s S1_21  109 48 - 510 CTGGTATTGGTGATTCTGACCATGCTGGCGGCAGTCACGACCGGTTCA
 q S1_21               8~d)A5S']cqHE\N[;@+Sc~<U~9FsHJX6'~_@Y29FLM<WhAYp
 p                     %%%&&&&&&(((~~~~~~;;;;;;@@@<<<999777666333...'''
 
-a score=59 fullScore=71.4
+a score=71.5 EG2=2.5e+11 E=0.13
 s Q2LCP8 404 13 + 491 TyrMetValLeuGlyArgValTyrLeuThrMetLeuAla
 s S1_21  100 39 - 510 CACCTGATGCTGGTATTGGTGATTCTGACCATGCTGGCG
 q S1_21               Ab~2M/?7;8~d)A5S']cqHE\N[;@+Sc~<U~9FsHJ
 p                     &&&(((***,,,,,,---000111~~~~~~~~~~~~~~~
 
-a score=61 fullScore=77.6
+a score=77.7 EG2=6e+10 E=0.046
 s Q2LCP8  98 21 + 491 ThrGluGlyLysLysThrLysIleThrAspGluGlyLeuIleLeuIleTyrSerSerIleIle
 s S1_26  483 63 + 786 ACTCAGGGAAAAAAAGTATAAATCATCGAGGCTTGGTTTCTATTTATTACTTGTGGTATTGTT
 q S1_26               u}`X~M`SDC~~:~|u`{~~P~v~c~~gb~~3X~C~BUQ~]IwN~X~~~~~~RYwc9L~f~bU
-p                     +++...~~~~~~~~~222111///+++%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$$###
+p                     +++...~~~~~~~~~222111000+++%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$$###
 
-a score=62 fullScore=79.1
+a score=66.8 EG2=7.3e+11 E=0.57
+s Q2LCP8 174  7 + 491 LeuLeuGlyIleValSerIle
+s S1_26  745 21 + 786 TTATTATGGATTGTATCCATA
+q S1_26               d`~~q[d~fRP~DZFTf2~Dy
+p                     (((...333~~~~~~~~~~~~
+
+a score=66.6 EG2=7.7e+11 E=0.59
+s Q2LCP8 38 25 + 491 HisIleIleIleGlnSerLeuLys-LeuThrLeuIleValIleMetIleValIleGlyIleGluGluSerIleTyr
+s S1_26  44 73 + 786 CATATCATCTGTCAGAGTTTT---CCCGAAGAATATAGTGATTACGACAGTACTAGAAAGAATATAATTAACCTGT
+q S1_26              ~r~N@~}qnh~rO[|~~gib~---I~xD~y~[L~R~~Otd~M~Gy[Z~~Ph7h~~vzP~[~b{~M|o~~Kc~FMy~
+p                    ((((((((((((((('''%%%----$$$$$$%%%~~~~~~~~~<<<444111***(((&&&&&&&&&%%%%%%$$$
+
+a score=79.1 EG2=4.3e+10 E=0.033
 s Q2LCP8 266 17 + 491 TyrThrAsnAlaIleMetPheThrAsnGlyLeuIleIleLeuIleLeuVal
 s S1_26  644 51 - 786 TTCACTATTGCGAACAGCCTCCTCAACAGGTTAATTATATTCTTTCTAGTA
 q S1_26               wd~~~~]F~nep~\=~}d~.~@m~X~yMF~cK~~o|M~{b~[~Pzv~~h7h
 p                     $$$'''((()))******,,,---555:::~~~~~~~~~555222000***
 
+a score=67.9 EG2=5.8e+11 E=0.37
+s Q2LCP8 398  9 + 491 IleLeuIleLeuLeuProTyrMetVal
+s S1_27  164 27 - 647 ACACCAGTACGGCTCCCGTACATGGTG
+q S1_27               P;XhB~}krY~f~~UAjhqK-Z;s>~h
+p                     ###&&&))),,,~~~~~~~~~~~~~~~
+
 # batch 2
-a score=67 fullScore=84.6
+a score=84.7 EG2=1.2e+10 E=0.0068
 s Q2LCP8 250  35 + 491 LeuValThrLeuMetValLeuIleAsnLeuTyrGlnAsnLeuIleIleTyrThrAsnAlaIleMetPheThrAsnGlyLeuIleIleLeuIleLeuValThrLeu
 s S1_40   51 105 - 579 CCGACAACGCTTGCTGGTCGCATTTATTCCTACGTAAGCATTATCGGCCATTTCAGCTTCCTGGTGTTCGCCACCTACTTGCTGATCCTCTTCCCGCTGACTTTA
 q S1_40                MkG\Hp<CGror?v4]3bdI\OB\4:UAI?@`MNQHdSKNZAeO6U>~1C7&JI58.YCWaaO5~A@EvMZLKND8QznFq$=SGLkJ=fJYeQ:~G/WL-N;D?
-p                      %%%(((~~~~~~888888;;;BBB@@@>>>@@@999;;;555555444;;;:::;;;777777===CCC888777666666111222222111000///---(((
+p                      %%%(((~~~~~~888888;;;BBB@@@>>>@@@999;;;555555444;;;:::;;;777777===CCC888777666666111222222111000...---(((
 
-a score=60 fullScore=71.6
-s Q2LCP8 280 16 + 491 IleLeuValThrLeuValValGlyThrIleGlySerLeuArgGlnGln
-s S1_40    3 48 - 579 ATTCTGCTTTCGCTCGTCATTGGCGCCGTTACCTGTTTTCGCCGACTG
-q S1_40               P|N_kqaM3BuHMQ~H~IT~>`VdH,VHZ'O13q~HfOn\2W]HRScD
-p                     ~~~~~~@@@???CCCCCC???===444///,,,++++++)))'''%%%
-
-a score=59 fullScore=74.4
+a score=74.4 EG2=1.3e+11 E=0.073
 s Q2LCP8 271 27 + 491 MetPheThrAsnGlyLeuIleIleLeuIleLeuValThrLeuValValGlyThrIleGlySerLeuArgGlnGlnLysLeu
 s S1_40  327 69 - 579 ATGTTCATCAGCGTGCCGGTTATTTTATTGCTTGAA---CTGGTGTTTGCGACG---------TGGAGCTGGCAAAAGCTG
 q S1_40               ^RJrHiP~l5eVT:Q\OQjqNK?M&JG8P_~k=mG[---B\L?OY4tXC:u.\Y---------DJ5H;rW=[RGacq~@,>
 p                     ~~~~~~EEEBBB>>>===777444---%%%$$$###---''''''&&&%%%$$$---------###$$$%%%&&&&&&%%%
 
+a score=71.7 EG2=2.4e+11 E=0.14
+s Q2LCP8 280 16 + 491 IleLeuValThrLeuValValGlyThrIleGlySerLeuArgGlnGln
+s S1_40    3 48 - 579 ATTCTGCTTTCGCTCGTCATTGGCGCCGTTACCTGTTTTCGCCGACTG
+q S1_40               P|N_kqaM3BuHMQ~H~IT~>`VdH,VHZ'O13q~HfOn\2W]HRScD
+p                     ~~~~~~@@@???CCCCCC???===444///,,,++++++)))'''%%%
+
 # batch 3
-a score=66 fullScore=79.3
+a score=79.3 EG2=4.1e+10 E=0.023
 s Q2LCP8 384 31 + 491 TyrLeuAlaGlyLeuProProMetThrAsnPheIleSerLysIleLeuIleLeuLeuProTyrMetValLeuGlyArgValTyrLeuThrMet
 s S1_55  247 93 - 578 TGCTTTTTCTGCGTTCATTCAATGTCGAATGCGATGTTGACACGTCTTATCCTTCAATGTCGGATGCGACGCTGCCGCGTCTATCCGACCACG
 q S1_55               325GA,4&47/FN+J9.6?*1S0L-?2<80+>@7>@AJX??)L5*>&)+ME:A9;:.&>&?=-%HAR'5)Z1-7;&8(6B,1M59B(,8%'LW
-p                     $$$$$$$$$%%%&&&(((,,,/////////...//////000000~~~~~~~~~000......///...000222777>>>===888333+++
+p                     $$$$$$$$$%%%&&&(((,,,/////////.../////////000~~~~~~~~~000......///...000222777>>>===888333+++
+
+a score=66.2 EG2=8.5e+11 E=0.81
+s Q2LCP8 171 14 + 491 ThrIleLeuLeuLeuGlyIleValSerIleTyrLysSerThr
+s S1_62  836 42 - 965 GCCATTTTATCGTTCTGCGCTGTATCTGGCTGTAACAATACT
+q S1_62               5p>NNc_WKY[M?OVW~hyPax60~X\.\JItIK`nGG~A]M
+p                     (((~~~~~~BBB>>>;;;999888444...---***((('''
+
+a score=65.6 EG2=9.7e+11 E=0.33
+s Q2LCP8 375  8 + 491 AlaIleValTyrIleLeuValLeu
+s S1_65   51 24 + 349 GCTATTACGCATATTTTGATCCTG
+q S1_65               (34OG>4024?0?H.$FJ2=5C>O
+p                     ~~~~~~CCCBBB;;;555...***
 
 # batch 4
-a score=56 fullScore=66.4
+a score=66.4 EG2=8.1e+11 E=0.36
 s Q2LCP8 409 17 + 491 ArgValTyrLeuThrMetLeuAlaPhePheLeuSerValGlyValMetIle
 s S1_68   38 51 - 460 AAAGTGCAATTAATCAGGCGCGCTTTTTTCCATGCCAGCGTAGTGGTGGTC
 q S1_68               Xgqc~{KG[?~`~CNo~~C]~^tDKvP~cwR~~Hi~ZYvLZxbNbUfnU~~
 p                     %%%***,,,111444666888~~~~~~~~~)))$$$######$$$###"""
 
-a score=57 fullScore=65
-s Q2LCP8 126 11 + 491 AlaHisAsnLeuIleThrLeuPheLeuSerLeu
-s S1_69    4 33 - 505 GTACACAGCGCGATTTCACCGTTCTCGTCGTTG
-q S1_69               >=<<^A_CkT~jN/WM5-7>^V<B2~}]xY5E_
-p                     &&&...000111777999>>>FFFGGG~~~~~~
-
-a score=61 fullScore=70.3
+a score=70.3 EG2=3.3e+11 E=0.2
 s Q2LCP8 229 13 + 491 LeuIleAspValTyrGluGlyAlaGlyMetLeuMetThr
 s S1_81  367 39 + 615 CTGGTTAACGTAGGCGCGGCGGCGGGGATGTTACCGACC
 q S1_81               ;8;xX&ML'60<%A23a;9KM>8B~-aAQ4]@O7@IF2>
 p                     (((+++...111111333555~~~~~~~~~~~~***(((
 
-a score=57 fullScore=65
-s Q2LCP8 249 11 + 491 LysLeuValThrLeuMetValLeuIleAsnLeu
-s S1_84  311 33 + 484 AAAATGACTGCCCTGATGATCCTCATCACTCTG
-q S1_84               5~~u~Z~pA<~tm~`Y\xA~hM~YnayNlWA[~
-p                     '''((()))...~~~~~~;;;777111(((&&&
-
 # batch 5
-a score=70 fullScore=78.7
+a score=78.7 EG2=4.8e+10 E=0.017
 s Q2LCP8 447 11 + 491 AlaGluLeuGluIleThrSerLysProThrLys
 s S1_85  183 33 + 361 GCCAGGCTCGAAGTCATCAGCACGCCAACAAAG
 q S1_85               SK;)+OKoHe/X0I9^.IPD^C1O*;HD><E6%
 p                     ***---444;;;>>>AAAFFFFFF~~~~~~~~~
 
-a score=57 fullScore=66.7
+a score=67.0 EG2=7.1e+11 E=0.25
+s Q2LCP8 236 10 + 491 AlaGlyMetLeuMetThrPheTyrLeuThr
+s S1_85  149 30 - 361 GTTGGCGTGCTGATGACTTCGAGCCTGGCG
+q S1_85               >DH;*O1C^DPI.^9I0X/eHoKO+);KS'
+p                     ###(((---~~~~~~~~~+++)))((($$$
+
+a score=67.7 EG2=6e+11 E=0.17
+s Q2LCP8 183 10 + 491 SerThrGlySerLeuMetTyrThrAspLeu
+s S1_92  157 30 + 283 CCCATTGGCCTGTTGATGTATGCCAATCTG
+q S1_92               8AFN8I??GG](>Q=CNG/G>@(;^X49RH
+p                     $$$(((,,,,,,~~~~~~~~~777222***
+
+a score=66.7 EG2=7.6e+11 E=0.49
 s Q2LCP8  44 12 + 491 LeuLysLeuThrLeuIleValIleMetIleValIle
 s S1_93  119 36 - 650 CTCAAAGCCATCCTGGTGATGATTATGGTGGTCATT
 q S1_93               ?_sI~R_lA`PhDjXLL>'am3:HU<5[<JQ6aVXJ
 p                     ~~~~~~888999:::555555555333...---***
 
-a score=59 fullScore=63.1
-s Q2LCP8 317 10 + 491 AlaGlySerMetSerGluGluLeuMetVal
-s S1_98  195 30 + 401 GCGGGCGGTATGGGTGCGGCGCTGATGGCG
-q S1_98               ^qSm~vj}J~i~~y~~BPs_M~;{~=~2G6
-p                     ~~~~~~EEEHHH???<<<:::888222'''
-
-a score=58 fullScore=61.7
-s Q2LCP8 130 13 + 491 IleThrLeuPheLeuSerLeuGluIleSerSerIleCys
-s S1_98    4 39 + 401 ATTGCGTCATTCGCGTCGCTTGTGATGTCACCAATCCGC
-q S1_98               yq{~I8V.~S~XFRM~Sp~~B~?a[bDI~~~aRo~JsTK
-p                     '''))),,,222333~~~~~~===:::777111///(((
-
 # Query sequences=100
 
-TEST lastal -Q1 -pBL62 -b1 -F3,3,3,3 -X1 -j4 -e36 /tmp/last-test sd-ccs-100.fq
+TEST lastal -Q1 -pBL62 -b1 -F3,3,3,3 -X1 -j4 -e56 /tmp/last-test sd-ccs-100.fq
 lastal: quality data not used for DNA-versus-protein alignment
 #
-# a=11 b=1 A=11 B=1 F=3,3,3,3 e=36 d=29 x=35 y=31 z=35 D=1e+06
+# a=11 b=1 A=11 B=1 F=3,3,3,3 e=56 d=29 x=55 y=31 z=55 D=1e+06
 # R=00 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=3.08611 j=4 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=491
@@ -2756,152 +2799,182 @@ lastal: quality data not used for DNA-versus-protein alignment
 # name start alnSize strand seqSize alignment
 #
 # batch 0
-a score=48 fullScore=72.5
+a score=72.7
 s Q2LCP8 124 23 + 491 MEAHNLITLFLSLEISSICFYIL
 s S1_1   360 69 - 743 MGFHNMR*LFFFISLREICFWII
 p                     %&(020//110012348~~~0*&
 
-a score=39 fullScore=62
+a score=62.4
 s Q2LCP8 394  34 + 491 FISKILILLPYMVLGRVYLTMLAFFLSVGVMIYY
 s S1_1   395 102 - 743 YISEGNMFLDYFALGVLIFVFLVIFYGIIILMIF
 p                      (~~6223479<8652*(''''''&&&%%$$#""!
 
-a score=37 fullScore=53.1
-s Q2LCP8 384 11 + 491 YLAGLPPMTNF
-s S1_9   213 33 + 563 YLAALPPEARF
-p                     ~~~@A<5+('&
+a score=58.3
+s Q2LCP8 233 23 + 491 YEGAGMLMTFYLTITQKLVTLMV
+s S1_1   425 69 - 743 YFALGVLIFVFLVIFYGIIILMI
+p                     $%'),-.--./234334789~~*
 
-a score=36 fullScore=61.4
+a score=56.2
+s Q2LCP8 14 28 + 491 SIYILPLIILIVLSISIKKDVQRVHIII
+s S1_5   78 84 - 558 TITLLNLILRILLSYLIREVIMVQRITI
+p                    %()+/1~~:77640,++)&$""!!!!!!
+
+a score=61.5
 s Q2LCP8 136 23 + 491 LEISSICFYILALNKNSRKGIEG
 s S1_13  414 69 + 824 ITISTVMFHMCRLNHDSVPVLQG
 p                     $&~~?=66654453.,*('&&&%
 
-# batch 1
-a score=40 fullScore=52.4
-s Q2LCP8 284 23 + 491 LVVGTIGSLRQQKLIRFIAYSAI
-s S1_17  515 69 - 643 VLVGRSGSGKSSLLTRFLVFSHI
-p                     %(~~;:=:4433345751.,*&%
+a score=57.7
+s Q2LCP8 105 28 + 491 ITDEGLILIYSSIIGMLISMEAHNLITL
+s S1_13   61 84 - 824 IKEEGAVAVATAIEAVMNVAPAQNLLAI
+p                     )+1~~:8652110..--++,-0120,(&
 
-a score=39 fullScore=59.5
+# batch 1
+a score=59.7
 s Q2LCP8 288 20 + 491 TIGSLRQQKLIRFIAYSAIV
 s S1_19  408 60 + 552 TGGKRSVQKVYRFLSYCLIV
-p                     $$&&&'(~~><BC=97/,+)
+p                     $$&&&'(~~><BC<97.,+)
 
-a score=38 fullScore=49
-s Q2LCP8  31 25 + 491 KKDVQRVHIIIQSLKLTLIVIMIVI
-s S1_19  417 75 + 552 KRSVQKVYRFLSYCLIVIIVITVSI
-p                     '(*.223200//../138~~~*'$#
-
-a score=42 fullScore=59.7
+a score=59.9
 s Q2LCP8 293  50 + 491 RQQKLIRFIAYSAIVNSALLILMLAGSMSEELMVNSVYYLINYIIGLTVL
 s S1_20   20 150 + 484 RRERKYRCQACSATTNYAIALLQSVSPDNRSSLRQAAFFLPGHCMRLTAI
-p                      %%&&&(,,-13~~<;;652/..,+********++,-.011000//..-*(
+p                      %%&&&(,,-13~~<;;652/..,+***)****++,-.001000//..-*(
 
-a score=38 fullScore=52.6
-s Q2LCP8 206 19 + 491 QMGIALIVLGLILKLGIAP
-s S1_24   77 57 - 251 EIGVAVIDCGGTLRCGIYP
-p                     ),26887456469;<~~-+
+a score=56.8
+s Q2LCP8 276 16 + 491 LIILILVTLVVGTIGS
+s S1_21  109 48 - 510 LVLVILTMLAAVTTGS
+p                     (+,.~~310.,,,**&
 
-a score=39 fullScore=62.6
+a score=68.8
 s Q2LCP8  94 28 + 491 EEGVTEGKKTKITDEGLILIYSSIIGML
 s S1_26  118 84 + 786 EEAVRNSEKMSLSDSELDAAFYAVIVML
-p                     ~~>=877676688720/,++****)('&
+p                     ~~>=8776655654/-,))((''''&&%
 
-a score=39 fullScore=61.1
+a score=67.4
+s Q2LCP8 176 14 + 491 GIVSIYKSTGSLMY
+s S1_26  537 42 + 786 GIVAVYFVVLSMIY
+p                     ~~~?<90/...-,*
+
+a score=65.2
+s Q2LCP8 394 14 + 491 FISKILILLPYMVL
+s S1_26  709 42 + 786 WISVILVTLPLNLL
+p                     (~~::97442)('&
+
+a score=63.1
+s Q2LCP8  98  39 + 491 TEGKKTKITDEGLILIYSSIIGMLISME--AHNLITLFLSL
+s S1_26  483 116 + 786 TQGKKV*IIEAWFLFITCGIVAVYFVV-/FIHDLYEMILCL
+p                      /4~~~*''&%$##########"""!!!---"""""""""""
+
+a score=62.0
+s Q2LCP8 133 13 + 491 FLSLEISSICFYI
+s S1_26  628 39 + 786 FVSVFVLSVCYVI
+p                     ~<8321111/$##
+
+a score=61.6
 s Q2LCP8 323  39 + 491 ELMVNSVYYLINYIIGLTVLMSLIMGFLRLNDRGTIEDI
 s S1_26  297 117 + 786 EFFLNLINHRIGKSAGWVFLLCLLLGFRGKYSVGSNDEI
-p                      &&'(**********+,,-.2458:=~~'%$$$$$##"""
+p                      &&'())********+,,-.2458:=~~'%$$$$$#""""
 
-a score=40 fullScore=57.6
+a score=60.7
+s Q2LCP8  90 25 + 491 IKMFEEGVTEGKKTKITDEGLILIY
+s S1_26  455 75 + 786 VAIAKETIFHSGKKSINHRGLVSIY
+p                     """""""""""""##&((,~~/*)(
+
+a score=59.6
+s Q2LCP8 359 30 + 491 EDIYQLKNMWVINMFGAIVYILVLMYLAGL
+s S1_26  583 90 + 786 DDFMLKKTFSLFLWFFVSVFVLSVCYVIGV
+p                     )~'&%%%$$$$$$%(()*-./.----+*)%
+
+a score=58.6
+s Q2LCP8 394 19 + 491 FISKILILLPYMVLGRVYL
+s S1_26  525 57 + 786 FITCGIVAVYFVVLSMIYM
+p                     ~~/******+-/011/.-'
+
+a score=57.8
 s Q2LCP8 333 16 + 491 INYIIGLTVLMSLIMG
 s S1_26  673 48 - 786 VNYILSSTVVITIFFG
-p                     +~~~>989741/.,+*
+p                     )~~~>989741/.,+*
 
 # batch 2
-a score=42 fullScore=56.4
+a score=58.7
+s Q2LCP8 246 33 + 491 ITQKLVTLMVLINLYQNLIIYTNAIMFTNGLII
+s S1_36  117 99 - 604 LTASALNL*SNVGFFCSLLAPSDAILFQEGVSV
+p                     "####$$$$$$%&'()+,--.04~~?;432+('
+
+a score=56.4
 s Q2LCP8 135 21 + 491 SLEISSICFYILALNKNSRKG
 s S1_40   89 63 + 579 SAQIYTTCEAIKAINKNAASG
 p                     &')**,.22367<?~~~-*('
 
-a score=37 fullScore=61.4
-s Q2LCP8 252 33 + 491 TLMVLINLYQNLIIYTNAIMFTNGLIILILVTL
-s S1_40   57 99 - 579 TLAGRIYSYVSIIGHFSFLVFATYLLILFPLTL
-p                     ~~3112225454412111233/-++**)(''&$
+a score=63.2
+s Q2LCP8 252  51 + 491 TLMVLINLYQNLIIYTNAIMFTNGLIILILVTLVVGTIGSL-RQQKLIRFIA
+s S1_40   57 133 - 579 TLAGRIYSYVSIIGHFSFLVFATYLLILFPLTLS-------\RLQRLMRFLS
+p                      ###$$&&'()))))))******)(((''&&&%$"--------$$(,15~~($
 
-a score=36 fullScore=56.6
+a score=56.8
 s Q2LCP8 88  53 + 491 MIIKMFEEGVTEGKKTKITDEGLILIYSSIIGMLISMEAHNLITLFLSLEISS
 s S1_40   3 159 - 579 ILLSLVIGAVTCFRRLPTTLAGRIYSYVSIIGHFSFLVFATYLLILFPLTLSS
 p                     !"""""##$%%%&'''(()*+./00156~~~~)'%%$$#######$$%&&&&%
 
+a score=56.7
+s Q2LCP8 280 15 + 491 ILVTLVVGTIGSLRQ
+s S1_40    3 45 - 579 ILLSLVIGAVTCFRR
+p                     ~~@>>;62*'$##"!
+
+a score=56.5
+s Q2LCP8  59 31 + 491 ESIYVKLNGHLIKTELIKLFEYLLLGVSYMI
+s S1_40  174 93 - 579 DEVFVRHSGTAGMTLLLIDSEVLLVSISILI
+p                     %',/00001/.-./---,,.47~~8541+*(
+
 # batch 3
-a score=37 fullScore=53.4
-s Q2LCP8 422 28 + 491 GVMIYYMNLVKIIIIDK-VQTHEQGVAEL
-s S1_54  177 87 + 662 GAMMLQAPQVALIVDDEFIQTHTVGFDEL
-p                     %%%%%%%%&&&&&&%%$-)~~~310-++)
+a score=62.6
+s Q2LCP8 211 31 + 491 LIVLGLILKLGIAPFHGW---LIDVYEGAGMLMT
+s S1_61  233 98 + 442 LLAFPLVLVMGCAFAHLW/GLLIDALKIPAFIIT
+p                     ###$$$%%%$$##""""!---~~~+'&%$$$$$$
 
-a score=36 fullScore=47.1
-s Q2LCP8 183 11 + 491 STGSLMYTDLL
-s S1_54   23 33 + 662 STGTLAWSDLL
-p                     ~~~@>:986/)
-
-a score=36 fullScore=46.2
-s Q2LCP8 254 10 + 491 MVLINLYQNL
-s S1_54    7 30 + 662 MIAINLYRNV
-p                     (+-~~~~2.&
-
-a score=37 fullScore=56.9
+a score=57.0
 s Q2LCP8 251  50 + 491 VTLMVLINLYQNLIIYTNAIMFTNGLIILILVTLVVGTIGSLRQQKLIRF
 s S1_61   95 150 + 442 ITLSGIIAVGMTFVILSGGIDLSVGSVIAFTGVFLAKVIGDFGLSPLLAF
-p                      (~~533310002367665552221310/,+*******+++(&&%%%%$##
+p                      (~~533310002367665452221310/,+*)*****+++(&&%%%%$##
 
-a score=40 fullScore=72.8
+a score=73.1
 s Q2LCP8 205  72 + 491 IQMGIALIVLGLILKLGIAPFHGWLIDVYEGAGMLMTFYLTITQKLVTLMVLINLYQNLIIYTNAIMFTNGL
 s S1_67  215 207 - 496 LELAISSVVLAVIIGLIGA---GGKLSQNRLSGLIFEGYTTLIRGVPDLVLMLLIFYGLQIALNTVTEAMGV
-p                      &)+-0016~~1-+&$#"!!---###$$%&'(*/12233877521//...------.-..--,++*(%####"
+p                      &)+-0016~~1-+&$#"!!---###$$%&'(*/12233867521//...----,---..--,++*(%####"
+
+a score=56.2
+s Q2LCP8 299 15 + 491 RFIAYSAIVNSALLI
+s S1_67  446 45 - 496 RWYYYSSVLSTVLIL
+p                     %&&(~~3.,)(&%$#
 
 # batch 4
-a score=37 fullScore=61.7
+a score=61.7
 s Q2LCP8 197 24 + 491 MENTDDYRIQMGIALIVLGLILKL
 s S1_68  178 72 + 460 LDSTADYPQQPGVVLIKVPKTLAL
 p                     *.157~~6576730.+'&$$###"
 
-a score=42 fullScore=56.4
+a score=56.5
 s Q2LCP8 389 22 + 491 PPMTNFISKILILLPYMVLGRV
 s S1_80  199 66 - 550 PPTARFVAEYSIQLSYGCIGKI
 p                     ~~:9:=74322556660/.-)$
 
-# batch 5
-a score=41 fullScore=52.2
-s Q2LCP8 437 21 + 491 DKVQTHEQGVAELEITSKPTK
-s S1_85  153 63 + 361 DSVKSSQLTRARLEVISTPTK
-p                     ()****+++,028=<:==~~~
+a score=58.6
+s Q2LCP8  40 26 + 491 IIQSLKLTLIVIMIVIGIEESIYVKL
+s S1_82  384 78 - 636 LVAQFHLLKVVMLLVSGILDVVHAGL
+p                     $%%%&'(()+,-./12~~20-+(%$#
 
-a score=39 fullScore=63.4
+# batch 5
+a score=63.4
 s Q2LCP8 204  47 + 491 RIQMGIALIVLGLILKLGI-APFHGWLIDVYEGAGMLMTFYLTITQKL
 s S1_85   34 142 - 361 RCRTGLTAVVVGVMFLLVM\SSHRGGMVPPYATAGALIFVGVLMTSSL
 p                      ~<;;=9545532*('&%#"-"###%%'())...//-,*(('('((&%%
 
-a score=54 fullScore=78.1
+a score=78.1
 s Q2LCP8 395 30 + 491 ISKILILLPYMVLGRVYLTMLAFFLSVGVM
 s S1_91   49 90 - 418 ISRFRIVTPGLIYAREYLLLSFWYVSVGII
 p                     '()*+/13658989;9;4.-,,-05~~~+%
 
-a score=37 fullScore=51
-s Q2LCP8  44 14 + 491 LKLTLIVIMIVIGI
-s S1_93  119 42 - 650 LKAILVMIMVVIAL
-p                     ~~9898888640+)
-
-a score=36 fullScore=48.2
-s Q2LCP8   2 15 + 491 CLFENLMNM--IKYSIY
-s S1_95  263 47 - 372 CLFSNLTNV/*LRFSAY
-p                     ~~~=;5.,&--#$$$$$
-
-a score=38 fullScore=49.6
-s Q2LCP8  55 21 + 491 IGIEESIYVKLNGHLIKTELI
-s S1_98  258 63 - 401 IGIVREVIVQLNNHRFTGSLL
-p                     ~~~54466:;<930('%%%$#
-
-a score=41 fullScore=65.2
+a score=65.4
 s Q2LCP8 344 15 + 491 SLIMGFLRLNDRGTI
 s S1_99  437 45 + 621 TLTMGFMPVNPRATI
 p                     &+/~~~?:<=8731,

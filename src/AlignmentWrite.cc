@@ -131,7 +131,7 @@ AlignmentText Alignment::write(const MultiSequence& seq1,
     return writeTab(seq1, seq2, seqNum2, translationType, evaluer, extras);
   else
     return writeBlastTab(seq1, seq2, seqNum2, seqData2, alph, translationType,
-			 codonToAmino, evaluer, format == 'B');
+			 codonToAmino, evaluer, extras, format == 'B');
 }
 
 static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
@@ -183,6 +183,10 @@ static size_t writeBlocks(std::vector<char> &text,
   return end - e;
 }
 
+static const char *scoreFormat(bool isIntegerScores) {
+  return isIntegerScores ? "%.0f" : "%.1f";
+}
+
 static char* writeTags( const LastEvaluer& evaluer, double queryLength,
 			double score, double fullScore,
 			char separator, char* out ){
@@ -220,7 +224,7 @@ AlignmentText Alignment::writeTab(const MultiSequence& seq1,
   size_t seqStart2 = seq2.seqBeg(seqNum2) - seq2.padBeg(seqNum2);
   size_t seqLen2 = seq2.seqLen(seqNum2);
 
-  IntText sc(score);
+  FloatText sc(scoreFormat(extras.fullScore >= 0), score);
   std::string n1 = seq1.seqName(seqNum1);
   char strand1 = seq1.strand(seqNum1);
   std::string n2 = seq2.seqName(seqNum2);
@@ -269,9 +273,10 @@ static void putRight(Writer &w, const IntText &t, size_t width) {
 }
 
 // Write an "a" line
-static char *writeMafLineA(char *out, int score, const LastEvaluer& evaluer,
+static char *writeMafLineA(char *out, double score, const LastEvaluer& evaluer,
 			   double queryLength, double fullScore) {
-  out += std::sprintf(out, "a score=%d", score);
+  out += std::sprintf(out, "a score=");
+  out += std::sprintf(out, scoreFormat(fullScore >= 0), score);
   return writeTags(evaluer, queryLength, score, fullScore, ' ', out);
 }
 
@@ -447,6 +452,7 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
 				       int translationType,
 				       const uchar *codonToAmino,
 				       const LastEvaluer& evaluer,
+				       const AlignmentExtras& extras,
 				       bool isExtraColumns) const {
   size_t alnBeg1 = beg1();
   size_t alnEnd1 = end1();
@@ -512,13 +518,16 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
   }
   IntText s1(seqLen1);
   IntText s2(seqLen2);
-  IntText sc(score);
+  FloatText sc;
 
   size_t s =
     n2.size() + n1.size() + mp.size() + as.size() + mm.size() + go.size() +
     b2.size() + e2.size() + b1.size() + e1.size() + 10;
   if (evaluer.isGood()) s += ev.size() + bs.size() + 2;
-  if (isExtraColumns)   s += s1.size() + s2.size() + sc.size() + 3;
+  if (isExtraColumns) {
+    sc.set(scoreFormat(extras.fullScore >= 0), score);
+    s += s1.size() + s2.size() + sc.size() + 3;
+  }
 
   char *text = new char[s + 1];
   Writer w(text);

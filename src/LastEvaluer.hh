@@ -18,10 +18,13 @@
 #define LAST_EVALUER_HH
 
 #include "ScoreMatrixRow.hh"
+#include "mcf_frameshift_xdrop_aligner.hh"
 
 #include "alp/sls_alignment_evaluer.hpp"
 
 namespace cbrc {
+
+using namespace mcf;
 
 class GeneticCode;
 
@@ -52,6 +55,14 @@ public:
 	    const GeneticCode &geneticCode,
 	    const char *geneticCodeName,
 	    int verbosity);
+
+  // "new-style" frameshifts, sum-of-paths scores
+  // scale=lambda
+  // The Freqs need not sum to 1
+  void initFrameshift(const const_dbl_ptr *substitutionProbs,
+		      const double *proteinLetterFreqs, int numProteinLetters,
+		      const double *tranDnaLetterFreqs, int numTranDnaLetters,
+		      const GapCosts &gapCosts, double scale, int verbosity);
 
   void setSearchSpace(double databaseLength,  // number of database letters
 		      double databaseMaxSeqLength,  // length of longest seq

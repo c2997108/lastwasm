@@ -32,7 +32,7 @@ struct AlignmentText {
   SegmentPair::indexT strandNum;
   SegmentPair::indexT queryBeg;
   SegmentPair::indexT queryEnd;
-  int score;
+  double score;
   SegmentPair::indexT alnSize;
   SegmentPair::indexT matches;
   char *text;  // seems to be a bit faster than std::vector<char>
@@ -40,7 +40,7 @@ struct AlignmentText {
   AlignmentText() {}
 
   AlignmentText(size_t queryNumIn, size_t queryBegIn, size_t queryEndIn,
-		char strandIn, int scoreIn,
+		char strandIn, double scoreIn,
 		size_t alnSizeIn, size_t matchesIn, char *textIn) :
     strandNum(queryNumIn * 2 + (strandIn == '-')),
     queryBeg(queryBegIn), queryEnd(queryEndIn), score(scoreIn),
@@ -126,7 +126,7 @@ struct Alignment{
 
   // data:
   std::vector<SegmentPair> blocks;  // the gapless blocks of the alignment
-  int score;
+  double score;
   SegmentPair seed;  // the alignment remembers its seed
 
   size_t beg1() const{ return blocks.front().beg1(); }
@@ -166,6 +166,7 @@ struct Alignment{
 			      const Alphabet& alph, int translationType,
 			      const uchar *codonToAmino,
 			      const LastEvaluer& evaluer,
+			      const AlignmentExtras& extras,
 			      bool isExtraColumns) const;
 
   size_t numColumns(size_t frameSize, bool isCodon) const;

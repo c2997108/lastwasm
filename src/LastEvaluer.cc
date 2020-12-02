@@ -10,6 +10,8 @@
 #include <cstring>
 #include <iostream>
 
+#include <random>
+
 #define COUNTOF(a) (sizeof (a) / sizeof *(a))
 
 namespace cbrc {
@@ -413,6 +415,53 @@ void LastEvaluer::init(const char *matrixName,
 			  letterFreqs2, letterFreqs1);
     }
   }
+}
+
+void LastEvaluer::initFrameshift(const const_dbl_ptr *substitutionProbs,
+				 const double *proteinLetterFreqs,
+				 int numProteinLetters,
+				 const double *tranDnaLetterFreqs,
+				 int numTranDnaLetters,
+				 const GapCosts &gapCosts,
+				 double scale, int verbosity) {
+  FrameshiftXdropAligner aligner;
+  int proteinLength = 200;  // xxx long enough to avoid edge effects ???
+  int tranDnaLength = proteinLength * 3;
+  int numOfAlignments = 50;  // suggested by Y-K Yu, R Bundschuh, T Hwa, 2002
+  if (verbosity > 1) numOfAlignments = 1000;
+
+  std::mt19937_64 randGen;
+  std::discrete_distribution<> pDist(proteinLetterFreqs,
+				     proteinLetterFreqs + numProteinLetters);
+  std::discrete_distribution<> tDist(tranDnaLetterFreqs,
+				     tranDnaLetterFreqs + numTranDnaLetters);
+
+  std::vector<uchar> seqs(proteinLength + tranDnaLength);
+  uchar *protein = &seqs[0];
+  uchar *tranDna = protein + proteinLength;
+
+  double probRatioSum = 0;
+
+  for (int i = 0; i < numOfAlignments; ++i) {
+    for (int j = 0; j < proteinLength; ++j) protein[j] = pDist(randGen);
+    for (int j = 0; j < tranDnaLength; ++j) tranDna[j] = tDist(randGen);
+    double p = aligner.maxSumOfProbRatios(protein, proteinLength,
+					  tranDna, tranDnaLength,
+					  substitutionProbs, gapCosts);
+    probRatioSum += 1 / p;
+    if (verbosity > 1) std::cerr << "simScore: " << (log(p) / scale) << "\n";
+  }
+
+  // max likelihood k  =  1 / (m * n * avg[exp(-lambda * score)])
+  double k = numOfAlignments / (proteinLength * tranDnaLength * probRatioSum);
+
+  if (verbosity > 1) {
+    std::cerr << "lambda k m n: " << scale << " " << k << " "
+	      << proteinLength << " " << tranDnaLength << "\n";
+  }
+
+  Sls::AlignmentEvaluerParameters p = {scale, k, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  evaluer.initParameters(p);
 }
 
 double LastEvaluer::minScore(double evalue, double area) const {

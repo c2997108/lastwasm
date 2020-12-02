@@ -312,7 +312,11 @@ static void calculateScoreStatistics(const std::string& matrixName,
     gaplessEvaluer.init(0, 0, 0, alph.letters.c_str(), scoreMat, p1, p2, false,
 			0, 0, 0, 0, fsCost, geneticCode, 0, 0);
     if (gapCosts.isNewFrameshifts() && isGapped) {
-      return;
+      if (args.temperature < 0) return;
+      unsigned alphSize2 = scoreMatrix.isCodonCols() ? 64 : alph.size;
+      evaluer.initFrameshift(fwdMatrices.ratios, p1, alph.size,
+			     stats.letterProbs2(), alphSize2,
+			     gapCosts, stats.lambda(), args.verbosity);
     } else {
       const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
       const mcf::GapCosts::Piece &ins = gapCosts.insPieces[0];
@@ -456,8 +460,13 @@ static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
 
 namespace Phase{ enum Enum{ gapless, gapped, final }; }
 
+static bool isFullScoreThreshold() {
+  return gapCosts.isNewFrameshifts();
+}
+
 static bool isMaskLowercase(Phase::Enum e) {
-  return (e < 1 && args.maskLowercase > 0) || args.maskLowercase > 2;
+  return (e < 1 && args.maskLowercase > 0)
+    || args.maskLowercase + isFullScoreThreshold() > 2;
 }
 
 struct Dispatcher{
@@ -754,8 +763,9 @@ void alignGapped( LastAligner& aligner,
 
     if( aln.score < args.minScoreGapped ) continue;
 
-    if( !aln.isOptimal( dis.a, dis.b, args.globality, dis.m, dis.d, gapCosts,
-			frameSize, dis.p, dis.t, dis.i, dis.j ) ){
+    if (!isFullScoreThreshold() &&
+	!aln.isOptimal(dis.a, dis.b, args.globality, dis.m, dis.d, gapCosts,
+		       frameSize, dis.p, dis.t, dis.i, dis.j)) {
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-redundantization.
       continue;
@@ -945,7 +955,7 @@ void scan(LastAligner& aligner, size_t queryNum,
 	       queryNum, matrices, querySeq, Phase::final );
   if( gappedAlns.size() == 0 ) return;
 
-  if (args.maskLowercase == 2) {
+  if (args.maskLowercase == 2 && !isFullScoreThreshold()) {
     makeQualityPssm(aligner, queryNum, matrices, querySeq, true);
     eraseWeakAlignments(aligner, gappedAlns, queryNum, matrices, querySeq);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
@@ -1299,7 +1309,8 @@ void lastal( int argc, char** argv ){
   if (evaluer.isGood()) {
     minScore = (args.maxEvalue > 0) ? evaluer.minScore(args.maxEvalue, 1e18)
       : evaluer.minScore(args.queryLettersPerRandomAlignment);
-    minScore = ceil(std::max(1.0, minScore));
+    if (!isFullScoreThreshold() || args.outputType < 2)
+      minScore = ceil(std::max(1.0, minScore));
     eg2 = 1e18 * evaluer.evaluePerArea(minScore);
   }
   args.setDefaultsFromMatrix(fwdMatrices.stats.lambda(), minScore, eg2);
