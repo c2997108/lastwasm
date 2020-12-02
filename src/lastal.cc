@@ -1003,6 +1003,12 @@ void translateAndScan(LastAligner& aligner,
   size_t size = query.padLen(queryNum);
 
   if (args.isTranslated()) {
+    if (args.tantanSetting && scoreMatrix.isCodonCols()) {
+      if (args.isKeepLowercase) {
+	err("can't keep lowercase & find simple repeats & use codons");
+      }
+      tantanMaskOneQuery(queryNum, querySeq);
+    }
     modifiedQuery.resize(size);
     geneticCode.translate(querySeq, querySeq + size, &modifiedQuery[0]);
     querySeq = &modifiedQuery[0];
@@ -1274,10 +1280,7 @@ void lastal( int argc, char** argv ){
 				isKeepRefLowercase, refTantanSetting,
                                 isCaseSensitiveSeeds, isMultiVolume,
 				refMinimizerWindow, aligners.size() );
-  if( args.tantanSetting )
-    tantanMasker.init( isProtein, args.tantanSetting > 1,
-		       alph.letters, alph.encode );
-  makeScoreMatrix( matrixName, matrixFile );
+  makeScoreMatrix(matrixName, matrixFile);
   gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
 		  args.insOpenCosts, args.insGrowCosts,
 		  args.frameshiftCosts, args.gapPairCost,
@@ -1298,6 +1301,15 @@ void lastal( int argc, char** argv ){
   } else {
     queryAlph = alph;
     query.initForAppending(1);
+  }
+
+  if (args.tantanSetting) {
+    bool isAtRichDna = (args.tantanSetting > 1);
+    if (scoreMatrix.isCodonCols()) {
+      tantanMasker.init(0, isAtRichDna, queryAlph.letters, queryAlph.encode);
+    } else {
+      tantanMasker.init(isProtein, isAtRichDna, alph.letters, alph.encode);
+    }
   }
 
   if (args.outputType > 0) {
