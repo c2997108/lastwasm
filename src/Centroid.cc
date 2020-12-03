@@ -584,25 +584,14 @@ namespace cbrc{
     int alphabetSizeIncrement = alphabetSize;
     if (!isExtendFwd) alphabetSizeIncrement *= -1;
 
-    const double delOpen = gapCosts.delProbPieces[0].openProb;
-    const double delGrow = gapCosts.delProbPieces[0].growProb;
-    const double insOpen = gapCosts.insProbPieces[0].openProb;
-    const double insGrow = gapCosts.insProbPieces[0].growProb;
-
-    const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
-    const double insInit = insOpen * insGrow;  // for 1st letter in an insert
-
-    const double delNext = delGrow - delInit;
-    const double insNext = insGrow - insInit;
+    double delInitCount = 0; double delNextCount = 0;
+    double insInitCount = 0; double insNextCount = 0;
 
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
       const double scale2 = scale[k];
       const double scale1 = scale[k+1];
-
-      const double scaledDelNext = scale1 * delNext;
-      const double scaledInsNext = scale1 * insNext;
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
@@ -615,6 +604,9 @@ namespace cbrc{
       const double* fD1 = &fD[ horiBeg ];
       const double* fI1 = &fI[ vertBeg ];
       const double* fM2 = &fM[ diagBeg ];
+
+      double dNextCount = 0;
+      double iNextCount = 0;
 
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - xdropPadLen - 1;
 
@@ -640,10 +632,10 @@ namespace cbrc{
 	  const double alignProb = xSum * yM * matchProb;
 	  c.emit[letter1][letter2] += alignProb;
 	  c.toMatch += alignProb;
-	  c.delInit += xSum * yD * delInit;
-	  c.delNext += xD * yD * scaledDelNext;
-	  c.insInit += xSum * yI * insInit;
-	  c.insNext += xI * yI * scaledInsNext;
+	  delInitCount += xSum * yD;
+	  dNextCount += xD * yD;
+	  insInitCount += xSum * yI;
+	  iNextCount += xI * yI;
 
 	  if (bM0 == bM0last) break;
 	  fM2++; fD1++; fI1++;
@@ -673,10 +665,10 @@ namespace cbrc{
 	  countUncertainLetters(c.emit[letter1], alignProb,
 				alphabetSize, match_score[letter1], lp2);
 	  c.toMatch += alignProb;
-	  c.delInit += xSum * yD * delInit;
-	  c.delNext += xD * yD * scaledDelNext;
-	  c.insInit += xSum * yI * insInit;
-	  c.insNext += xI * yI * scaledInsNext;
+	  delInitCount += xSum * yD;
+	  dNextCount += xD * yD;
+	  insInitCount += xSum * yI;
+	  iNextCount += xI * yI;
 
 	  if (bM0 == bM0last) break;
 	  fM2++; fD1++; fI1++;
@@ -686,7 +678,26 @@ namespace cbrc{
 	  lp2 -= alphabetSizeIncrement;
 	}
       }
+
+      delNextCount += dNextCount * scale1;
+      insNextCount += iNextCount * scale1;
     }
+
+    const double delOpen = gapCosts.delProbPieces[0].openProb;
+    const double delGrow = gapCosts.delProbPieces[0].growProb;
+    const double insOpen = gapCosts.insProbPieces[0].openProb;
+    const double insGrow = gapCosts.insProbPieces[0].growProb;
+
+    const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
+    const double insInit = insOpen * insGrow;  // for 1st letter in an insert
+
+    const double delNext = delGrow - delInit;
+    const double insNext = insGrow - insInit;
+
+    c.delInit += delInitCount * delInit;
+    c.delNext += delNextCount * delNext;
+    c.insInit += insInitCount * insInit;
+    c.insNext += insNextCount * insNext;
   }
 
 }  // end namespace cbrc
