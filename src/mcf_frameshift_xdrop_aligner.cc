@@ -367,14 +367,15 @@ void FrameshiftXdropAligner::count(bool isRightwardExtension,
     }
   }
 
-  transitionCounts[1] += gapCosts.insProb1 * ins1;
-  transitionCounts[2] += gapCosts.insProb2 * ins2;
-  transitionCounts[3] += gapCosts.insProb3 * ins3;
-  transitionCounts[4] += gapCosts.insProb3 * (insNext - ins3);
+  transitionCounts[1] += gapCosts.delProb3 * delNext;  // deleted whole codons
+  transitionCounts[2] += gapCosts.insProb3 * insNext;  // inserted whole codons
+  transitionCounts[3] += gapCosts.delProb3 * del3;  // in-frame opens/closes
+  transitionCounts[4] += gapCosts.insProb3 * ins3;  // in-frame opens/closes
+
   transitionCounts[5] += gapCosts.delProb1 * del1;
   transitionCounts[6] += gapCosts.delProb2 * del2;
-  transitionCounts[7] += gapCosts.delProb3 * del3;
-  transitionCounts[8] += gapCosts.delProb3 * (delNext - del3);
+  transitionCounts[7] += gapCosts.insProb1 * ins1;
+  transitionCounts[8] += gapCosts.insProb2 * ins2;
 }
 
 double FrameshiftXdropAligner::maxSumOfProbRatios(const uchar *protein,
