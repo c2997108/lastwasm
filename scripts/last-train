@@ -18,6 +18,8 @@ import subprocess
 import sys
 import tempfile
 
+proteinAlphabet20 = "ACDEFGHIKLMNPQRSTVWY"
+
 def myOpen(fileName):  # faster than fileinput
     if fileName == "-":
         return sys.stdin
@@ -173,13 +175,6 @@ def getSeqSample(opts, queryFiles, outfile):
                 x = y
     writeSegment(outfile, x)
 
-def versionFromHeader(lines):
-    for line in lines:
-        words = line.split()
-        if "version" in words:
-            return words[-1]
-    raise Exception("couldn't read the version")
-
 def scaleFromHeader(lines):
     for line in lines:
         for i in line.split():
@@ -201,7 +196,8 @@ def countsFromLastOutput(lines, opts):
             counts = [float(i) for i in line.split()[1:]]
             if not countMatrix:
                 matrixSize = len(counts) - nTransitions
-                nRows = nCols = int(math.sqrt(matrixSize))
+                nCols = int(math.sqrt(matrixSize))
+                nRows = matrixSize // nCols
                 countMatrix = [[1.0] * nCols for i in range(nRows)]
             identities = sum(counts[i * nCols + i] for i in range(nRows))
             alignmentLength = sum(counts[matrixSize + i] for i in range(3))
@@ -209,7 +205,7 @@ def countsFromLastOutput(lines, opts):
                 continue
             for i in range(nRows):
                 for j in range(nCols):
-                    if strand == "+" or opts.S == "0":
+                    if strand == "+" or opts.S != "1":
                         countMatrix[i][j]       += counts[i * nCols + j]
                     else:
                         countMatrix[-1-i][-1-j] += counts[i * nCols + j]
@@ -230,7 +226,7 @@ def costFromProb(scale, prob):
 
 def guessAlphabet(matrixSize):
     if matrixSize ==  4: return "ACGT"
-    if matrixSize == 20: return "ACDEFGHIKLMNPQRSTVWY"
+    if matrixSize == 20: return proteinAlphabet20
     raise Exception("can't handle unusual alphabets")
 
 def writeMatrixHead(outFile, prefix, alphabet, formatString):
@@ -468,6 +464,11 @@ def process(args, inStream):
     return subprocess.Popen(args, stdin=inStream, stdout=subprocess.PIPE,
                             universal_newlines=True)
 
+def versionFromLastal():
+    args = ["lastal", "--version"]
+    proc = process(args, None)
+    return proc.stdout.read().split()[1]
+
 def lastSplitProcess(opts, proc):
     splitArgs = ["last-split", "-n", "-m0.01"]  # xxx ???
     proc = process(splitArgs, proc.stdout)
@@ -480,6 +481,8 @@ def doTraining(opts, args):
     tryToMakeChildProgramsFindable()
     lastalProgName = readLastalProgName(args[0])
     scaleIncrease = 20  # while training, up-scale the scores by this amount
+    lastalVersion = versionFromLastal()
+
     lastalArgs = fixedLastalArgs(opts, lastalProgName)
     if opts.r: lastalArgs.append("-r" + opts.r)
     if opts.q: lastalArgs.append("-q" + opts.q)
@@ -491,8 +494,12 @@ def doTraining(opts, args):
     lastalArgs += args
     proc = process(lastalArgs, None)
     proc = lastSplitProcess(opts, proc)
-    lastalVersion = versionFromHeader(proc.stdout)
-    externalScale = scaleFromHeader(proc.stdout)
+
+    if opts.scale:
+        externalScale = opts.scale / math.log(2)
+    else:
+        externalScale = scaleFromHeader(proc.stdout)
+
     internalScale = externalScale * scaleIncrease
     oldParameters = []
 
@@ -583,6 +590,8 @@ if __name__ == "__main__":
                   help="number of random sequence samples (default: %default)")
     og.add_option("--sample-length", type="int", default=2000, metavar="L",
                   help="length of each sample (default: %default)")
+    og.add_option("--scale", type="float", metavar="S",
+                  help="output scores in units of 1/S bits")
     op.add_option_group(og)
 
     og = optparse.OptionGroup(op, "Initial parameter options")
