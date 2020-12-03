@@ -24,7 +24,7 @@ class MultiSequence{
   typedef LAST_INT_TYPE indexT;
 
   // initialize with leftmost delimiter pad, ready for appending sequences
-  void initForAppending( indexT padSizeIn );
+  void initForAppending(indexT padSizeIn, bool isAppendStopSymbol = false);
 
   // re-initialize, but keep the last sequence if it is unfinished
   void reinitForAppending();
@@ -141,6 +141,7 @@ class MultiSequence{
   VectorOrMmap<uchar> qualityScores;
   size_t qualityScoresPerLetter;
   bool isReadingFastq;
+  bool isAppendingStopSymbol;
 
   // Read a fasta/fastq header: read the whole line but store just the
   // 1st word

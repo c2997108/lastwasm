@@ -27,6 +27,7 @@ using namespace cbrc;
 
 LastdbArguments::LastdbArguments() :
   isProtein(false),
+  isAddStops(false),
   isKeepLowercase(true),
   tantanSetting(0),
   isCaseSensitive(false),
@@ -72,6 +73,7 @@ Advanced Options (default settings):\n\
     + stringify(strand) + ")\n\
 -s: volume size (unlimited)\n\
 -Q: input format: fastx, keep, sanger, solexa, illumina (default=fasta)\n\
+-q: interpret the sequences as proteins and append */STOP\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
 -m: seed patterns (1=match, 0=anything, @=transition)\n\
@@ -92,7 +94,7 @@ Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
 LAST home page: http://last.cbrc.jp/\n\
 ";
 
-  static const char sOpts[] = "hVpR:cm:d:S:s:w:W:P:u:a:i:b:B:C:xvQ:";
+  static const char sOpts[] = "hVpqR:cm:d:S:s:w:W:P:u:a:i:b:B:C:xvQ:";
 
   int c;
   while ((c = myGetopt(argc, argv, sOpts)) != -1) {
@@ -107,6 +109,9 @@ LAST home page: http://last.cbrc.jp/\n\
       throw EXIT_SUCCESS;
     case 'p':
       isProtein = true;
+      break;
+    case 'q':
+      isAddStops = true;
       break;
     case 'R':
       if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );

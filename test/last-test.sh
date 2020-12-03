@@ -161,13 +161,14 @@ trap 'rm -f $db*' EXIT
     try lastal -Q1 -pBL62 -F12 -D1000 $db sd-ccs-100.fq
 
     # protein-codon alignment
-    lastdb -pR01 $db Q2LCP8.fa
+    lastdb -qR01 $db Q2LCP8.fa
     try lastal -Q1 -pBL62codon.mat -F12 -t3.08611 -e36 -d29 $db sd-ccs-100.fq
     try lastal -Q1 -pbadcodon.mat -a17 -F0 -j4 -X1 -D1000 $db sd-ccs-100.fq
     try lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -D1e3 -j4 $db sd-ccs-100.fq
     try lastal -Q1 -pBL62 -b1 -F3,3,3,3 -X1 -j4 -e56 $db sd-ccs-100.fq
 
     # BlastTab format
+    lastdb -pR01 $db Q2LCP8.fa
     try lastal -fBlastTab -pBL62 -b1 -F15 -D1e3 $db galGal3-M-32.fa
 
     # BlastTab+ format

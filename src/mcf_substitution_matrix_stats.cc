@@ -18,6 +18,8 @@ const struct {
 } substitutionMatrixScales[] = {
   {"BL62", 3.0861133577701141},
   {"BL80", 2.8253295934982616},
+  {"MIQS", 0.0},
+  {"PAM10", 0.0},
   {"PAM30", 2.8848596855435313},
 };
 
@@ -100,21 +102,30 @@ void SubstitutionMatrixStats::calcBias(const const_int_ptr *scoreMatrix,
 void SubstitutionMatrixStats::calcUnbiased(const char *matrixName,
 					   const const_int_ptr *scoreMatrix,
 					   unsigned size) {
+  double scale = 0;
+  unsigned realSize = size;
+
   for (size_t i = 0; i < COUNTOF(substitutionMatrixScales); ++i) {
     if (strcmp(matrixName, substitutionMatrixScales[i].name) == 0) {
-      calcFromScale(scoreMatrix, size, substitutionMatrixScales[i].scale);
-      return;
+      scale = substitutionMatrixScales[i].scale;
+      if (size > 20) realSize = 20;
     }
   }
 
-  cbrc::LambdaCalculator c;
-  c.calculate(scoreMatrix, size);
-  mLambda = c.lambda();
-  if (!isBad()) {
+  if (scale > 0) {
+    calcFromScale(scoreMatrix, realSize, scale);
+  } else {
+    cbrc::LambdaCalculator c;
+    c.calculate(scoreMatrix, realSize);
+    mLambda = c.lambda();
+    if (isBad()) return;
     mBias = 1;
-    mLetterProbs1.assign(c.letterProbs1(), c.letterProbs1() + size);
-    mLetterProbs2.assign(c.letterProbs2(), c.letterProbs2() + size);
+    mLetterProbs1.assign(c.letterProbs1(), c.letterProbs1() + realSize);
+    mLetterProbs2.assign(c.letterProbs2(), c.letterProbs2() + realSize);
   }
+
+  mLetterProbs1.insert(mLetterProbs1.end(), size - realSize, 0.0);
+  mLetterProbs2.insert(mLetterProbs2.end(), size - realSize, 0.0);
 }
 
 void SubstitutionMatrixStats::flipDnaStrands(const unsigned char *complement) {

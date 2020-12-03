@@ -9,13 +9,15 @@
 
 using namespace cbrc;
 
-void MultiSequence::initForAppending( indexT padSizeIn ){
+void MultiSequence::initForAppending(indexT padSizeIn,
+				     bool isAppendStopSymbol) {
   padSize = padSizeIn;
   seq.v.assign( padSize, ' ' );
   ends.v.assign( 1, padSize );
   names.v.clear();
   nameEnds.v.assign( 1, 0 );
   qualityScoresPerLetter = 0;
+  isAppendingStopSymbol = isAppendStopSymbol;
 }
 
 void MultiSequence::reinitForAppending(){
@@ -98,7 +100,12 @@ MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
     c = buf->snextc();
   }
 
-  if (isRoomToAppendPad(maxSeqLen)) finish();
+  if (seq.v.size() <= maxSeqLen &&
+      padSize + isAppendingStopSymbol <= maxSeqLen - seq.v.size()) {
+    if (isAppendingStopSymbol) seq.v.push_back('*');
+    finish();
+  }
+
   return stream;
 }
 

@@ -19,6 +19,7 @@ const char* Alphabet::dna = "ACGT";
 
 // U=selenocysteine, O=pyrrolysine, *=stop?
 const char* Alphabet::protein = "ACDEFGHIKLMNPQRSTVWY";
+const char* Alphabet::proteinWithStop = "ACDEFGHIKLMNPQRSTVWY*";
 
 void Alphabet::fromString( const std::string& alphString ){
   letters = alphString;

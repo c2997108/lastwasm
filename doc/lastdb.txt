@@ -136,6 +136,9 @@ Advanced Options
 
       The fastq formats are described in `<lastal.html>`_.
 
+  -q  Interpret the sequences as proteins, use a 21-letter alphabet
+      with ``*`` meaning STOP, and append ``*`` to each sequence.
+
   -P THREADS
       Divide the work between this number of threads running in
       parallel.  0 means use as many threads as your computer claims
@@ -258,8 +261,11 @@ This is modified by several options.
 
 * lastdb8: makes the index twice as big.
 
-* -u, -m: Multiple patterns multiply the index size.  For example,
+* -u, -m, -d: Multiple patterns multiply the index size.  For example,
   `MAM8 <last-seeds.html>`_ makes it 8 times bigger.
+
+* -u, -d: may reduce the index, e.g. `RY32 <last-seeds.html>`_ makes
+  it 32 times smaller.
 
 * -s: does not change the total size, but splits it into volumes.
 

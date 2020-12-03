@@ -27,6 +27,7 @@ typedef unsigned long long countT;
 // Set up an alphabet (e.g. DNA or protein), based on the user options
 void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
   if( !args.userAlphabet.empty() )  alph.fromString( args.userAlphabet );
+  else if( args.isAddStops )        alph.fromString( alph.proteinWithStop );
   else if( args.isProtein )         alph.fromString( alph.protein );
   else                              alph.fromString( alph.dna );
 }
@@ -343,7 +344,7 @@ void lastdb( int argc, char** argv ){
   LOG("wordLength=" << wordsFinder.wordLength);
 
   MultiSequence multi;
-  multi.initForAppending(1);
+  multi.initForAppending(1, args.isAddStops);
   alph.tr(multi.seqWriter(), multi.seqWriter() + multi.seqBeg(0));
   unsigned volumeNumber = 0;
   countT sequenceCount = 0;
@@ -365,7 +366,7 @@ void lastdb( int argc, char** argv ){
       if (sequenceCount == 0) {
 	maxSeqLen = maxLettersPerVolume(args, wordsFinder,
 					multi.qualsPerLetter(), seeds.size());
-	if (!args.isProtein && args.userAlphabet.empty() &&
+	if (!args.isProtein && !args.isAddStops && args.userAlphabet.empty() &&
 	    isDubiousDna(alph, multi)) {
 	  std::cerr << args.programName << ": that's some funny-lookin DNA\n";
 	}

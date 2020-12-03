@@ -23,6 +23,7 @@ struct Alphabet{
 
   static const char* dna;
   static const char* protein;
+  static const char* proteinWithStop;
 
   static const unsigned capacity = 256;
 

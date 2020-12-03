@@ -31,6 +31,7 @@ struct LastdbArguments{
 
   // options:
   bool isProtein;
+  bool isAddStops;
   bool isKeepLowercase;
   int tantanSetting;
   bool isCaseSensitive;
