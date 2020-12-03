@@ -22,33 +22,33 @@ void GappedXdropAligner::initFrame() {
   bestAntidiagonal = 0;
 }
 
-int GappedXdropAligner::alignFrame(const uchar *seq1,
-				   const uchar *seq2frame0,
-				   const uchar *seq2frame1,  // the +1 frame
-				   const uchar *seq2frame2,  // the +2 frame
+int GappedXdropAligner::alignFrame(const uchar *protein,
+				   const uchar *frame0,
+				   const uchar *frame1,
+				   const uchar *frame2,
 				   bool isForward,
 				   const ScoreMatrixRow *scorer,
-				   const GapCosts &gap,
+				   const GapCosts &gapCosts,
 				   int maxScoreDrop) {
   if (!isForward) {
-    --seq1; --seq2frame0; --seq2frame1; --seq2frame2;
+    --protein; --frame0; --frame1; --frame2;
   }
-  const_uchar_ptr frames[] = {seq2frame0, seq2frame1, seq2frame2};
+  const_uchar_ptr frames[] = {frame0, frame1, frame2};
   const int seqIncrement = isForward ? 1 : -1;
 
-  const int delOpenScore = -gap.delPieces[0].openCost;
-  const int insOpenScore = -gap.insPieces[0].openCost;
-  const int delScore1 = gap.delScore1;
-  const int delScore2 = gap.delScore2;
-  const int delScore3 = gap.delScore3;
-  const int insScore1 = gap.insScore1;
-  const int insScore2 = gap.insScore2;
-  const int insScore3 = gap.insScore3;
+  const int delOpenScore = -gapCosts.delPieces[0].openCost;
+  const int insOpenScore = -gapCosts.insPieces[0].openCost;
+  const int delScore1 = gapCosts.delScore1;
+  const int delScore2 = gapCosts.delScore2;
+  const int delScore3 = gapCosts.delScore3;
+  const int insScore1 = gapCosts.insScore1;
+  const int insScore2 = gapCosts.insScore2;
+  const int insScore3 = gapCosts.insScore3;
 
   int runOfDrops = 2;
   int runOfEdges = 0;
   int numCells = 1;
-  size_t seq1end = 1;
+  size_t proteinEnd = 1;
   size_t diagPos6 = xdropPadLen - 1;
   size_t horiPos5 = xdropPadLen * 2 - 1;
   size_t horiPos4 = xdropPadLen * 3 - 1;
@@ -63,11 +63,11 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
   initFrame();
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
-    const uchar *s1 = seq1;
+    const uchar *s1 = protein;
     const uchar *s2 = frames[antidiagonal % 3];
     frames[antidiagonal % 3] += seqIncrement;
 
-    initAntidiagonal(antidiagonal + 6, seq1end, thisPos, numCells);
+    initAntidiagonal(antidiagonal + 6, proteinEnd, thisPos, numCells);
     thisPos += xdropPadLen;
     Score *X0 = &xScores[thisPos];
     Score *Y0 = &yScores[thisPos];
@@ -118,7 +118,7 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
       ++runOfEdges;
       if (runOfEdges == 3) {
 	++numCells;
-	++seq1end;
+	++proteinEnd;
 	runOfEdges = 0;
       }
     }
@@ -130,7 +130,7 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
       if (runOfDrops == 3) {
 	--numCells;
 	if (numCells == 0) break;
-	seq1 += seqIncrement;
+	protein += seqIncrement;
 	frames[0] -= seqIncrement;
 	frames[1] -= seqIncrement;
 	frames[2] -= seqIncrement;
@@ -152,18 +152,18 @@ int GappedXdropAligner::alignFrame(const uchar *seq1,
 bool GappedXdropAligner::getNextChunkFrame(size_t &end1,
 					   size_t &end2,
 					   size_t &length,
-					   int &gapCost,
-					   const GapCosts &gap) {
+					   int &costOfNearerGap,
+					   const GapCosts &gapCosts) {
   if (bestAntidiagonal == 0) return false;
 
-  const int delOpenScore = -gap.delPieces[0].openCost;
-  const int insOpenScore = -gap.insPieces[0].openCost;
-  const int delScore1 = gap.delScore1;
-  const int delScore2 = gap.delScore2;
-  const int delScore3 = gap.delScore3;
-  const int insScore1 = gap.insScore1;
-  const int insScore2 = gap.insScore2;
-  const int insScore3 = gap.insScore3;
+  const int delOpenScore = -gapCosts.delPieces[0].openCost;
+  const int insOpenScore = -gapCosts.insPieces[0].openCost;
+  const int delScore1 = gapCosts.delScore1;
+  const int delScore2 = gapCosts.delScore2;
+  const int delScore3 = gapCosts.delScore3;
+  const int insScore1 = gapCosts.insScore1;
+  const int insScore2 = gapCosts.insScore2;
+  const int insScore3 = gapCosts.insScore3;
 
   end1 = bestSeq1position;
   end2 = bestAntidiagonal - bestSeq1position * 3;
@@ -187,7 +187,7 @@ bool GappedXdropAligner::getNextChunkFrame(size_t &end1,
 
   length = end1 - bestSeq1position;
   if (bestAntidiagonal == 0) {
-    gapCost = 0;
+    costOfNearerGap = 0;
     return true;
   }
 
@@ -212,7 +212,7 @@ bool GappedXdropAligner::getNextChunkFrame(size_t &end1,
     state = std::max_element(opt, opt + 7) - opt;
   } while (state != 0);
 
-  gapCost = opt[0] - scoreHere;
+  costOfNearerGap = opt[0] - scoreHere;
   return true;
 }
 

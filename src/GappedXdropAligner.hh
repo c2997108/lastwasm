@@ -205,13 +205,13 @@ class GappedXdropAligner {
                      int frameshiftCost);
 
   // Like "align3", but does "new style" DNA-protein alignment.
-  int alignFrame(const uchar *seq1,
-		 const uchar *seq2frame0,
-		 const uchar *seq2frame1,  // the +1 frame
-		 const uchar *seq2frame2,  // the +2 frame
+  int alignFrame(const uchar *protein,
+		 const uchar *frame0,  // translated DNA,  0 frame
+		 const uchar *frame1,  // translated DNA, +1 frame
+		 const uchar *frame2,  // translated DNA, +2 frame
 		 bool isForward,
 		 const ScoreMatrixRow *scorer,
-		 const GapCosts &gap,
+		 const GapCosts &gapCosts,
 		 int maxScoreDrop);
 
   // Use this after alignFrame.  The cost of the unaligned region
@@ -220,8 +220,8 @@ class GappedXdropAligner {
   bool getNextChunkFrame(size_t &end1,
 			 size_t &end2,
 			 size_t &length,
-			 int &gapCost,  // cost of the gap before this chunk
-			 const GapCosts &gap);
+			 int &costOfNearerGap,
+			 const GapCosts &gapCosts);
 
   void writeShape(std::ostream &out) const;
 
