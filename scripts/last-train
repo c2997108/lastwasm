@@ -223,6 +223,8 @@ def countsFromLastOutput(lines, opts):
             delOpens += transCounts[3]
             insOpens += transCounts[4]
             alignments += 1
+    if not alignments:
+        raise Exception("no alignments")
     gapCounts = matches, deletes, inserts, delOpens, insOpens, alignments
     return countMatrix, gapCounts
 
@@ -296,9 +298,8 @@ def balancedEndProb(*args):
     return rootOfIncreasingFunction(probImbalance,
                                     lowerBound, upperBound, args)
 
-def gapRatiosFromCounts(counts, opts):
+def gapProbsFromCounts(counts, opts):
     matches, deletes, inserts, delOpens, insOpens, alignments = counts
-    if not alignments: raise Exception("no alignments")
     gaps = deletes + inserts
     gapOpens = delOpens + insOpens
     denominator = matches + gapOpens + (alignments + 1)  # +1 pseudocount
@@ -327,6 +328,11 @@ def gapRatiosFromCounts(counts, opts):
     print("# delExtendProb: %g" % delGrowProb)
     print("# insExtendProb: %g" % insGrowProb)
     print()
+    return matchProb, (delOpenProb, delGrowProb), (insOpenProb, insGrowProb)
+
+def gapRatiosFromProbs(matchProb, delProbs, insProbs):
+    delOpenProb, delGrowProb = delProbs
+    insOpenProb, insGrowProb = insProbs
 
     delCloseProb = 1 - delGrowProb
     firstDelProb = delOpenProb * delCloseProb
@@ -509,8 +515,9 @@ def doTraining(opts, args):
         print()
         sys.stdout.flush()
         matCounts, gapCounts = countsFromLastOutput(proc.stdout, opts)
-        matchRatio, delRatios, insRatios = gapRatiosFromCounts(gapCounts, opts)
+        gapProbs = gapProbsFromCounts(gapCounts, opts)
         matProbs = matProbsFromCounts(matCounts, opts)
+        matchRatio, delRatios, insRatios = gapRatiosFromProbs(*gapProbs)
         rowProbs = [sum(i) for i in matProbs]
         colProbs = [sum(i) for i in zip(*matProbs)]
         matParams = matchRatio, matProbs, rowProbs, colProbs
