@@ -189,26 +189,22 @@ def scaleFromHeader(lines):
 
 def countsFromLastOutput(lines, opts):
     nTransitions = 5
-    countMatrix = []
-    # use +1 pseudocounts as a kludge to mitigate numerical problems:
-    matches = 1.0
-    deletes = 2.0  # 1 open + 1 extension
-    inserts = 2.0  # 1 open + 1 extension
-    delOpens = 1.0
-    insOpens = 1.0
+    tranCounts = [1.0] * nTransitions  # +1 pseudocounts
+    tranCounts[1] = 2.0  # deletes: opens + extensions, so 2 pseudocounts
+    tranCounts[2] = 2.0  # inserts: opens + extensions, so 2 pseudocounts
+    countMatrix = None
     alignments = 0  # no pseudocount here
     for line in lines:
         if line[0] == "s":
             strand = line.split()[4]  # slow?
         if line[0] == "c":
             counts = [float(i) for i in line.split()[1:]]
-            transCounts = counts[-nTransitions:]
             if not countMatrix:
                 matrixSize = len(counts) - nTransitions
                 nRows = nCols = int(math.sqrt(matrixSize))
                 countMatrix = [[1.0] * nCols for i in range(nRows)]
             identities = sum(counts[i * nCols + i] for i in range(nRows))
-            alignmentLength = transCounts[0] + transCounts[1] + transCounts[2]
+            alignmentLength = sum(counts[matrixSize + i] for i in range(3))
             if 100 * identities > opts.pid * alignmentLength:
                 continue
             for i in range(nRows):
@@ -217,16 +213,12 @@ def countsFromLastOutput(lines, opts):
                         countMatrix[i][j]       += counts[i * nCols + j]
                     else:
                         countMatrix[-1-i][-1-j] += counts[i * nCols + j]
-            matches += transCounts[0]
-            deletes += transCounts[1]
-            inserts += transCounts[2]
-            delOpens += transCounts[3]
-            insOpens += transCounts[4]
+            for i in range(nTransitions):
+                tranCounts[i] += counts[matrixSize + i]
             alignments += 1
     if not alignments:
         raise Exception("no alignments")
-    gapCounts = matches, deletes, inserts, delOpens, insOpens, alignments
-    return countMatrix, gapCounts
+    return countMatrix, tranCounts + [alignments]
 
 def scoreFromProb(scale, prob):
     if prob > 0: logProb = math.log(prob)
