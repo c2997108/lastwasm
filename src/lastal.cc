@@ -932,15 +932,15 @@ void scan(LastAligner& aligner, size_t queryNum,
     return;
   }
 
-  bool isMask = (args.maskLowercase > 0);
-  makeQualityPssm(aligner, queryNum, matrices, querySeq, isMask);
+  const int maskMode = args.maskLowercase;
+  makeQualityPssm(aligner, queryNum, matrices, querySeq, maskMode > 0);
 
   SegmentPairPot gaplessAlns;
   alignGapless(aligner, gaplessAlns, queryNum, matrices, querySeq);
   if( args.outputType == 1 ) return;  // we just want gapless alignments
   if( gaplessAlns.size() == 0 ) return;
 
-  if( args.maskLowercase == 1 || args.maskLowercase == 2 )
+  if (maskMode == 1 || maskMode == 2)
     makeQualityPssm(aligner, queryNum, matrices, querySeq, false);
 
   AlignmentPot gappedAlns;
@@ -955,7 +955,7 @@ void scan(LastAligner& aligner, size_t queryNum,
 	       queryNum, matrices, querySeq, Phase::final );
   if( gappedAlns.size() == 0 ) return;
 
-  if (args.maskLowercase == 2 && !isFullScoreThreshold()) {
+  if (maskMode == 2 && !isFullScoreThreshold()) {
     makeQualityPssm(aligner, queryNum, matrices, querySeq, true);
     eraseWeakAlignments(aligner, gappedAlns, queryNum, matrices, querySeq);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());

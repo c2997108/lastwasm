@@ -19,17 +19,19 @@ typedef unsigned char uchar;
 
 class Alphabet;
 
+const int maxDnaAlphabetSize = 54;
+
 class GeneticCode{
  private:
   std::string AAs;
   std::string Base[3];
-  static const int NumMember = 54;  // DNA member
-  static const int UNKNOWN = NumMember*NumMember*NumMember;  // unknown residue
   std::vector<uchar> genome2residue;
   uchar codonToAminoAcid[256];
 
-  static int codon2number( const uchar* codon )
-  { return codon[0] * NumMember*NumMember + codon[1] * NumMember + codon[2]; }
+  static int codon2number(const uchar *codon) {
+    const int n = maxDnaAlphabetSize;
+    return n * n * codon[0] + n * codon[1] + codon[2];
+  }
 
   static int codon2number2( const uchar* codon, const Alphabet& dnaAlph );
 

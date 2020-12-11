@@ -64,8 +64,8 @@ int GappedXdropAligner::alignFrame(const uchar *protein,
 
   for (size_t antidiagonal = 0; /* noop */; ++antidiagonal) {
     const uchar *s1 = protein;
-    const uchar *s2 = frames[antidiagonal % 3];
     frames[antidiagonal % 3] += seqIncrement;
+    const uchar *s2 = frames[antidiagonal % 3];
 
     initAntidiagonal(antidiagonal + 6, proteinEnd, thisPos, numCells);
     thisPos += xdropPadLen;
@@ -83,6 +83,7 @@ int GappedXdropAligner::alignFrame(const uchar *protein,
     int minScore = bestScore - maxScoreDrop;
 
     for (int i = 0; i < numCells; ++i) {
+      s2 -= seqIncrement;
       int s = scorer[*s1][*s2];
       int y1 = Y5[i] + delScore1;
       int y2 = Y4[i] + delScore2;
@@ -97,7 +98,6 @@ int GappedXdropAligner::alignFrame(const uchar *protein,
       Y0[i] = maxValue(b + delOpenScore, y3);
       Z0[i] = maxValue(b + insOpenScore, z3);
       s1 += seqIncrement;
-      s2 -= seqIncrement;
     }
 
     if (newBestScore > bestScore) {

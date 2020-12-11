@@ -49,7 +49,8 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
 {
   uchar codon[3];
 
-  genome2residue.assign( UNKNOWN, 'X' );
+  int size = maxDnaAlphabetSize * maxDnaAlphabetSize * maxDnaAlphabetSize;
+  genome2residue.assign(size, 'X');
 
   for( size_t i = 0 ; i < AAs.size() ; i++ ){
     char aminoAcid = std::toupper( AAs[i] );
@@ -71,13 +72,13 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
   }
 
   // codons containing DNA delimiters, or lowercase bases
-  for( int i = 0 ; i < NumMember ; i++ ){
+  for( int i = 0 ; i < maxDnaAlphabetSize ; i++ ){
     codon[0]= dnaAlph.decode[i];
 
-    for( int j = 0 ; j < NumMember ; j++ ){
+    for( int j = 0 ; j < maxDnaAlphabetSize ; j++ ){
       codon[1]= dnaAlph.decode[j];
 
-      for( int k = 0 ; k < NumMember ; k++ ){
+      for( int k = 0 ; k < maxDnaAlphabetSize ; k++ ){
 	codon[2]= dnaAlph.decode[k];
 
 	int c = codon2number2( codon, dnaAlph );
@@ -101,7 +102,7 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
 
 void GeneticCode::initCodons(const uchar *ntToNumber, const uchar *aaToNumber,
 			     bool isMaskLowercase) {
-  const int n = NumMember;
+  const int n = maxDnaAlphabetSize;
   const char dna[] = "ACGTacgt";
   const unsigned dnaMax = isMaskLowercase ? 4 : 8;
   const unsigned delimiterCodon = 64;
@@ -142,18 +143,17 @@ void GeneticCode::translate( const uchar* beg, const uchar* end,
   unsigned delimiter = genome2residue[4];
   size_t size = end - beg;
 
-  for( size_t i = 0 ; i < 3 ; i++ ){
-    for( size_t j = i ; j+2 < size ; j+=3 ){
-      *dest++ = translation( beg + j );
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = i; j + 2 < size; j += 3) {
+      *dest++ = translation(beg + j);
     }
-
     // this ensures that each reading frame has exactly the same size:
-    if( i > size % 3 ) *dest++ = delimiter;
+    if (i > size % 3) *dest++ = delimiter;
   }
 
   // this ensures that the size of the translated sequence is exactly "size":
-  if( size % 3 > 0 ) *dest++ = delimiter;
-  if( size % 3 > 1 ) *dest++ = delimiter;
+  if (size % 3 > 0) *dest++ = delimiter;
+  if (size % 3 > 1) *dest++ = delimiter;
 }
 
 //
