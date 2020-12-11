@@ -100,15 +100,16 @@ void GeneticCode::codeTableSet( const Alphabet& aaAlph, const Alphabet& dnaAlph 
   return;
 }
 
-void GeneticCode::initCodons(const uchar *ntToNumber, const uchar *aaToNumber,
-			     bool isMaskLowercase) {
+const unsigned delimiterCodon = 64;
+const unsigned unknownCodon = 65;
+
+static void initCodonLookup(std::vector<uchar> &lookupFromDnaTriplet,
+			    const uchar *ntToNumber, bool isMaskLowercase) {
   const int n = maxDnaAlphabetSize;
   const char dna[] = "ACGTacgt";
   const unsigned dnaMax = isMaskLowercase ? 4 : 8;
-  const unsigned delimiterCodon = 64;
-  const unsigned unknownCodon = 65;
 
-  genome2residue.assign(n * n * n, unknownCodon);
+  lookupFromDnaTriplet.assign(n * n * n, unknownCodon);
 
   for (unsigned i = 0; i < dnaMax; ++i) {
     for (unsigned j = 0; j < dnaMax; ++j) {
@@ -117,12 +118,21 @@ void GeneticCode::initCodons(const uchar *ntToNumber, const uchar *aaToNumber,
 	uchar b = dna[j];  unsigned y = ntToNumber[b];
 	uchar c = dna[k];  unsigned z = ntToNumber[c];
 	unsigned codonNumber = (i % 4) * 16 + (j % 4) * 4 + (k % 4);
-	genome2residue[x*n*n + y*n + z] = codonNumber;
+	lookupFromDnaTriplet[x*n*n + y*n + z] = codonNumber;
       }
     }
   }
 
-  setDelimiters(&genome2residue[0], n, delimiterCodon);
+  setDelimiters(&lookupFromDnaTriplet[0], n, delimiterCodon);
+}
+
+void GeneticCode::initCodons(const uchar *ntToNumber, const uchar *aaToNumber,
+			     bool isMaskLowercase, bool isUnmaskLowercase) {
+  initCodonLookup(genome2residue, ntToNumber, isMaskLowercase);
+
+  if (isMaskLowercase && isUnmaskLowercase) {
+    initCodonLookup(genome2residueWithoutLowercaseMasking, ntToNumber, false);
+  }
 
   uchar unknown = 'X';
   uchar delimiter = ' ';
@@ -137,15 +147,15 @@ void GeneticCode::initCodons(const uchar *ntToNumber, const uchar *aaToNumber,
   codonToAminoAcid[delimiterCodon] = aaToNumber[delimiter];
 }
 
-//
-void GeneticCode::translate( const uchar* beg, const uchar* end,
-			     uchar* dest ) const{
-  unsigned delimiter = genome2residue[4];
-  size_t size = end - beg;
+static void doTranslate(const uchar *lookupFromDnaTriplet,
+			const uchar *beg, size_t size, uchar *dest) {
+  const int n = maxDnaAlphabetSize;
+  const unsigned delimiter = lookupFromDnaTriplet[4];
 
   for (size_t i = 0; i < 3; ++i) {
     for (size_t j = i; j + 2 < size; j += 3) {
-      *dest++ = translation(beg + j);
+      const uchar *b = beg + j;
+      *dest++ = lookupFromDnaTriplet[n * n * b[0] + n * b[1] + b[2]];
     }
     // this ensures that each reading frame has exactly the same size:
     if (i > size % 3) *dest++ = delimiter;
@@ -154,6 +164,16 @@ void GeneticCode::translate( const uchar* beg, const uchar* end,
   // this ensures that the size of the translated sequence is exactly "size":
   if (size % 3 > 0) *dest++ = delimiter;
   if (size % 3 > 1) *dest++ = delimiter;
+}
+
+void GeneticCode::translate(const uchar *beg, const uchar *end,
+			    uchar *dest) const {
+  doTranslate(&genome2residue[0], beg, end - beg, dest);
+}
+
+void GeneticCode::translateWithoutMasking(const uchar *beg, const uchar *end,
+					  uchar *dest) const {
+  doTranslate(&genome2residueWithoutLowercaseMasking[0], beg, end - beg, dest);
 }
 
 //

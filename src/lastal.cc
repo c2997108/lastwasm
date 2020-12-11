@@ -466,7 +466,8 @@ static bool isFullScoreThreshold() {
 
 static bool isMaskLowercase(Phase::Enum e) {
   return (e < 1 && args.maskLowercase > 0)
-    || args.maskLowercase + isFullScoreThreshold() > 2;
+    || (e < 2 && args.maskLowercase > 1 && isFullScoreThreshold())
+    || args.maskLowercase > 2;
 }
 
 struct Dispatcher{
@@ -924,9 +925,31 @@ void makeQualityPssm( LastAligner& aligner,
   }
 }
 
+static void unmaskLowercase(LastAligner &aligner, size_t queryNum,
+			    const SubstitutionMatrices &matrices,
+			    uchar *querySeq) {
+  makeQualityPssm(aligner, queryNum, matrices, querySeq, false);
+  if (scoreMatrix.isCodonCols()) {
+    const uchar *q = query.seqReader();
+    geneticCode.translateWithoutMasking(q + query.padBeg(queryNum),
+					q + query.padEnd(queryNum), querySeq);
+  }
+}
+
+static void remaskLowercase(LastAligner &aligner, size_t queryNum,
+			    const SubstitutionMatrices &matrices,
+			    uchar *querySeq) {
+  makeQualityPssm(aligner, queryNum, matrices, querySeq, true);
+  if (scoreMatrix.isCodonCols()) {
+    const uchar *q = query.seqReader();
+    geneticCode.translate(q + query.padBeg(queryNum),
+			  q + query.padEnd(queryNum), querySeq);
+  }
+}
+
 // Scan one query sequence against one database volume
 void scan(LastAligner& aligner, size_t queryNum,
-	  const SubstitutionMatrices &matrices, const uchar* querySeq) {
+	  const SubstitutionMatrices &matrices, uchar *querySeq) {
   if( args.outputType == 0 ){  // we just want match counts
     countMatches( queryNum, querySeq );
     return;
@@ -940,15 +963,18 @@ void scan(LastAligner& aligner, size_t queryNum,
   if( args.outputType == 1 ) return;  // we just want gapless alignments
   if( gaplessAlns.size() == 0 ) return;
 
-  if (maskMode == 1 || maskMode == 2)
-    makeQualityPssm(aligner, queryNum, matrices, querySeq, false);
+  if (maskMode == 1 || (maskMode == 2 && !isFullScoreThreshold()))
+    unmaskLowercase(aligner, queryNum, matrices, querySeq);
 
   AlignmentPot gappedAlns;
 
-  if( args.maxDropFinal != args.maxDropGapped ){
+  if (args.maxDropFinal != args.maxDropGapped
+      || (maskMode == 2 && isFullScoreThreshold())) {
     alignGapped( aligner, gappedAlns, gaplessAlns,
 		 queryNum, matrices, querySeq, Phase::gapped );
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
+    if (maskMode == 2 && isFullScoreThreshold())
+      unmaskLowercase(aligner, queryNum, matrices, querySeq);
   }
 
   alignGapped( aligner, gappedAlns, gaplessAlns,
@@ -956,12 +982,12 @@ void scan(LastAligner& aligner, size_t queryNum,
   if( gappedAlns.size() == 0 ) return;
 
   if (maskMode == 2 && !isFullScoreThreshold()) {
-    makeQualityPssm(aligner, queryNum, matrices, querySeq, true);
+    remaskLowercase(aligner, queryNum, matrices, querySeq);
     eraseWeakAlignments(aligner, gappedAlns, queryNum, matrices, querySeq);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
     if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
-      makeQualityPssm(aligner, queryNum, matrices, querySeq, false);
+      unmaskLowercase(aligner, queryNum, matrices, querySeq);
   }
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
@@ -1293,7 +1319,7 @@ void lastal( int argc, char** argv ){
     geneticCode.fromString(GeneticCode::stringFromName(args.geneticCodeFile));
     if (scoreMatrix.isCodonCols()) {
       geneticCode.initCodons(queryAlph.encode, alph.encode,
-			     args.maskLowercase > 2);
+			     args.maskLowercase > 0, args.maskLowercase < 3);
     } else {
       geneticCode.codeTableSet( alph, queryAlph );
     }

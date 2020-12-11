@@ -26,6 +26,7 @@ class GeneticCode{
   std::string AAs;
   std::string Base[3];
   std::vector<uchar> genome2residue;
+  std::vector<uchar> genome2residueWithoutLowercaseMasking;
   uchar codonToAminoAcid[256];
 
   static int codon2number(const uchar *codon) {
@@ -51,10 +52,15 @@ class GeneticCode{
   // 64=delimiter, 65=unknown).  Also setup codonToAminoAcid.  Any DNA
   // triplet with non-ACGT (or with lowercase if isMaskLowercase is
   // true) gets translated to 65=unknown.
+  // If isMaskLowercase and isUnmaskLowercase are both true, also
+  // setup translateWithoutMasking.
   void initCodons( const uchar *ntToNumber, const uchar *aaToNumber,
-		   bool isMaskLowercase );
+		   bool isMaskLowercase, bool isUnmaskLowercase );
 
   void translate( const uchar* beg, const uchar* end, uchar* dest ) const;
+
+  void translateWithoutMasking( const uchar* beg, const uchar* end,
+				uchar* dest ) const;
 
   uchar translation( const uchar* codon ) const
   { return genome2residue[ codon2number( codon ) ]; }
