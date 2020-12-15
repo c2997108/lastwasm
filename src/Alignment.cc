@@ -51,12 +51,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
 			   const Alphabet& alph, AlignmentExtras& extras,
 			   double gamma, int outputType ){
   score = seed.score;
-
-  if (gap.isNewFrameshifts()) {
-    extras.fullScore = -1;  // means that "score" is (non-integer) fullScore
-  } else if (outputType > 3) {
-    extras.fullScore = seed.score;
-  }
+  if (outputType > 3 && !gap.isNewFrameshifts()) extras.fullScore = seed.score;
 
   if( outputType == 7 ){
     assert( seed.size > 0 );  // makes things easier to understand

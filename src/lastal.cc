@@ -808,8 +808,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       }
       centroid.setPssm(dis.p, queryLen, args.temperature,
 		       matrices.oneQualExp, dis.b, dis.j);
-    }
-    else{
+    } else {
       centroid.setScoreMatrix( dis.m, args.temperature );
     }
     centroid.setOutputType( args.outputType );
@@ -817,12 +816,12 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
+    AlignmentExtras extras;
+    if (isFullScoreThreshold()) extras.fullScore = -1;  // score is fullScore
     if( args.outputType < 4 ){
-      writeAlignment( aligner, aln, queryNum, querySeq );
-    }
-    else{  // calculate match probabilities:
+      writeAlignment(aligner, aln, queryNum, querySeq, extras);
+    } else {  // calculate match probabilities:
       Alignment probAln;
-      AlignmentExtras extras;
       probAln.seed = aln.seed;
       probAln.makeXdrop(aligner.engines, args.isGreedy,
 			dis.a, dis.b, args.globality, dis.m,
@@ -830,8 +829,8 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 			dis.r, matrices.stats.lambda(), gapCosts,
 			dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph,
 			extras, args.gamma, args.outputType);
-      assert( aln.score != -INF );
-      writeAlignment( aligner, probAln, queryNum, querySeq, extras );
+      assert(aln.score != -INF);
+      writeAlignment(aligner, probAln, queryNum, querySeq, extras);
     }
   }
 }
@@ -1128,7 +1127,7 @@ void readIndex( const std::string& baseName, indexT seqCount ) {
     if( numOfIndexes > 1 ){
       suffixArrays[x].fromFiles(baseName + char('a' + x), isCaseSensitiveSeeds,
 				alph.encode, alph.letters);
-    }else{
+    } else {
       suffixArrays[x].fromFiles(baseName, isCaseSensitiveSeeds,
 				alph.encode, alph.letters);
     }
@@ -1221,8 +1220,7 @@ void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
   if( args.outputType == 0 ){  // we just want hit counts
     out << "# length\tcount\n"
 	<< "#\n";
-  }
-  else{  // we want alignments
+  } else {  // we want alignments
     if( args.inputFormat != sequenceFormat::pssm || !args.matrixFile.empty() ){
       // we're not reading PSSMs, or we bothered to specify a matrix file
       scoreMatrix.writeCommented( out );
@@ -1382,7 +1380,7 @@ void lastal( int argc, char** argv ){
 			  args.isKeepLowercase, args.maskLowercase > 1)) {
       if( query.isFinished() ){
 	++sequenceCount;
-      }else{
+      } else {
         // this enables downstream parsers to read one batch at a time:
         out << "# batch " << queryBatchCount++ << "\n";
 	scanAllVolumes( volumes, out );

@@ -167,7 +167,7 @@ trap 'rm -f $db*' EXIT
     try lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -D1e3 -j4 $db sd-ccs-100.fq
     try lastal -Q1 -pBL62 -b1 -F3,3,3,3 -X1 -j4 -e56 $db sd-ccs-100.fq
     lastdb -qcR01 -B1 $db Q2LCP8.fa
-    try lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -D1e3 -j4 $db sd-ccs-100.fq
+    try lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -D1e3 $db sd-ccs-100.fq
 
     # BlastTab format
     lastdb -pR01 $db Q2LCP8.fa
