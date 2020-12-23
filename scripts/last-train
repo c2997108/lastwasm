@@ -29,24 +29,24 @@ def myOpen(fileName):  # faster than fileinput
 
 def rootOfIncreasingFunction(func, lowerBound, upperBound, args):
     # Find x such that func(x, *args) == 0
+    gap = upperBound - lowerBound
     while True:
-        mid = 0.5 * (lowerBound + upperBound)
-        if mid <= lowerBound or mid >= upperBound:
+        gap *= 0.5
+        mid = lowerBound + gap
+        if mid <= lowerBound:
             return mid
         if func(mid, *args) < 0:
             lowerBound = mid
-        else:
-            upperBound = mid
 
 def rootOfDecreasingFunction(func, lowerBound, upperBound, args):
     # Find x such that func(x, *args) == 0
+    gap = upperBound - lowerBound
     while True:
-        mid = 0.5 * (lowerBound + upperBound)
-        if mid <= lowerBound or mid >= upperBound:
+        gap *= 0.5
+        mid = lowerBound + gap
+        if mid <= lowerBound:
             return mid
-        if func(mid, *args) < 0:
-            upperBound = mid
-        else:
+        if func(mid, *args) > 0:
             lowerBound = mid
 
 def homogeneousLetterFreqs(scale, matScores):
