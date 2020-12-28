@@ -427,6 +427,7 @@ void LastEvaluer::initFrameshift(const const_dbl_ptr *substitutionProbs,
   FrameshiftXdropAligner aligner;
   int proteinLength = 200;  // xxx long enough to avoid edge effects ???
   int tranDnaLength = proteinLength * 3;
+  int origDnaLength = tranDnaLength + 2;
   int numOfAlignments = 50;  // suggested by Y-K Yu, R Bundschuh, T Hwa, 2002
   if (verbosity > 1) numOfAlignments = 1000;
 
@@ -446,18 +447,18 @@ void LastEvaluer::initFrameshift(const const_dbl_ptr *substitutionProbs,
     for (int j = 0; j < proteinLength; ++j) protein[j] = pDist(randGen);
     for (int j = 0; j < tranDnaLength; ++j) tranDna[j] = tDist(randGen);
     double p = aligner.maxSumOfProbRatios(protein, proteinLength,
-					  tranDna, tranDnaLength,
+					  tranDna, origDnaLength,
 					  substitutionProbs, gapCosts);
     probRatioSum += 1 / p;
     if (verbosity > 1) std::cerr << "simScore: " << (log(p) / scale) << "\n";
   }
 
   // max likelihood k  =  1 / (m * n * avg[exp(-lambda * score)])
-  double k = numOfAlignments / (proteinLength * tranDnaLength * probRatioSum);
+  double k = numOfAlignments / (proteinLength * origDnaLength * probRatioSum);
 
   if (verbosity > 1) {
     std::cerr << "lambda k m n: " << scale << " " << k << " "
-	      << proteinLength << " " << tranDnaLength << "\n";
+	      << proteinLength << " " << origDnaLength << "\n";
   }
 
   Sls::AlignmentEvaluerParameters p = {scale, k, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

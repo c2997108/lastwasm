@@ -55,8 +55,9 @@ public:
   }
 
   // tranDna should point to translated DNA: frame 012012012...
+  // origDnaLength is the length of the untranslated DNA sequence
   double maxSumOfProbRatios(const uchar *protein, int proteinLength,
-			    const uchar *tranDna, int tranDnaLength,
+			    const uchar *tranDna, int origDnaLength,
 			    const const_dbl_ptr *substitutionProbs,
 			    const GapCosts &gapCosts);
 

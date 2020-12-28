@@ -381,7 +381,7 @@ void FrameshiftXdropAligner::count(bool isRightwardExtension,
 double FrameshiftXdropAligner::maxSumOfProbRatios(const uchar *protein,
 						  int proteinLength,
 						  const uchar *tranDna,
-						  int tranDnaLength,
+						  int origDnaLength,
 						  const const_dbl_ptr *substitutionProbs,
 						  const GapCosts &gapCosts) {
   const double delOpenProb = gapCosts.delProbPieces[0].openProb;
@@ -394,45 +394,27 @@ double FrameshiftXdropAligner::maxSumOfProbRatios(const uchar *protein,
   const double insProb3 = gapCosts.insProb3;
 
   const int proteinSize = proteinLength + 1;
-  const int tranDnaSize = tranDnaLength + 1;
-  xFwdProbs.resize(tranDnaSize + proteinSize * tranDnaSize);
+  const int origDnaSize = origDnaLength + 1;
+  xFwdProbs.resize(origDnaSize + proteinSize * origDnaSize);
   double *delRow = &xFwdProbs[0];
-  double *newRow = delRow + tranDnaSize;
+  double *newRow = delRow + origDnaSize;
   double Y1, Y2, Y3, Z1, Z2, Z3;
+  double maxValue = 0;
 
-  Z1 = Z2 = Z3 = 0;
-  for (int j = 0; j < tranDnaSize; ++j) {
-    double z1 = Z1 * insProb1;
-    double z2 = Z2 * insProb2;
-    double z3 = Z3 * insProb3;
-    double b  = z1 + z2 + z3 + 1;
-    newRow[j] = b;
-    delRow[j] = b * delOpenProb;
-    Z3 = Z2;
-    Z2 = Z1;
-    Z1 = b * insOpenProb + z3;
-  }
+  std::fill_n(delRow, origDnaSize, 0.0);
 
-  for (int i = 1; i < proteinSize; ++i) {
-    const double *substitutionRow = substitutionProbs[protein[i-1]];
-    const double *oldRow = newRow;
-    newRow += tranDnaSize;
-    Y2 = Z2 = Z3 = 0;
+  for (int i = 0; i < proteinSize; ++i) {
+    bool isIn = (i > 0);
+    const double *substitutionRow = isIn ? substitutionProbs[protein[i-1]] : 0;
+    const double *oldRow = newRow - origDnaSize;
+    Y2 = Y3 = Z1 = Z2 = Z3 = 0;
 
-    {
-      Y3 = delRow[0];
-      double y3 = Y3 * delProb3;
-      double b  = y3 + 1;
-      newRow[0] = b;
-      delRow[0] = b * delOpenProb + y3;
-      Z1 = b * insOpenProb;
-    }
-
-    for (int j = 1; j < tranDnaSize; ++j) {
+    for (int j = 0; j < origDnaSize; ++j) {
       Y1 = Y2;
       Y2 = Y3;
       Y3 = delRow[j];
-      double x  = oldRow[j-1] * substitutionRow[tranDna[j-1]];
+      bool isMain = (isIn && j > 2);
+      double x  = isMain ? oldRow[j-3] * substitutionRow[tranDna[j-3]] : 0;
       double y1 = Y1 * delProb1;
       double y2 = Y2 * delProb2;
       double y3 = Y3 * delProb3;
@@ -446,45 +428,24 @@ double FrameshiftXdropAligner::maxSumOfProbRatios(const uchar *protein,
       Z2 = Z1;
       Z1 = b * insOpenProb + z3;
     }
+    newRow += origDnaSize;
   }
 
-  double maxValue = 0;
+  std::fill_n(delRow, origDnaSize, 0.0);
 
-  Z1 = Z2 = Z3 = 0;
-  for (int j = tranDnaSize; j-- > 0;) {
-    double z1 = Z1 * insProb1;
-    double z2 = Z2 * insProb2;
-    double z3 = Z3 * insProb3;
-    double b  = z1 + z2 + z3 + 1;
-    maxValue  = std::max(maxValue, b * newRow[j]);
-    newRow[j] = b;
-    delRow[j] = b * delOpenProb;
-    Z3 = Z2;
-    Z2 = Z1;
-    Z1 = b * insOpenProb + z3;
-  }
+  for (int i = proteinSize; i-- > 0;) {
+    newRow -= origDnaSize;
+    bool isIn = (i < proteinLength);
+    const double *substitutionRow = isIn ? substitutionProbs[protein[i]] : 0;
+    const double *oldRow = newRow + origDnaSize;
+    Y2 = Y3 = Z1 = Z2 = Z3 = 0;
 
-  for (int i = proteinLength; i-- > 0;) {
-    const double *substitutionRow = substitutionProbs[protein[i]];
-    const double *oldRow = newRow;
-    newRow -= tranDnaSize;
-    Y2 = Z2 = Z3 = 0;
-
-    {
-      Y3 = delRow[tranDnaLength];
-      double y3 = Y3 * delProb3;
-      double b  = y3 + 1;
-      maxValue  = std::max(maxValue, b * newRow[tranDnaLength]);
-      newRow[tranDnaLength] = b;
-      delRow[tranDnaLength] = b * delOpenProb + y3;
-      Z1 = b * insOpenProb;
-    }
-
-    for (int j = tranDnaLength; j-- > 0;) {
+    for (int j = origDnaSize; j-- > 0;) {
       Y1 = Y2;
       Y2 = Y3;
       Y3 = delRow[j];
-      double x  = oldRow[j+1] * substitutionRow[tranDna[j]];
+      bool isMain = (isIn && j < origDnaLength - 2);
+      double x  = isMain ? oldRow[j+3] * substitutionRow[tranDna[j]] : 0;
       double y1 = Y1 * delProb1;
       double y2 = Y2 * delProb2;
       double y3 = Y3 * delProb3;
