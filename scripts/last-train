@@ -430,6 +430,15 @@ def writeGapCosts(delCosts, insCosts, isLastFormat, outFile):
         print("# delExtendCost:", delGrow, file=outFile)
         print("# insExtendCost:", insGrow, file=outFile)
 
+def probsFromFile(opts, lastalArgs, lines):
+    print("#", *lastalArgs)
+    print()
+    sys.stdout.flush()
+    matCounts, gapCounts = countsFromLastOutput(lines, opts)
+    gapProbs = gapProbsFromCounts(gapCounts, opts)
+    matProbs = matProbsFromCounts(matCounts, opts)
+    return matProbs, gapProbs
+
 def tryToMakeChildProgramsFindable():
     d = os.path.dirname(__file__)
     e = os.path.join(d, os.pardir, "src")
@@ -510,18 +519,13 @@ def doTraining(opts, args):
     print()
 
     while True:
-        print("#", *lastalArgs)
-        print()
-        sys.stdout.flush()
-        matCounts, gapCounts = countsFromLastOutput(proc.stdout, opts)
-        gapProbs = gapProbsFromCounts(gapCounts, opts)
-        matProbs = matProbsFromCounts(matCounts, opts)
+        matProbs, gapProbs = probsFromFile(opts, lastalArgs, proc.stdout)
         matchRatio, delRatios, insRatios = gapRatiosFromProbs(*gapProbs)
         rowProbs = [sum(i) for i in matProbs]
         colProbs = [sum(i) for i in zip(*matProbs)]
         matParams = matchRatio, matProbs, rowProbs, colProbs
-        sas = scoresAndScale(internalScale, matParams, delRatios, insRatios)
-        matScores, delCosts, insCosts, scale = sas
+        ss = scoresAndScale(internalScale, matParams, delRatios, insRatios)
+        matScores, delCosts, insCosts, scale = ss
         writeGapCosts(delCosts, insCosts, False, None)
         print()
         print("# score matrix "
@@ -541,8 +545,8 @@ def doTraining(opts, args):
         proc.stdin.close()
         proc = lastSplitProcess(opts, proc)
 
-    sas = scoresAndScale(externalScale, matParams, delRatios, insRatios)
-    matScores, delCosts, insCosts, scale = sas
+    ss = scoresAndScale(externalScale, matParams, delRatios, insRatios)
+    matScores, delCosts, insCosts, scale = ss
     if opts.X: print("#last -X", opts.X)
     if opts.Q: print("#last -Q", opts.Q)
     print("#last -t{0:.6}".format(scale))
