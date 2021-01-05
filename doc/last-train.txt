@@ -65,6 +65,12 @@ Training options
          (Note that 1/3-bit scores essentially equal Phred scores
          a.k.a. decibans, because log10(2) ≈ 3/10.)  The default is to
          infer a scale from the initial score parameters.
+  --codon
+         Do training for DNA query sequences versus protein reference
+         sequences.  These options will be ignored: ``--revsym
+         --matsym --gapsym --pid --postmask -q -p -S``.  If
+         ``--codon`` is used, the "initial parameter options" are
+         initial probabilities, not scores/costs.
 
 All options below this point are passed to lastal to do the
 alignments: they are described in more detail at `<lastal.html>`_.
@@ -79,6 +85,7 @@ Initial parameter options
   -b COST    Initial gap extension cost.
   -A COST    Initial insertion existence cost.
   -B COST    Initial insertion extension cost.
+  -F LIST    Initial frameshift probabilities (only used with ``--codon``).
 
 Alignment options
 ~~~~~~~~~~~~~~~~~
@@ -177,5 +184,3 @@ Bugs
   `reducing the alignment significance threshold
   <last-tutorial.html#example-6-find-very-short-dna-alignments>`_ with
   option -D.
-
-* last-train cannot handle DNA-versus-protein alignment.

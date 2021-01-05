@@ -19,6 +19,7 @@ import sys
 import tempfile
 
 proteinAlphabet20 = "ACDEFGHIKLMNPQRSTVWY"
+proteinAlphabet21 = proteinAlphabet20 + "*"
 
 def myOpen(fileName):  # faster than fileinput
     if fileName == "-":
@@ -183,7 +184,7 @@ def scaleFromHeader(lines):
     raise Exception("couldn't read the scale")
 
 def countsFromLastOutput(lines, opts):
-    nTransitions = 5
+    nTransitions = 9 if opts.codon else 5
     tranCounts = [1.0] * nTransitions  # +1 pseudocounts
     tranCounts[1] = 2.0  # deletes: opens + extensions, so 2 pseudocounts
     tranCounts[2] = 2.0  # inserts: opens + extensions, so 2 pseudocounts
@@ -196,13 +197,14 @@ def countsFromLastOutput(lines, opts):
             counts = [float(i) for i in line.split()[1:]]
             if not countMatrix:
                 matrixSize = len(counts) - nTransitions
-                nCols = int(math.sqrt(matrixSize))
+                nCols = 64 if opts.codon else int(math.sqrt(matrixSize))
                 nRows = matrixSize // nCols
                 countMatrix = [[1.0] * nCols for i in range(nRows)]
-            identities = sum(counts[i * nCols + i] for i in range(nRows))
-            alignmentLength = sum(counts[matrixSize + i] for i in range(3))
-            if 100 * identities > opts.pid * alignmentLength:
-                continue
+            if not opts.codon:
+                identities = sum(counts[i * nCols + i] for i in range(nRows))
+                alignmentLength = sum(counts[matrixSize + i] for i in range(3))
+                if 100 * identities > opts.pid * alignmentLength:
+                    continue
             for i in range(nRows):
                 for j in range(nCols):
                     if strand == "+" or opts.S != "1":
@@ -414,29 +416,259 @@ def scoresAndScale(originalScale, matParams, delRatios, insRatios):
               "doubling the scale")
         originalScale *= 2
 
-def writeGapCosts(delCosts, insCosts, isLastFormat, outFile):
-    delInit, delGrow = delCosts
-    insInit, insGrow = insCosts
-    delOpen = delInit - delGrow
-    insOpen = insInit - insGrow
+### Routines for codons & frameshifts:
+
+def initialCodonSubstitutionProbs(matchProb):
+    aa = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
+    b1 = "TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG"
+    b2 = "TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG"
+    b3 = "TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG"
+
+    p = matchProb / 61
+    q = (1/64 - p) / 19
+    if q <= 0:
+        raise Exception("initial match probability must be < 61/64")
+    matrix = [[q for j in aa] for i in proteinAlphabet20]
+    for a, x, y, z in zip(aa, b1, b2, b3):
+        codon = "ACGT".index(x) * 16 + "ACGT".index(y) * 4 + "ACGT".index(z)
+        if a == "*":
+            for row in matrix:
+                row[codon] = 1 / (64 * 20)
+        else:
+            matrix[proteinAlphabet20.index(a)][codon] = p
+    return matrix
+
+def initialCodonProbs(opts):
+    matProbs = initialCodonSubstitutionProbs(float(opts.r))
+    delOpenProb = float(opts.a)
+    delGrowProb = float(opts.b)
+    insOpenProb = float(opts.A)
+    insGrowProb = float(opts.B)
+    matchProb = 0.99 - delOpenProb - insOpenProb
+    if opts.F:
+        delProb1, delProb2, insProb1, insProb2 = map(float, opts.F.split(","))
+    else:
+        delProb1 = delProb2 = 1 - delGrowProb
+        insProb1 = insProb2 = 1 - insGrowProb
+    delProbs = delOpenProb, delGrowProb, delProb1, delProb2
+    insProbs = insOpenProb, insGrowProb, insProb1, insProb2
+    return matProbs, (matchProb, delProbs, insProbs)
+
+def formattedCodons(spec):
+    a = "acgt"
+    return (format(i + j + k, spec) for i in a for j in a for k in a)
+
+def printCodonCountMatrix(matrix):
+    print("#", " ", *formattedCodons("5"))
+    for x, row in zip(proteinAlphabet21, matrix):
+        print("#", x, *(format(i, "<5.4g") for i in row))
+
+def writeCodonScoreMatrix(outFile, matrixAndProbs, prefix):
+    matrix, rowProbs, colProbs = matrixAndProbs
+    maxLen = max(len(str(x)) for row in matrix for x in row)
+    spec = ">" + str(max(maxLen, 3))
+    print(prefix + " ", *formattedCodons(spec), file=outFile)
+    for x, row, p in zip(proteinAlphabet21, matrix, rowProbs):
+        r = " ".join(format(i, spec) for i in row)
+        print(prefix + x, r, p, file=outFile)
+    print(prefix + " ", *(format(i, spec) for i in colProbs), file=outFile)
+
+def codonMatProbsFromCounts(counts, opts):
+    total = sum(map(sum, counts))
+    probs = [[j / total for j in i] for i in counts]
+    print("# count matrix "
+          "(query letters = columns, reference letters = rows):")
+    printCodonCountMatrix(counts)
+    print()
+    return probs
+
+def freqText(probability):
+    p = 100 * probability
+    t = format(p, ".2")
+    if len(t) > 3:
+        t = format(p, "<3.2g")
+    if len(t) > 3:
+        t = t.lstrip("0")
+    return t
+
+def frameshiftProbImbalance(endProb, matchProb, delProbs, insProbs):
+    insOpenProb, insGrowProb, ins1, ins2 = insProbs
+    delOpenProb, delGrowProb, del1, del2 = delProbs
+    iNum = insOpenProb * (ins1 * endProb ** 2 + ins2 * (1 - ins1) * endProb
+                          + (1 - ins1) * (1 - ins2) * (1 - insGrowProb))
+    iDen = endProb ** 3 - (1 - ins1) * (1 - ins2) * insGrowProb
+    dNum = delOpenProb * (del1 / endProb ** 2 + del2 * (1 - del1) / endProb
+                          + (1 - del1) * (1 - del2) * (1 - delGrowProb))
+    dDen = endProb ** 3 - (1 - del1) * (1 - del2) * delGrowProb
+    return 1 - matchProb / endProb ** 6 - iNum / iDen - dNum / dDen
+
+def balancedFrameshiftEndProb(*args):
+    matchProb, delProbs, insProbs = args
+    insOpenProb, insGrowProb, ins1, ins2 = insProbs
+    delOpenProb, delGrowProb, del1, del2 = delProbs
+    lowerBound = max((1 - ins1) * (1 - ins2) * insGrowProb,
+                     (1 - del1) * (1 - del2) * delGrowProb) ** (1/3)
+    upperBound = 1.0
+    return rootOfIncreasingFunction(frameshiftProbImbalance,
+                                    lowerBound, upperBound, args)
+
+def frameshiftProbsFromCounts(counts, opts):
+    (matches, deletes, inserts, delOpens0, insOpens0,
+     delOpens1, delOpens2, insOpens1, insOpens2, alignments) = counts
+    delOpens = delOpens0 + delOpens1 + delOpens2
+    insOpens = insOpens0 + insOpens1 + insOpens2
+    denominator = matches + insOpens + delOpens + (alignments + 1)
+    matchProb = matches / denominator
+
+    insOpenProb = insOpens / denominator
+    insGrowProb = (inserts - insOpens0) / inserts
+    insProb2 = insOpens2 / (inserts + insOpens2)
+    insProb1 = insOpens1 / (inserts + insOpens2 + insOpens1)
+
+    delOpenProb = delOpens / denominator
+    delGrowProb = (deletes - delOpens0) / deletes
+    delProb2 = delOpens2 / (deletes + delOpens2)
+    delProb1 = delOpens1 / (deletes + delOpens2 + delOpens1)
+
+    print("# aligned residue/codon pairs: %.12g" % matches)
+    print("# whole codon deletes: %.12g" % deletes)
+    print("# whole codon inserts: %.12g" % inserts)
+    print("# delOpens: %.12g" % delOpens)
+    print("# insOpens: %.12g" % insOpens)
+    print("# frameshifts del-1,del-2,ins+1,ins+2: %.12g,%.12g,%.12g,%.12g"
+          % (delOpens1, delOpens2, insOpens1, insOpens2))
+    print("# alignments:", alignments)
+    print("# matchProb: %g" % matchProb)
+    print("# delOpenProb: %g" % delOpenProb)
+    print("# insOpenProb: %g" % insOpenProb)
+    print("# delExtendProb: %g" % delGrowProb)
+    print("# insExtendProb: %g" % insGrowProb)
+    print("# frameshiftProbs del-1,del-2,ins+1,ins+2: %g,%g,%g,%g"
+          % (delProb1, delProb2, insProb1, insProb2))
+    print()
+    delProbs = delOpenProb, delGrowProb, delProb1, delProb2
+    insProbs = insOpenProb, insGrowProb, insProb1, insProb2
+    return matchProb, delProbs, insProbs
+
+def frameshiftRatiosFromProbs(matchProb, delProbs, insProbs):
+    delOpenProb, delGrowProb, del1, del2 = delProbs
+    insOpenProb, insGrowProb, ins1, ins2 = insProbs
+
+    endProb = balancedFrameshiftEndProb(matchProb, delProbs, insProbs)
+
+    matchRatio = matchProb / endProb ** 6
+
+    insAdj = (1 - insGrowProb) / insGrowProb
+    insOpenRatio = insOpenProb * insAdj
+    insMean = ((1 - ins1) * (1 - ins2) * insGrowProb) ** (1/3)
+    insRatio0 = insMean / endProb
+    insRatio1 = ins1 / (insAdj * insMean)
+    insRatio2 = ins2 * (1 - ins1) / (insAdj * insMean ** 2)
+    insRatios = insOpenRatio, insRatio0, insRatio1, insRatio2
+
+    delAdj = (1 - delGrowProb) / delGrowProb
+    delOpenRatio = delOpenProb * delAdj
+    delMean = ((1 - del1) * (1 - del2) * delGrowProb) ** (1/3)
+    delRatio0 = delMean / endProb
+    delRatio1 = del1 / (delAdj * delMean * endProb ** 4)
+    delRatio2 = del2 * (1 - del1) / (delAdj * (delMean * endProb) ** 2)
+    delRatios = delOpenRatio, delRatio0, delRatio1, delRatio2
+
+    return matchRatio, delRatios, insRatios
+
+def frameshiftCostsFromProbRatios(scale, gapRatios):
+    gapOpenRatio, gapRatio0, gapRatio1, gapRatio2 = gapRatios
+    gapOpenCost = costFromProb(scale, gapOpenRatio)
+    gapCost0 = max(costFromProb(scale, gapRatio0), 1)
+    gapCost1 = costFromProb(scale, gapRatio1)
+    gapCost2 = costFromProb(scale, gapRatio2)
+    return gapOpenCost, gapCost0, gapCost1, gapCost2
+
+def frameshiftImbalanceFromGap(scale, gapCosts):
+    gapOpenCost, gapCost0, gapCost1, gapCost2 = gapCosts
+    a = math.exp(-gapOpenCost / scale)
+    b = math.exp(-gapCost0 / scale)
+    f = math.exp(-gapCost1 / scale)
+    g = math.exp(-gapCost2 / scale)
+    return a * b * (f + g * b + b * b) / (1 - b ** 3)
+
+def frameshiftScoreImbalance(scale, matScores, rowProbs, colProbs,
+                             delCosts, insCosts):
+    d = frameshiftImbalanceFromGap(scale, delCosts)
+    i = frameshiftImbalanceFromGap(scale, insCosts)
+    m = sum(x * y * math.exp(matScores[i][j] / scale)
+            for i, x in enumerate(rowProbs) for j, y in enumerate(colProbs))
+    return m + d + i - 1
+
+def normalizedFreqs(freqs):
+    x = list(map(float, freqs))
+    s = sum(x)
+    return [i / s for i in x]
+
+def codonScoresAndScale(originalScale, matParams, delRatios, insRatios):
+    matchRatio, matProbs, rowFreqs, colFreqs = matParams
+    rowProbs = normalizedFreqs(rowFreqs)
+    colProbs = normalizedFreqs(colFreqs)
+    matParams = matchRatio, matProbs, rowProbs, colProbs
+    matScores = matScoresFromProbs(originalScale, *matParams)
+    delCosts = frameshiftCostsFromProbRatios(originalScale, delRatios)
+    insCosts = frameshiftCostsFromProbRatios(originalScale, insRatios)
+    args = matScores, rowProbs, colProbs, delCosts, insCosts
+    scale = balancedScale(frameshiftScoreImbalance, originalScale, args)
+    assert scale > 0  # XXX
+    matScores = matScores, rowFreqs, colFreqs
+    return matScores, delCosts, insCosts, scale
+
+def isCloseEnough(oldParameters, newParameters):
+    delCosts0, insCosts0, substitutionParameters0 = oldParameters
+    m0, rowFreqs0, colFreqs0 = substitutionParameters0
+
+    delCosts1, insCosts1, substitutionParameters1 = newParameters
+    m1, rowFreqs1, colFreqs1 = substitutionParameters1
+
+    return (delCosts0 == delCosts1 and insCosts0 == insCosts1 and
+            all(abs(i - j) < 2 for x, y in zip(m0, m1) for i, j in zip(x, y)))
+
+### End of routines for codons & frameshifts
+
+def writeGapCosts(opts, delCosts, insCosts, isLastFormat, outFile):
+    if opts.codon:
+        delOpen, delGrow, del1, del2 = delCosts
+        insOpen, insGrow, ins1, ins2 = insCosts
+        frameshiftCosts = del1, del2, ins1, ins2
+        frameshiftCosts = ",".join(map(str, frameshiftCosts))
+    else:
+        delInit, delGrow = delCosts
+        insInit, insGrow = insCosts
+        delOpen = delInit - delGrow
+        insOpen = insInit - insGrow
     if isLastFormat:
         print("#last -a", delOpen, file=outFile)
         print("#last -A", insOpen, file=outFile)
         print("#last -b", delGrow, file=outFile)
         print("#last -B", insGrow, file=outFile)
+        if opts.codon:
+            print("#last -F", frameshiftCosts, file=outFile)
     else:
         print("# delExistCost:", delOpen, file=outFile)
         print("# insExistCost:", insOpen, file=outFile)
         print("# delExtendCost:", delGrow, file=outFile)
         print("# insExtendCost:", insGrow, file=outFile)
+        if opts.codon:
+            print("# frameshiftCosts del-1,del-2,ins+1,ins+2:",
+                  frameshiftCosts, file=outFile)
 
 def probsFromFile(opts, lastalArgs, lines):
     print("#", *lastalArgs)
     print()
     sys.stdout.flush()
     matCounts, gapCounts = countsFromLastOutput(lines, opts)
-    gapProbs = gapProbsFromCounts(gapCounts, opts)
-    matProbs = matProbsFromCounts(matCounts, opts)
+    if opts.codon:
+        gapProbs = frameshiftProbsFromCounts(gapCounts, opts)
+        matProbs = codonMatProbsFromCounts(matCounts, opts)
+    else:
+        gapProbs = gapProbsFromCounts(gapCounts, opts)
+        matProbs = matProbsFromCounts(matCounts, opts)
     return matProbs, gapProbs
 
 def tryToMakeChildProgramsFindable():
@@ -467,6 +699,8 @@ def fixedLastalArgs(opts, lastalProgName):
     if opts.X: x.append("-X" + opts.X)
     if opts.Q: x.append("-Q" + opts.Q)
     if opts.verbose: x.append("-" + "v" * opts.verbose)
+    if opts.codon:
+        x.append("-K1")
     return x
 
 def process(args, inStream):
@@ -489,73 +723,97 @@ def lastSplitProcess(opts, proc):
 def doTraining(opts, args):
     tryToMakeChildProgramsFindable()
     lastalProgName = readLastalProgName(args[0])
-    scaleIncrease = 20  # while training, up-scale the scores by this amount
     lastalVersion = versionFromLastal()
+    print("# lastal version:", lastalVersion)
 
-    lastalArgs = fixedLastalArgs(opts, lastalProgName)
-    if opts.r: lastalArgs.append("-r" + opts.r)
-    if opts.q: lastalArgs.append("-q" + opts.q)
-    if opts.p: lastalArgs.append("-p" + opts.p)
-    if opts.a: lastalArgs.append("-a" + opts.a)
-    if opts.b: lastalArgs.append("-b" + opts.b)
-    if opts.A: lastalArgs.append("-A" + opts.A)
-    if opts.B: lastalArgs.append("-B" + opts.B)
-    lastalArgs += args
-    proc = process(lastalArgs, None)
-    proc = lastSplitProcess(opts, proc)
+    if opts.codon:
+        scaleIncrease = 1
+        gapRatiosFunc = frameshiftRatiosFromProbs
+        scoresAndScaleFunc = codonScoresAndScale
+        writeScoreMatrixFunc = writeCodonScoreMatrix
+    else:
+        scaleIncrease = 20  # while training, upscale the scores by this amount
+        gapRatiosFunc = gapRatiosFromProbs
+        scoresAndScaleFunc = scoresAndScale
+        writeScoreMatrixFunc = writeScoreMatrix
+
+        print("# maximum percent identity:", opts.pid)
+        lastalArgs = fixedLastalArgs(opts, lastalProgName)
+        if opts.r: lastalArgs.append("-r" + opts.r)
+        if opts.q: lastalArgs.append("-q" + opts.q)
+        if opts.p: lastalArgs.append("-p" + opts.p)
+        if opts.a: lastalArgs.append("-a" + opts.a)
+        if opts.b: lastalArgs.append("-b" + opts.b)
+        if opts.A: lastalArgs.append("-A" + opts.A)
+        if opts.B: lastalArgs.append("-B" + opts.B)
+        lastalArgs += args
+        proc = process(lastalArgs, None)
+        proc = lastSplitProcess(opts, proc)
+        if not opts.scale:
+            externalScale = scaleFromHeader(proc.stdout)
 
     if opts.scale:
         externalScale = opts.scale / math.log(2)
-    else:
-        externalScale = scaleFromHeader(proc.stdout)
 
     internalScale = externalScale * scaleIncrease
     oldParameters = []
 
-    print("# lastal version:", lastalVersion)
-    print("# maximum percent identity:", opts.pid)
     print("# scale of score parameters:", externalScale)
     print("# scale used while training:", internalScale)
     print()
 
-    while True:
+    if opts.codon:
+        matProbs, gapProbs = initialCodonProbs(opts)
+    else:
         matProbs, gapProbs = probsFromFile(opts, lastalArgs, proc.stdout)
-        matchRatio, delRatios, insRatios = gapRatiosFromProbs(*gapProbs)
+
+    while True:
+        matchRatio, delRatios, insRatios = gapRatiosFunc(*gapProbs)
         rowProbs = [sum(i) for i in matProbs]
         colProbs = [sum(i) for i in zip(*matProbs)]
+        if opts.codon:
+            rowProbs = [freqText(i) for i in rowProbs]
+            colProbs = [freqText(i) for i in colProbs]
         matParams = matchRatio, matProbs, rowProbs, colProbs
-        ss = scoresAndScale(internalScale, matParams, delRatios, insRatios)
+        ss = scoresAndScaleFunc(internalScale, matParams, delRatios, insRatios)
         matScores, delCosts, insCosts, scale = ss
-        writeGapCosts(delCosts, insCosts, False, None)
+        writeGapCosts(opts, delCosts, insCosts, False, None)
         print()
         print("# score matrix "
               "(query letters = columns, reference letters = rows):")
-        writeScoreMatrix(sys.stdout, matScores, "# ")
+        writeScoreMatrixFunc(sys.stdout, matScores, "# ")
         print()
         parameters = delCosts, insCosts, matScores
-        if parameters in oldParameters: break
+        if opts.codon:
+            if any(isCloseEnough(i, parameters) for i in oldParameters):
+                break
+        else:
+            if parameters in oldParameters:
+                break
         oldParameters.append(parameters)
         lastalArgs = fixedLastalArgs(opts, lastalProgName)
         lastalArgs.append("-t{0:.6}".format(scale))
         lastalArgs.append("-p-")
         lastalArgs += args
         proc = process(lastalArgs, subprocess.PIPE)
-        writeGapCosts(delCosts, insCosts, True, proc.stdin)
-        writeScoreMatrix(proc.stdin, matScores, "")
+        writeGapCosts(opts, delCosts, insCosts, True, proc.stdin)
+        writeScoreMatrixFunc(proc.stdin, matScores, "")
         proc.stdin.close()
-        proc = lastSplitProcess(opts, proc)
+        if not opts.codon:
+            proc = lastSplitProcess(opts, proc)
+        matProbs, gapProbs = probsFromFile(opts, lastalArgs, proc.stdout)
 
-    ss = scoresAndScale(externalScale, matParams, delRatios, insRatios)
+    ss = scoresAndScaleFunc(externalScale, matParams, delRatios, insRatios)
     matScores, delCosts, insCosts, scale = ss
     if opts.X: print("#last -X", opts.X)
     if opts.Q: print("#last -Q", opts.Q)
     print("#last -t{0:.6}".format(scale))
-    writeGapCosts(delCosts, insCosts, True, None)
+    writeGapCosts(opts, delCosts, insCosts, True, None)
     if opts.s: print("#last -s", opts.s)
     if opts.S: print("#last -S", opts.S)
     print("# score matrix "
           "(query letters = columns, reference letters = rows):")
-    writeScoreMatrix(sys.stdout, matScores, "")
+    writeScoreMatrixFunc(sys.stdout, matScores, "")
 
 def lastTrain(opts, args):
     if opts.sample_number:
@@ -596,6 +854,8 @@ if __name__ == "__main__":
                   help="length of each sample (default: %default)")
     og.add_option("--scale", type="float", metavar="S",
                   help="output scores in units of 1/S bits")
+    og.add_option("--codon", action="store_true",
+                  help="DNA queries & protein reference, with frameshifts")
     op.add_option_group(og)
 
     og = optparse.OptionGroup(op, "Initial parameter options")
@@ -610,6 +870,8 @@ if __name__ == "__main__":
                   help="gap extension cost (default: 9 if Q>=1, else 3)")
     og.add_option("-A", metavar="COST", help="insertion existence cost")
     og.add_option("-B", metavar="COST", help="insertion extension cost")
+    og.add_option("-F", metavar="LIST", help="frameshift probabilities: "
+                  "del-1,del-2,ins+1,ins+2 (default: 1-b,1-b,1-B,1-B)")
     op.add_option_group(og)
 
     og = optparse.OptionGroup(op, "Alignment options")
@@ -644,6 +906,14 @@ if __name__ == "__main__":
         op.error("I need a lastdb index and query sequences")
     if not opts.sample_number and (len(args) < 2 or "-" in args):
         op.error("sorry, can't use stdin when --sample-number=0")
+    if opts.codon:
+        if not opts.scale: opts.scale = 3
+        if not opts.r: opts.r = "0.4"
+        if not opts.a: opts.a = "0.02"
+        if not opts.b: opts.b = "0.5"
+        if not opts.A: opts.A = opts.a
+        if not opts.B: opts.B = opts.b
+        opts.S = None
     if not opts.p and (not opts.Q or opts.Q in ("0", "fastx", "keep")):
         if not opts.r: opts.r = "5"
         if not opts.q: opts.q = "5"
