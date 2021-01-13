@@ -458,7 +458,7 @@ static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
   return reinterpret_cast<const ScoreMatrixRow *>(&qualityPssm[0]);
 }
 
-namespace Phase{ enum Enum{ gapless, pregapped, final }; }
+namespace Phase{ enum Enum{ gapless, pregapped, gapped }; }
 
 static bool isFullScoreThreshold() {
   return gapCosts.isNewFrameshifts();
@@ -773,7 +773,7 @@ void alignGapped( LastAligner& aligner,
     gaplessAlns.markAllOverlaps( aln.blocks );
     gaplessAlns.markTandemRepeats( aln.seed, args.maxRepeatDistance );
 
-    if( phase == Phase::final ) gappedAlns.add(aln);
+    if (phase == Phase::gapped) gappedAlns.add(aln);
     else SegmentPairPot::markAsGood(sp);
 
     ++gappedAlignmentCount;
@@ -790,7 +790,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, const SubstitutionMatrices &matrices,
 		  const uchar* querySeq, size_t frameSize ){
   Centroid& centroid = aligner.engines.centroid;
-  Dispatcher dis(Phase::final, aligner, queryNum, matrices, querySeq);
+  Dispatcher dis(Phase::gapped, aligner, queryNum, matrices, querySeq);
   size_t queryLen = query.padLen(queryNum);
 
   if( args.outputType > 3 ){
@@ -816,7 +816,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
     AlignmentExtras extras;
     if (isFullScoreThreshold()) extras.fullScore = -1;  // score is fullScore
     if( args.outputType < 4 ){
-      writeAlignment(aligner, aln, queryNum, querySeq, extras);
+      writeAlignment(aligner, aln, queryNum, dis.b, extras);
     } else {  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
@@ -827,7 +827,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 			dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph,
 			extras, args.gamma, args.outputType);
       assert(aln.score != -INF);
-      writeAlignment(aligner, probAln, queryNum, querySeq, extras);
+      writeAlignment(aligner, probAln, queryNum, dis.b, extras);
     }
   }
 }
@@ -972,7 +972,7 @@ void scan(LastAligner& aligner, size_t queryNum,
   }
 
   alignGapped(aligner, gappedAlns, gaplessAlns,
-	      queryNum, matrices, querySeq, frameSize, Phase::final);
+	      queryNum, matrices, querySeq, frameSize, Phase::gapped);
   if( gappedAlns.size() == 0 ) return;
 
   if (maskMode == 2 && !isFullScoreThreshold()) {
