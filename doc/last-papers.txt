@@ -116,6 +116,13 @@ research to society.
 
     Describes how LAST uses child tables.
 
+14. `Minimally-overlapping words for sequence similarity search`__.
+    Frith MC, Noé L, Kucherov G.  Bioinformatics. 2020
+
+    __ https://doi.org/10.1093/bioinformatics/btaa1054
+
+    Describes the ``lastdb -u RY`` sparsity options.
+
 External methods
 ----------------
 

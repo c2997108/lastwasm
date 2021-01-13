@@ -458,7 +458,7 @@ static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
   return reinterpret_cast<const ScoreMatrixRow *>(&qualityPssm[0]);
 }
 
-namespace Phase{ enum Enum{ gapless, gapped, final }; }
+namespace Phase{ enum Enum{ gapless, pregapped, final }; }
 
 static bool isFullScoreThreshold() {
   return gapCosts.isNewFrameshifts();
@@ -493,7 +493,7 @@ struct Dispatcher{
       r( isMaskLowercase(e) ? matrices.ratiosMasked : matrices.ratios ),
       t( isMaskLowercase(e) ? matrices.twoQualMasked : matrices.twoQual ),
       d( (e == Phase::gapless) ? args.maxDropGapless :
-         (e == Phase::gapped ) ? args.maxDropGapped : args.maxDropFinal ),
+         (e == Phase::pregapped ) ? args.maxDropGapped : args.maxDropFinal ),
       z( t ? 2 : p ? 1 : 0 ){}
 
   int gaplessOverlap( indexT x, indexT y, size_t &rev, size_t &fwd ) const{
@@ -637,10 +637,9 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 }
 
 // Find query matches to the suffix array, and do gapless extensions
-void alignGapless( LastAligner& aligner, SegmentPairPot& gaplessAlns,
-		   size_t queryNum, const SubstitutionMatrices &matrices,
-		   const uchar* querySeq ){
-  Dispatcher dis(Phase::gapless, aligner, queryNum, matrices, querySeq);
+void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
+		  size_t queryNum, const uchar *querySeq,
+		  const Dispatcher &dis) {
   DiagonalTable dt;  // record already-covered positions on each diagonal
   size_t maxAlignments =
     args.maxAlignmentsPerQueryStrand ? args.maxAlignmentsPerQueryStrand : 1;
@@ -835,12 +834,9 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
   }
 }
 
-static void eraseWeakAlignments(LastAligner &aligner, AlignmentPot &gappedAlns,
-				size_t queryNum,
-				const SubstitutionMatrices &matrices,
-				const uchar *querySeq) {
+static void eraseWeakAlignments(AlignmentPot &gappedAlns,
+				size_t queryNum, const Dispatcher &dis) {
   size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
-  Dispatcher dis(Phase::gapless, aligner, queryNum, matrices, querySeq);
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &a = gappedAlns.items[i];
     if (!a.hasGoodSegment(dis.a, dis.b, ceil(args.minScoreGapped), dis.m,
@@ -957,8 +953,9 @@ void scan(LastAligner& aligner, size_t queryNum,
   const int maskMode = args.maskLowercase;
   makeQualityPssm(aligner, queryNum, matrices, querySeq, maskMode > 0);
 
+  Dispatcher dis0(Phase::gapless, aligner, queryNum, matrices, querySeq);
   SegmentPairPot gaplessAlns;
-  alignGapless(aligner, gaplessAlns, queryNum, matrices, querySeq);
+  alignGapless(aligner, gaplessAlns, queryNum, querySeq, dis0);
   if( args.outputType == 1 ) return;  // we just want gapless alignments
   if( gaplessAlns.size() == 0 ) return;
 
@@ -969,20 +966,20 @@ void scan(LastAligner& aligner, size_t queryNum,
 
   if (args.maxDropFinal != args.maxDropGapped
       || (maskMode == 2 && isFullScoreThreshold())) {
-    alignGapped( aligner, gappedAlns, gaplessAlns,
-		 queryNum, matrices, querySeq, Phase::gapped );
+    alignGapped(aligner, gappedAlns, gaplessAlns,
+		queryNum, matrices, querySeq, Phase::pregapped);
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
     if (maskMode == 2 && isFullScoreThreshold())
       unmaskLowercase(aligner, queryNum, matrices, querySeq);
   }
 
-  alignGapped( aligner, gappedAlns, gaplessAlns,
-	       queryNum, matrices, querySeq, Phase::final );
+  alignGapped(aligner, gappedAlns, gaplessAlns,
+	      queryNum, matrices, querySeq, Phase::final);
   if( gappedAlns.size() == 0 ) return;
 
   if (maskMode == 2 && !isFullScoreThreshold()) {
     remaskLowercase(aligner, queryNum, matrices, querySeq);
-    eraseWeakAlignments(aligner, gappedAlns, queryNum, matrices, querySeq);
+    eraseWeakAlignments(gappedAlns, queryNum, dis0);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
     if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
