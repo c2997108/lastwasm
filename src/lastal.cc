@@ -712,9 +712,8 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
 void alignGapped( LastAligner& aligner,
 		  AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
                   size_t queryNum, const SubstitutionMatrices &matrices,
-		  const uchar* querySeq, Phase::Enum phase ){
+		  const uchar* querySeq, size_t frameSize, Phase::Enum phase ){
   Dispatcher dis(phase, aligner, queryNum, matrices, querySeq);
-  size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
   // Redo the gapless extensions, using gapped score parameters.
@@ -789,11 +788,10 @@ void alignGapped( LastAligner& aligner,
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, const SubstitutionMatrices &matrices,
-		  const uchar* querySeq ){
+		  const uchar* querySeq, size_t frameSize ){
   Centroid& centroid = aligner.engines.centroid;
   Dispatcher dis(Phase::final, aligner, queryNum, matrices, querySeq);
   size_t queryLen = query.padLen(queryNum);
-  size_t frameSize = args.isFrameshift() ? (queryLen / 3) : 0;
 
   if( args.outputType > 3 ){
     if( dis.p ){
@@ -835,8 +833,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 }
 
 static void eraseWeakAlignments(AlignmentPot &gappedAlns,
-				size_t queryNum, const Dispatcher &dis) {
-  size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
+				size_t frameSize, const Dispatcher &dis) {
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &a = gappedAlns.items[i];
     if (!a.hasGoodSegment(dis.a, dis.b, ceil(args.minScoreGapped), dis.m,
@@ -962,24 +959,25 @@ void scan(LastAligner& aligner, size_t queryNum,
   if (maskMode == 1 || (maskMode == 2 && !isFullScoreThreshold()))
     unmaskLowercase(aligner, queryNum, matrices, querySeq);
 
+  size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   AlignmentPot gappedAlns;
 
   if (args.maxDropFinal != args.maxDropGapped
       || (maskMode == 2 && isFullScoreThreshold())) {
     alignGapped(aligner, gappedAlns, gaplessAlns,
-		queryNum, matrices, querySeq, Phase::pregapped);
+		queryNum, matrices, querySeq, frameSize, Phase::pregapped);
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
     if (maskMode == 2 && isFullScoreThreshold())
       unmaskLowercase(aligner, queryNum, matrices, querySeq);
   }
 
   alignGapped(aligner, gappedAlns, gaplessAlns,
-	      queryNum, matrices, querySeq, Phase::final);
+	      queryNum, matrices, querySeq, frameSize, Phase::final);
   if( gappedAlns.size() == 0 ) return;
 
   if (maskMode == 2 && !isFullScoreThreshold()) {
     remaskLowercase(aligner, queryNum, matrices, querySeq);
-    eraseWeakAlignments(gappedAlns, queryNum, dis0);
+    eraseWeakAlignments(gappedAlns, frameSize, dis0);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
     if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
@@ -992,7 +990,7 @@ void scan(LastAligner& aligner, size_t queryNum,
   }
 
   if( !isCollatedAlignments() ) gappedAlns.sort();  // sort by score
-  alignFinish(aligner, gappedAlns, queryNum, matrices, querySeq);
+  alignFinish(aligner, gappedAlns, queryNum, matrices, querySeq, frameSize);
 }
 
 static void tantanMaskOneQuery(size_t queryNum, uchar *querySeq) {
