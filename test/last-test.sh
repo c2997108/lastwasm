@@ -233,8 +233,7 @@ trap 'rm -f $db*' EXIT
     lastdb -uRY8 -B1 $db hg19-M.fa
     lastal -fTAB -q8 -b4 $db galGal3-M-32.fa
 } 2>&1 |
-grep -v version |  # omit header lines with the LAST version number
-diff -u last-test.out -
+grep -v version | diff -u last-test.out -
 
 # Test: last-bisulfite, last-merge-batches, last-split, named seeds
 lastdb -uBISF f hg19-M.fa

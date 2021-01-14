@@ -458,7 +458,7 @@ static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
   return reinterpret_cast<const ScoreMatrixRow *>(&qualityPssm[0]);
 }
 
-namespace Phase{ enum Enum{ gapless, pregapped, gapped }; }
+namespace Phase{ enum Enum{ gapless, pregapped, gapped, postgapped }; }
 
 static bool isFullScoreThreshold() {
   return gapCosts.isNewFrameshifts();
@@ -466,7 +466,7 @@ static bool isFullScoreThreshold() {
 
 static bool isMaskLowercase(Phase::Enum e) {
   return (e < 1 && args.maskLowercase > 0)
-    || (e < 2 && args.maskLowercase > 1 && isFullScoreThreshold())
+    || (e < 3 && args.maskLowercase > 1 && isFullScoreThreshold())
     || args.maskLowercase > 2;
 }
 
@@ -753,11 +753,10 @@ void alignGapped( LastAligner& aligner,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop(aligner.engines, args.isGreedy,
-		  dis.a, dis.b, args.globality, dis.m,
-		  scoreMatrix.maxScore, scoreMatrix.minScore,
-		  dis.r, matrices.stats.lambda(), gapCosts,
-		  dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
+    aln.makeXdrop(aligner.engines, args.isGreedy, dis.a, dis.b, args.globality,
+		  dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
+		  dis.r, matrices.stats.lambda(), gapCosts, dis.d,
+		  frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
@@ -784,13 +783,25 @@ void alignGapped( LastAligner& aligner,
   LOG2( "gapped alignments=" << gappedAlignmentCount );
 }
 
+// Redo gapped extensions, but keep the old alignment scores
+static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
+			    size_t frameSize, const Dispatcher &dis) {
+  AlignmentExtras extras;  // not used
+  for (size_t i = 0; i < gappedAlns.size(); ++i) {
+    Alignment &aln = gappedAlns.items[i];
+    aln.makeXdrop(aligner.engines, args.isGreedy, dis.a, dis.b, args.globality,
+		  dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
+		  0, 0, gapCosts, dis.d,
+		  frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
+  }
+}
+
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, const SubstitutionMatrices &matrices,
-		  const uchar* querySeq, size_t frameSize ){
+		  size_t frameSize, const Dispatcher &dis ){
   Centroid& centroid = aligner.engines.centroid;
-  Dispatcher dis(Phase::gapped, aligner, queryNum, matrices, querySeq);
   size_t queryLen = query.padLen(queryNum);
 
   if( args.outputType > 3 ){
@@ -820,13 +831,15 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
     } else {  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop(aligner.engines, args.isGreedy,
-			dis.a, dis.b, args.globality, dis.m,
-			scoreMatrix.maxScore, scoreMatrix.minScore,
-			dis.r, matrices.stats.lambda(), gapCosts,
-			dis.d, frameSize, dis.p, dis.t, dis.i, dis.j, alph,
-			extras, args.gamma, args.outputType);
+      probAln.makeXdrop(aligner.engines, args.isGreedy, dis.a, dis.b,
+			args.globality,
+			dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
+			dis.r, matrices.stats.lambda(), gapCosts, dis.d,
+			frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras,
+			args.gamma, args.outputType);
       assert(aln.score != -INF);
+      if (args.maskLowercase == 2 && isFullScoreThreshold())
+	probAln.score = aln.score;
       writeAlignment(aligner, probAln, queryNum, dis.b, extras);
     }
   }
@@ -962,18 +975,22 @@ void scan(LastAligner& aligner, size_t queryNum,
   size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   AlignmentPot gappedAlns;
 
-  if (args.maxDropFinal != args.maxDropGapped
-      || (maskMode == 2 && isFullScoreThreshold())) {
+  if (args.maxDropFinal != args.maxDropGapped) {
     alignGapped(aligner, gappedAlns, gaplessAlns,
 		queryNum, matrices, querySeq, frameSize, Phase::pregapped);
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
-    if (maskMode == 2 && isFullScoreThreshold())
-      unmaskLowercase(aligner, queryNum, matrices, querySeq);
   }
 
   alignGapped(aligner, gappedAlns, gaplessAlns,
 	      queryNum, matrices, querySeq, frameSize, Phase::gapped);
   if( gappedAlns.size() == 0 ) return;
+
+  Dispatcher dis3(Phase::postgapped, aligner, queryNum, matrices, querySeq);
+
+  if (maskMode == 2 && isFullScoreThreshold()) {
+    unmaskLowercase(aligner, queryNum, matrices, querySeq);
+    alignPostgapped(aligner, gappedAlns, frameSize, dis3);
+  }
 
   if (maskMode == 2 && !isFullScoreThreshold()) {
     remaskLowercase(aligner, queryNum, matrices, querySeq);
@@ -990,7 +1007,7 @@ void scan(LastAligner& aligner, size_t queryNum,
   }
 
   if( !isCollatedAlignments() ) gappedAlns.sort();  // sort by score
-  alignFinish(aligner, gappedAlns, queryNum, matrices, querySeq, frameSize);
+  alignFinish(aligner, gappedAlns, queryNum, matrices, frameSize, dis3);
 }
 
 static void tantanMaskOneQuery(size_t queryNum, uchar *querySeq) {

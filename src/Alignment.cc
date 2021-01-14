@@ -50,7 +50,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
                            const uchar* qual1, const uchar* qual2,
 			   const Alphabet& alph, AlignmentExtras& extras,
 			   double gamma, int outputType ){
-  score = seed.score;
+  if (probMatrix) score = seed.score;  // else keep the old score
   if (outputType > 3 && !gap.isNewFrameshifts()) extras.fullScore = seed.score;
 
   if( outputType == 7 ){
@@ -62,6 +62,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
   }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
+  blocks.clear();
   std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
   extend( blocks, columnAmbiguityCodes, aligners, isGreedy,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
@@ -310,23 +311,25 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       while (aligner.getNextChunkFrame(end1, end2, size, gapCost, gap))
 	chunks.push_back(SegmentPair(end1 - size, end2 - size * 3, size,
 				     gapCost));
-      FrameshiftXdropAligner &fxa = aligners.frameshiftAligner;
-      double probDropLimit = exp(scale * -maxDrop);
-      double s = fxa.forward(seq1 + start1, seq2 + start2,
-			     seq2 + dnaToAa(frame1, frameSize),
-			     seq2 + dnaToAa(frame2, frameSize),
-			     isForward, probMat, gap, probDropLimit);
-      score += s / scale;
-      if (outputType > 3) {
-	fxa.backward(isForward, probMat, gap);
-	getColumnCodes(fxa, columnCodes, chunks);
-	if (outputType == 7) {
-	  double *ec = &extras.expectedCounts[0];
-	  double *subsCounts[scoreMatrixRowSize];
-	  for (int i = 0; i < scoreMatrixRowSize; ++i)
-	    subsCounts[i] = ec + i * scoreMatrixRowSize;
-	  double *tranCounts = ec + scoreMatrixRowSize * scoreMatrixRowSize;
-	  fxa.count(isForward, gap, subsCounts, tranCounts);
+      if (probMat) {
+	FrameshiftXdropAligner &fxa = aligners.frameshiftAligner;
+	double probDropLimit = exp(scale * -maxDrop);
+	double s = fxa.forward(seq1 + start1, seq2 + start2,
+			       seq2 + dnaToAa(frame1, frameSize),
+			       seq2 + dnaToAa(frame2, frameSize),
+			       isForward, probMat, gap, probDropLimit);
+	score += s / scale;
+	if (outputType > 3) {
+	  fxa.backward(isForward, probMat, gap);
+	  getColumnCodes(fxa, columnCodes, chunks);
+	  if (outputType == 7) {
+	    double *ec = &extras.expectedCounts[0];
+	    double *subsCounts[scoreMatrixRowSize];
+	    for (int i = 0; i < scoreMatrixRowSize; ++i)
+	      subsCounts[i] = ec + i * scoreMatrixRowSize;
+	    double *tranCounts = ec + scoreMatrixRowSize * scoreMatrixRowSize;
+	    fxa.count(isForward, gap, subsCounts, tranCounts);
+	  }
 	}
       }
     } else {
