@@ -146,7 +146,7 @@ Score options (default settings):\n\
 -A: insertion existence cost (a)\n\
 -B: insertion extension cost (b)\n\
 -c: unaligned residue pair cost (off)\n\
--F: frameshift cost (off)\n\
+-F: frameshift cost(s) (off)\n\
 -x: maximum score drop for preliminary gapped alignments (z)\n\
 -y: maximum score drop for gapless alignments (min[t*10, x])\n\
 -z: maximum score drop for final gapped alignments (e-1)\n\

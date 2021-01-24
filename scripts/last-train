@@ -199,7 +199,8 @@ def countsFromLastOutput(lines, opts):
                 matrixSize = len(counts) - nTransitions
                 nCols = 64 if opts.codon else int(math.sqrt(matrixSize))
                 nRows = matrixSize // nCols
-                countMatrix = [[1.0] * nCols for i in range(nRows)]
+                pseudocount = 0.0 if opts.codon else 1.0
+                countMatrix = [[pseudocount] * nCols for i in range(nRows)]
             if not opts.codon:
                 identities = sum(counts[i * nCols + i] for i in range(nRows))
                 alignmentLength = sum(counts[matrixSize + i] for i in range(3))
@@ -216,6 +217,13 @@ def countsFromLastOutput(lines, opts):
             alignments += 1
     if not alignments:
         raise Exception("no alignments")
+    if opts.codon:
+        pseudocounts = nRows * 32  # xxx ???
+        rowSums = [sum(i) + 1 for i in countMatrix]
+        colSums = [sum(i) + 1 for i in zip(*countMatrix)]
+        mul = pseudocounts / (sum(rowSums) * sum(colSums))
+        countMatrix = [[x + mul * i * j for j, x in zip(colSums, row)]
+                       for i, row in zip(rowSums, countMatrix)]
     return countMatrix, tranCounts + [alignments]
 
 def scoreFromProb(scale, prob):
@@ -848,8 +856,9 @@ if __name__ == "__main__":
                   "skip alignments with > PID% identity (default: %default)")
     og.add_option("--postmask", type="int", metavar="NUMBER", default=1, help=
                   "skip mostly-lowercase alignments (default=%default)")
-    og.add_option("--sample-number", type="int", default=500, metavar="N",
-                  help="number of random sequence samples (default: %default)")
+    og.add_option("--sample-number", type="int", metavar="N",
+                  help="number of random sequence samples "
+                  "(default: 20000 if --codon else 500)")
     og.add_option("--sample-length", type="int", default=2000, metavar="L",
                   help="length of each sample (default: %default)")
     og.add_option("--scale", type="float", metavar="S",
@@ -904,6 +913,8 @@ if __name__ == "__main__":
     (opts, args) = op.parse_args()
     if len(args) < 1:
         op.error("I need a lastdb index and query sequences")
+    if opts.sample_number is None:
+        opts.sample_number = 20000 if opts.codon else 500
     if not opts.sample_number and (len(args) < 2 or "-" in args):
         op.error("sorry, can't use stdin when --sample-number=0")
     if opts.codon:

@@ -175,12 +175,20 @@ Score options
       b⋅(k-j) + c⋅j.  If c ≥ a + 2b (the default), it reduces to
       standard affine gaps.
 
-  -F COST
+  -F LIST
       Align DNA queries to protein reference sequences, using the
-      specified frameshift cost.  A value of 15 seems to be
-      reasonable.  (As a special case, -F0 means DNA-versus-protein
-      alignment without frameshifts, which is faster.)  The output
-      looks like this::
+      specified frameshift cost(s): either one cost (old-style
+      frameshifts), or 4 comma-separated costs (new-style
+      frameshifts).  As a special case, -F0 means DNA-versus-protein
+      alignment without frameshifts, which is faster.
+
+      The four new-style frameshift costs are for, in order: deletion
+      of length k mod 3 = 1 bases, deletion of k mod 3 = 2 bases,
+      insertion of k mod 3 = 1 bases, insertion of k mod 3 = 2 bases.
+      (You're expected to get them from last-train_, not set them
+      manually.)
+
+      The output looks like this::
 
         a score=108
         s prot 2  40 + 649 FLLQAVKLQDP-STPHQIVPSP-VSDLIATHTLCPRMKYQDD
@@ -588,3 +596,5 @@ lastal8
 lastal8 has identical usage to lastal, and is used with `lastdb8
 <lastdb.html>`_.  lastal cannot read the output of lastdb8, and
 lastal8 cannot read the output of lastdb.
+
+.. _last-train: last-train.html
