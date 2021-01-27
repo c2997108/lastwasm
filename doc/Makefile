@@ -13,6 +13,8 @@ ${DOCS}: last-doc.css Makefile
 
 .SUFFIXES: .html .txt
 
+RST2HTML = rst2html  # xxx .py ???
+
 # Ugh!  Is there a better way?
 RST_CSS = `locate html4css1.css | tail -n1`
 #RST_CSS = html4css1.css
@@ -21,7 +23,7 @@ RSTFLAGS = --initial-header-level=2 --no-compact-lists	\
 --no-compact-field-lists --option-limit=0 --no-doc-info
 
 .txt.html:
-	rst2html --stylesheet-path=${RST_CSS},last-doc.css ${RSTFLAGS} $< $@
+	${RST2HTML} --stylesheet-path=${RST_CSS},last-doc.css ${RSTFLAGS} $< $@
 
 last-matrices.txt: ../data/*.mat
 	../build/mat-doc.sh ../data/*.mat > $@

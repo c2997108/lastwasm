@@ -4,15 +4,6 @@ LAST Performance Tuning
 This document tells you how to trade-off **speed**, **sensitivity**,
 and **memory and disk usage**.
 
-Ideally, the default settings would always work well.  Unfortunately,
-there is too great a variety of challenging alignment tasks, and the
-LAST developers lack experience with most of them.
-
-LAST must have *some* defaults, and any choice will displease someone.
-It is wrong to say "LAST is faster but less sensitive than method X",
-or "slower but more sensitive than method Y", without varying the
-defaults.
-
 Sparsity options
 ~~~~~~~~~~~~~~~~
 
@@ -110,7 +101,7 @@ lastal -C
 
 This option (gapless alignment culling) can make lastal **faster** but
 **less sensitive**.  It can also **reduce redundant output**.  For
-example, -C2 makes it discard alignments (before gapped extension)
+example, ``-C2`` makes it discard alignments (before gapped extension)
 whose query coordinates lie in those of 2 or more stronger alignments.
 This works well for aligning long, repeat-rich, indel-poor sequences
 (e.g. mammal chromosomes) without repeat-masking.
@@ -124,14 +115,14 @@ phase.  Lower values make it faster, by quitting unpromising
 extensions sooner.  The default aims at best accuracy.
 
 You can set this option in several ways: perhaps the most intuitive is
-via maximum gap length.  For example, -z10g sets the maximum score
+via maximum gap length.  For example, ``-z10g`` sets the maximum score
 drop such that the longest possible gap length is 10.
 
 lastal -x
 ---------
 
 This option (preliminary gapped extension) can make lastal **faster**
-but **less sensitive**.  For example, -x2g makes it extend gapped
+but **less sensitive**.  For example, ``-x2g`` makes it extend gapped
 alignments with a maximum gap length of 2, discard those with score
 below the gapped score threshold, then redo the survivors with the
 final max score drop (z).
@@ -148,19 +139,19 @@ lastal -j1
 ----------
 
 This option requests **gapless** alignment, which is even **faster**.
-(You could get the same effect by using very high gap costs, but -j1
-is faster because it skips the gapping phase entirely.)
+(You could get the same effect by using very high gap costs, but
+``-j1`` is faster because it skips the gapping phase entirely.)
 
 lastal -f
 ---------
 
-Option -fTAB **reduces the output size**, which can improve speed.
+Option ``-fTAB`` **reduces the output size**, which can improve speed.
 
 lastdb -i
 ---------
 
 This option **makes lastdb faster**, but disables some lastal options.
-If lastdb is too slow, try -i10.
+If lastdb is too slow, try ``-i10``.
 
 lastdb -C2
 ----------

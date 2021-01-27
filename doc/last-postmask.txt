@@ -2,9 +2,9 @@ last-postmask
 =============
 
 This script does post-alignment masking.  It reads pair-wise sequence
-alignments, and writes only those that align a significant amount of
-uppercase sequence.  (Lowercase is often used to indicate undesirable
-repetitive regions.)
+alignments, and only writes alignments that include a significant
+amount of uppercase-to-uppercase alignment.  (Lowercase is often used
+to indicate undesirable "simple" sequence.)
 
 The input should be in MAF format, with header lines (of the kind
 produced by lastal) describing the alignment score parameters.

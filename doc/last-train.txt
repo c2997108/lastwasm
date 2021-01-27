@@ -181,6 +181,6 @@ Bugs
 
 * last-train can fail for various reasons, e.g. if the sequences are
   too dissimilar.  If it fails to find any alignments, you could try
-  `reducing the alignment significance threshold
-  <last-tutorial.html#example-6-find-very-short-dna-alignments>`_ with
-  option -D.
+  reducing the alignment significance_ threshold with option ``-D``.
+
+.. _significance: last-evalues.html

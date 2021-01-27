@@ -54,7 +54,7 @@ last-split options.
 Alignment of two whole genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See `here <https://github.com/mcfrith/last-genome-alignments>`_.
+See `here <last-tutorial.html>`_.
 
 FAQ
 ---

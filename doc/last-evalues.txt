@@ -58,10 +58,6 @@ If your sequences have very different letter frequencies (e.g. very
 AT-rich DNA), the E-values will be misleading.  The best solution is
 to use a suitable score matrix, such as AT77 or ATMAP.
 
-For DNA-versus-protein alignment, however, only the protein
-frequencies are determined by the score matrix.  The DNA frequencies
-are fixed at 0.25.
-
 Calculation of EG2
 ~~~~~~~~~~~~~~~~~~
 
@@ -115,12 +111,12 @@ Limitations
   cases, lastal requires you to set a score threshold with option -e.
 
 * There may be a long startup time to calculate the E-value parameters
-  (lambda, K, and finite-size correction parameters), especially for
-  alignment with frameshifts.  This is avoided, for particular scoring
-  schemes, by storing the parameters in LAST's source code.
-  Parameters for other scoring schemes can be added on request.  (Or
-  you can do it yourself: run lastal with option -v, so it prints the
-  E-value parameters, then copy them into LastEvaluer.cc.)
+  (lambda, K, and finite-size correction parameters).  This is
+  avoided, for particular scoring schemes, by storing the parameters
+  in LAST's source code.  Parameters for other scoring schemes can be
+  added on request.  (Or you can do it yourself: run lastal with
+  option -v, so it prints the E-value parameters, then copy them into
+  LastEvaluer.cc.)
 
 * The E-values do not account for lastal option -c.  If you use this
   option, the E-values will be under-estimates.

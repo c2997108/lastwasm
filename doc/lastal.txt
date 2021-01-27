@@ -108,12 +108,14 @@ E-value options
   -D LENGTH
       Report alignments that are expected by chance at most once per
       LENGTH query letters.  This option only affects the default
-      value of -E, so if you specify -E then -D has no effect.
+      value of ``-E``, so if you specify ``-E`` then ``-D`` has no
+      effect.
 
   -E THRESHOLD
       Maximum EG2 (`expected alignments per square giga
       <last-evalues.html>`_).  This option only affects the default
-      value of -e, so if you specify -e then -E has no effect.
+      value of ``-e``, so if you specify ``-e`` then ``-E`` has no
+      effect.
 
 Score options
 ~~~~~~~~~~~~~
@@ -179,8 +181,9 @@ Score options
       Align DNA queries to protein reference sequences, using the
       specified frameshift cost(s): either one cost (old-style
       frameshifts), or 4 comma-separated costs (new-style
-      frameshifts).  As a special case, -F0 means DNA-versus-protein
-      alignment without frameshifts, which is faster.
+      frameshifts).  As a special case, ``-F0`` means
+      DNA-versus-protein alignment without frameshifts, which is
+      faster.
 
       The four new-style frameshift costs are for, in order: deletion
       of length k mod 3 = 1 bases, deletion of k mod 3 = 2 bases,
@@ -210,12 +213,12 @@ Score options
       alignments.  Lower values improve speed, by quitting unpromising
       extensions sooner.  You can specify this parameter in 3 ways:
 
-      * A score (e.g. -z20).
+      * A score (e.g. ``-z20``).
 
-      * A percentage.  For example, -z50% specifies 50% of the default
-        value (rounded down to the nearest integer).
+      * A percentage.  For example, ``-z50%`` specifies 50% of the
+        default value (rounded down to the nearest integer).
 
-      * A maximum gap length.  For example, -z8g sets the maximum
+      * A maximum gap length.  For example, ``-z8g`` sets the maximum
         score drop to: min[a+8b, A+8B].  However, this never increases
         the value above the default.
 
@@ -369,8 +372,10 @@ Miscellaneous options
       2. Convert simple repeats, within AT-rich DNA, to lowercase.
 
       Details: Tantan is applied separately to forward and reverse
-      strands.  For DNA-versus-protein alignment (option -F), it is
-      applied to the DNA after translation, at the protein level.
+      strands.  For DNA-versus-protein alignment, if you use a codon
+      substitution matrix (e.g. from ``last-train --codon``), tantan
+      is applied to the DNA before translation, else it is applied
+      after translation.
 
   -u NUMBER
       Specify treatment of lowercase letters when extending
@@ -406,13 +411,12 @@ Miscellaneous options
       * has start coordinates offset by DISTANCE or less relative to
         this core
 
-      Use -w0 to turn this off.
+      Use ``-w0`` to turn this off.
 
   -G GENETIC-CODE
-      Specify the genetic code for translating DNA to protein.  This
-      option has no effect unless DNA-versus-protein alignment is
-      selected with option -F.  Codes are specified by numbers
-      (e.g. 1 = standard, 2 = vertebrate mitochondrial), listed here:
+      Specify the genetic code for translating DNA to protein.  Codes
+      are specified by numbers (e.g. 1 = standard, 2 = vertebrate
+      mitochondrial), listed here:
       https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi.  Any
       other GENETIC-CODE is assumed to be a file name: for an example
       of the format, see vertebrateMito.gc in the examples directory.

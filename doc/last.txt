@@ -1,18 +1,24 @@
 LAST: Genome-Scale Sequence Comparison
 ======================================
 
-LAST finds similar regions between sequences, and aligns them.  It is
-designed for comparing large datasets to each other (e.g. vertebrate
-genomes and/or large numbers of DNA reads).  It can:
+LAST finds and aligns similar regions between sequences.  It's
+designed for moderately large data (e.g. genomes, DNA reads,
+proteomes).  It's especially good at:
 
-* Indicate the (un)ambiguity of each column in an alignment.
-* Use sequence quality data in a rigorous fashion.
-* Align DNA to proteins with frameshifts.
-* Compare PSSMs to sequences.
-* Calculate the likelihood of chance similarities between random
-  sequences.
-* Do split and spliced alignment.
-* Train alignment parameters for unusual kinds of sequence (e.g. nanopore).
+* Finding sequence rearrangements and recombinations: we believe
+  last-split_ does that more rigorously than anything else.
+
+* Finding related parts of DNA and proteins, especially protein
+  fossils (but introns are not considered).
+
+* Unusual data, e.g. AT-rich DNA, because we can fit_ parameters to
+  the data and calculate significance_.
+
+* Sensitive DNA-DNA search, due to fitting_, sensitive seeding_, and
+  calculating significance_.
+
+It can also: indicate the confidence/uncertainty of each column in an
+alignment, and use sequence quality data in a rigorous fashion.
 
 Requirements
 ------------
@@ -33,17 +39,8 @@ compile the programs, type::
 
   make
 
-You might get some harmless warning messages.  If your compiler is
-really old, you might get an error message like this::
-
-  unrecognized command line option "-std=c++11"
-
-In that case, you can compile like this (which will disable
-multi-threading)::
-
-  make CXXFLAGS=-O3
-
-Or you can specify another compiler like this::
+You might get some harmless warning messages.  It's possible to
+specify a C++ compiler like this::
 
   make CXX=MyOtherCompiler
 
@@ -80,15 +77,10 @@ LAST (including the scripts) is distributed under the GNU General
 Public License, either version 3 of the License, or (at your option)
 any later version.
 
-Website
--------
-
-LAST's website is: http://last.cbrc.jp/
-
 Contact
 -------
 
-Questions and feedback are very welcome.  We like to use a **public**
+Questions and feedback are welcome.  We like to use a **public**
 mailing list, so everyone can benefit from the discussion:
 
   last-align (ATmark) googlegroups (dot) com
@@ -106,6 +98,8 @@ error, please try to: tell us the LAST version number and exact error
 message, and give us some input data and exact commands that trigger
 the problem.**
 
-If you do a benchmarking test of LAST, we recommend you contact us to
-check you are using it in a suitable way.  The history of
-bioinformatics benchmarks shows it is all too easy to get this wrong.
+.. _fit:
+.. _fitting: last-train.html
+.. _last-split: last-split.html
+.. _seeding: last-seeds.html
+.. _significance: last-evalues.html

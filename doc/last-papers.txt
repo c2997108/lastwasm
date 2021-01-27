@@ -90,7 +90,8 @@ research to society.
 
     __ http://bioinformatics.oxfordjournals.org/content/30/24/3575.long
 
-    Describes DNA-versus-protein alignment allowing for frameshifts.
+    Describes "old-style" DNA-versus-protein alignment allowing for
+    frameshifts (without ``last-train``).
 
 11. `Split-alignment of genomes finds orthologies more accurately`__.
     Frith MC, Kawaguchi R.  Genome Biology. 2015 16:106.
@@ -106,7 +107,7 @@ research to society.
 
     __ https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btw742
 
-    Describes last-train.
+    Describes ``last-train``.
 
 13. `A Simplified Description of Child Tables for Sequence Similarity
     Search`__.  Frith MC, Shrestha A.  IEEE/ACM Trans Comput Biol
@@ -122,6 +123,14 @@ research to society.
     __ https://doi.org/10.1093/bioinformatics/btaa1054
 
     Describes the ``lastdb -u RY`` sparsity options.
+
+15. `Improved DNA-versus-protein homology search for protein fossils`__.
+    Yao Y, Frith MC.
+
+    __ https://doi.org/10.1101/2021.01.25.428050
+
+    Describes "new-style" DNA-versus-protein search with ``last-train
+    --codon``.
 
 External methods
 ----------------
