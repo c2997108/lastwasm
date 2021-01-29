@@ -141,6 +141,9 @@ Another possibility is to add last-train_ option ``-X1``, which treats
 matches to ``X`` (unknown) amino acids as neutral instead of
 disfavored.
 
+You can reuse ``last-train`` output for different alignment tasks, if
+you expect the rates to be roughly the same.
+
 Aligning high-indel-error long DNA reads to a genome
 ----------------------------------------------------
 
@@ -171,7 +174,7 @@ You can go faster by sacrificing a bit of sensitivity.  It depends on
 your aim, e.g. slow-and-sensitive seems necessary to find intricate
 rearrangements of repeats.  Suggested ways to go faster:
 
-* `Mask repeats`_.
+* `Mask repeats`_.  This has often worked well.
 
 * Add lastal option ``-k8`` (or ``-k16`` etc).  This makes it faster,
   by only finding initial matches starting at every 8th (or 16th etc)
@@ -213,9 +216,10 @@ Aligning Illumina DNA reads to a genome
 
   lastdb -P8 -uNEAR -R01 -C2 mydb genome.fasta
   last-train -P8 -Q1 mydb reads.fastq.gz > reads.train
-  lastal -P8 -p reads.train mydb reads.fastq.gz | last-split > out.maf
+  lastal -P8 -p reads.train mydb reads.fastq.gz | last-split | gzip > out.maf.gz
 
-Most LAST commands accept gzip-compressed (``.gz``) files.
+Most LAST commands accept ``.gz`` compressed files, and you can
+compress output with ``gzip`` as above.
 
 lastdb_ option ``-C2`` makes the alignment a bit faster, but uses more
 memory.  This has no effect on the results.  (You could use it in the
