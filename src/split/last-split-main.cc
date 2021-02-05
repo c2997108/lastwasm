@@ -35,7 +35,7 @@ static char parseOutputFormat(const char *text) {
 static void run(int argc, char* argv[]) {
   LastSplitOptions opts;
 
-  opts.format = 'M';
+  opts.format = 0;
   opts.direction = 1;
   opts.cis = 0.004;
   opts.trans = 1e-05;
@@ -66,7 +66,7 @@ come from different parts of the genome.\n\
 \n\
 Options:\n\
  -h, --help         show this help message and exit\n\
- -f, --format=FMT   output format: MAF, MAF+ (default=MAF+)\n\
+ -f, --format=FMT   output format: MAF, MAF+ (default: depends on input)\n\
  -g, --genome=NAME  lastdb genome name\n\
  -d, --direction=D  RNA direction: 0=reverse, 1=forward, 2=mixed (default="
     + cbrc::stringify(opts.direction) + ")\n\
