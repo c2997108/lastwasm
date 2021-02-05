@@ -63,12 +63,12 @@ Usage
 -----
 
 Please see the other files in the doc directory, especially
-`<last-tutorial.html>`_.
+`<doc/last-tutorial.rst>`_.
 
 Detailed info & citation
 ------------------------
 
-Please see: `<last-papers.html>`_
+Please see: `<doc/last-papers.rst>`_
 
 License
 -------
@@ -78,7 +78,7 @@ Public License, either version 3 of the License, or (at your option)
 any later version.
 
 .. _fit:
-.. _fitting: last-train.html
-.. _last-split: last-split.html
-.. _seeding: last-seeds.html
-.. _significance: last-evalues.html
+.. _fitting: doc/last-train.rst
+.. _last-split: doc/last-split.rst
+.. _seeding: doc/last-seeds.rst
+.. _significance: doc/last-evalues.rst

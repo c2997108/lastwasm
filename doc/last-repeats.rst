@@ -59,7 +59,7 @@ alignments of simple sequences.  This can be done by post-masking:
    sequences, lowercases simple tracts found by tantan, but does not
    mask it (i.e. case has no effect).
 
-2. Predict orthologs, e.g. using `last-split <last-split.html>`_.
+2. Predict orthologs, e.g. using `last-split <doc/last-split.rst>`_.
 
 3. Discard mostly-lowercase alignments, using `last-postmask
-   <last-postmask.html>`_.
+   <doc/last-postmask.rst>`_.

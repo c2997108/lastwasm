@@ -54,7 +54,7 @@ last-split options.
 Alignment of two whole genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See `here <last-tutorial.html>`_.
+See `here <doc/last-tutorial.rst>`_.
 
 Output
 ------
@@ -282,7 +282,7 @@ last-split8
 
 last-split8 is almost identical to last-split.  The only difference is
 the -g option: last-split can only read the output of lastdb, whereas
-last-split8 can only read the output of `lastdb8 <lastdb.html>`_.
+last-split8 can only read the output of `lastdb8 <doc/lastdb.rst>`_.
 
 Limitations
 -----------

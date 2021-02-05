@@ -345,8 +345,8 @@ option: ``-uRY`` or ``-w`` or ``-W``.
 Moar faster
 -----------
 
-* `Using multiple CPUs / cores <last-parallel.html>`_
-* `Various speed & memory options <last-tuning.html>`_
+* `Using multiple CPUs / cores <doc/last-parallel.rst>`_
+* `Various speed & memory options <doc/last-tuning.rst>`_
 
 Ambiguity of alignment columns
 ------------------------------
@@ -397,26 +397,26 @@ Note that each alignment is grown from a "core" region, and the
 ambiguity estimates assume that the core is correctly aligned.  The
 core is indicated by "~" symbols, and it contains exact matches only.
 
-.. _last: last.html
+.. _last: doc/last.rst
 .. _lastdb8:
-.. _lastdb: lastdb.html
+.. _lastdb: doc/lastdb.rst
 .. _lastal8:
-.. _lastal: lastal.html
-.. _dotplot: last-dotplot.html
-.. _last-pair-probs: last-pair-probs.html
-.. _last-postmask: last-postmask.html
+.. _lastal: doc/lastal.rst
+.. _dotplot: doc/last-dotplot.rst
+.. _last-pair-probs: doc/last-pair-probs.rst
+.. _last-postmask: doc/last-postmask.rst
 .. _per-base mismap probabilities:
 .. _mismap probability:
-.. _last-split: last-split.html
-.. _last-train: last-train.html
+.. _last-split: doc/last-split.rst
+.. _last-train: doc/last-train.rst
 .. _convert:
-.. _maf-convert: maf-convert.html
-.. _scoring scheme: last-matrices.html
+.. _maf-convert: doc/maf-convert.rst
+.. _scoring scheme: doc/last-matrices.rst
 .. _seeding scheme:
-.. _seeding: last-seeds.html
+.. _seeding: doc/last-seeds.rst
 .. _last-evalues:
 .. _significant:
-.. _significance: last-evalues.html
+.. _significance: doc/last-evalues.rst
 .. _fastq: https://doi.org/10.1093/nar/gkp1137
 .. _here:
 .. _mask repeats: https://github.com/mcfrith/last-rna/blob/master/last-long-reads.md

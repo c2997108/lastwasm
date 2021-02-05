@@ -64,15 +64,16 @@ Main Options
 
   -u NAME
       Specify a seeding scheme.  The -m and -d options will then be
-      ignored.  The built-in schemes are described in `<last-seeds.html>`_.
+      ignored.  The built-in schemes are described in
+      `<doc/last-seeds.rst>`_.
 
       Any other NAME is assumed to be a file name.  For an example of
       the format, see the seed files in the data directory.  You can
       set other lastdb options on lines starting with ``#lastdb``, but
       command line options override them.  You can also set lastal
       options on lines starting with ``#lastal``, which are overridden
-      by options from a `scoring scheme <last-matrices.html>`_ or the
-      lastal command line.
+      by options from a `scoring scheme <doc/last-matrices.rst>`_ or
+      the lastal command line.
 
 Advanced Options
 ~~~~~~~~~~~~~~~~
@@ -91,7 +92,7 @@ Advanced Options
       alphabetically earliest.
 
       The "alphabetical" order depends on the `seed pattern
-      <last-seeds.html>`_.  The letter order is determined by the
+      <doc/last-seeds.rst>`_.  The letter order is determined by the
       order of the letter groups, and letters in the same group are
       considered equivalent.
 
@@ -134,7 +135,7 @@ Advanced Options
         "2", "solexa"     fastq-solexa
         "3", "illumina"   fastq-illumina
 
-      The fastq formats are described in `<lastal.html>`_.
+      The fastq formats are described in `<doc/lastal.rst>`_.
 
   -q  Interpret the sequences as proteins, use a 21-letter alphabet
       with ``*`` meaning STOP, and append ``*`` to each sequence.
@@ -262,10 +263,10 @@ This is modified by several options.
 * lastdb8: makes the index twice as big.
 
 * -u, -m, -d: Multiple patterns multiply the index size.  For example,
-  `MAM8 <last-seeds.html>`_ makes it 8 times bigger.
+  `MAM8 <doc/last-seeds.rst>`_ makes it 8 times bigger.
 
-* -u, -d: may reduce the index, e.g. `RY32 <last-seeds.html>`_ makes
-  it 32 times smaller.
+* -u, -d: may reduce the index, e.g. `RY32 <doc/last-seeds.rst>`_
+  makes it 32 times smaller.
 
 * -s: does not change the total size, but splits it into volumes.
 

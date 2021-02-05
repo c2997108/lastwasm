@@ -17,7 +17,7 @@ The usage is like this::
 
 last-train prints a summary of each alignment step, followed by the
 final score parameters, in a format that can be read by `lastal's -p
-option <lastal.html#score-options>`_.
+option <doc/lastal.rst>`_.
 
 last-train can read .gz files, or from pipes::
 
@@ -49,7 +49,7 @@ Training options
          (similarly to the BLOSUM matrices).
   --postmask=NUMBER
          By default, last-train ignores alignments of mostly-lowercase
-         sequence (by using `last-postmask <last-postmask.html>`_).
+         sequence (by using `last-postmask <doc/last-postmask.rst>`_).
          To turn this off, do ``--postmask=0``.
   --sample-number=N
          Use N randomly-chosen chunks of the query sequences.  The
@@ -73,7 +73,7 @@ Training options
          initial probabilities, not scores/costs.
 
 All options below this point are passed to lastal to do the
-alignments: they are described in more detail at `<lastal.html>`_.
+alignments: they are described in more detail at `<doc/lastal.rst>`_.
 
 Initial parameter options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,9 +91,9 @@ Alignment options
 ~~~~~~~~~~~~~~~~~
 
   -D LENGTH  Query letters per random alignment.  (See `here
-             <last-evalues.html>`_.)
+             <doc/last-evalues.rst>`_.)
   -E EG2     Maximum expected alignments per square giga.  (See `here
-             <last-evalues.html>`_.)
+             <doc/last-evalues.rst>`_.)
   -s NUMBER  Which query strand to use: 0=reverse, 1=forward, 2=both.
              If specified, this parameter is written in last-train's
              output, so it will override lastal's default.
@@ -135,7 +135,7 @@ Alignment options
                "1", "sanger"   fastq-sanger
 
              The ``fastq`` formats are described here:
-             `<lastal.html>`_.  last-train assumes the per-base
+             `<doc/lastal.rst>`_.  last-train assumes the per-base
              quality codes indicate substitution error probabilities,
              *not* insertion or deletion error probabilities.  If this
              assumption is dubious (e.g. for data with many insertion
@@ -183,4 +183,4 @@ Bugs
   too dissimilar.  If it fails to find any alignments, you could try
   reducing the alignment significance_ threshold with option ``-D``.
 
-.. _significance: last-evalues.html
+.. _significance: doc/last-evalues.rst

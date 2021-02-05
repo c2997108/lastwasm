@@ -67,9 +67,9 @@ Paired-end DNA reads
 ~~~~~~~~~~~~~~~~~~~~
 
 You can align paired-end reads by combining the preceding recipe with
-the one in `<last-pair-probs.html>`_.  This gets a bit complicated, so
-we provide a last-bisulfite-paired script in the examples directory.
-Typical usage::
+the one in `<doc/last-pair-probs.rst>`_.  This gets a bit complicated,
+so we provide a last-bisulfite-paired script in the examples
+directory.  Typical usage::
 
   lastdb -uBISF my_f mygenome.fa
   lastdb -uBISR my_r mygenome.fa

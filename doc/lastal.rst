@@ -92,7 +92,7 @@ Cosmetic options
       coordinates are one-based.  *Warning:* this is a lossy format,
       because it does not show gap positions.  *Warning:* the other
       LAST programs cannot read this format.  *Warning:* `"bit score"
-      is not the same as "score" <last-evalues.html>`_.
+      is not the same as "score" <doc/last-evalues.rst>`_.
 
       **BlastTab+** format is the same as BlastTab, with 3 extra
       columns at the end: length of query sequence, length of
@@ -113,7 +113,7 @@ E-value options
 
   -E THRESHOLD
       Maximum EG2 (`expected alignments per square giga
-      <last-evalues.html>`_).  This option only affects the default
+      <doc/last-evalues.rst>`_).  This option only affects the default
       value of ``-e``, so if you specify ``-e`` then ``-E`` has no
       effect.
 
@@ -129,7 +129,7 @@ Score options
   -p NAME
       Specify a match/mismatch score matrix.  Options -r and -q will
       be ignored.  The built-in matrices are described in
-      `<last-matrices.html>`_.
+      `<doc/last-matrices.rst>`_.
 
       Any other NAME is assumed to be a file name.  For an example of
       the format, see the matrix files in the data directory.
@@ -270,7 +270,7 @@ Initial-match options
   -W SIZE
       Look for initial matches starting only at query positions that
       are "minimum" in any window of SIZE consecutive positions (see
-      `<lastdb.html>`_).  By default, this parameter takes the same
+      `<doc/lastdb.rst>`_).  By default, this parameter takes the same
       value as was used for lastdb -W.
 
 Miscellaneous options
@@ -598,7 +598,7 @@ lastal8
 -------
 
 lastal8 has identical usage to lastal, and is used with `lastdb8
-<lastdb.html>`_.  lastal cannot read the output of lastdb8, and
+<doc/lastdb.rst>`_.  lastal cannot read the output of lastdb8, and
 lastal8 cannot read the output of lastdb.
 
-.. _last-train: last-train.html
+.. _last-train: doc/last-train.rst
