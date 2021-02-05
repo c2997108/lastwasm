@@ -89,9 +89,6 @@ Advanced Options (default settings):\n\
 -x: just count sequences and letters\n\
 -v: be verbose: write messages about what lastdb is doing\n\
 -V, --version: show version information, and exit\n\
-\n\
-Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
-LAST home page: http://last.cbrc.jp/\n\
 ";
 
   static const char sOpts[] = "hVpqR:cm:d:S:s:w:W:P:u:a:i:b:B:C:xvQ:";

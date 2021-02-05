@@ -48,14 +48,9 @@ static void run(int argc, char* argv[]) {
   opts.verbose = false;
   opts.isSplicedAlignment = false;
 
-  std::string version = "\
-last-split "
+  std::string version = "last-split "
 #include "version.hh"
-"\n\
-License GPLv3+: GNU GPL version 3 or later.\n\
-This is free software: you are free to change and redistribute it.\n\
-There is NO WARRANTY, to the extent permitted by law.\n\
-";
+    "\n";
 
   std::string help = "\
 Usage: " + std::string(argv[0]) + " [options] LAST-alignments.maf\n\

@@ -77,27 +77,6 @@ LAST (including the scripts) is distributed under the GNU General
 Public License, either version 3 of the License, or (at your option)
 any later version.
 
-Contact
--------
-
-Questions and feedback are welcome.  We like to use a **public**
-mailing list, so everyone can benefit from the discussion:
-
-  last-align (ATmark) googlegroups (dot) com
-
-Please let us know about any problems, rather than giving up in
-disgust.  Feedback is essential for scientific software like this: we
-cannot solve problems that we are unaware of, and we cannot make it
-useful and convenient without learning how various people actually
-(try to) use it.  It is also valuable to hear success stories, so we
-know what we are doing right.  Unlike some other software projects, we
-will never send rude or mocking replies.
-
-Having said that, we cannot promise to always help.  **If you find an
-error, please try to: tell us the LAST version number and exact error
-message, and give us some input data and exact commands that trigger
-the problem.**
-
 .. _fit:
 .. _fitting: last-train.html
 .. _last-split: last-split.html

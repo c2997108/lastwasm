@@ -192,9 +192,6 @@ Miscellaneous options (default settings):\n\
     + stringify(outputType) + ")\n\
 -Q: input format: fastx, keep, sanger, solexa, illumina, prb, pssm\n\
                   (default=fasta)\n\
-\n\
-Report bugs to: last-align (ATmark) googlegroups (dot) com\n\
-LAST home page: http://last.cbrc.jp/\n\
 ";
 
   int c;

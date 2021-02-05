@@ -15,17 +15,13 @@ install: all
 clean:
 	@cd src && $(MAKE) clean
 
-html:
-	@cd doc && $(MAKE)
+docs: doc/last-matrices.rst doc/last-seeds.rst
 
-distdir = last-`hg id -n`
+doc/last-matrices.rst: data/*.mat
+	./build/mat-doc.sh data/*.mat > $@
 
-RSYNCFLAGS = -aC --exclude '*8' --exclude 'last??' --exclude last-split --exclude last-merge-batches --exclude last-pair-probs
+doc/last-seeds.rst: data/*.seed
+	cd data && ../build/seed-doc.sh [!R]*d RY?-*d RY??-*d > ../$@
 
-dist: log html
-	@cd src && $(MAKE) version.hh CyclicSubsetSeedData.hh ScoreMatrixData.hh
-	rsync $(RSYNCFLAGS) build doc examples makefile scripts src data *.txt $(distdir)
-	zip -qrm $(distdir) $(distdir)
-
-log:
-	hg log --style changelog > ChangeLog.txt
+tag:
+	git tag -m "" `git rev-list HEAD | grep -c .`

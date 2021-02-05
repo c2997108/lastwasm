@@ -1,6 +1,4 @@
-CXXFLAGS = -msse4 -O3 -Wall -Wextra -Wcast-qual -Wswitch-enum -Wundef	\
--Wcast-align -pedantic -g -std=c++11 -pthread -DHAS_CXX_THREADS
-# -Wconversion
+CXXFLAGS = -msse4 -O3 -Wall -g -std=c++11 -pthread -DHAS_CXX_THREADS
 # -fomit-frame-pointer ?
 
 # The number of symbol types that we can keep in sequences (e.g. 20
@@ -121,17 +119,13 @@ GeneticCodeData.hh: ../data/gc.prt
 ScoreMatrixData.hh: ../data/*.mat
 	../build/mat-inc.sh ../data/*.mat > $@
 
-VERSION = \"`hg id -n`\"
-VERSION2 = \"`grep latesttagdistance ../.hg_archival.txt | cut -d' ' -f2`\"
-VERSION3 = \"UNKNOWN\"
+VERSION1 = git describe --dirty
+VERSION2 = echo '$Format:%d$ ' | sed -e 's/.*tag: *//' -e 's/[,) ].*//'
+
+VERSION = \"`test -e ../.git && $(VERSION1) || $(VERSION2)`\"
 
 version.hh: FORCE
-	if test -e ../.hg ; \
-	then echo $(VERSION) | cmp -s $@ - || echo $(VERSION) > $@ ; \
-	elif test -e ../.hg_archival.txt ; \
-	then echo $(VERSION2) | cmp -s $@ - || echo $(VERSION2) > $@ ; \
-	else test -e $@ || echo $(VERSION3) > $@ ; \
-	fi
+	echo $(VERSION) | cmp -s $@ - || echo $(VERSION) > $@
 
 FORCE:
 

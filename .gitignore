@@ -1,0 +1,7 @@
+*.o
+*.o8
+
+src/CyclicSubsetSeedData.hh
+src/GeneticCodeData.hh
+src/ScoreMatrixData.hh
+src/version.hh
