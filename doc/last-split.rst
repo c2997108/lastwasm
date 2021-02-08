@@ -76,7 +76,7 @@ the genome.  It uses a compact code:
 
   ======  =================   ======  =================
   Symbol  Error probability   Symbol  Error probability
-  ------  -----------------   ------  -----------------
+  ======  =================   ======  =================
   ``!``   0.79 -- 1           ``0``   0.025 -- 0.032
   ``"``   0.63 -- 0.79        ``1``   0.02  -- 0.025
   ``#``   0.5  -- 0.63        ``2``   0.016 -- 0.02
@@ -241,7 +241,7 @@ Options
          core data-structures: the total memory use will be greater.)
          A warning is written for each skipped sequence.  You can use
          suffixes such as K (KibiBytes), M (MebiBytes), G (GibiBytes),
-         T (TebiBytes), e.g. -b20G.
+         T (TebiBytes), e.g. ``-b20G``.
 
   -v, --verbose
          Show progress information on the screen.

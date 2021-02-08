@@ -129,8 +129,8 @@ research to society.
 
     __ https://doi.org/10.1101/2021.01.25.428050
 
-    Describes "new-style" DNA-versus-protein search with ``last-train
-    --codon``.
+    Describes "new-style" DNA-versus-protein search with
+    ``last-train --codon``.
 
 External methods
 ----------------

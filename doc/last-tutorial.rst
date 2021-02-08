@@ -12,8 +12,8 @@ A minimal example: compare human & fugu mitochondrial genomes
 
 Let's find and align similar regions between the human and fugu
 mitochondrial genomes.  These FASTA-format files are in LAST's
-examples directory: humanMito.fa and fuguMito.fa.  The simplest
-possible usage is::
+examples directory: ``humanMito.fa`` and ``fuguMito.fa``.  The
+simplest possible usage is::
 
   lastdb humdb humanMito.fa
   lastal humdb fuguMito.fa > myalns.maf
@@ -179,7 +179,7 @@ rearrangements of repeats.  Suggested ways to go faster:
 
 * `Mask repeats`_.  This has often worked well.
 
-* Add lastal option ``-k8`` (or ``-k16`` etc).  This makes it faster,
+* Add lastal_ option ``-k8`` (or ``-k16`` etc).  This makes it faster,
   by only finding initial matches starting at every 8th (or 16th etc)
   position in the reads.
 
@@ -371,33 +371,34 @@ The output looks like this::
   p                %*.14442011.(%##"%$$$$###""!!!""""&'(*,340.,,.~~~~~~~~~~~
 
 The "p" line indicates the probability that each column is wrongly
-aligned, using a compact code (the same as fastq_ format):
+aligned, using a compact code (based on ASCII_, the same as fastq_
+format):
 
-  ======  =================   ======  =================
-  Symbol  Error probability   Symbol  Error probability
-  ------  -----------------   ------  -----------------
-  ``!``   0.79 -- 1           ``0``   0.025 -- 0.032
-  ``"``   0.63 -- 0.79        ``1``   0.02  -- 0.025
-  ``#``   0.5  -- 0.63        ``2``   0.016 -- 0.02
-  ``$``   0.4  -- 0.5         ``3``   0.013 -- 0.016
-  ``%``   0.32 -- 0.4         ``4``   0.01  -- 0.013
-  ``&``   0.25 -- 0.32        ``5``   0.0079 -- 0.01
-  ``'``   0.2  -- 0.25        ``6``   0.0063 -- 0.0079
-  ``(``   0.16 -- 0.2         ``7``   0.005  -- 0.0063
-  ``)``   0.13 -- 0.16        ``8``   0.004  -- 0.005
-  ``*``   0.1  -- 0.13        ``9``   0.0032 -- 0.004
-  ``+``   0.079 -- 0.1        ``:``   0.0025 -- 0.0032
-  ``,``   0.063 -- 0.079      ``;``   0.002  -- 0.0025
-  ``-``   0.05  -- 0.063      ``<``   0.0016 -- 0.002
-  ``.``   0.04  -- 0.05       ``=``   0.0013 -- 0.0016
-  ``/``   0.032 -- 0.04       ``>``   0.001  -- 0.0013
-  ======  =================   ======  =================
+======  =================   ======  =================
+Symbol  Error probability   Symbol  Error probability
+======  =================   ======  =================
+``!``   0.79 -- 1           ``0``   0.025 -- 0.032
+``"``   0.63 -- 0.79        ``1``   0.02  -- 0.025
+``#``   0.5  -- 0.63        ``2``   0.016 -- 0.02
+``$``   0.4  -- 0.5         ``3``   0.013 -- 0.016
+``%``   0.32 -- 0.4         ``4``   0.01  -- 0.013
+``&``   0.25 -- 0.32        ``5``   0.0079 -- 0.01
+``'``   0.2  -- 0.25        ``6``   0.0063 -- 0.0079
+``(``   0.16 -- 0.2         ``7``   0.005  -- 0.0063
+``)``   0.13 -- 0.16        ``8``   0.004  -- 0.005
+``*``   0.1  -- 0.13        ``9``   0.0032 -- 0.004
+``+``   0.079 -- 0.1        ``:``   0.0025 -- 0.0032
+``,``   0.063 -- 0.079      ``;``   0.002  -- 0.0025
+``-``   0.05  -- 0.063      ``<``   0.0016 -- 0.002
+``.``   0.04  -- 0.05       ``=``   0.0013 -- 0.0016
+``/``   0.032 -- 0.04       ``>``   0.001  -- 0.0013
+======  =================   ======  =================
 
 Note that each alignment is grown from a "core" region, and the
 ambiguity estimates assume that the core is correctly aligned.  The
 core is indicated by "~" symbols, and it contains exact matches only.
 
-.. _last: doc/last.rst
+.. _last: README.rst
 .. _lastdb8:
 .. _lastdb: doc/lastdb.rst
 .. _lastal8:
@@ -421,4 +422,5 @@ core is indicated by "~" symbols, and it contains exact matches only.
 .. _here:
 .. _mask repeats: https://github.com/mcfrith/last-rna/blob/master/last-long-reads.md
 .. _MAF: http://genome.ucsc.edu/FAQ/FAQformat.html#format5
+.. _ASCII: https://en.wikipedia.org/wiki/ASCII
 .. _our paper: https://doi.org/10.1186/s13059-015-0670-9

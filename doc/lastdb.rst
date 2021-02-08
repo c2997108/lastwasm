@@ -32,48 +32,48 @@ Options
 Main Options
 ~~~~~~~~~~~~
 
-  -h, --help
-      Show all options and their default settings, and exit.
+-h, --help
+    Show all options and their default settings, and exit.
 
-  -p  Interpret the sequences as proteins.  The default is to interpret
-      them as DNA.
+-p  Interpret the sequences as proteins.  The default is to interpret
+    them as DNA.
 
-  -R DIGITS
-      Specify lowercase-marking of repeats, by two digits
-      (e.g. "-R01"), with the following meanings.
+-R DIGITS
+    Specify lowercase-marking of repeats, by two digits
+    (e.g. "-R01"), with the following meanings.
 
-      First digit:
+    First digit:
 
-      0. Convert the input sequences to uppercase while reading them.
-      1. Keep any lowercase in the input sequences.
+    0. Convert the input sequences to uppercase while reading them.
+    1. Keep any lowercase in the input sequences.
 
-      Second digit:
+    Second digit:
 
-      0. Do not check for simple repeats.
-      1. Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
-         This uses tantan (http://www.cbrc.jp/tantan/), which reliably
-         prevents non-homologous alignments, unlike other repeat
-         finders.
-      2. Convert simple DNA repeats to lowercase, with tantan tuned
-         for ~80% AT-rich genomes.
+    0. Do not check for simple repeats.
+    1. Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
+       This uses tantan (http://www.cbrc.jp/tantan/), which reliably
+       prevents non-homologous alignments, unlike other repeat
+       finders.
+    2. Convert simple DNA repeats to lowercase, with tantan tuned
+       for ~80% AT-rich genomes.
 
-  -c  Soft-mask lowercase letters.  This means that, when we compare
-      these sequences to some other sequences using lastal, lowercase
-      letters will be excluded from initial matches.  This will apply
-      to lowercase letters in *both* sets of sequences.
+-c  Soft-mask lowercase letters.  This means that, when we compare
+    these sequences to some other sequences using lastal, lowercase
+    letters will be excluded from initial matches.  This will apply
+    to lowercase letters in *both* sets of sequences.
 
-  -u NAME
-      Specify a seeding scheme.  The -m and -d options will then be
-      ignored.  The built-in schemes are described in
-      `<doc/last-seeds.rst>`_.
+-u NAME
+    Specify a seeding scheme.  The -m and -d options will then be
+    ignored.  The built-in schemes are described in
+    `<doc/last-seeds.rst>`_.
 
-      Any other NAME is assumed to be a file name.  For an example of
-      the format, see the seed files in the data directory.  You can
-      set other lastdb options on lines starting with ``#lastdb``, but
-      command line options override them.  You can also set lastal
-      options on lines starting with ``#lastal``, which are overridden
-      by options from a `scoring scheme <doc/last-matrices.rst>`_ or
-      the lastal command line.
+    Any other NAME is assumed to be a file name.  For an example of
+    the format, see the seed files in the data directory.  You can
+    set other lastdb options on lines starting with ``#lastdb``, but
+    command line options override them.  You can also set lastal
+    options on lines starting with ``#lastal``, which are overridden
+    by options from a `scoring scheme <doc/last-matrices.rst>`_ or
+    the lastal command line.
 
 Advanced Options
 ~~~~~~~~~~~~~~~~

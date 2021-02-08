@@ -212,7 +212,7 @@ Text font
 ---------
 
 You can improve the font quality by increasing its size, e.g. to 20
-points:
+points::
 
   last-dotplot -s20 my-alignments my-plot.png
 
