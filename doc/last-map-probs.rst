@@ -21,22 +21,22 @@ These commands map DNA reads to the human genome::
 Options
 -------
 
-  -h, --help
-         Show a help message, with default option values, and exit.
+-h, --help
+       Show a help message, with default option values, and exit.
 
-  -m M, --mismap=M
-         Don't write alignments with mismap probability > M.
-         Low-confidence alignments will be discarded unless you
-         increase this value!
+-m M, --mismap=M
+       Don't write alignments with mismap probability > M.
+       Low-confidence alignments will be discarded unless you
+       increase this value!
 
-  -s S, --score=S
-         Don't write alignments with score < S.  The default value is
-         somewhat higher than the lastal score threshold.
-         Specifically, it is e + t * ln(1000), where e is the score
-         threshold, and t is a scale factor that is written in the
-         lastal header.  This roughly means that, for every alignment
-         it writes, it has considered alternative alignments with
-         one-thousandth the probability.
+-s S, --score=S
+       Don't write alignments with score < S.  The default value is
+       somewhat higher than the lastal score threshold.
+       Specifically, it is e + t * ln(1000), where e is the score
+       threshold, and t is a scale factor that is written in the
+       lastal header.  This roughly means that, for every alignment
+       it writes, it has considered alternative alignments with
+       one-thousandth the probability.
 
 Details
 -------

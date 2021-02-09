@@ -112,45 +112,45 @@ Details
 Options
 -------
 
-  -h, --help
-         Print a help message and exit.
+-h, --help
+       Print a help message and exit.
 
-  -r, --rna
-         Specifies that the fragments are from potentially-spliced RNA.
+-r, --rna
+       Specifies that the fragments are from potentially-spliced RNA.
 
-  -e, --estdist
-         Just estimate the distribution of distances.
+-e, --estdist
+       Just estimate the distribution of distances.
 
-  -m M, --mismap=M
-         Don't write alignments with mismap probability > M.
+-m M, --mismap=M
+       Don't write alignments with mismap probability > M.
 
-  -f BP, --fraglen=BP
-         The mean distance in bp.  (With -r, the mean of
-         ln[distance].)  If this is not specified, the program will
-         estimate it from the alignments.
+-f BP, --fraglen=BP
+       The mean distance in bp.  (With -r, the mean of
+       ln[distance].)  If this is not specified, the program will
+       estimate it from the alignments.
 
-  -s BP, --sdev=BP
-         The standard deviation of distance in bp.  (With -r, the
-         standard deviation of ln[distance].)  If this is not
-         specified, the program will estimate it from the alignments.
+-s BP, --sdev=BP
+       The standard deviation of distance in bp.  (With -r, the
+       standard deviation of ln[distance].)  If this is not
+       specified, the program will estimate it from the alignments.
 
-  -d PROB, --disjoint=PROB
-         The prior probability that a pair of reads comes from
-         disjoint locations (e.g., different chromosomes).  This may
-         arise from real differences between the genome and the source
-         of the reads, or from errors in obtaining the reads or the
-         genome sequence.
+-d PROB, --disjoint=PROB
+       The prior probability that a pair of reads comes from
+       disjoint locations (e.g., different chromosomes).  This may
+       arise from real differences between the genome and the source
+       of the reads, or from errors in obtaining the reads or the
+       genome sequence.
 
-  -c CHROM, --circular=CHROM
-         Specifies that the chromosome named CHROM is circular.  You
-         can use this option more than once (e.g., -c chrM -c chrP).
-         As a special case, "." means all chromosomes are circular.
-         If this option is not used, "chrM" is assumed to be circular
-         (but if it is used, only the specified CHROMs are assumed to
-         be circular.)
+-c CHROM, --circular=CHROM
+       Specifies that the chromosome named CHROM is circular.  You
+       can use this option more than once (e.g., -c chrM -c chrP).
+       As a special case, "." means all chromosomes are circular.
+       If this option is not used, "chrM" is assumed to be circular
+       (but if it is used, only the specified CHROMs are assumed to
+       be circular.)
 
-  -V, --version
-         Show version information and exit.
+-V, --version
+       Show version information and exit.
 
 Tips
 ----

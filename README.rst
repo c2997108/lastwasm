@@ -1,8 +1,7 @@
-LAST: Genome-Scale Sequence Comparison
-======================================
+LAST: find & align related regions of sequences
+===============================================
 
-LAST finds and aligns similar regions between sequences.  It's
-designed for moderately large data (e.g. genomes, DNA reads,
+LAST is designed for moderately large data (e.g. genomes, DNA reads,
 proteomes).  It's especially good at:
 
 * Finding sequence rearrangements and recombinations: we believe
@@ -20,65 +19,68 @@ proteomes).  It's especially good at:
 It can also: indicate the confidence/uncertainty of each column in an
 alignment, and use sequence quality data in a rigorous fashion.
 
-Requirements
-------------
-
-To handle mammalian genomes, it's best if you have at least 10-20
-gigabytes of real memory, but you can get by with 2 gigabytes.
-
-To install the software, you need a C++ compiler.  On Linux, you might
-need to install a package called "g++".  On Mac, you might need to
-install command-line developer tools.  On Windows, you might need to
-install Cygwin.
-
-Setup
+Usage
 -----
 
-Using the command line, go into the top-level LAST directory.  To
-compile the programs, type::
+Please see the `tutorial / cookbook`_.
+
+Install
+-------
+
+Please download the highest version number from
+https://gitlab.com/mcfrith/last/-/tags.  Using the command line, go
+into the downloaded directory and type::
 
   make
 
-You might get some harmless warning messages.  It's possible to
-specify a C++ compiler like this::
+This assumes you have a C++ compiler.  On Linux, you might need to
+install a package called "g++".  On Mac, you might need to install
+command-line developer tools.  On Windows, you might need to install
+Cygwin.  (It's possible to specify a compiler like this:
+``make CXX=MyOtherCompiler``.)
 
-  make CXX=MyOtherCompiler
+For convenient usage, set up your computer to find the programs
+automatically.  Some possible ways:
 
-Install (optional)
-------------------
+* Copy the programs to a standard directory: ``sudo make install``
+  (using "sudo" to request administrator permissions).
 
-You can copy the programs and scripts to a standard "bin" directory
-(using "sudo" to request administrator permissions)::
+* Copy the programs to your personal bin directory: ``make install prefix=~``
 
-  sudo make install
-
-Or copy them to your personal bin directory::
-
-  make install prefix=~
+* Adjust your `PATH variable`_.
 
 You might have to log out and back in before your computer recognizes
 the new programs.
 
-Usage
------
+**Alternative:** Install LAST from bioconda_.  But it might not be the
+latest version: usually that doesn't matter, but it might work
+inferiorly or differently from this documentation.
 
-Please see the other files in the doc directory, especially
-`<doc/last-tutorial.rst>`_.
+Further info
+------------
 
-Detailed info & citation
-------------------------
+Details & citation: `LAST papers`_
 
-Please see: `<doc/last-papers.rst>`_
+LAST is distributed under the GNU General Public License, either
+version 3 of the License, or (at your option) any later version.
 
-License
--------
+LAST is brought to you by:
 
-LAST (including the scripts) is distributed under the GNU General
-Public License, either version 3 of the License, or (at your option)
-any later version.
+* `Computational Omics Research Team`_, AIRC_
+* GSFS_, `University of Tokyo`_
+* `AIST-Waseda University CBBD-OIL`_
 
 .. _fit:
 .. _fitting: doc/last-train.rst
 .. _last-split: doc/last-split.rst
 .. _seeding: doc/last-seeds.rst
 .. _significance: doc/last-evalues.rst
+.. _tutorial / cookbook: doc/last-tutorial.rst
+.. _LAST papers: doc/last-papers.rst
+.. _bioconda: https://bioconda.github.io/
+.. _PATH variable: https://en.wikipedia.org/wiki/PATH_(variable)
+.. _Computational Omics Research Team: https://www.airc.aist.go.jp/en/cort/
+.. _AIRC: https://www.airc.aist.go.jp/en/
+.. _GSFS: https://www.k.u-tokyo.ac.jp/index.html.en
+.. _University of Tokyo: https://www.u-tokyo.ac.jp/en/
+.. _AIST-Waseda University CBBD-OIL: https://unit.aist.go.jp/cbbd-oil/en/

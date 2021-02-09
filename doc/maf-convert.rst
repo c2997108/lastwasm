@@ -26,49 +26,49 @@ starting with 'p', run lastal with option -j set to 4 or higher.)
 Options
 -------
 
-  -h, --help
-         Print a help message and exit.
+-h, --help
+       Print a help message and exit.
 
-  -p, --protein
-         Specify that the alignments are of proteins, rather than
-         nucleotides.  This affects psl format only (the first 4
-         columns).
+-p, --protein
+       Specify that the alignments are of proteins, rather than
+       nucleotides.  This affects psl format only (the first 4
+       columns).
 
-  -j N, --join=N
-         Join alignments that are co-linear (align different parts of
-         the same sequences and strands, with the parts being in the
-         same order in each sequence), are separated by at most N
-         letters in each sequence, and are consecutive in the input.
-         This affects psl and gff formats only.
+-j N, --join=N
+       Join alignments that are co-linear (align different parts of
+       the same sequences and strands, with the parts being in the
+       same order in each sequence), are separated by at most N
+       letters in each sequence, and are consecutive in the input.
+       This affects psl and gff formats only.
 
-  -J N, --Join=N
-         Join alignments that are co-linear, are separated by at most
-         N letters in each sequence, and are nearest in each sequence.
-         This affects psl and gff formats only, and reads the whole
-         input into memory.
+-J N, --Join=N
+       Join alignments that are co-linear, are separated by at most
+       N letters in each sequence, and are nearest in each sequence.
+       This affects psl and gff formats only, and reads the whole
+       input into memory.
 
-  -n, --noheader
-         Omit any header lines from the output.  This may be useful if
-         you concatenate outputs, e.g. from parallel jobs.
+-n, --noheader
+       Omit any header lines from the output.  This may be useful if
+       you concatenate outputs, e.g. from parallel jobs.
 
-  -d, --dictionary
-         Include a dictionary of sequence lengths in the sam header
-         section (lines starting with @SQ).  This requires reading the
-         input twice, so it must be a real file (not a pipe).  This
-         affects sam format only.
+-d, --dictionary
+       Include a dictionary of sequence lengths in the sam header
+       section (lines starting with @SQ).  This requires reading the
+       input twice, so it must be a real file (not a pipe).  This
+       affects sam format only.
 
-  -f DICTFILE, --dictfile=DICTFILE
-         Get a sequence dictionary from DICTFILE.  This affects sam
-         format only.  You can create a dict file using
-         CreateSequenceDictionary (http://picard.sourceforge.net/).
+-f DICTFILE, --dictfile=DICTFILE
+       Get a sequence dictionary from DICTFILE.  This affects sam
+       format only.  You can create a dict file using
+       CreateSequenceDictionary (http://picard.sourceforge.net/).
 
-  -r READGROUP, --readgroup=READGROUP
-         Specify read group information.  This affects sam format
-         only.  Example: -r 'ID:1 PL:ILLUMINA SM:mysample'
+-r READGROUP, --readgroup=READGROUP
+       Specify read group information.  This affects sam format
+       only.  Example: -r 'ID:1 PL:ILLUMINA SM:mysample'
 
-  -l CHARS, --linesize=CHARS
-         Write CHARS characters per line.  This affects blast and html
-         formats only.
+-l CHARS, --linesize=CHARS
+       Write CHARS characters per line.  This affects blast and html
+       formats only.
 
 Hints for sam/bam
 -----------------

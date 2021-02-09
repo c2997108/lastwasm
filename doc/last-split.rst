@@ -43,12 +43,12 @@ introns of typical length, specified by a log-normal distribution
 (i.e. cis-splices).  However, it allows arbitrary trans-splices
 between any two places in the genome.
 
--D10 sets a very loose significance threshold, so that we can find
+``-D10`` sets a very loose significance threshold, so that we can find
 very short parts of a spliced alignment (e.g. short exons).  Note that
 last-split discards the lowest-significance alignments, but it uses
 them to estimate the ambiguity of higher-significance alignments.
 
-If your reads are from unknown/mixed RNA strands, add -d2 to the
+If your reads are from unknown/mixed RNA strands, add ``-d2`` to the
 last-split options.
 
 Alignment of two whole genomes
@@ -74,25 +74,25 @@ The line starting with "p" (shown by option ``-fMAF+``) indicates the
 probability that each base should be aligned to a different part of
 the genome.  It uses a compact code:
 
-  ======  =================   ======  =================
-  Symbol  Error probability   Symbol  Error probability
-  ======  =================   ======  =================
-  ``!``   0.79 -- 1           ``0``   0.025 -- 0.032
-  ``"``   0.63 -- 0.79        ``1``   0.02  -- 0.025
-  ``#``   0.5  -- 0.63        ``2``   0.016 -- 0.02
-  ``$``   0.4  -- 0.5         ``3``   0.013 -- 0.016
-  ``%``   0.32 -- 0.4         ``4``   0.01  -- 0.013
-  ``&``   0.25 -- 0.32        ``5``   0.0079 -- 0.01
-  ``'``   0.2  -- 0.25        ``6``   0.0063 -- 0.0079
-  ``(``   0.16 -- 0.2         ``7``   0.005  -- 0.0063
-  ``)``   0.13 -- 0.16        ``8``   0.004  -- 0.005
-  ``*``   0.1  -- 0.13        ``9``   0.0032 -- 0.004
-  ``+``   0.079 -- 0.1        ``:``   0.0025 -- 0.0032
-  ``,``   0.063 -- 0.079      ``;``   0.002  -- 0.0025
-  ``-``   0.05  -- 0.063      ``<``   0.0016 -- 0.002
-  ``.``   0.04  -- 0.05       ``=``   0.0013 -- 0.0016
-  ``/``   0.032 -- 0.04       ``>``   0.001  -- 0.0013
-  ======  =================   ======  =================
+======  =================   ======  =================
+Symbol  Error probability   Symbol  Error probability
+======  =================   ======  =================
+``!``   0.79 -- 1           ``0``   0.025 -- 0.032
+``"``   0.63 -- 0.79        ``1``   0.02  -- 0.025
+``#``   0.5  -- 0.63        ``2``   0.016 -- 0.02
+``$``   0.4  -- 0.5         ``3``   0.013 -- 0.016
+``%``   0.32 -- 0.4         ``4``   0.01  -- 0.013
+``&``   0.25 -- 0.32        ``5``   0.0079 -- 0.01
+``'``   0.2  -- 0.25        ``6``   0.0063 -- 0.0079
+``(``   0.16 -- 0.2         ``7``   0.005  -- 0.0063
+``)``   0.13 -- 0.16        ``8``   0.004  -- 0.005
+``*``   0.1  -- 0.13        ``9``   0.0032 -- 0.004
+``+``   0.079 -- 0.1        ``:``   0.0025 -- 0.0032
+``,``   0.063 -- 0.079      ``;``   0.002  -- 0.0025
+``-``   0.05  -- 0.063      ``<``   0.0016 -- 0.002
+``.``   0.04  -- 0.05       ``=``   0.0013 -- 0.0016
+``/``   0.032 -- 0.04       ``>``   0.001  -- 0.0013
+======  =================   ======  =================
 
 Other symbols indicate lower error probabilities, and "~" is the
 lowest possible.  In general::
@@ -154,8 +154,8 @@ accuracy, by not favouring cis-splices::
 
   lastal -p train.out -D10 db q.fastq | last-split -c0 -t0.004 -g db > out.maf
 
-The -c0 turns off cis-splicing, and the -t0.004 specifies a higher
-probability of trans-splicing.
+The ``-c0`` turns off cis-splicing, and the ``-t0.004`` specifies a
+higher probability of trans-splicing.
 
 "Spliced" alignment of DNA reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -169,85 +169,85 @@ splice signals or favouring cis-splices::
 Options
 -------
 
-  -h, --help
-         Show a help message, with default option values, and exit.
+-h, --help
+       Show a help message, with default option values, and exit.
 
-  -f, --format=FMT
-         Choose the output format: ``MAF`` (without "p" lines), or
-         ``MAF+`` (with "p" lines).  The format name is not
-         case-sensitive.  The default is ``MAF`` (unless the input
-         alignments have "p" lines from ``lastal -j``, in which case
-         the default is ``MAF+``).
+-f, --format=FMT
+       Choose the output format: ``MAF`` (without "p" lines), or
+       ``MAF+`` (with "p" lines).  The format name is not
+       case-sensitive.  The default is ``MAF`` (unless the input
+       alignments have "p" lines from ``lastal -j``, in which case
+       the default is ``MAF+``).
 
-  -g, --genome=NAME
-         Do spliced alignment, and read splice signals (GT, AG, etc)
-         from the named genome.  NAME should be the name of a lastdb
-         database.
+-g, --genome=NAME
+       Do spliced alignment, and read splice signals (GT, AG, etc)
+       from the named genome.  NAME should be the name of a lastdb
+       database.
 
-  -d, --direction=D
-         Do spliced alignment, and set the strandedness of the
-         queries: 0=antisense, 1=sense, 2=unknown/mixed.  This
-         determines whether forward and/or reverse-complement splice
-         signals are used.
+-d, --direction=D
+       Do spliced alignment, and set the strandedness of the
+       queries: 0=antisense, 1=sense, 2=unknown/mixed.  This
+       determines whether forward and/or reverse-complement splice
+       signals are used.
 
-         If you use -d2, the output will have an extra "sense" field,
-         indicating the log-odds that the query is sense-stranded::
+       If you use -d2, the output will have an extra "sense" field,
+       indicating the log-odds that the query is sense-stranded::
 
 	   log2[ prob(sense) / prob(antisense) ]
 
-  -c, --cis=PROB
-         Do spliced alignment, and set the average probability per
-         base of cis-splicing.  The default value roughly fits human
-         RNA.
+-c, --cis=PROB
+       Do spliced alignment, and set the average probability per
+       base of cis-splicing.  The default value roughly fits human
+       RNA.
 
-  -t, --trans=PROB
-         Do spliced alignment, and set the average probability per
-         base of trans-splicing.
+-t, --trans=PROB
+       Do spliced alignment, and set the average probability per
+       base of trans-splicing.
 
-  -M, --mean=MEAN
-         Do spliced alignment, and set the mean of ln(intron length).
-         The default value fits human RNA.
+-M, --mean=MEAN
+       Do spliced alignment, and set the mean of ln(intron length).
+       The default value fits human RNA.
 
-  -S, --sdev=SDEV
-         Do spliced alignment, and set the standard deviation of
-         ln(intron length).  The default value fits human RNA.
+-S, --sdev=SDEV
+       Do spliced alignment, and set the standard deviation of
+       ln(intron length).  The default value fits human RNA.
 
-  -m, --mismap=PROB
-         Don't write alignments with mismap probability > PROB.
+-m, --mismap=PROB
+       Don't write alignments with mismap probability > PROB.
 
-  -s, --score=INT
-         Don't write alignments with score < INT.
+-s, --score=INT
+       Don't write alignments with score < INT.
 
-         For SPLIT alignment, the default value is e (the lastal score
-         threshold).  Alignments with score just above INT will get
-         high mismap probabilities.
+       For SPLIT alignment, the default value is e (the lastal score
+       threshold).  Alignments with score just above INT will get
+       high mismap probabilities.
 
-         For SPLICED alignment, the default value is e + t * ln(100),
-         where t is a scale factor that is written in the lastal
-         header.  This roughly means that, for every alignment it
-         writes, it has considered alternative alignments with
-         one-hundredth the probability.  Alignments with score just
-         above INT will not necessarily get high mismap probabilities.
+       For SPLICED alignment, the default value is e + t * ln(100),
+       where t is a scale factor that is written in the lastal
+       header.  This roughly means that, for every alignment it
+       writes, it has considered alternative alignments with
+       one-hundredth the probability.  Alignments with score just
+       above INT will not necessarily get high mismap probabilities.
 
-  -n, --no-split
-         Do probability calculations as usual, but write the
-         *original* alignments, annotated with "p" lines and mismap
-         probabilities.  Note that the mismap and score limits still
-         apply.
+-n, --no-split
+       Do probability calculations as usual, but write the
+       *original* alignments, annotated with "p" lines and mismap
+       probabilities.  Note that the mismap and score limits still
+       apply.
 
-  -b, --bytes=B
-         Skip any query sequence that would require more than B bytes
-         of memory to process.  (This only limits the size of some
-         core data-structures: the total memory use will be greater.)
-         A warning is written for each skipped sequence.  You can use
-         suffixes such as K (KibiBytes), M (MebiBytes), G (GibiBytes),
-         T (TebiBytes), e.g. ``-b20G``.
+-b, --bytes=B
+       Skip any query sequence that would require more than B bytes
+       of memory to process.  (This only limits the size of some
+       core data-structures: the total memory use will be greater.)
+       A warning is written for each skipped sequence.  You can use
+       suffixes such as K (KibiBytes), M (MebiBytes), G (GibiBytes),
+       T (TebiBytes), e.g. ``-b20G``.
 
-  -v, --verbose
-         Show progress information on the screen.
+-v, --verbose
+       Show progress information on the screen.
 
-  -V, --version
-         Show version information and exit.
+-V, --version
+       Show version information and exit.
 
 Details
 -------
