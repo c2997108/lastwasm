@@ -11,8 +11,6 @@ between query and reference sequences.  It can use various seeding
 schemes, which allow different kinds of mismatches at different seed
 positions.
 
-.. Note::
-
    A seeding scheme consists of a seed alphabet, such as::
 
      1  A C G T

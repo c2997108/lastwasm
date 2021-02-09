@@ -5,7 +5,7 @@ This document describes how to guarantee finding alignments with a
 limited number of mismatches or gaps.
 
 ** This is mostly of theoretical interest!  In most cases, you are **
-** advised to use the methods in last-tutorial.txt and documents   **
+** advised to use the methods in last-cookbook.rst and documents   **
 ** referred to thence.  You should probably ignore this document!  **
 
 The first step of lastal is to find initial matches:

@@ -74,7 +74,7 @@ research to society.
 
    __ http://bioinformatics.oxfordjournals.org/content/29/8/965.long
 
-   This describes the algorithm used by last-pair-probs.
+   This describes the algorithm used by ``last-pair-probs``.
 
 9. `Improved search heuristics find 20,000 new alignments between
    human and mouse genomes`__.  Frith MC, Noé L.  Nucleic Acids

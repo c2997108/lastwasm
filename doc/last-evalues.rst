@@ -1,8 +1,9 @@
 LAST E-values
 =============
 
-It is useful to know whether alignments are significant, i.e. unlikely
-to exist just by chance.  LAST indicates this by EG2 and E::
+It is useful to know whether a similarity is significant,
+i.e. unlikely to occur by chance between random sequences.  LAST
+indicates this by EG2 and E::
 
   a score=40 EG2=0.031 E=0.025
   s mouse.chrY  2905908 130 +  91744698 CAGTCAC---AAATTTCTATCAAATATAA--CAGCT...
@@ -34,12 +35,12 @@ Setting a threshold
 -------------------
 
 You can make lastal report alignments that are expected by chance at
-most once per (say) thousand query letters, with option -D::
+most once per (say) thousand query letters, with option ``-D``::
 
   lastal -D1000 humdb fuguMito.fa > myalns.maf
 
 You can make lastal report alignments with EG2 ≤ (say) 10, with option
--E::
+``-E``::
 
   lastal -E10 humdb fuguMito.fa > myalns.maf
 

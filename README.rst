@@ -4,10 +4,10 @@ LAST: find & align related regions of sequences
 LAST is designed for moderately large data (e.g. genomes, DNA reads,
 proteomes).  It's especially good at:
 
-* Finding sequence rearrangements and recombinations: we believe
-  last-split_ does that more rigorously than anything else.
+* Finding rearrangements and recombinations: we believe last-split_
+  does that more rigorously than anything else.
 
-* Finding related parts of DNA and proteins, especially protein
+* Finding DNA-versus-protein related regions, especially protein
   fossils (but introns are not considered).
 
 * Unusual data, e.g. AT-rich DNA, because we can fit_ parameters to
@@ -22,7 +22,7 @@ alignment, and use sequence quality data in a rigorous fashion.
 Usage
 -----
 
-Please see the `tutorial / cookbook`_.
+Please see the cookbook_.
 
 Install
 -------
@@ -75,7 +75,7 @@ LAST is brought to you by:
 .. _last-split: doc/last-split.rst
 .. _seeding: doc/last-seeds.rst
 .. _significance: doc/last-evalues.rst
-.. _tutorial / cookbook: doc/last-tutorial.rst
+.. _cookbook: doc/last-cookbook.rst
 .. _LAST papers: doc/last-papers.rst
 .. _bioconda: https://bioconda.github.io/
 .. _PATH variable: https://en.wikipedia.org/wiki/PATH_(variable)

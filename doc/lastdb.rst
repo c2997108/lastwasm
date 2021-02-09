@@ -2,7 +2,7 @@ lastdb
 ======
 
 This program prepares sequences for subsequent comparison and
-alignment using lastal.  You can use it like this::
+alignment using lastal_.  You can use it like this::
 
   lastdb humanDb humanChromosome*.fasta
 
@@ -51,9 +51,8 @@ Main Options
 
     0. Do not check for simple repeats.
     1. Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
-       This uses tantan (http://www.cbrc.jp/tantan/), which reliably
-       prevents non-homologous alignments, unlike other repeat
-       finders.
+       This uses tantan_, which reliably prevents non-homologous
+       alignments, unlike other repeat finders.
     2. Convert simple DNA repeats to lowercase, with tantan tuned
        for ~80% AT-rich genomes.
 
@@ -70,7 +69,7 @@ Main Options
     Any other NAME is assumed to be a file name.  For an example of
     the format, see the seed files in the data directory.  You can
     set other lastdb options on lines starting with ``#lastdb``, but
-    command line options override them.  You can also set lastal
+    command line options override them.  You can also set lastal_
     options on lines starting with ``#lastal``, which are overridden
     by options from a `scoring scheme <doc/last-matrices.rst>`_ or
     the lastal command line.
@@ -161,7 +160,7 @@ Advanced Options
     You can also specify transition constraints, e.g "-m 100TT1".
     In this example, transitions (but not transversions) will be
     allowed at every fourth and fifth position out of six.
-    Alternatively, you can use Iedera's notation, for example
+    Alternatively, you can use Iedera_'s notation, for example
     "-m '#@#--##--#-#'" ('#' for match, '@' for transition, '-' or
     '_' for mismatch).
 
@@ -200,7 +199,7 @@ Advanced Options
 
 -i MATCHES
     This option makes lastdb faster, at the expense of limiting your
-    options with lastal.  If you use (say) "-i 10", then you cannot
+    options with lastal_.  If you use (say) "-i 10", then you cannot
     use lastal with option m < 10.
 
 -b LENGTH
@@ -263,10 +262,9 @@ This is modified by several options.
 * lastdb8: makes the index twice as big.
 
 * -u, -m, -d: Multiple patterns multiply the index size.  For example,
-  `MAM8 <doc/last-seeds.rst>`_ makes it 8 times bigger.
+  MAM8_ makes it 8 times bigger.
 
-* -u, -d: may reduce the index, e.g. `RY32 <doc/last-seeds.rst>`_
-  makes it 32 times smaller.
+* -u, -d: may reduce the index, e.g. RY32_ makes it 32 times smaller.
 
 * -s: does not change the total size, but splits it into volumes.
 
@@ -279,3 +277,9 @@ lastdb can become catastrophically slow for highly redundant
 sequences, e.g. two almost-identical genomes.  It usually processes
 several GB per hour, but if it becomes much slower, try option "-i
 10", which is likely to solve the problem.
+
+.. _lastal: doc/lastal.rst
+.. _RY32:
+.. _MAM8: doc/last-seeds.rst
+.. _tantan: https://gitlab.com/mcfrith/tantan
+.. _Iedera: https://bioinfo.lifl.fr/yass/iedera.php

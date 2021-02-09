@@ -54,7 +54,7 @@ last-split options.
 Alignment of two whole genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See `here <doc/last-tutorial.rst>`_.
+See the cookbook_.
 
 Output
 ------
@@ -190,8 +190,9 @@ Options
        determines whether forward and/or reverse-complement splice
        signals are used.
 
-       If you use -d2, the output will have an extra "sense" field,
-       indicating the log-odds that the query is sense-stranded::
+       If you use ``-d2``, the output will have an extra "sense"
+       field, indicating the log-odds that the query is
+       sense-stranded::
 
 	   log2[ prob(sense) / prob(antisense) ]
 
@@ -295,3 +296,5 @@ To do
 -----
 
 * An option to specify splice signals and their strengths.
+
+.. _cookbook: doc/last-cookbook.rst

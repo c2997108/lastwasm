@@ -37,11 +37,11 @@ last-split doesn't have a -P option, and even if it did, the pipe
 between the commands would become a bottleneck.
 
 You can use parallel-fasta and parallel-fastq (which accompany LAST,
-but require `GNU parallel <http://www.gnu.org/software/parallel/>`_ to
-be installed).  These commands read sequence data, split it into
-blocks (with a whole number of sequences per block), and run the
-blocks in parallel through any command or pipeline you specify, using
-all your CPU cores.  Here are some examples.
+but require `GNU parallel`_ to be installed).  These commands read
+sequence data, split it into blocks (with a whole number of sequences
+per block), and run the blocks in parallel through any command or
+pipeline you specify, using all your CPU cores.  Here are some
+examples.
 
 Instead of this::
 
@@ -76,3 +76,5 @@ Notes:
 
 * parallel-fastq assumes that each fastq record is 4 lines, so there
   should be no line wrapping or blank lines.
+
+.. _GNU parallel: http://www.gnu.org/software/parallel/

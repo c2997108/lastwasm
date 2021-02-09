@@ -2,8 +2,8 @@ lastal
 ======
 
 This program finds local alignments between query sequences, and
-reference sequences that have been prepared using lastdb.  You can use
-it like this::
+reference sequences that have been prepared using lastdb_.  You can
+use it like this::
 
   lastdb humanDb humanChromosome*.fasta
   lastal humanDb dna*.fasta > myalns.maf
@@ -77,9 +77,9 @@ Cosmetic options
 
       15 chr3 9 23 + 939557 seqA 2 21 + 25 17,2:0,4 EG2=4.7e+04 E=2.6e-05
 
-    The "17,2:0,4" shows the sizes and offsets of gapless blocks in
-    the alignment.  In this case, we have a block of size 17, then
-    an offset of size 2 in the upper sequence and 0 in the lower
+    The ``17,2:0,4`` shows the sizes and offsets of gapless blocks in
+    the alignment.  In this case, we have a block of size 17, then an
+    offset of size 2 in the upper sequence and 0 in the lower
     sequence, then a block of size 4.
 
     The same alignment in **BlastTab** format looks like this::
@@ -142,7 +142,7 @@ Score options
     other letters get the lowest score in the matrix when aligned to
     anything.
 
-    Other options can be specified on lines starting with "#last",
+    Other options can be specified on lines starting with ``#last``,
     but command line options override them.
 
 -X NUMBER
@@ -249,10 +249,10 @@ Initial-match options
     lengthened until it occurs at most this many times in the
     reference.
 
-    If the reference was split into volumes by lastdb, then lastal
-    uses one volume at a time.  The maximum multiplicity then
-    applies to each volume, not the whole reference.  This is why
-    voluming changes the results.
+    If the reference was split into volumes by lastdb_, then lastal
+    uses one volume at a time.  The maximum multiplicity then applies
+    to each volume, not the whole reference.  This is why voluming
+    changes the results.
 
 -l LENGTH
     Minimum length for initial matches.  Length means the number of
@@ -315,7 +315,7 @@ Miscellaneous options
     MebiBytes, and GibiBytes.  This option has no effect on the
     results (apart from their order).
 
-    If the reference was split into volumes by lastdb, then each
+    If the reference was split into volumes by lastdb_, then each
     volume will be read into memory once per query batch.
 
 -M  Find minimum-difference alignments, which is faster but cruder.
@@ -384,12 +384,16 @@ Miscellaneous options
     1. Mask them for gapless but not gapped extensions.
     2. Mask them for gapless but not gapped extensions, and then
        discard alignments that lack any segment with score ≥ e when
-       lowercase is masked.
+       lowercase is masked.  (For new-style frameshifts: mask them for
+       gapless and gapped extensions, then recalculate the alignments
+       *but not the score* without masking.)
     3. Mask them for gapless and gapped extensions.
 
     "Mask" means change their match/mismatch scores to min(unmasked
-    score, 0), a.k.a. `gentle masking
-    <https://doi.org/10.1371/journal.pone.0028819>`_.
+    score, 0), a.k.a. `gentle masking`_.  (But if you use a codon
+    substitution matrix, a lowercase-containing base-triplet will be
+    scored as ``nnn``, which defaults to the lowest match/mismatch
+    score.)
 
     This option does not affect treatment of lowercase for initial
     matches.
@@ -465,9 +469,11 @@ Miscellaneous options
     compare a large sequence to itself with -j0, it's wise to set
     option -L.
 
-    If you use j>3, each alignment will get a "fullScore" (also
-    known as "forward score" or "sum-of-paths score").  This is like
-    the score, but it takes into account alternative alignments.
+    If you use j>3, each alignment will get a "fullScore" (also known
+    as "forward score" or "sum-of-paths score").  This is like the
+    score, but it takes into account alternative alignments.  (For
+    new-style frameshifts, the gapped alignment score is always a
+    fullScore.)
 
     If you use -j7, lastal will print an extra MAF line starting
     with "c" for each alignment.  The first 16 numbers on this line
@@ -569,7 +575,7 @@ by lastdb, then they will share memory for the reference files.
 Multiple volumes
 ----------------
 
-If lastdb creates multiple volumes::
+If lastdb_ creates multiple volumes::
 
   lastdb hugeDb huge.fasta
 
@@ -600,4 +606,6 @@ lastal8 has identical usage to lastal, and is used with `lastdb8
 <doc/lastdb.rst>`_.  lastal cannot read the output of lastdb8, and
 lastal8 cannot read the output of lastdb.
 
+.. _lastdb: doc/lastdb.rst
 .. _last-train: doc/last-train.rst
+.. _gentle masking: https://doi.org/10.1371/journal.pone.0028819

@@ -1,8 +1,8 @@
 LAST Performance Tuning
 =======================
 
-This document tells you how to trade-off **speed**, **sensitivity**,
-and **memory and disk usage**.
+Here are some ways to trade-off **speed**, **sensitivity**, and
+**memory and disk usage**.
 
 Sparsity options
 ~~~~~~~~~~~~~~~~

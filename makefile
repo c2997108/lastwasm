@@ -17,10 +17,10 @@ clean:
 
 docs: doc/last-matrices.rst doc/last-seeds.rst
 
-doc/last-matrices.rst: data/*.mat
+doc/last-matrices.rst: build/mat-doc.sh data/*.mat
 	./build/mat-doc.sh data/*.mat > $@
 
-doc/last-seeds.rst: data/*.seed
+doc/last-seeds.rst: build/seed-doc.sh data/*.seed
 	cd data && ../build/seed-doc.sh [!R]*d RY?-*d RY??-*d > ../$@
 
 tag:

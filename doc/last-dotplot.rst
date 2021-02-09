@@ -3,8 +3,7 @@ last-dotplot
 
 This script makes a dotplot, a.k.a. Oxford Grid, of pair-wise sequence
 alignments in MAF or LAST tabular format.  It requires the `Python
-Imaging Library <https://pillow.readthedocs.io/>`_ to be installed.
-It can be used like this::
+Imaging Library`_ to be installed.  It can be used like this::
 
   last-dotplot my-alignments my-plot.png
 
@@ -126,12 +125,10 @@ annotations are reasonably sparse: e.g. you can't sensibly view 20000
 gene annotations in one small dotplot.
 
 --bed1=FILE
-    Read `BED-format
-    <https://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_
-    annotations for the 1st genome.  They are drawn as stripes, with
-    coordinates given by the first three BED fields.  The color is
-    specified by the RGB field if present, else pale red if the
-    strand is "+", pale blue if "-", or pale purple.
+    Read BED-format_ annotations for the 1st genome.  They are drawn
+    as stripes, with coordinates given by the first three BED fields.
+    The color is specified by the RGB field if present, else pale red
+    if the strand is "+", pale blue if "-", or pale purple.
 --bed2=FILE
     Read BED-format annotations for the 2nd genome.
 --rmsk1=FILE
@@ -146,8 +143,7 @@ Gene options
 ~~~~~~~~~~~~
 
 --genePred1=FILE
-    Read gene annotations for the 1st genome in `genePred format
-    <https://genome.ucsc.edu/FAQ/FAQformat.html#format9>`_.
+    Read gene annotations for the 1st genome in `genePred format`_.
 --genePred2=FILE
     Read gene annotations for the 2nd genome.
 --exon-color=COLOR
@@ -188,7 +184,7 @@ character except U, followed by anything.
 
 ==========  =============================
 Pattern     Meaning
-----------  -----------------------------
+==========  =============================
 ``*``       zero or more of any character
 ``?``       any single character
 ``[abc]``   any character in abc
@@ -226,3 +222,7 @@ Colors
 
 Colors can be specified in `various ways described here
 <http://effbot.org/imagingbook/imagecolor.htm>`_.
+
+.. _Python Imaging Library: https://pillow.readthedocs.io/
+.. _BED-format: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
+.. _genePred format: https://genome.ucsc.edu/FAQ/FAQformat.html#format9

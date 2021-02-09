@@ -7,8 +7,8 @@ on sequence comparison.  There are two different things called
 
 * Interspersed repeats, such as LINEs, Alus, transposons.
 
-* Simple sequence / low-complexity sequence / tandem repeats, such as
-  atatatatatatatatat.
+* Simple sequence / low-complexity sequence / short-period tandem
+  repeats, such as atatatatatatatatat.
 
 They cause two different problems:
 
@@ -27,16 +27,15 @@ interspersed repeats.  So you may wish to annotate interspersed
 repeats with a tool such as RepeatMasker or WindowMasker.  You can
 often obtain pre-masked genomes, with repeats indicated by lowercase.
 
-LAST's built-in simple-sequence masking uses `tantan
-<http://cbrc3.cbrc.jp/~martin/tantan/>`_, which prevents
+LAST's built-in simple-sequence masking uses tantan_, which prevents
 non-homologous alignments more reliably than previous methods.
 
-To mask all kinds of repeat, use lastdb -cR11:
+To mask all kinds of repeat, use lastdb -c -R11:
 
   This keeps lowercase in the input sequences, additionally lowercases
   simple tracts found by tantan, and masks lowercase during alignment.
 
-To mask simple tracts only, use lastdb -cR01:
+To mask simple tracts only, use lastdb -c -R01:
 
   This does not keep lowercase in the input sequences, lowercases
   simple tracts found by tantan, and masks lowercase during alignment.
@@ -63,3 +62,5 @@ alignments of simple sequences.  This can be done by post-masking:
 
 3. Discard mostly-lowercase alignments, using `last-postmask
    <doc/last-postmask.rst>`_.
+
+.. _tantan: https://gitlab.com/mcfrith/tantan
