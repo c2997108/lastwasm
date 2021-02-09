@@ -12,7 +12,7 @@ try () {
 cd $(dirname $0)
 
 # Make sure we use this version of LAST:
-PATH=../src:../scripts:$PATH
+PATH=../bin:$PATH
 
 dnaSeq=galGal3-M-32.fa
 protSeq=Q2LCP8.fa

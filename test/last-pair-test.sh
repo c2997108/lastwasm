@@ -4,7 +4,7 @@
 
 cd $(dirname $0)
 
-PATH=../src:../scripts:$PATH
+PATH=../bin:$PATH
 
 tmp=${TMPDIR-/tmp}/$$
 trap 'rm -f $tmp.*' EXIT

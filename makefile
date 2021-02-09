@@ -2,15 +2,12 @@ CXXFLAGS = -msse4 -O3 -std=c++11 -pthread -DHAS_CXX_THREADS
 all:
 	@cd src && $(MAKE) CXXFLAGS="$(CXXFLAGS)"
 
-progs = src/lastdb src/lastal src/last-split src/last-merge-batches	\
-src/last-pair-probs src/lastdb8 src/lastal8 src/last-split8
-
 prefix = /usr/local
 exec_prefix = $(prefix)
 bindir = $(exec_prefix)/bin
 install: all
 	mkdir -p $(bindir)
-	cp $(progs) scripts/* $(bindir)
+	cp bin/* $(bindir)
 
 clean:
 	@cd src && $(MAKE) clean

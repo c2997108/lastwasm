@@ -5,3 +5,10 @@ src/CyclicSubsetSeedData.hh
 src/GeneticCodeData.hh
 src/ScoreMatrixData.hh
 src/version.hh
+
+bin/last-merge-batches
+bin/last-pair-probs
+bin/last-split
+bin/lastal
+bin/lastdb
+bin/*8

@@ -4,7 +4,7 @@
 
 cd $(dirname $0)
 
-PATH=../src:$PATH
+PATH=../bin:$PATH
 
 maf=SRR359290-1k.maf
 

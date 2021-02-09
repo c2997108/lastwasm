@@ -681,9 +681,8 @@ def probsFromFile(opts, lastalArgs, lines):
 
 def tryToMakeChildProgramsFindable():
     d = os.path.dirname(__file__)
-    e = os.path.join(d, os.pardir, "src")
-    # put them first, to avoid getting older versions of LAST:
-    os.environ["PATH"] = d + os.pathsep + e + os.pathsep + os.environ["PATH"]
+    # put it first, to avoid getting older versions of LAST:
+    os.environ["PATH"] = d + os.pathsep + os.environ["PATH"]
 
 def readLastalProgName(lastdbIndexName):
     bitsPerInt = "32"

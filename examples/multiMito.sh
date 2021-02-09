@@ -8,7 +8,7 @@
 # won't find the files.
 
 # Put the LAST programs and scripts into the command search path:
-PATH=$PATH:../src:../scripts
+PATH=$PATH:../bin
 
 # Make a LAST database of the human sequence:
 lastdb -c humanMito humanMito.fa

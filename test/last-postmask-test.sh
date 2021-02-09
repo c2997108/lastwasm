@@ -8,7 +8,7 @@ try () {
 
 cd $(dirname $0)
 
-PATH=../src:../scripts:$PATH
+PATH=../bin:$PATH
 
 {
     try last-postmask 102.maf

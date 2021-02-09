@@ -8,7 +8,7 @@ try () {
 
 cd $(dirname $0)
 
-PATH=../scripts:$PATH
+PATH=../bin:$PATH
 
 {
     try maf-swap -h

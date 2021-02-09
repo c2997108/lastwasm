@@ -4,7 +4,7 @@
 
 cd $(dirname $0)
 
-PATH=../scripts:$PATH
+PATH=../bin:$PATH
 
 r=maf-convert
 

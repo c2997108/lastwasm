@@ -53,8 +53,9 @@ PPOBJ = last-pair-probs.o last-pair-probs-main.o
 
 MBOBJ = last-merge-batches.o
 
-ALL = lastdb lastal last-split last-merge-batches last-pair-probs	\
-lastdb8 lastal8 last-split8
+ALL = ../bin/lastdb ../bin/lastal ../bin/last-split		\
+../bin/last-merge-batches ../bin/last-pair-probs ../bin/lastdb8	\
+../bin/lastal8 ../bin/last-split8
 
 indexObj8 = $(indexObj4:.o=.o8)
 alignObj8 = $(alignObj4:.o=.o8)
@@ -63,33 +64,33 @@ splitObj8 = $(splitObj4:.o=.o8)
 all: $(ALL)
 
 indexAllObj4 = $(indexObj0) $(indexObj4)
-lastdb: $(indexAllObj4)
+../bin/lastdb: $(indexAllObj4)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(indexAllObj4) -lz
 
 indexAllObj8 = $(indexObj0) $(indexObj8)
-lastdb8: $(indexAllObj8)
+../bin/lastdb8: $(indexAllObj8)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(indexAllObj8) -lz
 
 alignAllObj4 = $(alignObj0) $(alignObj4)
-lastal: $(alignAllObj4)
+../bin/lastal: $(alignAllObj4)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(alignAllObj4) -lz
 
 alignAllObj8 = $(alignObj0) $(alignObj8)
-lastal8: $(alignAllObj8)
+../bin/lastal8: $(alignAllObj8)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(alignAllObj8) -lz
 
 splitAllObj4 = $(splitObj0) $(splitObj4)
-last-split: $(splitAllObj4)
+../bin/last-split: $(splitAllObj4)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(splitAllObj4)
 
 splitAllObj8 = $(splitObj0) $(splitObj8)
-last-split8: $(splitAllObj8)
+../bin/last-split8: $(splitAllObj8)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(splitAllObj8)
 
-last-pair-probs: $(PPOBJ)
+../bin/last-pair-probs: $(PPOBJ)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(PPOBJ) -lz
 
-last-merge-batches: $(MBOBJ)
+../bin/last-merge-batches: $(MBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(MBOBJ)
 
 .SUFFIXES:

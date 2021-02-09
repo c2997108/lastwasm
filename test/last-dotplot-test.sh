@@ -2,7 +2,7 @@
 
 cd $(dirname $0)
 
-PATH=../scripts:$PATH
+PATH=../bin:$PATH
 
 png=/tmp/$$.png
 
