@@ -32,6 +32,7 @@
 #include "CyclicSubsetSeed.hh"
 #include "dna_words_finder.hh"
 #include "VectorOrMmap.hh"
+
 #include <climits>
 
 namespace cbrc{

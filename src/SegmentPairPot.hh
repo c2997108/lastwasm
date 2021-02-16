@@ -21,7 +21,6 @@ void erase_if( Container& c, Predicate p ){
 }
 
 struct SegmentPairPot{
-  typedef SegmentPair::indexT indexT;
   typedef std::vector<SegmentPair>::iterator iterator;
   typedef std::vector<SegmentPair>::const_iterator const_iterator;
 

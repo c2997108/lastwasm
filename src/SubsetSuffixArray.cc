@@ -45,11 +45,13 @@ void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
 
   while (true) {
     if (minimizerWindow > 1) {
-      if (f.isMinimizer(seed, text + beg, text + end, minimizerWindow))
+      if (f.isMinimizer(seed, text + beg, text + end, minimizerWindow)) {
 	suffixArray.v.push_back(beg);
+      }
     } else {
-      if (subsetMap[text[beg]] < CyclicSubsetSeed::DELIMITER)
+      if (subsetMap[text[beg]] < CyclicSubsetSeed::DELIMITER) {
 	suffixArray.v.push_back(beg);
+      }
     }
     if (end - beg <= step) break;  // avoid overflow
     beg += step;

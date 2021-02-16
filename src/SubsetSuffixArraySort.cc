@@ -26,8 +26,8 @@ static void pushRange(std::vector<Range> &v,
   }
 }
 
-static void insertionSort( const uchar* text, const CyclicSubsetSeed& seed,
-			   indexT* beg, indexT* end, const uchar* subsetMap ){
+static void insertionSort(const uchar *text, const CyclicSubsetSeed &seed,
+			  indexT *beg, indexT *end, const uchar* subsetMap) {
   for( indexT* i = beg+1; i < end; ++i ){
     const uchar* newText = text + *i;
     for( indexT* j = i; j > beg; --j ){
@@ -270,8 +270,10 @@ void SubsetSuffixArray::radixSortN( std::vector<Range>& rangeStack,
     uchar oracle[256];
     uchar* oracleEnd =
       oracle + std::min( sizeof(oracle), size_t(end - i) );
-    for( uchar* j = oracle; j < oracleEnd; ++j )
-      *j = subsetMap[ text[ *i++ ] ];
+    for (uchar *j = oracle; j < oracleEnd; ++j) {
+      *j = subsetMap[text[*i]];
+      ++i;
+    }
     for( uchar* j = oracle; j < oracleEnd; ++j )
       ++bucketSize[ *j ];
   }

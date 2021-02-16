@@ -7,10 +7,10 @@ using namespace cbrc;
 
 // use past results to speed up long matches?
 // could & probably should return the match depth
-void SubsetSuffixArray::match( const indexT*& begPtr, const indexT*& endPtr,
-                               const uchar* queryPtr, const uchar* text,
-                               unsigned seedNum, size_t maxHits,
-                               size_t minDepth, size_t maxDepth ) const{
+void SubsetSuffixArray::match(const indexT *&begPtr, const indexT *&endPtr,
+			      const uchar *queryPtr, const uchar *text,
+			      unsigned seedNum, size_t maxHits,
+			      size_t minDepth, size_t maxDepth) const {
   // the next line is unnecessary, but makes it faster in some cases:
   if( maxHits == 0 && minDepth < maxDepth ) minDepth = maxDepth;
 
