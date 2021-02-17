@@ -583,8 +583,8 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 		   const uchar *qryPtr, unsigned seedNum) {
   const bool isOverlap = (args.globality && args.outputType == 1);
 
-  const indexT *beg;
-  const indexT *end;
+  const PosPart *beg;
+  const PosPart *end;
   sa.match(beg, end, qryPtr, dis.a, seedNum,
 	   args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth);
   counts.matchCount += end - beg;

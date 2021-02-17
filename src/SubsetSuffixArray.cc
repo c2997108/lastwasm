@@ -68,7 +68,7 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
     std::swap(cumulativeCounts[i], sumOfCounts);
   }
   suffixArray.v.resize(sumOfCounts);
-  indexT *a = &suffixArray.v[0];
+  PosPart *a = &suffixArray.v[0];
 
   unsigned hash = 0;
   const uchar *seqPos = finder.init(seqBeg, seqEnd, &hash);
@@ -216,8 +216,8 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   buckets.v.resize(bucketsSize());
   initBucketEnds();
 
-  indexT *myBuckets = &buckets.v[0];
-  indexT *bucketPtr = myBuckets;
+  OffPart *myBuckets = &buckets.v[0];
+  OffPart *bucketPtr = myBuckets;
   indexT posInSuffixArray = 0;
   for (size_t s = 0; s < seeds.size(); ++s) {
     const CyclicSubsetSeed &seed = seeds[s];
@@ -243,7 +243,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 	subsetMap = seed.nextMap( subsetMap );
       }
 
-      indexT *newBucketPtr = myBuckets + bucketIndex + 1;
+      OffPart *newBucketPtr = myBuckets + bucketIndex + 1;
       if (newBucketPtr > bucketPtr) {
 	std::fill(bucketPtr, newBucketPtr, posInSuffixArray);
       }

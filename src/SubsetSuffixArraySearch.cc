@@ -7,7 +7,7 @@ using namespace cbrc;
 
 // use past results to speed up long matches?
 // could & probably should return the match depth
-void SubsetSuffixArray::match(const indexT *&begPtr, const indexT *&endPtr,
+void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
 			      const uchar *queryPtr, const uchar *text,
 			      unsigned seedNum, size_t maxHits,
 			      size_t minDepth, size_t maxDepth) const {
@@ -21,7 +21,7 @@ void SubsetSuffixArray::match(const indexT *&begPtr, const indexT *&endPtr,
   // match using buckets:
   size_t bucketDepth = maxBucketPrefix(seedNum);
   size_t startDepth = std::min( bucketDepth, maxDepth );
-  const indexT* bucketPtr = bucketEnds[seedNum];
+  const OffPart *bucketPtr = bucketEnds[seedNum];
   const indexT* myBucketSteps = bucketStepEnds[seedNum];
 
   while( depth < startDepth ){
@@ -93,7 +93,7 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
 
   // match using buckets:
   size_t bucketDepth = maxBucketPrefix(seedNum);
-  const indexT* bucketPtr = bucketEnds[seedNum];
+  const OffPart *bucketPtr = bucketEnds[seedNum];
   const indexT* myBucketSteps = bucketStepEnds[seedNum];
   indexT beg = *bucketPtr;
   indexT end = *(bucketPtr + myBucketSteps[depth]);

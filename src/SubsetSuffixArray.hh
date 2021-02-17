@@ -37,11 +37,15 @@
 
 namespace cbrc{
 
+typedef LAST_INT_TYPE PosPart;
+
+typedef LAST_INT_TYPE OffPart;
+
 class SubsetSuffixArray{
 public:
   typedef LAST_INT_TYPE indexT;
 
-  struct Range {indexT* beg; indexT* end; indexT depth;};
+  struct Range {PosPart *beg; PosPart *end; indexT depth;};
 
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
@@ -87,7 +91,7 @@ public:
   // matches, and the match-depth is at least minDepth, or the
   // match-depth is maxDepth.  Return the range of matching indices
   // via begPtr and endPtr.
-  void match( const indexT*& begPtr, const indexT*& endPtr,
+  void match( const PosPart *&begPtr, const PosPart *&endPtr,
               const uchar* queryPtr, const uchar* text, unsigned seedNum,
               size_t maxHits, size_t minDepth, size_t maxDepth ) const;
 
@@ -99,11 +103,11 @@ public:
 
 private:
   std::vector<CyclicSubsetSeed> seeds;
-  std::vector<const indexT *> bucketEnds;
+  std::vector<const OffPart *> bucketEnds;
   std::vector<const indexT *> bucketStepEnds;
 
-  VectorOrMmap<indexT> suffixArray;  // sorted indices
-  VectorOrMmap<indexT> buckets;
+  VectorOrMmap<PosPart> suffixArray;  // sorted indices
+  VectorOrMmap<OffPart> buckets;
   std::vector<indexT> bucketSteps;  // step size for each k-mer
 
   VectorOrMmap<indexT> childTable;
@@ -157,7 +161,7 @@ private:
 
   void initBucketEnds() {
     bucketEnds.resize(seeds.size());
-    const indexT *p = &buckets[0];
+    const OffPart *p = &buckets[0];
     for (size_t i = 0; i < seeds.size(); ++i) {
       bucketEnds[i] = p;
       p += bucketStepEnds[i][0];
@@ -165,23 +169,23 @@ private:
   }
 
   void sort2( const uchar* text, const CyclicSubsetSeed& seed,
-	      indexT* beg, const uchar* subsetMap );
+	      PosPart *beg, const uchar* subsetMap );
 
   void radixSort1( std::vector<Range>& rangeStack,
 		   const uchar* text, const uchar* subsetMap,
-		   indexT* beg, indexT* end, indexT depth );
+		   PosPart *beg, PosPart *end, indexT depth );
   void radixSort2( std::vector<Range>& rangeStack,
 		   const uchar* text, const uchar* subsetMap,
-		   indexT* beg, indexT* end, indexT depth );
+		   PosPart *beg, PosPart *end, indexT depth );
   void radixSort3( std::vector<Range>& rangeStack,
 		   const uchar* text, const uchar* subsetMap,
-		   indexT* beg, indexT* end, indexT depth );
+		   PosPart *beg, PosPart *end, indexT depth );
   void radixSort4( std::vector<Range>& rangeStack,
 		   const uchar* text, const uchar* subsetMap,
-		   indexT* beg, indexT* end, indexT depth );
+		   PosPart *beg, PosPart *end, indexT depth );
   void radixSortN( std::vector<Range>& rangeStack,
 		   const uchar* text, const uchar* subsetMap,
-		   indexT* beg, indexT* end, indexT depth,
+		   PosPart *beg, PosPart *end, indexT depth,
 		   unsigned subsetCount, indexT* bucketSize );
 
   void sortRanges( std::vector<Range>* stacks, indexT* bucketSizes,
@@ -240,25 +244,25 @@ private:
     chibiTable.v[ index ] = (value < UCHAR_MAX) ? value : 0;
   }
 
-  void setChildForward( const indexT* from, const indexT* to ){
+  void setChildForward(const PosPart *from, const PosPart *to) {
     if( to == from ) return;
-    const indexT* origin = &suffixArray.v[0];
+    const PosPart *origin = &suffixArray.v[0];
     indexT i = from - origin;
     /**/ if( !childTable.v.empty() ) childTable.v[ i ] = to - origin;
     else if( !kiddyTable.v.empty() ) setKiddy( i, to - from );
     else if( !chibiTable.v.empty() ) setChibi( i, to - from );
   }
 
-  void setChildReverse( const indexT* from, const indexT* to ){
+  void setChildReverse(const PosPart *from, const PosPart *to) {
     if( to == from ) return;
-    const indexT* origin = &suffixArray.v[0];
+    const PosPart *origin = &suffixArray.v[0];
     indexT i = from - origin - 1;
     /**/ if( !childTable.v.empty() ) childTable.v[ i ] = to - origin;
     else if( !kiddyTable.v.empty() ) setKiddy( i, from - to );
     else if( !chibiTable.v.empty() ) setChibi( i, from - to );
   }
 
-  bool isChildDirectionForward( const indexT* beg ) const{
+  bool isChildDirectionForward(const PosPart *beg) const {
     indexT i = beg - &suffixArray.v[0];
     return
       !childTable.v.empty() ? childTable.v[ i ] == 0 :
