@@ -38,9 +38,30 @@
 namespace cbrc{
 
 typedef LAST_INT_TYPE PosPart;
+const int posParts = 1;
 
 typedef LAST_INT_TYPE OffPart;
 const int offParts = 1;
+
+inline size_t posGet(const PosPart *p) {
+  size_t x = 0;
+  for (int i = 0; i < posParts; ++i) {
+    size_t y = p[i];  // must convert to size_t before shifting!
+    x += y << (i * sizeof(PosPart) * CHAR_BIT);
+  }
+  return x;
+}
+
+inline void posSet(PosPart *p, size_t value) {
+  for (int i = 0; i < posParts; ++i) {
+    p[i] = value >> (i * sizeof(PosPart) * CHAR_BIT);
+  }
+}
+
+inline size_t posCount(const PosPart *beg, const PosPart *end) {
+  size_t d = end - beg;
+  return d / posParts;  // faster if the dividend is unsigned?
+}
 
 class SubsetSuffixArray{
 public:
@@ -51,7 +72,7 @@ public:
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
 
-  size_t size() const { return suffixArray.size(); }  // stored positions
+  size_t size() const { return suffixArray.size() / posParts; }
 
   // Add every step-th text position in the range [beg,end).
   // Positions starting with delimiters aren't added.
@@ -248,23 +269,24 @@ private:
   void setChildForward(const PosPart *from, const PosPart *to) {
     if( to == from ) return;
     const PosPart *origin = &suffixArray.v[0];
-    indexT i = from - origin;
-    /**/ if( !childTable.v.empty() ) childTable.v[ i ] = to - origin;
-    else if( !kiddyTable.v.empty() ) setKiddy( i, to - from );
-    else if( !chibiTable.v.empty() ) setChibi( i, to - from );
+    indexT i = posCount(origin, from);
+    /**/ if (!childTable.v.empty()) childTable.v[i] = posCount(origin, to);
+    else if (!kiddyTable.v.empty()) setKiddy(i, posCount(from, to));
+    else if (!chibiTable.v.empty()) setChibi(i, posCount(from, to));
   }
 
   void setChildReverse(const PosPart *from, const PosPart *to) {
     if( to == from ) return;
     const PosPart *origin = &suffixArray.v[0];
-    indexT i = from - origin - 1;
-    /**/ if( !childTable.v.empty() ) childTable.v[ i ] = to - origin;
-    else if( !kiddyTable.v.empty() ) setKiddy( i, from - to );
-    else if( !chibiTable.v.empty() ) setChibi( i, from - to );
+    indexT i = posCount(origin, from) - 1;
+    /**/ if (!childTable.v.empty()) childTable.v[i] = posCount(origin, to);
+    else if (!kiddyTable.v.empty()) setKiddy(i, posCount(to, from));
+    else if (!chibiTable.v.empty()) setChibi(i, posCount(to, from));
   }
 
   bool isChildDirectionForward(const PosPart *beg) const {
-    indexT i = beg - &suffixArray.v[0];
+    const PosPart *origin = &suffixArray.v[0];
+    indexT i = posCount(origin, beg);
     return
       !childTable.v.empty() ? childTable.v[ i ] == 0 :
       !kiddyTable.v.empty() ? kiddyTable.v[ i ] == USHRT_MAX :

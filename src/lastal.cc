@@ -382,7 +382,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   if( version < 294 && version > 0)
     ERR( "the lastdb files are old: please re-run lastdb" );
 
-  if (fileBitsPerInt != sizeof(indexT) * CHAR_BIT) {
+  if (fileBitsPerInt != sizeof(PosPart) * posParts * CHAR_BIT) {
     if (fileBitsPerInt == 32) ERR("please use lastal for " + fileName);
     if (fileBitsPerInt == 64) ERR("please use lastal8 for " + fileName);
     ERR("weird integersize in " + fileName);
@@ -587,15 +587,15 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
   const PosPart *end;
   sa.match(beg, end, qryPtr, dis.a, seedNum,
 	   args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth);
-  counts.matchCount += end - beg;
+  counts.matchCount += posCount(beg, end);
 
   indexT qryPos = qryPtr - dis.b;  // coordinate in the query sequence
   size_t maxAlignments = args.maxGaplessAlignmentsPerQueryPosition;
 
-  for (/* noop */; beg < end; ++beg) {  // loop over suffix-array matches
+  for (/* noop */; beg < end; beg += posParts) {
     if (maxAlignments == 0) break;
 
-    indexT refPos = *beg;  // coordinate in the reference sequence
+    indexT refPos = posGet(beg);  // coordinate in the reference sequence
     if (dt.isCovered(qryPos, refPos)) continue;
     ++counts.gaplessExtensionCount;
     int score;

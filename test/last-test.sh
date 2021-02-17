@@ -27,11 +27,11 @@ trap 'rm -f $db*' EXIT
     lastal $db /dev/null
 
     # spaced seeds, soft-masking, centroid alignment, matrix file
-    lastdb -c -m110 $db $dnaSeq
+    lastdb -c -m110 -C3 $db $dnaSeq
     try lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -z3400 -e2500 $db $dnaSeq
 
     # multiple volumes & query batches
-    lastdb -m1 -s1 $db $dnaSeq
+    lastdb -m1 -s1 -C2 $db $dnaSeq
     try lastal -fTAB -i1 -w0 -e40 $db $dnaSeq
 
     # match-counting, with multiple query batches
