@@ -5,6 +5,15 @@
 
 using namespace cbrc;
 
+static size_t offGet(const OffPart *p) {
+  size_t x = 0;
+  for (int i = 0; i < offParts; ++i) {
+    size_t y = p[i];  // must convert to size_t before shifting!
+    x += y << (i * sizeof(OffPart) * CHAR_BIT);
+  }
+  return x;
+}
+
 // use past results to speed up long matches?
 // could & probably should return the match depth
 void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
@@ -32,16 +41,16 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
     subsetMap = seed.nextMap( subsetMap );
   }
 
-  indexT beg = *bucketPtr;
-  indexT end = *(bucketPtr + myBucketSteps[depth]);
+  indexT beg = offGet(bucketPtr);
+  indexT end = offGet(bucketPtr + myBucketSteps[depth]);
 
   while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
     const uchar* oldMap = seed.prevMap( subsetMap );
     uchar subset = oldMap[ queryPtr[depth-1] ];
     bucketPtr -= subset * myBucketSteps[depth];
-    indexT oldBeg = *bucketPtr;
-    indexT oldEnd = *(bucketPtr + myBucketSteps[depth-1]);
+    indexT oldBeg = offGet(bucketPtr);
+    indexT oldEnd = offGet(bucketPtr + myBucketSteps[depth-1]);
     if( oldEnd - oldBeg > maxHits ) break;
     subsetMap = oldMap;
     beg = oldBeg;
@@ -95,8 +104,8 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
   size_t bucketDepth = maxBucketPrefix(seedNum);
   const OffPart *bucketPtr = bucketEnds[seedNum];
   const indexT* myBucketSteps = bucketStepEnds[seedNum];
-  indexT beg = *bucketPtr;
-  indexT end = *(bucketPtr + myBucketSteps[depth]);
+  indexT beg = offGet(bucketPtr);
+  indexT end = offGet(bucketPtr + myBucketSteps[depth]);
 
   while( depth < bucketDepth ){
     if( beg == end ) return;
@@ -108,8 +117,8 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
     ++depth;
     indexT step = myBucketSteps[depth];
     bucketPtr += subset * step;
-    beg = *bucketPtr;
-    end = *(bucketPtr + step);
+    beg = offGet(bucketPtr);
+    end = offGet(bucketPtr + step);
     subsetMap = seed.nextMap( subsetMap );
   }
 

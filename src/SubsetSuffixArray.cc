@@ -13,6 +13,12 @@ static void err(const std::string &s) {
   throw std::runtime_error(s);
 }
 
+static void offSet(OffPart *p, size_t value) {
+  for (int i = 0; i < offParts; ++i) {
+    p[i] = value >> (i * sizeof(OffPart) * CHAR_BIT);
+  }
+}
+
 static unsigned maxBucketDepth(const CyclicSubsetSeed &seed,
 			       size_t maxBucketItems, unsigned wordLength) {
   unsigned depth = 0;
@@ -234,7 +240,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
       while (depth < myBucketDepth) {
 	uchar subset = subsetMap[ *textPtr ];
 	if( subset == CyclicSubsetSeed::DELIMITER ){
-	  bucketIndex += steps[depth] - 1;  // depth > 0
+	  bucketIndex += steps[depth] - offParts;  // depth > 0
 	  break;
 	}
 	++textPtr;
@@ -243,24 +249,25 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 	subsetMap = seed.nextMap( subsetMap );
       }
 
-      OffPart *newBucketPtr = myBuckets + bucketIndex + 1;
-      if (newBucketPtr > bucketPtr) {
-	std::fill(bucketPtr, newBucketPtr, posInSuffixArray);
+      OffPart *lastBucketPtr = myBuckets + bucketIndex;
+      for (; bucketPtr <= lastBucketPtr; bucketPtr += offParts) {
+	offSet(bucketPtr, posInSuffixArray);
       }
-      bucketPtr = newBucketPtr;
     }
 
     myBuckets += steps[0];
   }
 
-  std::fill(bucketPtr, myBuckets + 1, posInSuffixArray);
+  for (; bucketPtr <= myBuckets; bucketPtr += offParts) {
+    offSet(bucketPtr, posInSuffixArray);
+  }
 }
 
 static void makeBucketStepsForOneSeed(SubsetSuffixArray::indexT *steps,
 				      unsigned depth,
 				      const CyclicSubsetSeed &seed,
 				      size_t wordLength) {
-  SubsetSuffixArray::indexT step = 1;
+  SubsetSuffixArray::indexT step = offParts;
   steps[depth] = step;
 
   while (depth > 0) {
@@ -268,7 +275,8 @@ static void makeBucketStepsForOneSeed(SubsetSuffixArray::indexT *steps,
     if (depth < wordLength) {
       step = step * seed.restrictedSubsetCount(depth);
     } else {
-      step = step * seed.unrestrictedSubsetCount(depth) + (depth > 0);
+      step =
+	step * seed.unrestrictedSubsetCount(depth) + (depth > 0) * offParts;
       // Add one for delimiters, except when depth==0
     }
     steps[depth] = step;

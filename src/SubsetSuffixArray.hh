@@ -40,6 +40,7 @@ namespace cbrc{
 typedef LAST_INT_TYPE PosPart;
 
 typedef LAST_INT_TYPE OffPart;
+const int offParts = 1;
 
 class SubsetSuffixArray{
 public:
@@ -152,7 +153,7 @@ private:
   void makeBucketSteps(const unsigned *bucketDepths, size_t wordLength);
 
   size_t bucketsSize() const {
-    size_t n = 1;
+    size_t n = offParts;
     for (size_t i = 0; i < seeds.size(); ++i) {
       n += bucketStepEnds[i][0];
     }
