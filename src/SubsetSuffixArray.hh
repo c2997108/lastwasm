@@ -151,34 +151,10 @@ private:
 
   enum ChildDirection { FORWARD, REVERSE, UNKNOWN };
 
-  // These find the suffix array range of one letter, whose subset is
-  // "subset", within the suffix array range [beg, end):
-  void equalRange( indexT& beg, indexT& end, const uchar* textBase,
-		   const uchar* subsetMap, uchar subset ) const;
-  indexT lowerBound( indexT beg, indexT end, const uchar* textBase,
-		     const uchar* subsetMap, uchar subset ) const;
-  indexT upperBound( indexT beg, indexT end, const uchar* textBase,
-		     const uchar* subsetMap, uchar subset ) const;
-
   // This does the same thing as equalRange, but uses a child table:
   void childRange( indexT& beg, indexT& end, ChildDirection& childDirection,
                    const uchar* textBase,
                    const uchar* subsetMap, uchar subset ) const;
-
-  // These find the suffix array range of string [queryBeg, queryEnd)
-  // within the suffix array range [beg, end):
-  void equalRange2( indexT& beg, indexT& end,
-		    const uchar* queryBeg, const uchar* queryEnd,
-		    const uchar* textBase, const CyclicSubsetSeed& seed,
-		    const uchar* subsetMap ) const;
-  indexT lowerBound2( indexT beg, indexT end,
-		      const uchar* queryBeg, const uchar* queryEnd,
-		      const uchar* textBase, const CyclicSubsetSeed& seed,
-		      const uchar* subsetMap ) const;
-  indexT upperBound2( indexT beg, indexT end,
-		      const uchar* queryBeg, const uchar* queryEnd,
-		      const uchar* textBase, const CyclicSubsetSeed& seed,
-		      const uchar* subsetMap ) const;
 
   // Return the maximum prefix size covered by the buckets.
   size_t maxBucketPrefix(unsigned seedNum) const
@@ -227,35 +203,6 @@ private:
 		   const uchar* text,
 		   unsigned wordLength, const CyclicSubsetSeed& seed,
 		   size_t maxUnsortedInterval, size_t numOfThreads );
-
-  // Same as the 1st equalRange, but uses more info and may be faster:
-  void equalRange( indexT& beg, indexT& end, const uchar* textBase,
-                   const uchar* subsetMap, uchar subset,
-                   uchar begSubset, uchar endSubset,
-                   indexT begOffset, indexT endOffset ) const{
-    if( subset == begSubset ){
-      end = upperBound( beg + begOffset, end - endOffset,
-                        textBase, subsetMap, subset );
-    }else if( subset == endSubset ){
-      beg = lowerBound( beg + begOffset, end - endOffset,
-                        textBase, subsetMap, subset );
-    }else{
-      beg += begOffset;
-      end -= endOffset;
-      equalRange( beg, end, textBase, subsetMap, subset );
-    }
-  }
-
-  // Same as the 1st equalRange, but tries to be faster by checking endpoints:
-  void fastEqualRange( indexT& beg, indexT& end, const uchar* textBase,
-                       const uchar* subsetMap, uchar subset ) const{
-    uchar b = subsetMap[ textBase[ suffixArray[ beg ] ] ];
-    if( subset < b ){ end = beg; return; }
-    uchar e = subsetMap[ textBase[ suffixArray[ end - 1 ] ] ];
-    if( subset > e ){ beg = end; return; }
-    if( b == e ) return;
-    equalRange( beg, end, textBase, subsetMap, subset, b, e, 1, 1 );
-  }
 
   indexT getChildForward( indexT from ) const{
     return

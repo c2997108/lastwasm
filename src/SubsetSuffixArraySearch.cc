@@ -5,6 +5,14 @@
 
 using namespace cbrc;
 
+namespace {
+  typedef SubsetSuffixArray::indexT indexT;
+}
+
+static size_t posGetAt(const PosPart *p, size_t i) {
+  return posGet(p + i * posParts);
+}
+
 static size_t offGet(const OffPart *p) {
   size_t x = 0;
   for (int i = 0; i < offParts; ++i) {
@@ -14,12 +22,12 @@ static size_t offGet(const OffPart *p) {
   return x;
 }
 
-SubsetSuffixArray::indexT
-SubsetSuffixArray::lowerBound( indexT beg, indexT end, const uchar* textBase,
-			       const uchar* subsetMap, uchar subset ) const{
+static indexT lowerBound(const PosPart *sufArray, indexT beg, indexT end,
+			 const uchar *textBase, const uchar *subsetMap,
+			 uchar subset) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    if (subsetMap[textBase[suffixArray[mid]]] < subset) {
+    if (subsetMap[textBase[posGetAt(sufArray, mid)]] < subset) {
       beg = mid + 1;
     } else {
       end = mid;
@@ -28,12 +36,12 @@ SubsetSuffixArray::lowerBound( indexT beg, indexT end, const uchar* textBase,
   return beg;
 }
 
-SubsetSuffixArray::indexT
-SubsetSuffixArray::upperBound( indexT beg, indexT end, const uchar* textBase,
-			       const uchar* subsetMap, uchar subset ) const{
+static indexT upperBound(const PosPart *sufArray, indexT beg, indexT end,
+			 const uchar *textBase, const uchar *subsetMap,
+			 uchar subset) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    if (subsetMap[textBase[suffixArray[mid]]] <= subset) {
+    if (subsetMap[textBase[posGetAt(sufArray, mid)]] <= subset) {
       beg = mid + 1;
     } else {
       end = mid;
@@ -42,34 +50,63 @@ SubsetSuffixArray::upperBound( indexT beg, indexT end, const uchar* textBase,
   return end;
 }
 
-void SubsetSuffixArray::equalRange( indexT& beg, indexT& end,
-				    const uchar* textBase,
-				    const uchar* subsetMap,
-				    uchar subset ) const{
+// Find the suffix array range of one letter, whose subset is
+// "subset", within the suffix array range [beg, end)
+static void equalRange(const PosPart *sufArray, indexT &beg, indexT &end,
+		       const uchar *textBase, const uchar *subsetMap,
+		       uchar subset) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    uchar s = subsetMap[textBase[suffixArray[mid]]];
+    uchar s = subsetMap[textBase[posGetAt(sufArray, mid)]];
     if (s < subset) {
       beg = mid + 1;
     } else if (s > subset) {
       end = mid;
     } else {
-      beg = lowerBound(beg, mid, textBase, subsetMap, subset);
-      end = upperBound(mid + 1, end, textBase, subsetMap, subset);
+      beg = lowerBound(sufArray, beg, mid, textBase, subsetMap, subset);
+      end = upperBound(sufArray, mid + 1, end, textBase, subsetMap, subset);
       return;
     }
   }
 }
 
-SubsetSuffixArray::indexT
-SubsetSuffixArray::lowerBound2( indexT beg, indexT end,
-				const uchar* queryBeg, const uchar* queryEnd,
-				const uchar* textBase,
-				const CyclicSubsetSeed& seed,
-				const uchar* subsetMap ) const{
+// Same as the 1st equalRange, but uses more info and may be faster
+static void equalRange(const PosPart *sufArray, indexT &beg, indexT &end,
+		       const uchar *textBase, const uchar *subsetMap,
+		       uchar subset, uchar begSubset, uchar endSubset,
+		       indexT begOffset, indexT endOffset) {
+  indexT b = beg + begOffset;
+  indexT e = end - endOffset;
+  if (subset == begSubset) {
+    end = upperBound(sufArray, b, e, textBase, subsetMap, subset);
+  } else if (subset == endSubset) {
+    beg = lowerBound(sufArray, b, e, textBase, subsetMap, subset);
+  } else {
+    beg = b;
+    end = e;
+    equalRange(sufArray, beg, end, textBase, subsetMap, subset);
+  }
+}
+
+// Same as the 1st equalRange, but tries to be faster by checking endpoints
+static void fastEqualRange(const PosPart *sufArray, indexT &beg, indexT &end,
+			   const uchar *textBase, const uchar *subsetMap,
+			   uchar subset) {
+  uchar b = subsetMap[textBase[posGetAt(sufArray, beg)]];
+  if (subset < b) { end = beg; return; }
+  uchar e = subsetMap[textBase[posGetAt(sufArray, end - 1)]];
+  if (subset > e) { beg = end; return; }
+  if (b == e) return;
+  equalRange(sufArray, beg, end, textBase, subsetMap, subset, b, e, 1, 1);
+}
+
+static indexT lowerBound2(const PosPart *sufArray, indexT beg, indexT end,
+			  const uchar *textBase, const uchar *subsetMap,
+			  const uchar *queryBeg, const uchar *queryEnd,
+			  const CyclicSubsetSeed &seed) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    indexT offset = suffixArray[mid];
+    indexT offset = posGetAt(sufArray, mid);
     const uchar *t = textBase + offset;
     const uchar *q = queryBeg;
     const uchar *s = subsetMap;
@@ -95,15 +132,13 @@ SubsetSuffixArray::lowerBound2( indexT beg, indexT end,
   return beg;
 }
 
-SubsetSuffixArray::indexT
-SubsetSuffixArray::upperBound2( indexT beg, indexT end,
-				const uchar* queryBeg, const uchar* queryEnd,
-				const uchar* textBase,
-				const CyclicSubsetSeed& seed,
-				const uchar* subsetMap ) const{
+static indexT upperBound2(const PosPart *sufArray, indexT beg, indexT end,
+			  const uchar *textBase, const uchar *subsetMap,
+			  const uchar *queryBeg, const uchar *queryEnd,
+			  const CyclicSubsetSeed &seed) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    indexT offset = suffixArray[mid];
+    indexT offset = posGetAt(sufArray, mid);
     const uchar *t = textBase + offset;
     const uchar *q = queryBeg;
     const uchar *s = subsetMap;
@@ -129,12 +164,12 @@ SubsetSuffixArray::upperBound2( indexT beg, indexT end,
   return end;
 }
 
-void SubsetSuffixArray::equalRange2( indexT& beg, indexT& end,
-				     const uchar* queryBeg,
-				     const uchar* queryEnd,
-				     const uchar* textBase,
-				     const CyclicSubsetSeed& seed,
-				     const uchar* subsetMap ) const{
+// Find the suffix array range of string [queryBeg, queryEnd) within
+// the suffix array range [beg, end)
+static void equalRange2(const PosPart *sufArray, indexT &beg, indexT &end,
+			const uchar *textBase, const uchar *subsetMap,
+			const uchar *queryBeg, const uchar *queryEnd,
+			const CyclicSubsetSeed &seed) {
   const uchar *qBeg = queryBeg;
   const uchar *qEnd = qBeg;
   const uchar *tBeg = textBase;
@@ -144,7 +179,7 @@ void SubsetSuffixArray::equalRange2( indexT& beg, indexT& end,
 
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    indexT offset = suffixArray[mid];
+    indexT offset = posGetAt(sufArray, mid);
     const uchar *q;
     const uchar *t;
     const uchar *s;
@@ -165,8 +200,10 @@ void SubsetSuffixArray::equalRange2( indexT& beg, indexT& end,
       if (x != y) break;
       ++q;  // next query letter
       if (q == queryEnd) {  // we found a full match to [queryBeg, queryEnd)
-	beg = lowerBound2(beg, mid, qBeg, queryEnd, tBeg, seed, sBeg);
-	end = upperBound2(mid + 1, end, qEnd, queryEnd, tEnd, seed, sEnd);
+	beg = lowerBound2(sufArray, beg, mid, tBeg, sBeg,
+			  qBeg, queryEnd, seed);
+	end = upperBound2(sufArray, mid + 1, end, tEnd, sEnd,
+			  qEnd, queryEnd, seed);
 	return;
       }
       ++t;  // next text letter
@@ -232,6 +269,8 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
     --depth;
   }
 
+  const PosPart *sufArray = suffixArray.begin();
+
   // match using binary search:
 
   if( depth < minDepth ){
@@ -246,7 +285,8 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
       ++depth;
       subsetMap = seed.nextMap( subsetMap );
     }
-    equalRange2( beg, end, queryPtr + d, queryPtr + depth, text + d, seed, s );
+    equalRange2(sufArray, beg, end, text + d, s,
+		queryPtr + d, queryPtr + depth, seed);
   }
 
   ChildDirection childDirection = UNKNOWN;
@@ -263,8 +303,8 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
     subsetMap = seed.nextMap( subsetMap );
   }
 
-  begPtr = &suffixArray[0] + beg;
-  endPtr = &suffixArray[0] + end;
+  begPtr = sufArray + beg * posParts;
+  endPtr = sufArray + end * posParts;
 }
 
 void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
@@ -317,12 +357,14 @@ void SubsetSuffixArray::childRange( indexT& beg, indexT& end,
 				    const uchar* textBase,
 				    const uchar* subsetMap,
 				    uchar subset ) const{
+  const PosPart *sufArray = suffixArray.begin();
+
   if( childDirection == UNKNOWN ){
     indexT mid = getChildForward( beg );
     if( mid == beg ){  // failure: never happens with the full childTable
       mid = getChildReverse( end );
       if( mid == end ){  // failure: never happens with the full childTable
-	fastEqualRange( beg, end, textBase, subsetMap, subset );
+	fastEqualRange(sufArray, beg, end, textBase, subsetMap, subset);
 	return;
       }
       childDirection = REVERSE;
@@ -332,17 +374,18 @@ void SubsetSuffixArray::childRange( indexT& beg, indexT& end,
   }
 
   if( childDirection == FORWARD ){
-    uchar e = subsetMap[ textBase[ suffixArray[ end - 1 ] ] ];
+    uchar e = subsetMap[textBase[posGetAt(sufArray, end - 1)]];
     if( subset > e ){ beg = end; return; }
     if( subset < e ) childDirection = REVERSE;  // flip it for next time
     while( 1 ){
-      uchar b = subsetMap[ textBase[ suffixArray[ beg ] ] ];
+      uchar b = subsetMap[textBase[posGetAt(sufArray, beg)]];
       if( subset < b ) { end = beg; return; }
       if( b == e ) return;
       indexT mid = getChildForward( beg );
       if( mid == beg ){  // failure: never happens with the full childTable
 	indexT offset = kiddyTable.empty() ? UCHAR_MAX : USHRT_MAX;
-	equalRange( beg, end, textBase, subsetMap, subset, b, e, offset, 1 );
+	equalRange(sufArray, beg, end, textBase, subsetMap, subset,
+		   b, e, offset, 1);
 	return;
       }
       if( subset == b ) { end = mid; return; }
@@ -350,17 +393,18 @@ void SubsetSuffixArray::childRange( indexT& beg, indexT& end,
       if( b + 1 == e ) return;  // unnecessary, but may be faster
     }
   }else{
-    uchar b = subsetMap[ textBase[ suffixArray[ beg ] ] ];
+    uchar b = subsetMap[textBase[posGetAt(sufArray, beg)]];
     if( subset < b ) { end = beg; return; }
     if( subset > b ) childDirection = FORWARD;  // flip it for next time
     while( 1 ){
-      uchar e = subsetMap[ textBase[ suffixArray[ end - 1 ] ] ];
+      uchar e = subsetMap[textBase[posGetAt(sufArray, end - 1)]];
       if( subset > e ){ beg = end; return; }
       if( b == e ) return;
       indexT mid = getChildReverse( end );
       if( mid == end ){  // failure: never happens with the full childTable
 	indexT offset = kiddyTable.empty() ? UCHAR_MAX : USHRT_MAX;
-	equalRange( beg, end, textBase, subsetMap, subset, b, e, 1, offset );
+	equalRange(sufArray, beg, end, textBase, subsetMap, subset,
+		   b, e, 1, offset);
 	return;
       }
       if( subset == e ) { beg = mid; return; }
