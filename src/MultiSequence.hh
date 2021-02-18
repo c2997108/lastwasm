@@ -21,7 +21,12 @@ typedef unsigned char uchar;
 
 class MultiSequence{
  public:
-  typedef LAST_INT_TYPE indexT;
+
+#if LAST_POS_BYTES > 4
+  typedef size_t indexT;
+#else
+  typedef unsigned indexT;
+#endif
 
   // initialize with leftmost delimiter pad, ready for appending sequences
   void initForAppending(indexT padSizeIn, bool isAppendStopSymbol = false);

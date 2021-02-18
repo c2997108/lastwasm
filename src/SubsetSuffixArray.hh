@@ -37,11 +37,19 @@
 
 namespace cbrc{
 
-typedef LAST_INT_TYPE PosPart;
-const int posParts = 1;
+#if LAST_POS_BYTES == 8
+  typedef size_t PosPart;
+  const int posParts = 1;
+#elif LAST_POS_BYTES == 5
+  typedef unsigned char PosPart;
+  const int posParts = 5;
+#else
+  typedef unsigned PosPart;
+  const int posParts = 1;
+#endif
 
-typedef LAST_INT_TYPE OffPart;
-const int offParts = 1;
+typedef PosPart OffPart;
+const int offParts = posParts;
 
 inline size_t posGet(const PosPart *p) {
   size_t x = 0;
@@ -65,7 +73,12 @@ inline size_t posCount(const PosPart *beg, const PosPart *end) {
 
 class SubsetSuffixArray{
 public:
-  typedef LAST_INT_TYPE indexT;
+
+#if LAST_POS_BYTES > 4
+  typedef size_t indexT;
+#else
+  typedef unsigned indexT;
+#endif
 
   struct Range {PosPart *beg; PosPart *end; indexT depth;};
 
@@ -79,7 +92,7 @@ public:
   // The positions aren't sorted.
   // If minimizerWindow > 1 then the positions are added only if they
   // are "minimizers" for the given window and seed pattern.
-  void addPositions( const uchar* text, indexT beg, indexT end,
+  void addPositions( const uchar *text, size_t beg, size_t end,
 		     size_t step, size_t minimizerWindow );
 
   // Store positions in [seqBeg, seqEnd) where certain "words" start.

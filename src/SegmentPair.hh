@@ -11,8 +11,13 @@
 namespace cbrc{
 
 struct SegmentPair{
-  typedef LAST_INT_TYPE indexT;
   typedef unsigned char uchar;
+
+#if LAST_POS_BYTES > 4
+  typedef size_t indexT;
+#else
+  typedef unsigned indexT;
+#endif
 
   SegmentPair(){}
 

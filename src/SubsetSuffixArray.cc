@@ -40,7 +40,8 @@ static unsigned maxBucketDepth(const CyclicSubsetSeed &seed,
   }
 }
 
-void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
+// xxx ugly
+void SubsetSuffixArray::addPositions(const uchar *text, size_t beg, size_t end,
 				     size_t step, size_t minimizerWindow) {
   if (beg >= end) return;
   assert(step > 0);
@@ -52,11 +53,17 @@ void SubsetSuffixArray::addPositions(const uchar* text, indexT beg, indexT end,
   while (true) {
     if (minimizerWindow > 1) {
       if (f.isMinimizer(seed, text + beg, text + end, minimizerWindow)) {
-	suffixArray.v.push_back(beg);
+	size_t s = suffixArray.v.size();
+	suffixArray.v.resize(s + posParts);
+	PosPart *a = &suffixArray.v[s];
+	posSet(a, beg);
       }
     } else {
       if (subsetMap[text[beg]] < CyclicSubsetSeed::DELIMITER) {
-	suffixArray.v.push_back(beg);
+	size_t s = suffixArray.v.size();
+	suffixArray.v.resize(s + posParts);
+	PosPart *a = &suffixArray.v[s];
+	posSet(a, beg);
       }
     }
     if (end - beg <= step) break;  // avoid overflow
@@ -73,7 +80,7 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
   for (size_t i = 0; i < numOfSeeds; ++i) {
     std::swap(cumulativeCounts[i], sumOfCounts);
   }
-  suffixArray.v.resize(sumOfCounts);
+  suffixArray.v.resize(sumOfCounts * posParts);
   PosPart *a = &suffixArray.v[0];
 
   unsigned hash = 0;
@@ -84,7 +91,8 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
     if (c != dnaWordsFinderNull) {
       unsigned w = finder.next(&hash, c);
       if (w != dnaWordsFinderNull) {
-	a[cumulativeCounts[w]] = seqPos - seqBeg - finder.wordLength;
+	PosPart *b = a + cumulativeCounts[w] * posParts;
+	posSet(b, seqPos - seqBeg - finder.wordLength);
 	++cumulativeCounts[w];
       }
     } else {
@@ -141,7 +149,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   }
 
   size_t indexedPositions = textLength - unindexedPositions;
-  suffixArray.m.open( baseName + ".suf", indexedPositions );
+  suffixArray.m.open(baseName + ".suf", indexedPositions * posParts);
 
   size_t wordLength = maxRestrictedSpan(&seeds[0], seeds.size());
   makeBucketSteps(&bucketDepths[0], wordLength);
@@ -163,14 +171,14 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
 				 bool isAppendPrj, size_t textLength ) const{
-  assert( textLength > suffixArray.size() );
+  assert(textLength > size());
 
   std::string fileName = baseName + ".prj";
   std::ofstream f( fileName.c_str(),
 		   isAppendPrj ? std::ios::app : std::ios::out );
 
   f << "totallength=" << textLength << '\n';
-  f << "specialcharacters=" << textLength - suffixArray.size() << '\n';
+  f << "specialcharacters=" << textLength - size() << '\n';
 
   for (size_t s = 0; s < seeds.size(); ++s) {
     f << "prefixlength=" << maxBucketPrefix(s) << '\n';
@@ -225,14 +233,15 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   OffPart *myBuckets = &buckets.v[0];
   OffPart *bucketPtr = myBuckets;
   indexT posInSuffixArray = 0;
+  const PosPart *suffixArrayPtr = suffixArray.begin();
   for (size_t s = 0; s < seeds.size(); ++s) {
     const CyclicSubsetSeed &seed = seeds[s];
     unsigned myBucketDepth = bucketDepths[s];
     const indexT *steps = bucketStepEnds[s];
     indexT endInSuffixArray = cumulativeCounts[s];
 
-    for (; posInSuffixArray < endInSuffixArray; ++posInSuffixArray) {
-      const uchar* textPtr = text + suffixArray[posInSuffixArray];
+    while (posInSuffixArray < endInSuffixArray) {
+      const uchar* textPtr = text + posGet(suffixArrayPtr);
       const uchar* subsetMap = seed.firstMap();
       indexT bucketIndex = 0;
       unsigned depth = 0;
@@ -253,6 +262,9 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
       for (; bucketPtr <= lastBucketPtr; bucketPtr += offParts) {
 	offSet(bucketPtr, posInSuffixArray);
       }
+
+      ++posInSuffixArray;
+      suffixArrayPtr += posParts;
     }
 
     myBuckets += steps[0];

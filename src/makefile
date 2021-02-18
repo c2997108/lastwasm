@@ -100,10 +100,10 @@ splitAllObj8 = $(splitObj0) $(splitObj8)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 .cc.o:
-	$(CXX) -DLAST_INT_TYPE=unsigned $(CPPF) $(CXXFLAGS) -I. -c -o $@ $<
+	$(CXX) -DLAST_POS_BYTES=4 $(CPPF) $(CXXFLAGS) -I. -c -o $@ $<
 
 .cc.o8:
-	$(CXX) -DLAST_INT_TYPE=size_t $(CPPF) $(CXXFLAGS) -I. -c -o $@ $<
+	$(CXX) -DLAST_POS_BYTES=8 $(CPPF) $(CXXFLAGS) -I. -c -o $@ $<
 
 .cpp.o:
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
