@@ -278,12 +278,12 @@ The following points matter only if you are doing something unusual
 * It assumes this score matrix applies to all alignments, when the
   alignments are oriented to use the forward strand of the query.
 
-last-split8
+last-split5
 -----------
 
-last-split8 is almost identical to last-split.  The only difference is
+last-split5 is almost identical to last-split.  The only difference is
 the -g option: last-split can only read the output of lastdb, whereas
-last-split8 can only read the output of `lastdb8 <doc/lastdb.rst>`_.
+last-split5 can only read the output of lastdb5_.
 
 Limitations
 -----------
@@ -297,4 +297,5 @@ To do
 
 * An option to specify splice signals and their strengths.
 
+.. _lastdb5: doc/lastdb.rst
 .. _cookbook: doc/last-cookbook.rst

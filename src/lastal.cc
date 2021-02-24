@@ -11,7 +11,6 @@
 #include "LastEvaluer.hh"
 #include "GeneticCode.hh"
 #include "SubsetMinimizerFinder.hh"
-#include "SubsetSuffixArray.hh"
 #include "AlignmentPot.hh"
 #include "Alignment.hh"
 #include "SegmentPairPot.hh"
@@ -382,8 +381,9 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
   if( version < 294 && version > 0)
     ERR( "the lastdb files are old: please re-run lastdb" );
 
-  if (fileBitsPerInt != sizeof(PosPart) * posParts * CHAR_BIT) {
+  if (fileBitsPerInt != posSize * CHAR_BIT) {
     if (fileBitsPerInt == 32) ERR("please use lastal for " + fileName);
+    if (fileBitsPerInt == 40) ERR("please use lastal5 for " + fileName);
     if (fileBitsPerInt == 64) ERR("please use lastal8 for " + fileName);
     ERR("weird integersize in " + fileName);
   }

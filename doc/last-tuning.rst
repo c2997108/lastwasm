@@ -62,16 +62,16 @@ alphabetically earliest.
 
 The fraction of positions that are "minimum" is roughly: 2 / (W + 1).
 
-lastdb8 & lastal8
+lastdb5 & lastal5
 ~~~~~~~~~~~~~~~~~
 
-If your reference has more than about 4 billion letters, 8-byte LAST
+If your reference has more than about 4 billion letters, 5-byte LAST
 may be beneficial.  Ordinary (4-byte) LAST cannot directly handle so
-much data, so it splits it into volumes, which is inefficient.  8-byte
+much data, so it splits it into volumes, which is inefficient.  5-byte
 LAST can handle such data without voluming, but it uses more memory.
 
-8-byte LAST combines well with the lastdb sparsity options, which
-reduce memory usage.  Something like ``lastdb8 -uRY32`` enables rapid,
+5-byte LAST combines well with the lastdb sparsity options, which
+reduce memory usage.  Something like ``lastdb5 -uRY32`` enables rapid,
 huge-scale homology search, with moderate memory usage, but low
 sensitivity.
 

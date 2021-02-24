@@ -6,7 +6,6 @@
 #include "last.hh"
 
 #include "LastdbArguments.hh"
-#include "SubsetSuffixArray.hh"
 #include "TantanMasker.hh"
 #include "zio.hh"
 #include "stringify.hh"
@@ -149,7 +148,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     else{
       f << "numofindexes=" << numOfIndexes << '\n';
     }
-    f << "integersize=" << (sizeof(PosPart) * posParts * CHAR_BIT) << '\n';
+    f << "integersize=" << (posSize * CHAR_BIT) << '\n';
     writeLastalOptions( f, seedText );
   }
 
@@ -284,26 +283,20 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
 				   const DnaWordsFinder& wordsFinder,
 				   size_t qualityCodesPerLetter,
 				   unsigned numOfSeeds ){
-  size_t bytesPerLetter = 1 + qualityCodesPerLetter;
-  size_t maxIndexBytesPerPosition =
-    sizeof(indexT) + sizeof(indexT) / args.minIndexedPositionsPerBucket;
-  size_t numer = 1;
-  size_t denom = args.indexStep;
+  double b = args.minIndexedPositionsPerBucket;
+  double x = posSize + offSize / b;  // bytes per indexed position
   if (wordsFinder.wordLength) {
-    numer = wordsFinder.numOfMatchedWords;
-    denom = wordsFinder.wordLookup.size();
+    x = x * wordsFinder.numOfMatchedWords / wordsFinder.wordLookup.size();
   } else {
-    maxIndexBytesPerPosition *= numOfSeeds;
+    x *= numOfSeeds;
     if (args.minimizerWindow > 1) {
-      numer = 2;
-      denom = args.minimizerWindow + 1;
+      x = x * 2 / (args.minimizerWindow + 1);
+    } else {
+      x /= args.indexStep;
     }
   }
-  size_t x = bytesPerLetter * denom + maxIndexBytesPerPosition * numer;
-  size_t y = args.volumeSize / x * denom;
-  indexT z = y;
-  if( z < y ) z = indexT(-1);
-  return z;
+  double y = args.volumeSize / (1 + qualityCodesPerLetter + x);
+  return (y < posLimit) ? y : posLimit;
 }
 
 static bool isRoomToDuplicateTheLastSequence(const MultiSequence &multi,

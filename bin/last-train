@@ -690,7 +690,8 @@ def readLastalProgName(lastdbIndexName):
         for line in f:
             if line.startswith("integersize="):
                 bitsPerInt = line.split("=")[1].strip()
-    return "lastal8" if bitsPerInt == "64" else "lastal"
+    suffix = "" if bitsPerInt == "32" else str(int(bitsPerInt) // 8)
+    return "lastal" + suffix
 
 def fixedLastalArgs(opts, lastalProgName):
     x = [lastalProgName, "-j7"]

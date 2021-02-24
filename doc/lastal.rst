@@ -599,13 +599,14 @@ enough memory to hold several volumes simultaneously, or run lastal on
 one volume at a time.  An efficient scheme is to use a different
 computer for each volume.
 
-lastal8
+lastal5
 -------
 
-lastal8 has identical usage to lastal, and is used with `lastdb8
-<doc/lastdb.rst>`_.  lastal cannot read the output of lastdb8, and
-lastal8 cannot read the output of lastdb.
+lastal5 has identical usage to lastal, and is used with lastdb5_.
+lastal cannot read the output of lastdb5, and lastal5 cannot read the
+output of lastdb.
 
+.. _lastdb5:
 .. _lastdb: doc/lastdb.rst
 .. _last-train: doc/last-train.rst
 .. _gentle masking: https://doi.org/10.1371/journal.pone.0028819

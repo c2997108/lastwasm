@@ -229,11 +229,11 @@ Advanced Options
 -V, --version
     Show version information, and exit.
 
-lastdb8
+lastdb5
 -------
 
-lastdb8 is identical to lastdb, except that it internally uses larger
-(8-byte) integers.  This means it can handle more than 4 billion
+lastdb5 is identical to lastdb, except that it internally uses larger
+(5-byte) integers.  This means it can handle more than 4 billion
 sequence letters per volume, but it uses more memory.
 
 Memory and disk usage
@@ -259,7 +259,7 @@ This is modified by several options.
 
 * -W SIZE: makes the index about (SIZE+1)/2 times smaller.
 
-* lastdb8: makes the index twice as big.
+* lastdb5: makes the index 25% bigger.
 
 * -u, -m, -d: Multiple patterns multiply the index size.  For example,
   MAM8_ makes it 8 times bigger.

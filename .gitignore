@@ -1,5 +1,5 @@
 *.o
-*.o8
+*.o?
 
 src/CyclicSubsetSeedData.hh
 src/GeneticCodeData.hh
@@ -11,4 +11,4 @@ bin/last-pair-probs
 bin/last-split
 bin/lastal
 bin/lastdb
-bin/*8
+bin/*5

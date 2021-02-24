@@ -7,12 +7,18 @@
 #include "CyclicSubsetSeed.hh"
 #include "MultiSequence.hh"
 #include "SequenceFormat.hh"
+#include "SubsetSuffixArray.hh"
 #include "dna_words_finder.hh"
 #include "qualityScoreUtil.hh"
 
 namespace cbrc {
 
 typedef MultiSequence::indexT indexT;
+
+const size_t posSize = sizeof(PosPart) * posParts;
+const size_t offSize = sizeof(OffPart) * offParts;
+
+const size_t posLimit = size_t(-1) >> ((sizeof(size_t) - posSize) * CHAR_BIT);
 
 inline void err(const char *s) { throw std::runtime_error(s); }
 
@@ -21,7 +27,7 @@ inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
 				    indexT maxSeqLen, sequenceFormat::Enum f,
 				    const Alphabet &a, bool isKeepLowercase,
 				    bool isMaskLowercase) {
-  if (m.finishedSequences() == 0) maxSeqLen = -1;
+  if (m.finishedSequences() == 0) maxSeqLen = posLimit;
 
   size_t oldSize = m.seqBeg(m.finishedSequences());
 
