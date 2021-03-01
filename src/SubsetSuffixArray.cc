@@ -40,31 +40,22 @@ static unsigned maxBucketDepth(const CyclicSubsetSeed &seed,
   }
 }
 
-// xxx ugly
-void SubsetSuffixArray::addPositions(const uchar *text, size_t beg, size_t end,
-				     size_t step, size_t minimizerWindow) {
+void SubsetSuffixArray::addMinimizerPositions(const uchar *text,
+					      size_t beg, size_t end,
+					      size_t step,
+					      size_t minimizerWindow) {
   if (beg >= end) return;
   assert(step > 0);
   const CyclicSubsetSeed &seed = seeds[0];
-  const uchar *subsetMap = seed.firstMap();
   SubsetMinimizerFinder f;
   f.init(seed, text + beg, text + end);
 
   while (true) {
-    if (minimizerWindow > 1) {
-      if (f.isMinimizer(seed, text + beg, text + end, minimizerWindow)) {
-	size_t s = suffixArray.v.size();
-	suffixArray.v.resize(s + posParts);
-	PosPart *a = &suffixArray.v[s];
-	posSet(a, beg);
-      }
-    } else {
-      if (subsetMap[text[beg]] < CyclicSubsetSeed::DELIMITER) {
-	size_t s = suffixArray.v.size();
-	suffixArray.v.resize(s + posParts);
-	PosPart *a = &suffixArray.v[s];
-	posSet(a, beg);
-      }
+    if (f.isMinimizer(seed, text + beg, text + end, minimizerWindow)) {
+      size_t s = suffixArray.v.size();
+      suffixArray.v.resize(s + posParts);
+      PosPart *a = &suffixArray.v[s];
+      posSet(a, beg);
     }
     if (end - beg <= step) break;  // avoid overflow
     beg += step;
@@ -80,8 +71,7 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
   for (size_t i = 0; i < numOfSeeds; ++i) {
     std::swap(cumulativeCounts[i], sumOfCounts);
   }
-  suffixArray.v.resize(sumOfCounts * posParts);
-  PosPart *a = &suffixArray.v[0];
+  PosPart *a = resizedPositions(sumOfCounts);
 
   unsigned hash = 0;
   const uchar *seqPos = finder.init(seqBeg, seqEnd, &hash);

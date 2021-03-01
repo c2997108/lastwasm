@@ -87,13 +87,18 @@ public:
 
   size_t size() const { return suffixArray.size() / posParts; }
 
-  // Add every step-th text position in the range [beg,end).
+  PosPart *resizedPositions(size_t numOfPositions) {
+    suffixArray.v.resize(numOfPositions * posParts);
+    return &suffixArray.v[0];
+  }
+
+  // Add positions in the range [beg,end) that are "minimizers" for
+  // the given window and seed pattern.  (Only minimizers at each
+  // step-th position are added: this step parameter may be useless.)
   // Positions starting with delimiters aren't added.
   // The positions aren't sorted.
-  // If minimizerWindow > 1 then the positions are added only if they
-  // are "minimizers" for the given window and seed pattern.
-  void addPositions( const uchar *text, size_t beg, size_t end,
-		     size_t step, size_t minimizerWindow );
+  void addMinimizerPositions(const uchar *text, size_t beg, size_t end,
+			     size_t step, size_t minimizerWindow);
 
   // Store positions in [seqBeg, seqEnd) where certain "words" start.
   // The cumulative word counts must be provided.  (cumulativeCounts

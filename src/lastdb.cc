@@ -239,12 +239,37 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
       seeds.swap(indexSeeds);
       myIndex.setWordPositions(wordsFinder, wordCounts, seq, seqEnd);
     } else {
-      LOG("gathering...");
       indexSeeds.resize(1);
       seeds[x].swap(indexSeeds[0]);
-      for (size_t i = 0; i < numOfSequences; ++i) {
-	myIndex.addPositions(seq, multi.seqBeg(i), multi.seqEnd(i),
-			     args.indexStep, args.minimizerWindow);
+      if (args.minimizerWindow > 1) {
+	LOG("gathering...");
+	for (size_t i = 0; i < numOfSequences; ++i) {
+	  myIndex.addMinimizerPositions(seq, multi.seqBeg(i), multi.seqEnd(i),
+					args.indexStep, args.minimizerWindow);
+	}
+      } else {
+	const uchar *subsetMap = indexSeeds[0].firstMap();
+	size_t count = 0;
+	LOG("counting...");
+	for (size_t i = 0; i < numOfSequences; ++i) {
+	  size_t end = multi.seqEnd(i);
+	  for (size_t j = multi.seqBeg(i); ; j += args.indexStep) {
+	    count += (subsetMap[seq[j]] < CyclicSubsetSeed::DELIMITER);
+	    if (end - j <= args.indexStep) break;
+	  }
+	}
+	LOG("gathering...");
+	PosPart *positions = myIndex.resizedPositions(count);
+	for (size_t i = 0; i < numOfSequences; ++i) {
+	  size_t end = multi.seqEnd(i);
+	  for (size_t j = multi.seqBeg(i); ; j += args.indexStep) {
+	    if (subsetMap[seq[j]] < CyclicSubsetSeed::DELIMITER) {
+	      posSet(positions, j);
+	      positions += posParts;
+	    }
+	    if (end - j <= args.indexStep) break;
+	  }
+	}
       }
       wordCounts[0] = myIndex.size();
     }
