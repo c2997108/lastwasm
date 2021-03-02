@@ -257,15 +257,11 @@ minimum alignment length about 20 bases for a human-size genome.
 Aligning paired-end Illumina DNA reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You could use last-pair-probs_.  It has a disadvantage: it doesn't
-allow different parts of one read (i.e. one "end") to align to
-different parts of the genome.  Alternatively, you could align the
-reads individually, ignoring the pair relationships::
-
-  fastq-interleave reads1.fq reads2.fq | lastal -P8 -p reads.train mydb | last-split > out.maf
-
-``fastq-interleave`` ensures that each read has a unique name (by
-appending "/1" and "/2" if necessary).
+You can use last-split-pe_, or the older last-pair-probs_.  The
+difference is that ``last-split-pe`` allows different parts of one
+read (i.e. one "end") to align to different parts of the genome, like
+``last-split``.  (Or you could align the reads individually, ignoring
+the pair relationships.)
 
 Aligning potentially-spliced Illumina reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -418,6 +414,7 @@ core is indicated by "~" symbols, and it contains exact matches only.
 .. _last-evalues:
 .. _significant:
 .. _significance: doc/last-evalues.rst
+.. _last-split-pe: https://bitbucket.org/splitpairedend/last-split-pe/wiki/Home
 .. _fastq: https://doi.org/10.1093/nar/gkp1137
 .. _here:
 .. _mask repeats: https://github.com/mcfrith/last-rna/blob/master/last-long-reads.md

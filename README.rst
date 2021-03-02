@@ -39,8 +39,8 @@ command-line developer tools.  On Windows, you might need to install
 Cygwin.  (It's possible to specify a compiler like this:
 ``make CXX=MyOtherCompiler``.)
 
-For convenient usage, set up your computer to find the programs
-automatically.  Some possible ways:
+The programs are in the ``bin`` directory.  For convenient usage, set
+up your computer to find them automatically.  Some possible ways:
 
 * Copy the programs to a standard directory: ``sudo make install``
   (using "sudo" to request administrator permissions).
