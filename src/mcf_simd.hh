@@ -13,10 +13,15 @@ namespace mcf {
 #if defined __AVX2__
 
 typedef __m256i SimdInt;
+typedef __m256i SimdUint1;
 
 const int simdBytes = 32;
 
 static inline SimdInt simdZero() {
+  return _mm256_setzero_si256();
+}
+
+static inline SimdInt simdZero1() {
   return _mm256_setzero_si256();
 }
 
@@ -28,7 +33,15 @@ static inline SimdInt simdLoad(const void *p) {
   return _mm256_loadu_si256((const SimdInt *)p);
 }
 
+static inline SimdInt simdLoad1(const void *p) {
+  return _mm256_loadu_si256((const SimdInt *)p);
+}
+
 static inline void simdStore(void *p, SimdInt x) {
+  _mm256_storeu_si256((SimdInt *)p, x);
+}
+
+static inline void simdStore1(void *p, SimdInt x) {
   _mm256_storeu_si256((SimdInt *)p, x);
 }
 
@@ -132,10 +145,15 @@ static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
 #elif defined __SSE4_1__
 
 typedef __m128i SimdInt;
+typedef __m128i SimdUint1;
 
 const int simdBytes = 16;
 
 static inline SimdInt simdZero() {
+  return _mm_setzero_si128();
+}
+
+static inline SimdInt simdZero1() {
   return _mm_setzero_si128();
 }
 
@@ -147,7 +165,15 @@ static inline SimdInt simdLoad(const void *p) {
   return _mm_loadu_si128((const SimdInt *)p);
 }
 
+static inline SimdInt simdLoad1(const void *p) {
+  return _mm_loadu_si128((const SimdInt *)p);
+}
+
 static inline void simdStore(void *p, SimdInt x) {
+  _mm_storeu_si128((SimdInt *)p, x);
+}
+
+static inline void simdStore1(void *p, SimdInt x) {
   _mm_storeu_si128((SimdInt *)p, x);
 }
 

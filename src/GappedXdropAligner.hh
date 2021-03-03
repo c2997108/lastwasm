@@ -369,7 +369,7 @@ class GappedXdropAligner {
 
   void initAntidiagonalTiny(size_t antidiagonalIncludingDummies,
 			    size_t seq1end, size_t thisEnd, int numCells) {
-    const SimdInt mNegInf = simdOnes1();
+    const SimdUint1 mNegInf = simdOnes1();
     size_t nextEnd = thisEnd + xdropPadLen + numCells;
 
     size_t a = 2 * (antidiagonalIncludingDummies + 1);
@@ -381,9 +381,9 @@ class GappedXdropAligner {
     scoreEndsAndOrigins[a] = nextEnd;
 
     resizeTinyScoresIfSmaller(nextEnd + (simdBytes-1));
-    simdStore(&xTinyScores[thisEnd], mNegInf);
-    simdStore(&yTinyScores[thisEnd], mNegInf);
-    simdStore(&zTinyScores[thisEnd], mNegInf);
+    simdStore1(&xTinyScores[thisEnd], mNegInf);
+    simdStore1(&yTinyScores[thisEnd], mNegInf);
+    simdStore1(&zTinyScores[thisEnd], mNegInf);
   }
 
   void initTiny(int scoreOffset) {
