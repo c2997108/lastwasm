@@ -352,7 +352,7 @@ class GappedXdropAligner {
   void initFrame();
 
   // Everything below here is for alignDna & getNextChunkDna
-#if defined __SSE4_1__
+#if defined __SSE4_1__ || defined __ARM_NEON
   std::vector<TinyScore> xTinyScores;
   std::vector<TinyScore> yTinyScores;
   std::vector<TinyScore> zTinyScores;

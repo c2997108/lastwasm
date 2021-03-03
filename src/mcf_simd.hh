@@ -6,7 +6,11 @@
 
 #if defined __SSE4_1__
 #include <immintrin.h>
+#elif defined __ARM_NEON
+#include <arm_neon.h>
 #endif
+
+#include <stddef.h>  // size_t
 
 namespace mcf {
 
@@ -261,6 +265,139 @@ static inline int simdHorizontalMin1(SimdInt x) {
 
 static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
   return _mm_shuffle_epi8(items, choices);  // SSSE3
+}
+
+#elif defined __ARM_NEON
+
+typedef int32x4_t SimdInt;
+typedef uint32x4_t SimdUint;
+typedef uint8x16_t SimdUint1;
+
+const int simdBytes = 16;
+
+static inline SimdInt simdZero() {
+  return vdupq_n_s32(0);
+}
+
+static inline SimdUint1 simdZero1() {
+  return vdupq_n_u8(0);
+}
+
+static inline SimdUint1 simdOnes1() {
+  return vdupq_n_u8(-1);
+}
+
+static inline SimdInt simdLoad(const int *p) {
+  return vld1q_s32(p);
+}
+
+static inline SimdUint1 simdLoad1(const unsigned char *p) {
+  return vld1q_u8(p);
+}
+
+static inline void simdStore(int *p, SimdInt x) {
+  vst1q_s32(p, x);
+}
+
+static inline void simdStore1(unsigned char *p, SimdUint1 x) {
+  vst1q_u8(p, x);
+}
+
+static inline SimdUint1 simdOr1(SimdUint1 x, SimdUint1 y) {
+  return vorrq_u8(x, y);
+}
+
+static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdUint mask) {
+  return vbslq_s32(mask, y, x);
+}
+
+const int simdLen = 4;
+
+static inline SimdInt simdSet(unsigned i3, unsigned i2,
+                              unsigned i1, unsigned i0) {
+  size_t lo = i1;
+  size_t hi = i3;
+  return
+    vcombine_s32(vcreate_s32((lo << 32) | i0), vcreate_s32((hi << 32) | i2));
+}
+
+static inline SimdUint1 simdSet1(unsigned char iF, unsigned char iE,
+				 unsigned char iD, unsigned char iC,
+				 unsigned char iB, unsigned char iA,
+				 unsigned char i9, unsigned char i8,
+				 unsigned char i7, unsigned char i6,
+				 unsigned char i5, unsigned char i4,
+				 unsigned char i3, unsigned char i2,
+				 unsigned char i1, unsigned char i0) {
+  size_t lo =
+    (size_t)i0       | (size_t)i1 <<  8 | (size_t)i2 << 16 | (size_t)i3 << 24 |
+    (size_t)i4 << 32 | (size_t)i5 << 40 | (size_t)i6 << 48 | (size_t)i7 << 56;
+
+  size_t hi =
+    (size_t)i8       | (size_t)i9 <<  8 | (size_t)iA << 16 | (size_t)iB << 24 |
+    (size_t)iC << 32 | (size_t)iD << 40 | (size_t)iE << 48 | (size_t)iF << 56;
+
+  return vcombine_u8(vcreate_u8(lo), vcreate_u8(hi));
+}
+
+static inline SimdInt simdFill(int x) {
+  return vdupq_n_s32(x);
+}
+
+static inline SimdUint1 simdFill1(unsigned char x) {
+  return vdupq_n_u8(x);
+}
+
+static inline SimdUint simdGt(SimdInt x, SimdInt y) {
+  return vcgtq_s32(x, y);
+}
+
+static inline SimdUint1 simdGe1(SimdUint1 x, SimdUint1 y) {
+  return vcgeq_u8(x, y);
+}
+
+static inline SimdInt simdAdd(SimdInt x, SimdInt y) {
+  return vaddq_s32(x, y);
+}
+
+static inline SimdUint1 simdAdd1(SimdUint1 x, SimdUint1 y) {
+  return vaddq_u8(x, y);
+}
+
+static inline SimdUint1 simdAdds1(SimdUint1 x, SimdUint1 y) {
+  return vqaddq_u8(x, y);
+}
+
+static inline SimdInt simdSub(SimdInt x, SimdInt y) {
+  return vsubq_s32(x, y);
+}
+
+static inline SimdUint1 simdSub1(SimdUint1 x, SimdUint1 y) {
+  return vsubq_u8(x, y);
+}
+
+static inline SimdUint1 simdQuadruple1(SimdUint1 x) {
+  return vshlq_n_u8(x, 2);
+}
+
+static inline SimdInt simdMax(SimdInt x, SimdInt y) {
+  return vmaxq_s32(x, y);
+}
+
+static inline SimdUint1 simdMin1(SimdUint1 x, SimdUint1 y) {
+  return vminq_u8(x, y);
+}
+
+static inline int simdHorizontalMax(SimdInt x) {
+  return vmaxvq_s32(x);
+}
+
+static inline int simdHorizontalMin1(SimdUint1 x) {
+  return vminvq_u8(x);
+}
+
+static inline SimdUint1 simdChoose1(SimdUint1 items, SimdUint1 choices) {
+  return vqtbl1q_u8(items, choices);
 }
 
 #else

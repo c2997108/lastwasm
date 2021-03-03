@@ -4,7 +4,7 @@
 #include "GappedXdropAligner.hh"
 #include "GappedXdropAlignerInl.hh"
 
-#if defined __SSE4_1__
+#if defined __SSE4_1__ || defined __ARM_NEON
 
 //#include <iostream>  // for debugging
 
@@ -126,7 +126,6 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 
       for (int i = 0; i < numCells; i += simdBytes) {
 	SimdUint1 s = simdSet1(
-#ifdef __SSE4_1__
 #ifdef __AVX2__
 			     scorer[s1[31]][s2[31]],
 			     scorer[s1[30]][s2[30]],
@@ -160,7 +159,6 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 			     scorer[s1[3]][s2[3]],
 			     scorer[s1[2]][s2[2]],
 			     scorer[s1[1]][s2[1]],
-#endif
 			     scorer[s1[0]][s2[0]]);
 
 	SimdUint1 x = simdAdds1(simdLoad1(x2+i), mScoreRise12);
