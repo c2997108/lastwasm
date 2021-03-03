@@ -156,9 +156,9 @@ int GappedXdropAligner::align(const uchar *seq1,
 	SimdInt y = simdSub(simdLoad(y1+i), mDelGrowCost);
 	SimdInt z = simdSub(simdLoad(z1+i), mInsGrowCost);
 	SimdInt b = simdMax(simdMax(x, y), z);
-	SimdInt isDrop = simdGt(mMinScore, b);
 	mBestScore = simdMax(b, mBestScore);
-	simdStore(x0+i, simdBlend(simdAdd(b, s), mNegInf, isDrop));
+	SimdInt xNew = simdBlend(simdAdd(b, s), mNegInf, simdGt(mMinScore, b));
+	simdStore(x0+i, xNew);
 	simdStore(y0+i, simdMax(simdSub(b, mDelOpenCost), y));
 	simdStore(z0+i, simdMax(simdSub(b, mInsOpenCost), z));
 	s1 += simdLen;

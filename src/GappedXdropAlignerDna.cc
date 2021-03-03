@@ -33,7 +33,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
   insGrowCost = std::min(insGrowCost, badScoreDrop);
   insOpenCost = std::min(insOpenCost, badScoreDrop - insGrowCost);
 
-  const SimdInt mNegInf = simdOnes();
+  const SimdInt mNegInf = simdOnes1();
   const SimdInt mDelOpenCost = simdFill1(delOpenCost);
   const SimdInt mDelGrowCost = simdFill1(delGrowCost);
   const SimdInt mInsOpenCost = simdFill1(insOpenCost);
@@ -104,7 +104,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
       for (int i = 0; i < numCells; i += simdBytes) {
 	SimdInt fwd1 = simdLoad(s1+i);
 	SimdInt rev2 = simdLoad(s2+i);
-	SimdInt j = simdOr(simdLeft(fwd1, 2), rev2);
+	SimdInt j = simdOr1(simdQuadruple1(fwd1), rev2);
 	SimdInt s = simdChoose1(scorer4x4, j);
 	SimdInt x = simdAdds1(simdLoad(x2+i), mScoreRise12);
 	SimdInt y = simdAdds1(simdLoad(y1+i), mDelGrowCost1);
@@ -112,7 +112,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	SimdInt b = simdMin1(simdMin1(x, y), z);
 	SimdInt isDrop = simdGe1(b, mBadScore);
 	mBestScore = simdMin1(b, mBestScore);
-	simdStore(x0+i, simdOr(simdSub1(b, s), isDrop));
+	simdStore(x0+i, simdOr1(simdSub1(b, s), isDrop));
 	simdStore(y0+i, simdMin1(simdAdds1(b, mDelOpenCost), y));
 	simdStore(z0+i, simdMin1(simdAdds1(b, mInsOpenCost), z));
       }
@@ -169,7 +169,7 @@ int GappedXdropAligner::alignDna(const uchar *seq1,
 	SimdInt b = simdMin1(simdMin1(x, y), z);
 	SimdInt isDrop = simdGe1(b, mBadScore);
 	mBestScore = simdMin1(b, mBestScore);
-	simdStore(x0+i, simdOr(simdSub1(b, s), isDrop));
+	simdStore(x0+i, simdOr1(simdSub1(b, s), isDrop));
 	simdStore(y0+i, simdMin1(simdAdds1(b, mDelOpenCost), y));
 	simdStore(z0+i, simdMin1(simdAdds1(b, mInsOpenCost), z));
 	s1 += simdBytes;

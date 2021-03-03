@@ -369,7 +369,7 @@ class GappedXdropAligner {
 
   void initAntidiagonalTiny(size_t antidiagonalIncludingDummies,
 			    size_t seq1end, size_t thisEnd, int numCells) {
-    const SimdInt mNegInf = simdOnes();
+    const SimdInt mNegInf = simdOnes1();
     size_t nextEnd = thisEnd + xdropPadLen + numCells;
 
     size_t a = 2 * (antidiagonalIncludingDummies + 1);

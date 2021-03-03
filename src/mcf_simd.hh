@@ -20,7 +20,7 @@ static inline SimdInt simdZero() {
   return _mm256_setzero_si256();
 }
 
-static inline SimdInt simdOnes() {
+static inline SimdInt simdOnes1() {
   return _mm256_set1_epi32(-1);
 }
 
@@ -32,7 +32,7 @@ static inline void simdStore(void *p, SimdInt x) {
   _mm256_storeu_si256((SimdInt *)p, x);
 }
 
-static inline SimdInt simdOr(SimdInt x, SimdInt y) {
+static inline SimdInt simdOr1(SimdInt x, SimdInt y) {
   return _mm256_or_si256(x, y);
 }
 
@@ -97,8 +97,8 @@ static inline SimdInt simdSub1(SimdInt x, SimdInt y) {
   return _mm256_sub_epi8(x, y);
 }
 
-static inline SimdInt simdLeft(SimdInt x, int bits) {
-  return _mm256_slli_epi32(x, bits);
+static inline SimdInt simdQuadruple1(SimdInt x) {
+  return _mm256_slli_epi32(x, 2);
 }
 
 static inline SimdInt simdMax(SimdInt x, SimdInt y) {
@@ -139,7 +139,7 @@ static inline SimdInt simdZero() {
   return _mm_setzero_si128();
 }
 
-static inline SimdInt simdOnes() {
+static inline SimdInt simdOnes1() {
   return _mm_set1_epi32(-1);
 }
 
@@ -151,7 +151,7 @@ static inline void simdStore(void *p, SimdInt x) {
   _mm_storeu_si128((SimdInt *)p, x);
 }
 
-static inline SimdInt simdOr(SimdInt x, SimdInt y) {
+static inline SimdInt simdOr1(SimdInt x, SimdInt y) {
   return _mm_or_si128(x, y);
 }
 
@@ -209,8 +209,8 @@ static inline SimdInt simdSub1(SimdInt x, SimdInt y) {
   return _mm_sub_epi8(x, y);
 }
 
-static inline SimdInt simdLeft(SimdInt x, int bits) {
-  return _mm_slli_epi32(x, bits);
+static inline SimdInt simdQuadruple1(SimdInt x) {
+  return _mm_slli_epi32(x, 2);
 }
 
 static inline SimdInt simdMax(SimdInt x, SimdInt y) {
