@@ -627,14 +627,18 @@ def codonScoresAndScale(originalScale, matParams, delRatios, insRatios):
     rowProbs = normalizedFreqs(rowFreqs)
     colProbs = normalizedFreqs(colFreqs)
     matParams = matchRatio, matProbs, rowProbs, colProbs
-    matScores = matScoresFromProbs(originalScale, *matParams)
-    delCosts = frameshiftCostsFromProbRatios(originalScale, delRatios)
-    insCosts = frameshiftCostsFromProbRatios(originalScale, insRatios)
-    args = matScores, rowProbs, colProbs, delCosts, insCosts
-    scale = balancedScale(frameshiftScoreImbalance, originalScale, args)
-    assert scale > 0  # XXX
-    matScores = matScores, rowFreqs, colFreqs
-    return matScores, delCosts, insCosts, scale
+    while True:
+        matScores = matScoresFromProbs(originalScale, *matParams)
+        delCosts = frameshiftCostsFromProbRatios(originalScale, delRatios)
+        insCosts = frameshiftCostsFromProbRatios(originalScale, insRatios)
+        args = matScores, rowProbs, colProbs, delCosts, insCosts
+        scale = balancedScale(frameshiftScoreImbalance, originalScale, args)
+        if scale > 0:
+            matScores = matScores, rowFreqs, colFreqs
+            return matScores, delCosts, insCosts, scale
+        print("# the integer-rounded scores are too inaccurate: "
+              "doubling the scale")
+        originalScale *= 2
 
 def isCloseEnough(oldParameters, newParameters):
     delCosts0, insCosts0, substitutionParameters0 = oldParameters
