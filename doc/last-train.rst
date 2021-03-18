@@ -114,6 +114,9 @@ Alignment options
            alignments with higher score-per-length.  This aims to
            reduce run time.
 -T NUMBER  Type of alignment: 0=local, 1=overlap.
+-R DIGITS  Lowercase & simple-sequence options.  If specified, this is
+           written in last-train's output, so it will override
+           lastal's default.
 -m COUNT   Maximum number of initial matches per query position.
 -k STEP    Look for initial matches starting only at every STEP-th
            position in each query.

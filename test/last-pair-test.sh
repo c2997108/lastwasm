@@ -41,5 +41,4 @@ maf-convert tab $tmp.maf2 > $tmp.tab2
     sed 's:/1::' $tmp.tab1 > $tmp.t1
     sed 's:/2::' $tmp.tab2 > $tmp.t2
     last-pair-probs $tmp.t1 $tmp.t2
-} |
-diff last-pair-test.out -
+} | diff -u last-pair-test.out -

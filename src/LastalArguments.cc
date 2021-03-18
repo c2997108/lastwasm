@@ -177,7 +177,7 @@ Miscellaneous options (default settings):\n\
     + stringify(globality) + ")\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
 -N: stop after the first N alignments per query strand\n\
--R: repeat-marking options (the same as was used by lastdb)\n\
+-R: lowercase & simple-sequence options (the same as was used by lastdb)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
     2=gapless+postmask, 3=always (2 if lastdb -c and Q!=pssm, else 0)\n\
 -w: suppress repeats inside exact matches, offset by <= this distance ("

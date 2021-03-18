@@ -22,7 +22,9 @@ alignment, and use sequence quality data in a rigorous fashion.
 Usage
 -----
 
-Please see the cookbook_.
+Please see the cookbook_.  **Warning:** this documentation may not
+apply to older versions of LAST!  You can see your version with
+``lastal --version``.
 
 Install
 -------

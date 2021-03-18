@@ -714,6 +714,7 @@ def fixedLastalArgs(opts, lastalProgName):
     if opts.S: x.append("-S" + opts.S)
     if opts.C: x.append("-C" + opts.C)
     if opts.T: x.append("-T" + opts.T)
+    if opts.R: x.append("-R" + opts.R)
     if opts.m: x.append("-m" + opts.m)
     if opts.k: x.append("-k" + opts.k)
     if opts.P: x.append("-P" + opts.P)
@@ -831,6 +832,7 @@ def doTraining(opts, args):
     ss = scoresAndScaleFunc(externalScale, matParams, delRatios, insRatios)
     matScores, delCosts, insCosts, scale = ss
     if opts.X: print("#last -X", opts.X)
+    if opts.R: print("#last -R", opts.R)
     if opts.Q: print("#last -Q", opts.Q)
     print("#last -t{0:.6}".format(scale))
     writeGapCosts(opts, delCosts, insCosts, True, None)
@@ -914,6 +916,8 @@ if __name__ == "__main__":
                   "omit gapless alignments in COUNT others with > score-per-length")
     og.add_option("-T", metavar="NUMBER",
                   help="type of alignment: 0=local, 1=overlap (default: 0)")
+    og.add_option("-R", metavar="DIGITS",
+                  help="lowercase & simple-sequence options")
     og.add_option("-m", metavar="COUNT", help=
                   "maximum initial matches per query position (default: 10)")
     og.add_option("-k", metavar="STEP", help="use initial matches starting at "
