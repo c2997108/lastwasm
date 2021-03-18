@@ -55,6 +55,8 @@ Main Options
        alignments, unlike other repeat finders.
     2. Convert simple DNA repeats to lowercase, with tantan tuned
        for ~80% AT-rich genomes.
+    3. Convert simple repeats, including weaker simple repeats, to
+       lowercase (with tantan's ``r`` parameter = 0.02).
 
 -c  Soft-mask lowercase letters.  This means that, when we compare
     these sequences to some other sequences using lastal, lowercase

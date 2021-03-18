@@ -112,7 +112,7 @@ Advanced Options (default settings):\n\
       break;
     case 'R':
       if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );
-      if( optarg[1] < '0' || optarg[1] > '2' ) badopt( c, optarg );
+      if( optarg[1] < '0' || optarg[1] > '3' ) badopt( c, optarg );
       if( optarg[2] ) badopt( c, optarg );
       isKeepLowercase = optarg[0] - '0';
       tantanSetting = optarg[1] - '0';

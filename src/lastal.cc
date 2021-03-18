@@ -1340,11 +1340,11 @@ void lastal( int argc, char** argv ){
   }
 
   if (args.tantanSetting) {
-    bool isAtRichDna = (args.tantanSetting > 1);
+    int t = args.tantanSetting;
     if (scoreMatrix.isCodonCols()) {
-      tantanMasker.init(0, isAtRichDna, queryAlph.letters, queryAlph.encode);
+      tantanMasker.init(0, t==2, t==3, queryAlph.letters, queryAlph.encode);
     } else {
-      tantanMasker.init(isProtein, isAtRichDna, alph.letters, alph.encode);
+      tantanMasker.init(isProtein, t==2, t==3, alph.letters, alph.encode);
     }
   }
 

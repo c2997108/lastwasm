@@ -33,6 +33,7 @@ class TantanMasker {
 public:
   void init(bool isProtein,
 	    bool isATrichDna,
+	    bool isMaskWeakRepeats,
 	    const std::string &alphabet,
 	    const uchar *letterToIndex);
 

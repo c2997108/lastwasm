@@ -177,7 +177,7 @@ Miscellaneous options (default settings):\n\
     + stringify(globality) + ")\n\
 -n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
 -N: stop after the first N alignments per query strand\n\
--R: repeat-marking options (the same as was used for lastdb)\n\
+-R: repeat-marking options (the same as was used by lastdb)\n\
 -u: mask lowercase during extensions: 0=never, 1=gapless,\n\
     2=gapless+postmask, 3=always (2 if lastdb -c and Q!=pssm, else 0)\n\
 -w: suppress repeats inside exact matches, offset by <= this distance ("
@@ -336,7 +336,7 @@ Miscellaneous options (default settings):\n\
       break;
     case 'R':
       if( optarg[0] < '0' || optarg[0] > '1' ) badopt( c, optarg );
-      if( optarg[1] < '0' || optarg[1] > '2' ) badopt( c, optarg );
+      if( optarg[1] < '0' || optarg[1] > '3' ) badopt( c, optarg );
       if( optarg[2] ) badopt( c, optarg );
       isKeepLowercase = optarg[0] - '0';
       tantanSetting = optarg[1] - '0';
@@ -496,7 +496,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 
   if( tantanSetting < 0 ){
     isKeepLowercase = isKeepRefLowercase;
-    tantanSetting = refTantanSetting;
+    tantanSetting = (refTantanSetting < 3) ? refTantanSetting : 1;
   }
 
   if( maskLowercase < 0 ){

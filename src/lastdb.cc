@@ -349,8 +349,8 @@ void lastdb( int argc, char** argv ){
   makeAlphabet( alph, args );
   TantanMasker tantanMasker;
   if( args.tantanSetting )
-    tantanMasker.init( alph.isProtein(), args.tantanSetting > 1,
-		       alph.letters, alph.encode );
+    tantanMasker.init(alph.isProtein(), args.tantanSetting == 2,
+		      args.tantanSetting == 3, alph.letters, alph.encode);
   std::vector< CyclicSubsetSeed > seeds;
   makeSubsetSeeds( seeds, seedText, args, alph );
 

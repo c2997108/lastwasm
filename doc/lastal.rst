@@ -369,8 +369,14 @@ Miscellaneous options
     0. Do not check for simple repeats.
     1. Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
     2. Convert simple repeats, within AT-rich DNA, to lowercase.
+    3. Convert simple repeats, including weaker simple repeats, to
+       lowercase (with tantan's ``r`` parameter = 0.02).
 
-    Details: Tantan is applied separately to forward and reverse
+    The default is to use the same ``-R`` setting as was used by
+    lastdb_, except that if lastdb's 2nd ``R`` digit was ``3``, it
+    defaults to ``1``.
+
+    Details: Tantan_ is applied separately to forward and reverse
     strands.  For DNA-versus-protein alignment, if you use a codon
     substitution matrix (e.g. from ``last-train --codon``), tantan
     is applied to the DNA before translation, else it is applied
@@ -609,4 +615,5 @@ output of lastdb.
 .. _lastdb5:
 .. _lastdb: doc/lastdb.rst
 .. _last-train: doc/last-train.rst
+.. _tantan: https://gitlab.com/mcfrith/tantan
 .. _gentle masking: https://doi.org/10.1371/journal.pone.0028819

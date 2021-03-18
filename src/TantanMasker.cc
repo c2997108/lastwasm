@@ -11,6 +11,7 @@ namespace cbrc {
 
 void TantanMasker::init(bool isProtein,
 			bool isATrichDna,
+			bool isMaskWeakRepeats,
 			const std::string &alphabet,
 			const uchar *letterToIndex) {
   maxRepeatOffset = 100;
@@ -41,6 +42,8 @@ T -5 -5 -5  2\n\
     alphabetSize = alphabet.size();
     s.setMatchMismatch(1, 1, alphabet);
   }
+
+  if (isMaskWeakRepeats) repeatProb = 0.02;
 
   s.init(letterToIndex);
 
