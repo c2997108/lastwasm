@@ -28,8 +28,8 @@ using namespace cbrc;
 LastdbArguments::LastdbArguments() :
   isProtein(false),
   isAddStops(false),
-  isKeepLowercase(true),
-  tantanSetting(0),
+  isKeepLowercase(false),
+  tantanSetting(-1),  // the default depends on other parameters
   isCaseSensitive(false),
   seedPatterns(0),
   strand(1),
@@ -57,14 +57,14 @@ Prepare sequences for subsequent alignment with lastal.\n\
 Main Options:\n\
 -h, --help: show all options and their default settings, and exit\n\
 -p: interpret the sequences as proteins\n\
--R: repeat-marking options (default="
-    + stringify(isKeepLowercase) + stringify(tantanSetting) + ")\n\
 -c: soft-mask lowercase letters (in reference *and* query sequences)\n\
--u: seeding scheme (default: YASS for DNA, else exact-match seeds)";
+-u: seeding scheme (default: YASS for DNA, else exact-match seeds)\n\
+-P: number of parallel threads (default: " + stringify(numOfThreads) + ")";
 
   std::string help = usage + "\n\
 \n\
 Advanced Options (default settings):\n\
+-R: lowercase & simple-sequence options (default: 03 for -q, else 01)\n\
 -w: use initial matches starting at every w-th position in each sequence ("
     + stringify(indexStep) + ")\n\
 -W: use \"minimum\" positions in sliding windows of W consecutive positions ("
@@ -74,8 +74,6 @@ Advanced Options (default settings):\n\
 -s: volume size (unlimited)\n\
 -Q: input format: fastx, keep, sanger, solexa, illumina (default=fasta)\n\
 -q: interpret the sequences as proteins and append */STOP\n\
--P: number of parallel threads ("
-    + stringify(numOfThreads) + ")\n\
 -m: seed patterns (1=match, 0=anything, @=transition)\n\
 -d: DNA seed patterns (N=match, n=anything, R=purine match, etc.)\n\
 -a: user-defined alphabet\n\

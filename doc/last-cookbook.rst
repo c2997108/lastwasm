@@ -32,9 +32,10 @@ line-wrapping.  For example, you can use::
 
 Each alignment looks like this (MAF_ format)::
 
-  a score=27 EG2=4.7e+04 E=2.6e-05
-  s humanMito 2170 145 + 16571 AGTAGGCCTAAAAGCAGCCACCAATTAAGAAAGCGTT...
-  s fuguMito  1648 142 + 16447 AGTAGGCTTAGAAGCAGCCACCA--CAAGAAAGCGTT...
+  a score=39 EG2=0.092 E=4.9e-11
+  s humanMito 12264 71 + 16571 CAACTTTTAAAGGATAACAGCTA-TCCATTGGTCTTAGGCCccaa...
+  s fuguMito  11840 73 + 16447 CAGCTTTTGAAGGATAATAGCTAATCCGTTGGTCTTAGGAACCAA...
+
 
 The score is a measure of how significant the similarity is.  EG2 and
 E are explained at last-evalues_.  Lines starting with "s" contain:
@@ -47,6 +48,9 @@ alignment begins right at the start of a sequence, the coordinate is
 0.  If the strand is "-", the start coordinate is the coordinate in
 the reverse-complemented sequence (the same as if you were to
 reverse-complement the sequence before giving it to LAST).
+
+Bases judged (by tantan_) to be simple repeats are shown in lowercase,
+e.g. ``cacacacacacacacacacacaca``.
 
 You can convert MAF to other formats with maf-convert_, or use lastal_
 option ``-f`` to get a few other formats.
@@ -72,21 +76,15 @@ Comparing protein sequences
 We can compare some query proteins to some reference proteins like
 this::
 
-  lastdb -p -c -R01 refdb ref-prots.fa
+  lastdb -p -c refdb ref-prots.fa
   lastal refdb query-prots.fa > prot-alns.maf
 
 ``-p`` tells it the sequences are proteins.  (If you forget ``-p`` and
 the sequences look proteinaceous, you'll get a warning message.)
 
-The other options suppress alignments caused by simple sequence such
-as ``APPSPAPPSPAPPSPAPPSPAP``:
-
-* ``-R01`` converts the sequence letters to uppercase, then finds
-  simple regions and converts them to lowercase.  This will be done
-  for both ref-prots and query-prots.
-
-* ``-c`` omits alignments that lack a significant amount of
-  uppercase-to-uppercase alignment.
+``-c`` suppresses alignments caused by simple sequence such as
+``appspappspappspappspap``.  It omits alignments that lack a
+significant amount of uppercase-to-uppercase alignment.
 
 You can also use last-train_, but we've hardly tested it for
 protein-protein alignment, so we're not sure if it helps.
@@ -97,7 +95,7 @@ Find high-similarity, and short, protein alignments
 If we just want high-similarity alignments, we can use the PAM30 (or
 PAM10) `scoring scheme`_::
 
-  lastdb -p -c -R01 refdb ref-prots.fa
+  lastdb -p -c refdb ref-prots.fa
   lastal -p PAM30 refdb query-prots.fa > prot-alns.maf
 
 This has two advantages:
@@ -115,7 +113,7 @@ We can find related regions of DNA and proteins, allowing for nonsense
 mutations and frameshifts.  For example, let's find DNA regions
 related to transposon proteins::
 
-  lastdb -q -c -R01 trandb transposon-prots.fa
+  lastdb -q -c trandb transposon-prots.fa
   last-train --codon trandb dna.fa > codon.train
   lastal -p codon.train -m100 -D1e9 -K1 trandb dna.fa > out.maf
 
@@ -150,12 +148,12 @@ Aligning high-indel-error long DNA reads to a genome
 Suppose we have DNA reads in either FASTA or FASTQ_ format.  This is
 sensitive but slow::
 
-  lastdb -P8 -uNEAR -R01 mydb genome.fa
+  lastdb -P8 -uNEAR mydb genome.fa
   last-train -P8 -Q0 mydb reads.fastq > reads.train
   lastal -P8 -p reads.train mydb reads.fastq | last-split > out.maf
 
-``-P8`` uses 8 parallel threads, adjust as appropriate for your
-computer.  This has no effect on the results.
+``-P8`` makes it faster by running 8 parallel threads, adjust as
+appropriate for your computer.  This has no effect on the results.
 
 ``-uNEAR`` selects a `seeding scheme`_ that's better at finding
 alignments with few substitutions and/or many gaps.
@@ -168,10 +166,10 @@ It gives each alignment a `mismap probability`_, which is high if that
 part of the read is almost equally similar to several parts of the
 genome.
 
-Here we used ``-R01`` to lowercase simple sequence like
-``cacacacacacacacacacacaca``.  But we didn't suppress it with ``-c``,
-so as not to hide anything from last-split_.  If desired, you can
-filter lowercase with last-postmask_.
+Here we didn't suppress alignments caused by simple sequence (like
+``cacacacacacacacacacacaca``), so as not to hide anything from
+last-split_.  You can discard such alignments with last-postmask_
+(though they may help to explain each part of a DNA read).
 
 You can go faster by sacrificing a bit of sensitivity.  It depends on
 your aim, e.g. slow-and-sensitive seems necessary to find intricate
@@ -200,7 +198,7 @@ like "analysis set".
 You can use multiple genomes, which will be treated like one big
 genome::
 
-  lastdb -P8 -uNEAR -R01 mydb human.fa virus.fa other-genomes.fa
+  lastdb -P8 -uNEAR mydb human.fa virus.fa other-genomes.fa
 
 Aligning low-error long DNA reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,7 +220,7 @@ Aligning Illumina DNA reads to a genome
 
 ::
 
-  lastdb -P8 -uNEAR -R01 -C2 mydb genome.fasta
+  lastdb -P8 -uNEAR -C2 mydb genome.fasta
   last-train -P8 -Q1 mydb reads.fastq.gz > reads.train
   lastal -P8 -p reads.train mydb reads.fastq.gz | last-split | gzip > out.maf.gz
 
@@ -274,7 +272,7 @@ Aligning human & chimp genomes
 The aim of genome-genome alignment is discussed in `our paper`_.  Here
 is a slow-and-sensitive recipe::
 
-  lastdb -P8 -uNEAR -R01 humdb human_no_alt_analysis_set.fa
+  lastdb -P8 -uNEAR humdb human_no_alt_analysis_set.fa
   last-train -P8 --revsym -E0.05 -C2 humdb chimp.fa > humchi.train
   lastal -E0.05 -C2 -p humchi.train humdb chimp.fa | last-split -fMAF+ > humchi1.maf
 
@@ -414,6 +412,7 @@ core is indicated by "~" symbols, and it contains exact matches only.
 .. _last-evalues:
 .. _significant:
 .. _significance: doc/last-evalues.rst
+.. _tantan: https://gitlab.com/mcfrith/tantan
 .. _last-split-pe: https://bitbucket.org/splitpairedend/last-split-pe/wiki/Home
 .. _fastq: https://doi.org/10.1093/nar/gkp1137
 .. _here:

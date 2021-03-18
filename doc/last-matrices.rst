@@ -50,7 +50,7 @@ It uses this matrix::
   T -18 -18 -18   3
 
 It sets these default lastal parameter values:
--a21 -b9
+-a21 -b9 -R10
 
 BISR
 ----
@@ -67,7 +67,7 @@ It uses this matrix::
   T -18 -18 -18   6
 
 It sets these default lastal parameter values:
--a21 -b9
+-a21 -b9 -R10
 
 BL62 or BLOSUM62
 ----------------

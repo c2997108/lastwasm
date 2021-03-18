@@ -32,7 +32,7 @@ Suppose we have paired DNA reads in a file called "interleaved.fastq"
 next two reads are paired, and so on.  We can align them to the human
 genome like this::
 
-  lastdb -uNEAR -R01 hg human-genome.fasta
+  lastdb -uNEAR hg human-genome.fasta
   lastal -Q1 -D1000 -i1 hg interleaved.fastq > temp.maf
   last-pair-probs temp.maf > out.maf
 

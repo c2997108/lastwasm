@@ -20,7 +20,7 @@ Assume the DNA reads are in a file called "q.fastq" (in fastq-sanger
 format), and the genome is in "genome.fasta" (in fasta format).  We
 can do the alignment like this::
 
-  lastdb -uNEAR -R01 db genome.fasta
+  lastdb -uNEAR db genome.fasta
   last-train -Q1 db q.fastq > train.out
   lastal -p train.out db q.fastq | last-split > out.maf
 
@@ -32,8 +32,6 @@ strands.  This time, we provide the genome information to last-split,
 which causes it to do spliced instead of split alignment, and also
 tells it where the splice signals are (GT, AG, etc)::
 
-  lastdb -uNEAR -R01 db genome.fasta
-  last-train -Q1 db q.fastq > train.out
   lastal -p train.out -D10 db q.fastq | last-split -g db > out.maf
 
 This will favour splices starting at GT (and to a lesser extent GC and

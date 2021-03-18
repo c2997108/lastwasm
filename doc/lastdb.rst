@@ -38,26 +38,6 @@ Main Options
 -p  Interpret the sequences as proteins.  The default is to interpret
     them as DNA.
 
--R DIGITS
-    Specify lowercase-marking of repeats, by two digits
-    (e.g. "-R01"), with the following meanings.
-
-    First digit:
-
-    0. Convert the input sequences to uppercase while reading them.
-    1. Keep any lowercase in the input sequences.
-
-    Second digit:
-
-    0. Do not check for simple repeats.
-    1. Convert simple repeats (e.g. cacacacacacacacac) to lowercase.
-       This uses tantan_, which reliably prevents non-homologous
-       alignments, unlike other repeat finders.
-    2. Convert simple DNA repeats to lowercase, with tantan tuned
-       for ~80% AT-rich genomes.
-    3. Convert simple repeats, including weaker simple repeats, to
-       lowercase (with tantan's ``r`` parameter = 0.02).
-
 -c  Soft-mask lowercase letters.  This means that, when we compare
     these sequences to some other sequences using lastal, lowercase
     letters will be excluded from initial matches.  This will apply
@@ -76,8 +56,36 @@ Main Options
     by options from a `scoring scheme <doc/last-matrices.rst>`_ or
     the lastal command line.
 
+-P THREADS
+    Make ``lastdb`` faster, with no effect on results, by running this
+    many threads in parallel.  ``0`` means use as many threads as your
+    computer claims it can handle simultaneously.
+
 Advanced Options
 ~~~~~~~~~~~~~~~~
+
+-R DIGITS
+    Specify lowercase usage, by two digits (e.g. ``-R01``), with the
+    following meanings.
+
+    First digit:
+
+    0. Convert the input sequences to uppercase while reading them.
+    1. Keep any lowercase in the input sequences.
+
+    Second digit:
+
+    0. Do not check for simple repeats.
+    1. Convert simple repeats (e.g. ``cacacacacacacacac``) to
+       lowercase.  This uses tantan_, which reliably prevents
+       non-homologous alignments, unlike other repeat finders.
+    2. Convert simple DNA repeats to lowercase, with tantan tuned
+       for ~80% AT-rich genomes.
+    3. Convert simple repeats, including weaker simple repeats, to
+       lowercase (with tantan's ``r`` parameter = 0.02).
+
+    The default is ``-R01`` (unless ``-q`` is specified, in which case
+    the default is ``-R03``).
 
 -w STEP
     Allow initial matches to start only at every STEP-th position in
@@ -140,11 +148,6 @@ Advanced Options
 
 -q  Interpret the sequences as proteins, use a 21-letter alphabet
     with ``*`` meaning STOP, and append ``*`` to each sequence.
-
--P THREADS
-    Divide the work between this number of threads running in
-    parallel.  0 means use as many threads as your computer claims
-    it can handle simultaneously.
 
 -m PATTERN
     Specify a spaced seed pattern, for example "-m 110101".  In this

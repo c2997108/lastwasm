@@ -1,6 +1,6 @@
 #
 # a=7 b=1 A=7 B=1 e=1 d=1 x=0 y=0 z=0 D=1e+06 E=1.12086e+17
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=0 normal letters=0
 # lambda=1.09602 K=0.335388
@@ -988,7 +988,7 @@ q S1_100              <i~'a;><q<f*`kduZ-LNlIBn@-2KH*~aLG44oC+H9]-A@9;WJ7.P~L?1h~
 TEST lastal -Q1 -e90 -a9 -f0 /tmp/last-test0 SRR001981-1k.fastq
 #
 # a=9 b=9 A=9 B=9 e=90 d=66 x=89 y=44 z=89 D=1e+06 E=2.97882e+07
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test0
 # Reference sequences=1 normal letters=16775
 # lambda=0.22361 K=0.374766
@@ -1310,7 +1310,7 @@ c 4.89 0.00223 0.25 0.93 2.08 8.23 2 0.247 0.963 3.26e-07 8.23 0.00218 0.711 0.9
 TEST lastal -T1 -Q1 -e60 -a9 -f0 /tmp/last-test SRR001981-1k.fastq
 #
 # a=9 b=9 A=9 B=9 e=60 d=52 x=59 y=44 z=59 D=1e+06 E=6.81745e+08
-# R=10 u=0 s=2 S=0 M=0 T=1 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
+# R=01 u=0 s=2 S=0 M=0 T=1 m=10 l=1 n=10 k=1 w=1000 t=4.36661 j=3 Q=1
 # /tmp/last-test
 # Reference sequences=1 normal letters=700
 # lambda=0.22361 K=0.374766
@@ -1435,7 +1435,7 @@ TEST lastal -pHOXD70 -e4500 -k128 -f0 /tmp/last-test galGal3-M-32.fa
 TEST lastal -e34 -C2 -f0 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=34 d=12 x=33 y=9 z=33 D=1e+06 E=1.13155e+07
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 C=2 k=1 w=1000 t=0.910239 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 C=2 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -1475,7 +1475,7 @@ TEST lastal -e34 -C2 -f0 /tmp/last-test galGal3-M-32.fa
 TEST lastal -e34 -f0 -l30 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=34 d=12 x=33 y=9 z=33 D=1e+06 E=1.13155e+07
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=30 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=30 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -1514,7 +1514,7 @@ TEST lastal -e34 -f0 -l30 /tmp/last-test galGal3-M-32.fa
 TEST lastal -j0 -l4 -L11 -s0 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=-1 d=-1 x=0 y=0 z=0 D=1e+06
-# R=10 u=0 s=0 S=0 M=0 T=0 m=10 l=4 L=11 n=10 k=1 w=1000 t=-1 j=0 Q=0
+# R=01 u=0 s=0 S=0 M=0 T=0 m=10 l=4 L=11 n=10 k=1 w=1000 t=-1 j=0 Q=0
 # /tmp/last-test
 # Reference sequences=2 normal letters=17803
 #
@@ -3662,7 +3662,7 @@ TEST lastal -S1 -pBISF -Q1 -e120 -f0 -j4 /tmp/last-test bs100.fastq
 TEST lastal -D1000 -fTAB -K2 /tmp/last-test galGal3-M-32.fa
 #
 # a=7 b=1 A=7 B=1 e=15 d=13 x=14 y=9 z=14 D=1000 E=2.43016e+10
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 K=2 k=1 w=1000 t=0.910239 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 K=2 k=1 w=1000 t=0.910239 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=1.09602 K=0.335388
@@ -4508,7 +4508,7 @@ q SRR001981.873            IIIIIIIIIIIIHIIIIIIIIIIII
 
 #
 # a=10 b=1 A=10 B=1 e=36 d=20 x=35 y=18 z=35 D=1e+06 E=7.76903e+08
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=1.82048 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=1.82048 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=507
 # lambda=0.545487 K=0.26232
@@ -4543,7 +4543,7 @@ s LTR22C#LTR/ERVK  0 505 + 509 TGTAGGGGNTCGGTCAGGGTGGTGGGAGAAATTGTAAAAATAAATTATA
 # Query sequences=1
 #
 # a=10 b=1 A=10 B=1 e=36 d=20 x=35 y=18 z=35 D=1e+06 E=7.76903e+08
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=1.82048 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=1.82048 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=507
 # lambda=0.545487 K=0.26232
@@ -4577,7 +4577,7 @@ s LTR22C#LTR/ERVK  0 505 + 509 TGTAGGGGNTCGGTCAGGGTGGTGGGAGAAATTGTAAAAATAAATTATA
 # Query sequences=1
 #
 # a=10 b=1 A=10 B=1 e=36 d=20 x=35 y=18 z=35 D=1e+06 E=7.76903e+08
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=1.82048 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=1.82048 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=507
 # lambda=0.545487 K=0.26232
@@ -4612,7 +4612,7 @@ s LTR22C#LTR/ERVK  0 505 + 509 TGTAGGGGNTCGGTCAGGGTGGTGGGAGAAATTGTAAAAATAAATTATA
 # Query sequences=1
 #
 # a=128 b=1 A=128 B=1 e=210 d=117 x=209 y=109 z=209 D=1e+06 E=9.80233e+08
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=10.9229 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=10.9229 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=507
 # lambda=0.0914364 K=0.214039
@@ -4646,7 +4646,7 @@ s LTR22C#LTR/ERVK  0 505 + 509 TGTAGGGGNTCGGTCAGGGTGGTGGGAGAAATTGTAAAAATAAATTATA
 # Query sequences=1
 #
 # a=21 b=4 A=21 B=4 e=114 d=70 x=113 y=49 z=113 D=1e+06 E=2.92797e+07
-# R=10 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.88281 j=3 Q=0
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.88281 j=3 Q=0
 # /tmp/last-test
 # Reference sequences=1 normal letters=16571
 # lambda=0.201859 K=0.288737

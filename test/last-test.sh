@@ -27,11 +27,11 @@ trap 'rm -f $db*' EXIT
     lastal $db /dev/null
 
     # spaced seeds, soft-masking, centroid alignment, matrix file
-    lastdb -c -m110 -C3 $db $dnaSeq
+    lastdb -c -m110 -C3 -R10 $db $dnaSeq
     try lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -z3400 -e2500 $db $dnaSeq
 
     # multiple volumes & query batches
-    lastdb -m1 -s1 -C2 $db $dnaSeq
+    lastdb -m1 -s1 -C2 -R10 $db $dnaSeq
     try lastal -fTAB -i1 -w0 -e40 $db $dnaSeq
 
     # match-counting, with multiple query batches
@@ -41,19 +41,19 @@ trap 'rm -f $db*' EXIT
     try lastal -Q1 -e90 -a9 $db $fastq
 
     # gapless translated alignment & genetic code file
-    lastdb -p $db $protSeq
+    lastdb -p -R10 $db $protSeq
     try lastal -F12 -pBL62 -e40 -G $gc -j1 $db $dnaSeq
     try lastal -F12 -pBL62 -e40 -G2 -j1 $db $dnaSeq
 
     # subset seed file, soft-masking
-    lastdb -c -u ../data/YASS.seed $db $dnaSeq
+    lastdb -c -R10 -u ../data/YASS.seed $db $dnaSeq
     try lastal -s0 -f0 -e18 $db $dnaSeq
 
     # asymmetric scoring matrix
     try lastal -s0 -f0 -p asymmetric.mat -e2000 $db $dnaSeq
 
     # FASTQ-Illumina quality scores
-    lastdb -m1111110 $db $dnaSeq
+    lastdb -m1111110 -R10 $db $dnaSeq
     try lastal -Q3 -e110 $db illumina100.txt
 
     # PRB-format quality data
@@ -63,18 +63,18 @@ trap 'rm -f $db*' EXIT
     try lastal -Q1 -j6 -e90 -a9 $db $fastq
 
     # sparse index, generalized affine gap costs
-    lastdb -w2 -c $db $dnaSeq
+    lastdb -w2 -c -R10 $db $dnaSeq
     try lastal -r3 -q3 -a21 -c2 -e60 -f0 $db $dnaSeq
 
     # generalized affine gaps, frameshifts, tabular output
-    lastdb -p -c $db $protSeq
+    lastdb -p -c -R10 $db $protSeq
     try lastal -F12 -pBL62 -c2 -e40 -f0 $db $dnaSeq
 
     # gapless alignment, protein-protein alignment, seed freq
     try lastal -j1 -f0 -e37 -m100 $db $protSeq
 
     # fastq-versus-fastq, seed freq
-    lastdb -Q1 $db sd-ccs-100.fq
+    lastdb -Q1 -R10 $db sd-ccs-100.fq
     try lastal -Q1 -r1 -q2 -a1 -b1 -e44 -m100 -s0 $db sd-ccs-100.fq
 
     # incomplete sorting, lastal on one volume
@@ -82,15 +82,15 @@ trap 'rm -f $db*' EXIT
     try lastal -Q1 -e90 -a9 -f0 ${db}0 $fastq
 
     # multiple seeds, transition constraints
-    lastdb -c -m 11101T011T11,111001010010111 $db $dnaSeq
+    lastdb -c -R10 -m 11101T011T11,111001010010111 $db $dnaSeq
     try lastal -s0 -f0 -e18 $db $dnaSeq
 
     # Iedera notation
-    lastdb -c -m '#@#--##--#-#' $db $dnaSeq
+    lastdb -c -R10 -m '#@#--##--#-#' $db $dnaSeq
     try lastal -s0 -f0 -e18 $db $dnaSeq
 
     # overlap alignment, tabular output ending in gaps
-    lastdb -m1111110 $db $dnaSeq
+    lastdb -m1111110 -R10 $db $dnaSeq
     try lastal -T1 -Q1 -e60 -a9 -f0 $db $fastq
 
     # probabilistic overlap alignment
@@ -107,7 +107,7 @@ trap 'rm -f $db*' EXIT
     try lastal -T1 -Q1 -e60 -a9 -f0 $db $fastq
 
     # named multi-seed, sparse query seeding
-    lastdb -c -uMAM8 $db hg19-M.fa
+    lastdb -c -R10 -uMAM8 $db hg19-M.fa
     try lastal -e34 -k128 -f0 $db galGal3-M-32.fa
 
     # named score matrix, sparse query seeding
@@ -150,7 +150,7 @@ trap 'rm -f $db*' EXIT
     try lastal -Q1 -a15 -b3 -e80 $db nano.fq
 
     # fasta query versus fastq reference
-    lastdb -Q1 $db sd-ccs-100.fq
+    lastdb -Q1 -R10 $db sd-ccs-100.fq
     try lastal -a1 -D1000 $db galGal3-M-32.fa
 
     # prb query versus fastq reference
@@ -187,7 +187,7 @@ trap 'rm -f $db*' EXIT
     try lastal -D1000 -fTAB -K2 $db galGal3-M-32.fa
 
     # minimizers
-    lastdb -W3 $db galGal3-M-32.fa
+    lastdb -W3 -R10 $db galGal3-M-32.fa
     try lastal -W19 -fTAB $db hg19-M.fa
 
     # minimum-difference alignment
@@ -236,8 +236,8 @@ trap 'rm -f $db*' EXIT
 grep -v version | diff -u last-test.out -
 
 # Test: last-bisulfite, last-merge-batches, last-split, named seeds
-lastdb -uBISF f hg19-M.fa
-lastdb -uBISR r hg19-M.fa
+lastdb -uBISF -R10 f hg19-M.fa
+lastdb -uBISR -R10 r hg19-M.fa
 ../examples/last-bisulfite.sh f r bs100.fastq | grep -v '^#' | diff bs100.maf -
 rm f.* r.*
 

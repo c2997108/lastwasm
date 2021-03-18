@@ -343,6 +343,8 @@ void lastdb( int argc, char** argv ){
     args.fromArgs( argc, argv );  // command line overrides seed file
   }
 
+  args.setDefaults();
+
   unsigned numOfThreads =
     decideNumberOfThreads(args.numOfThreads, args.programName, args.verbosity);
   Alphabet alph;

@@ -29,6 +29,10 @@ struct LastdbArguments{
   void resetCumulativeOptions()
   { seedPatterns.clear(); dnaSeedPatterns.clear(); verbosity = 0; }
 
+  void setDefaults() {
+    if (tantanSetting < 0) tantanSetting = isAddStops ? 3 : 1;
+  }
+
   // options:
   bool isProtein;
   bool isAddStops;
