@@ -422,7 +422,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if( outputType > 3 ){  // calculate match probabilities
     assert( !isGreedy );
     assert( !sm2qual );
-    centroid.forward(seq1, seq2, start1, start2, isForward, gap, globality);
+    double s = centroid.forward(seq1, seq2, start1, start2, isForward,
+				gap, globality);
     centroid.backward(seq1, seq2, start1, start2, isForward, gap, globality);
 
     if( outputType > 4 && outputType < 7 ){  // gamma-centroid / LAMA alignment
@@ -431,7 +432,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     }
 
     getColumnCodes(centroid, columnCodes, chunks, isForward);
-    extras.fullScore += centroid.logPartitionFunction();
+    extras.fullScore += s;
 
     if( outputType == 7 ){
       ExpectedCount ec;

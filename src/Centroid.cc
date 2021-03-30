@@ -111,9 +111,9 @@ namespace cbrc{
     bI.assign( n, 0.0 );
   }
 
-  void Centroid::forward(const uchar* seq1, const uchar* seq2,
-			 size_t start1, size_t start2, bool isExtendFwd,
-			 const GapCosts& gapCosts, int globality) {
+  double Centroid::forward(const uchar *seq1, const uchar *seq2,
+			   size_t start1, size_t start2, bool isExtendFwd,
+			   const GapCosts &gapCosts, int globality) {
     seq1 += start1;
     seq2 += start2;
     const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
@@ -229,6 +229,7 @@ namespace cbrc{
     //std::cout << "# Z=" << Z << std::endl;
     assert( Z > 0.0 );
     scale[ numAntidiagonals + 1 ] /= Z;  // this causes scaled Z to equal 1
+    return logPartitionFunction();
   }
 
   // added by M. Hamada

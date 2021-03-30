@@ -60,9 +60,9 @@ namespace cbrc{
     // start1 is the index of the first letter to look at in seq1
     // start2 is the index of the first letter to look at in seq2
 
-    void forward(const uchar *seq1, const uchar *seq2,
-		 size_t start1, size_t start2, bool isExtendFwd,
-		 const GapCosts &gapCosts, int globality);
+    double forward(const uchar *seq1, const uchar *seq2,
+		   size_t start1, size_t start2, bool isExtendFwd,
+		   const GapCosts &gapCosts, int globality);
 
     void backward(const uchar *seq1, const uchar *seq2,
 		  size_t start1, size_t start2, bool isExtendFwd,
@@ -90,8 +90,6 @@ namespace cbrc{
 
     void getInsertAmbiguities(std::vector<char>& ambiguityCodes,
 			      size_t seq2end, size_t seq2beg) const;
-
-    double logPartitionFunction() const;  // a.k.a. full score, forward score
 
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
@@ -137,6 +135,8 @@ namespace cbrc{
 
     void initForwardMatrix();
     void initBackwardMatrix();
+
+    double logPartitionFunction() const;  // a.k.a. full score, forward score
 
     void updateScore(double score, size_t antiDiagonal, size_t cur) {
       if (bestScore < score) {
