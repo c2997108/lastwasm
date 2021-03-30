@@ -432,7 +432,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     }
 
     getColumnCodes(centroid, columnCodes, chunks, isForward);
-    extras.fullScore += s;
+    extras.fullScore += s / scale;
 
     if( outputType == 7 ){
       ExpectedCount ec;

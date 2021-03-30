@@ -101,7 +101,6 @@ namespace cbrc{
     typedef double ExpMatrixRow[scoreMatrixRowSize];
 
     GappedXdropAligner xa;
-    double T; // temperature
     size_t numAntidiagonals;
     double match_score[scoreMatrixRowSize][scoreMatrixRowSize];
     bool isPssm;

@@ -33,7 +33,6 @@ namespace cbrc{
   }
 
   void Centroid::setScoreMatrix( const ScoreMatrixRow* sm, double T ) {
-    this -> T = T;
     this -> isPssm = false;
     for ( int n=0; n<scoreMatrixRowSize; ++n )
       for ( int m=0; m<scoreMatrixRowSize; ++m ) {
@@ -44,7 +43,6 @@ namespace cbrc{
   void Centroid::setPssm( const ScoreMatrixRow* pssm, size_t qsize, double T,
 			  const OneQualityExpMatrix& oqem,
 			  const uchar* sequenceBeg, const uchar* qualityBeg ) {
-    this->T = T;
     this -> isPssm = true;
     pssmExp.resize( qsize * scoreMatrixRowSize );
     pssmExp2 = reinterpret_cast<ExpMatrixRow*> ( &pssmExp[0] );
@@ -554,7 +552,7 @@ namespace cbrc{
     for( size_t k = 0; k < numAntidiagonals; ++k ){
       x -= std::log( scale[k+2] );
     }
-    return T * x;
+    return x;
   }
 
   static void countUncertainLetters(double *counts, double alignProb,
