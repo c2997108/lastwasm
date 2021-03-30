@@ -29,11 +29,26 @@ static void assignGapCostPieces(const std::vector<int> &openCosts,
 
 static void assignProbs(std::vector<GapCosts::ProbPiece> &probPieces,
 			const std::vector<GapCosts::Piece> &costPieces,
-			double scale) {
+			double scale, bool isMergedPathCosts) {
   probPieces.resize(costPieces.size());
   for (size_t i = 0; i < costPieces.size(); ++i) {
-    probPieces[i].openProb = exp(scale * -costPieces[i].openCost);
-    probPieces[i].growProb = exp(scale * -costPieces[i].growCost);
+    double open = exp(scale * -costPieces[i].openCost);
+    double grow = exp(scale * -costPieces[i].growCost);
+
+    if (isMergedPathCosts) {
+      double init = open * grow;  // probability ratio for 1st letter in a gap
+
+      // Path parameter from alignment parameter, as in Supplementary
+      // section 3.1 of "How sequence alignment scores correspond to
+      // probability models", Bioinformatics 2020:
+      double next = grow - init;
+
+      open = init;
+      grow = next;
+    }
+
+    probPieces[i].openProb = open;
+    probPieces[i].growProb = grow;
   }
 }
 
@@ -56,8 +71,9 @@ void GapCosts::assign(const std::vector<int> &delOpenCosts,
 	      pairCost >= delPieces[0].growCost + insPieces[0].growCost +
 	      std::max(delPieces[0].openCost, insPieces[0].openCost));
 
-  assignProbs(delProbPieces, delPieces, scale);
-  assignProbs(insProbPieces, insPieces, scale);
+  bool isMergedPathCosts = (frameshiftCosts.size() < 2);
+  assignProbs(delProbPieces, delPieces, scale, isMergedPathCosts);
+  assignProbs(insProbPieces, insPieces, scale, isMergedPathCosts);
 
   if (frameshiftCosts.empty()) {
     frameshiftCost = -1;

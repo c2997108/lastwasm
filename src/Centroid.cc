@@ -120,20 +120,10 @@ namespace cbrc{
     scale.assign(numAntidiagonals + 2, 1.0);
     initForwardMatrix();
 
-    const double delOpen = gapCosts.delProbPieces[0].openProb;
-    const double delGrow = gapCosts.delProbPieces[0].growProb;
-    const double insOpen = gapCosts.insProbPieces[0].openProb;
-    const double insGrow = gapCosts.insProbPieces[0].growProb;
-
-    const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
-    const double insInit = insOpen * insGrow;  // for 1st letter in an insert
-
-    // The next 2 subtractions get the path parameters from the
-    // alignment parameters, as in Supplementary section 3.1 of "How
-    // sequence alignment scores correspond to probability models",
-    // Bioinformatics 2019:
-    const double delNext = delGrow - delInit;
-    const double insNext = insGrow - insInit;
+    const double delInit = gapCosts.delProbPieces[0].openProb;
+    const double delNext = gapCosts.delProbPieces[0].growProb;
+    const double insInit = gapCosts.insProbPieces[0].openProb;
+    const double insNext = gapCosts.insProbPieces[0].growProb;
 
     double Z = 0.0;  // partion function of forward values
 
@@ -243,16 +233,10 @@ namespace cbrc{
     mI.assign(numAntidiagonals + 2, 0.0);
     initBackwardMatrix();
 
-    const double delOpen = gapCosts.delProbPieces[0].openProb;
-    const double delGrow = gapCosts.delProbPieces[0].growProb;
-    const double insOpen = gapCosts.insProbPieces[0].openProb;
-    const double insGrow = gapCosts.insProbPieces[0].growProb;
-
-    const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
-    const double insInit = insOpen * insGrow;  // for 1st letter in an insert
-
-    const double delNext = delGrow - delInit;
-    const double insNext = insGrow - insInit;
+    const double delInit = gapCosts.delProbPieces[0].openProb;
+    const double delNext = gapCosts.delProbPieces[0].growProb;
+    const double insInit = gapCosts.insProbPieces[0].openProb;
+    const double insNext = gapCosts.insProbPieces[0].growProb;
 
     double scaledUnit = 1.0;
 
@@ -692,16 +676,10 @@ namespace cbrc{
       insNextCount += iNextCount * scale1;
     }
 
-    const double delOpen = gapCosts.delProbPieces[0].openProb;
-    const double delGrow = gapCosts.delProbPieces[0].growProb;
-    const double insOpen = gapCosts.insProbPieces[0].openProb;
-    const double insGrow = gapCosts.insProbPieces[0].growProb;
-
-    const double delInit = delOpen * delGrow;  // for 1st letter in a deletion
-    const double insInit = insOpen * insGrow;  // for 1st letter in an insert
-
-    const double delNext = delGrow - delInit;
-    const double insNext = insGrow - insInit;
+    const double delInit = gapCosts.delProbPieces[0].openProb;
+    const double delNext = gapCosts.delProbPieces[0].growProb;
+    const double insInit = gapCosts.insProbPieces[0].openProb;
+    const double insNext = gapCosts.insProbPieces[0].growProb;
 
     c.delInit += delInitCount * delInit;
     c.delNext += delNextCount * delNext;
