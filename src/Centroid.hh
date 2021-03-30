@@ -60,20 +60,13 @@ namespace cbrc{
     // start1 is the index of the first letter to look at in seq1
     // start2 is the index of the first letter to look at in seq2
 
-    void doForwardBackwardAlgorithm(const uchar* seq1, const uchar* seq2,
-				    size_t start1, size_t start2,
-				    bool isExtendFwd, const GapCosts& gapCosts,
-				    int globality) {
-      seq1 += start1;
-      seq2 += start2;
-      const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
-      numAntidiagonals = xa.numAntidiagonals();
-      scale.assign(numAntidiagonals + 2, 1.0);
-      forward(seq1, seq2, pssm, isExtendFwd, gapCosts, globality);
-      mD.assign(numAntidiagonals + 2, 0.0);
-      mI.assign(numAntidiagonals + 2, 0.0);
-      backward(seq1, seq2, pssm, isExtendFwd, gapCosts, globality);
-    }
+    void forward(const uchar *seq1, const uchar *seq2,
+		 size_t start1, size_t start2, bool isExtendFwd,
+		 const GapCosts &gapCosts, int globality);
+
+    void backward(const uchar *seq1, const uchar *seq2,
+		  size_t start1, size_t start2, bool isExtendFwd,
+		  const GapCosts &gapCosts, int globality);
 
     double dp( double gamma );
 
@@ -141,14 +134,6 @@ namespace cbrc{
     double bestScore;
     size_t bestAntiDiagonal;
     size_t bestPos1;
-
-    void forward(const uchar* seq1, const uchar* seq2,
-		 const ExpMatrixRow* pssm, bool isExtendFwd,
-		 const GapCosts& gapCosts, int globality);
-
-    void backward(const uchar* seq1, const uchar* seq2,
-		  const ExpMatrixRow* pssm, bool isExtendFwd,
-		  const GapCosts& gapCosts, int globality);
 
     void initForwardMatrix();
     void initBackwardMatrix();

@@ -112,9 +112,14 @@ namespace cbrc{
   }
 
   void Centroid::forward(const uchar* seq1, const uchar* seq2,
-			 const ExpMatrixRow* pssm, bool isExtendFwd,
+			 size_t start1, size_t start2, bool isExtendFwd,
 			 const GapCosts& gapCosts, int globality) {
+    seq1 += start1;
+    seq2 += start2;
+    const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isExtendFwd ? 1 : -1;
+    numAntidiagonals = xa.numAntidiagonals();
+    scale.assign(numAntidiagonals + 2, 1.0);
     initForwardMatrix();
 
     const double delOpen = gapCosts.delProbPieces[0].openProb;
@@ -229,9 +234,14 @@ namespace cbrc{
   // added by M. Hamada
   // compute posterior probabilities while executing backward algorithm
   void Centroid::backward(const uchar* seq1, const uchar* seq2,
-			  const ExpMatrixRow* pssm, bool isExtendFwd,
+			  size_t start1, size_t start2, bool isExtendFwd,
 			  const GapCosts& gapCosts, int globality) {
+    seq1 += start1;
+    seq2 += start2;
+    const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isExtendFwd ? 1 : -1;
+    mD.assign(numAntidiagonals + 2, 0.0);
+    mI.assign(numAntidiagonals + 2, 0.0);
     initBackwardMatrix();
 
     const double delOpen = gapCosts.delProbPieces[0].openProb;
