@@ -423,8 +423,9 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     assert( !isGreedy );
     assert( !sm2qual );
     double s = centroid.forward(seq1, seq2, start1, start2, isForward,
-				gap, globality);
-    centroid.backward(seq1, seq2, start1, start2, isForward, gap, globality);
+				probMat, gap, globality);
+    centroid.backward(seq1, seq2, start1, start2, isForward,
+		      probMat, gap, globality);
 
     if( outputType > 4 && outputType < 7 ){  // gamma-centroid / LAMA alignment
       centroid.dp( gamma );
@@ -436,8 +437,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
     if( outputType == 7 ){
       ExpectedCount ec;
-      centroid.computeExpectedCounts( seq1, seq2, start1, start2,
-				      isForward, gap, alph.size, ec );
+      centroid.computeExpectedCounts(seq1, seq2, start1, start2, isForward,
+				     probMat, gap, alph.size, ec);
       addExpectedCounts(&extras.expectedCounts[0], ec);
     }
   }

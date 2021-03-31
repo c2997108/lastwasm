@@ -805,9 +805,9 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
   size_t queryLen = query.padLen(queryNum);
 
   if( args.outputType > 3 ){
+    centroid.setScoreMatrix();
     if( dis.p ){
       if (args.outputType == 7) {
-	centroid.setScoreMatrix(dis.m, args.temperature);
 	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
 					   isUseFastq(args.inputFormat),
 					   matrices.maker.qualToProbRight(),
@@ -816,8 +816,6 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       }
       centroid.setPssm(dis.p, queryLen, args.temperature,
 		       matrices.oneQualExp, dis.b, dis.j);
-    } else {
-      centroid.setScoreMatrix( dis.m, args.temperature );
     }
     centroid.setOutputType( args.outputType );
   }

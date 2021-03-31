@@ -32,14 +32,6 @@ namespace cbrc{
       for (int m=0; m<scoreMatrixRowSize; m++) emit[n][m] = d0;
   }
 
-  void Centroid::setScoreMatrix( const ScoreMatrixRow* sm, double T ) {
-    this -> isPssm = false;
-    for ( int n=0; n<scoreMatrixRowSize; ++n )
-      for ( int m=0; m<scoreMatrixRowSize; ++m ) {
-	match_score[n][m] = EXP ( sm[ n ][ m ] / T );
-      }
-  }
-
   void Centroid::setPssm( const ScoreMatrixRow* pssm, size_t qsize, double T,
 			  const OneQualityExpMatrix& oqem,
 			  const uchar* sequenceBeg, const uchar* qualityBeg ) {
@@ -111,6 +103,7 @@ namespace cbrc{
 
   double Centroid::forward(const uchar *seq1, const uchar *seq2,
 			   size_t start1, size_t start2, bool isExtendFwd,
+			   const const_dbl_ptr *substitutionProbs,
 			   const GapCosts &gapCosts, int globality) {
     seq1 += start1;
     seq2 += start2;
@@ -163,7 +156,7 @@ namespace cbrc{
 	while (1) {
 	  const unsigned letter1 = *s1;
 	  const unsigned letter2 = *s2;
-	  const double matchProb = match_score[letter1][letter2];
+	  const double matchProb = substitutionProbs[letter1][letter2];
 
 	  const double xM = *fM2;
 	  const double xD = *fD1;
@@ -224,6 +217,7 @@ namespace cbrc{
   // compute posterior probabilities while executing backward algorithm
   void Centroid::backward(const uchar* seq1, const uchar* seq2,
 			  size_t start1, size_t start2, bool isExtendFwd,
+			  const const_dbl_ptr *substitutionProbs,
 			  const GapCosts& gapCosts, int globality) {
     seq1 += start1;
     seq2 += start2;
@@ -278,7 +272,7 @@ namespace cbrc{
 	while (1) {
 	  const unsigned letter1 = *s1;
 	  const unsigned letter2 = *s2;
-	  const double matchProb = match_score[letter1][letter2];
+	  const double matchProb = substitutionProbs[letter1][letter2];
 
 	  const double yM = *bM0;
 	  const double yD = *bD0;
@@ -558,12 +552,13 @@ namespace cbrc{
     }
   }
 
-  void Centroid::computeExpectedCounts ( const uchar* seq1, const uchar* seq2,
-					 size_t start1, size_t start2,
-					 bool isExtendFwd,
-					 const GapCosts& gapCosts,
-					 unsigned alphabetSize,
-					 ExpectedCount& c ) const{
+  void Centroid::computeExpectedCounts(const uchar *seq1, const uchar *seq2,
+				       size_t start1, size_t start2,
+				       bool isExtendFwd,
+				       const const_dbl_ptr *substitutionProbs,
+				       const GapCosts &gapCosts,
+				       unsigned alphabetSize,
+				       ExpectedCount &c) const {
     seq1 += start1;
     seq2 += start2;
     const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
@@ -611,7 +606,7 @@ namespace cbrc{
 	while (1) {
 	  const unsigned letter1 = *s1;
 	  const unsigned letter2 = *s2;
-	  const double matchProb = match_score[letter1][letter2];
+	  const double matchProb = substitutionProbs[letter1][letter2];
 
 	  const double yM = *bM0;
 	  const double yD = *bD0;
@@ -656,7 +651,7 @@ namespace cbrc{
 
 	  const double alignProb = xSum * yM * matchProb;
 	  countUncertainLetters(c.emit[letter1], alignProb,
-				alphabetSize, match_score[letter1], lp2);
+				alphabetSize, substitutionProbs[letter1], lp2);
 	  c.toMatch += alignProb;
 	  delInitCount += xSum * yD;
 	  dNextCount += xD * yD;

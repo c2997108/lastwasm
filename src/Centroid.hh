@@ -35,11 +35,13 @@ namespace cbrc{
    * (2) \gamma-centroid decoding
    */
   class Centroid{
+    typedef const double *const_dbl_ptr;
+
   public:
     GappedXdropAligner& aligner() { return xa; }
 
     // Setters
-    void setScoreMatrix( const ScoreMatrixRow* sm, double T );
+    void setScoreMatrix() { isPssm = false; }
     void setPssm ( const ScoreMatrixRow* pssm, size_t qsize, double T,
                    const OneQualityExpMatrix& oqem,
                    const uchar* sequenceBeg, const uchar* qualityBeg );
@@ -62,10 +64,12 @@ namespace cbrc{
 
     double forward(const uchar *seq1, const uchar *seq2,
 		   size_t start1, size_t start2, bool isExtendFwd,
+		   const const_dbl_ptr *substitutionProbs,
 		   const GapCosts &gapCosts, int globality);
 
     void backward(const uchar *seq1, const uchar *seq2,
 		  size_t start1, size_t start2, bool isExtendFwd,
+		  const const_dbl_ptr *substitutionProbs,
 		  const GapCosts &gapCosts, int globality);
 
     double dp( double gamma );
@@ -94,6 +98,7 @@ namespace cbrc{
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
 			       size_t start1, size_t start2, bool isExtendFwd,
+			       const const_dbl_ptr *substitutionProbs,
 			       const GapCosts& gapCosts, unsigned alphabetSize,
 			       ExpectedCount& count) const;
 
@@ -102,7 +107,6 @@ namespace cbrc{
 
     GappedXdropAligner xa;
     size_t numAntidiagonals;
-    double match_score[scoreMatrixRowSize][scoreMatrixRowSize];
     bool isPssm;
     std::vector<double> pssmExp; //
     ExpMatrixRow* pssmExp2; // pre-computed pssm for prob align
