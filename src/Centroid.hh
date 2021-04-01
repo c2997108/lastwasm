@@ -40,12 +40,10 @@ namespace cbrc{
   public:
     GappedXdropAligner& aligner() { return xa; }
 
-    // Setters
     void setScoreMatrix() { isPssm = false; }
     void setPssm ( const ScoreMatrixRow* pssm, size_t qsize, double T,
                    const OneQualityExpMatrix& oqem,
                    const uchar* sequenceBeg, const uchar* qualityBeg );
-    void setOutputType( int m ) { outputType = m; }
 
     // For a sequence with quality data, store the probability that
     // each position is each letter (possibly scaled by a constant per
@@ -71,9 +69,18 @@ namespace cbrc{
 		  const const_dbl_ptr *substitutionProbs,
 		  const GapCosts &gapCosts, int globality);
 
-    double dp( double gamma );
+    double dp(int outputType, double gamma) {
+      bestScore = 0;
+      bestAntiDiagonal = 0;
+      bestPos1 = 0;
+      X.resize(fM.size());
+      if (outputType == 5) return dp_centroid(gamma);
+      if (outputType == 6) return dp_ama(gamma);
+      return 0;
+    }
 
-    void traceback(std::vector<SegmentPair> &chunks, double gamma) const {
+    void traceback(std::vector<SegmentPair> &chunks,
+		   int outputType, double gamma) const {
       if (outputType==5) traceback_centroid(chunks, gamma);
       if (outputType==6) traceback_ama(chunks, gamma);
     }
@@ -110,7 +117,6 @@ namespace cbrc{
     std::vector<double> pssmExp; //
     ExpMatrixRow* pssmExp2; // pre-computed pssm for prob align
     std::vector<double> letterProbsPerPosition;  // for uncertain sequences
-    int outputType;
 
     typedef std::vector< double > dvec_t;
 

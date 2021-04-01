@@ -335,16 +335,6 @@ namespace cbrc{
     //std::cout << "# bM[0]=" << bM[0] << std::endl;
   }
 
-  double Centroid::dp( double gamma ){
-    bestScore = 0;
-    bestAntiDiagonal = 0;
-    bestPos1 = 0;
-    X.resize(fM.size());
-    if (outputType == 5) return dp_centroid(gamma);
-    if (outputType == 6) return dp_ama(gamma);
-    return 0;
-  }
-
   double Centroid::dp_centroid( double gamma ){
     for( size_t k = 1; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t scoreEnd = xa.scoreEndIndex( k );

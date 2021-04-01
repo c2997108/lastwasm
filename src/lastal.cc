@@ -817,7 +817,6 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       centroid.setPssm(dis.p, queryLen, args.temperature,
 		       matrices.oneQualExp, dis.b, dis.j);
     }
-    centroid.setOutputType( args.outputType );
   }
 
   for( size_t i = 0; i < gappedAlns.size(); ++i ){

@@ -426,14 +426,14 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 		      probMat, gap, globality);
 
     if( outputType > 4 && outputType < 7 ){  // gamma-centroid / LAMA alignment
-      centroid.dp( gamma );
-      centroid.traceback( chunks, gamma );
+      centroid.dp(outputType, gamma);
+      centroid.traceback(chunks, outputType, gamma);
     }
 
     getColumnCodes(centroid, columnCodes, chunks, isForward);
     extras.fullScore += s / scale;
 
-    if( outputType == 7 ){
+    if (outputType == 7) {
       ExpectedCount ec;
       centroid.computeExpectedCounts(seq1, seq2, start2, isForward,
 				     probMat, gap, alph.size, ec);
