@@ -354,6 +354,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     --start1;
     --start2;
   }
+  seq1 += start1;
+  seq2 += start2;
 
   bool isSimdMatrix = (alph.size == 4 && !globality && gap.isAffine &&
 		       smMin >= SCHAR_MIN &&
@@ -364,28 +366,24 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 	isSimdMatrix = false;
 
   int extensionScore =
-    isGreedy  ? greedyAligner.align(seq1 + start1, seq2 + start2,
-				    isForward, sm, maxDrop, alph.size)
-    : sm2qual ? aligner.align2qual(seq1 + start1, qual1 + start1,
-				   seq2 + start2, qual2 + start2,
+    isGreedy  ? greedyAligner.align(seq1, seq2, isForward, sm,
+				    maxDrop, alph.size)
+    : sm2qual ? aligner.align2qual(seq1, qual1 + start1, seq2, qual2 + start2,
 				   isForward, globality, sm2qual,
 				   del.openCost, del.growCost,
 				   ins.openCost, ins.growCost,
 				   gap.pairCost, gap.isAffine, maxDrop, smMax)
-    : pssm2   ? aligner.alignPssm(seq1 + start1, pssm2 + start2,
-				  isForward, globality,
+    : pssm2   ? aligner.alignPssm(seq1, pssm2 + start2, isForward, globality,
 				  del.openCost, del.growCost,
 				  ins.openCost, ins.growCost,
 				  gap.pairCost, gap.isAffine, maxDrop, smMax)
 #if defined __SSE4_1__ || defined __ARM_NEON
-    : isSimdMatrix ? aligner.alignDna(seq1 + start1, seq2 + start2,
-				      isForward, sm,
+    : isSimdMatrix ? aligner.alignDna(seq1, seq2, isForward, sm,
 				      del.openCost, del.growCost,
 				      ins.openCost, ins.growCost,
 				      maxDrop, smMax, alph.numbersToUppercase)
 #endif
-    :           aligner.align(seq1 + start1, seq2 + start2,
-			      isForward, globality, sm,
+    :           aligner.align(seq1, seq2, isForward, globality, sm,
 			      del.openCost, del.growCost,
 			      ins.openCost, ins.growCost,
 			      gap.pairCost, gap.isAffine, maxDrop, smMax);
@@ -422,9 +420,9 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if( outputType > 3 ){  // calculate match probabilities
     assert( !isGreedy );
     assert( !sm2qual );
-    double s = centroid.forward(seq1, seq2, start1, start2, isForward,
+    double s = centroid.forward(seq1, seq2, start2, isForward,
 				probMat, gap, globality);
-    centroid.backward(seq1, seq2, start1, start2, isForward,
+    centroid.backward(seq1, seq2, start2, isForward,
 		      probMat, gap, globality);
 
     if( outputType > 4 && outputType < 7 ){  // gamma-centroid / LAMA alignment
@@ -437,7 +435,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
     if( outputType == 7 ){
       ExpectedCount ec;
-      centroid.computeExpectedCounts(seq1, seq2, start1, start2, isForward,
+      centroid.computeExpectedCounts(seq1, seq2, start2, isForward,
 				     probMat, gap, alph.size, ec);
       addExpectedCounts(&extras.expectedCounts[0], ec);
     }

@@ -59,16 +59,15 @@ namespace cbrc{
 				   const double *letterProbs,
 				   const uchar *toUnmasked);
 
-    // start1 is the index of the first letter to look at in seq1
-    // start2 is the index of the first letter to look at in seq2
+    // start2 is the index of the first position to look at in the PSSM
 
     double forward(const uchar *seq1, const uchar *seq2,
-		   size_t start1, size_t start2, bool isExtendFwd,
+		   size_t start2, bool isExtendFwd,
 		   const const_dbl_ptr *substitutionProbs,
 		   const GapCosts &gapCosts, int globality);
 
     void backward(const uchar *seq1, const uchar *seq2,
-		  size_t start1, size_t start2, bool isExtendFwd,
+		  size_t start2, bool isExtendFwd,
 		  const const_dbl_ptr *substitutionProbs,
 		  const GapCosts &gapCosts, int globality);
 
@@ -97,7 +96,7 @@ namespace cbrc{
 
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
-			       size_t start1, size_t start2, bool isExtendFwd,
+			       size_t start2, bool isExtendFwd,
 			       const const_dbl_ptr *substitutionProbs,
 			       const GapCosts& gapCosts, unsigned alphabetSize,
 			       ExpectedCount& count) const;

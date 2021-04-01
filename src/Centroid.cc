@@ -102,11 +102,9 @@ namespace cbrc{
   }
 
   double Centroid::forward(const uchar *seq1, const uchar *seq2,
-			   size_t start1, size_t start2, bool isExtendFwd,
+			   size_t start2, bool isExtendFwd,
 			   const const_dbl_ptr *substitutionProbs,
 			   const GapCosts &gapCosts, int globality) {
-    seq1 += start1;
-    seq2 += start2;
     const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isExtendFwd ? 1 : -1;
     numAntidiagonals = xa.numAntidiagonals();
@@ -216,11 +214,9 @@ namespace cbrc{
   // added by M. Hamada
   // compute posterior probabilities while executing backward algorithm
   void Centroid::backward(const uchar* seq1, const uchar* seq2,
-			  size_t start1, size_t start2, bool isExtendFwd,
+			  size_t start2, bool isExtendFwd,
 			  const const_dbl_ptr *substitutionProbs,
 			  const GapCosts& gapCosts, int globality) {
-    seq1 += start1;
-    seq2 += start2;
     const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
     const int seqIncrement = isExtendFwd ? 1 : -1;
     mD.assign(numAntidiagonals + 2, 0.0);
@@ -553,14 +549,11 @@ namespace cbrc{
   }
 
   void Centroid::computeExpectedCounts(const uchar *seq1, const uchar *seq2,
-				       size_t start1, size_t start2,
-				       bool isExtendFwd,
+				       size_t start2, bool isExtendFwd,
 				       const const_dbl_ptr *substitutionProbs,
 				       const GapCosts &gapCosts,
 				       unsigned alphabetSize,
 				       ExpectedCount &c) const {
-    seq1 += start1;
-    seq2 += start2;
     const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
 
     const double *letterProbs = 0;
