@@ -40,7 +40,6 @@ namespace cbrc{
   public:
     GappedXdropAligner& aligner() { return xa; }
 
-    void setScoreMatrix() { isPssm = false; }
     void setPssm ( const ScoreMatrixRow* pssm, size_t qsize, double T,
                    const OneQualityExpMatrix& oqem,
                    const uchar* sequenceBeg, const uchar* qualityBeg );
@@ -113,9 +112,10 @@ namespace cbrc{
 
     GappedXdropAligner xa;
     size_t numAntidiagonals;
-    bool isPssm;
-    std::vector<double> pssmExp; //
+
+    std::vector<double> pssmExp;
     ExpMatrixRow* pssmExp2; // pre-computed pssm for prob align
+
     std::vector<double> letterProbsPerPosition;  // for uncertain sequences
 
     typedef std::vector< double > dvec_t;

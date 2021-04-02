@@ -805,7 +805,6 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
   size_t queryLen = query.padLen(queryNum);
 
   if( args.outputType > 3 ){
-    centroid.setScoreMatrix();
     if( dis.p ){
       if (args.outputType == 7) {
 	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,

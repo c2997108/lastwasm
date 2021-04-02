@@ -35,7 +35,6 @@ namespace cbrc{
   void Centroid::setPssm( const ScoreMatrixRow* pssm, size_t qsize, double T,
 			  const OneQualityExpMatrix& oqem,
 			  const uchar* sequenceBeg, const uchar* qualityBeg ) {
-    this -> isPssm = true;
     pssmExp.resize( qsize * scoreMatrixRowSize );
     pssmExp2 = reinterpret_cast<ExpMatrixRow*> ( &pssmExp[0] );
 
@@ -105,7 +104,7 @@ namespace cbrc{
 			   size_t start2, bool isExtendFwd,
 			   const const_dbl_ptr *substitutionProbs,
 			   const GapCosts &gapCosts, int globality) {
-    const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
+    const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
     const int seqIncrement = isExtendFwd ? 1 : -1;
     numAntidiagonals = xa.numAntidiagonals();
     scale.assign(numAntidiagonals + 2, 1.0);
@@ -148,7 +147,7 @@ namespace cbrc{
 	*fM0++ = *fD0++ = *fI0++ = 0.0;
       }
 
-      if (! isPssm) {
+      if (!pssm) {
 	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
 	while (1) {
@@ -217,7 +216,7 @@ namespace cbrc{
 			  size_t start2, bool isExtendFwd,
 			  const const_dbl_ptr *substitutionProbs,
 			  const GapCosts& gapCosts, int globality) {
-    const ExpMatrixRow *pssm = isPssm ? pssmExp2 + start2 : 0;
+    const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
     const int seqIncrement = isExtendFwd ? 1 : -1;
     mD.assign(numAntidiagonals + 2, 0.0);
     mI.assign(numAntidiagonals + 2, 0.0);
@@ -262,7 +261,7 @@ namespace cbrc{
 
       const uchar *s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
-      if (! isPssm ) {
+      if (!pssm) {
 	const uchar *s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
 	while (1) {
@@ -544,7 +543,7 @@ namespace cbrc{
 				       const GapCosts &gapCosts,
 				       unsigned alphabetSize,
 				       ExpectedCount &c) const {
-    const ExpMatrixRow* pssm = isPssm ? pssmExp2 + start2 : 0;
+    const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
 
     const double *letterProbs = 0;
     if (!letterProbsPerPosition.empty()) {
@@ -583,7 +582,7 @@ namespace cbrc{
 
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
-      if (! isPssm ) {
+      if (!pssm) {
 	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
 	while (1) {
