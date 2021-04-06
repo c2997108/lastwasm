@@ -311,26 +311,24 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       while (aligner.getNextChunkFrame(end1, end2, size, gapCost, gap))
 	chunks.push_back(SegmentPair(end1 - size, end2 - size * 3, size,
 				     gapCost));
-      if (probMat) {
-	FrameshiftXdropAligner &fxa = aligners.frameshiftAligner;
-	double probDropLimit = exp(scale * -maxDrop);
-	double s = fxa.forward(seq1 + start1, seq2 + start2,
-			       seq2 + dnaToAa(frame1, frameSize),
-			       seq2 + dnaToAa(frame2, frameSize),
-			       isForward, probMat, gap, probDropLimit);
-	score += s / scale;
-	if (outputType > 3) {
-	  fxa.backward(isForward, probMat, gap);
-	  getColumnCodes(fxa, columnCodes, chunks);
-	  if (outputType == 7) {
-	    double *ec = &extras.expectedCounts[0];
-	    double *subsCounts[scoreMatrixRowSize];
-	    for (int i = 0; i < scoreMatrixRowSize; ++i)
-	      subsCounts[i] = ec + i * scoreMatrixRowSize;
-	    double *tranCounts = ec + scoreMatrixRowSize * scoreMatrixRowSize;
-	    fxa.count(isForward, gap, subsCounts, tranCounts);
-	  }
-	}
+      if (!probMat) return;
+      FrameshiftXdropAligner &fxa = aligners.frameshiftAligner;
+      double probDropLimit = exp(scale * -maxDrop);
+      double s = fxa.forward(seq1 + start1, seq2 + start2,
+			     seq2 + dnaToAa(frame1, frameSize),
+			     seq2 + dnaToAa(frame2, frameSize),
+			     isForward, probMat, gap, probDropLimit);
+      score += s / scale;
+      if (outputType < 4) return;
+      fxa.backward(isForward, probMat, gap);
+      getColumnCodes(fxa, columnCodes, chunks);
+      if (outputType == 7) {
+	double *ec = &extras.expectedCounts[0];
+	double *subsCounts[scoreMatrixRowSize];
+	for (int i = 0; i < scoreMatrixRowSize; ++i)
+	  subsCounts[i] = ec + i * scoreMatrixRowSize;
+	double *tranCounts = ec + scoreMatrixRowSize * scoreMatrixRowSize;
+	fxa.count(isForward, gap, subsCounts, tranCounts);
       }
     } else {
       assert(outputType < 4);
@@ -422,17 +420,13 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     assert( !sm2qual );
     double s = centroid.forward(seq1, seq2, start2, isForward,
 				probMat, gap, globality);
-    centroid.backward(seq1, seq2, start2, isForward,
-		      probMat, gap, globality);
-
-    if( outputType > 4 && outputType < 7 ){  // gamma-centroid / LAMA alignment
+    extras.fullScore += s / scale;
+    centroid.backward(seq1, seq2, start2, isForward, probMat, gap, globality);
+    if (outputType > 4 && outputType < 7) {  // gamma-centroid / LAMA alignment
       centroid.dp(outputType, gamma);
       centroid.traceback(chunks, outputType, gamma);
     }
-
     getColumnCodes(centroid, columnCodes, chunks, isForward);
-    extras.fullScore += s / scale;
-
     if (outputType == 7) {
       ExpectedCount ec;
       centroid.computeExpectedCounts(seq1, seq2, start2, isForward,

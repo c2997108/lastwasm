@@ -393,14 +393,11 @@ Miscellaneous options (default settings):\n\
   if( isTranslated() && isQueryStrandMatrix )
     ERR( "can't combine option -F with option -S 1" );
 
-  if( isGreedy && outputType > 3 )
-    ERR( "can't combine option -M with option -j > 3" );
-
-  if( isGreedy && globality == 1 )
-    ERR( "can't combine option -M with option -T 1" );
-
-  if( isGreedy && maskLowercase == 3 )
-    ERR( "can't combine option -M with option -u 3" );
+  if (isGreedy) {
+    if (outputType > 3) ERR("can't combine option -M with option -j > 3");
+    if (globality == 1) ERR("can't combine option -M with option -T 1");
+    if (maskLowercase == 3) ERR("can't combine option -M with option -u 3");
+  }
 
   if( gapPairCost > 0 && outputType > 3 )
     ERR( "can't combine option -c with option -j > 3" );
@@ -545,7 +542,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     ERR("piecewise linear gap costs not implemented");
   }
 
-  if (isFrameshift() && frameshiftCosts.size() == 1) {
+  if (frameshiftCosts.size() == 1 && frameshiftCosts[0] > 0) {
     if (frameshiftCosts[0] < delGrowCosts[0])
       ERR("the frameshift cost must not be less than the gap extension cost");
 

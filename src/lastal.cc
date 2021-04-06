@@ -240,13 +240,15 @@ void makeQualityScorers(SubstitutionMatrices &m, bool isCheck) {
 
   if( !isUseFastq( referenceFormat ) ){
     if( isUseFastq( args.inputFormat ) ){
-      if ( isCheck ) LOG( "calculating per-quality scores..." );
-      if( args.maskLowercase > 0 )
+      if (isCheck) LOG("calculating per-quality scores...");
+      if (args.maskLowercase > 0) {
 	m.oneQualMasked.init(m.scores, alph.size, m.stats,
 			     isPhred2, offset2, toUnmasked, true);
-      if( args.maskLowercase < 3 )
+      }
+      if (args.maskLowercase < 3) {
 	m.oneQual.init(m.scores, alph.size, m.stats,
 		       isPhred2, offset2, toUnmasked, false);
+      }
       const OneQualityScoreMatrix &q = (args.maskLowercase < 3) ?
 	m.oneQual : m.oneQualMasked;
       if( args.outputType > 3 )
@@ -804,18 +806,16 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
   Centroid& centroid = aligner.engines.centroid;
   size_t queryLen = query.padLen(queryNum);
 
-  if( args.outputType > 3 ){
-    if( dis.p ){
-      if (args.outputType == 7) {
-	centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
-					   isUseFastq(args.inputFormat),
-					   matrices.maker.qualToProbRight(),
-					   matrices.stats.letterProbs2(),
-					   alph.numbersToUppercase);
-      }
-      centroid.setPssm(dis.p, queryLen, args.temperature,
-		       matrices.oneQualExp, dis.b, dis.j);
+  if (args.outputType > 3 && dis.p) {
+    if (args.outputType == 7) {
+      centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
+					 isUseFastq(args.inputFormat),
+					 matrices.maker.qualToProbRight(),
+					 matrices.stats.letterProbs2(),
+					 alph.numbersToUppercase);
     }
+    centroid.setPssm(dis.p, queryLen, args.temperature,
+		     matrices.oneQualExp, dis.b, dis.j);
   }
 
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
