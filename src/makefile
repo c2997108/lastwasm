@@ -31,11 +31,12 @@ ScoreMatrix.o SubsetMinimizerFinder.o TantanMasker.o			\
 dna_words_finder.o fileMap.o tantan.o LastalArguments.o			\
 GappedXdropAligner.o GappedXdropAlignerDna.o GappedXdropAlignerPssm.o	\
 GappedXdropAligner2qual.o GappedXdropAligner3frame.o			\
-GappedXdropAlignerFrame.o mcf_frameshift_xdrop_aligner.o		\
-mcf_gap_costs.o GeneticCode.o GreedyXdropAligner.o LastEvaluer.o	\
-OneQualityScoreMatrix.o QualityPssmMaker.o TwoQualityScoreMatrix.o	\
-gaplessXdrop.o gaplessPssmXdrop.o gaplessTwoQualityXdrop.o		\
-cbrc_linalg.o mcf_substitution_matrix_stats.o $(alpObj)
+GappedXdropAlignerFrame.o mcf_aligment_path_adder.o			\
+mcf_frameshift_xdrop_aligner.o mcf_gap_costs.o GeneticCode.o		\
+GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
+QualityPssmMaker.o TwoQualityScoreMatrix.o gaplessXdrop.o		\
+gaplessPssmXdrop.o gaplessTwoQualityXdrop.o cbrc_linalg.o		\
+mcf_substitution_matrix_stats.o $(alpObj)
 
 alignObj4 = Alignment.o AlignmentPot.o AlignmentWrite.o Centroid.o	\
 DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\
@@ -249,12 +250,14 @@ lastdb.o lastdb.o5 lastdb.o8: lastdb.cc last.hh Alphabet.hh CyclicSubsetSeed.hh 
 LastEvaluer.o LastEvaluer.o5 LastEvaluer.o8: LastEvaluer.cc LastEvaluer.hh ScoreMatrixRow.hh \
  mcf_frameshift_xdrop_aligner.hh mcf_gap_costs.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
- GeneticCode.hh alp/sls_falp_alignment_evaluer.hpp \
- alp/sls_fsa1_pvalues.hpp
+ GeneticCode.hh mcf_aligment_path_adder.hh \
+ alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp
 last-pair-probs.o last-pair-probs.o5 last-pair-probs.o8: last-pair-probs.cc last-pair-probs.hh zio.hh \
  mcf_zstream.hh stringify.hh
 last-pair-probs-main.o last-pair-probs-main.o5 last-pair-probs-main.o8: last-pair-probs-main.cc last-pair-probs.hh \
  stringify.hh version.hh
+mcf_aligment_path_adder.o mcf_aligment_path_adder.o5 mcf_aligment_path_adder.o8: mcf_aligment_path_adder.cc \
+ mcf_aligment_path_adder.hh
 mcf_frameshift_xdrop_aligner.o mcf_frameshift_xdrop_aligner.o5 mcf_frameshift_xdrop_aligner.o8: mcf_frameshift_xdrop_aligner.cc \
  mcf_frameshift_xdrop_aligner.hh mcf_gap_costs.hh
 mcf_gap_costs.o mcf_gap_costs.o5 mcf_gap_costs.o8: mcf_gap_costs.cc mcf_gap_costs.hh

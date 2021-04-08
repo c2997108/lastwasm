@@ -3,6 +3,7 @@
 #include "LastEvaluer.hh"
 
 #include "GeneticCode.hh"
+#include "mcf_aligment_path_adder.hh"
 
 #include "alp/sls_falp_alignment_evaluer.hpp"
 
@@ -417,48 +418,56 @@ void LastEvaluer::init(const char *matrixName,
   }
 }
 
-void LastEvaluer::initFrameshift(const const_dbl_ptr *substitutionProbs,
-				 const double *proteinLetterFreqs,
-				 int numProteinLetters,
-				 const double *tranDnaLetterFreqs,
-				 int numTranDnaLetters,
-				 const GapCosts &gapCosts,
-				 double scale, int verbosity) {
-  FrameshiftXdropAligner aligner;
-  int proteinLength = 200;  // xxx long enough to avoid edge effects ???
-  int tranDnaLength = proteinLength * 3;
-  int origDnaLength = tranDnaLength + 2;
+void LastEvaluer::initFullScores(const const_dbl_ptr *substitutionProbs,
+				 const double *letterFreqs1, int alphabetSize1,
+				 const double *letterFreqs2, int alphabetSize2,
+				 const GapCosts &gapCosts, double scale,
+				 int verbosity, bool isFrameshift) {
   int numOfAlignments = 50;  // suggested by Y-K Yu, R Bundschuh, T Hwa, 2002
-  if (verbosity > 1) numOfAlignments = 1000;
+  int seqLength1 = 200;  // xxx long enough to avoid edge effects ???
+
+  int seqLength2 = seqLength1;
+  int seqLength3 = seqLength2;
+  if (isFrameshift) {
+    seqLength2 = seqLength1 * 3;
+    seqLength3 = seqLength2 + 2;
+  }
+
+  const GapCosts::ProbPiece &del = gapCosts.delProbPieces[0];
+  const GapCosts::ProbPiece &ins = gapCosts.insProbPieces[0];
+  AlignmentPathAdder scorer;
+  FrameshiftXdropAligner frameshiftScorer;
 
   std::mt19937_64 randGen;
-  std::discrete_distribution<> pDist(proteinLetterFreqs,
-				     proteinLetterFreqs + numProteinLetters);
-  std::discrete_distribution<> tDist(tranDnaLetterFreqs,
-				     tranDnaLetterFreqs + numTranDnaLetters);
+  std::discrete_distribution<> dist1(letterFreqs1,
+				     letterFreqs1 + alphabetSize1);
+  std::discrete_distribution<> dist2(letterFreqs2,
+				     letterFreqs2 + alphabetSize2);
 
-  std::vector<uchar> seqs(proteinLength + tranDnaLength);
-  uchar *protein = &seqs[0];
-  uchar *tranDna = protein + proteinLength;
+  std::vector<uchar> seqs(seqLength1 + seqLength2);
+  uchar *seq1 = &seqs[0];
+  uchar *seq2 = seq1 + seqLength1;
 
   double probRatioSum = 0;
 
   for (int i = 0; i < numOfAlignments; ++i) {
-    for (int j = 0; j < proteinLength; ++j) protein[j] = pDist(randGen);
-    for (int j = 0; j < tranDnaLength; ++j) tranDna[j] = tDist(randGen);
-    double p = aligner.maxSumOfProbRatios(protein, proteinLength,
-					  tranDna, origDnaLength,
-					  substitutionProbs, gapCosts);
+    for (int j = 0; j < seqLength1; ++j) seq1[j] = dist1(randGen);
+    for (int j = 0; j < seqLength2; ++j) seq2[j] = dist2(randGen);
+    double p = isFrameshift
+      ? frameshiftScorer.maxSumOfProbRatios(seq1, seqLength1, seq2, seqLength3,
+					    substitutionProbs, gapCosts)
+      : scorer.maxSum(seq1, seqLength1, seq2, seqLength3, substitutionProbs,
+		      del.openProb, del.growProb, ins.openProb, ins.growProb);
     probRatioSum += 1 / p;
     if (verbosity > 1) std::cerr << "simScore: " << (log(p) / scale) << "\n";
   }
 
   // max likelihood k  =  1 / (m * n * avg[exp(-lambda * score)])
-  double k = numOfAlignments / (proteinLength * origDnaLength * probRatioSum);
+  double k = numOfAlignments / (seqLength1 * seqLength3 * probRatioSum);
 
   if (verbosity > 1) {
     std::cerr << "lambda k m n: " << scale << " " << k << " "
-	      << proteinLength << " " << origDnaLength << "\n";
+	      << seqLength1 << " " << seqLength3 << "\n";
   }
 
   Sls::AlignmentEvaluerParameters p = {scale, k, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

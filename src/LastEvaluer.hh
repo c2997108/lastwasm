@@ -56,13 +56,33 @@ public:
 	    const char *geneticCodeName,
 	    int verbosity);
 
-  // "new-style" frameshifts, sum-of-paths scores
-  // scale=lambda
-  // The Freqs need not sum to 1
+  // The next 2 routines set up for sum-of-paths local alignment scores.
+  // initFrameshift implements section 2.6 of "Improved
+  // DNA-versus-protein homology search for protein fossils", Y Yao &
+  // MC Frith.  (It doesn't check whether Equation 3 is satisfied.)
+  // initFullScores does the equivalent for "model A" in "How sequence
+  // alignment scores correspond to probability models", MC Frith
+  // 2020, Bioinformatics 36(2):408-415.
+
+  // The Freqs need not sum to 1.
+  // substitutionProbs is S' in [Yao & Frith 2021].
+  // scale  =  lambda  =  1/t in [Yao & Frith 2021].
+
+  void initFullScores(const const_dbl_ptr *substitutionProbs,
+		      const double *letterFreqs1, int alphabetSize1,
+		      const double *letterFreqs2, int alphabetSize2,
+		      const GapCosts &gapCosts, double scale, int verbosity,
+		      bool isFrameshift = false);
+
   void initFrameshift(const const_dbl_ptr *substitutionProbs,
 		      const double *proteinLetterFreqs, int numProteinLetters,
 		      const double *tranDnaLetterFreqs, int numTranDnaLetters,
-		      const GapCosts &gapCosts, double scale, int verbosity);
+		      const GapCosts &gapCosts, double scale, int verbosity) {
+    initFullScores(substitutionProbs,
+		   proteinLetterFreqs, numProteinLetters,
+		   tranDnaLetterFreqs, numTranDnaLetters,
+		   gapCosts, scale, verbosity, true);
+  }
 
   void setSearchSpace(double databaseLength,  // number of database letters
 		      double databaseMaxSeqLength,  // length of longest seq

@@ -1,6 +1,20 @@
 // Author: Martin C. Frith 2020
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// This class implements methods in "Improved DNA-versus-protein
+// homology search for protein fossils", Y Yao & MC Frith.
+
+// forward implements the "Forward extension" of section 2.7, and
+// returns ln[W].
+
+// maxSumOfProbRatios implements section 2.5, and returns:
+// max_{i,j} ( X^F_{ij} X^B_{ij} )
+
+// count implements part of section 2.8 (get expected counts from the
+// extend region).
+
+// substitutionProbs is S' in Yao & Frith.
+
 #ifndef FRAMESHIFT_XDROP_ALIGNER_HH
 #define FRAMESHIFT_XDROP_ALIGNER_HH
 
@@ -31,17 +45,20 @@ public:
 		 bool isRightwardExtension,
 		 const const_dbl_ptr *substitutionProbs,
 		 const GapCosts &gapCosts,
-		 double probDropLimit);
+		 double probDropLimit);  // f in Yao & Frith section 2.7
 
+  // must do forward before doing this
   void backward(bool isRightwardExtension,
 		const const_dbl_ptr *substitutionProbs,
 		const GapCosts &gapCosts);
 
+  // must do forward & backward before doing this
   void count(bool isRightwardExtension,
 	     const GapCosts &gapCosts,
 	     const dbl_ptr *substitutionCounts,
 	     double *transitionCounts);
 
+  // must do forward & backward before doing this
   double matchProb(size_t proteinCoordinate, size_t dnaCoordinate) const {
     size_t antidiagonal = proteinCoordinate * 3 + dnaCoordinate;
     if (antidiagonal + 6 >= numOfAntidiagonals) return 0;
