@@ -755,7 +755,8 @@ void alignGapped( LastAligner& aligner,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop(aligner.engines, args.isGreedy, dis.a, dis.b, args.globality,
+    aln.makeXdrop(aligner.engines, args.isGreedy, isFullScoreThreshold(),
+		  dis.a, dis.b, args.globality,
 		  dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 		  dis.r, matrices.stats.lambda(), gapCosts, dis.d,
 		  frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
@@ -791,7 +792,8 @@ static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
   AlignmentExtras extras;  // not used
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &aln = gappedAlns.items[i];
-    aln.makeXdrop(aligner.engines, args.isGreedy, dis.a, dis.b, args.globality,
+    aln.makeXdrop(aligner.engines, args.isGreedy, isFullScoreThreshold(),
+		  dis.a, dis.b, args.globality,
 		  dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 		  0, 0, gapCosts, dis.d,
 		  frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
@@ -827,8 +829,8 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
     } else {  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop(aligner.engines, args.isGreedy, dis.a, dis.b,
-			args.globality,
+      probAln.makeXdrop(aligner.engines, args.isGreedy, isFullScoreThreshold(),
+			dis.a, dis.b, args.globality,
 			dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 			dis.r, matrices.stats.lambda(), gapCosts, dis.d,
 			frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras,

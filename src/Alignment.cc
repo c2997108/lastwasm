@@ -39,7 +39,7 @@ static bool isNext( const SegmentPair& x, const SegmentPair& y ){
   return x.end1() == y.beg1() && x.end2() == y.beg2();
 }
 
-void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
+void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
 			   const uchar* seq1, const uchar* seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix,
 			   int smMax, int smMin,
@@ -51,7 +51,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
 			   const Alphabet& alph, AlignmentExtras& extras,
 			   double gamma, int outputType ){
   if (probMatrix) score = seed.score;  // else keep the old score
-  if (outputType > 3 && !gap.isNewFrameshifts()) extras.fullScore = seed.score;
+  if (outputType > 3 && !isFullScore) extras.fullScore = seed.score;
 
   if( outputType == 7 ){
     assert( seed.size > 0 );  // makes things easier to understand
@@ -64,7 +64,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
   // extend a gapped alignment in the left/reverse direction from the seed:
   blocks.clear();
   std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
-  extend( blocks, columnAmbiguityCodes, aligners, isGreedy,
+  extend( blocks, columnAmbiguityCodes, aligners, isGreedy, isFullScore,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -84,7 +84,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy,
   // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
   std::vector<char> forwardAmbiguities;
-  extend( forwardBlocks, forwardAmbiguities, aligners, isGreedy,
+  extend( forwardBlocks, forwardAmbiguities, aligners, isGreedy, isFullScore,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -273,7 +273,7 @@ static void getColumnCodes(const FrameshiftXdropAligner &fxa,
 
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< char >& columnCodes,
-			Aligners &aligners, bool isGreedy,
+			Aligners &aligners, bool isGreedy, bool isFullScore,
 			const uchar* seq1, const uchar* seq2,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
@@ -303,6 +303,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     int gapCost;
 
     if (gap.isNewFrameshifts()) {
+      assert(isFullScore);
       size_t frame2 = isForward ? dnaStart + 2 : dnaStart - 2;
       aligner.alignFrame(seq1 + start1, seq2 + start2,
 			 seq2 + dnaToAa(frame1, frameSize),
@@ -331,6 +332,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 	fxa.count(isForward, gap, subsCounts, tranCounts);
       }
     } else {
+      assert(!isFullScore);
       assert(outputType < 4);
       size_t frame2 = isForward ? dnaStart - 1 : dnaStart + 1;
       score += aligner.align3(seq1 + start1, seq2 + start2,
@@ -391,8 +393,6 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     return;  // avoid ill-defined probabilistic alignment
   }
 
-  score += extensionScore;
-
   if( outputType < 5 || outputType > 6 ){  // ordinary max-score alignment
     size_t end1, end2, size;
     if( isGreedy ){
@@ -415,12 +415,20 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     }
   }
 
-  if( outputType > 3 ){  // calculate match probabilities
+  if (!probMat) return;
+  if (!isFullScore) score += extensionScore;
+
+  if (outputType > 3 || isFullScore) {
     assert( !isGreedy );
     assert( !sm2qual );
     double s = centroid.forward(seq1, seq2, start2, isForward,
 				probMat, gap, globality);
-    extras.fullScore += s / scale;
+    if (isFullScore) {
+      score += s / scale;
+    } else {
+      extras.fullScore += s / scale;
+    }
+    if (outputType < 4) return;
     centroid.backward(seq1, seq2, start2, isForward, probMat, gap, globality);
     if (outputType > 4 && outputType < 7) {  // gamma-centroid / LAMA alignment
       centroid.dp(outputType, gamma);

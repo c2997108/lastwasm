@@ -83,7 +83,7 @@ struct Alignment{
   // Alignment might not be "optimal" (see below).
   // If outputType > 3: calculates match probabilities.
   // If outputType > 4: does gamma-centroid alignment.
-  void makeXdrop( Aligners &aligners, bool isGreedy,
+  void makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
 		  const uchar* seq1, const uchar* seq2, int globality,
 		  const ScoreMatrixRow* scoreMatrix, int smMax, int smMin,
 		  const const_dbl_ptr* probMatrix, double scale,
@@ -136,7 +136,7 @@ struct Alignment{
 
   void extend( std::vector< SegmentPair >& chunks,
 	       std::vector< char >& columnCodes,
-	       Aligners &aligners, bool isGreedy,
+	       Aligners &aligners, bool isGreedy, bool isFullScore,
 	       const uchar* seq1, const uchar* seq2,
 	       size_t start1, size_t start2,
 	       bool isForward, int globality,
