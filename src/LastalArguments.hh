@@ -55,6 +55,10 @@ struct LastalArguments{
       isTranslated() && (frameshiftCosts.size() > 1 || frameshiftCosts[0] > 0);
   }
 
+  bool isSumOfPaths() const {
+    return outputType > 3 || (scoreType != 0 && outputType > 1);
+  }
+
   // how many strands are we scanning (1 or 2)?
   int numOfStrands() const{ return (strand == 2) ? 2 : 1; }
 
@@ -72,6 +76,7 @@ struct LastalArguments{
   // options:
   int outputFormat;
   int outputType;
+  int scoreType;
   int strand;
   bool isQueryStrandMatrix;
   bool isGreedy;

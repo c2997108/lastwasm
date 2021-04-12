@@ -373,7 +373,7 @@ class GappedXdropAligner {
     size_t nextEnd = thisEnd + xdropPadLen + numCells;
 
     size_t a = 2 * (antidiagonalIncludingDummies + 1);
-    if (scoreEndsAndOrigins.size() <= a) {
+    if (scoreRises.size() <= antidiagonalIncludingDummies) {
       scoreEndsAndOrigins.resize(a + 1);
       scoreRises.resize(antidiagonalIncludingDummies + 1);
     }

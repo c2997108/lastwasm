@@ -1642,6 +1642,104 @@ TEST lastal -e40 -u3 -fTAB /tmp/last-test hg19-M.fa
 95	chrM	2432	295	+	16775	chrM	1742	281	+	16571	26,1:0,12,4:0,25,4:0,11,2:0,57,0:1,42,1:0,24,3:0,83	EG2=2e-28	E=1.2e-37
 # Query sequences=1
 
+#
+# a=29 b=2 A=28 B=1 e=119.332 d=63 x=119 y=47 z=119 D=1e+06 E=2.80852e+07
+# R=01 u=2 s=2 S=1 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.72795 j=3 Q=0
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+# lambda=0.211508 K=2.56984
+#
+#     A   C   G   T   M   S   K   W   R   Y   B   D   H   V
+# A   4  -3  -2  -5   2  -3  -4   1   2  -4  -3   1   0   1
+# C  -3   4  -7  -2   2   2  -3  -2  -4   2   1  -3   1   1
+# G  -4  -8   7  -9  -6   3   3  -6   3  -9   1   1  -7   1
+# T  -5  -2  -7   4  -3  -3   2   2  -6   2   1   0   1  -4
+# M   2   2  -4  -3   2   0  -3   0   0   0  -1  -1   0   1
+# S  -3   2   3  -4   0   2   0  -3   0   0   1  -1  -1   1
+# K  -5  -3   2   2  -4   0   2   0  -1   0   1   1  -1  -1
+# W   1  -2  -4   1   0  -3   0   1   0   0  -1   1   0  -1
+# R   2  -4   3  -6   0   0   0   0   3  -5  -1   1  -1   1
+# Y  -4   2  -7   2   0   0   0   0  -5   2   1  -1   1  -1
+# B  -4   1   1   1  -1   1   1  -1  -2   1   1   0   0  -1
+# D   1  -3   1   0  -1  -1   1   1   1  -1   0   1   0   0
+# H   0   1  -5   1   0  -1  -1   0  -1   1   0   0   1   0
+# V   1   1   1  -4   1   1  -1  -1   1  -1  -1   0   0   1
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# score	name1	start1	alnSize1	strand1	seqSize1	name2	start2	alnSize2	strand2	seqSize2	blocks
+# batch 0
+9472.4	chrM	1234	13651	+	16775	chrM	585	13564	+	16571	9,0:1,56,0:1,82,3:0,63,1:0,19,1:0,55,0:1,58,1:0,98,5:0,14,3:0,114,2:0,95,4:0,30,1:0,34,1:0,38,0:1,33,0:1,60,6:0,57,5:0,34,0:7,60,0:1,9,2:0,33,16:0,21,0:9,25,0:2,36,14:0,21,1:0,16,4:0,26,4:0,11,2:0,56,0:1,43,1:0,24,3:0,93,1:0,41,0:4,11,16:0,38,0:1,40,3:0,30,1:0,16,0:8,38,0:1,24,0:2,37,1:0,11,0:9,23,0:4,25,3:0,13,3:0,41,0:2,37,1:0,33,2:0,37,3:0,212,2:0,8,4:0,70,12:0,16,0:1,15,0:4,21,1:0,148,1:0,53,0:1,67,6:0,19,3:0,21,5:0,15,1:0,44,0:1,29,7:0,20,21:0,930,0:2,29,2:0,20,0:1,11,10:0,70,0:3,63,1:0,673,0:1,26,1:0,263,0:5,29,2:0,79,5:0,32,3:0,21,0:1,68,2:0,80,0:30,81,2:0,35,3:0,17,0:8,450,0:3,1085,0:3,67,5:0,58,1:0,18,1:0,152,0:3,514,0:17,18,0:4,14,2:0,27,0:4,62,0:9,33,0:5,52,8:0,138,3:0,1406,1:0,21,3:0,340,3:0,48,3:0,458,0:6,12,6:0,1281,8:0,129,9:0,51,3:0,23,0:4,29,0:5,515,0:3,900,8:0,17,0:8,171,3:0,84	EG2=0	E=0
+2501.4	chrM	14904	1273	+	16775	chrM	14756	1268	+	16571	1127,2:0,22,0:1,24,4:0,94	EG2=4.4e-212	E=2.6e-221
+247.4	chrM	16213	562	+	16775	chrM	14155	588	+	16571	135,0:27,75,0:5,29,5:0,246,2:0,54,0:1,16	EG2=4.8e-05	E=2.9e-14
+127.3	chrM	14396	89	+	16775	chrM	8953	95	+	16571	35,0:9,13,3:0,38	EG2=5.3e+06	E=0.0031
+121.1	chrM	7217	72	+	16775	chrM	3316	72	+	16571	72	EG2=1.9e+07	E=0.011
+# Query sequences=1
+#
+# a=29 b=2 A=28 B=1 e=86.6721 d=63 x=86 y=47 z=86 D=1000 E=2.80852e+10
+# R=01 u=2 s=2 S=1 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.72795 j=3 Q=1
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+# lambda=0.211508 K=2.56984
+#
+#     A   C   G   T   M   S   K   W   R   Y   B   D   H   V
+# A   4  -3  -2  -5   2  -3  -4   1   2  -4  -3   1   0   1
+# C  -3   4  -7  -2   2   2  -3  -2  -4   2   1  -3   1   1
+# G  -4  -8   7  -9  -6   3   3  -6   3  -9   1   1  -7   1
+# T  -5  -2  -7   4  -3  -3   2   2  -6   2   1   0   1  -4
+# M   2   2  -4  -3   2   0  -3   0   0   0  -1  -1   0   1
+# S  -3   2   3  -4   0   2   0  -3   0   0   1  -1  -1   1
+# K  -5  -3   2   2  -4   0   2   0  -1   0   1   1  -1  -1
+# W   1  -2  -4   1   0  -3   0   1   0   0  -1   1   0  -1
+# R   2  -4   3  -6   0   0   0   0   3  -5  -1   1  -1   1
+# Y  -4   2  -7   2   0   0   0   0  -5   2   1  -1   1  -1
+# B  -4   1   1   1  -1   1   1  -1  -2   1   1   0   0  -1
+# D   1  -3   1   0  -1  -1   1   1   1  -1   0   1   0   0
+# H   0   1  -5   1   0  -1  -1   0  -1   1   0   0   1   0
+# V   1   1   1  -4   1   1  -1  -1   1  -1  -1   0   0   1
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+# batch 0
+a score=99.2 EG2=2e+09 E=0.0026
+s chrM         2330 24 + 16775 ACAAGGTCGCCTTGACTTGCCCCC
+s SRR001981.51    1 24 -    36 ACTATTTCGCCTCGACTTACCCCC
+q SRR001981.51                 IC0I2D6AIII3II;I@IIIIIII
+
+a score=92.1 EG2=9e+09 E=0.011
+s chrM          6998 26 + 16775 GTAGAAGCTGGGGCCGGCACAGGATG
+s SRR001981.100    7 26 +    36 GAAGAAGCCGGGCCAGACACAGGGAG
+q SRR001981.100                 (IIIIIII3IIII&II%II*<I(&&&
+
+# batch 1
+# batch 2
+a score=97.4 EG2=2.9e+09 E=0.0037
+s chrM          14374 22 + 16775 ACGAACCCCCAGCAATCACCCC
+s SRR001981.479    14 22 -    36 ACAAACCCCTAGCGATCACCTC
+q SRR001981.479                  F84IIIIIIII&IIDI)IIIII
+
+a score=93.8 EG2=6.2e+09 E=0.0079
+s chrM          7971 17 + 16775 ACCCAGACGCCTACACA
+s SRR001981.641    8 17 -    36 ACCCAGACGCCCACACA
+q SRR001981.641                 IIIII:4IEIIIIII/I
+
+a score=89.4 EG2=1.6e+10 E=0.02
+s chrM          14413 31 + 16775 CCCAGCCATTCTCCCAATCATACGACTAGCC
+s SRR001981.641     5 31 -    36 CCGACCCAGACGCCCACACAGACAACTAGCC
+q SRR001981.641                  I8?IIIII:4IEIIIIII/IAIIIIIIIIII
+
+# batch 3
+a score=88.4 EG2=2e+10 E=0.025
+s chrM          2708 21 + 16775 AGCTGGGTGATAGCTGGTTAC
+s SRR001981.832   14 21 +    36 AGGTGAGTGATAGTTGGTTAC
+q SRR001981.832                 =IIII@IIIII2III,?IIH8
+
+# batch 4
+# Query sequences=1000
 TEST lastal -e100 /tmp/last-test Q5GS15.fa
 #
 # a=11 b=2 A=11 B=2 e=100 d=31 x=99 y=31 z=99 D=1e+06 E=2.01411e+09

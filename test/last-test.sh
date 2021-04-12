@@ -134,6 +134,10 @@ trap 'rm -f $db*' EXIT
     # hard-masking
     try lastal -e40 -u3 -fTAB $db hg19-M.fa
 
+    # -J1
+    lastal -J1 -fTAB -p hufu.train $db hg19-M.fa
+    lastal -J1 -Q1 -D1000 -p hufu.train $db $fastq
+
     # tantan masking on protein
     lastdb -pcR01 $db Q2LCP8.fa
     try lastal -e100 $db Q5GS15.fa

@@ -188,7 +188,9 @@ Score options
     of length k mod 3 = 1 bases, deletion of k mod 3 = 2 bases,
     insertion of k mod 3 = 1 bases, insertion of k mod 3 = 2 bases.
     (You're expected to get them from last-train_, not set them
-    manually.)
+    manually.)  New-style frameshifts can only be used with "full
+    scores", and old-style frameshifts can only be used with ordinary
+    scores.
 
     The output looks like this::
 
@@ -390,9 +392,9 @@ Miscellaneous options
     1. Mask them for gapless but not gapped extensions.
     2. Mask them for gapless but not gapped extensions, and then
        discard alignments that lack any segment with score ≥ e when
-       lowercase is masked.  (For new-style frameshifts: mask them for
-       gapless and gapped extensions, then recalculate the alignments
-       *but not the score* without masking.)
+       lowercase is masked.  (For "full scores": mask them for gapless
+       and gapped extensions, then recalculate the alignments *but not
+       the scores* without masking.)
     3. Mask them for gapless and gapped extensions.
 
     "Mask" means change their match/mismatch scores to min(unmasked
@@ -458,8 +460,8 @@ Miscellaneous options
     In summary: to get the most accurately paired letters, use
     gamma-centroid.  To get accurately placed gaps, use LAMA.
 
-    Note that the reported alignment score is that of the ordinary
-    gapped alignment before realigning with gamma-centroid or LAMA.
+    Note that the reported alignment score is that of the gapped
+    alignment before realigning with gamma-centroid or LAMA.
 
 -j NUMBER
     Output type: 0 means counts of initial matches (of all lengths);
@@ -474,12 +476,6 @@ Miscellaneous options
     minimum and maximum lengths, and -m will be ignored.  If you
     compare a large sequence to itself with -j0, it's wise to set
     option -L.
-
-    If you use j>3, each alignment will get a "fullScore" (also known
-    as "forward score" or "sum-of-paths score").  This is like the
-    score, but it takes into account alternative alignments.  (For
-    new-style frameshifts, the gapped alignment score is always a
-    fullScore.)
 
     If you use -j7, lastal will print an extra MAF line starting
     with "c" for each alignment.  The first 16 numbers on this line
@@ -496,6 +492,16 @@ Miscellaneous options
     * The count of inserted letters.
     * The count of delete opens (= count of delete closes).
     * The count of insert opens (= count of insert closes).
+
+-J NUMBER
+    Score type: 0 means ordinary score, 1 means "full score" (also
+    known as "forward score" or "sum-of-paths score").  Both types of
+    score are measures of how significant a similarity is.  An
+    ordinary score is based on one alignment, whereas a "full score"
+    is based on many alternative ways of aligning the similar regions.
+    Full scores are expected to be more sensitive, but they are not
+    recognized by last-split_.  Full score E-values_ can be calculated
+    only for parameters from last-train_.
 
 -Q NAME
     Specify how to read the query sequences (the NAME is not
@@ -615,5 +621,7 @@ output of lastdb.
 .. _lastdb5:
 .. _lastdb: doc/lastdb.rst
 .. _last-train: doc/last-train.rst
+.. _last-split: doc/last-split.rst
+.. _E-values: doc/last-evalues.rst
 .. _tantan: https://gitlab.com/mcfrith/tantan
 .. _gentle masking: https://doi.org/10.1371/journal.pone.0028819

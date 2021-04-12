@@ -51,19 +51,20 @@ struct LastAligner {  // data that changes between queries
 
 struct SubstitutionMatrices {
   mcf::SubstitutionMatrixStats stats;
-  OneQualityExpMatrix oneQualExp;
   QualityPssmMaker maker;
 
   int scores[scoreMatrixRowSize][scoreMatrixRowSize];
   double ratiosMatrix[scoreMatrixRowSize][scoreMatrixRowSize];
   double *ratios[scoreMatrixRowSize];
   OneQualityScoreMatrix oneQual;
+  OneQualityExpMatrix oneQualExp;
   TwoQualityScoreMatrix twoQual;
 
   int scoresMasked[scoreMatrixRowSize][scoreMatrixRowSize];
   double ratiosMaskedMatrix[scoreMatrixRowSize][scoreMatrixRowSize];
   double *ratiosMasked[scoreMatrixRowSize];
   OneQualityScoreMatrix oneQualMasked;
+  OneQualityExpMatrix oneQualExpMasked;
   TwoQualityScoreMatrix twoQualMasked;
 };
 
@@ -123,7 +124,7 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
   } else {
     if (scoreMatrix.isCodonCols()) {
       static const char msg[] = "can't calculate probabilities";
-      if (args.outputType > 3) ERR(msg);  // xxx what if temperature is given?
+      if (args.isSumOfPaths()) ERR(msg);  // xxx what if temperature is given?
       LOG(msg);
       return;
     } else if (args.temperature < 0) {
@@ -133,7 +134,7 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
       if (stats.isBad()) {
 	static const char msg[] = "can't calculate probabilities: "
 	  "maybe the mismatch costs are too weak";
-	if (isUseQuality(args.inputFormat) || args.outputType > 3) ERR(msg);
+	if (isUseQuality(args.inputFormat) || args.isSumOfPaths()) ERR(msg);
 	LOG(msg);
 	return;
       }
@@ -244,15 +245,17 @@ void makeQualityScorers(SubstitutionMatrices &m, bool isCheck) {
       if (args.maskLowercase > 0) {
 	m.oneQualMasked.init(m.scores, alph.size, m.stats,
 			     isPhred2, offset2, toUnmasked, true);
+	if (args.isSumOfPaths())
+	  m.oneQualExpMasked.init(m.oneQualMasked, args.temperature);
       }
       if (args.maskLowercase < 3) {
 	m.oneQual.init(m.scores, alph.size, m.stats,
 		       isPhred2, offset2, toUnmasked, false);
+	if (args.isSumOfPaths())
+	  m.oneQualExp.init(m.oneQual, args.temperature);
       }
       const OneQualityScoreMatrix &q = (args.maskLowercase < 3) ?
 	m.oneQual : m.oneQualMasked;
-      if( args.outputType > 3 )
-        m.oneQualExp.init(q, args.temperature);
       if( isCheck && args.verbosity > 0 )
 	writeOneQualityScoreMatrix( q, alph.letters.c_str(),
 				    offset2, std::cerr );
@@ -272,8 +275,8 @@ void makeQualityScorers(SubstitutionMatrices &m, bool isCheck) {
 	m.twoQual.init(m.scores, m.stats,
 		       isPhred1, offset1, isPhred2, offset2,
 		       toUnmasked, false, isMatchMismatch);
-      if( args.outputType > 3 )
-        ERR( "fastq-versus-fastq column probabilities not implemented" );
+      if (args.isSumOfPaths())
+        ERR("fastq-versus-fastq alignment probabilities not implemented");
     } else if (isCheck) {
       warn(args.programName,
 	   "quality data not used for non-fastq query versus fastq reference");
@@ -312,12 +315,13 @@ static void calculateScoreStatistics(const std::string& matrixName,
   try{
     gaplessEvaluer.init(0, 0, 0, alph.letters.c_str(), scoreMat, p1, p2, false,
 			0, 0, 0, 0, fsCost, geneticCode, 0, 0);
-    if (gapCosts.isNewFrameshifts() && isGapped) {
+    if (args.scoreType != 0 && isGapped) {
       if (args.temperature < 0) return;
       unsigned alphSize2 = scoreMatrix.isCodonCols() ? 64 : alph.size;
-      evaluer.initFrameshift(fwdMatrices.ratios, p1, alph.size,
+      evaluer.initFullScores(fwdMatrices.ratios, p1, alph.size,
 			     stats.letterProbs2(), alphSize2,
-			     gapCosts, stats.lambda(), args.verbosity);
+			     gapCosts, stats.lambda(), args.verbosity,
+			     gapCosts.isNewFrameshifts());
     } else {
       const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
       const mcf::GapCosts::Piece &ins = gapCosts.insPieces[0];
@@ -462,13 +466,9 @@ static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
 
 namespace Phase{ enum Enum{ gapless, pregapped, gapped, postgapped }; }
 
-static bool isFullScoreThreshold() {
-  return gapCosts.isNewFrameshifts();
-}
-
 static bool isMaskLowercase(Phase::Enum e) {
   return (e < 1 && args.maskLowercase > 0)
-    || (e < 3 && args.maskLowercase > 1 && isFullScoreThreshold())
+    || (e < 3 && args.maskLowercase > 1 && args.scoreType != 0)
     || args.maskLowercase > 2;
 }
 
@@ -755,7 +755,7 @@ void alignGapped( LastAligner& aligner,
     shrinkToLongestIdenticalRun( aln.seed, dis );
 
     // do gapped extension from each end of the seed:
-    aln.makeXdrop(aligner.engines, args.isGreedy, isFullScoreThreshold(),
+    aln.makeXdrop(aligner.engines, args.isGreedy, args.scoreType,
 		  dis.a, dis.b, args.globality,
 		  dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 		  dis.r, matrices.stats.lambda(), gapCosts, dis.d,
@@ -764,7 +764,7 @@ void alignGapped( LastAligner& aligner,
 
     if( aln.score < args.minScoreGapped ) continue;
 
-    if (!isFullScoreThreshold() &&
+    if (args.scoreType == 0 &&
 	!aln.isOptimal(dis.a, dis.b, args.globality, dis.m, dis.d, gapCosts,
 		       frameSize, dis.p, dis.t, dis.i, dis.j)) {
       // If retained, non-"optimal" alignments can hide "optimal"
@@ -792,7 +792,7 @@ static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
   AlignmentExtras extras;  // not used
   for (size_t i = 0; i < gappedAlns.size(); ++i) {
     Alignment &aln = gappedAlns.items[i];
-    aln.makeXdrop(aligner.engines, args.isGreedy, isFullScoreThreshold(),
+    aln.makeXdrop(aligner.engines, args.isGreedy, args.scoreType,
 		  dis.a, dis.b, args.globality,
 		  dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 		  0, 0, gapCosts, dis.d,
@@ -805,38 +805,23 @@ static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
 		  size_t queryNum, const SubstitutionMatrices &matrices,
 		  size_t frameSize, const Dispatcher &dis ){
-  Centroid& centroid = aligner.engines.centroid;
-  size_t queryLen = query.padLen(queryNum);
-
-  if (args.outputType > 3 && dis.p) {
-    if (args.outputType == 7) {
-      centroid.setLetterProbsPerPosition(alph.size, queryLen, dis.b, dis.j,
-					 isUseFastq(args.inputFormat),
-					 matrices.maker.qualToProbRight(),
-					 matrices.stats.letterProbs2(),
-					 alph.numbersToUppercase);
-    }
-    centroid.setPssm(dis.p, queryLen, args.temperature,
-		     matrices.oneQualExp, dis.b, dis.j);
-  }
-
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     AlignmentExtras extras;
-    if (isFullScoreThreshold()) extras.fullScore = -1;  // score is fullScore
+    if (args.scoreType != 0) extras.fullScore = -1;  // score is fullScore
     if( args.outputType < 4 ){
       writeAlignment(aligner, aln, queryNum, dis.b, extras);
     } else {  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
-      probAln.makeXdrop(aligner.engines, args.isGreedy, isFullScoreThreshold(),
+      probAln.makeXdrop(aligner.engines, args.isGreedy, args.scoreType,
 			dis.a, dis.b, args.globality,
 			dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 			dis.r, matrices.stats.lambda(), gapCosts, dis.d,
 			frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras,
 			args.gamma, args.outputType);
       assert(aln.score != -INF);
-      if (args.maskLowercase == 2 && isFullScoreThreshold())
+      if (args.maskLowercase == 2 && args.scoreType != 0)
 	probAln.score = aln.score;
       writeAlignment(aligner, probAln, queryNum, dis.b, extras);
     }
@@ -967,11 +952,20 @@ void scan(LastAligner& aligner, size_t queryNum,
   if( args.outputType == 1 ) return;  // we just want gapless alignments
   if( gaplessAlns.size() == 0 ) return;
 
-  if (maskMode == 1 || (maskMode == 2 && !isFullScoreThreshold()))
+  if (maskMode == 1 || (maskMode == 2 && args.scoreType == 0))
     unmaskLowercase(aligner, queryNum, matrices, querySeq);
 
   size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
   AlignmentPot gappedAlns;
+
+  size_t queryLen = query.padLen(queryNum);
+  Centroid &centroid = aligner.engines.centroid;
+
+  if (args.scoreType != 0 && dis0.p) {
+    const OneQualityExpMatrix &m =
+      (maskMode < 2) ? matrices.oneQualExp : matrices.oneQualExpMasked;
+    centroid.setPssm(dis0.p, queryLen, args.temperature, m, dis0.b, dis0.j);
+  }
 
   if (args.maxDropFinal != args.maxDropGapped) {
     alignGapped(aligner, gappedAlns, gaplessAlns,
@@ -985,12 +979,12 @@ void scan(LastAligner& aligner, size_t queryNum,
 
   Dispatcher dis3(Phase::postgapped, aligner, queryNum, matrices, querySeq);
 
-  if (maskMode == 2 && isFullScoreThreshold()) {
+  if (maskMode == 2 && args.scoreType != 0) {
     unmaskLowercase(aligner, queryNum, matrices, querySeq);
     alignPostgapped(aligner, gappedAlns, frameSize, dis3);
   }
 
-  if (maskMode == 2 && !isFullScoreThreshold()) {
+  if (maskMode == 2 && args.scoreType == 0) {
     remaskLowercase(aligner, queryNum, matrices, querySeq);
     eraseWeakAlignments(gappedAlns, frameSize, dis0);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
@@ -1002,6 +996,19 @@ void scan(LastAligner& aligner, size_t queryNum,
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
     LOG2( "nonredundant gapped alignments=" << gappedAlns.size() );
+  }
+
+  if (args.outputType > 3 && dis3.p) {
+    const OneQualityExpMatrix &m =
+      (maskMode < 3) ? matrices.oneQualExp : matrices.oneQualExpMasked;
+    centroid.setPssm(dis3.p, queryLen, args.temperature, m, dis3.b, dis3.j);
+    if (args.outputType == 7) {
+      centroid.setLetterProbsPerPosition(alph.size, queryLen, dis3.b, dis3.j,
+					 isUseFastq(args.inputFormat),
+					 matrices.maker.qualToProbRight(),
+					 matrices.stats.letterProbs2(),
+					 alph.numbersToUppercase);
+    }
   }
 
   if( !isCollatedAlignments() ) gappedAlns.sort();  // sort by score
@@ -1355,7 +1362,7 @@ void lastal( int argc, char** argv ){
   if (evaluer.isGood()) {
     minScore = (args.maxEvalue > 0) ? evaluer.minScore(args.maxEvalue, 1e18)
       : evaluer.minScore(args.queryLettersPerRandomAlignment);
-    if (!isFullScoreThreshold() || args.outputType < 2)
+    if (args.scoreType == 0 || args.outputType < 2)
       minScore = ceil(std::max(1.0, minScore));
     eg2 = 1e18 * evaluer.evaluePerArea(minScore);
   }

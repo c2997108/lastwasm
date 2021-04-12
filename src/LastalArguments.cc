@@ -77,6 +77,7 @@ namespace cbrc{
 LastalArguments::LastalArguments() :
   outputFormat('m'),
   outputType(3),
+  scoreType(-1),
   strand(-1),  // depends on the alphabet
   isQueryStrandMatrix(false),
   isGreedy(false),
@@ -190,6 +191,7 @@ Miscellaneous options (default settings):\n\
                  4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA,\n\
                  7=expected counts ("
     + stringify(outputType) + ")\n\
+-J: score type: 0=ordinary, 1=full (1 for new-style frameshifts, else 0)\n\
 -Q: input format: fastx, keep, sanger, solexa, illumina, prb, pssm\n\
                   (default=fasta)\n\
 ";
@@ -199,7 +201,7 @@ Miscellaneous options (default settings):\n\
     "hVvf:"
     "r:q:p:X:a:b:A:B:c:F:x:y:z:d:e:"
     "D:E:"
-    "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:Q:";
+    "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:J:Q:";
   while( (c = myGetopt(argc, argv, optionString)) != -1 ){
     switch(c){
     case 'h':
@@ -363,6 +365,10 @@ Miscellaneous options (default settings):\n\
       unstringify( outputType, optarg );
       if( outputType < 0 || outputType > 7 ) badopt( c, optarg );
       break;
+    case 'J':
+      unstringify(scoreType, optarg);
+      if (scoreType < 0 || scoreType > 1) badopt(c, optarg);
+      break;
     case 'Q':
       unstringify( inputFormat, optarg );
       break;
@@ -381,8 +387,10 @@ Miscellaneous options (default settings):\n\
   if( isTranslated() && inputFormat == 5 )
     ERR( "can't combine option -F with option -Q 5" );
 
-  if( frameshiftCosts.size() == 1 && frameshiftCosts[0] > 0 && outputType > 3 )
-    ERR( "can't combine option -F > 0 with option -j > 3" );
+  if (frameshiftCosts.size() == 1 && frameshiftCosts[0] > 0) {
+    if (outputType > 3) ERR("can't combine option -F > 0 with option -j > 3");
+    if (scoreType == 1) ERR("can't combine option -F > 0 with option -J 1");
+  }
 
   if( isFrameshift() && outputType > 4 && outputType < 7 )
     ERR( "can't combine option -F > 0 with option -j > 3" );
@@ -395,6 +403,7 @@ Miscellaneous options (default settings):\n\
 
   if (isGreedy) {
     if (outputType > 3) ERR("can't combine option -M with option -j > 3");
+    if (scoreType == 1) ERR("can't combine option -M with option -J 1");
     if (globality == 1) ERR("can't combine option -M with option -T 1");
     if (maskLowercase == 3) ERR("can't combine option -M with option -u 3");
   }
@@ -542,6 +551,11 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     ERR("piecewise linear gap costs not implemented");
   }
 
+  if (scoreType < 0) scoreType = (frameshiftCosts.size() > 1);
+
+  if (scoreType == 0 && frameshiftCosts.size() > 1)
+    ERR("can't combine option -J0 with new-style frameshifts");
+
   if (frameshiftCosts.size() == 1 && frameshiftCosts[0] > 0) {
     if (frameshiftCosts[0] < delGrowCosts[0])
       ERR("the frameshift cost must not be less than the gap extension cost");
@@ -563,8 +577,7 @@ void LastalArguments::setDefaultsFromMatrix(double lambda, double minScore,
   if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
   if( minScoreGapped < 0 ){
     if( outputType > 0 && minScore < 0 )
-      ERR("\
-can't calculate E-values: maybe the mismatch or gap costs are too weak.\n\
+      ERR("can't calculate E-values.\n\
 To proceed without E-values, set a score threshold with option -e.");
     minScoreGapped = minScore;
   }
