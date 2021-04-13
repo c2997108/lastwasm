@@ -366,12 +366,13 @@ def matScoresFromProbs(scale, matchRatio, matProbs, rowProbs, colProbs):
     return [[scoreFromLetterProbs(scale, matchRatio, matProbs[i][j], x, y)
              for j, y in enumerate(colProbs)] for i, x in enumerate(rowProbs)]
 
-def gapCostsFromProbRatios(scale, firstGapRatio, gapExtendRatio):
+def gapCostsFromProbRatios(scale, isBigScale, firstGapRatio, gapExtendRatio):
     # The next addition gets the alignment parameter from the path
     # parameters, as in Supplementary section 3.1 of [Fri19]:
     gapExtendRatio += firstGapRatio
-    firstGapCost = max(costFromProb(scale, firstGapRatio), 1)
-    gapExtendCost = max(costFromProb(scale, gapExtendRatio), 1)
+    # This isBigScale aims to avoid ALP failures, and improve speed
+    firstGapCost = max(costFromProb(scale, firstGapRatio), 1 + isBigScale)
+    gapExtendCost = max(costFromProb(scale, gapExtendRatio), 1 + isBigScale)
     return firstGapCost, gapExtendCost
 
 def imbalanceFromGap(scale, firstGapCost, gapExtendCost):
@@ -411,11 +412,11 @@ def balancedScale(imbalanceFunc, nearScale, args):
         oldUpper = newUpper
     return 0.0
 
-def scoresAndScale(originalScale, matParams, delRatios, insRatios):
+def scoresAndScale(originalScale, matParams, delRatios, insRatios, isInner):
     while True:
         matScores = matScoresFromProbs(originalScale, *matParams)
-        delCosts = gapCostsFromProbRatios(originalScale, *delRatios)
-        insCosts = gapCostsFromProbRatios(originalScale, *insRatios)
+        delCosts = gapCostsFromProbRatios(originalScale, isInner, *delRatios)
+        insCosts = gapCostsFromProbRatios(originalScale, isInner, *insRatios)
         args = matScores, delCosts, insCosts
         scale = balancedScale(scoreImbalance, originalScale, args)
         if scale > 0:
@@ -622,7 +623,7 @@ def normalizedFreqs(freqs):
     s = sum(x)
     return [i / s for i in x]
 
-def codonScoresAndScale(originalScale, matParams, delRatios, insRatios):
+def codonScoresAndScale(originalScale, matParams, delRatios, insRatios, junk):
     matchRatio, matProbs, rowFreqs, colFreqs = matParams
     rowProbs = normalizedFreqs(rowFreqs)
     colProbs = normalizedFreqs(colFreqs)
@@ -773,16 +774,16 @@ def doTraining(opts, args):
         proc = process(lastalArgs, None)
         proc = lastSplitProcess(opts, proc)
         if not opts.scale:
-            externalScale = scaleFromHeader(proc.stdout)
+            outerScale = scaleFromHeader(proc.stdout)
 
     if opts.scale:
-        externalScale = opts.scale / math.log(2)
+        outerScale = opts.scale / math.log(2)
 
-    internalScale = externalScale * scaleIncrease
+    innerScale = outerScale * scaleIncrease
     oldParameters = []
 
-    print("# scale of score parameters:", externalScale)
-    print("# scale used while training:", internalScale)
+    print("# scale of score parameters:", outerScale)
+    print("# scale used while training:", innerScale)
     print()
 
     if opts.codon:
@@ -800,7 +801,7 @@ def doTraining(opts, args):
             rowProbs = [freqText(i) for i in rowProbs]
             colProbs = [freqText(i) for i in colProbs]
         matParams = matchRatio, matProbs, rowProbs, colProbs
-        ss = scoresAndScaleFunc(internalScale, matParams, delRatios, insRatios)
+        ss = scoresAndScaleFunc(innerScale, matParams, delRatios, insRatios, 1)
         matScores, delCosts, insCosts, scale = ss
         writeGapCosts(opts, delCosts, insCosts, False, None)
         print()
@@ -829,7 +830,7 @@ def doTraining(opts, args):
         matProbs, gapProbs = probsFromFile(opts, lastalArgs, codonMatches,
                                            proc.stdout)
 
-    ss = scoresAndScaleFunc(externalScale, matParams, delRatios, insRatios)
+    ss = scoresAndScaleFunc(outerScale, matParams, delRatios, insRatios, 0)
     matScores, delCosts, insCosts, scale = ss
     if opts.X: print("#last -X", opts.X)
     if opts.R: print("#last -R", opts.R)
