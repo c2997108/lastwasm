@@ -127,10 +127,10 @@ namespace cbrc{
       const double scaledDelNext = scale1 * delNext;
       const double scaledInsNext = scale1 * insNext;
 
-      const size_t scoreEnd = xa.scoreEndIndex(antidiagonal);
-      double* fM0 = &fM[ scoreEnd ];
-      double* fD0 = &fD[ scoreEnd ];
-      double* fI0 = &fI[ scoreEnd ];
+      const size_t thisPos = xa.scoreEndIndex(antidiagonal);
+      double *fM0 = &fM[thisPos];
+      double *fD0 = &fD[thisPos];
+      double *fI0 = &fI[thisPos];
 
       const size_t horiPos = xa.hori(antidiagonal, seq1beg);
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
@@ -149,23 +149,17 @@ namespace cbrc{
 
       if (!pssm) {
 	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
-
 	while (1) {
-	  const unsigned letter1 = *s1;
-	  const unsigned letter2 = *s2;
-	  const double matchProb = substitutionProbs[letter1][letter2];
-
+	  const double matchProb = substitutionProbs[*s1][*s2];
 	  const double xM = *fM2;
 	  const double xD = *fD1;
 	  const double xI = *fI1;
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
-
 	  *fD0 = xSum * delInit + xD * scaledDelNext;
 	  *fI0 = xSum * insInit + xI * scaledInsNext;
 	  *fM0 = xSum * matchProb;
 	  sum_f += xSum;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
-
 	  if (fM0 == fM0last) break;
 	  fM0++; fD0++; fI0++;
 	  fM2++; fD1++; fI1++;
@@ -174,23 +168,17 @@ namespace cbrc{
 	}
       } else {
 	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
-
 	while (1) {
-	  const unsigned letter1 = *s1;
-	  const double *matchProbs = *p2;
-	  const double matchProb = matchProbs[letter1];
-
+	  const double matchProb = (*p2)[*s1];
 	  const double xM = *fM2;
 	  const double xD = *fD1;
 	  const double xI = *fI1;
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
-
 	  *fD0 = xSum * delInit + xD * scaledDelNext;
 	  *fI0 = xSum * insInit + xI * scaledInsNext;
 	  *fM0 = xSum * matchProb;
 	  sum_f += xSum;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
-
 	  if (fM0 == fM0last) break;
 	  fM0++; fD0++; fI0++;
 	  fM2++; fD1++; fI1++;
@@ -239,10 +227,10 @@ namespace cbrc{
       const double scaledDelNext = scale1 * delNext;
       const double scaledInsNext = scale1 * insNext;
 
-      const size_t scoreEnd = xa.scoreEndIndex(antidiagonal);
-      const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
-      const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
-      const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
+      const size_t thisPos = xa.scoreEndIndex(antidiagonal) + xdropPadLen;
+      const double *bM0 = &bM[thisPos];
+      const double *bD0 = &bD[thisPos];
+      const double *bI0 = &bI[thisPos];
 
       const size_t horiPos = xa.hori(antidiagonal, seq1beg);
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
@@ -265,14 +253,10 @@ namespace cbrc{
 	const uchar *s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
 	while (1) {
-	  const unsigned letter1 = *s1;
-	  const unsigned letter2 = *s2;
-	  const double matchProb = substitutionProbs[letter1][letter2];
-
+	  const double matchProb = substitutionProbs[*s1][*s2];
 	  const double yM = *bM0;
 	  const double yD = *bD0;
 	  const double yI = *bI0;
-
 	  double ySum = yM * matchProb + yD * delInit + yI * insInit;
 
 	  if (!globality || matchProb <= 0) ySum += scaledUnit;
@@ -300,13 +284,10 @@ namespace cbrc{
 	const ExpMatrixRow *p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
 
 	while (1) {
-	  const unsigned letter1 = *s1;
-	  const double matchProb = (*p2)[letter1];
-
+	  const double matchProb = (*p2)[*s1];
 	  const double yM = *bM0;
 	  const double yD = *bD0;
 	  const double yI = *bI0;
-
 	  double ySum = yM * matchProb + yD * delInit + yI * insInit;
 
 	  if (!globality || matchProb <= 0) ySum += scaledUnit;  // xxx
@@ -563,10 +544,10 @@ namespace cbrc{
       const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
 
-      const size_t scoreEnd = xa.scoreEndIndex(antidiagonal);
-      const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
-      const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
-      const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
+      const size_t thisPos = xa.scoreEndIndex(antidiagonal) + xdropPadLen;
+      const double *bM0 = &bM[thisPos];
+      const double *bD0 = &bD[thisPos];
+      const double *bI0 = &bI[thisPos];
 
       const size_t horiPos = xa.hori(antidiagonal, seq1beg);
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
