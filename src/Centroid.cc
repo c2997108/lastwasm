@@ -121,8 +121,7 @@ namespace cbrc{
       const double *fI1 = &fI[vertPos];
       const double *fM2 = &fM[diagPos];
 
-      const double* fM0last = fM0 + xa.numCellsAndPads(antidiagonal) - 1;
-
+      const int numCells = xa.numCellsAndPads(antidiagonal) - xdropPadLen;
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       for (int i = 0; i < xdropPadLen; ++i) {
@@ -131,39 +130,33 @@ namespace cbrc{
 
       if (!pssm) {
 	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
-	while (1) {
+	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = substitutionProbs[*s1][*s2];
-	  const double xM = *fM2;
-	  const double xD = *fD1;
-	  const double xI = *fI1;
+	  const double xM = fM2[i];
+	  const double xD = fD1[i];
+	  const double xI = fI1[i];
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
-	  *fD0 = xSum * delInit + xD * scaledDelNext;
-	  *fI0 = xSum * insInit + xI * scaledInsNext;
-	  *fM0 = xSum * matchProb;
+	  fD0[i] = xSum * delInit + xD * scaledDelNext;
+	  fI0[i] = xSum * insInit + xI * scaledInsNext;
+	  fM0[i] = xSum * matchProb;
 	  sum_f += xSum;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
-	  if (fM0 == fM0last) break;
-	  fM0++; fD0++; fI0++;
-	  fM2++; fD1++; fI1++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
       } else {
 	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
-	while (1) {
+	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = (*p2)[*s1];
-	  const double xM = *fM2;
-	  const double xD = *fD1;
-	  const double xI = *fI1;
+	  const double xM = fM2[i];
+	  const double xD = fD1[i];
+	  const double xI = fI1[i];
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
-	  *fD0 = xSum * delInit + xD * scaledDelNext;
-	  *fI0 = xSum * insInit + xI * scaledInsNext;
-	  *fM0 = xSum * matchProb;
+	  fD0[i] = xSum * delInit + xD * scaledDelNext;
+	  fI0[i] = xSum * insInit + xI * scaledInsNext;
+	  fM0[i] = xSum * matchProb;
 	  sum_f += xSum;
 	  if (globality && matchProb <= 0) Z += xSum;  // xxx
-	  if (fM0 == fM0last) break;
-	  fM0++; fD0++; fI0++;
-	  fM2++; fD1++; fI1++;
 	  s1 += seqIncrement;
 	  p2 -= seqIncrement;
 	}
@@ -223,21 +216,20 @@ namespace cbrc{
       const double *fD1 = &fD[horiPos];
       const double *fI1 = &fI[vertPos];
 
-      const double *bM0last = bM0 + xa.numCellsAndPads(antidiagonal) - xdropPadLen - 1;
-
       double* mDout = &mD[ seq1beg ];
       double* mIout = &mI[ seq2pos ];
 
+      int numCells = xa.numCellsAndPads(antidiagonal) - xdropPadLen;
       const uchar *s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       if (!pssm) {
 	const uchar *s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
-	while (1) {
+	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = substitutionProbs[*s1][*s2];
-	  const double yM = *bM0;
-	  const double yD = *bD0;
-	  const double yI = *bI0;
+	  const double yM = bM0[i];
+	  const double yD = bD0[i];
+	  const double yI = bI0[i];
 	  double ySum = yM * matchProb + yD * delInit + yI * insInit;
 
 	  if (!globality || matchProb <= 0) ySum += scaledUnit;
@@ -246,47 +238,39 @@ namespace cbrc{
 
 	  ySum *= scale1;
 
-	  *bM2 = ySum * scale2;
-	  *bD1 = ySum + yD * scaledDelNext;
-	  *bI1 = ySum + yI * scaledInsNext;
+	  bM2[i] = ySum * scale2;
+	  bD1[i] = ySum + yD * scaledDelNext;
+	  bI1[i] = ySum + yI * scaledInsNext;
 
-	  *mDout += (*fD1) * (*bD1);
-	  *mIout += (*fI1) * (*bI1);
+	  *mDout += fD1[i] * bD1[i];
+	  *mIout += fI1[i] * bI1[i];
 
-	  if (bM0 == bM0last) break;
 	  mDout++; mIout--;
-	  bM2++; bD1++; bI1++;
-	  bM0++; bD0++; bI0++;
-	  fD1++; fI1++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
       } else {
 	const ExpMatrixRow *p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
 
-	while (1) {
+	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = (*p2)[*s1];
-	  const double yM = *bM0;
-	  const double yD = *bD0;
-	  const double yI = *bI0;
+	  const double yM = bM0[i];
+	  const double yD = bD0[i];
+	  const double yI = bI0[i];
 	  double ySum = yM * matchProb + yD * delInit + yI * insInit;
 
 	  if (!globality || matchProb <= 0) ySum += scaledUnit;  // xxx
 
 	  ySum *= scale1;
 
-	  *bM2 = ySum * scale2;
-	  *bD1 = ySum + yD * scaledDelNext;
-	  *bI1 = ySum + yI * scaledInsNext;
+	  bM2[i] = ySum * scale2;
+	  bD1[i] = ySum + yD * scaledDelNext;
+	  bI1[i] = ySum + yI * scaledInsNext;
 
-	  *mDout += (*fD1) * (*bD1);
-	  *mIout += (*fI1) * (*bI1);
+	  *mDout += fD1[i] * bD1[i];
+	  *mIout += fI1[i] * bI1[i];
 
-	  if (bM0 == bM0last) break;
 	  mDout++; mIout--;
-	  bM2++; bD1++; bI1++;
-	  bM0++; bD0++; bI0++;
-	  fD1++; fI1++;
 	  s1 += seqIncrement;
 	  p2 -= seqIncrement;
 	}
@@ -540,25 +524,24 @@ namespace cbrc{
       double dNextCount = 0;
       double iNextCount = 0;
 
-      const double* bM0last = bM0 + xa.numCellsAndPads(antidiagonal) - xdropPadLen - 1;
-
+      const int numCells = xa.numCellsAndPads(antidiagonal) - xdropPadLen;
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       if (!pssm) {
 	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
 
-	while (1) {
+	for (int i = 0; i < numCells; ++i) {
 	  const unsigned letter1 = *s1;
 	  const unsigned letter2 = *s2;
 	  const double matchProb = substitutionProbs[letter1][letter2];
 
-	  const double yM = *bM0;
-	  const double yD = *bD0;
-	  const double yI = *bI0;
+	  const double yM = bM0[i];
+	  const double yD = bD0[i];
+	  const double yI = bI0[i];
 
-	  const double xM = *fM2;
-	  const double xD = *fD1;
-	  const double xI = *fI1;
+	  const double xM = fM2[i];
+	  const double xD = fD1[i];
+	  const double xI = fI1[i];
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
 	  const double alignProb = xSum * yM * matchProb;
@@ -569,9 +552,6 @@ namespace cbrc{
 	  insInitCount += xSum * yI;
 	  iNextCount += xI * yI;
 
-	  if (bM0 == bM0last) break;
-	  fM2++; fD1++; fI1++;
-	  bM0++; bD0++; bI0++;
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
@@ -580,17 +560,17 @@ namespace cbrc{
 	const size_t a2 = seq2pos * alphabetSize;
 	const double* lp2 = isExtendFwd ? letterProbs + a2 : letterProbs - a2;
 
-	while (1) { // inner most loop
+	for (int i = 0; i < numCells; ++i) {
 	  const unsigned letter1 = *s1;
 	  const double matchProb = (*p2)[letter1];
 
-	  const double yM = *bM0;
-	  const double yD = *bD0;
-	  const double yI = *bI0;
+	  const double yM = bM0[i];
+	  const double yD = bD0[i];
+	  const double yI = bI0[i];
 
-	  const double xM = *fM2;
-	  const double xD = *fD1;
-	  const double xI = *fI1;
+	  const double xM = fM2[i];
+	  const double xD = fD1[i];
+	  const double xI = fI1[i];
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
 	  const double alignProb = xSum * yM * matchProb;
@@ -602,9 +582,6 @@ namespace cbrc{
 	  insInitCount += xSum * yI;
 	  iNextCount += xI * yI;
 
-	  if (bM0 == bM0last) break;
-	  fM2++; fD1++; fI1++;
-	  bM0++; bD0++; bI0++;
 	  s1 += seqIncrement;
 	  p2 -= seqIncrement;
 	  lp2 -= alphabetSizeIncrement;
