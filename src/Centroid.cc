@@ -117,29 +117,29 @@ namespace cbrc{
 
     double Z = 0.0;  // partion function of forward values
 
-    for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const size_t seq1beg = xa.seq1start( k );
-      const size_t seq2pos = k - seq1beg;
-      const double scale2 = rescales[k];
-      const double scale1 = rescales[k+1];
+    for (size_t antidiagonal = 0; antidiagonal < numAntidiagonals; ++antidiagonal) {
+      const size_t seq1beg = xa.seq1start(antidiagonal);
+      const size_t seq2pos = antidiagonal - seq1beg;
+      const double scale2 = rescales[antidiagonal];
+      const double scale1 = rescales[antidiagonal + 1];
       double sum_f = 0.0; // sum of forward values
 
       const double scaledDelNext = scale1 * delNext;
       const double scaledInsNext = scale1 * insNext;
 
-      const size_t scoreEnd = xa.scoreEndIndex( k );
+      const size_t scoreEnd = xa.scoreEndIndex(antidiagonal);
       double* fM0 = &fM[ scoreEnd ];
       double* fD0 = &fD[ scoreEnd ];
       double* fI0 = &fI[ scoreEnd ];
 
-      const size_t horiPos = xa.hori(k, seq1beg);
-      const size_t vertPos = xa.vert(k, seq1beg);
-      const size_t diagPos = xa.diag(k, seq1beg);
+      const size_t horiPos = xa.hori(antidiagonal, seq1beg);
+      const size_t vertPos = xa.vert(antidiagonal, seq1beg);
+      const size_t diagPos = xa.diag(antidiagonal, seq1beg);
       const double *fD1 = &fD[horiPos];
       const double *fI1 = &fI[vertPos];
       const double *fM2 = &fM[diagPos];
 
-      const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
+      const double* fM0last = fM0 + xa.numCellsAndPads(antidiagonal) - 1;
 
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
@@ -200,9 +200,9 @@ namespace cbrc{
       }
 
       if( !globality ) Z += sum_f;
-      rescales[k+2] = 1.0 / (sum_f + 1.0);  // seems ugly
-      Z *= rescales[k+2]; // scaling
-    } // k
+      rescales[antidiagonal + 2] = 1.0 / (sum_f + 1.0);  // seems ugly
+      Z *= rescales[antidiagonal + 2];
+    }
 
     //std::cout << "# Z=" << Z << std::endl;
     assert( Z > 0.0 );
@@ -229,24 +229,24 @@ namespace cbrc{
 
     double scaledUnit = 1.0;
 
-    for( size_t k = numAntidiagonals; k-- > 0; ){
-      const size_t seq1beg = xa.seq1start( k );
-      const size_t seq2pos = k - seq1beg;
-      const double scale2 = rescales[k];
-      const double scale1 = rescales[k+1];
-      scaledUnit *= rescales[k+2];
+    for (size_t antidiagonal = numAntidiagonals; antidiagonal-- > 0;) {
+      const size_t seq1beg = xa.seq1start(antidiagonal);
+      const size_t seq2pos = antidiagonal - seq1beg;
+      const double scale2 = rescales[antidiagonal];
+      const double scale1 = rescales[antidiagonal + 1];
+      scaledUnit *= rescales[antidiagonal + 2];
 
       const double scaledDelNext = scale1 * delNext;
       const double scaledInsNext = scale1 * insNext;
 
-      const size_t scoreEnd = xa.scoreEndIndex( k );
+      const size_t scoreEnd = xa.scoreEndIndex(antidiagonal);
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
       const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
       const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
 
-      const size_t horiPos = xa.hori(k, seq1beg);
-      const size_t vertPos = xa.vert(k, seq1beg);
-      const size_t diagPos = xa.diag(k, seq1beg);
+      const size_t horiPos = xa.hori(antidiagonal, seq1beg);
+      const size_t vertPos = xa.vert(antidiagonal, seq1beg);
+      const size_t diagPos = xa.diag(antidiagonal, seq1beg);
       double *bD1 = &bD[horiPos];
       double *bI1 = &bI[vertPos];
       double *bM2 = &bM[diagPos];
@@ -254,7 +254,7 @@ namespace cbrc{
       const double *fD1 = &fD[horiPos];
       const double *fI1 = &fI[vertPos];
 
-      const double* bM0last = bM0 + xa.numCellsAndPads( k ) - xdropPadLen - 1;
+      const double *bM0last = bM0 + xa.numCellsAndPads(antidiagonal) - xdropPadLen - 1;
 
       double* mDout = &mD[ seq1beg ];
       double* mIout = &mI[ seq2pos ];
@@ -557,20 +557,20 @@ namespace cbrc{
     double delInitCount = 0; double delNextCount = 0;
     double insInitCount = 0; double insNextCount = 0;
 
-    for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
-      const size_t seq1beg = xa.seq1start( k );
-      const size_t seq2pos = k - seq1beg;
-      const double scale2 = rescales[k];
-      const double scale1 = rescales[k+1];
+    for (size_t antidiagonal = 0; antidiagonal < numAntidiagonals; ++antidiagonal) {
+      const size_t seq1beg = xa.seq1start(antidiagonal);
+      const size_t seq2pos = antidiagonal - seq1beg;
+      const double scale2 = rescales[antidiagonal];
+      const double scale1 = rescales[antidiagonal + 1];
 
-      const size_t scoreEnd = xa.scoreEndIndex( k );
+      const size_t scoreEnd = xa.scoreEndIndex(antidiagonal);
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
       const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
       const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
 
-      const size_t horiPos = xa.hori(k, seq1beg);
-      const size_t vertPos = xa.vert(k, seq1beg);
-      const size_t diagPos = xa.diag(k, seq1beg);
+      const size_t horiPos = xa.hori(antidiagonal, seq1beg);
+      const size_t vertPos = xa.vert(antidiagonal, seq1beg);
+      const size_t diagPos = xa.diag(antidiagonal, seq1beg);
       const double *fD1 = &fD[horiPos];
       const double *fI1 = &fI[vertPos];
       const double *fM2 = &fM[diagPos];
@@ -578,7 +578,7 @@ namespace cbrc{
       double dNextCount = 0;
       double iNextCount = 0;
 
-      const double* bM0last = bM0 + xa.numCellsAndPads( k ) - xdropPadLen - 1;
+      const double* bM0last = bM0 + xa.numCellsAndPads(antidiagonal) - xdropPadLen - 1;
 
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
