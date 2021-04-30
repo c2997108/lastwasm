@@ -107,7 +107,7 @@ namespace cbrc{
     const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
     const int seqIncrement = isExtendFwd ? 1 : -1;
     numAntidiagonals = xa.numAntidiagonals();
-    scale.assign(numAntidiagonals + 2, 1.0);
+    rescales.assign(numAntidiagonals + 2, 1.0);
     initForwardMatrix();
 
     const double delInit = gapCosts.delProbPieces[0].openProb;
@@ -120,8 +120,8 @@ namespace cbrc{
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale2 = scale[k];
-      const double scale1 = scale[k+1];
+      const double scale2 = rescales[k];
+      const double scale1 = rescales[k+1];
       double sum_f = 0.0; // sum of forward values
 
       const double scaledDelNext = scale1 * delNext;
@@ -132,12 +132,12 @@ namespace cbrc{
       double* fD0 = &fD[ scoreEnd ];
       double* fI0 = &fI[ scoreEnd ];
 
-      const size_t horiBeg = xa.hori( k, seq1beg );
-      const size_t vertBeg = xa.vert( k, seq1beg );
-      const size_t diagBeg = xa.diag( k, seq1beg );
-      const double* fD1 = &fD[ horiBeg ];
-      const double* fI1 = &fI[ vertBeg ];
-      const double* fM2 = &fM[ diagBeg ];
+      const size_t horiPos = xa.hori(k, seq1beg);
+      const size_t vertPos = xa.vert(k, seq1beg);
+      const size_t diagPos = xa.diag(k, seq1beg);
+      const double *fD1 = &fD[horiPos];
+      const double *fI1 = &fI[vertPos];
+      const double *fM2 = &fM[diagPos];
 
       const double* fM0last = fM0 + xa.numCellsAndPads( k ) - 1;
 
@@ -200,13 +200,13 @@ namespace cbrc{
       }
 
       if( !globality ) Z += sum_f;
-      scale[k+2] = 1.0 / (sum_f + 1.0);  // seems ugly
-      Z *= scale[k+2]; // scaling
+      rescales[k+2] = 1.0 / (sum_f + 1.0);  // seems ugly
+      Z *= rescales[k+2]; // scaling
     } // k
 
     //std::cout << "# Z=" << Z << std::endl;
     assert( Z > 0.0 );
-    scale[ numAntidiagonals + 1 ] /= Z;  // this causes scaled Z to equal 1
+    rescales[numAntidiagonals + 1] /= Z;  // this causes scaled Z to equal 1
     return logPartitionFunction();
   }
 
@@ -232,9 +232,9 @@ namespace cbrc{
     for( size_t k = numAntidiagonals; k-- > 0; ){
       const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale2 = scale[k];
-      const double scale1 = scale[k+1];
-      scaledUnit *= scale[k+2];
+      const double scale2 = rescales[k];
+      const double scale1 = rescales[k+1];
+      scaledUnit *= rescales[k+2];
 
       const double scaledDelNext = scale1 * delNext;
       const double scaledInsNext = scale1 * insNext;
@@ -244,15 +244,15 @@ namespace cbrc{
       const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
       const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
 
-      const size_t horiBeg = xa.hori( k, seq1beg );
-      const size_t vertBeg = xa.vert( k, seq1beg );
-      const size_t diagBeg = xa.diag( k, seq1beg );
-      double* bD1 = &bD[ horiBeg ];
-      double* bI1 = &bI[ vertBeg ];
-      double* bM2 = &bM[ diagBeg ];
+      const size_t horiPos = xa.hori(k, seq1beg);
+      const size_t vertPos = xa.vert(k, seq1beg);
+      const size_t diagPos = xa.diag(k, seq1beg);
+      double *bD1 = &bD[horiPos];
+      double *bI1 = &bI[vertPos];
+      double *bM2 = &bM[diagPos];
 
-      const double* fD1 = &fD[ horiBeg ];
-      const double* fI1 = &fI[ vertBeg ];
+      const double *fD1 = &fD[horiPos];
+      const double *fI1 = &fI[vertPos];
 
       const double* bM0last = bM0 + xa.numCellsAndPads( k ) - xdropPadLen - 1;
 
@@ -513,7 +513,7 @@ namespace cbrc{
   double Centroid::logPartitionFunction() const{
     double x = 0.0;
     for( size_t k = 0; k < numAntidiagonals; ++k ){
-      x -= std::log( scale[k+2] );
+      x -= std::log(rescales[k + 2]);
     }
     return x;
   }
@@ -560,20 +560,20 @@ namespace cbrc{
     for( size_t k = 0; k < numAntidiagonals; ++k ){  // loop over antidiagonals
       const size_t seq1beg = xa.seq1start( k );
       const size_t seq2pos = k - seq1beg;
-      const double scale2 = scale[k];
-      const double scale1 = scale[k+1];
+      const double scale2 = rescales[k];
+      const double scale1 = rescales[k+1];
 
       const size_t scoreEnd = xa.scoreEndIndex( k );
       const double* bM0 = &bM[ scoreEnd + xdropPadLen ];
       const double* bD0 = &bD[ scoreEnd + xdropPadLen ];
       const double* bI0 = &bI[ scoreEnd + xdropPadLen ];
 
-      const size_t horiBeg = xa.hori( k, seq1beg );
-      const size_t vertBeg = xa.vert( k, seq1beg );
-      const size_t diagBeg = xa.diag( k, seq1beg );
-      const double* fD1 = &fD[ horiBeg ];
-      const double* fI1 = &fI[ vertBeg ];
-      const double* fM2 = &fM[ diagBeg ];
+      const size_t horiPos = xa.hori(k, seq1beg);
+      const size_t vertPos = xa.vert(k, seq1beg);
+      const size_t diagPos = xa.diag(k, seq1beg);
+      const double *fD1 = &fD[horiPos];
+      const double *fI1 = &fI[vertPos];
+      const double *fM2 = &fM[diagPos];
 
       double dNextCount = 0;
       double iNextCount = 0;

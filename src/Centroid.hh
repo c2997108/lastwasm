@@ -135,7 +135,7 @@ namespace cbrc{
 
     dvec_t X; // DP tables for $gamma$-decoding
 
-    dvec_t scale; // scale[n] is a scaling factor for the n-th anti-diagonal
+    dvec_t rescales;
 
     double bestScore;
     size_t bestAntiDiagonal;
