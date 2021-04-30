@@ -83,37 +83,19 @@ namespace cbrc{
     }
   }
 
-  void Centroid::initForwardMatrix(){
-    size_t n = xa.scoreEndIndex( numAntidiagonals );
-    if ( fM.size() < n ) {
-      fM.resize( n );
-      fD.resize( n );
-      fI.resize( n );
-    }
-    fM[xdropPadLen-1] = 1;
-  }
-
-  void Centroid::initBackwardMatrix(){
-    size_t n = xa.scoreEndIndex( numAntidiagonals );
-    bM.assign( n, 0.0 );
-    bD.assign( n, 0.0 );
-    bI.assign( n, 0.0 );
-  }
-
   double Centroid::forward(const uchar *seq1, const uchar *seq2,
 			   size_t start2, bool isExtendFwd,
 			   const const_dbl_ptr *substitutionProbs,
 			   const GapCosts &gapCosts, int globality) {
     const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
     const int seqIncrement = isExtendFwd ? 1 : -1;
-    numAntidiagonals = xa.numAntidiagonals();
-    rescales.assign(numAntidiagonals + 2, 1.0);
-    initForwardMatrix();
 
     const double delInit = gapCosts.delProbPieces[0].openProb;
     const double delNext = gapCosts.delProbPieces[0].growProb;
     const double insInit = gapCosts.insProbPieces[0].openProb;
     const double insNext = gapCosts.insProbPieces[0].growProb;
+
+    initForward();
 
     double Z = 0.0;  // partion function of forward values
 
@@ -206,14 +188,13 @@ namespace cbrc{
 			  const GapCosts& gapCosts, int globality) {
     const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
     const int seqIncrement = isExtendFwd ? 1 : -1;
-    mD.assign(numAntidiagonals + 2, 0.0);
-    mI.assign(numAntidiagonals + 2, 0.0);
-    initBackwardMatrix();
 
     const double delInit = gapCosts.delProbPieces[0].openProb;
     const double delNext = gapCosts.delProbPieces[0].growProb;
     const double insInit = gapCosts.insProbPieces[0].openProb;
     const double insNext = gapCosts.insProbPieces[0].growProb;
+
+    initBackward();
 
     double scaledUnit = 1.0;
 

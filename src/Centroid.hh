@@ -141,8 +141,29 @@ namespace cbrc{
     size_t bestAntiDiagonal;
     size_t bestPos1;
 
-    void initForwardMatrix();
-    void initBackwardMatrix();
+    void initForward() {
+      numAntidiagonals = xa.numAntidiagonals();
+
+      size_t totalNumOfCells = xa.scoreEndIndex(numAntidiagonals);
+      if (fM.size() < totalNumOfCells) {
+	fM.resize(totalNumOfCells);
+	fD.resize(totalNumOfCells);
+	fI.resize(totalNumOfCells);
+      }
+      fM[xdropPadLen - 1] = 1;
+
+      rescales.assign(numAntidiagonals + 2, 1.0);
+    }
+
+    void initBackward() {
+      size_t totalNumOfCells = xa.scoreEndIndex(numAntidiagonals);
+      bM.assign(totalNumOfCells, 0.0);
+      bD.assign(totalNumOfCells, 0.0);
+      bI.assign(totalNumOfCells, 0.0);
+
+      mD.assign(numAntidiagonals + 2, 0.0);
+      mI.assign(numAntidiagonals + 2, 0.0);
+    }
 
     double logPartitionFunction() const;  // a.k.a. full score, forward score
 
