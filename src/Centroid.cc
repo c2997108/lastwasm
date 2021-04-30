@@ -5,7 +5,6 @@
 #include "GappedXdropAlignerInl.hh"
 
 #include <algorithm>
-#include <cassert>
 #include <cmath> // for exp
 #include <cfloat>   // for DBL_MAX
 
@@ -97,6 +96,8 @@ namespace cbrc{
 
     initForward();
 
+    size_t thisPos = xdropPadLen * 2;
+
     double Z = 0.0;  // partion function of forward values
 
     for (size_t antidiagonal = 0; antidiagonal < numAntidiagonals; ++antidiagonal) {
@@ -109,7 +110,6 @@ namespace cbrc{
       const double scaledDelNext = scale1 * delNext;
       const double scaledInsNext = scale1 * insNext;
 
-      const size_t thisPos = xa.scoreEndIndex(antidiagonal);
       double *fM0 = &fM[thisPos];
       double *fD0 = &fD[thisPos];
       double *fI0 = &fI[thisPos];
@@ -121,7 +121,8 @@ namespace cbrc{
       const double *fI1 = &fI[vertPos];
       const double *fM2 = &fM[diagPos];
 
-      const int numCells = xa.numCellsAndPads(antidiagonal) - xdropPadLen;
+      const size_t nextPos = xa.scoreEndIndex(antidiagonal + 1);
+      const int numCells = nextPos - thisPos - xdropPadLen;
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       for (int i = 0; i < xdropPadLen; ++i) {
@@ -162,12 +163,13 @@ namespace cbrc{
 	}
       }
 
+      thisPos = nextPos;
+
       if( !globality ) Z += sum_f;
       rescales[antidiagonal + 2] = 1.0 / (sum_f + 1.0);  // seems ugly
       Z *= rescales[antidiagonal + 2];
     }
 
-    //std::cout << "# Z=" << Z << std::endl;
     assert( Z > 0.0 );
     rescales[numAntidiagonals + 1] /= Z;  // this causes scaled Z to equal 1
     return logPartitionFunction();
@@ -187,7 +189,8 @@ namespace cbrc{
     const double insInit = gapCosts.insProbPieces[0].openProb;
     const double insNext = gapCosts.insProbPieces[0].growProb;
 
-    initBackward();
+    size_t oldPos = xa.scoreEndIndex(numAntidiagonals);
+    initBackward(oldPos);
 
     double scaledUnit = 1.0;
 
@@ -201,10 +204,10 @@ namespace cbrc{
       const double scaledDelNext = scale1 * delNext;
       const double scaledInsNext = scale1 * insNext;
 
-      const size_t thisPos = xa.scoreEndIndex(antidiagonal) + xdropPadLen;
-      const double *bM0 = &bM[thisPos];
-      const double *bD0 = &bD[thisPos];
-      const double *bI0 = &bI[thisPos];
+      const size_t newPos = xa.scoreEndIndex(antidiagonal);
+      const double *bM0 = &bM[newPos + xdropPadLen];
+      const double *bD0 = &bD[newPos + xdropPadLen];
+      const double *bI0 = &bI[newPos + xdropPadLen];
 
       const size_t horiPos = xa.hori(antidiagonal, seq1beg);
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
@@ -219,7 +222,7 @@ namespace cbrc{
       double* mDout = &mD[ seq1beg ];
       double* mIout = &mI[ seq2pos ];
 
-      int numCells = xa.numCellsAndPads(antidiagonal) - xdropPadLen;
+      const int numCells = oldPos - newPos - xdropPadLen;
       const uchar *s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       if (!pssm) {
@@ -275,9 +278,9 @@ namespace cbrc{
 	  p2 -= seqIncrement;
 	}
       }
-    }
 
-    //std::cout << "# bM[0]=" << bM[0] << std::endl;
+      oldPos = newPos;
+    }
   }
 
   double Centroid::dp_centroid( double gamma ){
@@ -500,16 +503,17 @@ namespace cbrc{
     int alphabetSizeIncrement = alphabetSize;
     if (!isExtendFwd) alphabetSizeIncrement *= -1;
 
+    size_t thisPos = xdropPadLen * 3;
+
     double delInitCount = 0; double delNextCount = 0;
     double insInitCount = 0; double insNextCount = 0;
 
-    for (size_t antidiagonal = 0; antidiagonal < numAntidiagonals; ++antidiagonal) {
+    for (size_t antidiagonal = 0; antidiagonal < numAntidiagonals;) {
       const size_t seq1beg = xa.seq1start(antidiagonal);
       const size_t seq2pos = antidiagonal - seq1beg;
       const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
 
-      const size_t thisPos = xa.scoreEndIndex(antidiagonal) + xdropPadLen;
       const double *bM0 = &bM[thisPos];
       const double *bD0 = &bD[thisPos];
       const double *bI0 = &bI[thisPos];
@@ -524,7 +528,9 @@ namespace cbrc{
       double dNextCount = 0;
       double iNextCount = 0;
 
-      const int numCells = xa.numCellsAndPads(antidiagonal) - xdropPadLen;
+      ++antidiagonal;
+      const size_t nextPos = xa.scoreEndIndex(antidiagonal);
+      const int numCells = nextPos - thisPos;
       const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
 
       if (!pssm) {
@@ -590,6 +596,8 @@ namespace cbrc{
 
       delNextCount += dNextCount * scale1;
       insNextCount += iNextCount * scale1;
+
+      thisPos = nextPos + xdropPadLen;
     }
 
     const double delInit = gapCosts.delProbPieces[0].openProb;

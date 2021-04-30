@@ -143,6 +143,7 @@ namespace cbrc{
 
     void initForward() {
       numAntidiagonals = xa.numAntidiagonals();
+      assert(numAntidiagonals > 0);
 
       size_t totalNumOfCells = xa.scoreEndIndex(numAntidiagonals);
       if (fM.size() < totalNumOfCells) {
@@ -155,8 +156,7 @@ namespace cbrc{
       rescales.assign(numAntidiagonals + 2, 1.0);
     }
 
-    void initBackward() {
-      size_t totalNumOfCells = xa.scoreEndIndex(numAntidiagonals);
+    void initBackward(size_t totalNumOfCells) {
       bM.assign(totalNumOfCells, 0.0);
       bD.assign(totalNumOfCells, 0.0);
       bI.assign(totalNumOfCells, 0.0);
