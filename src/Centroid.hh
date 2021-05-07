@@ -100,11 +100,10 @@ namespace cbrc{
 			      size_t seq2end, size_t seq2beg) const;
 
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
-    void computeExpectedCounts(const uchar* seq1, const uchar* seq2,
-			       size_t start2, bool isExtendFwd,
+    void computeExpectedCounts(size_t start2, bool isExtendFwd,
 			       const const_dbl_ptr *substitutionProbs,
 			       const GapCosts& gapCosts, unsigned alphabetSize,
-			       ExpectedCount& count) const;
+			       ExpectedCount& count);
 
   private:
     typedef double ExpMatrixRow[scoreMatrixRowSize];

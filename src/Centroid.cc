@@ -511,14 +511,11 @@ namespace cbrc{
     }
   }
 
-  void Centroid::computeExpectedCounts(const uchar *seq1, const uchar *seq2,
-				       size_t start2, bool isExtendFwd,
+  void Centroid::computeExpectedCounts(size_t start2, bool isExtendFwd,
 				       const const_dbl_ptr *substitutionProbs,
 				       const GapCosts &gapCosts,
 				       unsigned alphabetSize,
-				       ExpectedCount &c) const {
-    const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
-
+				       ExpectedCount &c) {
     const double *letterProbs = 0;
     if (!letterProbsPerPosition.empty()) {
       letterProbs = &letterProbsPerPosition[0] + start2 * alphabetSize;
@@ -528,14 +525,14 @@ namespace cbrc{
     int alphabetSizeIncrement = alphabetSize;
     if (!isExtendFwd) alphabetSizeIncrement *= -1;
 
+    size_t antidiagonal = 0;
+    size_t seq1beg = 0;
     size_t thisPos = xdropPadLen * 3;
 
     double delInitCount = 0; double delNextCount = 0;
     double insInitCount = 0; double insNextCount = 0;
 
-    for (size_t antidiagonal = 0; antidiagonal < numAntidiagonals;) {
-      const size_t seq1beg = xa.seq1start(antidiagonal);
-      const size_t seq2pos = antidiagonal - seq1beg;
+    while (1) {
       const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
 
@@ -556,10 +553,10 @@ namespace cbrc{
       ++antidiagonal;
       const size_t nextPos = xa.scoreEndIndex(antidiagonal);
       const int numCells = nextPos - thisPos;
-      const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
+      const uchar *s1 = seq1ptr;
 
-      if (!pssm) {
-	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
+      if (!letterProbs) {
+	const uchar *s2 = seq2ptr;
 
 	for (int i = 0; i < numCells; ++i) {
 	  const unsigned letter1 = *s1;
@@ -587,9 +584,8 @@ namespace cbrc{
 	  s2 -= seqIncrement;
 	}
       } else {
-	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
-	const size_t a2 = seq2pos * alphabetSize;
-	const double* lp2 = isExtendFwd ? letterProbs + a2 : letterProbs - a2;
+	const ExpMatrixRow *p2 = pssmPtr;
+	const double *lp2 = letterProbs;
 
 	for (int i = 0; i < numCells; ++i) {
 	  const unsigned letter1 = *s1;
@@ -622,7 +618,19 @@ namespace cbrc{
       delNextCount += dNextCount * scale1;
       insNextCount += iNextCount * scale1;
 
+      if (antidiagonal == numAntidiagonals) break;
+
       thisPos = nextPos + xdropPadLen;
+
+      const size_t newSeq1beg = xa.seq1start(antidiagonal);
+      if (newSeq1beg > seq1beg) {
+	seq1beg = newSeq1beg;
+	seq1ptr += seqIncrement;
+      } else {
+	seq2ptr += seqIncrement;
+	if (pssmPtr) pssmPtr += seqIncrement;
+	if (letterProbs) letterProbs += alphabetSizeIncrement;
+      }
     }
 
     const double delInit = gapCosts.delProbPieces[0].openProb;
