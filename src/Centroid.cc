@@ -98,12 +98,13 @@ namespace cbrc{
 
     initForward();
 
+    size_t antidiagonal = 0;
     size_t seq1beg = 0;
     size_t thisPos = xdropPadLen * 2;
 
     double Z = 0.0;  // partion function of forward values
 
-    for (size_t antidiagonal = 0; antidiagonal < numAntidiagonals; ++antidiagonal) {
+    while (1) {
       const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
       double sum_f = 0.0; // sum of forward values
@@ -122,7 +123,8 @@ namespace cbrc{
       const double *fI1 = &fI[vertPos];
       const double *fM2 = &fM[diagPos];
 
-      const size_t nextPos = xa.scoreEndIndex(antidiagonal + 1);
+      ++antidiagonal;
+      const size_t nextPos = xa.scoreEndIndex(antidiagonal);
       const int numCells = nextPos - thisPos - xdropPadLen;
       const uchar *s1 = seq1ptr;
 
@@ -164,9 +166,15 @@ namespace cbrc{
 	}
       }
 
+      if (!globality) Z += sum_f;
+      rescales[antidiagonal + 1] = 1.0 / (sum_f + 1.0);  // seems ugly
+      Z *= rescales[antidiagonal + 1];
+
+      if (antidiagonal == numAntidiagonals) break;
+
       thisPos = nextPos;
 
-      const size_t newSeq1beg = xa.seq1start(antidiagonal + 1);
+      const size_t newSeq1beg = xa.seq1start(antidiagonal);
       if (newSeq1beg > seq1beg) {
 	seq1beg = newSeq1beg;
 	seq1ptr += seqIncrement;
@@ -174,10 +182,6 @@ namespace cbrc{
 	seq2ptr += seqIncrement;
 	if (pssmPtr) pssmPtr += seqIncrement;
       }
-
-      if( !globality ) Z += sum_f;
-      rescales[antidiagonal + 2] = 1.0 / (sum_f + 1.0);  // seems ugly
-      Z *= rescales[antidiagonal + 2];
     }
 
     assert( Z > 0.0 );
@@ -187,11 +191,9 @@ namespace cbrc{
 
   // added by M. Hamada
   // compute posterior probabilities while executing backward algorithm
-  void Centroid::backward(const uchar* seq1, const uchar* seq2,
-			  size_t start2, bool isExtendFwd,
+  void Centroid::backward(bool isExtendFwd,
 			  const const_dbl_ptr *substitutionProbs,
 			  const GapCosts& gapCosts, int globality) {
-    const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
     const int seqIncrement = isExtendFwd ? 1 : -1;
 
     const double delInit = gapCosts.delProbPieces[0].openProb;
@@ -199,13 +201,14 @@ namespace cbrc{
     const double insInit = gapCosts.insProbPieces[0].openProb;
     const double insNext = gapCosts.insProbPieces[0].growProb;
 
+    size_t antidiagonal = numAntidiagonals - 1;
+    size_t seq1beg = xa.seq1start(antidiagonal);
     size_t oldPos = xa.scoreEndIndex(numAntidiagonals);
     initBackward(oldPos);
 
     double scaledUnit = 1.0;
 
-    for (size_t antidiagonal = numAntidiagonals; antidiagonal-- > 0;) {
-      const size_t seq1beg = xa.seq1start(antidiagonal);
+    while (1) {
       const size_t seq2pos = antidiagonal - seq1beg;
       const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
@@ -233,10 +236,10 @@ namespace cbrc{
       double* mIout = &mI[ seq2pos ];
 
       const int numCells = oldPos - newPos - xdropPadLen;
-      const uchar *s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
+      const uchar *s1 = seq1ptr;
 
-      if (!pssm) {
-	const uchar *s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
+      if (!pssmPtr) {
+	const uchar *s2 = seq2ptr;
 
 	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = substitutionProbs[*s1][*s2];
@@ -263,7 +266,7 @@ namespace cbrc{
 	  s2 -= seqIncrement;
 	}
       } else {
-	const ExpMatrixRow *p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
+	const ExpMatrixRow *p2 = pssmPtr;
 
 	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = (*p2)[*s1];
@@ -289,7 +292,19 @@ namespace cbrc{
 	}
       }
 
+      if (antidiagonal == 0) break;
+
       oldPos = newPos;
+
+      --antidiagonal;
+      const size_t newSeq1beg = xa.seq1start(antidiagonal);
+      if (newSeq1beg < seq1beg) {
+	seq1beg = newSeq1beg;
+	seq1ptr -= seqIncrement;
+      } else {
+	seq2ptr -= seqIncrement;
+	if (pssmPtr) pssmPtr -= seqIncrement;
+      }
     }
   }
 

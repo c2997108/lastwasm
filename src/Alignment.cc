@@ -429,7 +429,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       extras.fullScore += s / scale;
     }
     if (outputType < 4) return;
-    centroid.backward(seq1, seq2, start2, isForward, probMat, gap, globality);
+    centroid.backward(isForward, probMat, gap, globality);
     if (outputType > 4 && outputType < 7) {  // gamma-centroid / LAMA alignment
       centroid.dp(outputType, gamma);
       centroid.traceback(chunks, outputType, gamma);

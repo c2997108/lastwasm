@@ -63,8 +63,7 @@ namespace cbrc{
 		   const const_dbl_ptr *substitutionProbs,
 		   const GapCosts &gapCosts, int globality);
 
-    void backward(const uchar *seq1, const uchar *seq2,
-		  size_t start2, bool isExtendFwd,
+    void backward(bool isExtendFwd,
 		  const const_dbl_ptr *substitutionProbs,
 		  const GapCosts &gapCosts, int globality);
 
