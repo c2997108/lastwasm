@@ -137,6 +137,10 @@ namespace cbrc{
 
     dvec_t rescales;
 
+    const uchar *seq1ptr;
+    const uchar *seq2ptr;
+    const ExpMatrixRow *pssmPtr;
+
     double bestScore;
     size_t bestAntiDiagonal;
     size_t bestPos1;

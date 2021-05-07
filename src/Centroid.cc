@@ -86,7 +86,9 @@ namespace cbrc{
 			   size_t start2, bool isExtendFwd,
 			   const const_dbl_ptr *substitutionProbs,
 			   const GapCosts &gapCosts, int globality) {
-    const ExpMatrixRow *pssm = pssmExp.empty() ? 0 : pssmExp2 + start2;
+    seq1ptr = seq1;
+    seq2ptr = seq2;
+    pssmPtr = pssmExp.empty() ? 0 : pssmExp2 + start2;
     const int seqIncrement = isExtendFwd ? 1 : -1;
 
     const double delInit = gapCosts.delProbPieces[0].openProb;
@@ -96,13 +98,12 @@ namespace cbrc{
 
     initForward();
 
+    size_t seq1beg = 0;
     size_t thisPos = xdropPadLen * 2;
 
     double Z = 0.0;  // partion function of forward values
 
     for (size_t antidiagonal = 0; antidiagonal < numAntidiagonals; ++antidiagonal) {
-      const size_t seq1beg = xa.seq1start(antidiagonal);
-      const size_t seq2pos = antidiagonal - seq1beg;
       const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
       double sum_f = 0.0; // sum of forward values
@@ -123,14 +124,14 @@ namespace cbrc{
 
       const size_t nextPos = xa.scoreEndIndex(antidiagonal + 1);
       const int numCells = nextPos - thisPos - xdropPadLen;
-      const uchar* s1 = isExtendFwd ? seq1 + seq1beg : seq1 - seq1beg;
+      const uchar *s1 = seq1ptr;
 
       for (int i = 0; i < xdropPadLen; ++i) {
 	*fM0++ = *fD0++ = *fI0++ = 0.0;
       }
 
-      if (!pssm) {
-	const uchar* s2 = isExtendFwd ? seq2 + seq2pos : seq2 - seq2pos;
+      if (!pssmPtr) {
+	const uchar *s2 = seq2ptr;
 	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = substitutionProbs[*s1][*s2];
 	  const double xM = fM2[i];
@@ -146,7 +147,7 @@ namespace cbrc{
 	  s2 -= seqIncrement;
 	}
       } else {
-	const ExpMatrixRow* p2 = isExtendFwd ? pssm + seq2pos : pssm - seq2pos;
+	const ExpMatrixRow *p2 = pssmPtr;
 	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = (*p2)[*s1];
 	  const double xM = fM2[i];
@@ -164,6 +165,15 @@ namespace cbrc{
       }
 
       thisPos = nextPos;
+
+      const size_t newSeq1beg = xa.seq1start(antidiagonal + 1);
+      if (newSeq1beg > seq1beg) {
+	seq1beg = newSeq1beg;
+	seq1ptr += seqIncrement;
+      } else {
+	seq2ptr += seqIncrement;
+	if (pssmPtr) pssmPtr += seqIncrement;
+      }
 
       if( !globality ) Z += sum_f;
       rescales[antidiagonal + 2] = 1.0 / (sum_f + 1.0);  // seems ugly
