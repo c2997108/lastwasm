@@ -100,6 +100,8 @@ namespace cbrc{
 
     size_t antidiagonal = 0;
     size_t seq1beg = 0;
+    size_t diagPos = xdropPadLen - 1;
+    size_t horiPos = xdropPadLen * 2 - 1;
     size_t thisPos = xdropPadLen * 2;
 
     double Z = 0.0;  // partion function of forward values
@@ -115,22 +117,19 @@ namespace cbrc{
       double *fM0 = &fM[thisPos];
       double *fD0 = &fD[thisPos];
       double *fI0 = &fI[thisPos];
+      for (int i = 0; i < xdropPadLen; ++i) {
+	*fM0++ = *fD0++ = *fI0++ = 0.0;
+      }
+      thisPos += xdropPadLen;
 
-      const size_t horiPos = xa.hori(antidiagonal, seq1beg);
-      const size_t vertPos = xa.vert(antidiagonal, seq1beg);
-      const size_t diagPos = xa.diag(antidiagonal, seq1beg);
       const double *fD1 = &fD[horiPos];
-      const double *fI1 = &fI[vertPos];
+      const double *fI1 = &fI[horiPos + 1];
       const double *fM2 = &fM[diagPos];
 
       ++antidiagonal;
       const size_t nextPos = xa.scoreEndIndex(antidiagonal);
-      const int numCells = nextPos - thisPos - xdropPadLen;
+      const int numCells = nextPos - thisPos;
       const uchar *s1 = seq1ptr;
-
-      for (int i = 0; i < xdropPadLen; ++i) {
-	*fM0++ = *fD0++ = *fI0++ = 0.0;
-      }
 
       if (!pssmPtr) {
 	const uchar *s2 = seq2ptr;
@@ -172,12 +171,16 @@ namespace cbrc{
 
       if (antidiagonal == numAntidiagonals) break;
 
+      diagPos = horiPos;
+      horiPos = thisPos - 1;
       thisPos = nextPos;
 
       const size_t newSeq1beg = xa.seq1start(antidiagonal);
       if (newSeq1beg > seq1beg) {
 	seq1beg = newSeq1beg;
 	seq1ptr += seqIncrement;
+	++diagPos;
+	++horiPos;
       } else {
 	seq2ptr += seqIncrement;
 	if (pssmPtr) pssmPtr += seqIncrement;
@@ -222,14 +225,13 @@ namespace cbrc{
       const double *bD0 = &bD[newPos + xdropPadLen];
       const double *bI0 = &bI[newPos + xdropPadLen];
 
-      const size_t horiPos = xa.hori(antidiagonal, seq1beg);
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
       const size_t diagPos = xa.diag(antidiagonal, seq1beg);
-      double *bD1 = &bD[horiPos];
+      double *bD1 = &bD[vertPos - 1];
       double *bI1 = &bI[vertPos];
       double *bM2 = &bM[diagPos];
 
-      const double *fD1 = &fD[horiPos];
+      const double *fD1 = &fD[vertPos - 1];
       const double *fI1 = &fI[vertPos];
 
       double* mDout = &mD[ seq1beg ];
@@ -540,10 +542,9 @@ namespace cbrc{
       const double *bD0 = &bD[thisPos];
       const double *bI0 = &bI[thisPos];
 
-      const size_t horiPos = xa.hori(antidiagonal, seq1beg);
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
       const size_t diagPos = xa.diag(antidiagonal, seq1beg);
-      const double *fD1 = &fD[horiPos];
+      const double *fD1 = &fD[vertPos - 1];
       const double *fI1 = &fI[vertPos];
       const double *fM2 = &fM[diagPos];
 
