@@ -18,24 +18,13 @@
 
 namespace cbrc{
 
-  struct ExpectedCount{
-  public:
-    double emit[scoreMatrixRowSize][scoreMatrixRowSize];
-    double toMatch;
-    double delInit;
-    double delNext;
-    double insInit;
-    double insNext;
-  public:
-    ExpectedCount ();
-  };
-
   /**
    * (1) Forward and backward algorithm on the DP region given by Xdrop algorithm
    * (2) \gamma-centroid decoding
    */
   class Centroid{
     typedef const double *const_dbl_ptr;
+    typedef double *dbl_ptr;
 
   public:
     GappedXdropAligner& aligner() { return xa; }
@@ -100,10 +89,11 @@ namespace cbrc{
 			      size_t seq2end, size_t seq2beg) const;
 
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
-    void computeExpectedCounts(size_t start2, bool isExtendFwd,
-			       const const_dbl_ptr *substitutionProbs,
-			       const GapCosts& gapCosts, unsigned alphabetSize,
-			       ExpectedCount& count);
+    void addExpectedCounts(size_t start2, bool isExtendFwd,
+			   const const_dbl_ptr *substitutionProbs,
+			   const GapCosts &gapCosts, unsigned alphabetSize,
+			   const dbl_ptr *substitutionCounts,
+			   double *transitionCounts);
 
   private:
     typedef double ExpMatrixRow[scoreMatrixRowSize];

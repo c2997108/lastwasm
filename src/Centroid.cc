@@ -18,19 +18,6 @@ namespace{
 
 namespace cbrc{
 
-  ExpectedCount::ExpectedCount ()
-  {
-    double d0 = 0;
-    toMatch = d0;
-    delInit = d0;
-    delNext = d0;
-    insInit = d0;
-    insNext = d0;
-
-    for (int n=0; n<scoreMatrixRowSize; n++)
-      for (int m=0; m<scoreMatrixRowSize; m++) emit[n][m] = d0;
-  }
-
   void Centroid::setPssm( const ScoreMatrixRow* pssm, size_t qsize, double T,
 			  const OneQualityExpMatrix& oqem,
 			  const uchar* sequenceBeg, const uchar* qualityBeg ) {
@@ -513,11 +500,12 @@ namespace cbrc{
     }
   }
 
-  void Centroid::computeExpectedCounts(size_t start2, bool isExtendFwd,
-				       const const_dbl_ptr *substitutionProbs,
-				       const GapCosts &gapCosts,
-				       unsigned alphabetSize,
-				       ExpectedCount &c) {
+  void Centroid::addExpectedCounts(size_t start2, bool isExtendFwd,
+				   const const_dbl_ptr *substitutionProbs,
+				   const GapCosts &gapCosts,
+				   unsigned alphabetSize,
+				   const dbl_ptr *substitutionCounts,
+				   double *transitionCounts) {
     const double *letterProbs = 0;
     if (!letterProbsPerPosition.empty()) {
       letterProbs = &letterProbsPerPosition[0] + start2 * alphabetSize;
@@ -531,6 +519,7 @@ namespace cbrc{
     size_t seq1beg = 0;
     size_t thisPos = xdropPadLen * 3;
 
+    double alignedLetterPairCount = 0;
     double delInitCount = 0; double delNextCount = 0;
     double insInitCount = 0; double insNextCount = 0;
 
@@ -574,8 +563,8 @@ namespace cbrc{
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
 	  const double alignProb = xSum * yM * matchProb;
-	  c.emit[letter1][letter2] += alignProb;
-	  c.toMatch += alignProb;
+	  substitutionCounts[letter1][letter2] += alignProb;
+	  alignedLetterPairCount += alignProb;
 	  delInitCount += xSum * yD;
 	  dNextCount += xD * yD;
 	  insInitCount += xSum * yI;
@@ -602,9 +591,9 @@ namespace cbrc{
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
 	  const double alignProb = xSum * yM * matchProb;
-	  countUncertainLetters(c.emit[letter1], alignProb,
+	  countUncertainLetters(substitutionCounts[letter1], alignProb,
 				alphabetSize, substitutionProbs[letter1], lp2);
-	  c.toMatch += alignProb;
+	  alignedLetterPairCount += alignProb;
 	  delInitCount += xSum * yD;
 	  dNextCount += xD * yD;
 	  insInitCount += xSum * yI;
@@ -634,15 +623,16 @@ namespace cbrc{
       }
     }
 
-    const double delInit = gapCosts.delProbPieces[0].openProb;
-    const double delNext = gapCosts.delProbPieces[0].growProb;
-    const double insInit = gapCosts.insProbPieces[0].openProb;
-    const double insNext = gapCosts.insProbPieces[0].growProb;
+    delInitCount *= gapCosts.delProbPieces[0].openProb;
+    delNextCount *= gapCosts.delProbPieces[0].growProb;
+    insInitCount *= gapCosts.insProbPieces[0].openProb;
+    insNextCount *= gapCosts.insProbPieces[0].growProb;
 
-    c.delInit += delInitCount * delInit;
-    c.delNext += delNextCount * delNext;
-    c.insInit += insInitCount * insInit;
-    c.insNext += insNextCount * insNext;
+    transitionCounts[0] += alignedLetterPairCount;
+    transitionCounts[1] += delNextCount + delInitCount;
+    transitionCounts[2] += insNextCount + insInitCount;
+    transitionCounts[3] += delInitCount;  // delete open/close count
+    transitionCounts[4] += insInitCount;  // insert open/close count
   }
 
 }  // end namespace cbrc

@@ -12,20 +12,6 @@
 
 using namespace cbrc;
 
-static void addExpectedCounts(double *totalCounts, const ExpectedCount &ec) {
-  for( unsigned i = 0; i < scoreMatrixRowSize; ++i ){
-    for( unsigned j = 0; j < scoreMatrixRowSize; ++j ){
-      *totalCounts += ec.emit[i][j];
-      ++totalCounts;
-    }
-  }
-  totalCounts[0] += ec.toMatch;
-  totalCounts[1] += ec.delNext + ec.delInit;  // deleted letter count
-  totalCounts[2] += ec.insNext + ec.insInit;  // inserted letter count
-  totalCounts[3] += ec.delInit;  // deletion open/close count
-  totalCounts[4] += ec.insInit;  // insertion open/close count
-}
-
 static void addSeedCounts(const uchar *seq1, const uchar *seq2, size_t size,
 			  double *counts) {
   for (size_t i = 0; i < size; ++i) {
@@ -291,6 +277,15 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   GappedXdropAligner& aligner = centroid.aligner();
   GreedyXdropAligner &greedyAligner = aligners.greedyAligner;
 
+  double *subsCounts[scoreMatrixRowSize];
+  double *tranCounts;
+  if (outputType == 7) {
+    double *ec = &extras.expectedCounts[0];
+    for (int i = 0; i < scoreMatrixRowSize; ++i)
+      subsCounts[i] = ec + i * scoreMatrixRowSize;
+    tranCounts = ec + scoreMatrixRowSize * scoreMatrixRowSize;
+  }
+
   if( frameSize ){
     assert( !isGreedy );
     assert( !globality );
@@ -323,14 +318,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       if (outputType < 4) return;
       fxa.backward(isForward, probMat, gap);
       getColumnCodes(fxa, columnCodes, chunks);
-      if (outputType == 7) {
-	double *ec = &extras.expectedCounts[0];
-	double *subsCounts[scoreMatrixRowSize];
-	for (int i = 0; i < scoreMatrixRowSize; ++i)
-	  subsCounts[i] = ec + i * scoreMatrixRowSize;
-	double *tranCounts = ec + scoreMatrixRowSize * scoreMatrixRowSize;
-	fxa.count(isForward, gap, subsCounts, tranCounts);
-      }
+      if (outputType == 7) fxa.count(isForward, gap, subsCounts, tranCounts);
     } else {
       assert(!isFullScore);
       assert(outputType < 4);
@@ -436,10 +424,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     }
     getColumnCodes(centroid, columnCodes, chunks, isForward);
     if (outputType == 7) {
-      ExpectedCount ec;
-      centroid.computeExpectedCounts(start2, isForward,
-				     probMat, gap, alph.size, ec);
-      addExpectedCounts(&extras.expectedCounts[0], ec);
+      centroid.addExpectedCounts(start2, isForward, probMat, gap, alph.size,
+				 subsCounts, tranCounts);
     }
   }
 }
