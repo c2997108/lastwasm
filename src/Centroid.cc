@@ -93,6 +93,7 @@ namespace cbrc{
 
     double sumOfEdgeProbRatios = 0;
     double sumOfProbRatios = 0;
+    double logSumOfProbRatios = 0;
 
     while (1) {
       const double scale2 = rescales[antidiagonal];
@@ -154,6 +155,7 @@ namespace cbrc{
       const double scale = 1 / sumOfProbRatios;
       rescales[antidiagonal + 1] = scale;
       sumOfEdgeProbRatios *= scale;
+      logSumOfProbRatios += log(sumOfProbRatios);
       sumOfProbRatios = 1;
 
       if (antidiagonal == numAntidiagonals) break;
@@ -176,9 +178,10 @@ namespace cbrc{
 
     if (globality) {
       assert(sumOfEdgeProbRatios > 0);
-      rescales[numAntidiagonals + 1] /= sumOfEdgeProbRatios;
+      sumOfProbRatios = sumOfEdgeProbRatios;
     }
-    return logPartitionFunction();
+    rescaledSumOfProbRatios = sumOfProbRatios;
+    return logSumOfProbRatios + log(sumOfProbRatios);
   }
 
   // added by M. Hamada
@@ -197,7 +200,7 @@ namespace cbrc{
     size_t seq1beg = xa.seq1start(antidiagonal);
     size_t oldPos = xa.scoreEndIndex(numAntidiagonals);
     initBackward(oldPos);
-    double scaledUnit = 1.0;
+    double scaledUnit = 1 / rescaledSumOfProbRatios;
 
     while (1) {
       const double scale2 = rescales[antidiagonal];
@@ -472,14 +475,6 @@ namespace cbrc{
 				      size_t seq2end, size_t seq2beg) const {
     for (size_t i = seq2end; i > seq2beg; --i)
       ambiguityCodes.push_back(asciiProbability(mI[i]));
-  }
-
-  double Centroid::logPartitionFunction() const{
-    double x = 0.0;
-    for( size_t k = 0; k < numAntidiagonals; ++k ){
-      x -= std::log(rescales[k + 2]);
-    }
-    return x;
   }
 
   static void countUncertainLetters(double *counts, double alignProb,

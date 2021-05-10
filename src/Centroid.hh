@@ -125,6 +125,8 @@ namespace cbrc{
 
     dvec_t rescales;
 
+    double rescaledSumOfProbRatios;
+
     const uchar *seq1ptr;
     const uchar *seq2ptr;
     const ExpMatrixRow *pssmPtr;
@@ -156,8 +158,6 @@ namespace cbrc{
       mD.assign(numAntidiagonals + 2, 0.0);
       mI.assign(numAntidiagonals + 2, 0.0);
     }
-
-    double logPartitionFunction() const;  // a.k.a. full score, forward score
 
     void updateScore(double score, size_t antiDiagonal, size_t cur) {
       if (bestScore < score) {
