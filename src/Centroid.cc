@@ -520,11 +520,10 @@ namespace cbrc{
     size_t thisPos = xdropPadLen * 3;
 
     double alignedLetterPairCount = 0;
-    double delInitCount = 0; double delNextCount = 0;
-    double insInitCount = 0; double insNextCount = 0;
+    double delNextCount = 0;
+    double insNextCount = 0;
 
     while (1) {
-      const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
 
       const double *bM0 = &bM[thisPos];
@@ -532,11 +531,9 @@ namespace cbrc{
       const double *bI0 = &bI[thisPos];
 
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
-      const size_t diagPos = xa.diag(antidiagonal, seq1beg);
       const double *fM0 = &fM[thisPos];
       const double *fD1 = &fD[vertPos - 1];
       const double *fI1 = &fI[vertPos];
-      const double *fM2 = &fM[diagPos];
 
       double dNextCount = 0;
       double iNextCount = 0;
@@ -548,49 +545,25 @@ namespace cbrc{
 
       if (!letterProbs) {
 	const uchar *s2 = seq2ptr;
-
 	for (int i = 0; i < numCells; ++i) {
-	  const double yD = bD0[i];
-	  const double yI = bI0[i];
-
-	  const double xM = fM2[i];
-	  const double xD = fD1[i];
-	  const double xI = fI1[i];
-	  const double xSum = (xM * scale2 + xD + xI) * scale1;
-
 	  const double alignProb = fM0[i] * bM0[i];
 	  substitutionCounts[*s1][*s2] += alignProb;
 	  alignedLetterPairCount += alignProb;
-	  delInitCount += xSum * yD;
-	  dNextCount += xD * yD;
-	  insInitCount += xSum * yI;
-	  iNextCount += xI * yI;
-
+	  dNextCount += fD1[i] * bD0[i];
+	  iNextCount += fI1[i] * bI0[i];
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
       } else {
 	const double *lp2 = letterProbs;
-
 	for (int i = 0; i < numCells; ++i) {
-	  const double yD = bD0[i];
-	  const double yI = bI0[i];
-
-	  const double xM = fM2[i];
-	  const double xD = fD1[i];
-	  const double xI = fI1[i];
-	  const double xSum = (xM * scale2 + xD + xI) * scale1;
-
 	  const double alignProb = fM0[i] * bM0[i];
 	  const unsigned letter1 = *s1;
 	  countUncertainLetters(substitutionCounts[letter1], alignProb,
 				alphabetSize, substitutionProbs[letter1], lp2);
 	  alignedLetterPairCount += alignProb;
-	  delInitCount += xSum * yD;
-	  dNextCount += xD * yD;
-	  insInitCount += xSum * yI;
-	  iNextCount += xI * yI;
-
+	  dNextCount += fD1[i] * bD0[i];
+	  iNextCount += fI1[i] * bI0[i];
 	  s1 += seqIncrement;
 	  lp2 -= alphabetSizeIncrement;
 	}
@@ -613,16 +586,21 @@ namespace cbrc{
       }
     }
 
-    delInitCount *= gapCosts.delProbPieces[0].openProb;
+    double delCount = 0;
+    double insCount = 0;
+    for (size_t i = 0; i < numAntidiagonals + 2; ++i) {
+      delCount += mD[i];
+      insCount += mI[i];
+    }
+
     delNextCount *= gapCosts.delProbPieces[0].growProb;
-    insInitCount *= gapCosts.insProbPieces[0].openProb;
     insNextCount *= gapCosts.insProbPieces[0].growProb;
 
     transitionCounts[0] += alignedLetterPairCount;
-    transitionCounts[1] += delNextCount + delInitCount;
-    transitionCounts[2] += insNextCount + insInitCount;
-    transitionCounts[3] += delInitCount;  // delete open/close count
-    transitionCounts[4] += insInitCount;  // insert open/close count
+    transitionCounts[1] += delCount;  // deleted letter count
+    transitionCounts[2] += insCount;  // inserted letter count
+    transitionCounts[3] += delCount - delNextCount;  // delete open/close count
+    transitionCounts[4] += insCount - insNextCount;  // insert open/close count
   }
 
 }  // end namespace cbrc
