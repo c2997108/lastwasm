@@ -26,6 +26,8 @@ namespace cbrc{
     typedef const double *const_dbl_ptr;
     typedef double *dbl_ptr;
 
+    enum { rescaleStep = 16 };
+
   public:
     GappedXdropAligner& aligner() { return xa; }
 
@@ -147,7 +149,8 @@ namespace cbrc{
 	fM[xdropPadLen - 1] = 1;
       }
 
-      rescales.assign(numAntidiagonals + 2, 1.0);
+      size_t numOfRescales = (numAntidiagonals - 1) / rescaleStep;
+      if (rescales.size() < numOfRescales) rescales.resize(numOfRescales);
     }
 
     void initBackward(size_t totalNumOfCells) {
@@ -157,6 +160,22 @@ namespace cbrc{
 
       mD.assign(numAntidiagonals + 2, 0.0);
       mI.assign(numAntidiagonals + 2, 0.0);
+    }
+
+    void rescaleFwdProbs(size_t beg, size_t end, double scale) {
+      for (size_t i = beg; i < end; ++i) {
+	fM[i] *= scale;
+	fD[i] *= scale;
+	fI[i] *= scale;
+      }
+    }
+
+    void rescaleBckProbs(size_t beg, size_t end, double scale) {
+      for (size_t i = beg; i < end; ++i) {
+	bM[i] *= scale;
+	bD[i] *= scale;
+	bI[i] *= scale;
+      }
     }
 
     void updateScore(double score, size_t antiDiagonal, size_t cur) {

@@ -96,11 +96,6 @@ namespace cbrc{
     double logSumOfProbRatios = 0;
 
     while (1) {
-      const double scale2 = rescales[antidiagonal];
-      const double scale1 = rescales[antidiagonal + 1];
-      const double scaledDelNext = scale1 * delNext;
-      const double scaledInsNext = scale1 * insNext;
-
       double *fM0 = &fM[thisPos];
       double *fD0 = &fD[thisPos];
       double *fI0 = &fI[thisPos];
@@ -125,9 +120,9 @@ namespace cbrc{
 	  const double xM = fM2[i];
 	  const double xD = fD1[i];
 	  const double xI = fI1[i];
-	  const double xSum = (xM * scale2 + xD + xI) * scale1;
-	  fD0[i] = xSum * delInit + xD * scaledDelNext;
-	  fI0[i] = xSum * insInit + xI * scaledInsNext;
+	  const double xSum = xM + xD + xI;
+	  fD0[i] = xSum * delInit + xD * delNext;
+	  fI0[i] = xSum * insInit + xI * insNext;
 	  fM0[i] = xSum * matchProb;
 	  sumOfProbRatios += xSum;
 	  if (globality && matchProb <= 0) sumOfEdgeProbRatios += xSum;  // xxx
@@ -141,9 +136,9 @@ namespace cbrc{
 	  const double xM = fM2[i];
 	  const double xD = fD1[i];
 	  const double xI = fI1[i];
-	  const double xSum = (xM * scale2 + xD + xI) * scale1;
-	  fD0[i] = xSum * delInit + xD * scaledDelNext;
-	  fI0[i] = xSum * insInit + xI * scaledInsNext;
+	  const double xSum = xM + xD + xI;
+	  fD0[i] = xSum * delInit + xD * delNext;
+	  fI0[i] = xSum * insInit + xI * insNext;
 	  fM0[i] = xSum * matchProb;
 	  sumOfProbRatios += xSum;
 	  if (globality && matchProb <= 0) sumOfEdgeProbRatios += xSum;  // xxx
@@ -151,12 +146,6 @@ namespace cbrc{
 	  p2 -= seqIncrement;
 	}
       }
-
-      const double scale = 1 / sumOfProbRatios;
-      rescales[antidiagonal + 1] = scale;
-      sumOfEdgeProbRatios *= scale;
-      logSumOfProbRatios += log(sumOfProbRatios);
-      sumOfProbRatios = 1;
 
       if (antidiagonal == numAntidiagonals) break;
 
@@ -173,6 +162,15 @@ namespace cbrc{
       } else {
 	seq2ptr += seqIncrement;
 	if (pssmPtr) pssmPtr += seqIncrement;
+      }
+
+      if (antidiagonal % rescaleStep == 0) {
+	const double scale = 1 / sumOfProbRatios;
+	rescales[antidiagonal / rescaleStep - 1] = scale;
+	rescaleFwdProbs(xa.scoreEndIndex(antidiagonal - 2), thisPos, scale);
+	logSumOfProbRatios += log(sumOfProbRatios);
+	sumOfEdgeProbRatios *= scale;
+	sumOfProbRatios = 1;
       }
     }
 
@@ -203,13 +201,6 @@ namespace cbrc{
     double scaledUnit = 1 / rescaledSumOfProbRatios;
 
     while (1) {
-      const double scale2 = rescales[antidiagonal];
-      const double scale1 = rescales[antidiagonal + 1];
-      scaledUnit *= rescales[antidiagonal + 2];
-
-      const double scaledDelNext = scale1 * delNext;
-      const double scaledInsNext = scale1 * insNext;
-
       const size_t newPos = xa.scoreEndIndex(antidiagonal);
       const double *bM0 = &bM[newPos + xdropPadLen];
       const double *bD0 = &bD[newPos + xdropPadLen];
@@ -231,6 +222,11 @@ namespace cbrc{
       const int numCells = oldPos - newPos - xdropPadLen;
       const uchar *s1 = seq1ptr;
 
+      const bool isRescale = ((antidiagonal + 2) % rescaleStep == 0 &&
+			      antidiagonal + 2 < numAntidiagonals);
+
+      double thisScale = isRescale ? rescales[antidiagonal / rescaleStep] : 1;
+
       if (!pssmPtr) {
 	const uchar *s2 = seq2ptr;
 
@@ -245,14 +241,12 @@ namespace cbrc{
 	  // xxx matchProb should be 0 only at delimiters, but will be
 	  // 0 for non-delimiters with severe mismatch scores
 
-	  ySum *= scale1;
+	  bM2[i] = ySum;
+	  bD1[i] = ySum + yD * delNext;
+	  bI1[i] = ySum + yI * insNext;
 
-	  bM2[i] = ySum * scale2;
-	  bD1[i] = ySum + yD * scaledDelNext;
-	  bI1[i] = ySum + yI * scaledInsNext;
-
-	  *mDout += fD1[i] * bD1[i];
-	  *mIout += fI1[i] * bI1[i];
+	  *mDout += fD1[i] * bD1[i] * thisScale;
+	  *mIout += fI1[i] * bI1[i] * thisScale;
 
 	  mDout++; mIout--;
 	  s1 += seqIncrement;
@@ -270,14 +264,12 @@ namespace cbrc{
 
 	  if (!globality || matchProb <= 0) ySum += scaledUnit;  // xxx
 
-	  ySum *= scale1;
+	  bM2[i] = ySum;
+	  bD1[i] = ySum + yD * delNext;
+	  bI1[i] = ySum + yI * insNext;
 
-	  bM2[i] = ySum * scale2;
-	  bD1[i] = ySum + yD * scaledDelNext;
-	  bI1[i] = ySum + yI * scaledInsNext;
-
-	  *mDout += fD1[i] * bD1[i];
-	  *mIout += fI1[i] * bI1[i];
+	  *mDout += fD1[i] * bD1[i] * thisScale;
+	  *mIout += fI1[i] * bI1[i] * thisScale;
 
 	  mDout++; mIout--;
 	  s1 += seqIncrement;
@@ -297,6 +289,11 @@ namespace cbrc{
       } else {
 	seq2ptr -= seqIncrement;
 	if (pssmPtr) pssmPtr -= seqIncrement;
+      }
+
+      if (isRescale) {
+	rescaleBckProbs(diagPos, newPos, thisScale);
+	scaledUnit *= thisScale;
       }
     }
   }
@@ -562,9 +559,15 @@ namespace cbrc{
 	}
       }
 
-      const double scale1 = rescales[antidiagonal];
-      delNextCount += dNextCount * scale1;
-      insNextCount += iNextCount * scale1;
+      if ((antidiagonal + 1) % rescaleStep == 0 &&
+	  antidiagonal + 1 < numAntidiagonals) {
+	const double mul = rescales[antidiagonal / rescaleStep];
+	dNextCount *= mul;
+	iNextCount *= mul;
+      }
+
+      delNextCount += dNextCount;
+      insNextCount += iNextCount;
 
       if (antidiagonal == numAntidiagonals) break;
 
