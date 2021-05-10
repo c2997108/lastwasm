@@ -117,15 +117,13 @@ namespace cbrc{
 	const uchar *s2 = seq2ptr;
 	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = substitutionProbs[*s1][*s2];
-	  const double xM = fM2[i];
 	  const double xD = fD1[i];
 	  const double xI = fI1[i];
-	  const double xSum = xM + xD + xI;
+	  const double xSum = fM2[i] + xD + xI;
 	  fD0[i] = xSum * delInit + xD * delNext;
 	  fI0[i] = xSum * insInit + xI * insNext;
 	  fM0[i] = xSum * matchProb;
 	  sumOfProbRatios += xSum;
-	  if (globality && matchProb <= 0) sumOfEdgeProbRatios += xSum;  // xxx
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
@@ -133,17 +131,25 @@ namespace cbrc{
 	const ExpMatrixRow *p2 = pssmPtr;
 	for (int i = 0; i < numCells; ++i) {
 	  const double matchProb = (*p2)[*s1];
-	  const double xM = fM2[i];
 	  const double xD = fD1[i];
 	  const double xI = fI1[i];
-	  const double xSum = xM + xD + xI;
+	  const double xSum = fM2[i] + xD + xI;
 	  fD0[i] = xSum * delInit + xD * delNext;
 	  fI0[i] = xSum * insInit + xI * insNext;
 	  fM0[i] = xSum * matchProb;
 	  sumOfProbRatios += xSum;
-	  if (globality && matchProb <= 0) sumOfEdgeProbRatios += xSum;  // xxx
 	  s1 += seqIncrement;
 	  p2 -= seqIncrement;
+	}
+      }
+
+      if (globality) {
+	const int n = numCells - 1;
+	if (substitutionProbs[0][*seq2ptr] <= 0) {
+	  sumOfEdgeProbRatios += fM2[0] + fD1[0] + fI1[0];
+	}
+	if (n > 0 && substitutionProbs[*(s1 - seqIncrement)][0] <= 0) {
+	  sumOfEdgeProbRatios += fM2[n] + fD1[n] + fI1[n];
 	}
       }
 
