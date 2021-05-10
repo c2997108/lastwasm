@@ -212,26 +212,21 @@ namespace cbrc{
       const double *bD0 = &bD[newPos + xdropPadLen];
       const double *bI0 = &bI[newPos + xdropPadLen];
 
+      const double *fD0 = &fD[newPos + xdropPadLen];
+      const double *fI0 = &fI[newPos + xdropPadLen];
+
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
       const size_t diagPos = xa.diag(antidiagonal, seq1beg);
       double *bD1 = &bD[vertPos - 1];
       double *bI1 = &bI[vertPos];
       double *bM2 = &bM[diagPos];
 
-      const double *fD1 = &fD[vertPos - 1];
-      const double *fI1 = &fI[vertPos];
-
       const size_t seq2pos = antidiagonal - seq1beg;
-      double* mDout = &mD[ seq1beg ];
-      double* mIout = &mI[ seq2pos ];
+      double *mDout = &mD[seq1beg + 1];
+      double *mIout = &mI[seq2pos + 1];
 
       const int numCells = oldPos - newPos - xdropPadLen;
       const uchar *s1 = seq1ptr;
-
-      const bool isRescale = ((antidiagonal + 2) % rescaleStep == 0 &&
-			      antidiagonal + 2 < numAntidiagonals);
-
-      double thisScale = isRescale ? rescales[antidiagonal / rescaleStep] : 1;
 
       if (!pssmPtr) {
 	const uchar *s2 = seq2ptr;
@@ -251,8 +246,8 @@ namespace cbrc{
 	  bD1[i] = ySum + yD * delNext;
 	  bI1[i] = ySum + yI * insNext;
 
-	  *mDout += fD1[i] * bD1[i] * thisScale;
-	  *mIout += fI1[i] * bI1[i] * thisScale;
+	  *mDout += fD0[i] * yD;
+	  *mIout += fI0[i] * yI;
 
 	  mDout++; mIout--;
 	  s1 += seqIncrement;
@@ -274,8 +269,8 @@ namespace cbrc{
 	  bD1[i] = ySum + yD * delNext;
 	  bI1[i] = ySum + yI * insNext;
 
-	  *mDout += fD1[i] * bD1[i] * thisScale;
-	  *mIout += fI1[i] * bI1[i] * thisScale;
+	  *mDout += fD0[i] * yD;
+	  *mIout += fI0[i] * yI;
 
 	  mDout++; mIout--;
 	  s1 += seqIncrement;
@@ -287,6 +282,13 @@ namespace cbrc{
 
       oldPos = newPos;
 
+      if ((antidiagonal + 2) % rescaleStep == 0 &&
+	  antidiagonal + 2 < numAntidiagonals) {
+	const double scale = rescales[antidiagonal / rescaleStep];
+	rescaleBckProbs(diagPos, newPos, scale);
+	scaledUnit *= scale;
+      }
+
       --antidiagonal;
       const size_t newSeq1beg = xa.seq1start(antidiagonal);
       if (newSeq1beg < seq1beg) {
@@ -295,11 +297,6 @@ namespace cbrc{
       } else {
 	seq2ptr -= seqIncrement;
 	if (pssmPtr) pssmPtr -= seqIncrement;
-      }
-
-      if (isRescale) {
-	rescaleBckProbs(diagPos, newPos, thisScale);
-	scaledUnit *= thisScale;
       }
     }
   }
