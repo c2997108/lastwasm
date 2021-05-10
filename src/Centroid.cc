@@ -195,11 +195,9 @@ namespace cbrc{
     size_t seq1beg = xa.seq1start(antidiagonal);
     size_t oldPos = xa.scoreEndIndex(numAntidiagonals);
     initBackward(oldPos);
-
     double scaledUnit = 1.0;
 
     while (1) {
-      const size_t seq2pos = antidiagonal - seq1beg;
       const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
       scaledUnit *= rescales[antidiagonal + 2];
@@ -221,6 +219,7 @@ namespace cbrc{
       const double *fD1 = &fD[vertPos - 1];
       const double *fI1 = &fI[vertPos];
 
+      const size_t seq2pos = antidiagonal - seq1beg;
       double* mDout = &mD[ seq1beg ];
       double* mIout = &mI[ seq2pos ];
 
@@ -517,6 +516,7 @@ namespace cbrc{
 
     size_t antidiagonal = 0;
     size_t seq1beg = 0;
+    size_t vertPos = xdropPadLen * 2;
     size_t thisPos = xdropPadLen * 3;
 
     double alignedLetterPairCount = 0;
@@ -524,13 +524,9 @@ namespace cbrc{
     double insNextCount = 0;
 
     while (1) {
-      const double scale1 = rescales[antidiagonal + 1];
-
       const double *bM0 = &bM[thisPos];
       const double *bD0 = &bD[thisPos];
       const double *bI0 = &bI[thisPos];
-
-      const size_t vertPos = xa.vert(antidiagonal, seq1beg);
       const double *fM0 = &fM[thisPos];
       const double *fD1 = &fD[vertPos - 1];
       const double *fI1 = &fI[vertPos];
@@ -569,17 +565,20 @@ namespace cbrc{
 	}
       }
 
+      const double scale1 = rescales[antidiagonal];
       delNextCount += dNextCount * scale1;
       insNextCount += iNextCount * scale1;
 
       if (antidiagonal == numAntidiagonals) break;
 
+      vertPos = thisPos;
       thisPos = nextPos + xdropPadLen;
 
       const size_t newSeq1beg = xa.seq1start(antidiagonal);
       if (newSeq1beg > seq1beg) {
 	seq1beg = newSeq1beg;
 	seq1ptr += seqIncrement;
+	++vertPos;
       } else {
 	seq2ptr += seqIncrement;
 	if (letterProbs) letterProbs += alphabetSizeIncrement;

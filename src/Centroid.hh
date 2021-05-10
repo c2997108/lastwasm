@@ -142,8 +142,8 @@ namespace cbrc{
 	fM.resize(totalNumOfCells);
 	fD.resize(totalNumOfCells);
 	fI.resize(totalNumOfCells);
+	fM[xdropPadLen - 1] = 1;
       }
-      fM[xdropPadLen - 1] = 1;
 
       rescales.assign(numAntidiagonals + 2, 1.0);
     }
