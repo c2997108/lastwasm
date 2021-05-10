@@ -533,6 +533,7 @@ namespace cbrc{
 
       const size_t vertPos = xa.vert(antidiagonal, seq1beg);
       const size_t diagPos = xa.diag(antidiagonal, seq1beg);
+      const double *fM0 = &fM[thisPos];
       const double *fD1 = &fD[vertPos - 1];
       const double *fI1 = &fI[vertPos];
       const double *fM2 = &fM[diagPos];
@@ -549,11 +550,6 @@ namespace cbrc{
 	const uchar *s2 = seq2ptr;
 
 	for (int i = 0; i < numCells; ++i) {
-	  const unsigned letter1 = *s1;
-	  const unsigned letter2 = *s2;
-	  const double matchProb = substitutionProbs[letter1][letter2];
-
-	  const double yM = bM0[i];
 	  const double yD = bD0[i];
 	  const double yI = bI0[i];
 
@@ -562,8 +558,8 @@ namespace cbrc{
 	  const double xI = fI1[i];
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
-	  const double alignProb = xSum * yM * matchProb;
-	  substitutionCounts[letter1][letter2] += alignProb;
+	  const double alignProb = fM0[i] * bM0[i];
+	  substitutionCounts[*s1][*s2] += alignProb;
 	  alignedLetterPairCount += alignProb;
 	  delInitCount += xSum * yD;
 	  dNextCount += xD * yD;
@@ -574,14 +570,9 @@ namespace cbrc{
 	  s2 -= seqIncrement;
 	}
       } else {
-	const ExpMatrixRow *p2 = pssmPtr;
 	const double *lp2 = letterProbs;
 
 	for (int i = 0; i < numCells; ++i) {
-	  const unsigned letter1 = *s1;
-	  const double matchProb = (*p2)[letter1];
-
-	  const double yM = bM0[i];
 	  const double yD = bD0[i];
 	  const double yI = bI0[i];
 
@@ -590,7 +581,8 @@ namespace cbrc{
 	  const double xI = fI1[i];
 	  const double xSum = (xM * scale2 + xD + xI) * scale1;
 
-	  const double alignProb = xSum * yM * matchProb;
+	  const double alignProb = fM0[i] * bM0[i];
+	  const unsigned letter1 = *s1;
 	  countUncertainLetters(substitutionCounts[letter1], alignProb,
 				alphabetSize, substitutionProbs[letter1], lp2);
 	  alignedLetterPairCount += alignProb;
@@ -600,7 +592,6 @@ namespace cbrc{
 	  iNextCount += xI * yI;
 
 	  s1 += seqIncrement;
-	  p2 -= seqIncrement;
 	  lp2 -= alphabetSizeIncrement;
 	}
       }
@@ -618,7 +609,6 @@ namespace cbrc{
 	seq1ptr += seqIncrement;
       } else {
 	seq2ptr += seqIncrement;
-	if (pssmPtr) pssmPtr += seqIncrement;
 	if (letterProbs) letterProbs += alphabetSizeIncrement;
       }
     }
