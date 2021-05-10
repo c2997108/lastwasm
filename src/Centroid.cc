@@ -91,13 +91,12 @@ namespace cbrc{
     size_t horiPos = xdropPadLen * 2 - 1;
     size_t thisPos = xdropPadLen * 2;
 
-    double Z = 0.0;  // partion function of forward values
+    double sumOfEdgeProbRatios = 0;
+    double sumOfProbRatios = 0;
 
     while (1) {
       const double scale2 = rescales[antidiagonal];
       const double scale1 = rescales[antidiagonal + 1];
-      double sum_f = 0.0; // sum of forward values
-
       const double scaledDelNext = scale1 * delNext;
       const double scaledInsNext = scale1 * insNext;
 
@@ -129,8 +128,8 @@ namespace cbrc{
 	  fD0[i] = xSum * delInit + xD * scaledDelNext;
 	  fI0[i] = xSum * insInit + xI * scaledInsNext;
 	  fM0[i] = xSum * matchProb;
-	  sum_f += xSum;
-	  if (globality && matchProb <= 0) Z += xSum;  // xxx
+	  sumOfProbRatios += xSum;
+	  if (globality && matchProb <= 0) sumOfEdgeProbRatios += xSum;  // xxx
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
@@ -145,16 +144,17 @@ namespace cbrc{
 	  fD0[i] = xSum * delInit + xD * scaledDelNext;
 	  fI0[i] = xSum * insInit + xI * scaledInsNext;
 	  fM0[i] = xSum * matchProb;
-	  sum_f += xSum;
-	  if (globality && matchProb <= 0) Z += xSum;  // xxx
+	  sumOfProbRatios += xSum;
+	  if (globality && matchProb <= 0) sumOfEdgeProbRatios += xSum;  // xxx
 	  s1 += seqIncrement;
 	  p2 -= seqIncrement;
 	}
       }
 
-      if (!globality) Z += sum_f;
-      rescales[antidiagonal + 1] = 1.0 / (sum_f + 1.0);  // seems ugly
-      Z *= rescales[antidiagonal + 1];
+      const double scale = 1 / sumOfProbRatios;
+      rescales[antidiagonal + 1] = scale;
+      sumOfEdgeProbRatios *= scale;
+      sumOfProbRatios = 1;
 
       if (antidiagonal == numAntidiagonals) break;
 
@@ -174,8 +174,10 @@ namespace cbrc{
       }
     }
 
-    assert( Z > 0.0 );
-    rescales[numAntidiagonals + 1] /= Z;  // this causes scaled Z to equal 1
+    if (globality) {
+      assert(sumOfEdgeProbRatios > 0);
+      rescales[numAntidiagonals + 1] /= sumOfEdgeProbRatios;
+    }
     return logPartitionFunction();
   }
 
