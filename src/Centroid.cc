@@ -498,7 +498,6 @@ namespace cbrc{
 
   void Centroid::addExpectedCounts(size_t start2, bool isExtendFwd,
 				   const const_dbl_ptr *substitutionProbs,
-				   const GapCosts &gapCosts,
 				   unsigned alphabetSize,
 				   const dbl_ptr *substitutionCounts,
 				   double *transitionCounts) {
@@ -513,23 +512,23 @@ namespace cbrc{
 
     size_t antidiagonal = 0;
     size_t seq1beg = 0;
-    size_t vertPos = xdropPadLen * 2;
+    size_t diagPos = xdropPadLen - 1;
+    size_t horiPos = xdropPadLen * 2 - 1;
     size_t thisPos = xdropPadLen * 3;
 
     double alignedLetterPairCount = 0;
-    double delNextCount = 0;
-    double insNextCount = 0;
+    double delInitCount = 0;
+    double insInitCount = 0;
 
     while (1) {
       const double *bM0 = &bM[thisPos];
-      const double *bD0 = &bD[thisPos];
-      const double *bI0 = &bI[thisPos];
+      const double *bM2 = &bM[diagPos];
       const double *fM0 = &fM[thisPos];
-      const double *fD1 = &fD[vertPos - 1];
-      const double *fI1 = &fI[vertPos];
+      const double *fD1 = &fD[horiPos];
+      const double *fI1 = &fI[horiPos + 1];
 
-      double dNextCount = 0;
-      double iNextCount = 0;
+      double dInitCount = 0;
+      double iInitCount = 0;
 
       ++antidiagonal;
       const size_t nextPos = xa.scoreEndIndex(antidiagonal);
@@ -542,8 +541,8 @@ namespace cbrc{
 	  const double alignProb = fM0[i] * bM0[i];
 	  substitutionCounts[*s1][*s2] += alignProb;
 	  alignedLetterPairCount += alignProb;
-	  dNextCount += fD1[i] * bD0[i];
-	  iNextCount += fI1[i] * bI0[i];
+	  dInitCount += fD1[i] * bM2[i];
+	  iInitCount += fI1[i] * bM2[i];
 	  s1 += seqIncrement;
 	  s2 -= seqIncrement;
 	}
@@ -555,33 +554,34 @@ namespace cbrc{
 	  countUncertainLetters(substitutionCounts[letter1], alignProb,
 				alphabetSize, substitutionProbs[letter1], lp2);
 	  alignedLetterPairCount += alignProb;
-	  dNextCount += fD1[i] * bD0[i];
-	  iNextCount += fI1[i] * bI0[i];
+	  dInitCount += fD1[i] * bM2[i];
+	  iInitCount += fI1[i] * bM2[i];
 	  s1 += seqIncrement;
 	  lp2 -= alphabetSizeIncrement;
 	}
       }
 
-      if ((antidiagonal + 1) % rescaleStep == 0 &&
-	  antidiagonal + 1 < numAntidiagonals) {
-	const double mul = rescales[antidiagonal / rescaleStep];
-	dNextCount *= mul;
-	iNextCount *= mul;
+      if (antidiagonal % rescaleStep == 0 && antidiagonal < numAntidiagonals) {
+	const double scale = rescales[antidiagonal / rescaleStep - 1];
+	dInitCount /= scale;
+	iInitCount /= scale;
       }
 
-      delNextCount += dNextCount;
-      insNextCount += iNextCount;
+      delInitCount += dInitCount;
+      insInitCount += iInitCount;
 
       if (antidiagonal == numAntidiagonals) break;
 
-      vertPos = thisPos;
+      diagPos = horiPos;
+      horiPos = thisPos - 1;
       thisPos = nextPos + xdropPadLen;
 
       const size_t newSeq1beg = xa.seq1start(antidiagonal);
       if (newSeq1beg > seq1beg) {
 	seq1beg = newSeq1beg;
 	seq1ptr += seqIncrement;
-	++vertPos;
+	++diagPos;
+	++horiPos;
       } else {
 	seq2ptr += seqIncrement;
 	if (letterProbs) letterProbs += alphabetSizeIncrement;
@@ -595,14 +595,11 @@ namespace cbrc{
       insCount += mI[i];
     }
 
-    delNextCount *= gapCosts.delProbPieces[0].growProb;
-    insNextCount *= gapCosts.insProbPieces[0].growProb;
-
     transitionCounts[0] += alignedLetterPairCount;
     transitionCounts[1] += delCount;  // deleted letter count
     transitionCounts[2] += insCount;  // inserted letter count
-    transitionCounts[3] += delCount - delNextCount;  // delete open/close count
-    transitionCounts[4] += insCount - insNextCount;  // insert open/close count
+    transitionCounts[3] += delInitCount;  // delete open/close count
+    transitionCounts[4] += insInitCount;  // insert open/close count
   }
 
 }  // end namespace cbrc
