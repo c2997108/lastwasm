@@ -285,7 +285,7 @@ namespace cbrc{
       if ((antidiagonal + 2) % rescaleStep == 0 &&
 	  antidiagonal + 2 < numAntidiagonals) {
 	const double scale = rescales[antidiagonal / rescaleStep];
-	rescaleBckProbs(diagPos, newPos, scale);
+	rescaleBckProbs(diagPos, newPos + xdropPadLen, scale);
 	scaledUnit *= scale;
       }
 

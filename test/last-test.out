@@ -4792,3 +4792,39 @@ s LTR22C#LTR/ERVK  0 505 + 509 TGTAGGGGNTCGGTCAGGGTGGTGGGAGAAATTGTAAAAATAAATTATA
 140	chrM	3279	28	+	16571	chrM	10177	28	-	16775	28	EG2=1.5e+05	E=8.5e-05
 # batch 1
 # Query sequences=2
+#
+# a=15 b=3 A=15 B=3 e=79 d=40 x=78 y=46 z=78 D=1e+06 E=1.42772e+10
+# R=01 u=0 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=4.5512 j=7 Q=0
+# /tmp/last-test
+# Reference sequences=1 normal letters=70
+# lambda=0.203841 K=0.140698
+#
+#     A   C   G   T   M   S   K   W   R   Y   B   D   H   V
+# A   5  -5  -5  -5   2  -5  -5   2   2  -5  -5   1   1   1
+# C  -5   5  -5  -5   2   2  -5  -5  -5   2   1  -5   1   1
+# G  -5  -5   5  -5  -5   2   2  -5   2  -5   1   1  -5   1
+# T  -5  -5  -5   5  -5  -5   2   2  -5   2   1   1   1  -5
+# M   2   2  -5  -5   2   0  -5   0   0   0  -1  -1   1   1
+# S  -5   2   2  -5   0   2   0  -5   0   0   1  -1  -1   1
+# K  -5  -5   2   2  -5   0   2   0   0   0   1   1  -1  -1
+# W   2  -5  -5   2   0  -5   0   2   0   0  -1   1   1  -1
+# R   2  -5   2  -5   0   0   0   0   2  -5  -1   1  -1   1
+# Y  -5   2  -5   2   0   0   0   0  -5   2   1  -1   1  -1
+# B  -5   1   1   1  -1   1   1  -1  -1   1   1   0   0   0
+# D   1  -5   1   1  -1  -1   1   1   1  -1   0   1   0   0
+# H   1   1  -5   1   1  -1  -1   1  -1   1   0   0   1   0
+# V   1   1   1  -5   1   1  -1  -1   1  -1   0   0   0   1
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+# batch 0
+a score=92 EG2=1e+09 E=8e-07 fullScore=102
+s NW_017707804.1 0 70 + 70 AACACCACAATGAGATACCACCTCACAGCAGTCAGAATGGCTACAATTAACAAGTCAGGAAAGGACAGAT
+s 57:130722274   0 54 + 54 AAAACCACAATGAGA---------------GTCAGAGTGGTGATTATTAA-AAGTCGAGAAATGATAGAT
+p                          $&'~~~~~~~~~~~~(.0233.,,,,,+--&)*+,,,-.-+++++---)'%(+253--/111/0/,,+(%
+c 20.6 0.00414 1.97 1.05 1.13 4.98 0.158 2.83 0.966 0.0011 9.56 0.997 0.0153 0.0037 1.07 6.54 51.8 16.4 0.361 3 0.27
+
+# Query sequences=1

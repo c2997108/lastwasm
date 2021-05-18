@@ -236,6 +236,10 @@ trap 'rm -f $db*' EXIT
     lastdb -uRY8-8 -B1 $db hg19-M.fa
     lastdb -uRY8 -B1 $db hg19-M.fa
     lastal -fTAB -q8 -b4 $db galGal3-M-32.fa
+
+    # tricky Forward-Backward bug that happened once
+    lastdb $db alli.fa
+    lastal -j7 -r5 -q5 -a15 -b3 $db huma.fa
 } 2>&1 |
 grep -v version | diff -u last-test.out -
 
