@@ -424,7 +424,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     }
     getColumnCodes(centroid, columnCodes, chunks, isForward);
     if (outputType == 7) {
-      centroid.addExpectedCounts(start2, isForward, probMat, alph.size,
+      centroid.addExpectedCounts(start2, isForward, probMat, gap, alph.size,
 				 subsCounts, tranCounts);
     }
   }

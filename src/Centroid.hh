@@ -93,7 +93,7 @@ namespace cbrc{
     // Added by MH (2008/10/10) : compute expected counts for transitions and emissions
     void addExpectedCounts(size_t start2, bool isExtendFwd,
 			   const const_dbl_ptr *substitutionProbs,
-			   unsigned alphabetSize,
+			   const GapCosts &gapCosts, unsigned alphabetSize,
 			   const dbl_ptr *substitutionCounts,
 			   double *transitionCounts);
 
