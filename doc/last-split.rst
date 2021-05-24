@@ -177,6 +177,11 @@ Options
        alignments have "p" lines from ``lastal -j``, in which case
        the default is ``MAF+``).
 
+-r, --reverse
+       Reverse the roles of the 2 sequences in each alignment: use the
+       1st (top) sequence as the "query" and the 2nd as the
+       "reference".
+
 -g, --genome=NAME
        Do spliced alignment, and read splice signals (GT, AG, etc)
        from the named genome.  NAME should be the name of a lastdb
@@ -288,6 +293,7 @@ Limitations
 
 last-split does not support:
 
+* DNA-versus-protein alignments.
 * Generalized affine gap costs.
 
 To do

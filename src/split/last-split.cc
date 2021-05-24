@@ -51,6 +51,19 @@ static int scoreFromProb(double prob, double scale) {
   return std::floor(scale * std::log(prob) + 0.5);
 }
 
+static void transpose(std::vector< std::vector<int> > &matrix) {
+  size_t rows = matrix.size();
+  size_t cols = matrix[0].size();
+  std::vector< std::vector<int> > m(cols);
+  for (size_t i = 0; i < cols; ++i) {
+    m[i].resize(rows);
+    for (size_t j = 0; j < rows; ++j) {
+      m[i][j] = matrix[j][i];
+    }
+  }
+  m.swap(matrix);
+}
+
 // Defines an ordering, for sorting.
 static bool less(const cbrc::UnsplitAlignment& a,
 		 const cbrc::UnsplitAlignment& b) {
@@ -253,7 +266,8 @@ static void doOneBatch(std::vector<std::string>& mafLines,
   mafs.reserve(mafEnds.size() - 1);  // saves memory: no excess capacity
   for (unsigned i = 1; i < mafEnds.size(); ++i)
     mafs.push_back(cbrc::UnsplitAlignment(mafLines.begin() + mafEnds[i-1],
-					  mafLines.begin() + mafEnds[i]));
+					  mafLines.begin() + mafEnds[i],
+					  opts.isTopSeqQuery));
 
   sort(mafs.begin(), mafs.end(), less);
   std::vector<cbrc::UnsplitAlignment>::const_iterator b = mafs.begin();
@@ -319,7 +333,8 @@ void lastSplit(LastSplitOptions& opts) {
 	int score;
 	ls >> word >> name;
 	while (ls >> score) row.push_back(score);
-	if (word == "#" && name.size() == 1 && !row.empty() && ls.eof()) {
+	if (word == "#" && name.size() == 1 &&
+	    row.size() == colNames.size() && ls.eof()) {
 	  rowNames.push_back(std::toupper(name[0]));
 	  scoreMatrix.push_back(row);
 	} else {
@@ -375,6 +390,12 @@ void lastSplit(LastSplitOptions& opts) {
 	  int qualityOffset =
             (sequenceFormat == 0) ? 0 : (sequenceFormat == 3) ? 64 : 33;
 	  printParameters(opts);
+	  if (opts.isTopSeqQuery) {
+	    transpose(scoreMatrix);
+	    std::swap(rowNames, colNames);
+	    std::swap(gapExistenceCost, insExistenceCost);
+	    std::swap(gapExtensionCost, insExtensionCost);
+	  }
 	  sa.setParams(-gapExistenceCost, -gapExtensionCost,
 		       -insExistenceCost, -insExtensionCost,
 		       -jumpCost, -restartCost, scale, qualityOffset);
@@ -389,7 +410,7 @@ void lastSplit(LastSplitOptions& opts) {
 	}
       }
       if (state == 1) {  // we are reading alignments
-	if (startsWith(line, "# batch")) {
+	if (startsWith(line, "# batch") && !opts.isTopSeqQuery) {
 	  addMaf(mafEnds, mafLines);
 	  doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
 	  mafLines.clear();

@@ -19,6 +19,7 @@
 
 struct LastSplitOptions {
   int format;
+  bool isTopSeqQuery;
   std::string genome;
   int direction;
   double cis;

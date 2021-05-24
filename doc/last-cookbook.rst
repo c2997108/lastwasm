@@ -294,22 +294,20 @@ The result so far is asymmetric: each part of the chimp genome is
 aligned to at most one part of the human genome, but not vice-versa.
 We can get one-to-one alignments like this::
 
-  maf-swap humchi1.maf | last-split > humchi2.maf
+  last-split -r -m1e-5 humchi1.maf | last-postmask > humchi2.maf
 
-Here, last-split_ gets parts of the humchi1 alignments.  It uses the
-humchi1 *per-base* mismap probabilities to get the humchi2
-*per-alignment* mismap probabilities.
+Here, last-split_ gets parts of the humchi1 alignments.  The ``-r``
+reverses the roles of the genomes, so it finds a unique best alignment
+for each part of human.  It uses the humchi1 *per-base* mismap
+probabilities to get the humchi2 *per-alignment* mismap probabilities.
 
-Then we can discard less-confident alignments, and convert_ to a
-compact tabular format::
+Here we've also discarded less-confident alignments: ``-m1e-5`` omits
+alignments with `mismap probability`_ > 10^-5, and last-postmask_
+discards alignments caused by simple sequence.
 
-  last-postmask humchi2.maf | maf-convert -n tab | awk -F= '$2 <= 1e-5' > humchi.tab
-
-last-postmask_ discards alignments caused by simple sequence.  The
-``awk`` command gets alignments with `mismap probability`_ ≤ 10^-5.
 Finally, we can make a dotplot_::
 
-  last-dotplot humchi.tab humchi.png
+  last-dotplot humchi2.maf humchi2.png
 
 **To go faster** with minor accuracy loss: replace ``-uNEAR`` with
 ``-uRY32`` and/or `mask repeats`_.
@@ -404,7 +402,6 @@ core is indicated by "~" symbols, and it contains exact matches only.
 .. _mismap probability:
 .. _last-split: doc/last-split.rst
 .. _last-train: doc/last-train.rst
-.. _convert:
 .. _maf-convert: doc/maf-convert.rst
 .. _scoring scheme: doc/last-matrices.rst
 .. _seeding scheme:

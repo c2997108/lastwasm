@@ -142,12 +142,13 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
   }
 }
 
-static void canonicalizeMafStrands(StringIt linesBeg, StringIt linesEnd) {
+static void canonicalizeMafStrands(StringIt linesBeg, StringIt linesEnd,
+				   unsigned rankOfQrySeq) {
   unsigned s = 0;
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
     if (*c == 's') ++s;
-    if (s == 2) {
+    if (s == rankOfQrySeq) {
       char strand;
       c = skipWord(c);
       c = skipWord(c);
@@ -162,8 +163,11 @@ static void canonicalizeMafStrands(StringIt linesBeg, StringIt linesEnd) {
   err("bad MAF data");
 }
 
-void UnsplitAlignment::init() {
-  canonicalizeMafStrands(linesBeg, linesEnd);
+void UnsplitAlignment::init(bool isTopSeqQuery) {
+  const unsigned rankOfQrySeq = 2 - isTopSeqQuery;
+  const unsigned rankOfRefSeq = isTopSeqQuery + 1;
+
+  canonicalizeMafStrands(linesBeg, linesEnd, rankOfQrySeq);
 
   qQual = 0;  // in case the input lacks sequence quality data
 
@@ -189,13 +193,13 @@ void UnsplitAlignment::init() {
       if (!f || f >= g) err("bad MAF line: " + *i);
       (*i)[e - c] = 0;  // write a terminator for the sequence name
       if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
-      if (s == 1) {
+      if (s == rankOfRefSeq) {
 	rstart = start;
 	rend = start + len;
 	qstrand = (strand == '-') * 2;
 	rname = i->c_str() + (d - c);
 	ralign = i->c_str() + (f - c);
-      } else if (s == 2) {
+      } else if (s == rankOfQrySeq) {
 	qstart = start;
 	qend = start + len;
 	if (strand == '-') qstrand = 3 - qstrand;
@@ -203,9 +207,9 @@ void UnsplitAlignment::init() {
 	qalign = i->c_str() + (f - c);
       }
     } else if (*c == 'q') {
-      if (s == 1)
+      if (s == rankOfRefSeq)
         err("I can't handle quality data for the genomic sequence");
-      if (s == 2) {
+      if (s == rankOfQrySeq) {
 	f = skipSpace(skipWord(skipWord(c)));
 	if (!f || f >= g) err("bad MAF line: " + *i);
 	if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace

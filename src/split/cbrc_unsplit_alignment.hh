@@ -31,9 +31,10 @@ public:
     const char *qalign;
     const char *qQual;
     UnsplitAlignment(){}
-    UnsplitAlignment(StringIt linesBegIn, StringIt linesEndIn)
-      : linesBeg(linesBegIn), linesEnd(linesEndIn) { init(); }
-    void init();
+    UnsplitAlignment(StringIt linesBegIn,
+		     StringIt linesEndIn, bool isTopSeqQuery)
+      : linesBeg(linesBegIn), linesEnd(linesEndIn) { init(isTopSeqQuery); }
+    void init(bool isTopSeqQuery);
     bool isForwardStrand() const { return qstrand < 2; }
     bool isFlipped() const { return qstrand % 2; }
 };

@@ -619,8 +619,10 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " B="; writeIntList(stream, insGrowCosts);
   if( gapPairCost > 0 )
     stream << " c=" << gapPairCost;
-  if( isTranslated() )
-    stream << " F="; writeIntList(stream, frameshiftCosts);
+  if (isTranslated()) {
+    stream << " F=";
+    writeIntList(stream, frameshiftCosts);
+  }
   stream << " e=" << minScoreGapped;
   stream << " d=" << minScoreGapless;
   stream << " x=" << maxDropGapped;

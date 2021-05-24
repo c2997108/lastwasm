@@ -36,6 +36,7 @@ static void run(int argc, char* argv[]) {
   LastSplitOptions opts;
 
   opts.format = 0;
+  opts.isTopSeqQuery = false;
   opts.direction = 1;
   opts.cis = 0.004;
   opts.trans = 1e-05;
@@ -62,6 +63,7 @@ come from different parts of the genome.\n\
 Options:\n\
  -h, --help         show this help message and exit\n\
  -f, --format=FMT   output format: MAF, MAF+ (default: depends on input)\n\
+ -r, --reverse      reverse the roles of the 2 sequences in each alignment\n\
  -g, --genome=NAME  lastdb genome name\n\
  -d, --direction=D  RNA direction: 0=reverse, 1=forward, 2=mixed (default="
     + cbrc::stringify(opts.direction) + ")\n\
@@ -82,11 +84,12 @@ Options:\n\
  -V, --version      show version information and exit\n\
 ";
 
-  const char sOpts[] = "hf:g:d:c:t:M:S:m:s:nb:vV";
+  const char sOpts[] = "hf:rg:d:c:t:M:S:m:s:nb:vV";
 
   static struct option lOpts[] = {
     { "help",     no_argument,       0, 'h' },
     { "format",   required_argument, 0, 'f' },
+    { "reverse",  no_argument,       0, 'r' },
     { "genome",   required_argument, 0, 'g' },
     { "direction",required_argument, 0, 'd' },
     { "cis",      required_argument, 0, 'c' },
@@ -110,6 +113,9 @@ Options:\n\
       return;
     case 'f':
       opts.format = parseOutputFormat(optarg);
+      break;
+    case 'r':
+      opts.isTopSeqQuery = true;
       break;
     case 'g':
       opts.isSplicedAlignment = true;
