@@ -385,11 +385,13 @@ def writePsl(opts, mafs):
     tailSize, tailBegA, tailBegB = blocks[-1]
 
     seqNameA, seqLenA, strandA, letterSizeA = fieldsA[0:4]
-    begA, endA = pslEnds(seqLenA, strandA, headBegA, tailBegA + tailSize)
+    tailEndA = tailBegA + tailSize * letterSizeA
+    begA, endA = pslEnds(seqLenA, strandA, headBegA, tailEndA)
     baseInsertA = endA - begA - numGaplessColumns * letterSizeA
 
     seqNameB, seqLenB, strandB, letterSizeB = fieldsB[0:4]
-    begB, endB = pslEnds(seqLenB, strandB, headBegB, tailBegB + tailSize)
+    tailEndB = tailBegB + tailSize * letterSizeB
+    begB, endB = pslEnds(seqLenB, strandB, headBegB, tailEndB)
     baseInsertB = endB - begB - numGaplessColumns * letterSizeB
 
     numInsertA, numInsertB = pslNumInserts(blocks, letterSizeA, letterSizeB)
