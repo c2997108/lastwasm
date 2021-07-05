@@ -13,9 +13,11 @@ It's often convenient to pipe in the input, like this::
 
 This script takes the first (topmost) maf sequence as the "reference"
 / "subject" / "target", and the second sequence as the "query".
+(Exception: when converting DNA-to-protein alignments to gff or psl,
+the protein becomes the "query" and the DNA becomes the "reference".)
 
 For html: if the input includes probability lines starting with 'p',
-then the output will be coloured by column probability.  (To get lines
+then the output will be colored by column probability.  (To get lines
 starting with 'p', run lastal with option -j set to 4 or higher.)
 
 .. _maf: http://genome.ucsc.edu/FAQ/FAQformat.html#format5

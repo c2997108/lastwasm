@@ -450,6 +450,11 @@ def writePsl(opts, geneticCode, mafs):
         return
 
     fieldsA, fieldsB = mafs[0][1]
+
+    if fieldsA[3] < fieldsB[3]:  # protein-to-DNA alignment
+        fieldsA, fieldsB = fieldsB, fieldsA
+        blocks = [(s, b, a) for s, a, b in blocks]
+
     seqNameA, seqLenA, strandA, letterSizeA = fieldsA[0:4]
     seqNameB, seqLenB, strandB, letterSizeB = fieldsB[0:4]
 
@@ -829,6 +834,10 @@ def writeGffHeader():
 def gffFromMaf(maf):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "GFF")
+
+    if fieldsA[3] < fieldsB[3]:  # protein-to-DNA alignment
+        fieldsA, fieldsB = fieldsB, fieldsA
+
     seqNameA, seqLenA, strandA, letterSizeA, begA, endA, rowA = fieldsA
     seqNameB, seqLenB, strandB, letterSizeB, begB, endB, rowB = fieldsB
 

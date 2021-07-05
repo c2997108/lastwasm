@@ -21,6 +21,7 @@ maf2=bs100.maf
     head -n999 $maf1 | $r chain
     $r gff 102.maf
     $r -J1e9 gff 102.maf
+    $r gff frameshift-new.maf
     $r html -l100 $maf2
     head -n999 $maf1 | $r -n html
     head -n999 $maf1 | $r psl
