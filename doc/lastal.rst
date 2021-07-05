@@ -291,10 +291,13 @@ Miscellaneous options
     complemented matrix is used for query sequence reverse strands.
 
 -K LIMIT
-    Omit any alignment whose query range lies in LIMIT or more other
-    alignments with higher score (and on the same strand).  This is
-    a useful way to get just the top few hits to each part of each
-    query (P Berman et al. 2000, J Comput Biol 7:293-302).
+    Omit any alignment whose query range is contained in LIMIT or more
+    other alignments with higher score (and on the same strand).  This
+    is a useful way to get just the top few hits to each part of each
+    query (P Berman et al. 2000, J Comput Biol 7:293-302).  As a
+    special case, a LIMIT of 0 means: omit any alignment whose query
+    range overlaps an alignment with higher score (and on the same
+    strand).
 
 -C LIMIT
     Before extending gapped alignments, discard any gapless

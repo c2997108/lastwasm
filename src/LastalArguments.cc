@@ -106,7 +106,7 @@ LastalArguments::LastalArguments() :
   maxGaplessAlignmentsPerQueryPosition(0),  // depends on oneHitMultiplicity
   maxAlignmentsPerQueryStrand(-1),
   cullingLimitForGaplessAlignments(0),
-  cullingLimitForFinalAlignments(0),
+  cullingLimitForFinalAlignments(-1),
   queryStep(1),
   minimizerWindow(0),  // depends on the reference's minimizer window
   batchSize(0),  // depends on the outputType, and voluming
@@ -649,7 +649,7 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
     stream << " N=" << maxAlignmentsPerQueryStrand;
   if( cullingLimitForGaplessAlignments )
     stream << " C=" << cullingLimitForGaplessAlignments;
-  if( cullingLimitForFinalAlignments )
+  if( cullingLimitForFinalAlignments + 1 > 0 )
     stream << " K=" << cullingLimitForFinalAlignments;
   stream << " k=" << queryStep;
   if( minimizerWindow > 1 )

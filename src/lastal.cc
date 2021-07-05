@@ -543,7 +543,7 @@ struct Dispatcher{
 
 static bool isCollatedAlignments() {
   return args.outputFormat == 'b' || args.outputFormat == 'B' ||
-    args.cullingLimitForFinalAlignments;
+    args.cullingLimitForFinalAlignments + 1;
 }
 
 static void printAndDelete(char *text) {
@@ -846,12 +846,41 @@ static bool lessForCulling(const AlignmentText &x, const AlignmentText &y) {
   else                            return x.score     > y.score;
 }
 
+// Remove any alignment whose query range overlaps an alignment with
+// higher score (and on the same strand):
+static void cullOverlappingAlignments(std::vector<AlignmentText> &textAlns,
+				      size_t start) {
+  size_t end = textAlns.size();
+  size_t i = start;
+  for (size_t j = start; j < end; ++j) {
+    AlignmentText &x = textAlns[j];
+    for (size_t k = j + 1; k < end; ++k) {
+      AlignmentText &y = textAlns[k];
+      if (y.strandNum > x.strandNum || y.queryBeg >= x.queryEnd) break;
+      if (x.score > y.score) {
+	delete[] y.text;
+	y.text = 0;
+      }
+      if (y.score > x.score) {
+	delete[] x.text;
+	x.text = 0;
+      }
+    }
+    if (x.text) {
+      textAlns[i] = x;
+      ++i;
+    }
+  }
+  textAlns.resize(i);
+}
+
 // Remove any alignment whose query range lies in LIMIT or more other
 // alignments with higher score (and on the same strand):
 static void cullFinalAlignments(std::vector<AlignmentText> &textAlns,
-				size_t start) {
-  if (!args.cullingLimitForFinalAlignments) return;
+				size_t start, size_t limit) {
+  if (limit + 1 == 0) return;
   sort(textAlns.begin() + start, textAlns.end(), lessForCulling);
+  if (limit == 0) return cullOverlappingAlignments(textAlns, start);
   std::vector<size_t> stash;  // alignments that might dominate subsequent ones
   size_t i = start;  // number of kept alignments so far
   for (size_t j = start; j < textAlns.size(); ++j) {
@@ -867,7 +896,7 @@ static void cullFinalAlignments(std::vector<AlignmentText> &textAlns,
       if (y.queryEnd >= x.queryEnd && y.score > x.score) ++numOfDominators;
     }
     stash.resize(a);
-    if (numOfDominators >= args.cullingLimitForFinalAlignments) {
+    if (numOfDominators >= limit) {
       delete[] x.text;
     } else {
       stash.push_back(i);
@@ -1037,7 +1066,7 @@ static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
 
 // Scan one query sequence strand against one database volume,
 // after optionally translating and/or masking the query
-void translateAndScan(LastAligner& aligner,
+void translateAndScan(LastAligner &aligner, size_t finalCullingLimit,
 		      size_t queryNum, const SubstitutionMatrices &matrices) {
   uchar *querySeqs = query.seqWriter();
   uchar *querySeq = querySeqs + query.padBeg(queryNum);
@@ -1069,7 +1098,7 @@ void translateAndScan(LastAligner& aligner,
 
   size_t oldNumOfAlns = aligner.textAlns.size();
   scan( aligner, queryNum, matrices, querySeq );
-  cullFinalAlignments( aligner.textAlns, oldNumOfAlns );
+  cullFinalAlignments(aligner.textAlns, oldNumOfAlns, finalCullingLimit);
 
   if (args.tantanSetting && !args.isKeepLowercase) {
     for (size_t i = query.seqBeg(queryNum); i < query.seqEnd(queryNum); ++i) {
@@ -1078,19 +1107,19 @@ void translateAndScan(LastAligner& aligner,
   }
 }
 
-static void alignOneQuery(LastAligner &aligner,
+static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
 			  size_t queryNum, bool isFirstVolume) {
   if (args.strand == 2 && !isFirstVolume)
     query.reverseComplementOneSequence(queryNum, queryAlph.complement);
 
   if (args.strand != 0)
-    translateAndScan(aligner, queryNum, fwdMatrices);
+    translateAndScan(aligner, finalCullingLimit, queryNum, fwdMatrices);
 
   if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
     query.reverseComplementOneSequence(queryNum, queryAlph.complement);
 
   if (args.strand != 1)
-    translateAndScan(aligner, queryNum,
+    translateAndScan(aligner, finalCullingLimit, queryNum,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 }
 
@@ -1108,14 +1137,16 @@ static void alignSomeQueries(size_t chunkNum,
   bool isSort = isCollatedAlignments();
   bool isSortPerQuery = (isSort && !isMultiVolume);
   bool isPrintPerQuery = (isFirstThread && !(isSort && isMultiVolume));
+  size_t finalCullingLimit = args.cullingLimitForFinalAlignments ?
+    args.cullingLimitForFinalAlignments : isMultiVolume;
   for (size_t i = beg; i < end; ++i) {
     size_t oldNumOfAlns = textAlns.size();
-    alignOneQuery(aligner, i, isFirstVolume);
+    alignOneQuery(aligner, finalCullingLimit, i, isFirstVolume);
     if (isSortPerQuery) sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     if (isPrintPerQuery) printAndClear(textAlns);
   }
   if (isFinalVolume && isMultiVolume) {
-    cullFinalAlignments(textAlns, 0);
+    cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
     if (isSort) sort(textAlns.begin(), textAlns.end());
     if (isFirstThread) printAndClear(textAlns);
   }
