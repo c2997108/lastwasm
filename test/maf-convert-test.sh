@@ -30,6 +30,7 @@ maf2=bs100.maf
     $r -J1e9 psl 102.maf
     $r psl 90089.maf
     $r -p psl frameshift-old.maf
+    $r psl frameshift-new.maf
     $r -n sam $maf2
     head -n999 $maf1 | $r -r 'ID:1 PL:ILLUMINA SM:x' sam
     $r -d sam $maf1

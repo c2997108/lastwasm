@@ -25,6 +25,36 @@ try:
 except ImportError:
     pass
 
+aminoAcidCodes = {"ALA": "A",
+                  "CYS": "C",
+                  "ASP": "D",
+                  "GLU": "E",
+                  "PHE": "F",
+                  "GLY": "G",
+                  "HIS": "H",
+                  "ILE": "I",
+                  "LYS": "K",
+                  "LEU": "L",
+                  "MET": "M",
+                  "ASN": "N",
+                  "PRO": "P",
+                  "GLN": "Q",
+                  "ARG": "R",
+                  "SER": "S",
+                  "THR": "T",
+                  "VAL": "V",
+                  "TRP": "W",
+                  "TYR": "Y",
+                  "***": "*",
+                  "XAA": "X"}
+
+def standardGeneticCode():
+    aa = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
+    b1 = "TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG"
+    b2 = "TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG"
+    b3 = "TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG"
+    return {x + y + z: a for a, x, y, z in zip(aa, b1, b2, b3)}
+
 def myOpen(fileName):
     if fileName == "-":
         return sys.stdin
@@ -120,8 +150,11 @@ def mafInput(opts, lines):
             beg = int(beg)
             span = int(span)
             seqLen = int(seqLen)
-            if "\\" in row or "/" in row or len(row) - row.count("-") < span:
+            rowLetters = len(row) - row.count("-")
+            if "\\" in row or "/" in row or rowLetters < span:
                 letterSize = 3
+            elif rowLetters > span:
+                letterSize = 0  # xxx means 3-letter codes like AlaCysAsp
             else:
                 letterSize = 1
             fields = seqName, seqLen, strand, letterSize, beg, beg + span, row
@@ -306,48 +339,82 @@ def mafConvertToChain(opts, lines):
 
 ##### Routines for converting to PSL format: #####
 
-def pslBlocks(opts, mafs, outCounts):
+def pslBlocks(opts, geneticCode, mafs, outCounts):
     """Get sizes and start coordinates of gapless blocks in an alignment."""
     # repMatches is always zero
     # for proteins, nCount is always zero, because that's what BLATv34 does
     normalBases = "ACGTU"
-    matches = mismatches = repMatches = nCount = 0
+    mismatches = repMatches = nCount = 0
 
     for maf in mafs:
         sLines = maf[1]
         fieldsA, fieldsB = pairOrDie(sLines, "PSL")
         letterSizeA, begA, endA, rowA = fieldsA[3:7]
         letterSizeB, begB, endB, rowB = fieldsB[3:7]
+        rowA = rowA.upper()
+        rowB = rowB.upper()
 
-        size = 0
-        for x, y in zip(rowA.upper(), rowB.upper()):
-            if x == "-":
-                if size:
-                    yield size, begA, begB
-                    begA += size * letterSizeA
-                    begB += size * letterSizeB
-                    size = 0
-                begB += symbolSize(y, letterSizeB)
-            elif y == "-":
-                if size:
-                    yield size, begA, begB
-                    begA += size * letterSizeA
-                    begB += size * letterSizeB
-                    size = 0
-                begA += symbolSize(x, letterSizeA)
-            else:
-                size += 1
-                if x in normalBases and y in normalBases or opts.protein:
-                    if x == y:
-                        matches += 1
-                    else:
-                        mismatches += 1
+        if letterSizeA * letterSizeB < 1:
+            letterSpanA = 3 - letterSizeA * 2
+            letterSpanB = 3 - letterSizeB * 2
+            codeA = geneticCode if letterSizeA else aminoAcidCodes
+            codeB = geneticCode if letterSizeB else aminoAcidCodes
+            loopEnd = len(rowA)
+            i = j = 0
+            while j < loopEnd:
+                if rowA[j] == "-":
+                    if j > i:
+                        size = j - i
+                        yield size // 3, begA, begB
+                        begA += size // letterSpanA
+                        begB += size // letterSpanB
+                    begB += 1
+                    j += letterSpanB
+                    i = j
+                elif rowB[j] == "-":
+                    if j > i:
+                        size = j - i
+                        yield size // 3, begA, begB
+                        begA += size // letterSpanA
+                        begB += size // letterSpanB
+                    begA += 1
+                    j += letterSpanA
+                    i = j
                 else:
-                    nCount += 1
-        if size:
-            yield size, begA, begB
+                    k = j + 3
+                    if codeA.get(rowA[j:k], "X") != codeB.get(rowB[j:k], "X"):
+                        mismatches += 1
+                    j = k
+            if j > i:
+                yield (j - i) // 3, begA, begB
+        else:
+            size = 0
+            for x, y in zip(rowA, rowB):
+                if x == "-":
+                    if size:
+                        yield size, begA, begB
+                        begA += size * letterSizeA
+                        begB += size * letterSizeB
+                        size = 0
+                    begB += symbolSize(y, letterSizeB)
+                elif y == "-":
+                    if size:
+                        yield size, begA, begB
+                        begA += size * letterSizeA
+                        begB += size * letterSizeB
+                        size = 0
+                    begA += symbolSize(x, letterSizeA)
+                else:
+                    size += 1
+                    if x in normalBases and y in normalBases or opts.protein:
+                        if x != y:
+                            mismatches += 1
+                    else:
+                        nCount += 1
+            if size:
+                yield size, begA, begB
 
-    outCounts[0:4] = matches, mismatches, repMatches, nCount
+    outCounts[0:3] = mismatches, repMatches, nCount
 
 def pslNumInserts(blocks, letterSizeA, letterSizeB):
     numInsertA = numInsertB = 0
@@ -371,33 +438,38 @@ def pslEnds(seqLen, strand, beg, end):
         return seqLen - end, seqLen - beg
     return beg, end
 
-def writePsl(opts, mafs):
-    matchCounts = [0] * 4
-    blocks = list(pslBlocks(opts, mafs, matchCounts))
-    matches, mismatches, repMatches, nCount = matchCounts
-    numGaplessColumns = sum(matchCounts)
+def writePsl(opts, geneticCode, mafs):
+    matchCounts = [0] * 3
+    blocks = list(pslBlocks(opts, geneticCode, mafs, matchCounts))
+    mismatches, repMatches, nCount = matchCounts
+    numGaplessColumns = sum(i[0] for i in blocks)
+    matches = numGaplessColumns - sum(matchCounts)
 
     if not blocks:
         return
 
     fieldsA, fieldsB = mafs[0][1]
+    seqNameA, seqLenA, strandA, letterSizeA = fieldsA[0:4]
+    seqNameB, seqLenB, strandB, letterSizeB = fieldsB[0:4]
+
+    sizeMulA = 3 if letterSizeA > letterSizeB else 1
+    sizeMulB = 3 if letterSizeB > letterSizeA else 1
+
     headSize, headBegA, headBegB = blocks[0]
     tailSize, tailBegA, tailBegB = blocks[-1]
 
-    seqNameA, seqLenA, strandA, letterSizeA = fieldsA[0:4]
-    tailEndA = tailBegA + tailSize * letterSizeA
+    tailEndA = tailBegA + tailSize * sizeMulA
     begA, endA = pslEnds(seqLenA, strandA, headBegA, tailEndA)
-    baseInsertA = endA - begA - numGaplessColumns * letterSizeA
+    baseInsertA = endA - begA - numGaplessColumns * sizeMulA
 
-    seqNameB, seqLenB, strandB, letterSizeB = fieldsB[0:4]
-    tailEndB = tailBegB + tailSize * letterSizeB
+    tailEndB = tailBegB + tailSize * sizeMulB
     begB, endB = pslEnds(seqLenB, strandB, headBegB, tailEndB)
-    baseInsertB = endB - begB - numGaplessColumns * letterSizeB
+    baseInsertB = endB - begB - numGaplessColumns * sizeMulB
 
-    numInsertA, numInsertB = pslNumInserts(blocks, letterSizeA, letterSizeB)
+    numInsertA, numInsertB = pslNumInserts(blocks, sizeMulA, sizeMulB)
 
     strand = strandB
-    if letterSizeA > 1 or letterSizeB > 1:
+    if sizeMulA > 1 or sizeMulB > 1:
         strand += strandA
     elif strandA != "+":
         raise Exception("for non-translated PSL, the 1st strand in each alignment must be +")
@@ -411,15 +483,16 @@ def writePsl(opts, mafs):
           blockCount, blockSizes, blockStartsB, blockStartsA, sep="\t")
 
 def mafConvertToPsl(opts, lines):
+    geneticCode = standardGeneticCode()
     if opts.Join:
         for i in colinearMafInput(opts, lines):
-            writePsl(opts, i)
+            writePsl(opts, geneticCode, i)
     elif opts.join:
         for i in mafGroupInput(opts, lines):
-            writePsl(opts, i)
+            writePsl(opts, geneticCode, i)
     else:
         for i in mafInput(opts, lines):
-            writePsl(opts, [i])
+            writePsl(opts, geneticCode, [i])
 
 ##### Routines for converting to SAM format: #####
 
