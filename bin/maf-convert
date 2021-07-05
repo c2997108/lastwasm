@@ -388,6 +388,7 @@ def pslBlocks(opts, geneticCode, mafs, outCounts):
             if j > i:
                 yield (j - i) // 3, begA, begB
         else:
+            isProtein = opts.protein or letterSizeA * letterSizeB > 1
             size = 0
             for x, y in zip(rowA, rowB):
                 if x == "-":
@@ -406,7 +407,7 @@ def pslBlocks(opts, geneticCode, mafs, outCounts):
                     begA += symbolSize(x, letterSizeA)
                 else:
                     size += 1
-                    if x in normalBases and y in normalBases or opts.protein:
+                    if x in normalBases and y in normalBases or isProtein:
                         if x != y:
                             mismatches += 1
                     else:

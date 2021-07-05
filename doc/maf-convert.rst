@@ -32,7 +32,7 @@ Options
 -p, --protein
        Specify that the alignments are of proteins, rather than
        nucleotides.  This affects psl format only (the first 4
-       columns).
+       columns), and has no effect for DNA-to-protein alignments.
 
 -j N, --join=N
        Join alignments that are co-linear (align different parts of
