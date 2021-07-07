@@ -97,24 +97,33 @@ def insertSize(row, letterSize):
 def matchAndInsertSizes(alignmentColumns, letterSizes):
     """Get sizes of gapless blocks, and of the inserts between them."""
     letterSizeA, letterSizeB = letterSizes
+    delInc = max(letterSizeA, 1)
+    delDiv = 1 if letterSizeA else 3
+    insInc = max(letterSizeB, 1)
+    insDiv = 1 if letterSizeB else 3
+    sizeDiv = max(delDiv, insDiv)
     delSize = insSize = subSize = 0
     for x, y in alignmentColumns:
         if x == "-":
             if subSize:
-                if delSize or insSize: yield str(delSize) + ":" + str(insSize)
-                yield str(subSize)
+                if delSize or insSize:
+                    yield str(delSize // delDiv) + ":" + str(insSize // insDiv)
+                yield str(subSize // sizeDiv)
                 delSize = insSize = subSize = 0
-            insSize += symbolSize(y, letterSizeB)
+            insSize += symbolSize(y, insInc)
         elif y == "-":
             if subSize:
-                if delSize or insSize: yield str(delSize) + ":" + str(insSize)
-                yield str(subSize)
+                if delSize or insSize:
+                    yield str(delSize // delDiv) + ":" + str(insSize // insDiv)
+                yield str(subSize // sizeDiv)
                 delSize = insSize = subSize = 0
-            delSize += symbolSize(x, letterSizeA)
+            delSize += symbolSize(x, delInc)
         else:
             subSize += 1
-    if delSize or insSize: yield str(delSize) + ":" + str(insSize)
-    if subSize: yield str(subSize)
+    if delSize or insSize:
+        yield str(delSize // delDiv) + ":" + str(insSize // insDiv)
+    if subSize:
+        yield str(subSize // sizeDiv)
 
 ##### Routines for reading MAF format: #####
 
@@ -795,20 +804,61 @@ def blastDataFromMafFields(fields):
     else:
         beg = seqLen - beg
         end = seqLen - end + 1
-    return seqName, str(beg), str(end), row.upper()
+    return seqName, letterSize, str(beg), str(end), row.upper()
 
-def writeBlastTab(opts, maf):
+def codonMatchCounts(geneticCode, letterSizeA, letterSizeB, rowA, rowB):
+    letterSpanA = 3 - letterSizeA * 2
+    letterSpanB = 3 - letterSizeB * 2
+    codeA = geneticCode if letterSizeA else aminoAcidCodes
+    codeB = geneticCode if letterSizeB else aminoAcidCodes
+    loopEnd = len(rowA)
+    matches = mismatches = gaps = dangles = 0
+    i = 0
+    while i < loopEnd:
+        if rowA[i] == "-":
+            gaps += 1
+            if rowA[i+1] == "-" and rowA[i+2] == "-":
+                i += 3
+            else:
+                if rowB[i-1] == "-":
+                    dangles += 1
+                i += 1
+        elif rowB[i] == "-":
+            gaps += 1
+            if rowB[i+1] == "-" and rowB[i+2] == "-":
+                i += 3
+            else:
+                if rowA[i-1] == "-":
+                    dangles += 1
+                i += 1
+        else:
+            j = i + 3
+            if codeA.get(rowA[i:j], "X") == codeB.get(rowB[i:j], "X"):
+                matches += 1
+            else:
+                mismatches += 1
+            i = j
+    return matches, mismatches, gaps, dangles
+
+def writeBlastTab(opts, geneticCode, maf):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "BlastTab")
-    seqNameA, begA, endA, rowA = blastDataFromMafFields(fieldsA)
-    seqNameB, begB, endB, rowB = blastDataFromMafFields(fieldsB)
-
-    alignmentColumns = list(zip(rowA, rowB))
-    alnSize = len(alignmentColumns)
-    matches = sum(x == y for x, y in alignmentColumns)
-    matchPercent = "%.2f" % (100.0 * matches / alnSize)
-    mismatches = alnSize - matches - rowA.count("-") - rowB.count("-")
+    seqNameA, letterSizeA, begA, endA, rowA = blastDataFromMafFields(fieldsA)
+    seqNameB, letterSizeB, begB, endB, rowB = blastDataFromMafFields(fieldsB)
     gapOpens = gapRunCount(rowA) + gapRunCount(rowB)
+
+    if letterSizeA * letterSizeB < 1:
+        c = codonMatchCounts(geneticCode, letterSizeA, letterSizeB, rowA, rowB)
+        matches, mismatches, gaps, dangles = c
+        alnSize = matches + mismatches + gaps
+        gapOpens -= dangles
+    else:
+        alignmentColumns = list(zip(rowA, rowB))
+        alnSize = len(alignmentColumns)
+        matches = sum(x == y for x, y in alignmentColumns)
+        mismatches = alnSize - matches - rowA.count("-") - rowB.count("-")
+
+    matchPercent = "%.2f" % (100.0 * matches / alnSize)
 
     out = [seqNameB, seqNameA, matchPercent, alnSize, mismatches,
            gapOpens, begB, endB, begA, endA]
@@ -823,8 +873,9 @@ def writeBlastTab(opts, maf):
     print(*out, sep="\t")
 
 def mafConvertToBlastTab(opts, lines):
+    geneticCode = standardGeneticCode()
     for maf in mafInput(opts, lines):
-        writeBlastTab(opts, maf)
+        writeBlastTab(opts, geneticCode, maf)
 
 ##### Routines for converting to GFF format: #####
 

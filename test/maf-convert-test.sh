@@ -18,6 +18,7 @@ maf2=bs100.maf
     head -n999 $maf1 | $r -l100 blast
     $r blast $maf2
     $r blasttab $maf2
+    $r blasttab frameshift-new.maf
     head -n999 $maf1 | $r chain
     $r gff 102.maf
     $r -J1e9 gff 102.maf
@@ -37,4 +38,5 @@ maf2=bs100.maf
     $r -d sam $maf1
     head -n999 $maf1 | $r -n tab
     head -n999 $maf1 | $r tab
+    $r -n tab frameshift-new.maf
 } | diff -u maf-convert-test.out -

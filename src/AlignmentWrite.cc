@@ -474,7 +474,7 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
   const uchar *map2 = (translationType == 2) ? codonToAmino : map1;
   size_t matches = matchCount(blocks, seq1.seqReader(), seqData2, map1, map2);
   size_t mismatches = alignedColumnCount(blocks) - matches;
-  size_t gapOpens = blocks.size() - 1;
+  size_t gapOpens = blocks.size() - 1;  // xxx ???
   double matchPercent = 100.0 * matches / alnSize;
 
   size_t blastAlnBeg1 = alnBeg1 + 1;  // 1-based coordinate
