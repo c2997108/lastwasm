@@ -628,6 +628,15 @@ def codonScoresAndScale(originalScale, matParams, delRatios, insRatios):
     matchRatio, matProbs, rowFreqs, colFreqs = matParams
     rowProbs = normalizedFreqs(rowFreqs)
     colProbs = normalizedFreqs(colFreqs)
+
+    r = range(4)
+    baseProbs = [sum(colProbs[v*16 + i*4 + j] +
+                     colProbs[i*16 + v*4 + j] +
+                     colProbs[i*16 + j*4 + v] for i in r for j in r) / 3
+                 for v in r]
+    print("# % a c g t:", *(format(i * 100, ".3") for i in baseProbs))
+    print()
+
     matParams = matchRatio, matProbs, rowProbs, colProbs
     while True:
         matScores = matScoresFromProbs(originalScale, *matParams)
@@ -771,8 +780,7 @@ def doTraining(opts, args):
         if opts.b: lastalArgs.append("-b" + opts.b)
         if opts.A: lastalArgs.append("-A" + opts.A)
         if opts.B: lastalArgs.append("-B" + opts.B)
-        lastalArgs += args
-        proc = process(lastalArgs, None)
+        proc = process(lastalArgs + args, None)
         proc = lastSplitProcess(opts, proc)
         if not opts.scale:
             outerScale = scaleFromHeader(proc.stdout)
@@ -824,8 +832,7 @@ def doTraining(opts, args):
         lastalArgs = fixedLastalArgs(opts, lastalProgName)
         lastalArgs.append("-t{0:.6}".format(scale))
         lastalArgs.append("-p-")
-        lastalArgs += args
-        proc = process(lastalArgs, subprocess.PIPE)
+        proc = process(lastalArgs + args, subprocess.PIPE)
         writeGapCosts(opts, delCosts, insCosts, True, proc.stdin)
         writeScoreMatrixFunc(proc.stdin, matScores, "")
         proc.stdin.close()

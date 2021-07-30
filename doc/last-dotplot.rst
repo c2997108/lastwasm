@@ -221,7 +221,7 @@ Colors
 ------
 
 Colors can be specified in `various ways described here
-<http://effbot.org/imagingbook/imagecolor.htm>`_.
+<https://pillow.readthedocs.io/en/stable/reference/ImageColor.html>`_.
 
 .. _Python Imaging Library: https://pillow.readthedocs.io/
 .. _BED-format: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
