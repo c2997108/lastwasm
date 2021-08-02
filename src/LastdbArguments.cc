@@ -44,6 +44,7 @@ LastdbArguments::LastdbArguments() :
   minIndexedPositionsPerBucket(4),
   childTableType(0),
   isCountsOnly(false),
+  isDump(false),
   verbosity(0),
   inputFormat(sequenceFormat::fasta){}
 
@@ -85,11 +86,12 @@ Advanced Options (default settings):\n\
 -C: child table type: 0=none, 1=byte-size, 2=short-size, 3=full ("
     + stringify(childTableType) + ")\n\
 -x: just count sequences and letters\n\
+-D: print all sequences in lastdb files\n\
 -v: be verbose: write messages about what lastdb is doing\n\
 -V, --version: show version information, and exit\n\
 ";
 
-  static const char sOpts[] = "hVpqR:cm:d:S:s:w:W:P:u:a:i:b:B:C:xvQ:";
+  static const char sOpts[] = "hVpqR:cm:d:S:s:w:W:P:u:a:i:b:B:C:xDvQ:";
 
   int c;
   while ((c = myGetopt(argc, argv, sOpts)) != -1) {
@@ -164,6 +166,9 @@ Advanced Options (default settings):\n\
       break;
     case 'x':
       isCountsOnly = true;
+      break;
+    case 'D':
+      isDump = true;
       break;
     case 'v':
       ++verbosity;

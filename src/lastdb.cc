@@ -23,6 +23,11 @@ using namespace cbrc;
 
 typedef unsigned long long countT;
 
+static void openOrDie(std::ifstream &file, const std::string &name) {
+  file.open(name.c_str());
+  if (!file) ERR("can't open file: " + name);
+}
+
 // Set up an alphabet (e.g. DNA or protein), based on the user options
 void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
   if( !args.userAlphabet.empty() )  alph.fromString( args.userAlphabet );
@@ -331,9 +336,72 @@ static bool isRoomToDuplicateTheLastSequence(const MultiSequence &multi,
   return s <= maxSeqLen && s - multi.seqBeg(n - 1) <= maxSeqLen - s;
 }
 
+static void dump1(const std::string &dbName, const uchar *decode,
+		  size_t seqCount, bool isFastq) {
+  if (seqCount + 1 == 0) ERR("can't read file: " + dbName + ".prj");
+  MultiSequence m;
+  m.fromFiles(dbName, seqCount, isFastq);
+  const uchar *s = m.seqReader();
+  for (size_t i = 0; i < m.finishedSequences(); ++i) {
+    std::cout << ">@"[isFastq] << m.seqName(i) << '\n';
+    std::streambuf *buf = std::cout.rdbuf();
+    size_t e = m.seqEnd(i);
+    for (size_t j = m.seqBeg(i); j < e; ++j) {
+      buf->sputc(decode[s[j]]);
+    }
+    if (isFastq) {
+      std::cout << "\n+\n";
+      std::cout.write((char *)m.qualityReader() + m.seqBeg(i), m.seqLen(i));
+    }
+    std::cout << '\n';
+  }
+}
+
+static void dump(const std::string &dbName) {
+  std::ios_base::sync_with_stdio(false);  // makes it much faster!
+  Alphabet alph;
+  unsigned volumes = -1;
+  size_t seqCount = -1;
+  size_t bitsPerInt = 4 * CHAR_BIT;
+  sequenceFormat::Enum fmt = sequenceFormat::fasta;
+  std::string line, word;
+  std::ifstream file;
+  openOrDie(file, dbName + ".prj");
+  while (getline(file, line)) {
+    std::istringstream iss(line);
+    getline(iss, word, '=');
+    if (word == "alphabet") iss >> alph;
+    if (word == "numofsequences") iss >> seqCount;
+    if (word == "sequenceformat") iss >> fmt;
+    if (word == "volumes") iss >> volumes;
+    if (word == "integersize") iss >> bitsPerInt;
+  }
+  if (alph.letters.empty()) ERR("can't read file: " + dbName + ".prj");
+  size_t b = bitsPerInt / CHAR_BIT;
+  if (posSize > 4 && b <= 4) ERR("please use lastdb for " + dbName);
+  if (posSize <= 4 && b > 4) ERR("please use lastdb5 for " + dbName);
+  if (volumes + 1 == 0) {
+    dump1(dbName, alph.decode, seqCount, fmt != sequenceFormat::fasta);
+  } else {
+    for (unsigned i = 0; i < volumes; ++i) {
+      std::string volName = dbName + stringify(i);
+      std::ifstream f;
+      openOrDie(f, volName + ".prj");
+      seqCount = -1;
+      while (getline(f, line)) {
+	std::istringstream iss(line);
+	getline(iss, word, '=');
+	if (word == "numofsequences") iss >> seqCount;
+      }
+      dump1(volName, alph.decode, seqCount, fmt != sequenceFormat::fasta);
+    }
+  }
+}
+
 void lastdb( int argc, char** argv ){
   LastdbArguments args;
   args.fromArgs( argc, argv );
+  if (args.isDump) return dump(args.lastdbName);
 
   std::string seedText;
   if( !args.subsetSeedFile.empty() ){

@@ -53,6 +53,7 @@ struct LastdbArguments{
   size_t minIndexedPositionsPerBucket;
   int childTableType;
   bool isCountsOnly;
+  bool isDump;
   int verbosity;
   sequenceFormat::Enum inputFormat;
 

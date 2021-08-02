@@ -229,6 +229,8 @@ Advanced Options
 -x  Just count sequences and letters.  This is much faster.  Letter
     counting is never case-sensitive.
 
+-D  Read pre-existing lastdb files, and print all the sequences in them.
+
 -v  Be verbose: write messages about what lastdb is doing.
 
 -V, --version

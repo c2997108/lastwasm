@@ -24,6 +24,7 @@ trap 'rm -f $db*' EXIT
 
 {
     lastdb $db /dev/null
+    lastdb -D $db
     lastal $db /dev/null
 
     # spaced seeds, soft-masking, centroid alignment, matrix file
@@ -32,6 +33,7 @@ trap 'rm -f $db*' EXIT
 
     # multiple volumes & query batches
     lastdb -m1 -s1 -C2 -R10 $db $dnaSeq
+    lastdb -D $db
     try lastal -fTAB -i1 -w0 -e40 $db $dnaSeq
 
     # match-counting, with multiple query batches
@@ -155,6 +157,7 @@ trap 'rm -f $db*' EXIT
 
     # fasta query versus fastq reference
     lastdb -Q1 -R10 $db sd-ccs-100.fq
+    lastdb -D $db
     try lastal -a1 -D1000 $db galGal3-M-32.fa
 
     # prb query versus fastq reference
@@ -171,6 +174,7 @@ trap 'rm -f $db*' EXIT
     try lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -D1e3 -j4 $db sd-ccs-100.fq
     try lastal -Q1 -pBL62 -b1 -F3,3,3,3 -X1 -j4 -e56 $db sd-ccs-100.fq
     lastdb -qcR01 -B1 $db Q2LCP8.fa
+    lastdb -D $db
     try lastal -Q1 -pbadcodon.mat -a17 -b1 -F9,9,9,9 -X1 -D1e3 $db sd-ccs-100.fq
 
     # BlastTab format
