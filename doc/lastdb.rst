@@ -222,9 +222,9 @@ Advanced Options
     Specify the type of "child table" to make: 0 means none, 1 means
     byte-size (uses a little more memory), 2 means short-size (uses
     somewhat more memory), 3 means full (uses a lot more memory).
-    Choices > 0 make lastal a bit faster, but make lastdb slower,
-    and have no effect on lastal's results.  Some tests suggest that
-    -C2 is a good choice: faster than -C1 and no slower than -C3.
+    Choices > 0 make lastdb slower, and have no effect on lastal's
+    results.  This option seems to be mostly obsolete: it used to make
+    lastal faster, but now makes it slower.
 
 -x  Just count sequences and letters.  This is much faster.  Letter
     counting is never case-sensitive.

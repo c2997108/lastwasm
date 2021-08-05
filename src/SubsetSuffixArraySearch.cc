@@ -225,6 +225,115 @@ static void equalRange2(const PosPart *sufArray, indexT &beg, indexT &end,
   }
 }
 
+// Find the suffix array range of string [queryBeg, queryBeg+d) within
+// the suffix array range [beg, end), where d is not known in advance.
+// The routine tries to find a large-as-possible d: it guarantees that
+// the suffix array range for d-1 is longer than maxHits.  d is
+// returned.  Actually, this routine may find *part* of the SA range
+// of [queryBeg, queryBeg+d), which is guaranteed to include the whole
+// range for the smallest d whose range is no longer than maxHits.
+static size_t equalRange3(const PosPart *sufArray, indexT &beg, indexT &end,
+			  const uchar *&subsetMap, const uchar *textBase,
+			  const uchar *queryBeg, const CyclicSubsetSeed &seed,
+			  size_t maxHits) {
+  if (subsetMap[*queryBeg] == CyclicSubsetSeed::DELIMITER) return 0;
+  assert(end - beg > maxHits);
+  const uchar *qBeg = queryBeg;
+  const uchar *tBeg = textBase;
+  const uchar *sBeg = subsetMap;
+  const uchar *qBegOld = qBeg;
+  const uchar *tBegOld = tBeg;
+  const uchar *sBegOld = sBeg;
+  const uchar *qEnd = queryBeg;
+  const uchar *tEnd = textBase;
+  const uchar *sEnd = subsetMap;
+  const uchar *qEndOld = qEnd;
+  const uchar *tEndOld = tEnd;
+  const uchar *sEndOld = sEnd;
+  const uchar *qMid = queryBeg;
+  const uchar *tMid = textBase;
+  const uchar *sMid = subsetMap;
+
+  while (1) {
+    indexT span = end - beg;
+    if (span <= maxHits * 2) {
+      if (qBeg < qEnd) {
+	const uchar *qMax = std::max(qBeg, qEndOld) + 1;
+	if (qMax > qEnd) {
+	  equalRange2(sufArray, beg, end, tMid, sMid, qMid, qMax, seed);
+	} else {
+	  beg = lowerBound2(sufArray, beg, end, tBeg, sBeg, qBeg, qMax, seed);
+	  end = upperBound2(sufArray, end + 1, end + maxHits + 1,
+			    tEndOld, sEndOld, qEndOld, qMax, seed);
+	}
+	subsetMap = seed.nextMap(qBeg > qEndOld ? sBeg : sEndOld);
+	return qMax - queryBeg;
+      } else {
+	const uchar *qMax = std::max(qEnd, qBegOld) + 1;
+	if (qMax > qBeg) {
+	  equalRange2(sufArray, beg, end, tMid, sMid, qMid, qMax, seed);
+	} else {
+	  beg = lowerBound2(sufArray, beg - maxHits - 1, beg - 1,
+			    tBegOld, sBegOld, qBegOld, qMax, seed);
+	  end = upperBound2(sufArray, beg, end, tEnd, sEnd, qEnd, qMax, seed);
+	}
+	subsetMap = seed.nextMap(qEnd > qBegOld ? sEnd : sBegOld);
+	return qMax - queryBeg;
+      }
+    }
+    indexT mid = beg + span / 2;
+    indexT offset = posGetAt(sufArray, mid);
+    tMid += offset;
+    int iterations = 1023;  // xxx ???
+    uchar tChar, qChar;
+    for (;;) {  // loop over consecutive letters (xxx could be very many?)
+      const uchar *textSubsetMap = seed.originalSubsetMap(sMid);
+      tChar = textSubsetMap[*tMid];  // this text letter's subset
+      qChar = sMid[*qMid];  // this query letter's subset
+      if (tChar != qChar || qChar == CyclicSubsetSeed::DELIMITER) break;
+      if (--iterations == 0) {  // avoid huge self-comparisons
+	subsetMap = qBeg < qEnd ? sBeg : sEnd;
+	return std::min(qBeg, qEnd) - queryBeg;
+      }
+      ++qMid;  // next query letter
+      ++tMid;  // next text letter
+      sMid = seed.nextMap(sMid);  // next mapping from letters to subsets
+    }
+    tMid -= offset;
+    if (tChar <= qChar) {
+      beg = mid + 1;
+      qBegOld = qBeg;
+      tBegOld = tBeg;
+      sBegOld = sBeg;
+      qBeg = qMid;
+      tBeg = tMid;
+      sBeg = sMid;
+      if (qEnd < qMid) {
+	if (qChar == CyclicSubsetSeed::DELIMITER && qBeg == qBegOld) {
+	  beg = end;
+	  return 0;
+	}
+	qMid = qEnd;
+	tMid = tEnd;
+	sMid = sEnd;
+      }
+    } else {
+      end = mid;
+      qEndOld = qEnd;
+      tEndOld = tEnd;
+      sEndOld = sEnd;
+      qEnd = qMid;
+      tEnd = tMid;
+      sEnd = sMid;
+      if (qBeg < qMid) {
+	qMid = qBeg;
+	tMid = tBeg;
+	sMid = sBeg;
+      }
+    }
+  }
+}
+
 // use past results to speed up long matches?
 // could & probably should return the match depth
 void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
@@ -287,6 +396,12 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
     }
     equalRange2(sufArray, beg, end, text + d, s,
 		queryPtr + d, queryPtr + depth, seed);
+  }
+
+  if (end - beg > maxHits * 2 && maxDepth + 1 == 0 &&
+      childTable.empty() && kiddyTable.empty() && chibiTable.empty()) {
+    depth += equalRange3(sufArray, beg, end, subsetMap,
+			 text + depth, queryPtr + depth, seed, maxHits);
   }
 
   ChildDirection childDirection = UNKNOWN;

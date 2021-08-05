@@ -220,16 +220,12 @@ Aligning Illumina DNA reads to a genome
 
 ::
 
-  lastdb -P8 -uNEAR -C2 mydb genome.fasta
+  lastdb -P8 -uNEAR mydb genome.fasta
   last-train -P8 -Q1 mydb reads.fastq.gz > reads.train
   lastal -P8 -p reads.train mydb reads.fastq.gz | last-split | gzip > out.maf.gz
 
 Most LAST commands accept ``.gz`` compressed files, and you can
 compress output with ``gzip`` as above.
-
-lastdb_ option ``-C2`` makes the alignment a bit faster, but uses more
-memory.  This has no effect on the results.  (You could use it in the
-other examples too, but it might not be faster.)
 
 ``-Q1`` makes it use the fastq_ quality information to improve the
 training and alignment.  LAST **assumes** that the qualities reflect

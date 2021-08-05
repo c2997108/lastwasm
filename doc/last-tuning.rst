@@ -156,9 +156,9 @@ If lastdb is too slow, try ``-i10``.
 lastdb -C2
 ----------
 
-This option may make lastal a bit **faster**, but **uses more memory
-and disk**, and makes lastdb slower.  It has no effect on the results.
-If the downsides are no problem, you may as well try it.
+**Obsolete(?)** This made old versions (< 1253) of lastal faster, but
+makes new versions of lastal slower.  If you already used this option,
+you can undo it by deleting the ``.chi2`` files.
 
 lastdb -B
 ---------
