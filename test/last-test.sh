@@ -64,7 +64,7 @@ trap 'rm -f $db*' EXIT
     # probabilistic alignment with quality scores
     try lastal -Q1 -j6 -e90 -a9 $db $fastq
 
-    # sparse index, generalized affine gap costs
+    # sparse index, generalized affine gap costs, self-alignment
     lastdb -w2 -c -R10 $db $dnaSeq
     try lastal -r3 -q3 -a21 -c2 -e60 -f0 $db $dnaSeq
 

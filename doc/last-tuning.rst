@@ -158,7 +158,8 @@ lastdb -C2
 
 **Obsolete(?)** This made old versions (< 1253) of lastal faster, but
 makes new versions of lastal slower.  If you already used this option,
-you can undo it by deleting the ``.chi2`` files.
+you can undo it by deleting the ``.chi2`` files (or move/rename them
+to test which is faster).
 
 lastdb -B
 ---------

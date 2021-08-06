@@ -224,7 +224,7 @@ Advanced Options
     somewhat more memory), 3 means full (uses a lot more memory).
     Choices > 0 make lastdb slower, and have no effect on lastal's
     results.  This option seems to be mostly obsolete: it used to make
-    lastal faster, but now makes it slower.
+    lastal faster, but now makes it slower (sometimes).
 
 -x  Just count sequences and letters.  This is much faster.  Letter
     counting is never case-sensitive.

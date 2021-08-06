@@ -254,39 +254,13 @@ static size_t equalRange3(const PosPart *sufArray, indexT &beg, indexT &end,
   const uchar *tMid = textBase;
   const uchar *sMid = subsetMap;
 
-  while (1) {
-    indexT span = end - beg;
-    if (span <= maxHits * 2) {
-      if (qBeg < qEnd) {
-	const uchar *qMax = std::max(qBeg, qEndOld) + 1;
-	if (qMax > qEnd) {
-	  equalRange2(sufArray, beg, end, tMid, sMid, qMid, qMax, seed);
-	} else {
-	  beg = lowerBound2(sufArray, beg, end, tBeg, sBeg, qBeg, qMax, seed);
-	  end = upperBound2(sufArray, end + 1, end + maxHits + 1,
-			    tEndOld, sEndOld, qEndOld, qMax, seed);
-	}
-	subsetMap = seed.nextMap(qBeg > qEndOld ? sBeg : sEndOld);
-	return qMax - queryBeg;
-      } else {
-	const uchar *qMax = std::max(qEnd, qBegOld) + 1;
-	if (qMax > qBeg) {
-	  equalRange2(sufArray, beg, end, tMid, sMid, qMid, qMax, seed);
-	} else {
-	  beg = lowerBound2(sufArray, beg - maxHits - 1, beg - 1,
-			    tBegOld, sBegOld, qBegOld, qMax, seed);
-	  end = upperBound2(sufArray, beg, end, tEnd, sEnd, qEnd, qMax, seed);
-	}
-	subsetMap = seed.nextMap(qEnd > qBegOld ? sEnd : sBegOld);
-	return qMax - queryBeg;
-      }
-    }
-    indexT mid = beg + span / 2;
+  while (end - beg > maxHits * 2) {
+    indexT mid = beg + (end - beg) / 2;
     indexT offset = posGetAt(sufArray, mid);
     tMid += offset;
     int iterations = 1023;  // xxx ???
     uchar tChar, qChar;
-    for (;;) {  // loop over consecutive letters (xxx could be very many?)
+    for (;;) {  // loop over consecutive letters
       const uchar *textSubsetMap = seed.originalSubsetMap(sMid);
       tChar = textSubsetMap[*tMid];  // this text letter's subset
       qChar = sMid[*qMid];  // this query letter's subset
@@ -332,6 +306,30 @@ static size_t equalRange3(const PosPart *sufArray, indexT &beg, indexT &end,
       }
     }
   }
+
+  if (qBeg < qEnd) {
+    qMid = std::max(qBeg, qEndOld) + 1;
+    subsetMap = seed.nextMap(qBeg > qEndOld ? sBeg : sEndOld);
+    if (qMid > qEnd) {
+      equalRange2(sufArray, beg, end, tBeg, sBeg, qBeg, qMid, seed);
+    } else {
+      beg = lowerBound2(sufArray, beg, end, tBeg, sBeg, qBeg, qMid, seed);
+      end = upperBound2(sufArray, end + 1, end + maxHits + 1,
+			tEndOld, sEndOld, qEndOld, qMid, seed);
+    }
+  } else {
+    qMid = std::max(qEnd, qBegOld) + 1;
+    subsetMap = seed.nextMap(qEnd > qBegOld ? sEnd : sBegOld);
+    if (qMid > qBeg) {
+      equalRange2(sufArray, beg, end, tEnd, sEnd, qEnd, qMid, seed);
+    } else {
+      beg = lowerBound2(sufArray, beg - maxHits - 1, beg - 1,
+			tBegOld, sBegOld, qBegOld, qMid, seed);
+      end = upperBound2(sufArray, beg, end, tEnd, sEnd, qEnd, qMid, seed);
+    }
+  }
+
+  return qMid - queryBeg;
 }
 
 // use past results to speed up long matches?
