@@ -589,112 +589,121 @@ def expandedSeqDict(seqDict):
             newDict[base] = x
     return newDict
 
-def readBed(fileName, rangeDict):
-    for line in myOpen(fileName):
-        w = line.split()
-        if not w: continue
-        if not w[1].isdigit():
-            w = w[1:]
-        seqName = w[0]
-        if seqName not in rangeDict: continue
-        seqRanges = rangeDict[seqName]
-        beg = int(w[1])
-        end = int(w[2])
-        if all(beg >= i[2] or end <= i[1] for i in seqRanges):
-            continue
-        itemName = w[3] if len(w) > 3 and w[3] != "." else ""
+def commaSeparatedInts(text):
+    return map(int, text.rstrip(",").split(","))
+
+def annotsFromBedOrAgp(opts, rangeDict, fields):
+    seqName = fields[0]
+    if seqName not in rangeDict: return
+    end = int(fields[2])
+    if len(fields) > 7 and fields[4].isalpha():  # agp format, or gap.txt
+        if fields[4] in "NU" and fields[5].isdigit():
+            beg = end - int(fields[5])  # zero-based coordinate
+            if fields[7] == "yes":
+                yield 30000, opts.bridged_color, seqName, beg, end, ""
+            else:
+                yield 20000, opts.unbridged_color, seqName, beg, end, ""
+    else:  # BED format
+        beg = int(fields[1])
+        itemName = fields[3] if len(fields) > 3 and fields[3] != "." else ""
         layer = 900
         color = "#fbf"
-        if len(w) > 4:
-            if w[4] != ".":
-                layer = float(w[4])
-            if len(w) > 5:
-                if len(w) > 8 and w[8].count(",") == 2:
-                    color = "rgb(" + w[8] + ")"
+        if len(fields) > 4:
+            if fields[4] != ".":
+                layer = float(fields[4])
+            if len(fields) > 5:
+                if len(fields) > 8 and fields[8].count(",") == 2:
+                    color = "rgb(" + fields[8] + ")"
                 else:
-                    strand = w[5]
-                    isRev = (seqRanges[0][3] > 1)
+                    strand = fields[5]
+                    isRev = (rangeDict[seqName][0][3] > 1)
                     if strand == "+" and not isRev or strand == "-" and isRev:
                         color = "#ffe8e8"
                     if strand == "-" and not isRev or strand == "+" and isRev:
                         color = "#e8e8ff"
         yield layer, color, seqName, beg, end, itemName
 
-def commaSeparatedInts(text):
-    return map(int, text.rstrip(",").split(","))
-
-def readGenePred(opts, fileName, rangeDict):
-    for line in myOpen(fileName):
-        fields = line.split()  # xxx tab ???
-        if not fields: continue
-        geneName = fields[12 if len(fields) > 12 else 0]  # XXX ???
-        if fields[2] not in "+-":
-            fields = fields[1:]
-        seqName = fields[1]
-        if seqName not in rangeDict: continue
-        seqRanges = rangeDict[seqName]
-        #strand = fields[2]
+def annotsFromGpd(opts, rangeDict, fields, geneName):  # xxx split on tabs?
+    seqName = fields[1]
+    if seqName in rangeDict:
         cdsBeg = int(fields[5])
         cdsEnd = int(fields[6])
         exonBegs = commaSeparatedInts(fields[8])
         exonEnds = commaSeparatedInts(fields[9])
         for beg, end in zip(exonBegs, exonEnds):
-            if all(beg >= i[2] or end <= i[1] for i in seqRanges):
-                continue
             yield 300, opts.exon_color, seqName, beg, end, geneName
             b = max(beg, cdsBeg)
             e = min(end, cdsEnd)
             if b < e: yield 400, opts.cds_color, seqName, b, e, ""
 
-def readRmsk(fileName, rangeDict):
-    for line in myOpen(fileName):
-        fields = line.split()
-        if len(fields) == 17:  # rmsk.txt
-            seqName = fields[5]
-            if seqName not in rangeDict: continue  # do this ASAP for speed
-            beg = int(fields[6])
-            end = int(fields[7])
-            strand = fields[9]
-            repeatName = fields[10]
-            repeatClass = fields[11]
-        elif len(fields) == 15:  # .out
-            seqName = fields[4]
-            if seqName not in rangeDict: continue
-            beg = int(fields[5]) - 1
-            end = int(fields[6])
-            strand = fields[8]
-            repeatName = fields[9]
-            repeatClass = fields[10].split("/")[0]
-        else:
-            continue
-        seqRanges = rangeDict[seqName]
-        if all(beg >= i[2] or end <= i[1] for i in seqRanges):
-            continue
-        if repeatClass in ("Low_complexity", "Simple_repeat", "Satellite"):
-            yield 200, "#fbf", seqName, beg, end, repeatName
-        elif (strand == "+") != (seqRanges[0][3] > 1):
-            yield 100, "#ffe8e8", seqName, beg, end, repeatName
-        else:
-            yield 100, "#e8e8ff", seqName, beg, end, repeatName
+def annotsFromGff(opts, line, seqName):
+    fields = line.rstrip().split("\t")
+    feature = fields[2]
+    beg = int(fields[3]) - 1
+    end = int(fields[4])
+    if feature == "exon":
+        geneName = fields[8]
+        if ";" in geneName or "=" in geneName:
+            parts = geneName.rstrip(";").split(";")
+            attrs = dict(re.split('[= ]', i.strip(), 1) for i in parts)
+            if "gene" in attrs:
+                geneName = attrs["gene"]  # seems good for NCBI gff
+            elif "Name" in attrs:
+                geneName = attrs["Name"]
+            else:
+                geneName = ""
+        yield 300, opts.exon_color, seqName, beg, end, geneName
+    elif feature == "CDS":
+        yield 400, opts.cds_color, seqName, beg, end, ""
 
-def isExtraFirstGapField(fields):
-    return fields[4].isdigit()
+def annotsFromRep(rangeDict, seqName, beg, end, strand, repName, repClass):
+    simple = "Low_complexity", "Simple_repeat", "Satellite"
+    if repClass.startswith(simple):
+        yield 200, "#fbf", seqName, beg, end, repName
+    elif (strand == "+") != (rangeDict[seqName][0][3] > 1):
+        yield 100, "#ffe8e8", seqName, beg, end, repName
+    else:
+        yield 100, "#e8e8ff", seqName, beg, end, repName
 
-def readGaps(opts, fileName, rangeDict):
-    '''Read locations of unsequenced gaps, from an agp or gap file.'''
-    for line in myOpen(fileName):
-        w = line.split()
-        if not w or w[0][0] == "#": continue
-        if isExtraFirstGapField(w): w = w[1:]
-        if w[4] not in "NU": continue
-        seqName = w[0]
-        if seqName not in rangeDict: continue
-        end = int(w[2])
-        beg = end - int(w[5])  # zero-based coordinate
-        if w[7] == "yes":
-            yield 3000, opts.bridged_color, seqName, beg, end, ""
-        else:
-            yield 2000, opts.unbridged_color, seqName, beg, end, ""
+def annotsFromFiles(opts, fileNames, rangeDict):
+    isDig = str.isdigit
+    for fileName in fileNames:
+        for line in myOpen(fileName):
+            w = line.split()
+            n = len(w)
+            if n > 10 and w[8] in "+C-" and isDig(w[5]) and isDig(w[6]):
+                seq = w[4]                         # RepeatMasker .out
+                if seq not in rangeDict: continue  # do this ASAP for speed
+                beg = int(w[5]) - 1
+                end = int(w[6])
+                g = annotsFromRep(rangeDict, seq, beg, end, w[8], w[9], w[10])
+            elif n > 11 and w[9] in "+-" and isDig(w[6]) and isDig(w[7]):
+                seq = w[5]                         # rmsk.txt
+                if seq not in rangeDict: continue
+                beg = int(w[6])
+                end = int(w[7])
+                g = annotsFromRep(rangeDict, seq, beg, end, w[9], w[10], w[11])
+            elif n > 8 and w[6] in "+-." and isDig(w[3]) and isDig(w[4]):
+                seqName = w[0]
+                if seqName not in rangeDict: continue
+                g = annotsFromGff(opts, line, seqName)
+            elif n > 9 and w[2] in "+-" and isDig(w[4] + w[5] + w[6]):
+                geneName = w[12 if n > 12 else 0]  # XXX ???
+                g = annotsFromGpd(opts, rangeDict, w, geneName)
+            elif n > 10 and w[3] in "+-" and isDig(w[5] + w[6] + w[7]):
+                geneName = w[12 if n > 12 else 0]  # XXX ???
+                g = annotsFromGpd(opts, rangeDict, w[1:], geneName)
+            elif n > 2 and isDig(w[1]) and isDig(w[2]):
+                g = annotsFromBedOrAgp(opts, rangeDict, w)
+            elif n > 3 and isDig(w[2]) and isDig(w[3]):
+                g = annotsFromBedOrAgp(opts, rangeDict, w[1:])
+            else:
+                continue
+            if line[0] == "#": continue
+            for i in g:
+                layer, color, seqName, beg, end, name = i
+                if any(beg < r[2] and end > r[1] for r in rangeDict[seqName]):
+                    yield i
 
 def bedBoxes(annots, rangeDict, limit, isTop, bpPerPix):
     beds, textSizes, margin = annots
@@ -707,7 +716,7 @@ def bedBoxes(annots, rangeDict, limit, isTop, bpPerPix):
             if beg >= end: continue
             if isReverseRange:
                 beg, end = -end, -beg
-            if layer <= 1000:
+            if layer <= 10000:
                 # include partly-covered pixels
                 pixBeg = (origin + beg) // bpPerPix
                 pixEnd = div_ceil(origin + end, bpPerPix)
@@ -855,13 +864,9 @@ def remainingSequenceRanges(seqRanges, alignments, seqIndex):
     remainingSequences = set(i[seqIndex] for i in alignments)
     return [i for i in seqRanges if i[0] in remainingSequences]
 
-def readAnnotations(opts, font, textDraw, sortedRanges, totalLength,
-                    bedFile, repFile, geneFile, gapFile):
+def readAnnots(opts, font, textDraw, sortedRanges, totalLength, fileNames):
     rangeDict = expandedSeqDict(dict(rangesPerSeq(sortedRanges)))
-    annots = sorted(itertools.chain(readBed(bedFile, rangeDict),
-                                    readRmsk(repFile, rangeDict),
-                                    readGenePred(opts, geneFile, rangeDict),
-                                    readGaps(opts, gapFile, rangeDict)))
+    annots = sorted(annotsFromFiles(opts, fileNames, rangeDict))
     names = set(i[5] for i in annots)
     textSizes = dict(sizesPerText(names, font, textDraw))
     maxTextLength = totalLength // 2
@@ -937,12 +942,12 @@ def lastDotplot(opts, args):
 
     logging.info("reading annotations...")
 
-    annots1 = readAnnotations(opts, font, textDraw, sortedRanges1, opts.height,
-                              opts.bed1, opts.rmsk1, opts.genePred1, opts.gap1)
+    annots1 = readAnnots(opts, font, textDraw, sortedRanges1, opts.height,
+                         opts.bed1)
     bMargin = annots1[-1]
 
-    annots2 = readAnnotations(opts, font, textDraw, sortedRanges2, opts.width,
-                              opts.bed2, opts.rmsk2, opts.genePred2, opts.gap2)
+    annots2 = readAnnots(opts, font, textDraw, sortedRanges2, opts.width,
+                         opts.bed2)
     rMargin = annots2[-1]
 
     maxPixels1 = opts.width  - lMargin - rMargin
@@ -1057,10 +1062,6 @@ if __name__ == "__main__":
     op.add_option("-2", "--seq2", metavar="PATTERN", action="append",
                   default=[],
                   help="which sequences to show from the 2nd genome")
-    op.add_option("-c", "--forwardcolor", metavar="COLOR", default="red",
-                  help="color for forward alignments (default: %default)")
-    op.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
-                  help="color for reverse alignments (default: %default)")
     op.add_option("--alignments", metavar="FILE", help="secondary alignments")
     op.add_option("--sort1", default="1", metavar="N",
                   help="genome1 sequence order: 0=input order, 1=name order, "
@@ -1088,11 +1089,12 @@ if __name__ == "__main__":
                   "2=alignments adjacent in genome2 (default=%default)")
     op.add_option("--border-pixels", metavar="INT", type="int", default=1,
                   help="number of pixels between sequences (default=%default)")
-    op.add_option("--border-color", metavar="COLOR", default="black",
-                  help="color for pixels between sequences (default=%default)")
-    # --break-color and/or --break-pixels for intra-sequence breaks?
-    op.add_option("--margin-color", metavar="COLOR", default="#dcdcdc",
-                  help="margin color")
+    op.add_option("-a", "--bed1", "--rmsk1", "--genePred1", "--gap1",
+                  action="append", default=[], metavar="FILE",
+                  help="read genome1 annotations")
+    op.add_option("-b", "--bed2", "--rmsk2", "--genePred2", "--gap2",
+                  action="append", default=[], metavar="FILE",
+                  help="read genome2 annotations")
 
     og = optparse.OptionGroup(op, "Text options")
     og.add_option("-f", "--fontfile", metavar="FILE",
@@ -1111,33 +1113,20 @@ if __name__ == "__main__":
                   help="text rotation for the 2nd genome (default=%default)")
     op.add_option_group(og)
 
-    og = optparse.OptionGroup(op, "Annotation options")
-    og.add_option("--bed1", metavar="FILE",
-                  help="read genome1 annotations from BED file")
-    og.add_option("--bed2", metavar="FILE",
-                  help="read genome2 annotations from BED file")
-    og.add_option("--rmsk1", metavar="FILE", help="read genome1 repeats from "
-                  "RepeatMasker .out or rmsk.txt file")
-    og.add_option("--rmsk2", metavar="FILE", help="read genome2 repeats from "
-                  "RepeatMasker .out or rmsk.txt file")
-    op.add_option_group(og)
-
-    og = optparse.OptionGroup(op, "Gene options")
-    og.add_option("--genePred1", metavar="FILE",
-                  help="read genome1 genes from genePred file")
-    og.add_option("--genePred2", metavar="FILE",
-                  help="read genome2 genes from genePred file")
+    og = optparse.OptionGroup(op, "Color options")
+    og.add_option("-c", "--forwardcolor", metavar="COLOR", default="red",
+                  help="color for forward alignments (default: %default)")
+    og.add_option("-r", "--reversecolor", metavar="COLOR", default="blue",
+                  help="color for reverse alignments (default: %default)")
+    og.add_option("--border-color", metavar="COLOR", default="black",
+                  help="color for pixels between sequences (default=%default)")
+    # --break-color and/or --break-pixels for intra-sequence breaks?
+    og.add_option("--margin-color", metavar="COLOR", default="#dcdcdc",
+                  help="margin color")
     og.add_option("--exon-color", metavar="COLOR", default="PaleGreen",
                   help="color for exons (default=%default)")
     og.add_option("--cds-color", metavar="COLOR", default="LimeGreen",
                   help="color for protein-coding regions (default=%default)")
-    op.add_option_group(og)
-
-    og = optparse.OptionGroup(op, "Unsequenced gap options")
-    og.add_option("--gap1", metavar="FILE",
-                  help="read genome1 unsequenced gaps from agp or gap file")
-    og.add_option("--gap2", metavar="FILE",
-                  help="read genome2 unsequenced gaps from agp or gap file")
     og.add_option("--bridged-color", metavar="COLOR", default="yellow",
                   help="color for bridged gaps (default: %default)")
     og.add_option("--unbridged-color", metavar="COLOR", default="orange",

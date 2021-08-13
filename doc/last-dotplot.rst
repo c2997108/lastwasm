@@ -2,7 +2,7 @@ last-dotplot
 ============
 
 This script makes a dotplot, a.k.a. Oxford Grid, of pair-wise sequence
-alignments in MAF or LAST tabular format.  It requires the `Python
+alignments in MAF_ or LAST tabular format.  It requires the `Python
 Imaging Library`_ to be installed.  It can be used like this::
 
   last-dotplot my-alignments my-plot.png
@@ -10,6 +10,10 @@ Imaging Library`_ to be installed.  It can be used like this::
 The output can be in any format supported by the Imaging Library::
 
   last-dotplot alns alns.gif
+
+It can read alignments from a pipe like this::
+
+  ... | last-dotplot - my-plot.png
 
 Terminology
 -----------
@@ -37,10 +41,14 @@ Options
     Which sequences to show from the 1st (horizontal) genome.
 -2 PATTERN, --seq2=PATTERN
     Which sequences to show from the 2nd (vertical) genome.
--c COLOR, --forwardcolor=COLOR
-    Color for forward alignments.
--r COLOR, --reversecolor=COLOR
-    Color for reverse alignments.
+-a FILE
+    Read annotations for the 1st (horizontal) genome, and draw them as
+    vertical stripes.  For backwards compatibility, these options have
+    the same meaning: ``--bed1 --rmsk1 --genePred1 --gap1``.
+-b FILE
+    Read annotations for the 2nd (vertical) genome, and draw them as
+    horizontal stripes.  For backwards compatibility, these options
+    have the same meaning: ``--bed2 --rmsk2 --genePred2 --gap2``.
 --alignments=FILE
     Read secondary alignments.  For example: we could use primary
     alignment data with one human DNA read aligned to the human
@@ -91,10 +99,6 @@ Options
     in the 2nd (vertical) genome.
 --border-pixels=INT
     Number of pixels between sequences.
---border-color=COLOR
-    Color for pixels between sequences.
---margin-color=COLOR
-    Color for the margins.
 
 Text options
 ~~~~~~~~~~~~
@@ -116,58 +120,49 @@ Text options
 --rot2=ROT
     Text rotation for the 2nd genome: h(orizontal) or v(ertical).
 
-Annotation options
-~~~~~~~~~~~~~~~~~~
+Color options
+~~~~~~~~~~~~~
 
-These options read annotations of sequence segments, and draw them as
-colored horizontal or vertical stripes.  This looks good only if the
-annotations are reasonably sparse: e.g. you can't sensibly view 20000
-gene annotations in one small dotplot.
-
---bed1=FILE
-    Read BED-format_ annotations for the 1st genome.  They are drawn
-    as stripes, with coordinates given by the first three BED fields.
-    The color is specified by the RGB field if present, else pale red
-    if the strand is "+", pale blue if "-", or pale purple.
---bed2=FILE
-    Read BED-format annotations for the 2nd genome.
---rmsk1=FILE
-    Read repeat annotations for the 1st genome, in RepeatMasker .out
-    or rmsk.txt format.  The color is pale purple for "low
-    complexity", "simple repeats", and "satellites", else pale red
-    for "+" strand and pale blue for "-" strand.
---rmsk2=FILE
-    Read repeat annotations for the 2nd genome.
-
-Gene options
-~~~~~~~~~~~~
-
---genePred1=FILE
-    Read gene annotations for the 1st genome in `genePred format`_.
---genePred2=FILE
-    Read gene annotations for the 2nd genome.
+-c COLOR, --forwardcolor=COLOR
+    Color for forward alignments.
+-r COLOR, --reversecolor=COLOR
+    Color for reverse alignments.
+--border-color=COLOR
+    Color for pixels between sequences.
+--margin-color=COLOR
+    Color for the margins.
 --exon-color=COLOR
     Color for exons.
 --cds-color=COLOR
     Color for protein-coding regions.
-
-Unsequenced gap options
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Note: these "gaps" are *not* alignment gaps (indels): they are regions
-of unknown sequence.
-
---gap1=FILE
-    Read unsequenced gaps in the 1st genome from an agp or gap file.
---gap2=FILE
-    Read unsequenced gaps in the 2nd genome from an agp or gap file.
 --bridged-color=COLOR
-    Color for bridged gaps.
+    Color for unsequenced gaps with "yes" evidence of linkage.
 --unbridged-color=COLOR
-    Color for unbridged gaps.
+    Color for unsequenced gaps with "no" evidence of linkage.
 
-An unsequenced gap will be shown only if it covers at least one whole
-pixel.
+Annotations
+-----------
+
+Options ``-a`` and ``-b`` can read annotations in these formats:
+
+* BED_: The color is specified by the RGB field if present, else pale
+  red if the strand is "+", pale blue if "-", or pale purple.  BED
+  lines with higher score are drawn on top of ones with lower score.
+
+* Repeatmasker_ .out, rmsk.txt: The color is pale purple for "low
+  complexity", "simple repeats", and "satellites", else pale red for
+  "+" strand and pale blue for "-" strand.
+
+* genePred_, GFF/GTF: Exons are shown in green, with a darker shade
+  for protein-coding regions.
+
+* AGP_, gap.txt: Unsequenced gaps are shown, but only if the gap
+  covers at least one whole pixel.
+
+You can use these options multiple times, e.g. ``-a stuff.bed -a
+more.bed -a rmsk.txt``.  Annotations look good only if reasonably
+sparse, e.g. you can't sensibly view 20000 gene annotations in one
+small dotplot.
 
 Choosing sequences
 ------------------
@@ -224,5 +219,8 @@ Colors can be specified in `various ways described here
 <https://pillow.readthedocs.io/en/stable/reference/ImageColor.html>`_.
 
 .. _Python Imaging Library: https://pillow.readthedocs.io/
-.. _BED-format: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
-.. _genePred format: https://genome.ucsc.edu/FAQ/FAQformat.html#format9
+.. _MAF: https://genome.ucsc.edu/FAQ/FAQformat.html#format5
+.. _BED: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
+.. _genePred: https://genome.ucsc.edu/FAQ/FAQformat.html#format9
+.. _RepeatMasker: http://www.repeatmasker.org/
+.. _AGP: https://www.ncbi.nlm.nih.gov/assembly/agp/
