@@ -19,14 +19,47 @@ double FrameshiftXdropAligner::forward(const uchar *protein,
 				       const const_dbl_ptr *substitutionProbs,
 				       const GapCosts &gapCosts,
 				       double probDropLimit) {
+  const int seqIncrement = isRightwardExtension ? 1 : -1;
   if (isRightwardExtension) {
     --protein; --frame0; --frame1; --frame2;
   }
   proteinPtr = protein;
-  frames[0] = frame0;
+  frames[0] = frame0 + seqIncrement;
   frames[1] = frame1;
   frames[2] = frame2;
-  const int seqIncrement = isRightwardExtension ? 1 : -1;
+
+  int numCells = 1;  // number of DynProg cells in this antidiagonal
+  size_t proteinEnd = 1;
+  size_t diagPos6 = 2 * padSize - 1;
+  size_t horiPos5 = diagPos6 + padSize;
+  size_t horiPos4 = horiPos5 + padSize;
+  size_t horiPos3 = horiPos4 + padSize;
+  size_t vertPos2 = horiPos3 + padSize + 1;
+  size_t vertPos1 = vertPos2 + padSize;
+  size_t thisPos  = vertPos1 + numCells;
+  size_t antidiagonal = 1;
+
+  if (xdropShape.empty()) {
+    xdropShape.resize(3);
+    xdropShape[0] = vertPos2;
+    xdropShape[1] = proteinEnd;
+    xdropShape[2] = thisPos;
+    xFwdProbs.resize(thisPos);
+    yFwdProbs.resize(thisPos);
+    zFwdProbs.resize(thisPos);
+    xFwdProbs[vertPos1] = 1;
+    yFwdProbs[vertPos1] = 1;
+    zFwdProbs[vertPos1] = 1;
+  }
+
+  double sumOfProbRatios = 1;
+  double logSumOfProbRatios = 0;
+
+  if (substitutionProbs[0][*(frames[0])] <= 0) {  // at end of DNA sequence
+    numOfAntidiagonals = 1;
+    rescaledSumOfProbRatios = 1;
+    return 0;
+  }
 
   const double delOpenProb = gapCosts.delProbPieces[0].openProb;
   const double insOpenProb = gapCosts.insProbPieces[0].openProb;
@@ -37,28 +70,8 @@ double FrameshiftXdropAligner::forward(const uchar *protein,
   const double insProb2 = gapCosts.insProb2;
   const double insProb3 = gapCosts.insProb3;
 
-  int runOfDrops = 2;
-  int runOfEdges = 0;
-  int numCells = 1;
-  size_t proteinEnd = 1;
-  size_t diagPos6 = padSize - 1;  // xxx or 0 ?
-  size_t horiPos5 = diagPos6 + padSize;
-  size_t horiPos4 = horiPos5 + padSize;
-  size_t horiPos3 = horiPos4 + padSize;
-  size_t vertPos2 = horiPos3 + padSize + 1;
-  size_t vertPos1 = vertPos2 + padSize;
-  size_t thisPos  = vertPos1;  // xxx or + padSize ?
-  size_t antidiagonal = 0;
-
-  double sumOfProbRatios = 0;
-  double logSumOfProbRatios = 0;
-
-  if (xdropShape.empty()) xdropShape.assign(1, thisPos);
-
-  resizeFwdProbsIfSmaller(thisPos);
-  double behindProb = substitutionProbs[*protein][*frame0];
-  assert(behindProb > 0);  // XXX might fail?
-  xFwdProbs[padSize - 1] = 1 / behindProb;  // xxx or padSize ?
+  int runOfDrops = 0;
+  int runOfEdges = (substitutionProbs[*(protein + seqIncrement)][0] > 0);
 
   while (1) {
     const uchar *s1 = proteinPtr;
@@ -147,7 +160,6 @@ double FrameshiftXdropAligner::forward(const uchar *protein,
     }
 
     if (antidiagonal % rescaleStep == 0) {
-      assert(sumOfProbRatios > 0);
       double scale = 1 / sumOfProbRatios;
       size_t numOfRescales = antidiagonal / rescaleStep;
       if (rescales.size() < numOfRescales) rescales.resize(numOfRescales);
