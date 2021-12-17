@@ -23,8 +23,9 @@ Usage
 -----
 
 Please see the cookbook_.  **Warning:** this documentation may not
-apply to older versions of LAST!  You can see your version with
-``lastal --version``.
+apply to older versions of LAST!  You can see your version with::
+
+  lastal --version
 
 Install
 -------
@@ -38,8 +39,16 @@ into the downloaded directory and type::
 This assumes you have a C++ compiler.  On Linux, you might need to
 install a package called "g++".  On Mac, you might need to install
 command-line developer tools.  On Windows, you might need to install
-Cygwin.  (It's possible to specify a compiler like this:
-``make CXX=MyOtherCompiler``.)
+Cygwin.  You might also need to install something like "zlib-devel".
+
+For ARM CPUs, the default "make" seems to work in some cases but not
+others (sigh).  This seems to be good for ARM::
+
+  make CXXFLAGS="-mcpu=native -O3 -pthread"
+
+It's possible to specify a compiler like this: ``make CXX=MyOtherCompiler``.
+If you re-run ``make`` in different ways, it may be good to do ``make clean``
+first, to remove any previously-made files.
 
 The programs are in the ``bin`` directory.  For convenient usage, set
 up your computer to find them automatically.  Some possible ways:

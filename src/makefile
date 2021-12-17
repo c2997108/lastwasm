@@ -1,11 +1,11 @@
-CXXFLAGS = -msse4 -O3 -Wall -g -std=c++11 -pthread -DHAS_CXX_THREADS
+CXXFLAGS = -msse4 -O3 -Wall -g -std=c++11 -pthread
 # -fomit-frame-pointer ?
 
 # The number of symbol types that we can keep in sequences (e.g. 20
 # amino acids, plus ambiguous ones, in upper & lower case, plus one
 # delimiter):
 ALPHABET_CAPACITY = 66
-CPPF = -DALPHABET_CAPACITY=$(ALPHABET_CAPACITY) $(CPPFLAGS)
+CPPF = -DALPHABET_CAPACITY=$(ALPHABET_CAPACITY) -DHAS_CXX_THREADS $(CPPFLAGS)
 
 CFLAGS = -Wall -O2
 

@@ -159,10 +159,10 @@ Options ``-a`` and ``-b`` can read annotations in these formats:
 * AGP_, gap.txt: Unsequenced gaps are shown, but only if the gap
   covers at least one whole pixel.
 
-You can use these options multiple times, e.g. ``-a stuff.bed -a
-more.bed -a rmsk.txt``.  Annotations look good only if reasonably
-sparse, e.g. you can't sensibly view 20000 gene annotations in one
-small dotplot.
+You can use these options multiple times, e.g.
+``-a stuff.bed -a more.bed -a rmsk.txt``.  Annotations look good only
+if reasonably sparse, e.g. you can't sensibly view 20000 gene
+annotations in one small dotplot.
 
 Choosing sequences
 ------------------

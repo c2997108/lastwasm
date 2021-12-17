@@ -1,4 +1,4 @@
-CXXFLAGS = -msse4 -O3 -std=c++11 -pthread -DHAS_CXX_THREADS
+CXXFLAGS = -msse4 -O3 -std=c++11 -pthread
 all:
 	@cd src && $(MAKE) CXXFLAGS="$(CXXFLAGS)"
 
