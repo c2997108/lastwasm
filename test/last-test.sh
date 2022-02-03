@@ -245,6 +245,8 @@ trap 'rm -f $db*' EXIT
     # tricky Forward-Backward bug that happened once
     lastdb $db alli.fa
     lastal -j7 -r5 -q5 -a15 -b3 $db huma.fa
+
+    maf-cut chr1:152413-158286 split1.maf
 } 2>&1 |
 grep -v version | diff -u last-test.out -
 

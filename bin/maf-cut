@@ -31,6 +31,9 @@ def alnEndFromSeqEnd(gappedSequence, seqEnd):
                 return i + 1
 
 def alignmentRange(cutBeg, cutEnd, sLineFields):
+    if sLineFields[4] == "-":
+        seqLen = int(sLineFields[5])
+        cutBeg, cutEnd = seqLen - cutEnd, seqLen - cutBeg
     beg = int(sLineFields[2])
     if beg >= cutEnd:
         return 0, 0
