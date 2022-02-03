@@ -32,7 +32,7 @@ public:
 	if (!p) throw std::bad_alloc();
 	end = static_cast<T *>(p) + newLen;
 	beg = end - numOfOldItemsToKeep;
-	memcpy(beg, buf, numOfOldItemsToKeep * sizeof(T));
+	if (buf) memcpy(beg, buf, numOfOldItemsToKeep * sizeof(T));
 	free(buf);
 	buf = static_cast<T *>(p);
       }
