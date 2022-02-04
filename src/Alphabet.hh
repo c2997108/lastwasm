@@ -11,6 +11,8 @@
 #ifndef ALPHABET_HH
 #define ALPHABET_HH
 
+#include <stddef.h>
+
 #include <string>
 #include <iosfwd>
 
@@ -35,6 +37,14 @@ struct Alphabet{
 
   // add counts of "proper" letters to "counts" (counting lowercase too)
   void count( const uchar* beg, const uchar* end, countT* counts ) const;
+
+  size_t countNormalLetters(const uchar *beg, const uchar *end) const {
+    size_t c = 0;
+    for (const uchar *i = beg; i < end; ++i) {
+      c += (numbersToUppercase[*i] < size);
+    }
+    return c;
+  }
 
   // translate (encode) a sequence of letters to numbers, in place
   void tr( uchar* beg, uchar* end, bool isKeepLowercase=true ) const;

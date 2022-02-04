@@ -43,10 +43,13 @@ static void warn( const char* programName, const char* s ){
 
 using namespace cbrc;
 
+typedef unsigned long long countT;
+
 struct LastAligner {  // data that changes between queries
   Aligners engines;
   std::vector<int> qualityPssm;
   std::vector<AlignmentText> textAlns;
+  countT numOfNormalLetters;
 };
 
 struct SubstitutionMatrices {
@@ -69,8 +72,6 @@ struct SubstitutionMatrices {
 };
 
 namespace {
-  typedef unsigned long long countT;
-
   LastalArguments args;
   Alphabet alph;
   Alphabet queryAlph;  // for translated alignment
@@ -1109,6 +1110,12 @@ void translateAndScan(LastAligner &aligner, size_t finalCullingLimit,
 
 static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
 			  size_t queryNum, bool isFirstVolume) {
+  if (isFirstVolume) {
+    aligner.numOfNormalLetters +=
+      queryAlph.countNormalLetters(query.seqReader() + query.seqBeg(queryNum),
+				   query.seqReader() + query.seqEnd(queryNum));
+  }
+
   if (args.strand == 2 && !isFirstVolume)
     query.reverseComplementOneSequence(queryNum, queryAlph.complement);
 
@@ -1442,7 +1449,12 @@ void lastal( int argc, char** argv ){
     scanAllVolumes( volumes, out );
   }
 
-  out << "# Query sequences=" << sequenceCount << "\n";
+  countT numOfNormalLetters = 0;
+  for (size_t i = 0; i < aligners.size(); ++i) {
+    numOfNormalLetters += aligners[i].numOfNormalLetters;
+  }
+  out << "# Query sequences=" << sequenceCount
+      << " normal letters=" << numOfNormalLetters << "\n";
 }
 
 int main( int argc, char** argv )
