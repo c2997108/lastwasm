@@ -738,11 +738,19 @@ def blastChunker(sLines, lineSize, alignmentColumns):
         ends = list(map(blastEndCoordinate, coords, strands, seqLens))
         yield chunkCols, chunkRows, begs, ends
 
+def blastDataFromMafFields(fields):
+    seqName, seqLen, strand, letterSize, beg, end, row = fields
+    maxPos = end
+    if strand == "-":
+        beg -= seqLen
+        maxPos = -beg
+    return seqName, seqLen, strand, maxPos, row
+
 def writeBlast(opts, maf, oldQueryName):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "Blast")
-    seqNameA, seqLenA, strandA, letterSizeA, begA, endA, rowA = fieldsA
-    seqNameB, seqLenB, strandB, letterSizeB, begB, endB, rowB = fieldsB
+    seqNameA, seqLenA, strandA, maxPosA, rowA = blastDataFromMafFields(fieldsA)
+    seqNameB, seqLenB, strandB, maxPosB, rowB = blastDataFromMafFields(fieldsB)
 
     if seqNameB != oldQueryName:
         print("Query= " + seqNameB)
@@ -781,9 +789,10 @@ def writeBlast(opts, maf, oldQueryName):
     print(" Strand = %s / %s" % (strandText(strandB), strandText(strandA)))
     print()
 
+    begWidth = len(str(max(maxPosA, maxPosB)))
+
     for chunk in blastChunker(sLines, opts.linesize, alignmentColumns):
         cols, rows, begs, ends = chunk
-        begWidth = maxlen(begs)
         matchSymbols = ''.join(map(pairwiseMatchSymbol, cols))
         print("Query: %-*s %s %s" % (begWidth, begs[1], rows[1], ends[1]))
         print("       %-*s %s"    % (begWidth, " ", matchSymbols))
@@ -797,7 +806,7 @@ def mafConvertToBlast(opts, lines):
         sLines = maf[1]
         oldQueryName = sLines[1][0]
 
-def blastDataFromMafFields(fields):
+def btabDataFromMafFields(fields):
     seqName, seqLen, strand, letterSize, beg, end, row = fields
     if strand == "+":
         beg += 1
@@ -843,8 +852,8 @@ def codonMatchCounts(geneticCode, letterSizeA, letterSizeB, rowA, rowB):
 def writeBlastTab(opts, geneticCode, maf):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "BlastTab")
-    seqNameA, letterSizeA, begA, endA, rowA = blastDataFromMafFields(fieldsA)
-    seqNameB, letterSizeB, begB, endB, rowB = blastDataFromMafFields(fieldsB)
+    seqNameA, letterSizeA, begA, endA, rowA = btabDataFromMafFields(fieldsA)
+    seqNameB, letterSizeB, begB, endB, rowB = btabDataFromMafFields(fieldsB)
     gapOpens = gapRunCount(rowA) + gapRunCount(rowB)
 
     if letterSizeA * letterSizeB < 1:
