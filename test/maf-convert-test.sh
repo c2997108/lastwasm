@@ -17,6 +17,8 @@ maf2=bs100.maf
     head -n999 $maf1 | $r blast
     head -n999 $maf1 | $r -l100 blast
     $r blast $maf2
+    $r -l120 blast frameshift-new.maf
+    tail -n8 frameshift-new.maf | maf-swap | $r blast
     $r blasttab $maf2
     $r blasttab frameshift-new.maf
     head -n999 $maf1 | $r chain

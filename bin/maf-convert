@@ -92,7 +92,10 @@ def symbolSize(symbol, letterSize):
 
 def insertSize(row, letterSize):
     """Get the length of sequence included in the row."""
-    return (len(row) - row.count("-")) * letterSize - 4 * row.count("/") - 2 * row.count("\\")
+    x = len(row) - row.count("-")
+    if letterSize:
+        return x * letterSize - 4 * row.count("/") - 2 * row.count("\\")
+    return x // 3  # assume it's divisible by 3
 
 def matchAndInsertSizes(alignmentColumns, letterSizes):
     """Get sizes of gapless blocks, and of the inserts between them."""
@@ -823,11 +826,13 @@ def writeBlast(opts, geneticCode, codon2triplet, maf, oldQueryName):
         (aaSeq, ntSeq) = (upA, upB) if letterSizeB else (upB, upA)
         sySeq = "".join(codonMatchSymbols(opts, geneticCode, aaSeq, ntSeq))
         txSeq = "".join(translatedSeq(codon2triplet, aaSeq, ntSeq))
+        lineSize = max(opts.linesize, 3)
     else:
         sySeq = "".join(" |"[x == y] for x, y in zip(upA, upB))
         matches = sySeq.count("|")
         gaps = upA.count("-") + upB.count("-")
         alnSize = len(sySeq)
+        lineSize = opts.linesize
 
     matchPercent = 100 * matches // alnSize  # round down, like BLAST
     identLine = " Identities = %s/%s (%s%%)" % (matches, alnSize, matchPercent)
@@ -842,16 +847,23 @@ def writeBlast(opts, geneticCode, codon2triplet, maf, oldQueryName):
     begWidth = len(str(max(maxPosA, maxPosB)))
     pad = " " * (begWidth + 7)
 
-    for i in range(0, len(sySeq), opts.linesize):
-        j = i + opts.linesize
+    numOfColumns = len(sySeq)
+    i = 0
+    while i < numOfColumns:
+        j = min(i + lineSize, numOfColumns)
+        rem = 0
+        if letterSizeA * letterSizeB < 1 and j < numOfColumns:
+            rem = (j - i - aaSeq.count("-", i, j)) % 3
+            j -= rem
         bA, lineA, eA, begA = blastLineData(letterSizeA, begA, rowA[i:j])
         bB, lineB, eB, begB = blastLineData(letterSizeB, begB, rowB[i:j])
         if letterSizeA == 0: print(pad, txSeq[i:j])
-        print("Query: %-*s" % (begWidth, bB), lineB, eB)
+        print("Query: %-*s" % (begWidth, bB), lineB + " " * rem, eB)
         print(pad, sySeq[i:j])
-        print("Sbjct: %-*s" % (begWidth, bA), lineA, eA)
+        print("Sbjct: %-*s" % (begWidth, bA), lineA + " " * rem, eA)
         if letterSizeB == 0: print(pad, txSeq[i:j])
         print()
+        i = j
 
 def mafConvertToBlast(opts, lines):
     geneticCode = standardGeneticCode()

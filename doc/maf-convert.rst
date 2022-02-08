@@ -72,6 +72,27 @@ Options
        Write CHARS characters per line.  This affects blast and html
        formats only.
 
+DNA-versus-protein blast output
+-------------------------------
+
+If the input has protein-versus-DNA alignments like this::
+
+  GluTrpThrAlaLeuIleAsnLeuLysAsnArg--AspLeuValIleLysAlaAlaAsp
+  GAATAGTCCGGTTGAAAAAATGTACAAAAACATAAGAGAACATTACAAAACTTGCAGTC
+
+then the blast-format output will look like this::
+
+  Glu***SerGly***LysAsnValGlnLysHis  GluAsnIleThrLysLeuAlaVal
+  GAATAGTCCGGTTGAAAAAATGTACAAAAACATAAGAGAACATTACAAAACTTGCAGTC
+  |||::::::         |||...:::...:::  :::   :::...|||   |||
+  GluTrpThrAlaLeuIleAsnLeuLysAsnArg--AspLeuValIleLysAlaAlaAsp
+
+The DNA's translation (assuming the standard genetic code) is shown
+above it.  ``|||`` indicates a match, ``:::`` a positive alignment
+score, and ``...`` an alignment score of 0.  ``:::`` and ``...`` are
+shown only for alignments preceded by a substitution score matrix of
+the sort in lastal's output header.
+
 Hints for sam/bam
 -----------------
 
