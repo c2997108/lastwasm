@@ -127,8 +127,8 @@ def matchAndInsertSizes(alignmentColumns, letterSizes):
 
 ##### Routines for reading MAF format: #####
 
-def updateEvalueParameters(opts, line):
-    for field in line.split():
+def updateEvalueParameters(opts, fields):
+    for field in fields:
         try:
             k, v = field.split("=")
             x = float(v)
@@ -149,6 +149,8 @@ def scoreAndEvalue(aLine):
     return score, evalue
 
 def mafInput(opts, lines):
+    opts.scoreMatrix = {}
+    matrixColumnNames = []
     aLine = ""
     sLines = []
     qLines = []
@@ -181,7 +183,14 @@ def mafInput(opts, lines):
             qLines = []
             pLines = []
         elif line[0] == "#":
-            updateEvalueParameters(opts, line)
+            fields = line.split()
+            updateEvalueParameters(opts, fields)
+            if len(fields) == 65 and all(len(i) == 3 for i in fields[1:]):
+                matrixColumnNames = [i.upper() for i in fields[1:]]
+            if len(fields) == 66 and len(fields[1]) == 1:
+                r = fields[1].upper()
+                for c, x in zip(matrixColumnNames, fields[2:]):
+                    opts.scoreMatrix[r, c] = int(x)
             if opts.isKeepComments:
                 print(line, end="")
     if sLines: yield aLine, sLines, qLines, pLines
@@ -695,6 +704,25 @@ def mafConvertToSam(opts, lines):
 
 ##### Routines for converting to BLAST-like format: #####
 
+def codonMatchSymbols(opts, geneticCode, aaSeq, ntSeq):
+    scoreSymbols = "   ", "...", ":::"
+    seqLen = len(aaSeq)
+    i = 0
+    while i < seqLen:
+        if aaSeq[i] == "-":
+            yield " "
+            i += 1
+        else:
+            j = i + 3
+            a = aminoAcidCodes.get(aaSeq[i:j], "X")
+            b = ntSeq[i:j]
+            if geneticCode.get(b, "X") == a:
+                yield "|||"
+            else:
+                score = opts.scoreMatrix.get((a, b), -1)
+                yield scoreSymbols[(score >= 0) + (score > 0)]
+            i = j
+
 def strandText(strand):
     if strand == "+":
         return "Plus"
@@ -776,12 +804,14 @@ def writeBlast(opts, geneticCode, maf, oldQueryName):
 
     print(scoreLine)
 
-    sySeq = "".join(" |"[x == y] for x, y in zip(upA, upB))
     if letterSizeA * letterSizeB < 1:
         c = codonMatchCounts(geneticCode, letterSizeA, letterSizeB, upA, upB)
         matches, mismatches, gaps, dangles = c
         alnSize = matches + mismatches + gaps
+        (aaSeq, ntSeq) = (upA, upB) if letterSizeB else (upB, upA)
+        sySeq = "".join(codonMatchSymbols(opts, geneticCode, aaSeq, ntSeq))
     else:
+        sySeq = "".join(" |"[x == y] for x, y in zip(upA, upB))
         matches = sySeq.count("|")
         gaps = upA.count("-") + upB.count("-")
         alnSize = len(sySeq)
