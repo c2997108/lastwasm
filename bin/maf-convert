@@ -744,13 +744,21 @@ def blastDataFromMafFields(fields):
     if strand == "-":
         beg -= seqLen
         maxPos = -beg
-    return seqName, seqLen, strand, maxPos, row
+    return seqName, seqLen, strand, letterSize, beg, maxPos, row
+
+def blastLineData(letterSize, beg, line):
+    end = beg + insertSize(line, letterSize)
+    begStr = str(beg + 1 if beg >= 0 else -beg)
+    endStr = str(end if end > 0 else 1 - end)
+    return begStr, line, endStr, end
 
 def writeBlast(opts, maf, oldQueryName):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "Blast")
-    seqNameA, seqLenA, strandA, maxPosA, rowA = blastDataFromMafFields(fieldsA)
-    seqNameB, seqLenB, strandB, maxPosB, rowB = blastDataFromMafFields(fieldsB)
+    dataA = blastDataFromMafFields(fieldsA)
+    dataB = blastDataFromMafFields(fieldsB)
+    seqNameA, seqLenA, strandA, letterSizeA, begA, maxPosA, rowA = dataA
+    seqNameB, seqLenB, strandB, letterSizeB, begB, maxPosB, rowB = dataB
 
     if seqNameB != oldQueryName:
         print("Query= " + seqNameB)
@@ -790,13 +798,16 @@ def writeBlast(opts, maf, oldQueryName):
     print()
 
     begWidth = len(str(max(maxPosA, maxPosB)))
+    pad = " " * (begWidth + 7)
 
-    for chunk in blastChunker(sLines, opts.linesize, alignmentColumns):
-        cols, rows, begs, ends = chunk
-        matchSymbols = ''.join(map(pairwiseMatchSymbol, cols))
-        print("Query: %-*s %s %s" % (begWidth, begs[1], rows[1], ends[1]))
-        print("       %-*s %s"    % (begWidth, " ", matchSymbols))
-        print("Sbjct: %-*s %s %s" % (begWidth, begs[0], rows[0], ends[0]))
+    for i in range(0, alnSize, opts.linesize):
+        j = i + opts.linesize
+        bA, lineA, eA, begA = blastLineData(letterSizeA, begA, rowA[i:j])
+        bB, lineB, eB, begB = blastLineData(letterSizeB, begB, rowB[i:j])
+        matchSymbols = ''.join(map(pairwiseMatchSymbol, alignmentColumns[i:j]))
+        print("Query: %-*s" % (begWidth, bB), lineB, eB)
+        print(pad, matchSymbols)
+        print("Sbjct: %-*s" % (begWidth, bA), lineA, eA)
         print()
 
 def mafConvertToBlast(opts, lines):
