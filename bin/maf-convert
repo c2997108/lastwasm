@@ -746,7 +746,7 @@ def blastLineData(letterSize, beg, line):
     endStr = str(end if end > 0 else 1 - end)
     return begStr, line, endStr, end
 
-def writeBlast(opts, maf, oldQueryName):
+def writeBlast(opts, geneticCode, maf, oldQueryName):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "Blast")
     dataA = blastDataFromMafFields(fieldsA)
@@ -777,11 +777,17 @@ def writeBlast(opts, maf, oldQueryName):
     print(scoreLine)
 
     sySeq = "".join(" |"[x == y] for x, y in zip(upA, upB))
-    matches = sySeq.count("|")
-    alnSize = len(sySeq)
+    if letterSizeA * letterSizeB < 1:
+        c = codonMatchCounts(geneticCode, letterSizeA, letterSizeB, upA, upB)
+        matches, mismatches, gaps, dangles = c
+        alnSize = matches + mismatches + gaps
+    else:
+        matches = sySeq.count("|")
+        gaps = upA.count("-") + upB.count("-")
+        alnSize = len(sySeq)
+
     matchPercent = 100 * matches // alnSize  # round down, like BLAST
     identLine = " Identities = %s/%s (%s%%)" % (matches, alnSize, matchPercent)
-    gaps = rowA.count("-") + rowB.count("-")
     if gaps:
         gapPercent = 100 * gaps // alnSize  # round down, like BLAST
         identLine += ", Gaps = %s/%s (%s%%)" % (gaps, alnSize, gapPercent)
@@ -793,7 +799,7 @@ def writeBlast(opts, maf, oldQueryName):
     begWidth = len(str(max(maxPosA, maxPosB)))
     pad = " " * (begWidth + 7)
 
-    for i in range(0, alnSize, opts.linesize):
+    for i in range(0, len(sySeq), opts.linesize):
         j = i + opts.linesize
         bA, lineA, eA, begA = blastLineData(letterSizeA, begA, rowA[i:j])
         bB, lineB, eB, begB = blastLineData(letterSizeB, begB, rowB[i:j])
@@ -803,9 +809,10 @@ def writeBlast(opts, maf, oldQueryName):
         print()
 
 def mafConvertToBlast(opts, lines):
+    geneticCode = standardGeneticCode()
     oldQueryName = ""
     for maf in mafInput(opts, lines):
-        writeBlast(opts, maf, oldQueryName)
+        writeBlast(opts, geneticCode, maf, oldQueryName)
         sLines = maf[1]
         oldQueryName = sLines[1][0]
 
@@ -819,8 +826,6 @@ def btabDataFromMafFields(fields):
     return seqName, letterSize, str(beg), str(end), row.upper()
 
 def codonMatchCounts(geneticCode, letterSizeA, letterSizeB, rowA, rowB):
-    letterSpanA = 3 - letterSizeA * 2
-    letterSpanB = 3 - letterSizeB * 2
     codeA = geneticCode if letterSizeA else aminoAcidCodes
     codeB = geneticCode if letterSizeB else aminoAcidCodes
     loopEnd = len(rowA)
