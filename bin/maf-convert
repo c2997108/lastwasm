@@ -695,12 +695,6 @@ def mafConvertToSam(opts, lines):
 
 ##### Routines for converting to BLAST-like format: #####
 
-def pairwiseMatchSymbol(alignmentColumn):
-    if isMatch(alignmentColumn):
-        return "|"
-    else:
-        return " "
-
 def strandText(strand):
     if strand == "+":
         return "Plus"
@@ -744,7 +738,7 @@ def blastDataFromMafFields(fields):
     if strand == "-":
         beg -= seqLen
         maxPos = -beg
-    return seqName, seqLen, strand, letterSize, beg, maxPos, row
+    return seqName, seqLen, strand, letterSize, beg, maxPos, row, row.upper()
 
 def blastLineData(letterSize, beg, line):
     end = beg + insertSize(line, letterSize)
@@ -757,8 +751,8 @@ def writeBlast(opts, maf, oldQueryName):
     fieldsA, fieldsB = pairOrDie(sLines, "Blast")
     dataA = blastDataFromMafFields(fieldsA)
     dataB = blastDataFromMafFields(fieldsB)
-    seqNameA, seqLenA, strandA, letterSizeA, begA, maxPosA, rowA = dataA
-    seqNameB, seqLenB, strandB, letterSizeB, begB, maxPosB, rowB = dataB
+    seqNameA, seqLenA, strandA, letterSizeA, begA, maxPosA, rowA, upA = dataA
+    seqNameB, seqLenB, strandB, letterSizeB, begB, maxPosB, rowB, upB = dataB
 
     if seqNameB != oldQueryName:
         print("Query= " + seqNameB)
@@ -782,10 +776,9 @@ def writeBlast(opts, maf, oldQueryName):
 
     print(scoreLine)
 
-    alignmentColumns = list(zip(rowA, rowB))
-
-    alnSize = len(alignmentColumns)
-    matches = sum(x.upper() == y.upper() for x, y in alignmentColumns)
+    sySeq = "".join(" |"[x == y] for x, y in zip(upA, upB))
+    matches = sySeq.count("|")
+    alnSize = len(sySeq)
     matchPercent = 100 * matches // alnSize  # round down, like BLAST
     identLine = " Identities = %s/%s (%s%%)" % (matches, alnSize, matchPercent)
     gaps = rowA.count("-") + rowB.count("-")
@@ -804,9 +797,8 @@ def writeBlast(opts, maf, oldQueryName):
         j = i + opts.linesize
         bA, lineA, eA, begA = blastLineData(letterSizeA, begA, rowA[i:j])
         bB, lineB, eB, begB = blastLineData(letterSizeB, begB, rowB[i:j])
-        matchSymbols = ''.join(map(pairwiseMatchSymbol, alignmentColumns[i:j]))
         print("Query: %-*s" % (begWidth, bB), lineB, eB)
-        print(pad, matchSymbols)
+        print(pad, sySeq[i:j])
         print("Sbjct: %-*s" % (begWidth, bA), lineA, eA)
         print()
 
