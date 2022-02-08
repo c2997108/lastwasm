@@ -723,6 +723,18 @@ def codonMatchSymbols(opts, geneticCode, aaSeq, ntSeq):
                 yield scoreSymbols[(score >= 0) + (score > 0)]
             i = j
 
+def translatedSeq(codon2triplet, aaSeq, ntSeq):
+    seqLen = len(aaSeq)
+    i = 0
+    while i < seqLen:
+        if aaSeq[i] == "-":
+            yield " "
+            i += 1
+        else:
+            j = i + 3
+            yield codon2triplet.get(ntSeq[i:j], "   ")
+            i = j
+
 def strandText(strand):
     if strand == "+":
         return "Plus"
@@ -774,7 +786,7 @@ def blastLineData(letterSize, beg, line):
     endStr = str(end if end > 0 else 1 - end)
     return begStr, line, endStr, end
 
-def writeBlast(opts, geneticCode, maf, oldQueryName):
+def writeBlast(opts, geneticCode, codon2triplet, maf, oldQueryName):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "Blast")
     dataA = blastDataFromMafFields(fieldsA)
@@ -810,6 +822,7 @@ def writeBlast(opts, geneticCode, maf, oldQueryName):
         alnSize = matches + mismatches + gaps
         (aaSeq, ntSeq) = (upA, upB) if letterSizeB else (upB, upA)
         sySeq = "".join(codonMatchSymbols(opts, geneticCode, aaSeq, ntSeq))
+        txSeq = "".join(translatedSeq(codon2triplet, aaSeq, ntSeq))
     else:
         sySeq = "".join(" |"[x == y] for x, y in zip(upA, upB))
         matches = sySeq.count("|")
@@ -833,16 +846,21 @@ def writeBlast(opts, geneticCode, maf, oldQueryName):
         j = i + opts.linesize
         bA, lineA, eA, begA = blastLineData(letterSizeA, begA, rowA[i:j])
         bB, lineB, eB, begB = blastLineData(letterSizeB, begB, rowB[i:j])
+        if letterSizeA == 0: print(pad, txSeq[i:j])
         print("Query: %-*s" % (begWidth, bB), lineB, eB)
         print(pad, sySeq[i:j])
         print("Sbjct: %-*s" % (begWidth, bA), lineA, eA)
+        if letterSizeB == 0: print(pad, txSeq[i:j])
         print()
 
 def mafConvertToBlast(opts, lines):
     geneticCode = standardGeneticCode()
+    aa2triplet = dict((j, i.title()) for i, j in aminoAcidCodes.items())
+    codon2triplet = dict((i, aa2triplet[j]) for i, j in geneticCode.items())
+
     oldQueryName = ""
     for maf in mafInput(opts, lines):
-        writeBlast(opts, geneticCode, maf, oldQueryName)
+        writeBlast(opts, geneticCode, codon2triplet, maf, oldQueryName)
         sLines = maf[1]
         oldQueryName = sLines[1][0]
 
