@@ -731,12 +731,19 @@ def translatedSeq(codon2triplet, aaSeq, ntSeq):
     i = 0
     while i < seqLen:
         if aaSeq[i] == "-":
-            yield " "
-            i += 1
+            j = i + 1
+            while j < seqLen and aaSeq[j] == "-":
+                j += 1
+            if (j - i) % 3 == 0:
+                for b in range(i, j, 3):
+                    e = b + 3
+                    yield codon2triplet.get(ntSeq[b:e], "   ")
+            else:
+                yield " " * (j - i)
         else:
             j = i + 3
             yield codon2triplet.get(ntSeq[i:j], "   ")
-            i = j
+        i = j
 
 def strandText(strand):
     if strand == "+":

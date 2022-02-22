@@ -8373,7 +8373,7 @@ Query: 3099 TCCACCAAAAAGCTATTAGAAATGATAAATGAATTCAATAAAATTTCAGAATTCAAAATCAATGTACA
             |||||||||||||||||||||:::||||||||||||   |||::::::::::::|||||||||:::|||:::||||||    |||||||||::::::...:::|||   :::|||    
 Sbjct: 713  SerThrLysLysLeuLeuGluLeuIleAsnGluPheSerLysValAlaGlyTyrLysIleAsnIleGlnLysSerValAla-PheLeuTyrAlaAsnSerGluLeuSerGluLysGlu-  751
 
-            IleLysLysSerIleSerPheThrValAlaSerLysLysThr                              ***TyrLeuGlyValHisLeuThrLysGluValLysAspLeuTyrSer
+            IleLysLysSerIleSerPheThrValAlaSerLysLysThrTyrPhePheCysLeuGlyAlaHisLeuGly***TyrLeuGlyValHisLeuThrLysGluValLysAspLeuTyrSer
 Query: 2986 ATAAAGAAATCAATCTCATTCACAGTAGCATCAAaaaaaacgtattttttttGTTTAGGAGCACATTTAGGATAGTACttaggagtacatttaACCAAGGAGGTGAAAGATCTGTATTCT 2867
             |||||||||:::|||:::||||||:::|||:::||||||:::                                 |||||||||::::::|||||||||||||||||||||||||||...
 Sbjct: 752  IleLyslysthrilepropheThrIleAlaThrLysLysIle------------------------------LysTyrLeuGlyIleAsnLeuThrLysGluValLysAspLeuTyrXaa 781
