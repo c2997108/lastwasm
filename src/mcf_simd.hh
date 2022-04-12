@@ -18,6 +18,7 @@ namespace mcf {
 
 typedef __m256i SimdInt;
 typedef __m256i SimdUint1;
+typedef __m256d SimdDbl;
 
 const int simdBytes = 32;
 
@@ -27,6 +28,10 @@ static inline SimdInt simdZero() {
 
 static inline SimdInt simdZero1() {
   return _mm256_setzero_si256();
+}
+
+static inline SimdDbl simdZeroDbl() {
+  return _mm256_setzero_pd();
 }
 
 static inline SimdInt simdOnes1() {
@@ -41,12 +46,20 @@ static inline SimdInt simdLoad1(const void *p) {
   return _mm256_loadu_si256((const SimdInt *)p);
 }
 
+static inline SimdDbl simdLoadDbl(const double *p) {
+  return _mm256_loadu_pd(p);
+}
+
 static inline void simdStore(void *p, SimdInt x) {
   _mm256_storeu_si256((SimdInt *)p, x);
 }
 
 static inline void simdStore1(void *p, SimdInt x) {
   _mm256_storeu_si256((SimdInt *)p, x);
+}
+
+static inline void simdStoreDbl(double *p, SimdDbl x) {
+  _mm256_storeu_pd(p, x);
 }
 
 static inline SimdInt simdOr1(SimdInt x, SimdInt y) {
@@ -58,6 +71,7 @@ static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
 }
 
 const int simdLen = 8;
+const int simdDblLen = 4;
 
 static inline SimdInt simdSet(int i7, int i6, int i5, int i4,
 			      int i3, int i2, int i1, int i0) {
@@ -78,12 +92,20 @@ static inline SimdInt simdSet1(char jF, char jE, char jD, char jC,
 			 i7, i6, i5, i4, i3, i2, i1, i0);
 }
 
+static inline SimdDbl simdSetDbl(double i3, double i2, double i1, double i0) {
+  return _mm256_set_pd(i3, i2, i1, i0);
+}
+
 static inline SimdInt simdFill(int x) {
   return _mm256_set1_epi32(x);
 }
 
 static inline SimdInt simdFill1(char x) {
   return _mm256_set1_epi8(x);
+}
+
+static inline SimdDbl simdFillDbl(double x) {
+  return _mm256_set1_pd(x);
 }
 
 static inline SimdInt simdGt(SimdInt x, SimdInt y) {
@@ -106,12 +128,20 @@ static inline SimdInt simdAdds1(SimdInt x, SimdInt y) {
   return _mm256_adds_epu8(x, y);
 }
 
+static inline SimdDbl simdAddDbl(SimdDbl x, SimdDbl y) {
+  return _mm256_add_pd(x, y);
+}
+
 static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return _mm256_sub_epi32(x, y);
 }
 
 static inline SimdInt simdSub1(SimdInt x, SimdInt y) {
   return _mm256_sub_epi8(x, y);
+}
+
+static inline SimdDbl simdMulDbl(SimdDbl x, SimdDbl y) {
+  return _mm256_mul_pd(x, y);
 }
 
 static inline SimdInt simdQuadruple1(SimdInt x) {
@@ -142,6 +172,12 @@ static inline int simdHorizontalMin1(SimdInt x) {
   return _mm_extract_epi16(z, 0);
 }
 
+static inline double simdHorizontalAddDbl(SimdDbl x) {
+  __m128d z = _mm256_castpd256_pd128(x);
+  z = _mm_add_pd(z, _mm256_extractf128_pd(x, 1));
+  return _mm_cvtsd_f64(_mm_hadd_pd(z, z));
+}
+
 static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
   return _mm256_shuffle_epi8(items, choices);
 }
@@ -150,6 +186,7 @@ static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
 
 typedef __m128i SimdInt;
 typedef __m128i SimdUint1;
+typedef __m128d SimdDbl;
 
 const int simdBytes = 16;
 
@@ -159,6 +196,10 @@ static inline SimdInt simdZero() {
 
 static inline SimdInt simdZero1() {
   return _mm_setzero_si128();
+}
+
+static inline SimdDbl simdZeroDbl() {
+  return _mm_setzero_pd();
 }
 
 static inline SimdInt simdOnes1() {
@@ -173,12 +214,20 @@ static inline SimdInt simdLoad1(const void *p) {
   return _mm_loadu_si128((const SimdInt *)p);
 }
 
+static inline SimdDbl simdLoadDbl(const double *p) {
+  return _mm_loadu_pd(p);
+}
+
 static inline void simdStore(void *p, SimdInt x) {
   _mm_storeu_si128((SimdInt *)p, x);
 }
 
 static inline void simdStore1(void *p, SimdInt x) {
   _mm_storeu_si128((SimdInt *)p, x);
+}
+
+static inline void simdStoreDbl(double *p, SimdDbl x) {
+  _mm_storeu_pd(p, x);
 }
 
 static inline SimdInt simdOr1(SimdInt x, SimdInt y) {
@@ -190,6 +239,7 @@ static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdInt mask) {
 }
 
 const int simdLen = 4;
+const int simdDblLen = 2;
 
 static inline SimdInt simdSet(int i3, int i2, int i1, int i0) {
   return _mm_set_epi32(i3, i2, i1, i0);
@@ -203,12 +253,20 @@ static inline SimdInt simdSet1(char iF, char iE, char iD, char iC,
 		      i7, i6, i5, i4, i3, i2, i1, i0);
 }
 
+static inline SimdDbl simdSetDbl(double i1, double i0) {
+  return _mm_set_pd(i1, i0);
+}
+
 static inline SimdInt simdFill(int x) {
   return _mm_set1_epi32(x);
 }
 
 static inline SimdInt simdFill1(char x) {
   return _mm_set1_epi8(x);
+}
+
+static inline SimdDbl simdFillDbl(double x) {
+  return _mm_set1_pd(x);
 }
 
 static inline SimdInt simdGt(SimdInt x, SimdInt y) {
@@ -231,12 +289,20 @@ static inline SimdInt simdAdds1(SimdInt x, SimdInt y) {
   return _mm_adds_epu8(x, y);
 }
 
+static inline SimdDbl simdAddDbl(SimdDbl x, SimdDbl y) {
+  return _mm_add_pd(x, y);
+}
+
 static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return _mm_sub_epi32(x, y);
 }
 
 static inline SimdInt simdSub1(SimdInt x, SimdInt y) {
   return _mm_sub_epi8(x, y);
+}
+
+static inline SimdDbl simdMulDbl(SimdDbl x, SimdDbl y) {
+  return _mm_mul_pd(x, y);
 }
 
 static inline SimdInt simdQuadruple1(SimdInt x) {
@@ -263,6 +329,10 @@ static inline int simdHorizontalMin1(SimdInt x) {
   return _mm_extract_epi16(x, 0);
 }
 
+static inline double simdHorizontalAddDbl(SimdDbl x) {
+  return _mm_cvtsd_f64(_mm_hadd_pd(x, x));
+}
+
 static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
   return _mm_shuffle_epi8(items, choices);  // SSSE3
 }
@@ -272,6 +342,7 @@ static inline SimdInt simdChoose1(SimdInt items, SimdInt choices) {
 typedef int32x4_t SimdInt;
 typedef uint32x4_t SimdUint;
 typedef uint8x16_t SimdUint1;
+typedef float64x2_t SimdDbl;
 
 const int simdBytes = 16;
 
@@ -281,6 +352,10 @@ static inline SimdInt simdZero() {
 
 static inline SimdUint1 simdZero1() {
   return vdupq_n_u8(0);
+}
+
+static inline SimdDbl simdZeroDbl() {
+  return vdupq_n_f64(0);
 }
 
 static inline SimdUint1 simdOnes1() {
@@ -295,12 +370,20 @@ static inline SimdUint1 simdLoad1(const unsigned char *p) {
   return vld1q_u8(p);
 }
 
+static inline SimdDbl simdLoadDbl(const double *p) {
+  return vld1q_f64(p);
+}
+
 static inline void simdStore(int *p, SimdInt x) {
   vst1q_s32(p, x);
 }
 
 static inline void simdStore1(unsigned char *p, SimdUint1 x) {
   vst1q_u8(p, x);
+}
+
+static inline void simdStoreDbl(double *p, SimdDbl x) {
+  vst1q_f64(p, x);
 }
 
 static inline SimdUint1 simdOr1(SimdUint1 x, SimdUint1 y) {
@@ -312,6 +395,7 @@ static inline SimdInt simdBlend(SimdInt x, SimdInt y, SimdUint mask) {
 }
 
 const int simdLen = 4;
+const int simdDblLen = 2;
 
 static inline SimdInt simdSet(unsigned i3, unsigned i2,
                               unsigned i1, unsigned i0) {
@@ -340,12 +424,20 @@ static inline SimdUint1 simdSet1(unsigned char iF, unsigned char iE,
   return vcombine_u8(vcreate_u8(lo), vcreate_u8(hi));
 }
 
+static inline SimdDbl simdSetDbl(double i1, double i0) {
+  return vcombine_f64(vdup_n_f64(i0), vdup_n_f64(i1));
+}
+
 static inline SimdInt simdFill(int x) {
   return vdupq_n_s32(x);
 }
 
 static inline SimdUint1 simdFill1(unsigned char x) {
   return vdupq_n_u8(x);
+}
+
+static inline SimdDbl simdFillDbl(double x) {
+  return vdupq_n_f64(x);
 }
 
 static inline SimdUint simdGt(SimdInt x, SimdInt y) {
@@ -368,12 +460,20 @@ static inline SimdUint1 simdAdds1(SimdUint1 x, SimdUint1 y) {
   return vqaddq_u8(x, y);
 }
 
+static inline SimdDbl simdAddDbl(SimdDbl x, SimdDbl y) {
+  return vaddq_f64(x, y);
+}
+
 static inline SimdInt simdSub(SimdInt x, SimdInt y) {
   return vsubq_s32(x, y);
 }
 
 static inline SimdUint1 simdSub1(SimdUint1 x, SimdUint1 y) {
   return vsubq_u8(x, y);
+}
+
+static inline SimdDbl simdMulDbl(SimdDbl x, SimdDbl y) {
+  return vmulq_f64(x, y);
 }
 
 static inline SimdUint1 simdQuadruple1(SimdUint1 x) {
@@ -396,6 +496,10 @@ static inline int simdHorizontalMin1(SimdUint1 x) {
   return vminvq_u8(x);
 }
 
+static inline double simdHorizontalAddDbl(SimdDbl x) {
+  return vaddvq_f64(x);
+}
+
 static inline SimdUint1 simdChoose1(SimdUint1 items, SimdUint1 choices) {
   return vqtbl1q_u8(items, choices);
 }
@@ -403,19 +507,29 @@ static inline SimdUint1 simdChoose1(SimdUint1 items, SimdUint1 choices) {
 #else
 
 typedef int SimdInt;
+typedef double SimdDbl;
 const int simdBytes = 1;
 const int simdLen = 1;
+const int simdDblLen = 1;
 static inline int simdZero() { return 0; }
+static inline double simdZeroDbl() { return 0; }
 static inline int simdSet(int x) { return x; }
+static inline double simdSetDbl(double x) { return x; }
 static inline int simdFill(int x) { return x; }
 static inline int simdLoad(const int *p) { return *p; }
+static inline double simdLoadDbl(const double *p) { return *p; }
 static inline void simdStore(int *p, int x) { *p = x; }
+static inline void simdStoreDbl(double *p, double x) { *p = x; }
+static inline double simdFillDbl(double x) { return x; }
 static inline int simdGt(int x, int y) { return x > y; }
 static inline int simdAdd(int x, int y) { return x + y; }
+static inline double simdAddDbl(double x, double y) { return x + y; }
 static inline int simdSub(int x, int y) { return x - y; }
+static inline double simdMulDbl(double x, double y) { return x * y; }
 static inline int simdMax(int x, int y) { return x > y ? x : y; }
 static inline int simdBlend(int x, int y, int mask) { return mask ? y : x; }
 static inline int simdHorizontalMax(int a) { return a; }
+static inline double simdHorizontalAddDbl(double x) { return x; }
 
 #endif
 
