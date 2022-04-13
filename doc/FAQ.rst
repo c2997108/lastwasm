@@ -1,6 +1,26 @@
 LAST FAQ
 ========
 
+:Q: Why does LAST sometimes miss strong alignments?
+
+:A: This is because it avoids getting huge numbers of repetitive
+    alignments, by just finding a few strongest matches for each part
+    of each query sequence.  To find more repetitive matches, increase
+    the ``lastal -m`` parameter, e.g. ``-m100``.
+
+..
+
+:Q: Why does LAST sometimes show two separate alignments, and
+    sometimes one merged alignment, between the same sequences?
+
+:A: This is because LAST forbids highly dissimilar regions inside
+    alignments, but the maximum-allowed dissimilarity depends on the
+    alignment score / E-value threshold (which depends on the database
+    size).  For more details, please see the discussion of "X-drop" in
+    `Parameters for accurate genome alignment`_.
+
+..
+
 :Q: Does it matter which sequence is used as the "reference" (given to
     lastdb) and which is used as the "query" (given to lastal)?
 
@@ -43,15 +63,6 @@ LAST FAQ
 
 ..
 
-:Q: I'd like to compare my queries to a database of known proteins.
-    Where can I get a database of known proteins?
-
-:A: You could try UniRef90 or UniRef50
-    (http://www.uniprot.org/help/uniref), which have reduced
-    redundancy.
-
-..
-
 :Q: How does LAST get the sequence names?  How can I get nice, short,
     unique names?
 
@@ -88,3 +99,5 @@ RAQ (Rarely Asked Questions)
     command with::
 
       numactl --interleave=all
+
+.. _Parameters for accurate genome alignment: https://doi.org/10.1186/1471-2105-11-80
