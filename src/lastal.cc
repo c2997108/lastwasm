@@ -419,15 +419,15 @@ void readInnerPrj( const std::string& fileName,
 }
 
 // Write match counts for each query sequence
-void writeCounts( std::ostream& out ){
+void writeCounts() {
   for( indexT i = 0; i < matchCounts.size(); ++i ){
-    out << query.seqName(i) << '\n';
+    std::cout << query.seqName(i) << '\n';
 
     for( size_t j = args.minHitDepth; j < matchCounts[i].size(); ++j ){
-      out << j << '\t' << matchCounts[i][j] << '\n';
+      std::cout << j << '\t' << matchCounts[i][j] << '\n';
     }
 
-    out << '\n';  // blank line afterwards
+    std::cout << '\n';  // blank line afterwards
   }
 }
 
@@ -1239,7 +1239,7 @@ void readVolume( unsigned volumeNumber ){
 }
 
 // Scan one batch of query sequences against all database volumes
-void scanAllVolumes(std::ostream& out) {
+void scanAllVolumes() {
   if( args.outputType == 0 ){
     matchCounts.clear();
     matchCounts.resize( query.finishedSequences() );
@@ -1250,7 +1250,7 @@ void scanAllVolumes(std::ostream& out) {
     scanOneVolume(i);
   }
 
-  if( args.outputType == 0 ) writeCounts( out );
+  if (args.outputType == 0) writeCounts();
   printAndClearAll();
 }
 
@@ -1408,9 +1408,7 @@ void lastal( int argc, char** argv ){
     numOfVolumes = 1;
   }
 
-  std::ostream& out = std::cout;
-  writeHeader( refSequences, refLetters, out );
-  out.precision(3);  // print non-integers more compactly
+  writeHeader(refSequences, refLetters, std::cout);
   countT queryBatchCount = 0;
   countT sequenceCount = 0;
   indexT maxSeqLen = args.batchSize;
@@ -1431,24 +1429,24 @@ void lastal( int argc, char** argv ){
 	++sequenceCount;
       } else {
         // this enables downstream parsers to read one batch at a time:
-        out << "# batch " << queryBatchCount++ << "\n";
-	scanAllVolumes(out);
+	std::cout << "# batch " << queryBatchCount++ << "\n";
+	scanAllVolumes();
 	query.reinitForAppending();
       }
     }
   }
 
   if( query.finishedSequences() > 0 ){
-    out << "# batch " << queryBatchCount << "\n";
-    scanAllVolumes(out);
+    std::cout << "# batch " << queryBatchCount << "\n";
+    scanAllVolumes();
   }
 
   countT numOfNormalLetters = 0;
   for (size_t i = 0; i < aligners.size(); ++i) {
     numOfNormalLetters += aligners[i].numOfNormalLetters;
   }
-  out << "# Query sequences=" << sequenceCount
-      << " normal letters=" << numOfNormalLetters << "\n";
+  std::cout << "# Query sequences=" << sequenceCount
+	    << " normal letters=" << numOfNormalLetters << "\n";
 }
 
 int main( int argc, char** argv )
