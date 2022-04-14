@@ -1248,7 +1248,6 @@ void scanAllVolumes( unsigned volumes, std::ostream& out ){
     matchCounts.resize( query.finishedSequences() );
   }
 
-  if( volumes+1 == 0 ) volumes = 1;
   bool isMultiVolume = (volumes > 1);
 
   for( unsigned i = 0; i < volumes; ++i ){
@@ -1311,7 +1310,7 @@ void lastal( int argc, char** argv ){
   args.fromArgs( argc, argv );
   args.resetCumulativeOptions();  // because we will do fromArgs again
 
-  unsigned volumes = unsigned(-1);
+  unsigned numOfVolumes = unsigned(-1);
   size_t refMinimizerWindow = 1;  // assume this value, if not specified
   size_t minSeedLimit = 0;
   countT refSequences = -1;
@@ -1319,7 +1318,7 @@ void lastal( int argc, char** argv ){
   countT refMaxSeqLen = -1;
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
-  readOuterPrj( args.lastdbName + ".prj", volumes,
+  readOuterPrj( args.lastdbName + ".prj", numOfVolumes,
 		refMinimizerWindow, minSeedLimit,
 		isKeepRefLowercase, refTantanSetting,
 		refSequences, refLetters, refMaxSeqLen );
@@ -1354,7 +1353,7 @@ void lastal( int argc, char** argv ){
 
   aligners.resize( decideNumberOfThreads( args.numOfThreads,
 					  args.programName, args.verbosity ) );
-  bool isMultiVolume = (volumes+1 > 0 && volumes > 1);
+  bool isMultiVolume = (numOfVolumes + 1 > 0 && numOfVolumes > 1);
   args.setDefaultsFromAlphabet( isDna, isProtein,
 				isKeepRefLowercase, refTantanSetting,
                                 isCaseSensitiveSeeds, isMultiVolume,
@@ -1412,7 +1411,10 @@ void lastal( int argc, char** argv ){
 
   queryAlph.tr(query.seqWriter(), query.seqWriter() + query.seqBeg(0));
 
-  if( volumes+1 == 0 ) readIndex( args.lastdbName, refSequences );
+  if (numOfVolumes + 1 == 0) {
+    readIndex(args.lastdbName, refSequences);
+    numOfVolumes = 1;
+  }
 
   std::ostream& out = std::cout;
   writeHeader( refSequences, refLetters, out );
@@ -1438,7 +1440,7 @@ void lastal( int argc, char** argv ){
       } else {
         // this enables downstream parsers to read one batch at a time:
         out << "# batch " << queryBatchCount++ << "\n";
-	scanAllVolumes( volumes, out );
+	scanAllVolumes(numOfVolumes, out);
 	query.reinitForAppending();
       }
     }
@@ -1446,7 +1448,7 @@ void lastal( int argc, char** argv ){
 
   if( query.finishedSequences() > 0 ){
     out << "# batch " << queryBatchCount << "\n";
-    scanAllVolumes( volumes, out );
+    scanAllVolumes(numOfVolumes, out);
   }
 
   countT numOfNormalLetters = 0;
