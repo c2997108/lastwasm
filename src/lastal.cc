@@ -1242,17 +1242,15 @@ void readVolume( unsigned volumeNumber ){
 }
 
 // Scan one batch of query sequences against all database volumes
-void scanAllVolumes( unsigned volumes, std::ostream& out ){
+void scanAllVolumes(std::ostream& out) {
   if( args.outputType == 0 ){
     matchCounts.clear();
     matchCounts.resize( query.finishedSequences() );
   }
 
-  bool isMultiVolume = (volumes > 1);
-
-  for( unsigned i = 0; i < volumes; ++i ){
-    if( text.unfinishedSize() == 0 || isMultiVolume ) readVolume( i );
-    scanOneVolume( i, volumes );
+  for (unsigned i = 0; i < numOfVolumes; ++i) {
+    if (text.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
+    scanOneVolume(i, numOfVolumes);
     if( !isCollatedAlignments() ) printAndClearAll();
   }
 
@@ -1438,7 +1436,7 @@ void lastal( int argc, char** argv ){
       } else {
         // this enables downstream parsers to read one batch at a time:
         out << "# batch " << queryBatchCount++ << "\n";
-	scanAllVolumes(numOfVolumes, out);
+	scanAllVolumes(out);
 	query.reinitForAppending();
       }
     }
@@ -1446,7 +1444,7 @@ void lastal( int argc, char** argv ){
 
   if( query.finishedSequences() > 0 ){
     out << "# batch " << queryBatchCount << "\n";
-    scanAllVolumes(numOfVolumes, out);
+    scanAllVolumes(out);
   }
 
   countT numOfNormalLetters = 0;
