@@ -544,7 +544,7 @@ struct Dispatcher{
 
 static bool isCollatedAlignments() {
   return args.outputFormat == 'b' || args.outputFormat == 'B' ||
-    args.cullingLimitForFinalAlignments + 1;
+    args.cullingLimitForFinalAlignments + 1 || numOfVolumes > 1;
 }
 
 static void printAndDelete(char *text) {
@@ -1041,7 +1041,7 @@ void scan(LastAligner& aligner, size_t queryNum,
     }
   }
 
-  if( !isCollatedAlignments() ) gappedAlns.sort();  // sort by score
+  if (!isCollatedAlignments()) gappedAlns.sort();  // sort by score
   alignFinish(aligner, gappedAlns, queryNum, matrices, frameSize, dis3);
 }
 
@@ -1139,9 +1139,8 @@ static void alignSomeQueries(size_t chunkNum, unsigned volume) {
   bool isMultiVolume = (numOfVolumes > 1);
   bool isFirstVolume = (volume == 0);
   bool isFirstThread = (chunkNum == 0);
-  bool isSort = isCollatedAlignments();
-  bool isSortPerQuery = (isSort && !isMultiVolume);
-  bool isPrintPerQuery = (isFirstThread && !(isSort && isMultiVolume));
+  bool isSortPerQuery = (isCollatedAlignments() && !isMultiVolume);
+  bool isPrintPerQuery = (isFirstThread && !isMultiVolume);
   size_t finalCullingLimit = args.cullingLimitForFinalAlignments ?
     args.cullingLimitForFinalAlignments : isMultiVolume;
   for (size_t i = beg; i < end; ++i) {
@@ -1152,7 +1151,7 @@ static void alignSomeQueries(size_t chunkNum, unsigned volume) {
   }
   if (isMultiVolume && volume + 1 == numOfVolumes) {
     cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
-    if (isSort) sort(textAlns.begin(), textAlns.end());
+    sort(textAlns.begin(), textAlns.end());
     if (isFirstThread) printAndClear(textAlns);
   }
 }
@@ -1249,7 +1248,6 @@ void scanAllVolumes(std::ostream& out) {
   for (unsigned i = 0; i < numOfVolumes; ++i) {
     if (text.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
     scanOneVolume(i);
-    if( !isCollatedAlignments() ) printAndClearAll();
   }
 
   if( args.outputType == 0 ) writeCounts( out );
