@@ -93,6 +93,7 @@ namespace {
   sequenceFormat::Enum referenceFormat = sequenceFormat::fasta;
   int minScoreGapless;
   int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
+  unsigned numOfVolumes = -1;
   unsigned numOfIndexes = 1;  // assume this value, if unspecified
 }
 
@@ -341,11 +342,10 @@ static void calculateScoreStatistics(const std::string& matrixName,
 }
 
 // Read the .prj file for the whole database
-void readOuterPrj( const std::string& fileName, unsigned& volumes,
-                   size_t& refMinimizerWindow, size_t& minSeedLimit,
-		   bool& isKeepRefLowercase, int& refTantanSetting,
-                   countT& refSequences, countT& refLetters,
-		   countT& refMaxSeqLen ){
+void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
+		  size_t &minSeedLimit, bool &isKeepRefLowercase,
+		  int &refTantanSetting, countT &refSequences,
+		  countT &refLetters, countT &refMaxSeqLen) {
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
@@ -371,7 +371,7 @@ void readOuterPrj( const std::string& fileName, unsigned& volumes,
     if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "minimizerwindow" ) iss >> refMinimizerWindow;
-    if( word == "volumes" ) iss >> volumes;
+    if( word == "volumes" ) iss >> numOfVolumes;
     if( word == "numofindexes" ) iss >> numOfIndexes;
     if( word == "integersize" ) iss >> fileBitsPerInt;
   }
@@ -1310,7 +1310,6 @@ void lastal( int argc, char** argv ){
   args.fromArgs( argc, argv );
   args.resetCumulativeOptions();  // because we will do fromArgs again
 
-  unsigned numOfVolumes = unsigned(-1);
   size_t refMinimizerWindow = 1;  // assume this value, if not specified
   size_t minSeedLimit = 0;
   countT refSequences = -1;
@@ -1318,10 +1317,9 @@ void lastal( int argc, char** argv ){
   countT refMaxSeqLen = -1;
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
-  readOuterPrj( args.lastdbName + ".prj", numOfVolumes,
-		refMinimizerWindow, minSeedLimit,
-		isKeepRefLowercase, refTantanSetting,
-		refSequences, refLetters, refMaxSeqLen );
+  readOuterPrj(args.lastdbName + ".prj",
+	       refMinimizerWindow, minSeedLimit, isKeepRefLowercase,
+	       refTantanSetting, refSequences, refLetters, refMaxSeqLen);
   bool isDna = (alph.letters == alph.dna);
   bool isProtein = alph.isProtein();
 
