@@ -1130,16 +1130,14 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 }
 
-static void alignSomeQueries(size_t chunkNum,
-			     unsigned volume, unsigned volumeCount) {
+static void alignSomeQueries(size_t chunkNum, unsigned volume) {
   size_t numOfChunks = aligners.size();
   LastAligner &aligner = aligners[chunkNum];
   std::vector<AlignmentText> &textAlns = aligner.textAlns;
   size_t beg = firstSequenceInChunk(query, numOfChunks, chunkNum);
   size_t end = firstSequenceInChunk(query, numOfChunks, chunkNum + 1);
-  bool isMultiVolume = (volumeCount > 1);
+  bool isMultiVolume = (numOfVolumes > 1);
   bool isFirstVolume = (volume == 0);
-  bool isFinalVolume = (volume + 1 == volumeCount);
   bool isFirstThread = (chunkNum == 0);
   bool isSort = isCollatedAlignments();
   bool isSortPerQuery = (isSort && !isMultiVolume);
@@ -1152,23 +1150,23 @@ static void alignSomeQueries(size_t chunkNum,
     if (isSortPerQuery) sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     if (isPrintPerQuery) printAndClear(textAlns);
   }
-  if (isFinalVolume && isMultiVolume) {
+  if (isMultiVolume && volume + 1 == numOfVolumes) {
     cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
     if (isSort) sort(textAlns.begin(), textAlns.end());
     if (isFirstThread) printAndClear(textAlns);
   }
 }
 
-static void scanOneVolume(unsigned volume, unsigned volumeCount) {
+static void scanOneVolume(unsigned volume) {
 #ifdef HAS_CXX_THREADS
   size_t numOfChunks = aligners.size();
   std::vector<std::thread> threads(numOfChunks - 1);
   for (size_t i = 1; i < numOfChunks; ++i)
-    threads[i - 1] = std::thread(alignSomeQueries, i, volume, volumeCount);
+    threads[i - 1] = std::thread(alignSomeQueries, i, volume);
   // Exceptions from threads are not handled nicely, but I don't
   // think it matters much.
 #endif
-  alignSomeQueries(0, volume, volumeCount);
+  alignSomeQueries(0, volume);
 #ifdef HAS_CXX_THREADS
   for (size_t i = 1; i < numOfChunks; ++i)
     threads[i - 1].join();
@@ -1250,7 +1248,7 @@ void scanAllVolumes(std::ostream& out) {
 
   for (unsigned i = 0; i < numOfVolumes; ++i) {
     if (text.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
-    scanOneVolume(i, numOfVolumes);
+    scanOneVolume(i);
     if( !isCollatedAlignments() ) printAndClearAll();
   }
 
