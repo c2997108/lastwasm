@@ -913,11 +913,6 @@ static void printAndClear(std::vector<AlignmentText> &textAlns) {
   textAlns.clear();
 }
 
-static void printAndClearAll() {
-  for (size_t i = 0; i < aligners.size(); ++i)
-    printAndClear(aligners[i].textAlns);
-}
-
 void makeQualityPssm( LastAligner& aligner,
 		      size_t queryNum, const SubstitutionMatrices &matrices,
 		      const uchar* querySeq, bool isMask ){
@@ -1152,24 +1147,24 @@ static void alignSomeQueries(size_t chunkNum, unsigned volume) {
   if (isMultiVolume && volume + 1 == numOfVolumes) {
     cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
     sort(textAlns.begin(), textAlns.end());
-    if (isFirstThread) printAndClear(textAlns);
   }
 }
 
-static void scanOneVolume(unsigned volume) {
+static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
+  if (numOfThreadsLeft > 1) {
 #ifdef HAS_CXX_THREADS
-  size_t numOfChunks = aligners.size();
-  std::vector<std::thread> threads(numOfChunks - 1);
-  for (size_t i = 1; i < numOfChunks; ++i)
-    threads[i - 1] = std::thread(alignSomeQueries, i, volume);
-  // Exceptions from threads are not handled nicely, but I don't
-  // think it matters much.
+    std::thread t(scanOneVolume, volume, numOfThreadsLeft - 1);
+    // Exceptions from threads are not handled nicely, but I don't
+    // think it matters much.
+    alignSomeQueries(numOfThreadsLeft - 1, volume);
+    t.join();
 #endif
-  alignSomeQueries(0, volume);
-#ifdef HAS_CXX_THREADS
-  for (size_t i = 1; i < numOfChunks; ++i)
-    threads[i - 1].join();
-#endif
+  } else {
+    alignSomeQueries(0, volume);
+  }
+  if (volume + 1 == numOfVolumes) {
+    printAndClear(aligners[numOfThreadsLeft - 1].textAlns);
+  }
 }
 
 void readIndex( const std::string& baseName, indexT seqCount ) {
@@ -1247,11 +1242,10 @@ void scanAllVolumes() {
 
   for (unsigned i = 0; i < numOfVolumes; ++i) {
     if (text.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
-    scanOneVolume(i);
+    scanOneVolume(i, aligners.size());
   }
 
   if (args.outputType == 0) writeCounts();
-  printAndClearAll();
 }
 
 void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
