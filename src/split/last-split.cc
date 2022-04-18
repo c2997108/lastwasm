@@ -27,23 +27,21 @@ static std::istream& openIn(const std::string& fileName, std::ifstream& ifs) {
 }
 
 // Does the string start with the prefix?
-static bool startsWith(const std::string& s, const char* prefix) {
-  const char* t = s.c_str();
+static bool startsWith(const char *s, const char *prefix) {
   for (;;) {
     if (*prefix == 0) return true;
-    if (*prefix != *t) return false;
-    ++t;
+    if (*prefix != *s) return false;
+    ++s;
     ++prefix;
   }
 }
 
 // Does the string have no non-space characters?
-static bool isSpace(const std::string& s) {
-  const char* t = s.c_str();
+static bool isBlankLine(const char *s) {
   for (;;) {
-    if (*t == 0) return true;
-    if (!std::isspace(*t)) return false;
-    ++t;
+    if (*s == 0) return true;
+    if (!std::isspace(*s)) return false;
+    ++s;
   }
 }
 
@@ -327,6 +325,7 @@ void lastSplit(LastSplitOptions& opts) {
     std::ifstream inFileStream;
     std::istream& input = openIn(opts.inputFileNames[i], inFileStream);
     while (getline(input, line)) {
+      const char *linePtr = line.c_str();
       if (state == -1) {  // we are reading the score matrix within the header
 	std::istringstream ls(line);
 	std::vector<int> row;
@@ -352,7 +351,7 @@ void lastSplit(LastSplitOptions& opts) {
 	if (word == "#" && !names.empty() && !ls && scoreMatrix.empty()) {
 	  colNames = names;
 	  state = -1;
-	} else if (startsWith(line, "#")) {
+	} else if (linePtr[0] == '#') {
 	  std::istringstream ls(line);
 	  while (ls >> word) {
 	    std::istringstream ws(word);
@@ -367,8 +366,8 @@ void lastSplit(LastSplitOptions& opts) {
 	    if (key == "letters") ws >> genomeSize;
 	  }
 	  // try to determine if last-split was already run (fragile):
-	  if (startsWith(line, "# m=")) isAlreadySplit = true;
-	} else if (!isSpace(line)) {
+	  if (startsWith(linePtr, "# m=")) isAlreadySplit = true;
+	} else if (!isBlankLine(linePtr)) {
 	  if (scoreMatrix.empty())
 	    err("I need a header with score parameters");
 	  if (gapExistenceCost < 0 || gapExtensionCost < 0 ||
@@ -410,18 +409,18 @@ void lastSplit(LastSplitOptions& opts) {
 	}
       }
       if (state == 1) {  // we are reading alignments
-	if (startsWith(line, "# batch") && !opts.isTopSeqQuery) {
+	if (startsWith(linePtr, "# batch") && !opts.isTopSeqQuery) {
 	  addMaf(mafEnds, mafLines);
 	  doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
 	  mafLines.clear();
 	  mafEnds.resize(1);
-	} else if (isSpace(line)) {
+	} else if (isBlankLine(linePtr)) {
 	  addMaf(mafEnds, mafLines);
-	} else if (std::strchr(opts.no_split ? "asqpc" : "sqpc", line[0])) {
+	} else if (std::strchr(opts.no_split ? "asqpc" : "sqpc", linePtr[0])) {
 	  mafLines.push_back(line);
 	}
       }
-      if (startsWith(line, "#") && !startsWith(line, "# batch"))
+      if (linePtr[0] == '#' && !startsWith(linePtr, "# batch"))
 	std::cout << line << "\n";
     }
   }
