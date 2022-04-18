@@ -16,4 +16,4 @@ PATH=../bin:$PATH
     try maf-swap -n1 90089.maf
     try maf-swap -n3 ../examples/multiMito.maf
     try maf-swap frameshift-new.maf
-} 2>&1 | diff -u $(basename $0 .sh).out -
+} 2>&1 | diff -u maf-swap-test.out -

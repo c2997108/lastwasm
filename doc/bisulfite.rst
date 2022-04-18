@@ -4,8 +4,7 @@ Aligning bisulfite-converted DNA reads to a genome
 The easy way
 ------------
 
-Use `Bisulfighter <http://epigenome.cbrc.jp/bisulfighter>`_, which
-wraps LAST.
+Use Bisulfighter_, which wraps LAST.
 
 The hard way
 ------------
@@ -81,3 +80,5 @@ This assumes that reads1.fastq are all from the converted strand
 reverse-complement (i.e. they have G->A conversions).  It requires GNU
 parallel to be installed.  You are encouraged to customize this
 script.
+
+.. _Bisulfighter: https://github.com/yutaka-saito/Bisulfighter

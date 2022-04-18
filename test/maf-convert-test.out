@@ -6551,6 +6551,150 @@ Query: 61   TAGAGTGTAGTTTAATATAAAGCATTT 87
              ||||||||| |||| | ||||||   
 Sbjct: 1604 CAGAGTGTAGCTTAACACAAAGCACCC 1630
 
+Query= 2
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 364
+ Identities = 60/84 (71%)
+ Strand = Plus / Plus
+
+Query: 4     GGTTTTAAAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAAT 63
+             ||    ||||||||||||| || |  |||||||||||||||  ||| | | || ||||| 
+Sbjct: 12301 GGCCCCAAAAATTTTGGTGCAACTCCAAATAAAAGTAATAACCATGCACACTACTATAAC 12360
+
+Query: 64    TATTCTAACTTTGATTTTTTTAAT 87
+              |  |||||  ||| ||   ||||
+Sbjct: 12361 CACCCTAACCCTGACTTCCCTAAT 12384
+
+Query= 3
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 258
+ Identities = 55/69 (79%)
+ Strand = Minus / Plus
+
+Query: 69    AATTGCATCCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACCA 10
+               | ||||||||| ||| ||||| |||||||||| ||||||||||||| | || | ||||
+Sbjct: 12454 TGTCGCATCCACCTTTATTATCAGTCTCTTCCCCACAACAATATTCATGTGCCTAGACCA 12513
+
+Query: 9     AAAAATGAT 1
+             | || | ||
+Sbjct: 12514 AGAAGTTAT 12522
+
+Query= 4
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 408
+ Identities = 74/87 (85%)
+ Strand = Plus / Plus
+
+Query: 1    CGTCGTCGGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTT 60
+            || || |||||||||||||||||||||   ||| ||||||||||||| || |||||||||
+Sbjct: 5738 CGCCGCCGGGAAAAAAGGCGGGAGAAGCCCCGGCAGGTTTGAAGCTGCTTCTTCGAATTT 5797
+
+Query: 61   GTAATTTAATATGAAAATTATTTCGGA 87
+            | |||| ||||||||||| |  |||||
+Sbjct: 5798 GCAATTCAATATGAAAATCACCTCGGA 5824
+
+Query= 5
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 280
+ Identities = 62/87 (71%)
+ Strand = Minus / Plus
+
+Query: 87   TGGGTTCTTCTTAGCAACTGTTATAATAATACCCATCATAATCGAAAACTTTAACAACTA 28
+            ||  ||  |  ||       | ||| |||||||||||||||||| |  ||||  ||||| 
+Sbjct: 6087 TGCATTTGTAATAATCTTCTTCATAGTAATACCCATCATAATCGGAGGCTTTGGCAACTG 6146
+
+Query: 27   ACAAATTCCCCTAATAATCGATACCCC 1
+            || | ||||||||||||||| | ||||
+Sbjct: 6147 ACTAGTTCCCCTAATAATCGGTGCCCC 6173
+
+Query= 6
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 368
+ Identities = 62/87 (71%)
+ Strand = Plus / Plus
+
+Query: 1     TTATATTTTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGAT 60
+             | ||||||||||| || |||||||  | | ||||    |  |||| ||| || |  ||||
+Sbjct: 11107 TCATATTTTATATCTTCTTCGAAACCACACTTATCCCCACCTTGGCTATCATCACCCGAT 11166
+
+Query: 61    GAGGTAATTAGTTAGAATGTCTGAACG 87
+             |||| ||  ||  |||| | |||||||
+Sbjct: 11167 GAGGCAACCAGCCAGAACGCCTGAACG 11193
+
+Query= 7
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 340
+ Identities = 72/85 (84%)
+ Strand = Minus / Plus
+
+Query: 85  CCTAATTCTCTTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAA 26
+           ||| ||||| |||| |||||| ||||| |||||||||||| || ||||||||||||||| 
+Sbjct: 144 CCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAG 203
+
+Query: 25  TATATTAATTAATTAATACTTATAA 1
+           | | ||||||||||||| ||| || 
+Sbjct: 204 TGTGTTAATTAATTAATGCTTGTAG 228
+
+Query= 8
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 368
+ Identities = 67/87 (77%)
+ Strand = Plus / Plus
+
+Query: 1    AGTATATTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAA 60
+            || ||| || | |||||   | |||||||||||||||| |||| || |||| ||   |||
+Sbjct: 5007 AGCATACTCCTCAATTACCCACATAGGATGAATAATAGCAGTTCTACCGTACAACCCTAA 5066
+
+Query: 61   TATATCTATTTTTAATTTAATTATTTA 87
+             ||| | ||| ||||||||| ||||||
+Sbjct: 5067 CATAACCATTCTTAATTTAACTATTTA 5093
+
+Query= 9
+         (87 letters)
+
+>chrM
+          Length = 16571
+
+ Score = 375
+ Identities = 61/87 (70%)
+ Strand = Plus / Plus
+
+Query: 1    TGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTA 60
+            ||||  |||||||| | ||| ||||| ||| |||| || || |  || ||| ||     |
+Sbjct: 7902 TGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCA 7961
+
+Query: 61   TTATTTTTAGAATTAGGTGATTTGCGA 87
+            |||||  |||||  ||| ||  |||||
+Sbjct: 7962 TTATTCCTAGAACCAGGCGACCTGCGA 7988
+
 Query= 10
          (87 letters)
 
@@ -6708,24 +6852,6 @@ Sbjct: 14175 ACAATATATACACCAACAAACAATGTTCAACCAGTAACCACTACTAATCAACGCCCATAA 14234
 Query: 61    TTATATAAAGTTTTTGTATTAATAGGA 87
              | ||| ||||     | |  |||||||
 Sbjct: 14235 TCATACAAAGCCCCCGCACCAATAGGA 14261
-
-Query= 2
-         (87 letters)
-
->chrM
-          Length = 16571
-
- Score = 364
- Identities = 60/84 (71%)
- Strand = Plus / Plus
-
-Query: 4     GGTTTTAAAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAAT 63
-             ||    ||||||||||||| || |  |||||||||||||||  ||| | | || ||||| 
-Sbjct: 12301 GGCCCCAAAAATTTTGGTGCAACTCCAAATAAAAGTAATAACCATGCACACTACTATAAC 12360
-
-Query: 64    TATTCTAACTTTGATTTTTTTAAT 87
-              |  |||||  ||| ||   ||||
-Sbjct: 12361 CACCCTAACCCTGACTTCCCTAAT 12384
 
 Query= 20
          (87 letters)
@@ -6907,24 +7033,6 @@ Query: 61   TTTTTTGATATTCGGTTTGTT 81
                | ||| || |||  || |
 Sbjct: 4836 CCCTCTGACATCCGGCCTGCT 4856
 
-Query= 3
-         (87 letters)
-
->chrM
-          Length = 16571
-
- Score = 258
- Identities = 55/69 (79%)
- Strand = Minus / Plus
-
-Query: 69    AATTGCATCCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACCA 10
-               | ||||||||| ||| ||||| |||||||||| ||||||||||||| | || | ||||
-Sbjct: 12454 TGTCGCATCCACCTTTATTATCAGTCTCTTCCCCACAACAATATTCATGTGCCTAGACCA 12513
-
-Query: 9     AAAAATGAT 1
-             | || | ||
-Sbjct: 12514 AGAAGTTAT 12522
-
 Query= 30
          (87 letters)
 
@@ -7100,24 +7208,6 @@ Sbjct: 7894 AATGGTACTGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATAC 7953
 Query: 61   TTTTTTTATTATTTTTAGAATAAGGCG 87
             ||     ||||||  |||||  |||||
 Sbjct: 7954 TTCCCCCATTATTCCTAGAACCAGGCG 7980
-
-Query= 4
-         (87 letters)
-
->chrM
-          Length = 16571
-
- Score = 408
- Identities = 74/87 (85%)
- Strand = Plus / Plus
-
-Query: 1    CGTCGTCGGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTT 60
-            || || |||||||||||||||||||||   ||| ||||||||||||| || |||||||||
-Sbjct: 5738 CGCCGCCGGGAAAAAAGGCGGGAGAAGCCCCGGCAGGTTTGAAGCTGCTTCTTCGAATTT 5797
-
-Query: 61   GTAATTTAATATGAAAATTATTTCGGA 87
-            | |||| ||||||||||| |  |||||
-Sbjct: 5798 GCAATTCAATATGAAAATCACCTCGGA 5824
 
 Query= 40
          (87 letters)
@@ -7299,24 +7389,6 @@ Query: 61    ATTTAAGTTTTATTTTATTATTAGGTT 87
              ||  |||  | |    | || ||||  
 Sbjct: 12957 ATCCAAGCCTCACCCCACTACTAGGCC 12983
 
-Query= 5
-         (87 letters)
-
->chrM
-          Length = 16571
-
- Score = 280
- Identities = 62/87 (71%)
- Strand = Minus / Plus
-
-Query: 87   TGGGTTCTTCTTAGCAACTGTTATAATAATACCCATCATAATCGAAAACTTTAACAACTA 28
-            ||  ||  |  ||       | ||| |||||||||||||||||| |  ||||  ||||| 
-Sbjct: 6087 TGCATTTGTAATAATCTTCTTCATAGTAATACCCATCATAATCGGAGGCTTTGGCAACTG 6146
-
-Query: 27   ACAAATTCCCCTAATAATCGATACCCC 1
-            || | ||||||||||||||| | ||||
-Sbjct: 6147 ACTAGTTCCCCTAATAATCGGTGCCCC 6173
-
 Query= 50
          (87 letters)
 
@@ -7489,24 +7561,6 @@ Query: 22   TTAATAAAAATCTTACTCTTTT 1
             || || |   ||||||||||||
 Sbjct: 9978 TTGATGAGGGTCTTACTCTTTT 9999
 
-Query= 6
-         (87 letters)
-
->chrM
-          Length = 16571
-
- Score = 368
- Identities = 62/87 (71%)
- Strand = Plus / Plus
-
-Query: 1     TTATATTTTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGAT 60
-             | ||||||||||| || |||||||  | | ||||    |  |||| ||| || |  ||||
-Sbjct: 11107 TCATATTTTATATCTTCTTCGAAACCACACTTATCCCCACCTTGGCTATCATCACCCGAT 11166
-
-Query: 61    GAGGTAATTAGTTAGAATGTCTGAACG 87
-             |||| ||  ||  |||| | |||||||
-Sbjct: 11167 GAGGCAACCAGCCAGAACGCCTGAACG 11193
-
 Query= 60
          (87 letters)
 
@@ -7650,24 +7704,6 @@ Sbjct: 5661 GACCAATGGGACTTAAACCCACAAACACTTAGTTAACAGCTAAGCACCCTAATCAACTGG 5720
 Query: 61   TTTTAATTTATTTTTTTCGTCGTCTGT 87
              || ||| || || |  || || | | 
 Sbjct: 5721 CTTCAATCTACTTCTCCCGCCGCCGGG 5747
-
-Query= 7
-         (87 letters)
-
->chrM
-          Length = 16571
-
- Score = 340
- Identities = 72/85 (84%)
- Strand = Minus / Plus
-
-Query: 85  CCTAATTCTCTTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAA 26
-           ||| ||||| |||| |||||| ||||| |||||||||||| || ||||||||||||||| 
-Sbjct: 144 CCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAG 203
-
-Query: 25  TATATTAATTAATTAATACTTATAA 1
-           | | ||||||||||||| ||| || 
-Sbjct: 204 TGTGTTAATTAATTAATGCTTGTAG 228
 
 Query= 70
          (87 letters)
@@ -7849,24 +7885,6 @@ Query: 61    AATTAAATTAATAATAATTTATTTAGT 87
              ||  |||| || || ||  ||||||| 
 Sbjct: 10887 AACCAAATCAACAACAACCTATTTAGC 10913
 
-Query= 8
-         (87 letters)
-
->chrM
-          Length = 16571
-
- Score = 368
- Identities = 67/87 (77%)
- Strand = Plus / Plus
-
-Query: 1    AGTATATTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAA 60
-            || ||| || | |||||   | |||||||||||||||| |||| || |||| ||   |||
-Sbjct: 5007 AGCATACTCCTCAATTACCCACATAGGATGAATAATAGCAGTTCTACCGTACAACCCTAA 5066
-
-Query: 61   TATATCTATTTTTAATTTAATTATTTA 87
-             ||| | ||| ||||||||| ||||||
-Sbjct: 5067 CATAACCATTCTTAATTTAACTATTTA 5093
-
 Query= 81
          (87 letters)
 
@@ -8010,24 +8028,6 @@ Sbjct: 8408 CCCCATACTCCTTACACTATTCCTCATCACCCAACTAAAAATATTAAACACAAACTACCA 8467
 Query: 61   TTTATTTTTTTTATTAAAGTTTATAAA 87
               ||  |   | |  ||||   |||||
 Sbjct: 8468 CCTACCTCCCTCACCAAAGCCCATAAA 8494
-
-Query= 9
-         (87 letters)
-
->chrM
-          Length = 16571
-
- Score = 375
- Identities = 61/87 (70%)
- Strand = Plus / Plus
-
-Query: 1    TGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTA 60
-            ||||  |||||||| | ||| ||||| ||| |||| || || |  || ||| ||     |
-Sbjct: 7902 TGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCA 7961
-
-Query: 61   TTATTTTTAGAATTAGGTGATTTGCGA 87
-            |||||  |||||  ||| ||  |||||
-Sbjct: 7962 TTATTCCTAGAACCAGGCGACCTGCGA 7988
 
 Query= 90
          (87 letters)
@@ -8679,6 +8679,14 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 
 0	chrM	93.10	87	6	0	87	1	13914	14000
 1	chrM	85.06	87	13	0	1	87	1544	1630
+2	chrM	71.43	84	24	0	4	87	12301	12384
+3	chrM	79.71	69	14	0	69	1	12454	12522
+4	chrM	85.06	87	13	0	1	87	5738	5824
+5	chrM	71.26	87	25	0	87	1	6087	6173
+6	chrM	71.26	87	25	0	1	87	11107	11193
+7	chrM	84.71	85	13	0	85	1	144	228
+8	chrM	77.01	87	20	0	1	87	5007	5093
+9	chrM	70.11	87	26	0	1	87	7902	7988
 10	chrM	61.67	60	23	0	1	60	3291	3350
 11	chrM	85.06	87	13	0	87	1	15998	16084
 12	chrM	71.26	87	25	0	1	87	3254	3340
@@ -8688,7 +8696,6 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 16	chrM	89.66	87	9	0	87	1	361	447
 18	chrM	66.67	87	29	0	1	87	10590	10676
 19	chrM	67.82	87	28	0	1	87	14175	14261
-2	chrM	71.43	84	24	0	4	87	12301	12384
 20	chrM	67.82	87	28	0	1	87	5860	5946
 21	chrM	79.31	87	18	0	1	87	81	167
 22	chrM	84.15	82	13	0	82	1	15083	15164
@@ -8699,7 +8706,6 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 27	chrM	67.82	87	28	0	1	87	14125	14211
 28	chrM	75.86	87	21	0	1	87	919	1005
 29	chrM	66.67	81	27	0	1	81	4776	4856
-3	chrM	79.71	69	14	0	69	1	12454	12522
 30	chrM	74.71	87	22	0	1	87	6056	6142
 31	chrM	73.26	86	23	0	1	86	2795	2880
 32	chrM	70.11	87	26	0	1	87	8061	8147
@@ -8710,7 +8716,6 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 37	chrM	74.71	87	22	0	1	87	10097	10183
 38	chrM	58.62	87	36	0	87	1	3627	3713
 39	chrM	72.41	87	24	0	1	87	7894	7980
-4	chrM	85.06	87	13	0	1	87	5738	5824
 40	chrM	63.22	87	32	0	1	87	5187	5273
 41	chrM	71.26	87	25	0	1	87	10194	10280
 42	chrM	77.01	87	20	0	1	87	5521	5607
@@ -8721,7 +8726,6 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 47	chrM	71.26	87	25	0	1	87	6331	6417
 48	chrM	70.93	86	25	0	1	86	6203	6288
 49	chrM	62.07	87	33	0	1	87	12897	12983
-5	chrM	71.26	87	25	0	87	1	6087	6173
 50	chrM	69.44	36	11	0	1	36	6026	6061
 51	chrM	73.56	87	23	0	1	87	9665	9751
 52	chrM	62.79	43	16	0	1	43	10546	10588
@@ -8732,7 +8736,6 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 57	chrM	60.00	85	34	0	1	85	11220	11304
 58	chrM	89.41	85	9	0	85	1	12835	12919
 59	chrM	75.61	82	20	0	82	1	9918	9999
-6	chrM	71.26	87	25	0	1	87	11107	11193
 60	chrM	89.66	87	9	0	87	1	12615	12701
 63	chrM	64.10	78	28	0	1	78	16063	16140
 64	chrM	56.32	87	38	0	1	87	13008	13094
@@ -8741,7 +8744,6 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 67	chrM	83.91	87	14	0	87	1	9521	9607
 68	chrM	91.95	87	7	0	87	1	15821	15907
 69	chrM	67.82	87	28	0	1	87	5661	5747
-7	chrM	84.71	85	13	0	85	1	144	228
 70	chrM	69.05	84	26	0	1	84	7676	7759
 71	chrM	64.37	87	31	0	1	87	15445	15531
 72	chrM	63.10	84	31	0	1	84	11022	11105
@@ -8752,7 +8754,6 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 77	chrM	91.95	87	7	0	87	1	10778	10864
 78	chrM	68.24	85	27	0	1	85	11895	11979
 79	chrM	68.97	87	27	0	1	87	10827	10913
-8	chrM	77.01	87	20	0	1	87	5007	5093
 81	chrM	64.37	87	31	0	1	87	8357	8443
 82	chrM	87.36	87	11	0	87	1	9714	9800
 83	chrM	81.61	87	16	0	87	1	1727	1813
@@ -8761,7 +8762,6 @@ Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
 87	chrM	75.86	87	21	0	1	87	15012	15098
 88	chrM	70.11	87	26	0	1	87	716	802
 89	chrM	59.77	87	35	0	1	87	8408	8494
-9	chrM	70.11	87	26	0	1	87	7902	7988
 90	chrM	84.85	66	10	0	66	1	1599	1664
 91	chrM	93.10	87	6	0	87	1	3742	3828
 92	chrM	77.11	83	19	0	1	83	5910	5992
@@ -9454,6 +9454,62 @@ chrM 1544 <span class="e">TT</span><span class="d">A</span><span class="c">T</sp
           ************** ********* ************ ********* * ***** **** ********* **** * ******   
 
 </pre>
+<h3>Alignment score=364:</h3>
+<pre>
+chrM 12301 <span class="e">G</span><span class="d">G</span><span class="c">CC</span><span class="b">CCA</span><span class="a">AAAATTTTGGTGCAACTCCAAATAAAAGTAATAACCATGCACACTACTATAACCACCCTAACCCTGACT</span><span class="b">TCC</span><span class="c">CTA</span><span class="e">AT</span> 12384
+2        4 <span class="e">G</span><span class="d">G</span><span class="c">TT</span><span class="b">TTA</span><span class="a">AAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAATTATTCTAACTTTGATT</span><span class="b">TTT</span><span class="c">TTA</span><span class="e">AT</span>    87
+           **    ************* ** *  ***************  *** * * ** *****  *  *****  *** **   ****
+
+</pre>
+<h3>Alignment score=258:</h3>
+<pre>
+chrM 12454 <span class="f">T</span><span class="e">GTC</span><span class="d">G</span><span class="c">C</span><span class="b">AT</span><span class="a">CCACCTTTATTATCAGTCTCTTCCCCACAACAATATTCATGTGCCTAGACC</span><span class="b">AAG</span><span class="c">AA</span><span class="d">G</span><span class="e">TTA</span><span class="f">T</span> 12522
+3       69 <span class="f">A</span><span class="e">ATT</span><span class="d">G</span><span class="c">C</span><span class="b">AT</span><span class="a">CCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACC</span><span class="b">AAA</span><span class="c">AA</span><span class="d">A</span><span class="e">TGA</span><span class="f">T</span>     1
+             * ********* *** ***** ********** ************* * ** * ***** ** * **
+
+</pre>
+<h3>Alignment score=408:</h3>
+<pre>
+chrM 5738 <span class="e">CG</span><span class="d">C</span><span class="c">C</span><span class="b">GCC</span><span class="a">GGGAAAAAAGGCGGGAGAAGCCCCGGCAGGTTTGAAGCTGCTTCTTCGAATTTGCAATTCAATATGAAAATCA</span><span class="b">CCT</span><span class="c">CG</span><span class="d">G</span><span class="e">A</span> 5824
+4       1 <span class="e">CG</span><span class="d">T</span><span class="c">C</span><span class="b">GTC</span><span class="a">GGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTTGTAATTTAATATGAAAATTA</span><span class="b">TTT</span><span class="c">CG</span><span class="d">G</span><span class="e">A</span>   87
+          ** ** *********************   *** ************* ** ********** **** *********** *  *****
+
+</pre>
+<h3>Alignment score=280:</h3>
+<pre>
+chrM 6087 <span class="f">TGCATTTGTA</span><span class="e">ATAATCTTCT</span><span class="d">TC</span><span class="c">A</span><span class="b">TAG</span><span class="a">TAATACCCATCATAATCGGAGGCTTTGGCAACTGACTAGTTCCCCTAATAATCGGT</span><span class="b">GC</span><span class="c">C</span><span class="d">C</span><span class="e">C</span> 6173
+5      87 <span class="f">TGGGTTCTTC</span><span class="e">TTAGCAACTG</span><span class="d">TT</span><span class="c">A</span><span class="b">TAA</span><span class="a">TAATACCCATCATAATCGAAAACTTTAACAACTAACAAATTCCCCTAATAATCGAT</span><span class="b">AC</span><span class="c">C</span><span class="d">C</span><span class="e">C</span>    1
+          **  **  *  **       * *** ****************** *  ****  ***** ** * *************** * ****
+
+</pre>
+<h3>Alignment score=368:</h3>
+<pre>
+chrM 11107 <span class="e">TC</span><span class="d">A</span><span class="c">T</span><span class="b">ATT</span><span class="a">TTATATCTTCTTCGAAACCACACTTATCCCCACCTTGGCTATCATCACCCGATGAGGCAACCAGCCAGAACGCC</span><span class="b">TGA</span><span class="c">A</span><span class="e">CG</span> 11193
+6        1 <span class="e">TT</span><span class="d">A</span><span class="c">T</span><span class="b">ATT</span><span class="a">TTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGATGAGGTAATTAGTTAGAATGTC</span><span class="b">TGA</span><span class="c">A</span><span class="e">CG</span>    87
+           * *********** ** *******  * * ****    *  **** *** ** *  ******** **  **  **** * *******
+
+</pre>
+<h3>Alignment score=340:</h3>
+<pre>
+chrM 144 <span class="f">C</span><span class="e">CTC</span><span class="d">A</span><span class="c">T</span><span class="b">TCTA</span><span class="a">TTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGC</span><span class="b">TT</span><span class="c">G</span><span class="d">T</span><span class="e">AG</span> 228
+7     85 <span class="f">C</span><span class="e">CTA</span><span class="d">A</span><span class="c">T</span><span class="b">TCTC</span><span class="a">TTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAATATATTAATTAATTAATAC</span><span class="b">TT</span><span class="c">A</span><span class="d">T</span><span class="e">AA</span>   1
+         *** ***** **** ****** ***** ************ ** *************** * * ************* *** ** 
+
+</pre>
+<h3>Alignment score=368:</h3>
+<pre>
+chrM 5007 <span class="e">A</span><span class="d">G</span><span class="c">CA</span><span class="b">TA</span><span class="a">CTCCTCAATTACCCACATAGGATGAATAATAGCAGTTCTACCGTACAACCCTAACATAACCATTCTTAATTTAA</span><span class="b">CT</span><span class="c">AT</span><span class="d">T</span><span class="e">TA</span> 5093
+8       1 <span class="e">A</span><span class="d">G</span><span class="c">TA</span><span class="b">TA</span><span class="a">TTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAATATATCTATTTTTAATTTAA</span><span class="b">TT</span><span class="c">AT</span><span class="d">T</span><span class="e">TA</span>   87
+          ** *** ** * *****   * **************** **** ** **** **   *** *** * *** ********* ******
+
+</pre>
+<h3>Alignment score=375:</h3>
+<pre>
+chrM 7902 <span class="e">TG</span><span class="c">A</span><span class="b">ACC</span><span class="a">TACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCATTATTCCTAGAACCAGGCGA</span><span class="b">CCT</span><span class="c">GC</span><span class="d">G</span><span class="e">A</span> 7988
+9       1 <span class="e">TG</span><span class="c">A</span><span class="b">ATT</span><span class="a">TACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATTAGGTGA</span><span class="b">TTT</span><span class="c">GC</span><span class="d">G</span><span class="e">A</span>   87
+          ****  ******** * *** ***** *** **** ** ** *  ** *** **     ******  *****  *** **  *****
+
+</pre>
 <h3>Alignment score=207:</h3>
 <pre>
 chrM 3291 <span class="f">t</span><span class="e">tc</span><span class="d">c</span><span class="c">tct</span><span class="b">tct</span><span class="a">taacaacaTACCCATGGCCAACCTCCTACTCCTCATTGTA</span><span class="b">CCC</span><span class="c">AT</span><span class="d">T</span><span class="e">CTA</span><span class="f">A</span> 3350
@@ -9515,13 +9571,6 @@ chrM 10590 <span class="e">GT</span><span class="d">T</span><span class="c">CA</
 chrM 14175 <span class="e">AC</span><span class="c">A</span><span class="b">ATA</span><span class="a">TATACACCAACAAACAATGTTCAACCAGTAACCACTACTAATCAACGCCCATAATCATACAAAGCCCCCGCACCAA</span><span class="b">TA</span><span class="c">G</span><span class="d">G</span><span class="e">A</span> 14261
 19       1 <span class="e">AC</span><span class="c">A</span><span class="b">ATA</span><span class="a">TATATTTTAATAAATAATGTTTAATTGGTAATTATTATTAATTAACGTTTATAATTATATAAAGTTTTTGTATTAA</span><span class="b">TA</span><span class="c">G</span><span class="d">G</span><span class="e">A</span>    87
            **********    ** *** ****** **   ****  * ** **** ****   ***** *** ****     * *  *******
-
-</pre>
-<h3>Alignment score=364:</h3>
-<pre>
-chrM 12301 <span class="e">G</span><span class="d">G</span><span class="c">CC</span><span class="b">CCA</span><span class="a">AAAATTTTGGTGCAACTCCAAATAAAAGTAATAACCATGCACACTACTATAACCACCCTAACCCTGACT</span><span class="b">TCC</span><span class="c">CTA</span><span class="e">AT</span> 12384
-2        4 <span class="e">G</span><span class="d">G</span><span class="c">TT</span><span class="b">TTA</span><span class="a">AAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAATTATTCTAACTTTGATT</span><span class="b">TTT</span><span class="c">TTA</span><span class="e">AT</span>    87
-           **    ************* ** *  ***************  *** * * ** *****  *  *****  *** **   ****
 
 </pre>
 <h3>Alignment score=329:</h3>
@@ -9594,13 +9643,6 @@ chrM 4776 <span class="e">A</span><span class="d">G</span><span class="c">C</spa
           ** ******* *********     *** * ** *****   ********   **** *    * *** ** ***  ** *
 
 </pre>
-<h3>Alignment score=258:</h3>
-<pre>
-chrM 12454 <span class="f">T</span><span class="e">GTC</span><span class="d">G</span><span class="c">C</span><span class="b">AT</span><span class="a">CCACCTTTATTATCAGTCTCTTCCCCACAACAATATTCATGTGCCTAGACC</span><span class="b">AAG</span><span class="c">AA</span><span class="d">G</span><span class="e">TTA</span><span class="f">T</span> 12522
-3       69 <span class="f">A</span><span class="e">ATT</span><span class="d">G</span><span class="c">C</span><span class="b">AT</span><span class="a">CCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACC</span><span class="b">AAA</span><span class="c">AA</span><span class="d">A</span><span class="e">TGA</span><span class="f">T</span>     1
-             * ********* *** ***** ********** ************* * ** * ***** ** * **
-
-</pre>
 <h3>Alignment score=349:</h3>
 <pre>
 chrM 6056 <span class="e">AC</span><span class="d">C</span><span class="c">A</span><span class="b">CAT</span><span class="a">CTACAACGTTATCGTCACAGCCCATGCATTTGTAATAATCTTCTTCATAGTAATACCCATCATAATCGGAGGC</span><span class="b">TT</span><span class="c">TG</span><span class="d">G</span><span class="e">C</span><span class="f">A</span> 6142
@@ -9669,13 +9711,6 @@ chrM 3627 <span class="f">CCACCT</span><span class="e">CTAGCCTAGCCGTTTAC</span><
 chrM 7894 <span class="e">A</span><span class="d">A</span><span class="c">T</span><span class="b">GGT</span><span class="a">ACTGAACCTACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCATTATTCCTAGA</span><span class="b">AC</span><span class="c">CAGG</span><span class="e">CG</span> 7980
 39      1 <span class="e">A</span><span class="d">A</span><span class="c">T</span><span class="b">GGT</span><span class="a">ATTGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGA</span><span class="b">AT</span><span class="c">AAGG</span><span class="e">CG</span>   87
           ******* ****  ******** * *** ***** *** **** ** ** *  ** *** **     ******  *****  *****
-
-</pre>
-<h3>Alignment score=408:</h3>
-<pre>
-chrM 5738 <span class="e">CG</span><span class="d">C</span><span class="c">C</span><span class="b">GCC</span><span class="a">GGGAAAAAAGGCGGGAGAAGCCCCGGCAGGTTTGAAGCTGCTTCTTCGAATTTGCAATTCAATATGAAAATCA</span><span class="b">CCT</span><span class="c">CG</span><span class="d">G</span><span class="e">A</span> 5824
-4       1 <span class="e">CG</span><span class="d">T</span><span class="c">C</span><span class="b">GTC</span><span class="a">GGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTTGTAATTTAATATGAAAATTA</span><span class="b">TTT</span><span class="c">CG</span><span class="d">G</span><span class="e">A</span>   87
-          ** ** *********************   *** ************* ** ********** **** *********** *  *****
 
 </pre>
 <h3>Alignment score=354:</h3>
@@ -9748,13 +9783,6 @@ chrM 12897 <span class="e">CA</span><span class="d">T</span><span class="c">G</s
             *********  ** * *  ** * ******   * ** ******   ** **** * ****  ***  * *    * ** ****  
 
 </pre>
-<h3>Alignment score=280:</h3>
-<pre>
-chrM 6087 <span class="f">TGCATTTGTA</span><span class="e">ATAATCTTCT</span><span class="d">TC</span><span class="c">A</span><span class="b">TAG</span><span class="a">TAATACCCATCATAATCGGAGGCTTTGGCAACTGACTAGTTCCCCTAATAATCGGT</span><span class="b">GC</span><span class="c">C</span><span class="d">C</span><span class="e">C</span> 6173
-5      87 <span class="f">TGGGTTCTTC</span><span class="e">TTAGCAACTG</span><span class="d">TT</span><span class="c">A</span><span class="b">TAA</span><span class="a">TAATACCCATCATAATCGAAAACTTTAACAACTAACAAATTCCCCTAATAATCGAT</span><span class="b">AC</span><span class="c">C</span><span class="d">C</span><span class="e">C</span>    1
-          **  **  *  **       * *** ****************** *  ****  ***** ** * *************** * ****
-
-</pre>
 <h3>Alignment score=151:</h3>
 <pre>
 chrM 6026 <span class="e">TG</span><span class="c">GG</span><span class="b">CC</span><span class="a">AGCCAGGCAACCTTCTAGGTAA</span><span class="b">CG</span><span class="c">A</span><span class="d">C</span><span class="e">CACA</span> 6061
@@ -9825,13 +9853,6 @@ chrM 9918 <span class="f">CG</span><span class="e">C</span><span class="d">C</sp
           *  ***** *****  **** * ** ** *  ***  ******** *** ************ ** *   ************
 
 </pre>
-<h3>Alignment score=368:</h3>
-<pre>
-chrM 11107 <span class="e">TC</span><span class="d">A</span><span class="c">T</span><span class="b">ATT</span><span class="a">TTATATCTTCTTCGAAACCACACTTATCCCCACCTTGGCTATCATCACCCGATGAGGCAACCAGCCAGAACGCC</span><span class="b">TGA</span><span class="c">A</span><span class="e">CG</span> 11193
-6        1 <span class="e">TT</span><span class="d">A</span><span class="c">T</span><span class="b">ATT</span><span class="a">TTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGATGAGGTAATTAGTTAGAATGTC</span><span class="b">TGA</span><span class="c">A</span><span class="e">CG</span>    87
-           * *********** ** *******  * * ****    *  **** *** ** *  ******** **  **  **** * *******
-
-</pre>
 <h3>Alignment score=383:</h3>
 <pre>
 chrM 12615 <span class="f">C</span><span class="e">A</span><span class="d">T</span><span class="c">T</span><span class="b">GT</span><span class="a">TCGTTACATGGTCCATCATAGAATTCTCACTGTGATATATAAACTCAGACCCAAACATTAATCAGTTCTTCAA</span><span class="b">AT</span><span class="c">ATCT</span><span class="e">AC</span> 12701
@@ -9886,13 +9907,6 @@ chrM 15821 <span class="e">C</span><span class="d">T</span><span class="c">T</sp
 chrM 5661 <span class="e">G</span><span class="d">A</span><span class="c">CC</span><span class="b">AA</span><span class="a">TGGGACTTAAACCCACAAACACTTAGTTAACAGCTAAGCACCCTAATCAACTGGCTTCAATCTACTTCTCCC</span><span class="b">GCC</span><span class="c">G</span><span class="d">C</span><span class="e">CGG</span><span class="f">G</span> 5747
 69      1 <span class="e">G</span><span class="d">A</span><span class="c">TT</span><span class="b">AA</span><span class="a">TGGGATTTAAATTTAAAAATATTTAGTTAATAGTTAAGTATTTTAATTAATTGGTTTTAATTTATTTTTTTC</span><span class="b">GTC</span><span class="c">G</span><span class="d">T</span><span class="e">CTG</span><span class="f">T</span>   87
           **  ******* *****   * *** * ******** ** **** *   **** ** *** ** *** ** ** *  ** ** * * 
-
-</pre>
-<h3>Alignment score=340:</h3>
-<pre>
-chrM 144 <span class="f">C</span><span class="e">CTC</span><span class="d">A</span><span class="c">T</span><span class="b">TCTA</span><span class="a">TTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGC</span><span class="b">TT</span><span class="c">G</span><span class="d">T</span><span class="e">AG</span> 228
-7     85 <span class="f">C</span><span class="e">CTA</span><span class="d">A</span><span class="c">T</span><span class="b">TCTC</span><span class="a">TTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAATATATTAATTAATTAATAC</span><span class="b">TT</span><span class="c">A</span><span class="d">T</span><span class="e">AA</span>   1
-         *** ***** **** ****** ***** ************ ** *************** * * ************* *** ** 
 
 </pre>
 <h3>Alignment score=340:</h3>
@@ -9965,13 +9979,6 @@ chrM 10827 <span class="e">AT</span><span class="d">T</span><span class="c">T</s
            ******** ** * **  *   * **  ********** ** **     ** **********  **** ** ** **  ******* 
 
 </pre>
-<h3>Alignment score=368:</h3>
-<pre>
-chrM 5007 <span class="e">A</span><span class="d">G</span><span class="c">CA</span><span class="b">TA</span><span class="a">CTCCTCAATTACCCACATAGGATGAATAATAGCAGTTCTACCGTACAACCCTAACATAACCATTCTTAATTTAA</span><span class="b">CT</span><span class="c">AT</span><span class="d">T</span><span class="e">TA</span> 5093
-8       1 <span class="e">A</span><span class="d">G</span><span class="c">TA</span><span class="b">TA</span><span class="a">TTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAATATATCTATTTTTAATTTAA</span><span class="b">TT</span><span class="c">AT</span><span class="d">T</span><span class="e">TA</span>   87
-          ** *** ** * *****   * **************** **** ** **** **   *** *** * *** ********* ******
-
-</pre>
 <h3>Alignment score=359:</h3>
 <pre>
 chrM 8357 <span class="e">TT</span><span class="d">A</span><span class="c">C</span><span class="b">AG</span><span class="a">TGAAATGCCCCAACTAAATACTACCGTATGGCCCACCATAATTACCCCCATACTCCTTACACTATTCCTCATCA</span><span class="b">CCC</span><span class="c">A</span><span class="d">A</span><span class="e">CT</span> 8443
@@ -10026,13 +10033,6 @@ chrM 716 <span class="e">A</span><span class="d">G</span><span class="c">T</span
 chrM 8408 <span class="e">CCC</span><span class="d">C</span><span class="c">A</span><span class="b">TAC</span><span class="a">TCCTTACACTATTCCTCATCACCCAACTAAAAATATTAAACACAAACTACCACCTACCTCCCTCACCAAAGC</span><span class="b">CCA</span><span class="c">TA</span><span class="d">A</span><span class="e">A</span> 8494
 89      1 <span class="e">TTT</span><span class="d">T</span><span class="c">A</span><span class="b">TAT</span><span class="a">TTTTTATATTATTTTTTATTATTTAATTAAAAATATTAAATATAAATTATTATTTATTTTTTTTATTAAAGT</span><span class="b">TTA</span><span class="c">TA</span><span class="d">A</span><span class="e">A</span>   87
               *** *  *** * ****  * ** *   ** ************* * *** **  *  **  *   * *  ****   *****
-
-</pre>
-<h3>Alignment score=375:</h3>
-<pre>
-chrM 7902 <span class="e">TG</span><span class="c">A</span><span class="b">ACC</span><span class="a">TACGAGTACACCGACTACGGCGGACTAATCTTCAACTCCTACATACTTCCCCCATTATTCCTAGAACCAGGCGA</span><span class="b">CCT</span><span class="c">GC</span><span class="d">G</span><span class="e">A</span> 7988
-9       1 <span class="e">TG</span><span class="c">A</span><span class="b">ATT</span><span class="a">TACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATTAGGTGA</span><span class="b">TTT</span><span class="c">GC</span><span class="d">G</span><span class="e">A</span>   87
-          ****  ******** * *** ***** *** **** ** ** *  ** *** **     ******  *****  *** **  *****
 
 </pre>
 <h3>Alignment score=278:</h3>
@@ -12352,6 +12352,14 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 38	4	0	0	0	0	0	0	+	SRR359290.9033	75	0	42	chr3	198022430	37456613	37456655	1	42,	0,	37456613,
 81	6	0	0	0	0	0	0	-	0	87	0	87	chrM	16571	13913	14000	1	87,	0,	13913,
 74	13	0	0	0	0	0	0	+	1	87	0	87	chrM	16571	1543	1630	1	87,	0,	1543,
+60	24	0	0	0	0	0	0	+	2	87	3	87	chrM	16571	12300	12384	1	84,	3,	12300,
+55	14	0	0	0	0	0	0	-	3	87	0	69	chrM	16571	12453	12522	1	69,	18,	12453,
+74	13	0	0	0	0	0	0	+	4	87	0	87	chrM	16571	5737	5824	1	87,	0,	5737,
+62	25	0	0	0	0	0	0	-	5	87	0	87	chrM	16571	6086	6173	1	87,	0,	6086,
+62	25	0	0	0	0	0	0	+	6	87	0	87	chrM	16571	11106	11193	1	87,	0,	11106,
+72	13	0	0	0	0	0	0	-	7	87	0	85	chrM	16571	143	228	1	85,	2,	143,
+67	20	0	0	0	0	0	0	+	8	87	0	87	chrM	16571	5006	5093	1	87,	0,	5006,
+61	26	0	0	0	0	0	0	+	9	87	0	87	chrM	16571	7901	7988	1	87,	0,	7901,
 37	23	0	0	0	0	0	0	+	10	87	0	60	chrM	16571	3290	3350	1	60,	0,	3290,
 74	13	0	0	0	0	0	0	-	11	87	0	87	chrM	16571	15997	16084	1	87,	0,	15997,
 62	25	0	0	0	0	0	0	+	12	87	0	87	chrM	16571	3253	3340	1	87,	0,	3253,
@@ -12361,7 +12369,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 78	9	0	0	0	0	0	0	-	16	87	0	87	chrM	16571	360	447	1	87,	0,	360,
 58	29	0	0	0	0	0	0	+	18	87	0	87	chrM	16571	10589	10676	1	87,	0,	10589,
 59	28	0	0	0	0	0	0	+	19	87	0	87	chrM	16571	14174	14261	1	87,	0,	14174,
-60	24	0	0	0	0	0	0	+	2	87	3	87	chrM	16571	12300	12384	1	84,	3,	12300,
 59	28	0	0	0	0	0	0	+	20	87	0	87	chrM	16571	5859	5946	1	87,	0,	5859,
 69	18	0	0	0	0	0	0	+	21	87	0	87	chrM	16571	80	167	1	87,	0,	80,
 69	13	0	0	0	0	0	0	-	22	87	0	82	chrM	16571	15082	15164	1	82,	5,	15082,
@@ -12372,7 +12379,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 59	28	0	0	0	0	0	0	+	27	87	0	87	chrM	16571	14124	14211	1	87,	0,	14124,
 66	21	0	0	0	0	0	0	+	28	87	0	87	chrM	16571	918	1005	1	87,	0,	918,
 54	27	0	0	0	0	0	0	+	29	87	0	81	chrM	16571	4775	4856	1	81,	0,	4775,
-55	14	0	0	0	0	0	0	-	3	87	0	69	chrM	16571	12453	12522	1	69,	18,	12453,
 65	22	0	0	0	0	0	0	+	30	87	0	87	chrM	16571	6055	6142	1	87,	0,	6055,
 63	23	0	0	0	0	0	0	+	31	87	0	86	chrM	16571	2794	2880	1	86,	0,	2794,
 61	26	0	0	0	0	0	0	+	32	87	0	87	chrM	16571	8060	8147	1	87,	0,	8060,
@@ -12383,7 +12389,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 65	22	0	0	0	0	0	0	+	37	87	0	87	chrM	16571	10096	10183	1	87,	0,	10096,
 51	36	0	0	0	0	0	0	-	38	87	0	87	chrM	16571	3626	3713	1	87,	0,	3626,
 63	24	0	0	0	0	0	0	+	39	87	0	87	chrM	16571	7893	7980	1	87,	0,	7893,
-74	13	0	0	0	0	0	0	+	4	87	0	87	chrM	16571	5737	5824	1	87,	0,	5737,
 55	32	0	0	0	0	0	0	+	40	87	0	87	chrM	16571	5186	5273	1	87,	0,	5186,
 62	25	0	0	0	0	0	0	+	41	87	0	87	chrM	16571	10193	10280	1	87,	0,	10193,
 67	20	0	0	0	0	0	0	+	42	87	0	87	chrM	16571	5520	5607	1	87,	0,	5520,
@@ -12394,7 +12399,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 62	25	0	0	0	0	0	0	+	47	87	0	87	chrM	16571	6330	6417	1	87,	0,	6330,
 61	25	0	0	0	0	0	0	+	48	87	0	86	chrM	16571	6202	6288	1	86,	0,	6202,
 54	33	0	0	0	0	0	0	+	49	87	0	87	chrM	16571	12896	12983	1	87,	0,	12896,
-62	25	0	0	0	0	0	0	-	5	87	0	87	chrM	16571	6086	6173	1	87,	0,	6086,
 25	11	0	0	0	0	0	0	+	50	87	0	36	chrM	16571	6025	6061	1	36,	0,	6025,
 64	23	0	0	0	0	0	0	+	51	87	0	87	chrM	16571	9664	9751	1	87,	0,	9664,
 27	16	0	0	0	0	0	0	+	52	87	0	43	chrM	16571	10545	10588	1	43,	0,	10545,
@@ -12405,7 +12409,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 51	34	0	0	0	0	0	0	+	57	87	0	85	chrM	16571	11219	11304	1	85,	0,	11219,
 76	9	0	0	0	0	0	0	-	58	87	0	85	chrM	16571	12834	12919	1	85,	2,	12834,
 62	20	0	0	0	0	0	0	-	59	87	0	82	chrM	16571	9917	9999	1	82,	5,	9917,
-62	25	0	0	0	0	0	0	+	6	87	0	87	chrM	16571	11106	11193	1	87,	0,	11106,
 78	9	0	0	0	0	0	0	-	60	87	0	87	chrM	16571	12614	12701	1	87,	0,	12614,
 50	28	0	0	0	0	0	0	+	63	87	0	78	chrM	16571	16062	16140	1	78,	0,	16062,
 49	38	0	0	0	0	0	0	+	64	87	0	87	chrM	16571	13007	13094	1	87,	0,	13007,
@@ -12414,7 +12417,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 73	14	0	0	0	0	0	0	-	67	87	0	87	chrM	16571	9520	9607	1	87,	0,	9520,
 80	7	0	0	0	0	0	0	-	68	87	0	87	chrM	16571	15820	15907	1	87,	0,	15820,
 59	28	0	0	0	0	0	0	+	69	87	0	87	chrM	16571	5660	5747	1	87,	0,	5660,
-72	13	0	0	0	0	0	0	-	7	87	0	85	chrM	16571	143	228	1	85,	2,	143,
 58	26	0	0	0	0	0	0	+	70	87	0	84	chrM	16571	7675	7759	1	84,	0,	7675,
 56	31	0	0	0	0	0	0	+	71	87	0	87	chrM	16571	15444	15531	1	87,	0,	15444,
 53	31	0	0	0	0	0	0	+	72	87	0	84	chrM	16571	11021	11105	1	84,	0,	11021,
@@ -12425,7 +12427,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 80	7	0	0	0	0	0	0	-	77	87	0	87	chrM	16571	10777	10864	1	87,	0,	10777,
 58	27	0	0	0	0	0	0	+	78	87	0	85	chrM	16571	11894	11979	1	85,	0,	11894,
 60	27	0	0	0	0	0	0	+	79	87	0	87	chrM	16571	10826	10913	1	87,	0,	10826,
-67	20	0	0	0	0	0	0	+	8	87	0	87	chrM	16571	5006	5093	1	87,	0,	5006,
 56	31	0	0	0	0	0	0	+	81	87	0	87	chrM	16571	8356	8443	1	87,	0,	8356,
 76	11	0	0	0	0	0	0	-	82	87	0	87	chrM	16571	9713	9800	1	87,	0,	9713,
 71	16	0	0	0	0	0	0	-	83	87	0	87	chrM	16571	1726	1813	1	87,	0,	1726,
@@ -12434,7 +12435,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 66	21	0	0	0	0	0	0	+	87	87	0	87	chrM	16571	15011	15098	1	87,	0,	15011,
 61	26	0	0	0	0	0	0	+	88	87	0	87	chrM	16571	715	802	1	87,	0,	715,
 52	35	0	0	0	0	0	0	+	89	87	0	87	chrM	16571	8407	8494	1	87,	0,	8407,
-61	26	0	0	0	0	0	0	+	9	87	0	87	chrM	16571	7901	7988	1	87,	0,	7901,
 56	10	0	0	0	0	0	0	-	90	87	0	66	chrM	16571	1598	1664	1	66,	21,	1598,
 81	6	0	0	0	0	0	0	-	91	87	0	87	chrM	16571	3741	3828	1	87,	0,	3741,
 64	19	0	0	0	0	0	0	+	92	87	0	83	chrM	16571	5909	5992	1	83,	0,	5909,
@@ -12616,6 +12616,14 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 230	96	0	0	9	12	8	39	++	UN-L1PA16_pol#LINE/L1	1276	526	864	chrUn_KI270748v1	93321	17571	18588	12	102,63,21,18,14,14,6,38,7,22,8,13,	526,629,693,715,735,749,766,773,812,820,843,851,	17571,17877,18066,18129,18185,18256,18300,18319,18434,18457,18524,18549,
 0	16	chrM	13914	71	3=1X11=1X28=2X21=1X15=1X3=	*	0	0	TCGAATTCTACCCTAACATCACACACCGCACAATCCCCTATCTAAACCTTCTTACGAGCCAAAACCTACCCCTACTCCTCCTAAACC	C@A=<3CC@@CBCCC8CBAC?BBBC?BB@BCCBBBCCCCBBBCBCABCBBBCCCCBCBBAC@CCBBCCACCACCCCCCBCCACCA?B	NM:i:6	AS:i:429
 1	0	chrM	1544	71	14=1X9=1X12=1X9=1X1=1X5=1X4=1X9=1X4=1X1=1X6=3X	*	0	0	TTATATAGAGGAGATAAGTCGTAATATGGTAAGTGTATTGGAAAGTGTATTTGGATGAACTAGAGTGTAGTTTAATATAAAGCATTT	BB@1;?@B@BBBC@BBBCACBBA>B??=?A@B?B?B=7@4BB;B>@@@A?>=B@A@>@7>BA>BA6BA?@@B@@?B?AABBAB=<>B	NM:i:13	AS:i:420
+2	0	chrM	12301	71	3H2=4X13=1X2=1X1=2X15=2X3=1X1=1X1=1X2=1X5=2X1=2X5=2X3=1X2=3X4=	*	0	0	GGTTTTAAAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAATTATTCTAACTTTGATTTTTTTAAT	B@B>BB?B;=B@@=BBABA@<A5??'8@@>=3@47>@+AA9?;@@>@9?@(A>-9@A=(=>?1;=7=96@.4<(49=.2.1(==	NM:i:24	AS:i:364
+3	16	chrM	12454	71	18H2X1=1X9=1X3=1X5=1X10=1X13=1X1=1X2=1X1=1X5=1X2=1X1=1X2=	*	0	0	AATTGCATCCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACCAAAAAATGAT	#52%7;3,5>BA4)9?+%+@<11>AA;*4:)383)CB=)+7*;8BB4>@@966)(BBAA<?@='?()>B	NM:i:14	AS:i:258
+4	0	chrM	5738	71	2=1X2=1X21=3X3=1X13=1X2=1X10=1X4=1X11=1X1=2X5=	*	0	0	CGTCGTCGGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTTGTAATTTAATATGAAAATTATTTCGGA	?BCC@?CCBCC@CBCACCCCCCCC@ABCCAABBCCBC@A=B@CBCACCC@BCB@?CCACBCBBBBB>C>@>BBB?BBB:=<B@B>BB	NM:i:13	AS:i:408
+5	16	chrM	6087	70	2=2X2=2X1=2X2=7X1=1X3=1X18=1X1=2X4=2X5=1X2=1X1=1X15=1X1=1X4=	*	0	0	TGGGTTCTTCTTAGCAACTGTTATAATAATACCCATCATAATCGAAAACTTTAACAACTAACAAATTCCCCTAATAATCGATACCCC	######################A8</<B::6>?@>@@?5>7/?B68@/B.A4BC<BB;B3B?BB>C5BB=>@>CBBABAABCCC?CB	NM:i:25	AS:i:280
+6	0	chrM	11107	71	1=1X11=1X2=1X7=2X1=1X1=1X4=4X1=2X4=1X3=1X2=1X1=2X8=1X2=2X2=2X4=1X1=1X7=	*	0	0	TTATATTTTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGATGAGGTAATTAGTTAGAATGTCTGAACG	BBB?C<@BA;5AB:AB@B?B<AB>A<AB:@AB9;=@AA43A>@;,5=@@A@/@>@=:?:@>><>-=6@746?=05?*?<<==9775=	NM:i:25	AS:i:368
+7	16	chrM	144	70	2H3=1X5=1X4=1X6=1X5=1X12=1X2=1X15=1X1=1X1=1X13=1X3=1X2=1X	*	0	0	CCTAATTCTCTTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAATATATTAATTAATTAATACTTATAA	####;672++4<=.060?>+/+22(9<;9;;94@@1=5=B:)?BA@BBBA98>4+:?<BB?@>:,6?B;BBCBCBBCBCC>@CCB	NM:i:13	AS:i:340
+8	0	chrM	5007	71	2=1X3=1X2=1X1=1X5=3X1=1X16=1X4=1X2=1X4=1X2=3X3=1X3=1X1=1X3=1X9=1X6=	*	0	0	AGTATATTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAATATATCTATTTTTAATTTAATTATTTA	B@C=BBCCBC?CCCC>BCC<B;@B@@BA2>C:<ABCC<A@A=@BB-@B?:B<B7>?AB:A@@@>(:AB@=B;B@BB>@<@>@A@ABB	NM:i:20	AS:i:368
+9	0	chrM	7902	70	4=2X8=1X1=1X3=1X5=1X3=1X4=1X2=1X2=1X1=2X2=1X3=1X2=5X6=2X5=2X3=1X2=2X5=	*	0	0	TGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATTAGGTGATTTGCGA	B=9=B+BBBB>BBB=:BB@;<@@B:<A4@?A:?=BABAAAA>>@<A>@AA>@@@?@@6878:6588?<:>=?9<::=<51<99>;48	NM:i:26	AS:i:375
 10	0	chrM	3291	69	2=2X1=1X2=1X4=2X1=1X3=3X4=2X2=2X1=2X2=1X1=2X1=1X6=3X7=27H	*	0	0	TTTTTTTTTTTAATCATATATTTATGGTTAATTTTTTATTTTTTATTGTATTTATTCTAA	@6)>B+A9<)?>>A(?A=-(48/<5?=1>4>:B@@<-:@@5;/9==ABA47*5':B<###	NM:i:23	AS:i:207
 11	16	chrM	15998	71	3=1X22=1X9=4X2=1X2=1X4=3X10=1X4=1X18=	*	0	0	TAAAATTCTAATTTAAACTATTCTCTATTCTTTCATAAAAAAACAAATTTAAATACCACCCAAATATTAACTCACCCATCAACAACC	3>@A?.6=B?(9AB>429B3/6@B<8?'?B?4<AB8@BA6;==CB7<A>=?9CCCB@CBABACCCA=CCC?:CBA4@CBB>ACCC<9	NM:i:13	AS:i:403
 12	0	chrM	3254	71	3=1X6=1X6=1X4=1X3=1X7=1X4=2X1=1X2=1X4=1X2=1X3=3X4=2X2=2X1=2X2=1X1=2X1=1X6=	*	0	0	TCGTATAAAATTTAAAATTTTATAGTTAGAGGTTTAATTTTTTTTTTTAATAATATATTTATGGTTAATTTTTTATTTTTTATTGTA	<BCCCCCCCCCC=CCCCCCCCCCC?BCCCCC??>CBCCCCCCCCBCCCCBCCCCCCC@@ACACCBC@CBCBC@?@A9CCCBCABCCB	NM:i:25	AS:i:366
@@ -12625,7 +12633,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 16	16	chrM	361	71	7=1X13=1X8=1X18=3X2=1X3=1X11=1X16=	*	0	0	AAACAAAAAACCCTAACACCAACCTAACCAAATTTCAAATTTTATCTTTTAACGATATACACTTTTAACAATCACCCCCCAACTAAC	355376<:::969?><>4?;8<>?::<?@<4>@@?:<@?9@>@:4?>:@>@@C@@??>AA?<<B@?:AB?AABB@BB@B@BBBB??B	NM:i:9	AS:i:381
 18	0	chrM	10590	69	3=1X7=1X2=1X1=1X1=1X4=3X4=1X1=3X1=1X1=3X1=1X4=1X8=1X1=2X5=2X3=2X3=1X3=2X2=1X3=	*	0	0	GTTTATTATAGTTATTTTTATAATTTTCAATATTTATTTTTTTTTAGTCAATATTGGGTTTATTGTTATATCAGTTTTTTTCGTCTG	(>CCCCCCBCC=ABCBB=ACCBC3*@B@C=9CBC,CA=-C@CB=CA>9?/+A+AB>)@*A@+;*=B@9CAB*?A@)B@C*C@8C=7>	NM:i:29	AS:i:320
 19	0	chrM	14175	70	10=4X2=1X3=1X6=1X2=3X4=2X1=1X2=1X4=1X4=3X5=1X3=1X4=5X1=1X1=2X7=	*	0	0	ACAATATATATTTTAATAAATAATGTTTAATTGGTAATTATTATTAATTAACGTTTATAATTATATAAAGTTTTTGTATTAATAGGA	=@9@B>C<';>)*8?'>67@1;(?<;A<@:@@(9A@@)(38>9+@<8?6@4:=?B976/5<@>@@/@<?1:0'9178--9=:426>@	NM:i:28	AS:i:366
-2	0	chrM	12301	71	3H2=4X13=1X2=1X1=2X15=2X3=1X1=1X1=1X2=1X5=2X1=2X5=2X3=1X2=3X4=	*	0	0	GGTTTTAAAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAATTATTCTAACTTTGATTTTTTTAAT	B@B>BB?B;=B@@=BBABA@<A5??'8@@>=3@47>@+AA9?;@@>@9?@(A>-9@A=(=>?1;=7=96@.4<(49=.2.1(==	NM:i:24	AS:i:364
 20	0	chrM	5860	69	3=1X3=2X4=1X2=1X1=1X1=1X2=2X6=2X1=1X1=5X11=1X3=1X6=1X4=1X1=1X2=1X1=1X1=2X1=1X5=1X	*	0	0	TTATAGTTTAATGTTTTATTTAGTTATTTTATTTTATTTTTACTGATGTTCGTCGATCGTTGATTATTATTTATAGATTATAAAGAT	)@,27@CBC:1?>C?-2AA?59'<)?B7A46)@>:*?8,5)<24?)5>?;?(2@@2(1>-:<3@B5,<,3>7)?2%81,;@@BAA?B	NM:i:28	AS:i:329
 21	0	chrM	81	71	5=1X11=1X5=1X5=1X1=2X8=1X5=1X3=1X7=2X2=2X1=1X3=1X12=1X1=2X	*	0	0	GATAGTATTGCGAGACGTTGGAGTCGGAGTATTCTATGTCGTAGTATTTGTTTTTGATTTTTGTTTTATTTTATTATTTATCGTATT	?BBC@@BCAC:CC@C=BCCB5=CCC@BCBCCCBBCC@BBBCC@C@3BC@BCABBB+BC:@BB>B-C@B@7B2BBABBA:1:A8A?=9	NM:i:18	AS:i:369
 22	16	chrM	15083	71	5H2=1X8=1X12=1X3=1X8=1X5=1X8=2X4=1X7=1X1=1X1=2X10=	*	0	0	CTAAAACATCGACATTATCCTCCTACTTACAACTATAACAACAACCTTCATAAACTATATCCTCCCATAAAACCAAATATCA	9<7+3.8B67(:B9=A67>5A?BBB?BB@CBB?B:AAB?BAA?B@BB?CB>B@;>BB@BB@C@BCBBCCCBCCCCBCBCCBB	NM:i:13	AS:i:383
@@ -12636,7 +12643,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 27	0	chrM	14125	70	2X3=3X2=1X1=2X4=1X1=1X4=2X4=4X4=1X3=1X1=1X5=1X8=1X1=2X2=1X3=1X6=1X2=2X5=	*	0	0	TTTAATTTTATTTTTAATTATATAATTTATTTTTTCGAGTAATTTTAATTATAATATATATATTAATAAATAATGTTTAATTAGTAA	BB?>B@B@BB@B?@?BBB?A>B>AAAA?>>A;A>A@A?AA?<?=<=?A:A>>=:=??AAA>@9@:@?>9??>@@@A<?A>A777A59	NM:i:28	AS:i:375
 28	0	chrM	919	71	1X4=1X8=1X22=1X1=5X1=4X7=1X5=1X1=1X1=2X14=1X1=2X1=	*	0	0	TAAGTTAATAGAAGTCGGCGTAAAGAGTGTTTTAGATTATTTTTTTTTTAATAAAGTTAAAATTTATTTGAGTTGTAAAAAATTTTA	BCAC@CC?BBCCABBBB@BCCCBAAB?@>BB@BCBBBB:CBBBB@BBBBCB@C>C<AB@B@@BBABB95@BBA@?=@?=7AA:B=:@	NM:i:21	AS:i:399
 29	0	chrM	4776	71	2=1X7=1X9=5X3=1X1=1X2=1X5=3X8=3X4=1X1=4X1=1X3=1X2=1X3=2X2=1X1=6H	*	0	0	AGTAATAAAATTAGGAATAGTTTTTTTTTATTTTTGAGTTTTAGAGGTTATTTAAGGTATTTTTTTGATATTCGGTTTGTT	?6@C@5<(<CCB.CA?4BB=4?AA;=@CA=A<%=5>BB=15=B=>>6<B??):=>-<BA>(<@2;+%,?0805.'A7>(=;	NM:i:27	AS:i:342
-3	16	chrM	12454	71	18H2X1=1X9=1X3=1X5=1X10=1X13=1X1=1X2=1X1=1X5=1X2=1X1=1X2=	*	0	0	AATTGCATCCACCATTACTATCAATCTCTTCCCCCCAACAATATTCATATACCCAAACCAAAAAATGAT	#52%7;3,5>BA4)9?+%+@<11>AA;*4:)383)CB=)+7*;8BB4>@@966)(BBAA<?@='?()>B	NM:i:14	AS:i:258
 30	0	chrM	6056	70	1=2X1=1X2=1X2=1X11=1X1=1X2=3X3=1X12=1X2=1X2=1X9=3X2=1X1=1X9=1X5=2X	*	0	0	ATTATATTTATAACGTTATCGTTATAGTTTATGTATTTGTAATAATTTTTTTTATAGTAATATTTATTAGAATCGGAGGTTTTGGTC	BB@<BBCBBBB@ABBB>ABB@B>BBA3>-@>BBCABAB>B6:+4BB;B8C?@?B=@BB?A;@?A?B@@B@BB@>-@:@?:>@A81>#	NM:i:22	AS:i:349
 31	0	chrM	2795	71	2X2=2X10=1X11=2X6=1X4=3X2=2X1=1X4=1X4=1X3=1X5=1X2=1X1=2X3=1X4=1X1=1H	*	0	0	TTTGTCTTAAAAATTTTGGTTGGGGCGATTTCGGAGTAGAATTTAATTTTCGAGTAGTATATGTTAAGATTTTATTAGTTAAAGTG	BBBB@,AB>B=BB:@>AA8?B<>7@A@?A@A<@@BAA>?.9,9A?A<@?A9'91-45<@25;@:5A@>?9<9?>>A<>@<@?AA>7	NM:i:23	AS:i:378
 32	0	chrM	8061	71	2=1X3=1X1=1X1=1X5=1X3=4X1=1X6=1X7=1X5=1X4=2X7=1X4=2X3=2X1=1X2=2X1=1X2=1X2=1X1=	*	0	0	GTTTTGTATTTATGAGTTGTTTTTATATTAGGTTTAAAAATAGATGTAATTTTCGGACGTTTAAATTAAATTATTTGTATCGTTATA	BCCB@BCBBCB?BCBABB@BBBBBBBBB?BC?BBBBC<BBB@C@@=CC<<>:BC@BB78?@A@B@ABB>@B?BB>:4=;:?;3<B44	NM:i:26	AS:i:360
@@ -12647,7 +12653,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 37	0	chrM	10097	71	3=2X3=1X2=1X12=1X7=2X1=2X1=1X2=1X1=1X2=1X2=1X2=1X10=2X1=4X12=1X4=	*	0	0	TAGTTTTATTATTAATAATTATTATATTTTGATCATTATAATTTAATGGTTATATAGAAAAATTTATTTTTTACGAGTGCGGTTTCG	BBAA;6BBB6@BC=>B>C@C<BBB??@CBACBA+C=@AB?BB8@?@<66BA@B>BA@B:ABAB?2AA7A@@8A<3B+AB85B>=<<B	NM:i:22	AS:i:378
 38	16	chrM	3627	70	5X1=1X2=1X1=2X1=2X1=1X2=3X1=1X1=4X1=2X2=6X1=1X1=1X12=1X9=1X4=1X6=1X3=1X2=1X	*	0	0	GAGAGTGTATCTCATGCATTGCATGACCGGTTAGACGCAAATAACCATCAAACTCAATCTACGCCCTAATCGACGCACTACGAACAA	######################################?B30;/%2(94+A@7C5A5%7)B*@5?B(@9?C+C/7B*>>:@?)8)?<	NM:i:36	AS:i:206
 39	0	chrM	7894	70	7=1X4=2X8=1X1=1X3=1X5=1X3=1X4=1X2=1X2=1X1=2X2=1X3=1X2=5X6=2X5=2X5=	*	0	0	AATGGTATTGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATAAGGCG	B?=BBBBB?B@BABBB=@BABBAAA@BBAA>;0===8>=;7.5:<;@@@A@<8A>351:@A2(;>@9-;73:7;<34.962+:=;.6	NM:i:24	AS:i:366
-4	0	chrM	5738	71	2=1X2=1X21=3X3=1X13=1X2=1X10=1X4=1X11=1X1=2X5=	*	0	0	CGTCGTCGGGAAAAAAGGCGGGAGAAGTTTCGGTAGGTTTGAAGCTGTTTTTTCGAATTTGTAATTTAATATGAAAATTATTTCGGA	?BCC@?CCBCC@CBCACCCCCCCC@ABCCAABBCCBC@A=B@CBCACCC@BCB@?CCACBCBBBBB>C>@>BBB?BBB:=<B@B>BB	NM:i:13	AS:i:408
 40	0	chrM	5187	71	1=1X3=1X1=3X6=2X2=2X1=3X1=2X1=1X1=3X7=2X2=4X2=1X3=1X3=1X6=1X1=1X7=2X5=1X2=	*	0	0	ATTAATATTTTTAATTTTATTTATTTTTTTTTTTTTAGGAGGTTTGTTTTCGTTAATCGGTTTTTTGTCTAAATGGGTTATTATTGA	BB?BBBBBBBBCBBABBAB?B@@B<9BAB>BA@BBB<@BA@ABAAAB=:@BB:BAAB=<>@?4<@B@A@?9=?@=.4?9:+778;32	NM:i:32	AS:i:354
 41	0	chrM	10194	70	3X2=2X2=2X1=3X5=2X8=1X2=1X7=1X5=2X2=1X12=1X9=3X1=1X6=2X	*	0	0	TTTCGTTCGTTTTTTTTTCTTTATAAAATTTTTTTTAGTAGTTATTATTTTTTTATTATTTGATATAGAAATTGATTTTCTTTTATT	*);9:14@3>,B?05:B9BA@2=87@>3><(=?9-)3=;/=@:BB@B@0?;>:A09>@4;3>915@2>08;<7.'2;>>8A:+81;A	NM:i:25	AS:i:292
 42	0	chrM	5521	71	10=1X3=2X5=2X2=1X6=1X1=1X9=1X4=1X7=1X2=1X2=1X2=1X6=1X2=1X5=3X1=1X	*	0	0	AGGTTAAATATAGATTAAGAGTTTTTAAAGCCTTTAGTAAGTTGTAATATTTAATTTTTGTAATAGTTAAGGATTGTAAAACTTTAT	B88>BCBB4BABB=BB>;B=<?BB:?AB?@AB?@B>9A?A@A?A>@?@4?>>@?B<@@6B=@<B55:7(25A:?7>=>;@;@?5(9@	NM:i:20	AS:i:397
@@ -12658,7 +12663,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 47	0	chrM	6331	71	5=2X3=2X2=1X2=1X1=2X3=1X1=2X3=1X6=1X1=2X1=1X3=1X7=2X2=1X5=1X2=1X1=1X2=1X6=1X6=	*	0	0	GTAGATTTAATTATTTTTTTTTTATATTTAGTAGGTGTTTTTTTTATTTTAGGGGTTATTAATTTTATTATAATAATTATTAATATA	AC>=ABBAA@CB6BCCB9?BAB=CCB@<B;C<CA@C@,9CCBAB>?=BBAB@A34@(86<CBBCB<<B=BA@@B=A92A?826;:B>	NM:i:25	AS:i:365
 48	0	chrM	6203	71	4=1X2=1X5=1X3=2X1=3X1=1X1=1X1=2X2=1X1=2X2=1X3=1X2=1X2=1X11=2X4=1X5=1X8=1X3=1X1H	*	0	0	TAAGTTTTTGACTTTTATTTTTTTTTTTTTTATTTTTGTTCGTATTTGTTATAGTGGAGGTTGGAGTAGGAATAGGTTGAATAGTT	BCBBB@BBBB@BBB?BB>B?BBBAB@>A?B?<AAAB>B9BAB<@A@>ABA87AAAB?A@?BABBA@B:A@B=:@<8:<477<@??9	NM:i:25	AS:i:366
 49	0	chrM	12897	71	1X9=2X2=1X1=1X1=2X2=1X1=1X6=3X1=1X2=1X6=3X2=1X4=1X1=1X4=2X3=2X1=1X1=4X1=1X2=1X4=2X	*	0	0	TATGATTTATTTTATATTTTAATTTATGAGATTTATAATAAATAGTTTTTTTAAATGTTAATTTAAGTTTTATTTTATTATTAGGTT	BCBCBBCCCBB?BBB6CBCCB@@@BAA@C?BB@B@B@?BBC?B@B@@BBB>BBA5@BB<>B=?@A4B>?>?BA==>?B?=@B:<=@B	NM:i:33	AS:i:369
-5	16	chrM	6087	70	2=2X2=2X1=2X2=7X1=1X3=1X18=1X1=2X4=2X5=1X2=1X1=1X15=1X1=1X4=	*	0	0	TGGGTTCTTCTTAGCAACTGTTATAATAATACCCATCATAATCGAAAACTTTAACAACTAACAAATTCCCCTAATAATCGATACCCC	######################A8</<B::6>?@>@@?5>7/?B68@/B.A4BC<BB;B3B?BB>C5BB=>@>CBBABAABCCC?CB	NM:i:25	AS:i:280
 50	0	chrM	6026	68	4=2X2=2X3=1X2=2X2=1X10=2X1=1X1=51H	*	0	0	TGGGTTAGTTAGGTAATTTTTTAGGTAACGATGATA	?)3<2A>:>*?6<B8>@7BB@<@B@>B0*(26)8B<	NM:i:11	AS:i:151
 51	0	chrM	9665	70	4=1X2=2X4=2X8=1X3=1X1=1X2=1X6=1X7=1X5=1X1=1X7=3X1=2X2=1X3=2X1=1X6=1X1=	*	0	0	AAAATAATTGAAATTAAATAATTTAAGTATTGTTTATTATAATTTTATTGGGTTTTTATTTTATTTTTTTATAAGTTTTAGAGTATT	BCCCCBCCCCBBBBACCBACBBA@C@CBCBBCCBAACBCACBC@CBBCABBBBBBCAA<BAC@;?@CB>BBABBBABABB@@BBBBA	NM:i:23	AS:i:378
 52	0	chrM	10546	68	1X1=1X4=2X1=3X2=2X1=1X2=1X10=1X1=3X5=1X44H	*	0	0	TTTATATTTTTTTTATAACGCTTAGAAGGAATCACCTTATCGT	:-*<%<=>@;@='5'8())-=:>CB3:1%3:7%8%'?6>,235	NM:i:16	AS:i:147
@@ -12669,7 +12673,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 57	0	chrM	11220	69	1X7=1X1=3X2=4X2=1X1=1X2=3X1=1X7=1X1=1X1=1X1=1X2=1X1=3X4=1X1=1X1=1X4=1X3=1X2=1X2=1X1=1X1=1X1=1X1=1X1=2H	*	0	0	TTAGTAGGTTTTTTTTTTTTATTTATTTTATTAATTTATATTTATAATATGTTAGGTTTATTAAATATTTTATTATTGATTTTTA	BB=C>;>+>?B@B@@CB@A+5A?'=A;(8<BABB@=>@>@98BB@BA@;2'=47B>7:AB=;('>@?????@7<AA7'8<-8?=@	NM:i:34	AS:i:313
 58	16	chrM	12835	71	2H1=1X2=1X8=1X2=1X17=2X8=1X16=1X3=1X19=	*	0	0	AACAACCATTCAAACAATCCTATACAACCGTATCCACGATATCGATTTCATCCTCGCCTTAACATAATTTATCCTACACTCCAAC	:<=@>A5;1--@+A<B>@?B>@>=*A53;2)?7+%:B;@@>@BABA@@A?4A<BC9AAA>B5AB>=BBACB@B:+8?C>C?66>B	NM:i:9	AS:i:397
 59	16	chrM	9918	71	5H1=2X5=1X5=2X4=1X1=1X2=1X2=1X1=2X3=2X8=1X3=1X12=1X2=1X1=3X12=	*	0	0	CTACGCCTAATACTAACATTCTATAAATATAATTTAGCTATTTCTATATATCTCCATCTATTAATAAAAATCTTACTCTTTT	###?1@<AA>/@)+;6=3,=4)7:<9A@@>:@A>B?)420>99A5@AB<?<>6=?B?BBAB:*0A?B-B9BA>B:>@8=ACB	NM:i:20	AS:i:361
-6	0	chrM	11107	71	1=1X11=1X2=1X7=2X1=1X1=1X4=4X1=2X4=1X3=1X2=1X1=2X8=1X2=2X2=2X4=1X1=1X7=	*	0	0	TTATATTTTATATTTTTTTCGAAATTATATTTATTTTTATTTTGGTTATTATTATTCGATGAGGTAATTAGTTAGAATGTCTGAACG	BBB?C<@BA;5AB:AB@B?B<AB>A<AB:@AB9;=@AA43A>@;,5=@@A@/@>@=:?:@>><>-=6@746?=05?*?<<==9775=	NM:i:25	AS:i:368
 60	16	chrM	12615	71	4=1X10=2X9=1X10=1X1=1X13=1X16=1X10=1X5=	*	0	0	CATTATTCGTTACATAATCCATCATAAAATTCTCACTATAATATATAAACTCAAACCCAAACATTAATCAATTCTTCAAATCTCTAC	#@>?:@<13=A51=5((06?@=9@?A2.7>)1,@-)(5=@BAABAABA<(72:@B<7@)<@+:((8B:;(;7;/78:3@(=)=>B>B	NM:i:9	AS:i:383
 63	0	chrM	16063	69	5=1X1=1X1=2X1=1X1=1X2=1X2=1X2=1X13=1X4=1X2=2X2=7X2=1X6=1X3=1X2=3X1=2X9H	*	0	0	ATTGATTTATTCTTTAATAATCGTTATGTATTTCGTATATTATTGTTAGTTGGTTAGAGTATTGTCCGGGACGCCATT	3)>(<@))@A*<*>(0(94<:0)<+BA:>:7>B8'?%66-?>B5).A6@0=###########################	NM:i:28	AS:i:196
 64	0	chrM	13008	71	1X3=2X8=1X1=2X1=4X3=1X1=4X1=1X2=2X8=4X1=4X3=1X1=1X2=3X2=1X1=2X1=1X1=1X3=1X1=1X5=	*	0	0	TAGCTTAATTAGGTTTTTAGTTTTGATTTTTTTTAGTTATAGAAGGTTTTATTTTAGTTTTAGTTTTATTTTATTTAAGTATTATAG	BCCCAC@CCACCCC=CCCC0CCCCCCACCCBCCCCCCC@CCBC>C@CBCCA<BBCBCACBCB@?B@BB?@@B@@,;BB?A?AB>BB=	NM:i:38	AS:i:345
@@ -12678,7 +12681,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 67	16	chrM	9521	71	1X4=1X17=2X1=3X4=1X10=2X9=1X12=1X2=1X1=1X13=	*	0	0	ACCTAACCCCTACCCCCCAACTAAAAAAACACTAGCCCCCAACAAACATCACCCCACTAAATCCCCTAAAAATACCACTCCTAAACA	9711?7?95?><::A?A41<:@4@<?@@?3AAA3<3@8<@??29B@AB@99BBB<<A@>7A<>?A7>>7??B=+BB;B<?;BB<B8A	NM:i:14	AS:i:398
 68	16	chrM	15821	71	43=1X18=3X3=1X5=1X2=1X9=	*	0	0	CTTCACAACAATCCTAATCCTAATACCAACTATCTCCCTAATTAAAAACAAAATACTCAAATAAACCTATCCTTATAATATAAACTA	=:95<??659@?@B=BA@@=3@B7->A???;AA3/6BBA>=@6>62A.A@81B<=6@B???@<(9BBABBB>4A>=>@?ABB??6?B	NM:i:7	AS:i:401
 69	0	chrM	5661	70	2=2X7=1X5=3X1=1X3=1X1=1X8=1X2=1X4=1X1=3X4=1X2=1X3=1X2=1X3=1X2=1X2=1X1=2X2=1X2=1X1=1X1=1X	*	0	0	GATTAATGGGATTTAAATTTAAAAATATTTAGTTAATAGTTAAGTATTTTAATTAATTGGTTTTAATTTATTTTTTTCGTCGTCTGT	B>BB;1ABB?@9ABAABAB@4)?@A>(@>>*>>53A<>0@>@BAA@:7;)@<?AA@AB2',(@((0A@>?=7:>?A@B:@'?.<###	NM:i:28	AS:i:349
-7	16	chrM	144	70	2H3=1X5=1X4=1X6=1X5=1X12=1X2=1X15=1X1=1X1=1X13=1X3=1X2=1X	*	0	0	CCTAATTCTCTTATCTATCGCTCCTACATTCAATATTACAAGCAAACATACCTACTAAAATATATTAATTAATTAATACTTATAA	####;672++4<=.060?>+/+22(9<;9;;94@@1=5=B:)?BA@BBBA98>4+:?<BB?@>:,6?B;BBCBCBBCBCC>@CCB	NM:i:13	AS:i:340
 70	0	chrM	7676	71	1X5=2X4=1X2=1X2=2X4=2X6=3X4=2X3=1X1=1X1=1X1=1X2=1X4=1X3=1X5=1X3=1X2=1X1=1X5=1X3H	*	0	0	TATTTTTTTTATTTGTTTTTTAGTTTTGTATGTTTTTTTTTTAATATTTATAATAAAATTAATTAATATTAATATTTTAGACGT	?ACBCCCCCACBCBCCC=CCC>@7BCAACCBCBC?CBCCACCCC@ACC?AC@BA<C>CACC?@CBBBC67;@)=@>@A*=:B@8	NM:i:26	AS:i:340
 71	0	chrM	15445	70	2=1X1=1X2=2X2=1X1=1X1=2X7=1X5=1X1=1X4=1X1=1X1=1X4=2X1=2X7=3X3=1X7=3X3=2X2=4X1=	*	0	0	TTTTTTTTTTTTTTTTTTTAATGATATTAATATTATTTTTATCAGATTTTTTAGGCGATTTAGATAATTATATTTTAGTTAATTTTT	BCCAB>CBCBBB>?BC@BB?BBB@@A>B?A@BBA<BB??BBBBBBBAB@B@@<A5<=>BABA?A.<,B@ABB@B=88B?@<7@?AAB	NM:i:31	AS:i:348
 72	0	chrM	11022	70	2X1=1X3=1X2=1X2=1X4=1X1=1X2=2X1=1X1=1X4=1X4=1X1=3X2=1X4=1X1=2X1=1X4=1X3=1X3=1X1=1X2=2X1=1X3=2X2=3H	*	0	0	TTATTATTACAAACAAAATTTTATTTTTTTATAGTAATTTTTTTATAAATTTTTTCAATTTTAATATTTAGAGTAATAGATTTA	BAAC?BA=18%<A*=C=1=8*0B@;??9:'@A:.B:A3*7B@6/:AB@B@A2A@C)3,?8%-,524A:)2(B@8(<>=0A):(@	NM:i:31	AS:i:280
@@ -12689,7 +12691,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 77	16	chrM	10778	71	5=1X18=1X4=1X12=1X10=1X20=1X11=1X	*	0	0	CCCAATAATTATATTACTACCACTAACATAACTTTCCAAAAAACACATAATTTAAATCAACACAACCACCCACAACCTAATTATTAA	=>;A1+A:=A2+5>=17B<B>?:B:2;63B@AA+8709A;=/>'=>>>6@</@*<*AA@CB=';9C?7<494=BBACA9>>BBA:<A	NM:i:7	AS:i:381
 78	0	chrM	11895	70	1X1=1X1=1X4=1X6=2X1=1X3=1X1=2X4=1X6=1X1=1X3=2X2=1X3=1X4=1X1=1X2=1X3=1X4=1X1=1X2=3X4=1X1=2H	*	0	0	TTTTTTGTGTTAGTAATTATGTTTTGTTGATTAAATATTATTCTTTTATTTATAGGATTTAATATATTAGTTATAGTTTTATATT	B@BCC*B>BBBBBB>A>B<BAA<<A4AA@BA;5?ABA@?09?(9>?<@B;:'8::0479>@?(9/;99@??B<:>A777>=::>9	NM:i:27	AS:i:329
 79	0	chrM	10827	70	8=1X2=1X1=1X2=2X1=3X1=1X2=2X10=1X2=1X2=5X2=1X10=2X4=1X2=1X2=1X2=2X7=1X	*	0	0	ATTTGAATTAATATAATTATTTATAGTTTAATTATTAGTATTATTTTTTTATTATTTTTTAATTAAATTAATAATAATTTATTTAGT	BCC?BCBBBACB?B:B>4B:9B>A<@@B@BBBA=B?9@AB@AA9BA9?@@A14=BB@>B>@B8@@?@:4:0=<A>@<A>><85:;22	NM:i:27	AS:i:369
-8	0	chrM	5007	71	2=1X3=1X2=1X1=1X5=3X1=1X16=1X4=1X2=1X4=1X2=3X3=1X3=1X1=1X3=1X9=1X6=	*	0	0	AGTATATTCTTTAATTATTTATATAGGATGAATAATAGTAGTTTTATCGTATAATTTTAATATATCTATTTTTAATTTAATTATTTA	B@C=BBCCBC?CCCC>BCC<B;@B@@BA2>C:<ABCC<A@A=@BB-@B?:B<B7>?AB:A@@@>(:AB@=B;B@BB>@<@>@A@ABB	NM:i:20	AS:i:368
 81	0	chrM	8357	70	3=1X9=4X2=1X6=1X2=1X7=3X1=2X7=5X3=1X1=2X3=1X1=1X4=2X1=1X2=1X1=3X2=1X1=	*	0	0	TTATAGTGAAATGTTTTAATTAAATATTATCGTATGGTTTATTATAATTATTTTTATATTTTTTATATTATTTTTTATTATTTAATT	@C<?BCCBCCB@CB@;BB=4@@>BCAAB@.0;B@@?C@BBA3>AC>8/B=A=C@B<C226A1>8B@B;A<98AB>>)>A?<@@8@<5	NM:i:31	AS:i:359
 82	16	chrM	9714	71	3X7=1X14=1X5=1X1=1X8=1X18=1X3=1X8=1X12=	*	0	0	AAATCTCTATATTACCCTCCTACAAACCTCAAAATACTTCGAATCTCCCTTCACCATTTCCAACGACATCTACGACTCAACATTTTT	57<9<93BB:%9BBB@B5'4@47=(:BA>+@?B8A3@<7BCB@B@ABCABCCBCCBA@CA'4@BAB<AABBCBC?CBCBCB5BACB@	NM:i:11	AS:i:422
 83	16	chrM	1727	70	13=1X3=1X4=2X1=1X3=1X12=2X7=1X5=1X4=1X3=3X3=1X2=1X11=	*	0	0	CCATTTACCCAAACAAAATATAAACAATAAAAATTGAAACCTAACGCAATAAATATAATACCACAAAAAAAAAATAAAAAATTATAA	B4??@>5=8=-6@6A9:@9;A<@B:BAAA9@B<69@AA?BA?B?A@?BA@B<BA?8@@B<B;BBBB<@@C?BB?A@BB@ABAB8BBB	NM:i:16	AS:i:332
@@ -12698,7 +12699,6 @@ SRR359290.9033        1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCCA       42
 87	0	chrM	15012	71	5=1X5=1X2=2X1=1X2=2X2=1X1=1X11=2X7=1X4=1X4=1X1=1X2=1X1=1X5=2X5=1X5=1X3=	*	0	0	ATATTTTTTATTTGTTTTTTTTTATATATCGGGCGAGGTTTATATTATGGATTATTTTTTTATTTAGAAATTTGAAATATCGGTATT	BACC@=BBBC<C=C@BBA@C=AB@BB=?@BB?BBBBABACAA4A?BBB?AAB?;9?BAB79A7ABBABBABBBBBB?BBBBBBCABC	NM:i:21	AS:i:366
 88	0	chrM	716	71	8=1X1=3X1=1X5=1X1=2X1=1X3=1X12=1X2=1X3=1X3=1X1=2X4=1X2=1X1=1X5=2X4=2X3=2X1=1X	*	0	0	AGTGAGTTTATTTTTTAAATTATTATGATTAAAAGGGACAAGTATTAAGTACGTAATAATGTAGTTTAAAACCTTTAGTTTAGTTAT	BCCACCCBCCCCBCACB@CCBBCBC>BBAB@CBBBBBBBCCB>BCBB?AABBBBB??B@BCABBAB@BABBBBBBB>BAABBBB@@?	NM:i:26	AS:i:354
 89	0	chrM	8408	71	4X3=1X1=2X3=1X1=1X4=2X1=1X2=1X1=3X2=1X13=1X1=1X3=1X2=2X1=2X2=2X1=3X1=1X1=2X4=3X5=	*	0	0	TTTTATATTTTTTATATTATTTTTTATTATTTAATTAAAAATATTAAATATAAATTATTATTTATTTTTTTTATTAAAGTTTATAAA	9B:):<CCCAC>C:CCAC==B?CCCCCCCCB@BBCBCB<CBCCCB9?<B6BBA;B>CCC@C@<74C=CA/(;8@;-<3B@C=)%51C	NM:i:35	AS:i:358
-9	0	chrM	7902	70	4=2X8=1X1=1X3=1X5=1X3=1X4=1X2=1X2=1X1=2X2=1X3=1X2=5X6=2X5=2X3=1X2=2X5=	*	0	0	TGAATTTACGAGTATATCGATTACGGTGGATTAATTTTTAATTTTTATATATTTTTTTTATTATTTTTAGAATTAGGTGATTTGCGA	B=9=B+BBBB>BBB=:BB@;<@@B:<A4@?A:?=BABAAAA>>@<A>@AA>@@@?@@6878:6588?<:>=?9<::=<51<99>;48	NM:i:26	AS:i:375
 90	16	chrM	1599	70	21H1=1X5=1X1=1X1=1X2=1X11=1X17=2X1=1X15=1X2=	*	0	0	CTAACCAAAATATAACTTAACACAAAACACCCAACTTACACTTAAAAAATTTCAACTTAACTTAAC	##:421823=:?-?@B.':@<6>AA@3)1<?(:=?)7??AB4))'>A9AA987.AB1;ABA=6';8	NM:i:10	AS:i:278
 91	16	chrM	3742	71	4=1X32=2X22=1X11=1X9=1X3=	*	0	0	CCTAACCATCATTCTACTATCAACATTACTAATAAGTAACTCCTTTAACCTCTCCACCCTTGTCACAACACAAAAACACCTCTAATT	>?@A@@@@5:7A??A>B;@A0'=>@AB?;A@:B??3:;=B<A<B23??B>9B@AAB@A95@(@BBB@B==BBBAB:4@7>@6@A76-	NM:i:6	AS:i:421
 92	0	chrM	5910	71	2=1X3=1X6=1X4=1X1=1X2=1X3=2X1=1X5=1X7=1X1=1X4=2X10=1X1=1X5=1X6=2X3=4H	*	0	0	CGTCGATCGTTGATTATTTTTTATAAATTATAAAGATATTGGAATATTATATTTATTATTCGGTGTATGAGTTGGAGTTTTAG	BB@BBC@CA=@>C<BBB<,B@8@@@>A?B:)=BBBCB3'>A@AAB94;A>B@C@=;)+8BA@B:=1C>1B6C7C=<<%.<6<#	NM:i:19	AS:i:360
