@@ -260,10 +260,10 @@ Details
   (of the kind produced by lastal) describing the alignment score
   parameters.
 
-* The program reads one batch of alignments at a time (by looking for
-  lines starting with "# batch").  If the batches are huge
-  (e.g. because there are no lines starting with "# batch"), it might
-  need too much memory.
+* The input must not mix alignments of different query sequences.  In
+  other words, all the alignments of one query must be next to each
+  other.  If you use ``-r``/``--reverse``, however, there is no such
+  requirement, and the whole input gets read into memory.
 
 * lastal can optionally write "p" lines, indicating the probability
   that each base is misaligned due to wrong gap placement.
@@ -285,8 +285,8 @@ last-split5
 -----------
 
 last-split5 is almost identical to last-split.  The only difference is
-the -g option: last-split can only read the output of lastdb, whereas
-last-split5 can only read the output of lastdb5_.
+the ``-g`` option: last-split can only read the output of lastdb,
+whereas last-split5 can only read the output of lastdb5_.
 
 Limitations
 -----------

@@ -45,6 +45,24 @@ static bool isBlankLine(const char *s) {
   }
 }
 
+static bool isSpace(char c) {
+  return c > 0 && c <= ' ';
+}
+
+static bool isSameName(const char *sLine1, const char *sLine2) {
+  do { ++sLine1; } while (isSpace(*sLine1));
+  do { ++sLine2; } while (isSpace(*sLine2));
+  for (;;) {
+    if (*sLine1 > ' ') {
+      if (*sLine2 != *sLine1) return false;
+    } else {
+      return *sLine2 <= ' ';
+    }
+    ++sLine1;
+    ++sLine2;
+  }
+}
+
 static int scoreFromProb(double prob, double scale) {
   return std::floor(scale * std::log(prob) + 0.5);
 }
@@ -319,6 +337,8 @@ void lastSplit(LastSplitOptions& opts) {
   double genomeSize = 0;
   std::vector<std::string> mafLines;  // lines of multiple MAF blocks
   std::vector<unsigned> mafEnds(1);  // which lines are in which MAF block
+  unsigned sLineCount = 0;
+  unsigned qNameLineNum = 0;
   bool isAlreadySplit = false;  // has the input already undergone last-split?
 
   for (unsigned i = 0; i < opts.inputFileNames.size(); ++i) {
@@ -409,14 +429,16 @@ void lastSplit(LastSplitOptions& opts) {
 	}
       }
       if (state == 1) {  // we are reading alignments
-	if (startsWith(linePtr, "# batch") && !opts.isTopSeqQuery) {
-	  addMaf(mafEnds, mafLines);
-	  doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
-	  mafLines.clear();
-	  mafEnds.resize(1);
-	} else if (isBlankLine(linePtr)) {
+	if (isBlankLine(linePtr)) {
 	  addMaf(mafEnds, mafLines);
 	} else if (std::strchr(opts.no_split ? "asqpc" : "sqpc", linePtr[0])) {
+	  if (!opts.isTopSeqQuery && linePtr[0] == 's' && sLineCount++ % 2 &&
+	      !isSameName(mafLines[qNameLineNum].c_str(), linePtr)) {
+	    doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
+	    mafLines.erase(mafLines.begin(), mafLines.begin()+mafEnds.back());
+	    mafEnds.resize(1);
+	    qNameLineNum = mafLines.size();
+	  }
 	  mafLines.push_back(line);
 	}
       }

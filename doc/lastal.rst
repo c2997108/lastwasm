@@ -318,7 +318,7 @@ Miscellaneous options
     single sequence exceeds this amount, however, it is not split.
     You can use suffixes K, M, and G to specify KibiBytes,
     MebiBytes, and GibiBytes.  This option has no effect on the
-    results (apart from their order).
+    results.
 
     If the reference was split into volumes by lastdb_, then each
     volume will be read into memory once per query batch.
