@@ -127,7 +127,7 @@ research to society.
 15. `Improved DNA-versus-protein homology search for protein fossils`__.
     Yao Y, Frith MC.
 
-    __ https://doi.org/10.1101/2021.01.25.428050
+    __ https://doi.org/10.1007/978-3-030-74432-8_11
 
     Describes "new-style" DNA-versus-protein search with
     ``last-train --codon``.

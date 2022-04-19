@@ -1,14 +1,22 @@
 last-split
 ==========
 
-This program finds "split alignments" (typically for DNA) or "spliced
+last-split finds "split alignments" (typically for DNA) or "spliced
 alignments" (typically for RNA).
 
-It reads candidate alignments of query sequences to a genome, and
-looks for a unique best alignment for each part of each query.  It
-allows different parts of one query to match different parts of the
-genome.  This is useful for DNA queries that cross rearrangement
-breakpoints, or RNA queries that cross splice junctions.
+It reads candidate alignments of query sequences to a genome, and cuts
+from them a unique best alignment for each part of each query.  This
+is useful for DNA queries that cross rearrangement breakpoints, or RNA
+queries that cross splice junctions.
+
+For a detailed explanation of what last-split does, please see `A
+survey of localized sequence rearrangements in human DNA
+<https://doi.org/10.1093/nar/gkx1266>`_ (update in `A pipeline for
+complete characterization of complex germline rearrangements from long
+DNA reads <https://doi.org/10.1186/s13073-020-00762-1>`_).  The
+algorithm, and application to whole genomes, is in `Split-alignment of
+genomes finds orthologies more accurately
+<https://doi.org/10.1186/s13059-015-0670-9>`_.
 
 Examples
 --------
@@ -34,12 +42,12 @@ tells it where the splice signals are (GT, AG, etc)::
 
   lastal -p train.out -D10 db q.fastq | last-split -g db > out.maf
 
-This will favour splices starting at GT (and to a lesser extent GC and
-AT), and ending at AG (and to a lesser extent AC).  However, it allows
-splices starting and ending anywhere.  It also favours splices with
-introns of typical length, specified by a log-normal distribution
-(i.e. cis-splices).  However, it allows arbitrary trans-splices
-between any two places in the genome.
+This will favor splices starting at GT (and to a lesser extent GC and
+AT), and ending at AG (and to a lesser extent AC).  The output shows
+the ``don``or and ``acc``eptor dinucleotides.  It also favors splices
+with introns of typical length, specified by a log-normal distribution
+(cis-splices).  However, it allows arbitrary trans-splices between any
+two places in the genome.
 
 ``-D10`` sets a very loose significance threshold, so that we can find
 very short parts of a spliced alignment (e.g. short exons).  Note that
@@ -148,19 +156,20 @@ Faster spliced alignment
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Spliced alignment can be slow.  It can be sped up, at a small cost in
-accuracy, by not favouring cis-splices::
+accuracy, by not favoring cis-splices::
 
   lastal -p train.out -D10 db q.fastq | last-split -c0 -t0.004 -g db > out.maf
 
 The ``-c0`` turns off cis-splicing, and the ``-t0.004`` specifies a
-higher probability of trans-splicing.
+higher probability of "trans-splicing" (which includes cis-splicing,
+just doesn't favor it).
 
 "Spliced" alignment of DNA reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If we do not wish to allow arbitrarily large unaligned parts in the
 middle of the query, we can do "spliced" alignment without considering
-splice signals or favouring cis-splices::
+splice signals or favoring cis-splices::
 
   lastal -p train.out db q.fastq | last-split -c0 > out.maf
 
@@ -193,11 +202,20 @@ Options
        determines whether forward and/or reverse-complement splice
        signals are used.
 
-       If you use ``-d2``, the output will have an extra "sense"
+       If you use ``-d2``, the output will have an extra ``sense``
        field, indicating the log-odds that the query is
        sense-stranded::
 
 	   log2[ prob(sense) / prob(antisense) ]
+
+       The ``don``or and ``acc``eptor annotations also indicate
+       whether the query is sense or antisense: the first exon only
+       has a donor and the last exon only has an acceptor.
+
+       It's possible for ``don`` and ``acc`` to conflict with
+       ``sense``.  That happens if one orientation is overall more
+       likely (indicated by ``sense``), but any one alignment with
+       that orientation is not the most likely.
 
 -c, --cis=PROB
        Do spliced alignment, and set the average probability per
