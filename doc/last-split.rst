@@ -44,10 +44,11 @@ tells it where the splice signals are (GT, AG, etc)::
 
 This will favor splices starting at GT (and to a lesser extent GC and
 AT), and ending at AG (and to a lesser extent AC).  The output shows
-the ``don``or and ``acc``eptor dinucleotides.  It also favors splices
-with introns of typical length, specified by a log-normal distribution
-(cis-splices).  However, it allows arbitrary trans-splices between any
-two places in the genome.
+the donor (``don``) and acceptor (``acc``) dinucleotides.
+
+It also favors splices with introns of typical length, specified by a
+log-normal distribution (cis-splices).  However, it allows arbitrary
+trans-splices between any two places in the genome.
 
 ``-D10`` sets a very loose significance threshold, so that we can find
 very short parts of a spliced alignment (e.g. short exons).  Note that
@@ -208,9 +209,21 @@ Options
 
 	   log2[ prob(sense) / prob(antisense) ]
 
-       The ``don``or and ``acc``eptor annotations also indicate
-       whether the query is sense or antisense: the first exon only
-       has a donor and the last exon only has an acceptor.
+       The donor and acceptor annotations also indicate strandedness.
+       This order means that the query sequence is from the forward
+       strand of a spliced RNA::
+
+           don
+           acc don
+           acc don
+           acc
+
+       And this order means it is from the reverse strand::
+
+           acc
+           don acc
+           don acc
+           don
 
        It's possible for ``don`` and ``acc`` to conflict with
        ``sense``.  That happens if one orientation is overall more
