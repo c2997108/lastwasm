@@ -51,49 +51,36 @@ bool isDubiousDna( const Alphabet& alph, const MultiSequence& multi ){
   else return false;
 }
 
-static void addSeeds( std::vector< CyclicSubsetSeed >& seeds,
-		      const std::string& seedText,
-		      const LastdbArguments& args, const Alphabet& alph ){
-  std::istringstream iss( seedText );
-  std::vector< std::string > seedAlphabet;
-  std::string pattern;
-  while( CyclicSubsetSeed::nextPattern( iss, seedAlphabet, pattern ) ){
-    CyclicSubsetSeed s;
-    s.init(seedAlphabet, pattern, args.isCaseSensitive, alph.encode,
-	   alph.letters);
-    seeds.push_back(s);
-  }
-}
-
 // Set up the seed pattern(s)
 static void makeSubsetSeeds( std::vector< CyclicSubsetSeed >& seeds,
 			     const std::string& seedText,
 			     const LastdbArguments& args,
 			     const Alphabet& alph ){
   const std::string& a = alph.letters;
+  bool isCaseSens = args.isCaseSensitive;
 
   if( !args.subsetSeedFile.empty() ){
-    addSeeds( seeds, seedText, args, alph );
+    CyclicSubsetSeed::addPatterns(seeds, seedText, isCaseSens, alph.encode, a);
   }
   else if (!args.dnaSeedPatterns.empty()) {
     for (size_t x = 0; x < args.dnaSeedPatterns.size(); ++x) {
       const std::string &p = args.dnaSeedPatterns[x];
       std::string s = CyclicSubsetSeed::stringFromDnaPatterns(p);
-      addSeeds(seeds, s, args, alph);
+      CyclicSubsetSeed::addPatterns(seeds, s, isCaseSens, alph.encode, a);
     }
   }
   else if( !args.seedPatterns.empty() ){
     for( unsigned x = 0; x < args.seedPatterns.size(); ++x ){
       const std::string& p = args.seedPatterns[x];
       std::string s = CyclicSubsetSeed::stringFromPatterns( p, a );
-      addSeeds( seeds, s, args, alph );
+      CyclicSubsetSeed::addPatterns(seeds, s, isCaseSens, alph.encode, a);
     }
   }
   else{
     std::string s = (alph.letters == alph.dna)
       ? CyclicSubsetSeed::stringFromName( "YASS" )
       : CyclicSubsetSeed::stringFromPatterns( "1", a );
-    addSeeds( seeds, s, args, alph );
+    CyclicSubsetSeed::addPatterns(seeds, s, isCaseSens, alph.encode, a);
   }
 
   if( seeds.empty() ) ERR( "no seed patterns" );

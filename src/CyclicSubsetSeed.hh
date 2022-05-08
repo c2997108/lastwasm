@@ -72,6 +72,17 @@ public:
   // codes.  Finally, "@" allows any match or transition.
   static std::string stringFromDnaPatterns(std::string patterns);
 
+  // Read subset-seed patterns from text and add them to patterns.
+  // The text should start with lines defining a seed alphabet,
+  // followed by lines with seed patterns.  Blank lines and comment
+  // lines starting with # are ignored.  Seed letters are
+  // case-sensitive.
+  static void addPatterns(std::vector<CyclicSubsetSeed> &patterns,
+			  const std::string &text,
+			  bool isMaskLowercase,
+			  const uchar letterCode[],
+			  const std::string &mainSequenceAlphabet);
+
   // Reads lines from "in" until it finds a pattern line.  Any seed
   // alphabet lines are appended to "seedAlphabet".  If it finds a
   // pattern line, it stores it in "pattern" and returns true, else it

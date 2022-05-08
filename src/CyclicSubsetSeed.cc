@@ -130,6 +130,23 @@ void CyclicSubsetSeed::init( const std::vector< std::string >& seedAlphabet,
   }
 }
 
+void CyclicSubsetSeed::addPatterns(std::vector<CyclicSubsetSeed> &patterns,
+				   const std::string &text,
+				   bool isMaskLowercase,
+				   const uchar letterCode[],
+				   const std::string &mainSequenceAlphabet) {
+  std::vector<std::string> seedAlphabet;
+  std::string line;
+  std::istringstream textStream(text);
+
+  while (nextPattern(textStream, seedAlphabet, line)) {
+    CyclicSubsetSeed pat;
+    pat.init(seedAlphabet, line, isMaskLowercase, letterCode,
+	     mainSequenceAlphabet);
+    patterns.push_back(pat);
+  }
+}
+
 static void addLetter( uchar toSubsetNum[], uchar letter, unsigned subsetNum,
 		       const uchar letterCode[] ){
   uchar number = letterCode[letter];
