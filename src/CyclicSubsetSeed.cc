@@ -102,16 +102,14 @@ static bool nextPattern(std::istream &in,
   return false;
 }
 
-static size_t findSeedLetter( const std::vector< std::string >& seedAlphabet,
-			      char seedLetter ){
+static const char *letterGroups(const std::vector<std::string> &seedAlphabet,
+				char seedLetter) {
   // go backwards, so that newer definitions override older ones:
-  for( size_t j = seedAlphabet.size(); j > 0; ){
-    --j;
-    const std::string& s = seedAlphabet[j];
-    assert( !s.empty() );
-    if( s[0] == seedLetter ) return j;
+  for (size_t i = seedAlphabet.size(); i-- > 0; ) {
+    const char *s = seedAlphabet[i].c_str();
+    if (s[0] == seedLetter) return s + 2;
   }
-  ERR( "unknown symbol in seed pattern: " + stringify(seedLetter) );
+  ERR("unknown symbol in seed pattern: " + stringify(seedLetter));
 }
 
 static void init(CyclicSubsetSeed &pat,
@@ -123,9 +121,7 @@ static void init(CyclicSubsetSeed &pat,
   for( size_t i = 0; i < pattern.size(); ++i ){
     char seedLetter = pattern[i];
     if( std::isspace(seedLetter) ) continue;
-    size_t j = findSeedLetter( seedAlphabet, seedLetter );
-    std::istringstream iss( seedAlphabet[j] );
-    iss >> seedLetter;
+    std::istringstream iss(letterGroups(seedAlphabet, seedLetter));
     pat.appendPosition(iss, isMaskLowercase, letterCode, mainSequenceAlphabet);
   }
 }
