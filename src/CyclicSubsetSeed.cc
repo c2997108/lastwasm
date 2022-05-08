@@ -86,9 +86,9 @@ n  ACGT\n\
 " + patterns;
 }
 
-bool CyclicSubsetSeed::nextPattern( std::istream& in,
-				    std::vector< std::string >& seedAlphabet,
-				    std::string& pattern ){
+static bool nextPattern(std::istream &in,
+			std::vector<std::string> &seedAlphabet,
+			std::string &pattern) {
   while ( getline( in, pattern ) ){
     std::istringstream iss( pattern );
     std::string x, y;
@@ -114,19 +114,19 @@ static size_t findSeedLetter( const std::vector< std::string >& seedAlphabet,
   ERR( "unknown symbol in seed pattern: " + stringify(seedLetter) );
 }
 
-void CyclicSubsetSeed::init( const std::vector< std::string >& seedAlphabet,
-			     const std::string& pattern,
-			     bool isMaskLowercase,
-			     const uchar letterCode[],
-			     const std::string &mainSequenceAlphabet ){
-  clear();
+static void init(CyclicSubsetSeed &pat,
+		 const std::vector<std::string> &seedAlphabet,
+		 const std::string &pattern,
+		 bool isMaskLowercase,
+		 const uchar letterCode[],
+		 const std::string &mainSequenceAlphabet) {
   for( size_t i = 0; i < pattern.size(); ++i ){
     char seedLetter = pattern[i];
     if( std::isspace(seedLetter) ) continue;
     size_t j = findSeedLetter( seedAlphabet, seedLetter );
     std::istringstream iss( seedAlphabet[j] );
     iss >> seedLetter;
-    appendPosition( iss, isMaskLowercase, letterCode, mainSequenceAlphabet );
+    pat.appendPosition(iss, isMaskLowercase, letterCode, mainSequenceAlphabet);
   }
 }
 
@@ -141,8 +141,8 @@ void CyclicSubsetSeed::addPatterns(std::vector<CyclicSubsetSeed> &patterns,
 
   while (nextPattern(textStream, seedAlphabet, line)) {
     CyclicSubsetSeed pat;
-    pat.init(seedAlphabet, line, isMaskLowercase, letterCode,
-	     mainSequenceAlphabet);
+    init(pat, seedAlphabet, line, isMaskLowercase, letterCode,
+	 mainSequenceAlphabet);
     patterns.push_back(pat);
   }
 }

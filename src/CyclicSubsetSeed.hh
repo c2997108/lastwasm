@@ -83,35 +83,12 @@ public:
 			  const uchar letterCode[],
 			  const std::string &mainSequenceAlphabet);
 
-  // Reads lines from "in" until it finds a pattern line.  Any seed
-  // alphabet lines are appended to "seedAlphabet".  If it finds a
-  // pattern line, it stores it in "pattern" and returns true, else it
-  // returns false.  Blank lines and comment lines starting with # are
-  // ignored.
-  static bool nextPattern( std::istream& in,
-			   std::vector< std::string >& seedAlphabet,
-			   std::string& pattern );
-
-  void clear() {
-    subsetLists.clear();
-    subsetMaps.clear();
-    originalSubsetMaps.clear();
-    numOfSubsetsPerPosition.clear();
-  }
-
   void swap( CyclicSubsetSeed& x ){
     subsetLists.swap( x.subsetLists );
     subsetMaps.swap( x.subsetMaps );
     originalSubsetMaps.swap( x.originalSubsetMaps );
     numOfSubsetsPerPosition.swap( x.numOfSubsetsPerPosition );
   }
-
-  // Seed letters are case-sensitive.
-  void init( const std::vector< std::string >& seedAlphabet,
-	     const std::string& pattern,
-	     bool isMaskLowercase,
-	     const uchar letterCode[],
-	     const std::string& mainSequenceAlphabet );
 
   // "inputLine" should be a grouping of sequence letters.
   void appendPosition( std::istream& inputLine,
