@@ -96,25 +96,13 @@ static const char *letterGroups(const std::vector<std::string> &seedAlphabet,
   ERR("unknown symbol in seed pattern: " + stringify(seedLetter));
 }
 
-static void init(CyclicSubsetSeed &pat,
-		 const std::vector<std::string> &seedAlphabet,
-		 const std::string &pattern,
-		 bool isMaskLowercase,
-		 const uchar letterCode[],
-		 const std::string &mainSequenceAlphabet) {
-  for( size_t i = 0; i < pattern.size(); ++i ){
-    std::istringstream iss(letterGroups(seedAlphabet, pattern[i]));
-    pat.appendPosition(iss, isMaskLowercase, letterCode, mainSequenceAlphabet);
-  }
-}
-
 void CyclicSubsetSeed::addPatterns(std::vector<CyclicSubsetSeed> &patterns,
 				   const std::string &text,
 				   bool isMaskLowercase,
 				   const uchar letterCode[],
 				   const std::string &mainSequenceAlphabet) {
   std::vector<std::string> seedAlphabet;
-  std::string line;
+  std::string line, word;
   std::istringstream textStream(text);
 
   while (getline(textStream, line)) {
@@ -127,10 +115,16 @@ void CyclicSubsetSeed::addPatterns(std::vector<CyclicSubsetSeed> &patterns,
       if (x.size() > 1) ERR("bad seed line: " + line);
       seedAlphabet.push_back(line);
     } else {
-      CyclicSubsetSeed pat;
-      init(pat, seedAlphabet, x, isMaskLowercase, letterCode,
-	   mainSequenceAlphabet);
-      patterns.push_back(pat);
+      std::istringstream lineStream(line);
+      while (lineStream >> word) {
+	CyclicSubsetSeed pat;
+	for (size_t i = 0; i < word.size(); ++i) {
+	  std::istringstream s(letterGroups(seedAlphabet, word[i]));
+	  pat.appendPosition(s, isMaskLowercase, letterCode,
+			     mainSequenceAlphabet);
+	}
+	patterns.push_back(pat);
+      }
     }
   }
 }
