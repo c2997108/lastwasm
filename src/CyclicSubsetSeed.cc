@@ -86,6 +86,15 @@ n  ACGT\n\
 " + patterns;
 }
 
+static int lineType(const std::string &line) {
+  std::istringstream s(line);
+  std::string x, y;
+  s >> x >> y;
+  return (x.empty() || x[0] == '#')    ? 0  // blank or comment line
+    :    (x.size() == 1 && !y.empty()) ? 1  // seed-alphabet line
+    : 2;                                    // seed-pattern line
+}
+
 static const char *letterGroups(const std::vector<std::string> &seedAlphabet,
 				char seedLetter) {
   // go backwards, so that newer definitions override older ones:
@@ -106,15 +115,10 @@ void CyclicSubsetSeed::addPatterns(std::vector<CyclicSubsetSeed> &patterns,
   std::istringstream textStream(text);
 
   while (getline(textStream, line)) {
-    std::istringstream iss(line);
-    std::string x, y;
-    iss >> x;
-    if (x.empty() || x[0] == '#') continue;
-    iss >> y;
-    if (!y.empty()) {
-      if (x.size() > 1) ERR("bad seed line: " + line);
+    int type = lineType(line);
+    if (type == 1) {
       seedAlphabet.push_back(line);
-    } else {
+    } else if (type == 2) {
       std::istringstream lineStream(line);
       while (lineStream >> word) {
 	CyclicSubsetSeed pat;

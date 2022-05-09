@@ -56,14 +56,14 @@ do
     grep '^# ' $i | cut -d' ' -f2-
     echo It uses this seed alphabet::
     echo
-    awk '!/^#/ && NF > 1' $i | sed 's/^/  /'
+    awk '!/^#/ && NF > 1 && length($1) == 1' $i | sed 's/^/  /'
     echo
-    if [ $(awk 'NF == 1' $i | wc -l) = 1 ]
+    if [ $(awk '!/^#/ && length($1) > 1 || NF == 1' $i | wc -w) = 1 ]
 	then echo And this pattern::
 	else echo And these patterns::
     fi
     echo
-    awk 'NF == 1' $i | sed 's/^/  /'
+    awk '!/^#/ && length($1) > 1 || NF == 1' $i | sed 's/^/  /'
     echo
     grep -q '^#lastdb' $i && {
 	echo It sets this lastdb default:
