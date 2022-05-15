@@ -95,8 +95,7 @@ def printOneMaf(mafRecords):
             print(" ".join(fields))
     print()
 
-def cutOneMaf(cutRange, mafLines):
-    seqName, cutBeg, cutEnd = cutRange
+def cutOneMaf(seqName, cutBeg, cutEnd, mafLines):
     sLineFields = findTheSpecifiedSequence(seqName, mafLines)
     if not sLineFields:
         return
@@ -106,22 +105,24 @@ def cutOneMaf(cutRange, mafLines):
     mafRecords = list(cutMafRecords(mafLines, alnBeg, alnEnd))
     printOneMaf(mafRecords)
 
-def mafCutOneFile(cutRange, lines):
-    mafLines = []
-    for line in lines:
-        if line.isspace():
-            cutOneMaf(cutRange, mafLines)
-            mafLines = []
-        elif line[0] != "#":
-            mafLines.append(line)
-    cutOneMaf(cutRange, mafLines)
-
 def wantedRange(cutSpecification):
     seqName = None
     if ":" in cutSpecification:
         seqName, cutSpecification = cutSpecification.rsplit(":", 1)
     beg, end = cutSpecification.rsplit("-", 1)
     return seqName, int(beg), int(end)
+
+def mafCutOneFile(cutRange, lines):
+    seqName, cutBeg, cutEnd = cutRange
+
+    mafLines = []
+    for line in lines:
+        if line.isspace():
+            cutOneMaf(seqName, cutBeg, cutEnd, mafLines)
+            mafLines = []
+        elif line[0] != "#":
+            mafLines.append(line)
+    cutOneMaf(seqName, cutBeg, cutEnd, mafLines)
 
 def mafCut(opts, args):
     cutRange = wantedRange(args[0])
