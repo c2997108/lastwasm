@@ -3,9 +3,10 @@
 
 from __future__ import print_function
 
+import argparse
+import collections
 import gzip
 import itertools
-import optparse
 import signal
 import sys
 
@@ -56,6 +57,21 @@ def findTheSpecifiedSequence(seqName, mafLines):
                 return fields
     return None
 
+def addMafData(dataPerSeq, mafLines, alnBeg, alnEnd):
+    for line in mafLines:
+        if line[0] == "s":
+            fields = line.split()
+            seqName = fields[1]  # xxx omit theSpecifiedSequence ?
+            strand = fields[4]
+            seqLen = int(fields[5])
+            oldSeq = fields[6]
+            beg = int(fields[2]) + alnBeg - oldSeq.count("-", 0, alnBeg)
+            end = beg + alnEnd - alnBeg - oldSeq.count("-", alnBeg, alnEnd)
+            if strand == "-":
+                beg, end = seqLen - end, seqLen - beg
+            seqData = seqLen, beg, end
+            dataPerSeq[seqName].append(seqData)
+
 def cutMafRecords(mafLines, alnBeg, alnEnd):
     for line in mafLines:
         fields = line.split()
@@ -95,15 +111,75 @@ def printOneMaf(mafRecords):
             print(" ".join(fields))
     print()
 
-def cutOneMaf(seqName, cutBeg, cutEnd, mafLines):
+def nameFromTitleLine(line):
+    return line[1:].split()[0]
+
+def doOneFastaSequence(dataPerSeq, topLine, seqLines):
+    alnData = dataPerSeq.get(nameFromTitleLine(topLine))
+    if alnData:
+        seq = "".join(i.rstrip() for i in seqLines)
+        seqLen = len(seq)
+        alnData = [i for i in alnData if i[0] == seqLen]
+        if alnData:
+            beg = min(i[1] for i in alnData)
+            end = max(i[2] for i in alnData)
+            print(topLine, end="")
+            print(seq[beg:end])
+
+def doOneFastqSequence(dataPerSeq, lines):
+    alnData = dataPerSeq.get(nameFromTitleLine(lines[0]))
+    if alnData:
+        seqLen = len(lines[1].rstrip())
+        alnData = [i for i in alnData if i[0] == seqLen]
+        if alnData:
+            beg = min(i[1] for i in alnData)
+            end = max(i[2] for i in alnData)
+            print(lines[0], end="")
+            print(lines[1][beg:end])
+            print(lines[2], end="")
+            print(lines[3][beg:end])
+
+def printFastaParts(dataPerSeq, topLine, lines):
+    seqLines = []
+    for line in lines:
+        if line[0] == ">":
+            doOneFastaSequence(dataPerSeq, topLine, seqLines)
+            topLine = line
+            seqLines = []
+        else:
+            seqLines.append(line)
+    doOneFastaSequence(dataPerSeq, topLine, seqLines)
+
+def printFastqParts(dataPerSeq, topLine, lines):
+    b = [topLine]
+    for i, x in enumerate(lines):
+        b.append(x)
+        if i % 4 == 2:
+            doOneFastqSequence(dataPerSeq, b)
+            b = []
+
+def printSequenceParts(dataPerSeq, lines):
+    for line in lines:
+        if line[0] == ">":
+            printFastaParts(dataPerSeq, line, lines)
+        elif line[0] == "@":
+            printFastqParts(dataPerSeq, line, lines)
+        else:
+            raise RuntimeError("can't read the sequence data")
+        break
+
+def cutOneMaf(seqName, cutBeg, cutEnd, dataPerSeq, mafLines):
     sLineFields = findTheSpecifiedSequence(seqName, mafLines)
     if not sLineFields:
         return
     alnBeg, alnEnd = alignmentRange(cutBeg, cutEnd, sLineFields)
     if alnBeg >= alnEnd:
         return
-    mafRecords = list(cutMafRecords(mafLines, alnBeg, alnEnd))
-    printOneMaf(mafRecords)
+    if dataPerSeq is None:
+        mafRecords = list(cutMafRecords(mafLines, alnBeg, alnEnd))
+        printOneMaf(mafRecords)
+    else:
+        addMafData(dataPerSeq, mafLines, alnBeg, alnEnd)
 
 def wantedRange(cutSpecification):
     seqName = None
@@ -112,32 +188,32 @@ def wantedRange(cutSpecification):
     beg, end = cutSpecification.rsplit("-", 1)
     return seqName, int(beg), int(end)
 
-def mafCutOneFile(cutRange, lines):
-    seqName, cutBeg, cutEnd = cutRange
+def mafCut(args):
+    seqName, cutBeg, cutEnd = wantedRange(args.segment)
+    dataPerSeq = collections.defaultdict(list) if args.sequences else None
 
     mafLines = []
-    for line in lines:
+    for line in myOpen(args.alignments):
         if line.isspace():
-            cutOneMaf(seqName, cutBeg, cutEnd, mafLines)
+            cutOneMaf(seqName, cutBeg, cutEnd, dataPerSeq, mafLines)
             mafLines = []
         elif line[0] != "#":
             mafLines.append(line)
-    cutOneMaf(seqName, cutBeg, cutEnd, mafLines)
+    cutOneMaf(seqName, cutBeg, cutEnd, dataPerSeq, mafLines)
 
-def mafCut(opts, args):
-    cutRange = wantedRange(args[0])
-    if len(args) > 1:
-        for i in args[1:]:
-            mafCutOneFile(cutRange, myOpen(i))
-    else:
-        mafCutOneFile(cutRange, sys.stdin)
+    if dataPerSeq:
+        for fileName in args.sequences:
+            printSequenceParts(dataPerSeq, myOpen(fileName))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # avoid silly error message
-    usage = "%prog chrN:start-end alignments.maf"
     description = "Get parts of MAF-format alignments."
-    op = optparse.OptionParser(usage=usage, description=description)
-    opts, args = op.parse_args()
-    if not args:
-        op.error("please give me a cut specification and MAF alignments")
-    mafCut(opts, args)
+    ap = argparse.ArgumentParser(description=description)
+    ap.add_argument("segment",
+                    help="zero-based sequence range, e.g. chr7:123400-123500")
+    ap.add_argument("alignments", nargs="?", default="-",
+                    help="file of sequence alignments in MAF format")
+    ap.add_argument("sequences", nargs="*", default=None,  # xxx need default?
+                    help="file of sequences in fasta or fastq format")
+    args = ap.parse_args()
+    mafCut(args)
