@@ -62,7 +62,7 @@ def cutMafRecords(mafLines, alnBeg, alnEnd):
         if line[0] == "s":
             oldSeq = fields[6]
             newSeq = oldSeq[alnBeg:alnEnd]
-            beg = int(fields[2]) + alnBeg - oldSeq[:alnBeg].count("-")
+            beg = int(fields[2]) + alnBeg - oldSeq.count("-", 0, alnBeg)
             span = len(newSeq) - newSeq.count("-")
             yield fields[:2] + [str(beg), str(span)] + fields[4:6] + [newSeq]
         elif line[0] == "q":
@@ -82,15 +82,7 @@ def printMafLine(fieldWidths, fields):
     formatParams = itertools.chain.from_iterable(zip(fieldWidths, fields))
     print("%*s %-*s %*s %*s %*s %*s %*s" % tuple(formatParams))
 
-def cutOneMaf(cutRange, mafLines):
-    seqName, cutBeg, cutEnd = cutRange
-    sLineFields = findTheSpecifiedSequence(seqName, mafLines)
-    if not sLineFields:
-        return
-    alnBeg, alnEnd = alignmentRange(cutBeg, cutEnd, sLineFields)
-    if alnBeg >= alnEnd:
-        return
-    mafRecords = list(cutMafRecords(mafLines, alnBeg, alnEnd))
+def printOneMaf(mafRecords):
     fieldWidths = list(mafFieldWidths(mafRecords))
     for fields in mafRecords:
         if fields[0] == "s":
@@ -102,6 +94,17 @@ def cutOneMaf(cutRange, mafLines):
         else:
             print(" ".join(fields))
     print()
+
+def cutOneMaf(cutRange, mafLines):
+    seqName, cutBeg, cutEnd = cutRange
+    sLineFields = findTheSpecifiedSequence(seqName, mafLines)
+    if not sLineFields:
+        return
+    alnBeg, alnEnd = alignmentRange(cutBeg, cutEnd, sLineFields)
+    if alnBeg >= alnEnd:
+        return
+    mafRecords = list(cutMafRecords(mafLines, alnBeg, alnEnd))
+    printOneMaf(mafRecords)
 
 def mafCutOneFile(cutRange, lines):
     mafLines = []
