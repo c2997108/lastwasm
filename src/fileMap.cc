@@ -25,8 +25,7 @@ static void err( const std::string& s ) {
 // random access can be horribly slow (at least on two Linux 2.6
 // systems).
 static void primeMemory( void* begin, size_t bytes ){
-  // use "static" to stop the compiler optimizing the whole function away:
-  static unsigned z = 0;
+  unsigned z = 0;
   size_t stepSize = 1024;
   const char* x = static_cast<char*>(begin);
   const char* y = x + (bytes / stepSize) * stepSize;
@@ -34,6 +33,8 @@ static void primeMemory( void* begin, size_t bytes ){
     z += *x;
     x += stepSize;
   }
+  volatile unsigned dontOptimizeMeAway = z;
+  dontOptimizeMeAway = dontOptimizeMeAway;  // ??? prevents compiler warning
 }
 
 namespace cbrc{
