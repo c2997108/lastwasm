@@ -172,7 +172,7 @@ Miscellaneous options (default settings):\n\
 -C: omit gapless alignments in >= C others with > score-per-length (off)\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
--i: query batch size (8 KiB, unless there is > 1 thread or lastdb volume)\n\
+-i: query batch size (64M if multi-volume, else 32M if multi-thread, else 8K)\n\
 -M: find minimum-difference alignments (faster but cruder)\n\
 -T: type of alignment: 0=local, 1=overlap ("
     + stringify(globality) + ")\n\
@@ -524,7 +524,10 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
     else if( outputType == 0 )
       batchSize = 0x1000000;  // 16 Mbytes
     else if( !isVolumes )
-      batchSize = 0x800000;   // 8 Mbytes
+      batchSize = 0x2000000;   // 32 Mbytes
+    // 32 Mbytes gave quite good load-balancing when aligning human
+    // nanopore reads with 16 threads.  Sometimes 64M (and even 128M)
+    // was better.  With WindowMasker, smaller batches were fine.
     else if( inputFormat == sequenceFormat::prb )
       batchSize = 0x2000000;  // 32 Mbytes (?)
     else
