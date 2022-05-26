@@ -206,7 +206,7 @@ And these patterns::
   YYYYRY
 
 It sets this lastal default:
--r6 -q18 -a21 -b9
+-m2 -r6 -q18 -a21 -b9
 
 RY8-8 (abbreviation: RY8)
 -------------------------
@@ -254,7 +254,7 @@ And these patterns::
   YYYYYYYR
 
 It sets this lastal default:
--r6 -q18 -a21 -b9
+-m2 -r6 -q18 -a21 -b9
 
 RY16-8 (abbreviation: RY16)
 ---------------------------
@@ -286,7 +286,7 @@ And these patterns::
   YYRRYRYY
 
 It sets this lastal default:
--r6 -q18 -a21 -b9
+-m2 -r6 -q18 -a21 -b9
 
 RY32-10 (abbreviation: RY32)
 ----------------------------
@@ -334,5 +334,5 @@ And these patterns::
   YYYYYYRRRY
 
 It sets this lastal default:
--r6 -q18 -a21 -b9
+-m2 -r6 -q18 -a21 -b9
 

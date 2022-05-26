@@ -145,47 +145,53 @@ you expect the rates to be roughly the same.
 Aligning high-indel-error long DNA reads to a genome
 ----------------------------------------------------
 
-Suppose we have DNA reads in either FASTA or FASTQ_ format.  This is
-sensitive but slow::
+Suppose we have DNA reads in either FASTA or FASTQ_ format.  We can
+align them to a genome like this::
 
-  lastdb -P8 -uNEAR mydb genome.fa
+  lastdb -P8 -uRY4 mydb genome.fa
   last-train -P8 -Q0 mydb reads.fastq > reads.train
   lastal -P8 -p reads.train mydb reads.fastq | last-split > out.maf
 
 ``-P8`` makes it faster by running 8 parallel threads, adjust as
 appropriate for your computer.  This has no effect on the results.
 
-``-uNEAR`` selects a `seeding scheme`_ that's better at finding
-alignments with few substitutions and/or many gaps.
+``-uRY4`` selects a `seeding scheme`_ that reduces the run time and
+memory use, but also reduces sensitivity.
 
 ``-Q0`` makes it discard the fastq_ quality information (or you can
 keep-but-ignore it with ``-Qkeep``).
 
-last-split_ finds a unique best alignment for each part of each read.
-It gives each alignment a `mismap probability`_, which is high if that
-part of the read is almost equally similar to several parts of the
-genome.
+last-split_ cuts the output of ``lastal`` down to a unique best
+alignment for each part of each read.  It gives each alignment a
+`mismap probability`_, which is high if that part of the read is
+almost equally similar to several parts of the genome.
 
 Here we didn't suppress alignments caused by simple sequence (like
 ``cacacacacacacacacacacaca``), so as not to hide anything from
 last-split_.  You can discard such alignments with last-postmask_
 (though they may help to explain each part of a DNA read).
 
-You can go faster by sacrificing a bit of sensitivity.  It depends on
-your aim, e.g. slow-and-sensitive seems necessary to find intricate
-rearrangements of repeats.  Suggested ways to go faster:
+To make it more sensitive but slow, replace ``RY4`` with ``NEAR``:
+good for smaller data.  (``-uNEAR`` is suitable for finding alignments
+with few substitutions and/or many gaps.)
 
-* `Mask repeats`_.  This has often worked well.
+Aligning low-error long DNA reads to a genome
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Add lastal_ option ``-k8`` (or ``-k16`` etc).  This makes it faster,
-  by only finding initial matches starting at every 8th (or 16th etc)
-  position in the reads.
+We can do this the same way as for high-error reads, but perhaps
+accelerate more aggressively.  ``RY8`` reduces the run time and memory
+use even more than ``RY4``.  (This is because ``RY8`` uses ~1/8 of the
+seeds, i.e. initial matches, whereas ``RY4`` uses ~1/4).  ``RY16`` is
+faster still, and ``RY32`` is the fastest of these options.
 
-* Replace ``-uNEAR`` with ``-uRY32`` (or ``-uRY16``, ``-uRY8``,
-  ``-uRY4``).  This makes it check for initial matches starting at
-  only ~1/32 (or ~1/16 etc) of positions, in both reads and genome.
-  Compared to ``-k``: this harms sensitivity slightly more, but
-  reduces memory use and makes lastdb faster.
+Also, lastal_ option ``-C2`` may reduce run time with little effect on
+accuracy.
+
+Aligning potentially-spliced RNA or cDNA long reads to a genome
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See here_.  (For low-error reads, you can probably omit ``-d90`` and
+``-m20``.)
 
 Which genome version to use?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -198,22 +204,7 @@ like "analysis set".
 You can use multiple genomes, which will be treated like one big
 genome::
 
-  lastdb -P8 -uNEAR mydb human.fa virus.fa other-genomes.fa
-
-Aligning low-error long DNA reads to a genome
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-We can do this the same way as for high-error reads, but perhaps
-accelerate more aggressively (e.g. ``-uRY32``).
-
-If repeats are not masked, lastal_ option ``-C2`` may reduce run time
-with little effect on accuracy.
-
-Aligning potentially-spliced RNA or cDNA long reads to a genome
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-See here_.  (For low-error reads, you can probably omit ``-d90`` and
-``-m20``.)
+  lastdb -P8 -uRY4 mydb human.fa virus.fa other-genomes.fa
 
 Aligning Illumina DNA reads to a genome
 ---------------------------------------
@@ -235,7 +226,7 @@ didn't use this option.)
 
 This recipe may be excessively slow-and-sensitive.  Adding lastal_
 option ``-C2`` may make it faster with negligible accuracy loss.  You
-can accelerate with e.g. ``-uRY16`` or ``-k16`` as above.
+can accelerate with e.g. ``-uRY16`` as above.
 
 Finding very short DNA alignments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -306,7 +297,7 @@ Finally, we can make a dotplot_::
   last-dotplot humchi2.maf humchi2.png
 
 **To go faster** with minor accuracy loss: replace ``-uNEAR`` with
-``-uRY32`` and/or `mask repeats`_.
+``-uRY32``.
 
 To squeeze out the last 0.000...1% of accuracy: add ``-m50`` to the
 lastal_ options.
@@ -328,7 +319,7 @@ consider using 5-byte LAST (lastdb5_ and lastal5_).  Ordinary (4-byte)
 LAST can't handle so much sequence at once, so lastdb_ splits it into
 "volumes", which may be inefficient.  5-byte LAST avoids voluming, but
 uses more memory.  So lastdb5_ works well with a memory-reducing
-option: ``-uRY`` or ``-w`` or ``-W``.
+option such as ``-uRY`` or ``-w``.
 
 Moar faster
 -----------
