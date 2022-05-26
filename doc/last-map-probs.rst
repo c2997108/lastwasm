@@ -49,16 +49,6 @@ Details
   (e.g. because there are no lines starting with "# batch"), it might
   need too much memory.
 
-Using multiple CPUs
--------------------
-
-This will run the pipeline on all your CPU cores::
-
-  parallel-fastq "lastal -Q1 -D1000 hu | last-map-probs" < reads.fastq > myalns.maf
-
-It requires GNU parallel to be installed
-(http://www.gnu.org/software/parallel/).
-
 Limitations
 -----------
 

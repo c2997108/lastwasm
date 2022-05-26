@@ -2,7 +2,7 @@ Running LAST in parallel
 ========================
 
 You can make LAST faster by running it on multiple CPUs / cores.  The
-easiest way is with lastal's -P option::
+easiest way is with lastal_'s -P option::
 
   lastal -P4 my-index queries.fasta > out.maf
 
@@ -15,7 +15,7 @@ This works by aligning different query sequences in different threads
 Dealing with very long query sequences
 --------------------------------------
 
-lastal aligns one "batch" of queries at a time, so if the batch has
+lastal_ aligns one "batch" of queries at a time, so if the batch has
 only one query you won't get any parallelization.  This can be fixed
 by increasing the batch size, with option -i::
 
@@ -31,50 +31,52 @@ If you have a multi-command "pipeline", such as::
 
   lastal -P4 my-index queries.fasta | last-split > out.maf
 
-then the -P option may help, because lastal is often the slowest step,
-but it would be nice to parallelize the whole thing.  Unfortunately,
-last-split doesn't have a -P option, and even if it did, the pipe
-between the commands would become a bottleneck.
+then the ``-P`` option may help, because lastal is often the slowest
+step, but it would be nice to parallelize the whole thing.
 
-You can use parallel-fasta and parallel-fastq (which accompany LAST,
-but require `GNU parallel`_ to be installed).  These commands read
-sequence data, split it into blocks (with a whole number of sequences
-per block), and run the blocks in parallel through any command or
-pipeline you specify, using all your CPU cores.  Here are some
-examples.
+You can use ``parallel-fasta`` and ``parallel-fastq``, which accompany
+LAST, but require `GNU Parallel`_ to be installed.
 
 Instead of this::
 
-  lastal mydb queries.fa > myalns.maf
+  lastal -P8 -p my.train mydb seqs.fasta | last-split > out.maf
 
 try this::
 
-  parallel-fasta "lastal mydb" < queries.fa > myalns.maf
+  parallel-fasta -j8 "lastal -p my.train mydb | last-split" < seqs.fasta > out.maf
 
 Instead of this::
 
-  lastal -Q1 db q.fastq | last-split > out.maf
+  lastal -P8 -p my.train mydb seqs.fastq.gz | last-split | gzip > out.maf.gz
 
 try this::
 
-  parallel-fastq "lastal -Q1 db | last-split" < q.fastq > out.maf
+  zcat seqs.fastq.gz | parallel-fastq -j8 "lastal -p my.train mydb | last-split | gzip" > out.maf.gz
 
-Instead of this::
-
-  bzcat queries.fa.bz2 | lastal mydb > myalns.maf
-
-try this::
-
-  bzcat queries.fa.bz2 | parallel-fasta "lastal mydb" > myalns.maf
 
 Notes:
 
-* parallel-fasta and parallel-fastq simply execute GNU parallel with a
-  few options for fasta or fastq: you can specify other GNU parallel
-  options to control the number of simultaneous jobs, use remote
-  computers, get the output in the same order as the input, etc.
+* ``parallel-fasta`` and ``parallel-fastq`` simply run GNU Parallel
+  with a few options for fasta or fastq: you can specify other GNU
+  Parallel options (like ``-j8``).
 
-* parallel-fastq assumes that each fastq record is 4 lines, so there
-  should be no line wrapping or blank lines.
+* The ``gzip`` example above runs ``gzip`` several times in parallel,
+  and concatenates the results.  Fortunately, that is valid ``gz``
+  format.
 
+* ``lastal`` reads the ``mydb`` files into shared memory, so this
+  memory use does not get mutiplied 8 times.
+
+* ``parallel-fastq`` assumes that each fastq record is 4 lines, so
+  there should be no line wrapping or blank lines.  (Actually, it
+  assumes one "record" is 8 lines, to keep paired reads together.)
+
+* In the current version, ``parallel-fasta`` and ``parallel-fastq``
+  use GNU Parallel's ``--round`` option.  This avoids the overhead of
+  restarting the command for each input chunk, but it prevents keeping
+  the order of sequences, and stashes the output in large temporary
+  files.  If necessary, use ``$TMPDIR`` or ``--tmpdir`` to choose a
+  temp directory with enough space.
+
+.. _lastal: doc/lastal.rst
 .. _GNU parallel: http://www.gnu.org/software/parallel/
