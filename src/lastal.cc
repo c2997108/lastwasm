@@ -344,7 +344,7 @@ static void calculateScoreStatistics(const std::string& matrixName,
 // Read the .prj file for the whole database
 void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
 		  size_t &minSeedLimit, bool &isKeepRefLowercase,
-		  int &refTantanSetting, countT &refSequences,
+		  int &refTantanSetting, countT &numOfRefSeqs,
 		  countT &refLetters, countT &refMaxSeqLen) {
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
@@ -362,7 +362,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     getline( iss, word, '=' );
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alph;
-    if( word == "numofsequences" ) iss >> refSequences;
+    if( word == "numofsequences" ) iss >> numOfRefSeqs;
     if( word == "numofletters" ) iss >> refLetters;
     if( word == "maxsequenceletters" ) iss >> refMaxSeqLen;
     if( word == "maxunsortedinterval" ) iss >> minSeedLimit;
@@ -377,7 +377,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( alph.letters.empty() || refSequences+1 == 0 || refLetters+1 == 0 ||
+  if( alph.letters.empty() || numOfRefSeqs+1 == 0 || refLetters+1 == 0 ||
       (refMaxSeqLen == 0 && refLetters != 0) ||
       isCaseSensitiveSeeds < 0 || numOfIndexes > maxNumOfIndexes ||
       referenceFormat == sequenceFormat::prb ||
@@ -420,13 +420,11 @@ void readInnerPrj( const std::string& fileName,
 
 // Write match counts for each query sequence
 void writeCounts() {
-  for( indexT i = 0; i < matchCounts.size(); ++i ){
+  for (indexT i = 0; i < matchCounts.size(); ++i) {
     std::cout << query.seqName(i) << '\n';
-
-    for( size_t j = args.minHitDepth; j < matchCounts[i].size(); ++j ){
+    for (size_t j = args.minHitDepth; j < matchCounts[i].size(); ++j) {
       std::cout << j << '\t' << matchCounts[i][j] << '\n';
     }
-
     std::cout << '\n';  // blank line afterwards
   }
 }
@@ -928,13 +926,12 @@ void makeQualityPssm( LastAligner& aligner,
   const uchar *q = getQueryQual(queryNum);
   int *pssm = &qualityPssm[0];
 
-  if( args.inputFormat == sequenceFormat::prb ){
-    matrices.maker.make( seqBeg, seqEnd, q, pssm, isMask );
-  }
-  else {
+  if (args.inputFormat == sequenceFormat::prb) {
+    matrices.maker.make(seqBeg, seqEnd, q, pssm, isMask);
+  } else {
     const OneQualityScoreMatrix &m =
       isMask ? matrices.oneQualMasked : matrices.oneQual;
-    makePositionSpecificScoreMatrix( m, seqBeg, seqEnd, q, pssm );
+    makePositionSpecificScoreMatrix(m, seqBeg, seqEnd, q, pssm);
   }
 }
 
@@ -1248,13 +1245,13 @@ void scanAllVolumes() {
   if (args.outputType == 0) writeCounts();
 }
 
-void writeHeader( countT refSequences, countT refLetters, std::ostream& out ){
+void writeHeader(countT numOfRefSeqs, countT refLetters, std::ostream &out) {
   out << "# LAST version " <<
 #include "version.hh"
       << "\n";
   out << "#\n";
   args.writeCommented( out );
-  out << "# Reference sequences=" << refSequences
+  out << "# Reference sequences=" << numOfRefSeqs
       << " normal letters=" << refLetters << "\n";
   if( args.outputType > 0 ) evaluer.writeCommented( out );
   out << "#\n";
@@ -1300,14 +1297,14 @@ void lastal( int argc, char** argv ){
 
   size_t refMinimizerWindow = 1;  // assume this value, if not specified
   size_t minSeedLimit = 0;
-  countT refSequences = -1;
+  countT numOfRefSeqs = -1;
   countT refLetters = -1;
   countT refMaxSeqLen = -1;
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
   readOuterPrj(args.lastdbName + ".prj",
 	       refMinimizerWindow, minSeedLimit, isKeepRefLowercase,
-	       refTantanSetting, refSequences, refLetters, refMaxSeqLen);
+	       refTantanSetting, numOfRefSeqs, refLetters, refMaxSeqLen);
   bool isDna = (alph.letters == alph.dna);
   bool isProtein = alph.isProtein();
 
@@ -1398,11 +1395,11 @@ void lastal( int argc, char** argv ){
   queryAlph.tr(query.seqWriter(), query.seqWriter() + query.seqBeg(0));
 
   if (numOfVolumes + 1 == 0) {
-    readIndex(args.lastdbName, refSequences);
+    readIndex(args.lastdbName, numOfRefSeqs);
     numOfVolumes = 1;
   }
 
-  writeHeader(refSequences, refLetters, std::cout);
+  writeHeader(numOfRefSeqs, refLetters, std::cout);
   countT queryBatchCount = 0;
   countT sequenceCount = 0;
   indexT maxSeqLen = args.batchSize;
