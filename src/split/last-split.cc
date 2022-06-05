@@ -4,11 +4,12 @@
 
 #include "cbrc_split_aligner.hh"
 
+#include <string.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cmath>
-#include <cstring>  // strcmp
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -83,14 +84,14 @@ static void transpose(std::vector< std::vector<int> > &matrix) {
 // Defines an ordering, for sorting.
 static bool less(const cbrc::UnsplitAlignment& a,
 		 const cbrc::UnsplitAlignment& b) {
-  int qnameCmp = std::strcmp(a.qname, b.qname);
+  int qnameCmp = strcmp(a.qname, b.qname);
   if (qnameCmp  != 0        ) return qnameCmp  < 0;
   if (a.qstart  != b.qstart ) return a.qstart  < b.qstart;
   if (a.qend    != b.qend   ) return a.qend    < b.qend;
   if (a.qstrand != b.qstrand) return a.qstrand < b.qstrand;
-  int qalignCmp = std::strcmp(a.qalign, b.qalign);
+  int qalignCmp = strcmp(a.qalign, b.qalign);
   if (qalignCmp != 0        ) return qalignCmp < 0;
-  int ralignCmp = std::strcmp(a.ralign, b.ralign);
+  int ralignCmp = strcmp(a.ralign, b.ralign);
   if (ralignCmp != 0        ) return ralignCmp < 0;
   return a.linesBeg < b.linesBeg;  // stabilizes the sort
 }
@@ -292,7 +293,7 @@ static void doOneBatch(std::vector<std::string>& mafLines,
   while (e < mafs.end()) {
     if (e->qend > qendMax) qendMax = e->qend;
     ++e;
-    if (e == mafs.end() || std::strcmp(e->qname, b->qname) != 0 ||
+    if (e == mafs.end() || strcmp(e->qname, b->qname) != 0 ||
 	(e->qstart >= qendMax && !opts.isSplicedAlignment)) {
       doOneQuery(b, e, sa, opts, isAlreadySplit);
       b = e;
@@ -431,7 +432,7 @@ void lastSplit(LastSplitOptions& opts) {
       if (state == 1) {  // we are reading alignments
 	if (isBlankLine(linePtr)) {
 	  addMaf(mafEnds, mafLines);
-	} else if (std::strchr(opts.no_split ? "asqpc" : "sqpc", linePtr[0])) {
+	} else if (strchr(opts.no_split ? "asqpc" : "sqpc", linePtr[0])) {
 	  if (!opts.isTopSeqQuery && linePtr[0] == 's' && sLineCount++ % 2 &&
 	      !isSameName(mafLines[qNameLineNum].c_str(), linePtr)) {
 	    doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);

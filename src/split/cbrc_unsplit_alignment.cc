@@ -197,14 +197,14 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 	rstart = start;
 	rend = start + len;
 	qstrand = (strand == '-') * 2;
-	rname = i->c_str() + (d - c);
-	ralign = i->c_str() + (f - c);
+	rname = d;
+	ralign = f;
       } else if (s == rankOfQrySeq) {
 	qstart = start;
 	qend = start + len;
 	if (strand == '-') qstrand = 3 - qstrand;
-	qname = i->c_str() + (d - c);
-	qalign = i->c_str() + (f - c);
+	qname = d;
+	qalign = f;
       }
     } else if (*c == 'q') {
       if (s == rankOfRefSeq)
@@ -213,7 +213,7 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 	f = skipSpace(skipWord(skipWord(c)));
 	if (!f || f >= g) err("bad MAF line: " + *i);
 	if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
-	qQual = i->c_str() + (f - c);
+	qQual = f;
       }
     }
   }
