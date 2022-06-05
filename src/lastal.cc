@@ -961,11 +961,6 @@ static void remaskLowercase(LastAligner &aligner, size_t queryNum,
 // Scan one query sequence against one database volume
 void scan(LastAligner& aligner, size_t queryNum,
 	  const SubstitutionMatrices &matrices, uchar *querySeq) {
-  if( args.outputType == 0 ){  // we just want match counts
-    countMatches( queryNum, querySeq );
-    return;
-  }
-
   const int maskMode = args.maskLowercase;
   makeQualityPssm(aligner, queryNum, matrices, querySeq, maskMode > 0);
 
@@ -1090,9 +1085,13 @@ void translateAndScan(LastAligner &aligner, size_t finalCullingLimit,
     }
   }
 
-  size_t oldNumOfAlns = aligner.textAlns.size();
-  scan( aligner, queryNum, matrices, querySeq );
-  cullFinalAlignments(aligner.textAlns, oldNumOfAlns, finalCullingLimit);
+  if (args.outputType == 0) {
+    countMatches(queryNum, querySeq);
+  } else {
+    size_t oldNumOfAlns = aligner.textAlns.size();
+    scan(aligner, queryNum, matrices, querySeq);
+    cullFinalAlignments(aligner.textAlns, oldNumOfAlns, finalCullingLimit);
+  }
 
   if (args.tantanSetting && !args.isKeepLowercase) {
     for (size_t i = query.seqBeg(queryNum); i < query.seqEnd(queryNum); ++i) {

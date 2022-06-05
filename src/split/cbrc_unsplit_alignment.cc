@@ -142,8 +142,8 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
   }
 }
 
-static void canonicalizeMafStrands(StringIt linesBeg, StringIt linesEnd,
-				   unsigned rankOfQrySeq) {
+static bool isRevQryStrand(StringIt linesBeg, StringIt linesEnd,
+			   unsigned rankOfQrySeq) {
   unsigned s = 0;
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
@@ -156,8 +156,7 @@ static void canonicalizeMafStrands(StringIt linesBeg, StringIt linesEnd,
       c = skipWord(c);
       c = readChar(c, strand);
       if (!c) err("bad MAF line: " + *i);
-      if (strand == '-') flipMafStrands(linesBeg, linesEnd);
-      return;
+      return strand == '-';
     }
   }
   err("bad MAF data");
@@ -167,7 +166,8 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   const unsigned rankOfQrySeq = 2 - isTopSeqQuery;
   const unsigned rankOfRefSeq = isTopSeqQuery + 1;
 
-  canonicalizeMafStrands(linesBeg, linesEnd, rankOfQrySeq);
+  bool isRev = isRevQryStrand(linesBeg, linesEnd, rankOfQrySeq);
+  if (isRev) flipMafStrands(linesBeg, linesEnd);
 
   qQual = 0;  // in case the input lacks sequence quality data
 
