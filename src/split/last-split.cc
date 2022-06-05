@@ -4,6 +4,7 @@
 
 #include "cbrc_split_aligner.hh"
 
+#include <stdio.h>
 #include <string.h>
 
 #include <algorithm>
@@ -96,13 +97,13 @@ static bool less(const cbrc::UnsplitAlignment& a,
   return a.linesBeg < b.linesBeg;  // stabilizes the sort
 }
 
-static void printSense(double senseStrandLogOdds) {
+static int printSense(char *out, double senseStrandLogOdds) {
   double b = senseStrandLogOdds / std::log(2.0);
   if (b < 0.1 && b > -0.1) b = 0;
   else if (b > 10) b = std::floor(b + 0.5);
   else if (b < -10) b = std::ceil(b - 0.5);
   int precision = (b < 10 && b > -10) ? 2 : 3;
-  std::cout << std::setprecision(precision) << " sense=" << b;
+  return sprintf(out, " sense=%.*g", precision, b);
 }
 
 static void doOneAlignmentPart(cbrc::SplitAligner& sa,
@@ -174,27 +175,33 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
     while (s.end()[-1][0] == 'p') s.pop_back();
   }
 
-  if (opts.no_split && a.linesBeg[0][0] == 'a') {
-    std::cout << a.linesBeg[0];
+  const std::string &aLineOld = a.linesBeg[0];
+  std::vector<char> aLine(aLineOld.size() + 128);
+  char *out = &aLine[0];
+
+  if (opts.no_split && aLineOld[0] == 'a') {
+    memcpy(out, aLineOld.data(), aLineOld.size());
+    out += aLineOld.size();
   } else {
-    std::cout << "a score=" << score;
+    out += sprintf(out, "a score=%d", score);
   }
-  std::cout << std::setprecision(mismapPrecision) << " mismap=" << mismap;
-  if (opts.direction == 2) printSense(senseStrandLogOdds);
+  out += sprintf(out, " mismap=%.*g", mismapPrecision, mismap);
+  if (opts.direction == 2) out += printSense(out, senseStrandLogOdds);
   if (!opts.genome.empty() && !opts.no_split) {
-    char signal[3] = {0};
     if (partNum > 0) {
-      sa.spliceEndSignal(signal, alnNum, qSliceBeg, isSenseStrand);
-      std::cout << (isSenseStrand ? " acc=" : " don=") << signal;
+      out = strcpy(out, isSenseStrand ? " acc=" : " don=") + 5;
+      sa.spliceEndSignal(out, alnNum, qSliceBeg, isSenseStrand);
+      out += 2;
     }
     if (partNum + 1 < numOfParts) {
-      sa.spliceBegSignal(signal, alnNum, qSliceEnd, isSenseStrand);
-      std::cout << (isSenseStrand ? " don=" : " acc=") << signal;
+      out = strcpy(out, isSenseStrand ? " don=" : " acc=") + 5;
+      sa.spliceBegSignal(out, alnNum, qSliceEnd, isSenseStrand);
+      out += 2;
     }
   }
-  std::cout << "\n" << std::setprecision(6);
 
   if (a.isFlipped()) cbrc::flipMafStrands(s.begin(), s.end());
+  s.insert(s.begin(), &aLine[0]);
   if (opts.no_split && a.linesEnd[-1][0] == 'c') s.push_back(a.linesEnd[-1]);
   cbrc::printMaf(s);
 }
