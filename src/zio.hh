@@ -12,15 +12,19 @@
 
 namespace cbrc {
 
+inline void openOrThrow(mcf::izstream &z, const char *fileName) {
+  z.open(fileName);
+  if (!z) {
+    throw std::runtime_error(std::string("can't open file: ") + fileName);
+  }
+}
+
 // open an input file, but if the name is "-", just return cin
 inline std::istream &openIn(const char *fileName, mcf::izstream &z) {
   if (fileName[0] == '-' && fileName[1] == 0) {
     return std::cin;
   }
-  z.open(fileName);
-  if (!z) {
-    throw std::runtime_error(std::string("can't open file: ") + fileName);
-  }
+  openOrThrow(z, fileName);
   return z;
 }
 

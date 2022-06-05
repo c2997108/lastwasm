@@ -88,7 +88,7 @@ namespace {
   LastEvaluer evaluer;
   LastEvaluer gaplessEvaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
-  MultiSequence text;  // sequence that has been indexed by lastdb
+  MultiSequence refSeqs;  // sequence that has been indexed by lastdb
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   sequenceFormat::Enum referenceFormat = sequenceFormat::fasta;
   int minScoreGapless;
@@ -441,8 +441,8 @@ void countMatches( size_t queryNum, const uchar* querySeq ){
 
   for( size_t i = loopBeg; i < loopEnd; i += args.queryStep ){
     for( unsigned x = 0; x < numOfIndexes; ++x )
-      suffixArrays[x].countMatches( matchCounts[queryNum], querySeq + i,
-				    text.seqReader(), 0, args.maxHitDepth );
+      suffixArrays[x].countMatches(matchCounts[queryNum], querySeq + i,
+				   refSeqs.seqReader(), 0, args.maxHitDepth);
   }
 }
 
@@ -485,9 +485,9 @@ struct Dispatcher{
 
   Dispatcher( Phase::Enum e, const LastAligner& aligner, size_t queryNum,
 	      const SubstitutionMatrices &matrices, const uchar* querySeq ) :
-      a( text.seqReader() ),
+      a( refSeqs.seqReader() ),
       b( querySeq ),
-      i( text.qualityReader() ),
+      i( refSeqs.qualityReader() ),
       j( getQueryQual(queryNum) ),
       p( getQueryPssm(aligner, queryNum) ),
       m( isMaskLowercase(e) ? matrices.scoresMasked : matrices.scores ),
@@ -554,7 +554,8 @@ static void writeAlignment(LastAligner &aligner, const Alignment &aln,
 			   size_t queryNum, const uchar* querySeq,
 			   const AlignmentExtras &extras = AlignmentExtras()) {
   int translationType = scoreMatrix.isCodonCols() ? 2 : args.isTranslated();
-  AlignmentText a = aln.write(text, query, queryNum, querySeq, alph, queryAlph,
+  AlignmentText a = aln.write(refSeqs, query, queryNum, querySeq,
+			      alph, queryAlph,
 			      translationType, geneticCode.getCodonToAmino(),
 			      evaluer, args.outputFormat, extras);
   if (isCollatedAlignments() || aligners.size() > 1)
@@ -1166,7 +1167,8 @@ static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
 
 void readIndex( const std::string& baseName, indexT seqCount ) {
   LOG( "reading " << baseName << "..." );
-  text.fromFiles(baseName, seqCount, referenceFormat != sequenceFormat::fasta);
+  refSeqs.fromFiles(baseName, seqCount,
+		    referenceFormat != sequenceFormat::fasta);
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     if( numOfIndexes > 1 ){
       suffixArrays[x].fromFiles(baseName + char('a' + x), isCaseSensitiveSeeds,
@@ -1238,7 +1240,7 @@ void scanAllVolumes() {
   }
 
   for (unsigned i = 0; i < numOfVolumes; ++i) {
-    if (text.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
+    if (refSeqs.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
     scanOneVolume(i, aligners.size());
   }
 
