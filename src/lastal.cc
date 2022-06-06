@@ -78,6 +78,8 @@ struct SeqData {
   size_t seqBeg;
   size_t seqEnd;
   uchar *seq;
+  const uchar *seqPadBeg;
+  const uchar *seqPadEnd;
 };
 
 namespace {
@@ -1067,7 +1069,6 @@ void translateAndScan(LastAligner &aligner,
 		      SeqData &qryData, size_t finalCullingLimit,
 		      const SubstitutionMatrices &matrices) {
   std::vector<uchar> modifiedQuery;
-  size_t size = qryData.padLen;
 
   if (args.isTranslated()) {
     if (args.tantanSetting && scoreMatrix.isCodonCols()) {
@@ -1076,16 +1077,16 @@ void translateAndScan(LastAligner &aligner,
       }
       tantanMaskOneQuery(qryData);
     }
-    modifiedQuery.resize(size);
-    geneticCode.translate(qryData.seq, qryData.seq + size, &modifiedQuery[0]);
+    modifiedQuery.resize(qryData.padLen);
     qryData.seq = &modifiedQuery[0];
+    geneticCode.translate(qryData.seqPadBeg, qryData.seqPadEnd, qryData.seq);
     if (args.tantanSetting && !scoreMatrix.isCodonCols()) {
       tantanMaskTranslatedQuery(qryData);
     }
   } else {
     if (args.tantanSetting) {
       if (args.isKeepLowercase) {
-	modifiedQuery.assign(qryData.seq, qryData.seq + size);
+	modifiedQuery.assign(qryData.seqPadBeg, qryData.seqPadEnd);
 	qryData.seq = &modifiedQuery[0];
       }
       tantanMaskOneQuery(qryData);
@@ -1111,16 +1112,19 @@ void translateAndScan(LastAligner &aligner,
 static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
 			  size_t qryNum, bool isFirstVolume) {
   size_t padBeg = query.padBeg(qryNum);
+  size_t padEnd = query.padEnd(qryNum);
   SeqData qryData = {qryNum,
-    query.padLen(qryNum),
+    padEnd - padBeg,
     query.seqBeg(qryNum) - padBeg,
     query.seqEnd(qryNum) - padBeg,
-    query.seqWriter() + padBeg};
+    query.seqWriter() + padBeg,
+    query.seqReader() + padBeg,
+    query.seqReader() + padEnd};
 
   if (isFirstVolume) {
     aligner.numOfNormalLetters +=
-      queryAlph.countNormalLetters(query.seqReader() + query.seqBeg(qryNum),
-				   query.seqReader() + query.seqEnd(qryNum));
+      queryAlph.countNormalLetters(qryData.seqPadBeg + qryData.seqBeg,
+				   qryData.seqPadBeg + qryData.seqEnd);
     aligner.numOfSequences += 1;
   }
 
