@@ -74,6 +74,7 @@ struct SubstitutionMatrices {
 
 struct SeqData {
   size_t seqNum;
+  size_t padLen;
   size_t seqBeg;
   size_t seqEnd;
   uchar *seq;
@@ -438,19 +439,19 @@ void writeCounts() {
 }
 
 // Count all matches, of all sizes, of a query sequence against a suffix array
-void countMatches( size_t queryNum, const uchar* querySeq ){
+void countMatches(const SeqData &qryData) {
   if (wordsFinder.wordLength) {  // YAGNI
     err("can't count initial matches with word-restricted seeds, sorry");
   }
-  size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
-  size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  size_t loopEnd = qryData.seqEnd;
   if( args.minHitDepth > 1 )
     loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
 
-  for( size_t i = loopBeg; i < loopEnd; i += args.queryStep ){
-    for( unsigned x = 0; x < numOfIndexes; ++x )
-      suffixArrays[x].countMatches(matchCounts[queryNum], querySeq + i,
+  for (size_t i = qryData.seqBeg; i < loopEnd; i += args.queryStep) {
+    for (unsigned x = 0; x < numOfIndexes; ++x) {
+      suffixArrays[x].countMatches(matchCounts[qryData.seqNum], qryData.seq + i,
 				   refSeqs.seqReader(), 0, args.maxHitDepth);
+    }
   }
 }
 
@@ -1047,7 +1048,7 @@ static void tantanMaskOneQuery(const SeqData &qryData) {
 }
 
 static void tantanMaskTranslatedQuery(const SeqData &qryData) {
-  size_t frameSize = query.padLen(qryData.seqNum) / 3;
+  size_t frameSize = qryData.padLen / 3;
   size_t dnaBeg = qryData.seqBeg;
   size_t dnaLen = qryData.seqEnd - qryData.seqBeg;
   for (int frame = 0; frame < 3; ++frame) {
@@ -1066,7 +1067,7 @@ void translateAndScan(LastAligner &aligner,
 		      SeqData &qryData, size_t finalCullingLimit,
 		      const SubstitutionMatrices &matrices) {
   std::vector<uchar> modifiedQuery;
-  size_t size = query.padLen(qryData.seqNum);
+  size_t size = qryData.padLen;
 
   if (args.isTranslated()) {
     if (args.tantanSetting && scoreMatrix.isCodonCols()) {
@@ -1092,7 +1093,7 @@ void translateAndScan(LastAligner &aligner,
   }
 
   if (args.outputType == 0) {
-    countMatches(qryData.seqNum, qryData.seq);
+    countMatches(qryData);
   } else {
     size_t oldNumOfAlns = aligner.textAlns.size();
     scan(aligner, qryData.seqNum, matrices, qryData.seq);
@@ -1111,6 +1112,7 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
 			  size_t qryNum, bool isFirstVolume) {
   size_t padBeg = query.padBeg(qryNum);
   SeqData qryData = {qryNum,
+    query.padLen(qryNum),
     query.seqBeg(qryNum) - padBeg,
     query.seqEnd(qryNum) - padBeg,
     query.seqWriter() + padBeg};
