@@ -970,24 +970,24 @@ static void remaskLowercase(LastAligner &aligner, size_t queryNum,
 }
 
 // Scan one query sequence against one database volume
-void scan(LastAligner& aligner, size_t queryNum,
-	  const SubstitutionMatrices &matrices, uchar *querySeq) {
+void scan(LastAligner& aligner,
+	  const SeqData &qryData, const SubstitutionMatrices &matrices) {
   const int maskMode = args.maskLowercase;
-  makeQualityPssm(aligner, queryNum, matrices, querySeq, maskMode > 0);
+  makeQualityPssm(aligner, qryData.seqNum, matrices, qryData.seq, maskMode > 0);
 
-  Dispatcher dis0(Phase::gapless, aligner, queryNum, matrices, querySeq);
+  Dispatcher dis0(Phase::gapless, aligner, qryData.seqNum, matrices, qryData.seq);
   SegmentPairPot gaplessAlns;
-  alignGapless(aligner, gaplessAlns, queryNum, querySeq, dis0);
+  alignGapless(aligner, gaplessAlns, qryData.seqNum, qryData.seq, dis0);
   if( args.outputType == 1 ) return;  // we just want gapless alignments
   if( gaplessAlns.size() == 0 ) return;
 
   if (maskMode == 1 || (maskMode == 2 && args.scoreType == 0))
-    unmaskLowercase(aligner, queryNum, matrices, querySeq);
+    unmaskLowercase(aligner, qryData.seqNum, matrices, qryData.seq);
 
-  size_t frameSize = args.isFrameshift() ? (query.padLen(queryNum) / 3) : 0;
+  size_t frameSize = args.isFrameshift() ? (qryData.padLen / 3) : 0;
   AlignmentPot gappedAlns;
 
-  size_t queryLen = query.padLen(queryNum);
+  size_t queryLen = qryData.padLen;
   Centroid &centroid = aligner.engines.centroid;
 
   if (args.scoreType != 0 && dis0.p) {
@@ -998,28 +998,28 @@ void scan(LastAligner& aligner, size_t queryNum,
 
   if (args.maxDropFinal != args.maxDropGapped) {
     alignGapped(aligner, gappedAlns, gaplessAlns,
-		queryNum, matrices, querySeq, frameSize, Phase::pregapped);
+		qryData.seqNum, matrices, qryData.seq, frameSize, Phase::pregapped);
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
   alignGapped(aligner, gappedAlns, gaplessAlns,
-	      queryNum, matrices, querySeq, frameSize, Phase::gapped);
+	      qryData.seqNum, matrices, qryData.seq, frameSize, Phase::gapped);
   if( gappedAlns.size() == 0 ) return;
 
-  Dispatcher dis3(Phase::postgapped, aligner, queryNum, matrices, querySeq);
+  Dispatcher dis3(Phase::postgapped, aligner, qryData.seqNum, matrices, qryData.seq);
 
   if (maskMode == 2 && args.scoreType != 0) {
-    unmaskLowercase(aligner, queryNum, matrices, querySeq);
+    unmaskLowercase(aligner, qryData.seqNum, matrices, qryData.seq);
     alignPostgapped(aligner, gappedAlns, frameSize, dis3);
   }
 
   if (maskMode == 2 && args.scoreType == 0) {
-    remaskLowercase(aligner, queryNum, matrices, querySeq);
+    remaskLowercase(aligner, qryData.seqNum, matrices, qryData.seq);
     eraseWeakAlignments(gappedAlns, frameSize, dis0);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
     if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
-      unmaskLowercase(aligner, queryNum, matrices, querySeq);
+      unmaskLowercase(aligner, qryData.seqNum, matrices, qryData.seq);
   }
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
@@ -1041,7 +1041,7 @@ void scan(LastAligner& aligner, size_t queryNum,
   }
 
   if (!isCollatedAlignments()) gappedAlns.sort();  // sort by score
-  alignFinish(aligner, gappedAlns, queryNum, matrices, frameSize, dis3);
+  alignFinish(aligner, gappedAlns, qryData.seqNum, matrices, frameSize, dis3);
 }
 
 static void tantanMaskOneQuery(const SeqData &qryData) {
@@ -1097,7 +1097,7 @@ void translateAndScan(LastAligner &aligner,
     countMatches(qryData);
   } else {
     size_t oldNumOfAlns = aligner.textAlns.size();
-    scan(aligner, qryData.seqNum, matrices, qryData.seq);
+    scan(aligner, qryData, matrices);
     cullFinalAlignments(aligner.textAlns, oldNumOfAlns, finalCullingLimit);
   }
 
