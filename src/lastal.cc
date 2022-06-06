@@ -947,25 +947,20 @@ void makeQualityPssm( LastAligner& aligner,
   }
 }
 
-static void unmaskLowercase(LastAligner &aligner, size_t queryNum,
-			    const SubstitutionMatrices &matrices,
-			    uchar *querySeq) {
-  makeQualityPssm(aligner, queryNum, matrices, querySeq, false);
+static void unmaskLowercase(LastAligner &aligner, const SeqData &qryData,
+			    const SubstitutionMatrices &matrices) {
+  makeQualityPssm(aligner, qryData.seqNum, matrices, qryData.seq, false);
   if (scoreMatrix.isCodonCols()) {
-    const uchar *q = query.seqReader();
-    geneticCode.translateWithoutMasking(q + query.padBeg(queryNum),
-					q + query.padEnd(queryNum), querySeq);
+    geneticCode.translateWithoutMasking(qryData.seqPadBeg,
+					qryData.seqPadEnd, qryData.seq);
   }
 }
 
-static void remaskLowercase(LastAligner &aligner, size_t queryNum,
-			    const SubstitutionMatrices &matrices,
-			    uchar *querySeq) {
-  makeQualityPssm(aligner, queryNum, matrices, querySeq, true);
+static void remaskLowercase(LastAligner &aligner, const SeqData &qryData,
+			    const SubstitutionMatrices &matrices) {
+  makeQualityPssm(aligner, qryData.seqNum, matrices, qryData.seq, true);
   if (scoreMatrix.isCodonCols()) {
-    const uchar *q = query.seqReader();
-    geneticCode.translate(q + query.padBeg(queryNum),
-			  q + query.padEnd(queryNum), querySeq);
+    geneticCode.translate(qryData.seqPadBeg, qryData.seqPadEnd, qryData.seq);
   }
 }
 
@@ -982,7 +977,7 @@ void scan(LastAligner& aligner,
   if( gaplessAlns.size() == 0 ) return;
 
   if (maskMode == 1 || (maskMode == 2 && args.scoreType == 0))
-    unmaskLowercase(aligner, qryData.seqNum, matrices, qryData.seq);
+    unmaskLowercase(aligner, qryData, matrices);
 
   size_t frameSize = args.isFrameshift() ? (qryData.padLen / 3) : 0;
   AlignmentPot gappedAlns;
@@ -1009,17 +1004,17 @@ void scan(LastAligner& aligner,
   Dispatcher dis3(Phase::postgapped, aligner, qryData.seqNum, matrices, qryData.seq);
 
   if (maskMode == 2 && args.scoreType != 0) {
-    unmaskLowercase(aligner, qryData.seqNum, matrices, qryData.seq);
+    unmaskLowercase(aligner, qryData, matrices);
     alignPostgapped(aligner, gappedAlns, frameSize, dis3);
   }
 
   if (maskMode == 2 && args.scoreType == 0) {
-    remaskLowercase(aligner, qryData.seqNum, matrices, qryData.seq);
+    remaskLowercase(aligner, qryData, matrices);
     eraseWeakAlignments(gappedAlns, frameSize, dis0);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
     if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
-      unmaskLowercase(aligner, qryData.seqNum, matrices, qryData.seq);
+      unmaskLowercase(aligner, qryData, matrices);
   }
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
