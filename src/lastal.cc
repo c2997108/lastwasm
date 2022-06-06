@@ -80,6 +80,7 @@ struct SeqData {
   uchar *seq;
   const uchar *seqPadBeg;
   const uchar *seqPadEnd;
+  const uchar *qual;
 };
 
 namespace {
@@ -457,12 +458,6 @@ void countMatches(const SeqData &qryData) {
   }
 }
 
-static const uchar *getQueryQual(size_t queryNum) {
-  const uchar *q = query.qualityReader();
-  if (q) q += query.padBeg(queryNum) * query.qualsPerLetter();
-  return q;
-}
-
 static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
 					  size_t queryNum) {
   if (args.isGreedy) return 0;
@@ -499,7 +494,7 @@ struct Dispatcher{
       a( refSeqs.seqReader() ),
       b( qryData.seq ),
       i( refSeqs.qualityReader() ),
-      j( getQueryQual(qryData.seqNum) ),
+      j( qryData.qual ),
       p( getQueryPssm(aligner, qryData.seqNum) ),
       m( isMaskLowercase(e) ? matrices.scoresMasked : matrices.scores ),
       r( isMaskLowercase(e) ? matrices.ratiosMasked : matrices.ratios ),
@@ -925,33 +920,30 @@ static void printAndClear(std::vector<AlignmentText> &textAlns) {
   textAlns.clear();
 }
 
-void makeQualityPssm( LastAligner& aligner,
-		      size_t queryNum, const SubstitutionMatrices &matrices,
-		      const uchar* querySeq, bool isMask ){
+void makeQualityPssm(LastAligner &aligner, const SeqData &qryData,
+		     const SubstitutionMatrices &matrices, bool isMask) {
   if (!isUseQuality(args.inputFormat) || isUseQuality(referenceFormat)) return;
   if( args.isTranslated() || args.isGreedy ) return;
 
   std::vector<int> &qualityPssm = aligner.qualityPssm;
-  size_t queryLen = query.padLen(queryNum);
-  qualityPssm.resize(queryLen * scoreMatrixRowSize);
+  qualityPssm.resize(qryData.padLen * scoreMatrixRowSize);
 
-  const uchar *seqBeg = querySeq;
-  const uchar *seqEnd = seqBeg + queryLen;
-  const uchar *q = getQueryQual(queryNum);
+  const uchar *seqBeg = qryData.seq;
+  const uchar *seqEnd = seqBeg + qryData.padLen;
   int *pssm = &qualityPssm[0];
 
   if (args.inputFormat == sequenceFormat::prb) {
-    matrices.maker.make(seqBeg, seqEnd, q, pssm, isMask);
+    matrices.maker.make(seqBeg, seqEnd, qryData.qual, pssm, isMask);
   } else {
     const OneQualityScoreMatrix &m =
       isMask ? matrices.oneQualMasked : matrices.oneQual;
-    makePositionSpecificScoreMatrix(m, seqBeg, seqEnd, q, pssm);
+    makePositionSpecificScoreMatrix(m, seqBeg, seqEnd, qryData.qual, pssm);
   }
 }
 
 static void unmaskLowercase(LastAligner &aligner, const SeqData &qryData,
 			    const SubstitutionMatrices &matrices) {
-  makeQualityPssm(aligner, qryData.seqNum, matrices, qryData.seq, false);
+  makeQualityPssm(aligner, qryData, matrices, false);
   if (scoreMatrix.isCodonCols()) {
     geneticCode.translateWithoutMasking(qryData.seqPadBeg,
 					qryData.seqPadEnd, qryData.seq);
@@ -960,7 +952,7 @@ static void unmaskLowercase(LastAligner &aligner, const SeqData &qryData,
 
 static void remaskLowercase(LastAligner &aligner, const SeqData &qryData,
 			    const SubstitutionMatrices &matrices) {
-  makeQualityPssm(aligner, qryData.seqNum, matrices, qryData.seq, true);
+  makeQualityPssm(aligner, qryData, matrices, true);
   if (scoreMatrix.isCodonCols()) {
     geneticCode.translate(qryData.seqPadBeg, qryData.seqPadEnd, qryData.seq);
   }
@@ -970,7 +962,7 @@ static void remaskLowercase(LastAligner &aligner, const SeqData &qryData,
 void scan(LastAligner& aligner,
 	  const SeqData &qryData, const SubstitutionMatrices &matrices) {
   const int maskMode = args.maskLowercase;
-  makeQualityPssm(aligner, qryData.seqNum, matrices, qryData.seq, maskMode > 0);
+  makeQualityPssm(aligner, qryData, matrices, maskMode > 0);
 
   Dispatcher dis0(Phase::gapless, aligner, qryData, matrices);
   SegmentPairPot gaplessAlns;
@@ -1110,13 +1102,18 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
 			  size_t qryNum, bool isFirstVolume) {
   size_t padBeg = query.padBeg(qryNum);
   size_t padEnd = query.padEnd(qryNum);
+
+  const uchar *qual = query.qualityReader();
+  if (qual) qual += padBeg * query.qualsPerLetter();
+
   SeqData qryData = {qryNum,
     padEnd - padBeg,
     query.seqBeg(qryNum) - padBeg,
     query.seqEnd(qryNum) - padBeg,
     query.seqWriter() + padBeg,
     query.seqReader() + padBeg,
-    query.seqReader() + padEnd};
+    query.seqReader() + padEnd,
+    qual};
 
   if (isFirstVolume) {
     aligner.numOfNormalLetters +=
