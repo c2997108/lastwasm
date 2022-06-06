@@ -144,22 +144,19 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
 
 static bool isRevQryStrand(StringIt linesBeg, StringIt linesEnd,
 			   unsigned rankOfQrySeq) {
+  char strand = 0;
   unsigned s = 0;
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
-    if (*c == 's') ++s;
-    if (s == rankOfQrySeq) {
-      char strand;
+    if (*c == 's' && ++s == rankOfQrySeq) {
       c = skipWord(c);
       c = skipWord(c);
       c = skipWord(c);
       c = skipWord(c);
       c = readChar(c, strand);
-      if (!c) err("bad MAF line: " + *i);
-      return strand == '-';
     }
   }
-  err("bad MAF data");
+  return strand == '-';
 }
 
 void UnsplitAlignment::init(bool isTopSeqQuery) {
@@ -217,6 +214,8 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
       }
     }
   }
+
+  if (s < 2) err("bad MAF data");
 }
 
 static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
@@ -233,8 +232,11 @@ std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
       unsigned x = 0;  // initialize it to keep the compiler happy
       d = skipWord(skipWord(c));
       e = d + 1;  // skip over the string terminator
-      e = skipWord(readUint(e, x));
-      f = skipSpace(skipWord(skipWord(e)));
+      e = readUint(e, x);
+      e = skipWord(e);
+      f = skipWord(e);
+      f = skipWord(f);
+      f = skipSpace(f);
       unsigned beg = x + seqPosFromAlnPos(alnBeg, f);
       unsigned end = x + seqPosFromAlnPos(alnEnd, f);
       unsigned len = end - beg;
