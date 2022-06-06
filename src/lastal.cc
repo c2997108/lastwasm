@@ -494,13 +494,13 @@ struct Dispatcher{
   int d;  // the maximum score drop
   int z;
 
-  Dispatcher( Phase::Enum e, const LastAligner& aligner, size_t queryNum,
-	      const SubstitutionMatrices &matrices, const uchar* querySeq ) :
+  Dispatcher(Phase::Enum e, const LastAligner &aligner, const SeqData &qryData,
+	     const SubstitutionMatrices &matrices) :
       a( refSeqs.seqReader() ),
-      b( querySeq ),
+      b( qryData.seq ),
       i( refSeqs.qualityReader() ),
-      j( getQueryQual(queryNum) ),
-      p( getQueryPssm(aligner, queryNum) ),
+      j( getQueryQual(qryData.seqNum) ),
+      p( getQueryPssm(aligner, qryData.seqNum) ),
       m( isMaskLowercase(e) ? matrices.scoresMasked : matrices.scores ),
       r( isMaskLowercase(e) ? matrices.ratiosMasked : matrices.ratios ),
       t( isMaskLowercase(e) ? matrices.twoQualMasked : matrices.twoQual ),
@@ -722,11 +722,11 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
 }
 
 // Do gapped extensions of the gapless alignments
-void alignGapped( LastAligner& aligner,
-		  AlignmentPot& gappedAlns, SegmentPairPot& gaplessAlns,
-                  size_t queryNum, const SubstitutionMatrices &matrices,
-		  const uchar* querySeq, size_t frameSize, Phase::Enum phase ){
-  Dispatcher dis(phase, aligner, queryNum, matrices, querySeq);
+void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
+		 SegmentPairPot &gaplessAlns, const SeqData &qryData,
+		 const SubstitutionMatrices &matrices, size_t frameSize,
+		 Phase::Enum phase) {
+  Dispatcher dis(phase, aligner, qryData, matrices);
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
   // Redo the gapless extensions, using gapped score parameters.
@@ -970,7 +970,7 @@ void scan(LastAligner& aligner,
   const int maskMode = args.maskLowercase;
   makeQualityPssm(aligner, qryData.seqNum, matrices, qryData.seq, maskMode > 0);
 
-  Dispatcher dis0(Phase::gapless, aligner, qryData.seqNum, matrices, qryData.seq);
+  Dispatcher dis0(Phase::gapless, aligner, qryData, matrices);
   SegmentPairPot gaplessAlns;
   alignGapless(aligner, gaplessAlns, qryData.seqNum, qryData.seq, dis0);
   if( args.outputType == 1 ) return;  // we just want gapless alignments
@@ -992,16 +992,16 @@ void scan(LastAligner& aligner,
   }
 
   if (args.maxDropFinal != args.maxDropGapped) {
-    alignGapped(aligner, gappedAlns, gaplessAlns,
-		qryData.seqNum, matrices, qryData.seq, frameSize, Phase::pregapped);
+    alignGapped(aligner, gappedAlns, gaplessAlns, qryData, matrices,
+		frameSize, Phase::pregapped);
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
-  alignGapped(aligner, gappedAlns, gaplessAlns,
-	      qryData.seqNum, matrices, qryData.seq, frameSize, Phase::gapped);
+  alignGapped(aligner, gappedAlns, gaplessAlns, qryData, matrices,
+	      frameSize, Phase::gapped);
   if( gappedAlns.size() == 0 ) return;
 
-  Dispatcher dis3(Phase::postgapped, aligner, qryData.seqNum, matrices, qryData.seq);
+  Dispatcher dis3(Phase::postgapped, aligner, qryData, matrices);
 
   if (maskMode == 2 && args.scoreType != 0) {
     unmaskLowercase(aligner, qryData, matrices);
