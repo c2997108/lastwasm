@@ -651,21 +651,21 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 
 // Find query matches to the suffix array, and do gapless extensions
 void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
-		  size_t queryNum, const uchar *querySeq,
-		  const Dispatcher &dis) {
+		  const SeqData &qryData, const Dispatcher &dis) {
   DiagonalTable dt;  // record already-covered positions on each diagonal
   size_t maxAlignments =
     args.maxAlignmentsPerQueryStrand ? args.maxAlignmentsPerQueryStrand : 1;
   GaplessAlignmentCounts counts = {0, 0, 0, maxAlignments};
 
-  size_t loopBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
-  size_t loopEnd = query.seqEnd(queryNum) - query.padBeg(queryNum);
+  size_t loopBeg = qryData.seqBeg;
+  size_t loopEnd = qryData.seqEnd;
 
   unsigned minDepth = wordsFinder.wordLength ? wordsFinder.wordLength : 1;
   if (args.minHitDepth > minDepth) {
     loopEnd -= std::min(args.minHitDepth - minDepth, loopEnd);
   }
 
+  const uchar *querySeq = qryData.seq;
   const uchar *qryBeg = querySeq + loopBeg;
   const uchar *qryEnd = querySeq + loopEnd;
 
@@ -678,7 +678,7 @@ void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       if (c != dnaWordsFinderNull) {
 	unsigned w = wordsFinder.next(&hash, c);
 	if (w != dnaWordsFinderNull) {
-	  alignGapless1(aligner, gaplessAlns, queryNum, dis, dt, counts,
+	  alignGapless1(aligner, gaplessAlns, qryData.seqNum, dis, dt, counts,
 			suffixArrays[0], qryBeg - wordsFinder.wordLength, w);
 	  if (counts.maxSignificantAlignments == 0) break;
 	}
@@ -698,7 +698,7 @@ void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 	if (args.minimizerWindow > 1 &&
 	    !minFinders[x].isMinimizer(sax.getSeeds()[0], qryPtr, qryEnd,
 				       args.minimizerWindow)) continue;
-	alignGapless1(aligner, gaplessAlns, queryNum, dis, dt, counts,
+	alignGapless1(aligner, gaplessAlns, qryData.seqNum, dis, dt, counts,
 		      sax, qryPtr, 0);
       }
       if (counts.maxSignificantAlignments == 0) break;
@@ -972,7 +972,7 @@ void scan(LastAligner& aligner,
 
   Dispatcher dis0(Phase::gapless, aligner, qryData, matrices);
   SegmentPairPot gaplessAlns;
-  alignGapless(aligner, gaplessAlns, qryData.seqNum, qryData.seq, dis0);
+  alignGapless(aligner, gaplessAlns, qryData, dis0);
   if( args.outputType == 1 ) return;  // we just want gapless alignments
   if( gaplessAlns.size() == 0 ) return;
 
