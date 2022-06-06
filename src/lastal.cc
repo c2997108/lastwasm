@@ -1101,25 +1101,25 @@ void translateAndScan(LastAligner &aligner, size_t finalCullingLimit,
 }
 
 static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
-			  size_t queryNum, bool isFirstVolume) {
+			  size_t qryNum, bool isFirstVolume) {
   if (isFirstVolume) {
     aligner.numOfNormalLetters +=
-      queryAlph.countNormalLetters(query.seqReader() + query.seqBeg(queryNum),
-				   query.seqReader() + query.seqEnd(queryNum));
+      queryAlph.countNormalLetters(query.seqReader() + query.seqBeg(qryNum),
+				   query.seqReader() + query.seqEnd(qryNum));
     aligner.numOfSequences += 1;
   }
 
   if (args.strand == 2 && !isFirstVolume)
-    query.reverseComplementOneSequence(queryNum, queryAlph.complement);
+    query.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
   if (args.strand != 0)
-    translateAndScan(aligner, finalCullingLimit, queryNum, fwdMatrices);
+    translateAndScan(aligner, finalCullingLimit, qryNum, fwdMatrices);
 
   if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
-    query.reverseComplementOneSequence(queryNum, queryAlph.complement);
+    query.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
   if (args.strand != 1)
-    translateAndScan(aligner, finalCullingLimit, queryNum,
+    translateAndScan(aligner, finalCullingLimit, qryNum,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 }
 
