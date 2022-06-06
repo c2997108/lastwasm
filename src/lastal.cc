@@ -50,6 +50,7 @@ struct LastAligner {  // data that changes between queries
   std::vector<int> qualityPssm;
   std::vector<AlignmentText> textAlns;
   countT numOfNormalLetters;
+  countT numOfSequences;
 };
 
 struct SubstitutionMatrices {
@@ -1094,9 +1095,8 @@ void translateAndScan(LastAligner &aligner, size_t finalCullingLimit,
   }
 
   if (args.tantanSetting && !args.isKeepLowercase) {
-    for (size_t i = query.seqBeg(queryNum); i < query.seqEnd(queryNum); ++i) {
-      querySeqs[i] = queryAlph.numbersToUppercase[querySeqs[i]];
-    }
+    queryAlph.makeUppercase(querySeqs + query.seqBeg(queryNum),
+			    querySeqs + query.seqEnd(queryNum));
   }
 }
 
@@ -1106,6 +1106,7 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
     aligner.numOfNormalLetters +=
       queryAlph.countNormalLetters(query.seqReader() + query.seqBeg(queryNum),
 				   query.seqReader() + query.seqEnd(queryNum));
+    aligner.numOfSequences += 1;
   }
 
   if (args.strand == 2 && !isFirstVolume)
@@ -1402,7 +1403,6 @@ void lastal( int argc, char** argv ){
 
   writeHeader(numOfRefSeqs, refLetters, std::cout);
   countT queryBatchCount = 0;
-  countT sequenceCount = 0;
   indexT maxSeqLen = args.batchSize;
   if (maxSeqLen < args.batchSize) maxSeqLen = -1;
 
@@ -1417,9 +1417,7 @@ void lastal( int argc, char** argv ){
 
     while (appendSequence(query, in, maxSeqLen, args.inputFormat, queryAlph,
 			  args.isKeepLowercase, args.maskLowercase > 1)) {
-      if( query.isFinished() ){
-	++sequenceCount;
-      } else {
+      if (!query.isFinished()) {
         // this enables downstream parsers to read one batch at a time:
 	std::cout << "# batch " << queryBatchCount++ << "\n";
 	scanAllVolumes();
@@ -1433,11 +1431,13 @@ void lastal( int argc, char** argv ){
     scanAllVolumes();
   }
 
+  countT numOfSequences = 0;
   countT numOfNormalLetters = 0;
   for (size_t i = 0; i < aligners.size(); ++i) {
+    numOfSequences += aligners[i].numOfSequences;
     numOfNormalLetters += aligners[i].numOfNormalLetters;
   }
-  std::cout << "# Query sequences=" << sequenceCount
+  std::cout << "# Query sequences=" << numOfSequences
 	    << " normal letters=" << numOfNormalLetters << "\n";
 }
 

@@ -53,6 +53,10 @@ struct Alphabet{
   // return the position after the last written position in dest
   char* rtCopy( const uchar* beg, const uchar* end, char* dest ) const;
 
+  void makeUppercase(uchar *beg, uchar *end) {
+    for (; beg < end; ++beg) *beg = numbersToUppercase[*beg];
+  }
+
   std::string letters;    // the "proper" letters, e.g. ACGT for DNA
   unsigned size;          // same as letters.size(): excludes delimiters
   uchar encode[capacity];  // translate ASCII letters to codes (small integers)
