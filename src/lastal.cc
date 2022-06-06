@@ -74,6 +74,8 @@ struct SubstitutionMatrices {
 
 struct SeqData {
   size_t seqNum;
+  size_t seqBeg;
+  size_t seqEnd;
   uchar *seq;
 };
 
@@ -1039,22 +1041,21 @@ void scan(LastAligner& aligner, size_t queryNum,
   alignFinish(aligner, gappedAlns, queryNum, matrices, frameSize, dis3);
 }
 
-static void tantanMaskOneQuery(size_t queryNum, uchar *querySeq) {
-  size_t b = query.seqBeg(queryNum) - query.padBeg(queryNum);
-  size_t e = query.seqEnd(queryNum) - query.padBeg(queryNum);
-  tantanMasker.mask(querySeq + b, querySeq + e, queryAlph.numbersToLowercase);
+static void tantanMaskOneQuery(const SeqData &qryData) {
+  tantanMasker.mask(qryData.seq + qryData.seqBeg, qryData.seq + qryData.seqEnd,
+		    queryAlph.numbersToLowercase);
 }
 
-static void tantanMaskTranslatedQuery(size_t queryNum, uchar *querySeq) {
-  size_t frameSize = query.padLen(queryNum) / 3;
-  size_t dnaBeg = query.seqBeg(queryNum) - query.padBeg(queryNum);
-  size_t dnaLen = query.seqLen(queryNum);
+static void tantanMaskTranslatedQuery(const SeqData &qryData) {
+  size_t frameSize = query.padLen(qryData.seqNum) / 3;
+  size_t dnaBeg = qryData.seqBeg;
+  size_t dnaLen = qryData.seqEnd - qryData.seqBeg;
   for (int frame = 0; frame < 3; ++frame) {
     if (dnaLen < 3) break;
     size_t aaBeg = dnaToAa(dnaBeg++, frameSize);
     size_t aaLen = dnaLen-- / 3;
     size_t aaEnd = aaBeg + aaLen;
-    tantanMasker.mask(querySeq + aaBeg, querySeq + aaEnd,
+    tantanMasker.mask(qryData.seq + aaBeg, qryData.seq + aaEnd,
 		      alph.numbersToLowercase);
   }
 }
@@ -1072,13 +1073,13 @@ void translateAndScan(LastAligner &aligner,
       if (args.isKeepLowercase) {
 	err("can't keep lowercase & find simple repeats & use codons");
       }
-      tantanMaskOneQuery(qryData.seqNum, qryData.seq);
+      tantanMaskOneQuery(qryData);
     }
     modifiedQuery.resize(size);
     geneticCode.translate(qryData.seq, qryData.seq + size, &modifiedQuery[0]);
     qryData.seq = &modifiedQuery[0];
     if (args.tantanSetting && !scoreMatrix.isCodonCols()) {
-      tantanMaskTranslatedQuery(qryData.seqNum, qryData.seq);
+      tantanMaskTranslatedQuery(qryData);
     }
   } else {
     if (args.tantanSetting) {
@@ -1086,7 +1087,7 @@ void translateAndScan(LastAligner &aligner,
 	modifiedQuery.assign(qryData.seq, qryData.seq + size);
 	qryData.seq = &modifiedQuery[0];
       }
-      tantanMaskOneQuery(qryData.seqNum, qryData.seq);
+      tantanMaskOneQuery(qryData);
     }
   }
 
@@ -1101,15 +1102,18 @@ void translateAndScan(LastAligner &aligner,
   qryData.seq = query.seqWriter() + query.padBeg(qryData.seqNum);
 
   if (args.tantanSetting && !args.isKeepLowercase) {
-    queryAlph.makeUppercase(query.seqWriter() + query.seqBeg(qryData.seqNum),
-			    query.seqWriter() + query.seqEnd(qryData.seqNum));
+    queryAlph.makeUppercase(qryData.seq + qryData.seqBeg,
+			    qryData.seq + qryData.seqEnd);
   }
 }
 
 static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
 			  size_t qryNum, bool isFirstVolume) {
   size_t padBeg = query.padBeg(qryNum);
-  SeqData qryData = {qryNum, query.seqWriter() + padBeg};
+  SeqData qryData = {qryNum,
+    query.seqBeg(qryNum) - padBeg,
+    query.seqEnd(qryNum) - padBeg,
+    query.seqWriter() + padBeg};
 
   if (isFirstVolume) {
     aligner.numOfNormalLetters +=
