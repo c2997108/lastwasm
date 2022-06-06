@@ -561,11 +561,11 @@ static void printAndDelete(char *text) {
   delete[] text;
 }
 
-static void writeAlignment(LastAligner &aligner, const Alignment &aln,
-			   size_t queryNum, const uchar* querySeq,
+static void writeAlignment(LastAligner &aligner,
+			   const SeqData &qryData, const Alignment &aln,
 			   const AlignmentExtras &extras = AlignmentExtras()) {
   int translationType = scoreMatrix.isCodonCols() ? 2 : args.isTranslated();
-  AlignmentText a = aln.write(refSeqs, query, queryNum, querySeq,
+  AlignmentText a = aln.write(refSeqs, query, qryData.seqNum, qryData.seq,
 			      alph, queryAlph,
 			      translationType, geneticCode.getCodonToAmino(),
 			      evaluer, args.outputFormat, extras);
@@ -575,11 +575,11 @@ static void writeAlignment(LastAligner &aligner, const Alignment &aln,
     printAndDelete(a.text);
 }
 
-static void writeSegmentPair(LastAligner &aligner, const SegmentPair &s,
-			     size_t queryNum, const uchar* querySeq) {
+static void writeSegmentPair(LastAligner &aligner,
+			     const SeqData &qryData, const SegmentPair &s) {
   Alignment a;
   a.fromSegmentPair(s);
-  writeAlignment(aligner, a, queryNum, querySeq);
+  writeAlignment(aligner, qryData, a);
 }
 
 struct GaplessAlignmentCounts {
@@ -591,7 +591,8 @@ struct GaplessAlignmentCounts {
 
 // Get seed hits and gapless alignments at one query-sequence position
 void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
-		   size_t queryNum, const Dispatcher &dis, DiagonalTable &dt,
+		   const SeqData &qryData,
+		   const Dispatcher &dis, DiagonalTable &dt,
 		   GaplessAlignmentCounts &counts, const SubsetSuffixArray &sa,
 		   const uchar *qryPtr, unsigned seedNum) {
   const bool isOverlap = (args.globality && args.outputType == 1);
@@ -619,7 +620,7 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       if (score < minScoreGapless) continue;
       SegmentPair sp(refPos - revLen, qryPos - revLen, revLen + fwdLen, score);
       dt.addEndpoint(sp.end2(), sp.end1());
-      writeSegmentPair(aligner, sp, queryNum, dis.b);
+      writeSegmentPair(aligner, qryData, sp);
     } else {
       int fs = dis.forwardGaplessScore(refPos, qryPos);
       int rs = dis.reverseGaplessScore(refPos, qryPos);
@@ -635,7 +636,7 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       dt.addEndpoint(sp.end2(), sp.end1());
 
       if (args.outputType == 1) {  // we just want gapless alignments
-	writeSegmentPair(aligner, sp, queryNum, dis.b);
+	writeSegmentPair(aligner, qryData, sp);
       } else {
 	gaplessAlns.add(sp);
       }
@@ -678,7 +679,7 @@ void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       if (c != dnaWordsFinderNull) {
 	unsigned w = wordsFinder.next(&hash, c);
 	if (w != dnaWordsFinderNull) {
-	  alignGapless1(aligner, gaplessAlns, qryData.seqNum, dis, dt, counts,
+	  alignGapless1(aligner, gaplessAlns, qryData, dis, dt, counts,
 			suffixArrays[0], qryBeg - wordsFinder.wordLength, w);
 	  if (counts.maxSignificantAlignments == 0) break;
 	}
@@ -698,7 +699,7 @@ void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 	if (args.minimizerWindow > 1 &&
 	    !minFinders[x].isMinimizer(sax.getSeeds()[0], qryPtr, qryEnd,
 				       args.minimizerWindow)) continue;
-	alignGapless1(aligner, gaplessAlns, qryData.seqNum, dis, dt, counts,
+	alignGapless1(aligner, gaplessAlns, qryData, dis, dt, counts,
 		      sax, qryPtr, 0);
       }
       if (counts.maxSignificantAlignments == 0) break;
@@ -813,15 +814,16 @@ static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
-void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
-		  size_t queryNum, const SubstitutionMatrices &matrices,
-		  size_t frameSize, const Dispatcher &dis ){
+void alignFinish(LastAligner &aligner,
+		 const SeqData &qryData, const AlignmentPot &gappedAlns,
+		 const SubstitutionMatrices &matrices, size_t frameSize,
+		 const Dispatcher &dis) {
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     AlignmentExtras extras;
     if (args.scoreType != 0) extras.fullScore = -1;  // score is fullScore
     if( args.outputType < 4 ){
-      writeAlignment(aligner, aln, queryNum, dis.b, extras);
+      writeAlignment(aligner, qryData, aln, extras);
     } else {  // calculate match probabilities:
       Alignment probAln;
       probAln.seed = aln.seed;
@@ -834,7 +836,7 @@ void alignFinish( LastAligner& aligner, const AlignmentPot& gappedAlns,
       assert(aln.score != -INF);
       if (args.maskLowercase == 2 && args.scoreType != 0)
 	probAln.score = aln.score;
-      writeAlignment(aligner, probAln, queryNum, dis.b, extras);
+      writeAlignment(aligner, qryData, probAln, extras);
     }
   }
 }
@@ -1036,7 +1038,7 @@ void scan(LastAligner& aligner,
   }
 
   if (!isCollatedAlignments()) gappedAlns.sort();  // sort by score
-  alignFinish(aligner, gappedAlns, qryData.seqNum, matrices, frameSize, dis3);
+  alignFinish(aligner, qryData, gappedAlns, matrices, frameSize, dis3);
 }
 
 static void tantanMaskOneQuery(const SeqData &qryData) {
