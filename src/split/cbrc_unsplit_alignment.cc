@@ -98,38 +98,21 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
     const char *lineEnd = c + i->size();
-    const char *d, *e, *f;
+    const char *f;
     const char *g = rskipSpace(lineEnd);
     if (*c == 's') {
-      unsigned x = 0;
-      unsigned y = 0;
-      unsigned z = 0;
-      d = skipWord(c);
-      d = skipWord(d);
-      e = readUint(d, x);
-      e = skipSpace(e);
-      f = readUint(e, y);
+      f = skipWord(c);
       f = skipWord(f);
-      f = readUint(f, z);
+      f = skipWord(f);
+      f = skipWord(f);
+      f = skipWord(f);
+      f = skipWord(f);
       f = skipSpace(f);
       if (!f || f >= g) err("bad MAF line: " + *i);
-      x = z - x - y;
       std::string::iterator beg = i->begin() + (f - c);
       std::string::iterator end = i->begin() + (g - c);
       reverse(beg, end);
       transform(beg, end, beg, complement);
-      char buffer[32];
-      int buflen = std::sprintf(buffer, " %u ", x);
-      if (buflen <= e - d) {
-	// if the field is small enough, copy it into the line (fast)
-	beg = i->begin() + (d - c);
-	end = i->begin() + (e - c);
-	beg = copy(buffer, buffer + buflen, beg);
-	while (beg < end) *beg++ = ' ';
-      } else {
-	// else, reconstruct the line (slow)
-	*i = i->substr(0, d - c) + buffer + i->substr(e - c);
-      }
     } else if (*c == 'q') {
       f = skipSpace(skipWord(skipWord(c)));
       if (!f || f >= g) err("bad MAF line: " + *i);
@@ -178,6 +161,7 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
       ++s;
       unsigned start = 0;
       unsigned len = 0;
+      unsigned seqLen = 0;
       char strand = 0;
       d = skipWord(c);
       d = skipSpace(d);
@@ -185,11 +169,14 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
       f = readUint(e, start);
       f = readUint(f, len);
       f = readChar(f, strand);
-      f = skipWord(f);
+      f = readUint(f, seqLen);
       f = skipSpace(f);
       if (!f || f >= g) err("bad MAF line: " + *i);
       (*i)[e - c] = 0;  // write a terminator for the sequence name
       if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
+      if (isRev) {
+	start = seqLen - start - len;
+      }
       if (s == rankOfRefSeq) {
 	rstart = start;
 	rend = start + len;
@@ -223,6 +210,7 @@ static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
 }
 
 std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
+				  bool isFlipped,
 				  unsigned alnBeg, unsigned alnEnd) {
   std::vector<std::string> out;
   for (StringCi i = linesBeg; i < linesEnd; ++i) {
@@ -230,16 +218,20 @@ std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
     const char *d, *e, *f;
     if (*c == 's') {
       unsigned x = 0;  // initialize it to keep the compiler happy
+      unsigned span;
+      unsigned seqLen;
       d = skipWord(skipWord(c));
       e = d + 1;  // skip over the string terminator
       e = readUint(e, x);
-      e = skipWord(e);
+      e = readUint(e, span);
       f = skipWord(e);
-      f = skipWord(f);
+      f = readUint(f, seqLen);
       f = skipSpace(f);
+      if (isFlipped) x = seqLen - x - span;
       unsigned beg = x + seqPosFromAlnPos(alnBeg, f);
       unsigned end = x + seqPosFromAlnPos(alnEnd, f);
       unsigned len = end - beg;
+      if (isFlipped) beg = seqLen - end;
       char buffer[64];
       std::sprintf(buffer, " %u %u", beg, len);
       out.push_back(std::string(c, d) + buffer +

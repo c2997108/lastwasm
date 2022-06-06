@@ -161,7 +161,7 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   int mismapPrecision = 3;
 
   std::vector<std::string> s = cbrc::mafSlice(a.linesBeg, a.linesEnd,
-					      alnBeg, alnEnd);
+					      a.isFlipped(), alnBeg, alnEnd);
   s.push_back(cbrc::pLineFromProbs(p));
 
   if (isAlreadySplit && s.end()[-2][0] == 'p') {
