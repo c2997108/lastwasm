@@ -430,6 +430,12 @@ void readInnerPrj( const std::string& fileName,
   if( !f ) ERR( "can't read file: " + fileName );
 }
 
+static size_t seedSearchEnd(size_t seqEnd) {
+  size_t d = wordsFinder.wordLength ? wordsFinder.wordLength : 1;
+  size_t x = args.minHitDepth - std::min(d, args.minHitDepth);
+  return seqEnd - std::min(x, seqEnd);
+}
+
 // Write match counts for each query sequence
 void writeCounts() {
   for (indexT i = 0; i < matchCounts.size(); ++i) {
@@ -446,9 +452,7 @@ void countMatches(const SeqData &qryData) {
   if (wordsFinder.wordLength) {  // YAGNI
     err("can't count initial matches with word-restricted seeds, sorry");
   }
-  size_t loopEnd = qryData.seqEnd;
-  if( args.minHitDepth > 1 )
-    loopEnd -= std::min( args.minHitDepth - 1, loopEnd );
+  size_t loopEnd = seedSearchEnd(qryData.seqEnd);
 
   for (size_t i = qryData.seqBeg; i < loopEnd; i += args.queryStep) {
     for (unsigned x = 0; x < numOfIndexes; ++x) {
@@ -654,12 +658,7 @@ void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
   GaplessAlignmentCounts counts = {0, 0, 0, maxAlignments};
 
   size_t loopBeg = qryData.seqBeg;
-  size_t loopEnd = qryData.seqEnd;
-
-  unsigned minDepth = wordsFinder.wordLength ? wordsFinder.wordLength : 1;
-  if (args.minHitDepth > minDepth) {
-    loopEnd -= std::min(args.minHitDepth - minDepth, loopEnd);
-  }
+  size_t loopEnd = seedSearchEnd(qryData.seqEnd);
 
   const uchar *querySeq = qryData.seq;
   const uchar *qryBeg = querySeq + loopBeg;
@@ -976,13 +975,13 @@ void scan(LastAligner& aligner,
   size_t frameSize = args.isFrameshift() ? (qryData.padLen / 3) : 0;
   AlignmentPot gappedAlns;
 
-  size_t queryLen = qryData.padLen;
+  size_t qryLen = qryData.padLen;
   Centroid &centroid = aligner.engines.centroid;
 
   if (args.scoreType != 0 && dis0.p) {
     const OneQualityExpMatrix &m =
       (maskMode < 2) ? matrices.oneQualExp : matrices.oneQualExpMasked;
-    centroid.setPssm(dis0.p, queryLen, args.temperature, m, dis0.b, dis0.j);
+    centroid.setPssm(dis0.p, qryLen, args.temperature, m, dis0.b, dis0.j);
   }
 
   if (args.maxDropFinal != args.maxDropGapped) {
@@ -1019,9 +1018,9 @@ void scan(LastAligner& aligner,
   if (args.outputType > 3 && dis3.p) {
     const OneQualityExpMatrix &m =
       (maskMode < 3) ? matrices.oneQualExp : matrices.oneQualExpMasked;
-    centroid.setPssm(dis3.p, queryLen, args.temperature, m, dis3.b, dis3.j);
+    centroid.setPssm(dis3.p, qryLen, args.temperature, m, dis3.b, dis3.j);
     if (args.outputType == 7) {
-      centroid.setLetterProbsPerPosition(alph.size, queryLen, dis3.b, dis3.j,
+      centroid.setLetterProbsPerPosition(alph.size, qryLen, dis3.b, dis3.j,
 					 isUseFastq(args.inputFormat),
 					 matrices.maker.qualToProbRight(),
 					 matrices.stats.letterProbs2(),
