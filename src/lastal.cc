@@ -451,7 +451,7 @@ void writeCounts() {
 }
 
 // Count all matches, of all sizes, of a query sequence against a suffix array
-void countMatches(const SeqData &qryData) {
+void countMatches(std::vector<countT> &counts, const SeqData &qryData) {
   if (wordsFinder.wordLength) {  // YAGNI
     err("can't count initial matches with word-restricted seeds, sorry");
   }
@@ -459,7 +459,7 @@ void countMatches(const SeqData &qryData) {
 
   for (size_t i = qryData.seqBeg; i < loopEnd; i += args.queryStep) {
     for (unsigned x = 0; x < numOfIndexes; ++x) {
-      suffixArrays[x].countMatches(matchCounts[qryData.seqNum], qryData.seq + i,
+      suffixArrays[x].countMatches(counts, qryData.seq + i,
 				   refSeqs.seqReader(), 0, args.maxHitDepth);
     }
   }
@@ -475,11 +475,12 @@ static int *qualityPssmSpace(LastAligner &aligner, size_t padLen) {
 }
 
 static const ScoreMatrixRow *getQueryPssm(const int *qualityPssm,
+					  const MultiSequence &qrySeqs,
 					  size_t padBeg) {
   if (args.isGreedy) return 0;
 
   if (args.inputFormat == sequenceFormat::pssm) {
-    return query.pssmReader() + padBeg;
+    return qrySeqs.pssmReader() + padBeg;
   }
 
   return reinterpret_cast<const ScoreMatrixRow *>(qualityPssm);
@@ -1088,7 +1089,7 @@ void translateAndScan(LastAligner &aligner,
   }
 
   if (args.outputType == 0) {
-    countMatches(qryData);
+    countMatches(matchCounts[qryData.seqNum], qryData);
   } else {
     size_t oldNumOfAlns = aligner.textAlns.size();
     scan(aligner, query, qryData, matrices);
@@ -1124,7 +1125,7 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
     query.seqReader() + padEnd,
     qual,
     qualityPssm,
-    getQueryPssm(qualityPssm, padBeg)};
+    getQueryPssm(qualityPssm, query, padBeg)};
 
   if (isFirstVolume) {
     aligner.numOfNormalLetters +=
