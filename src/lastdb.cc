@@ -436,18 +436,20 @@ void lastdb( int argc, char** argv ){
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
-    while (appendSequence(multi, in, maxSeqLen, args.inputFormat, alph,
-			  args.isKeepLowercase, 0)) {
-      if (sequenceCount == 0) {
-	maxSeqLen = maxLettersPerVolume(args, wordsFinder,
-					multi.qualsPerLetter(), seeds.size());
-	if (!args.isProtein && !args.isAddStops && args.userAlphabet.empty() &&
-	    isDubiousDna(alph, multi)) {
-	  std::cerr << args.programName << ": that's some funny-lookin DNA\n";
+    while (appendSequence(multi, in, maxSeqLen, args.inputFormat, alph, 0)) {
+      if (multi.isFinished()) {
+	encodeSequences(multi, args.inputFormat, alph, args.isKeepLowercase,
+			multi.finishedSequences() - 1);
+	if (sequenceCount == 0) {
+	  maxSeqLen = maxLettersPerVolume(args, wordsFinder,
+					  multi.qualsPerLetter(),
+					  seeds.size());
+	  if (!args.isProtein && !args.isAddStops &&
+	      args.userAlphabet.empty() && isDubiousDna(alph, multi)) {
+	    std::cerr << args.programName
+		      << ": that's some funny-lookin DNA\n";
+	  }
 	}
-      }
-
-      if( multi.isFinished() ){
 	if (args.strand != 1) {
 	  if (args.strand == 2) {
 	    ++sequenceCount;
@@ -467,8 +469,7 @@ void lastdb( int argc, char** argv ){
 	  multi.reverseComplementOneSequence(lastSeq, alph.complement);
 	}
         ++sequenceCount;
-      }
-      else{
+      } else {
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
 	makeVolume(seeds, wordsFinder, multi, args, alph, letterCounts,
 		   maxSeqLenSeen, tantanMasker, numOfThreads, seedText,

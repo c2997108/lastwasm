@@ -22,14 +22,23 @@ const size_t posLimit = size_t(-1) >> ((sizeof(size_t) - posSize) * CHAR_BIT);
 
 inline void err(const char *s) { throw std::runtime_error(s); }
 
+inline void encodeSequences(MultiSequence &m, sequenceFormat::Enum f,
+			    const Alphabet &a, bool isKeepLowercase,
+			    indexT start) {
+  size_t beg = m.seqBeg(start);
+  size_t end = m.seqBeg(m.finishedSequences());
+  a.tr(m.seqWriter() + beg, m.seqWriter() + end, isKeepLowercase);
+  if (isPhred(f)) {
+    checkQualityCodes(m.qualityReader() + beg,
+		      m.qualityReader() + end, qualityOffset(f));
+  }  // assumes one quality code per letter
+}
+
 // Read the next sequence, adding it to the MultiSequence
 inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
 				    indexT maxSeqLen, sequenceFormat::Enum f,
-				    const Alphabet &a, bool isKeepLowercase,
-				    bool isMaskLowercase) {
+				    const Alphabet &a, bool isMaskLowercase) {
   if (m.finishedSequences() == 0) maxSeqLen = posLimit;
-
-  size_t oldSize = m.seqBeg(m.finishedSequences());
 
   if (f == sequenceFormat::fasta) {
     m.appendFromFasta(in, maxSeqLen);
@@ -48,16 +57,6 @@ inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
   if (!m.isFinished() && m.finishedSequences() == 0) {
     err("encountered a sequence that's too long");
   }
-
-  size_t newSize = m.seqBeg(m.finishedSequences());
-
-  // encode the newly-read sequence
-  a.tr(m.seqWriter() + oldSize, m.seqWriter() + newSize, isKeepLowercase);
-
-  if (isPhred(f)) {
-    checkQualityCodes(m.qualityReader() + oldSize,
-		      m.qualityReader() + newSize, qualityOffset(f));
-  }  // assumes one quality code per letter
 
   return in;
 }

@@ -1264,6 +1264,8 @@ void scanAllVolumes() {
     matchCounts.resize( query.finishedSequences() );
   }
 
+  encodeSequences(query, args.inputFormat, queryAlph, args.isKeepLowercase, 0);
+
   for (unsigned i = 0; i < numOfVolumes; ++i) {
     if (refSeqs.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
     scanOneVolume(i, aligners.size());
@@ -1439,9 +1441,8 @@ void lastal( int argc, char** argv ){
     mcf::izstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
-
     while (appendSequence(query, in, maxSeqLen, args.inputFormat, queryAlph,
-			  args.isKeepLowercase, args.maskLowercase > 1)) {
+			  args.maskLowercase > 1)) {
       if (!query.isFinished()) {
         // this enables downstream parsers to read one batch at a time:
 	std::cout << "# batch " << queryBatchCount++ << "\n";
