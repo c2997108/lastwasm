@@ -1387,10 +1387,8 @@ void lastal( int argc, char** argv ){
     } else {
       geneticCode.codeTableSet( alph, queryAlph );
     }
-    query.initForAppending(3);
   } else {
     queryAlph = alph;
-    query.initForAppending(1);
   }
 
   if (args.tantanSetting) {
@@ -1421,8 +1419,6 @@ void lastal( int argc, char** argv ){
   if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
   if( args.outputType > 0 ) makeQualityScorers();
 
-  queryAlph.tr(query.seqWriter(), query.seqWriter() + query.seqBeg(0));
-
   if (numOfVolumes + 1 == 0) {
     readIndex(args.lastdbName, numOfRefSeqs);
     numOfVolumes = 1;
@@ -1436,6 +1432,8 @@ void lastal( int argc, char** argv ){
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
   char** inputBegin = argv + args.inputStart;
+
+  initSequences(query, queryAlph, args.isTranslated(), false);
 
   for( char** i = *inputBegin ? inputBegin : defaultInput; *i; ++i ){
     mcf::izstream inFileStream;

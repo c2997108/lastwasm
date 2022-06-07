@@ -22,6 +22,12 @@ const size_t posLimit = size_t(-1) >> ((sizeof(size_t) - posSize) * CHAR_BIT);
 
 inline void err(const char *s) { throw std::runtime_error(s); }
 
+inline void initSequences(MultiSequence &m, const Alphabet &a,
+			  bool isTranslated, bool isAppendStopSymbol) {
+  m.initForAppending(isTranslated ? 3 : 1, isAppendStopSymbol);
+  a.tr(m.seqWriter(), m.seqWriter() + m.seqBeg(0));
+}
+
 inline void encodeSequences(MultiSequence &m, sequenceFormat::Enum f,
 			    const Alphabet &a, bool isKeepLowercase,
 			    indexT start) {

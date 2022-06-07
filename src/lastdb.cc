@@ -419,8 +419,7 @@ void lastdb( int argc, char** argv ){
   LOG("wordLength=" << wordsFinder.wordLength);
 
   MultiSequence multi;
-  multi.initForAppending(1, args.isAddStops);
-  alph.tr(multi.seqWriter(), multi.seqWriter() + multi.seqBeg(0));
+  initSequences(multi, alph, false, args.isAddStops);
   unsigned volumeNumber = 0;
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
