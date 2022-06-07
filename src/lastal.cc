@@ -81,6 +81,7 @@ struct SeqData {
   const uchar *seqPadBeg;
   const uchar *seqPadEnd;
   const uchar *qual;
+  int *qualityPssm;
 };
 
 namespace {
@@ -460,6 +461,15 @@ void countMatches(const SeqData &qryData) {
 				   refSeqs.seqReader(), 0, args.maxHitDepth);
     }
   }
+}
+
+static int *qualityPssmSpace(LastAligner &aligner, size_t padLen) {
+  if (args.outputType == 0 || args.isGreedy || args.isTranslated() ||
+      !isUseQuality(args.inputFormat) || isUseQuality(referenceFormat)) {
+    return 0;
+  }
+  aligner.qualityPssm.resize(padLen * scoreMatrixRowSize);
+  return &aligner.qualityPssm[0];
 }
 
 static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
@@ -919,17 +929,12 @@ static void printAndClear(std::vector<AlignmentText> &textAlns) {
   textAlns.clear();
 }
 
-void makeQualityPssm(LastAligner &aligner, const SeqData &qryData,
+void makeQualityPssm(const SeqData &qryData,
 		     const SubstitutionMatrices &matrices, bool isMask) {
-  if (!isUseQuality(args.inputFormat) || isUseQuality(referenceFormat)) return;
-  if( args.isTranslated() || args.isGreedy ) return;
-
-  std::vector<int> &qualityPssm = aligner.qualityPssm;
-  qualityPssm.resize(qryData.padLen * scoreMatrixRowSize);
-
+  int *pssm = qryData.qualityPssm;
+  if (!pssm) return;
   const uchar *seqBeg = qryData.seq;
   const uchar *seqEnd = seqBeg + qryData.padLen;
-  int *pssm = &qualityPssm[0];
 
   if (args.inputFormat == sequenceFormat::prb) {
     matrices.maker.make(seqBeg, seqEnd, qryData.qual, pssm, isMask);
@@ -940,28 +945,28 @@ void makeQualityPssm(LastAligner &aligner, const SeqData &qryData,
   }
 }
 
-static void unmaskLowercase(LastAligner &aligner, const SeqData &qryData,
+static void unmaskLowercase(const SeqData &qryData,
 			    const SubstitutionMatrices &matrices) {
-  makeQualityPssm(aligner, qryData, matrices, false);
+  makeQualityPssm(qryData, matrices, false);
   if (scoreMatrix.isCodonCols()) {
     geneticCode.translateWithoutMasking(qryData.seqPadBeg,
 					qryData.seqPadEnd, qryData.seq);
   }
 }
 
-static void remaskLowercase(LastAligner &aligner, const SeqData &qryData,
+static void remaskLowercase(const SeqData &qryData,
 			    const SubstitutionMatrices &matrices) {
-  makeQualityPssm(aligner, qryData, matrices, true);
+  makeQualityPssm(qryData, matrices, true);
   if (scoreMatrix.isCodonCols()) {
     geneticCode.translate(qryData.seqPadBeg, qryData.seqPadEnd, qryData.seq);
   }
 }
 
 // Scan one query sequence against one database volume
-void scan(LastAligner& aligner,
+void scan(LastAligner &aligner,
 	  const SeqData &qryData, const SubstitutionMatrices &matrices) {
   const int maskMode = args.maskLowercase;
-  makeQualityPssm(aligner, qryData, matrices, maskMode > 0);
+  makeQualityPssm(qryData, matrices, maskMode > 0);
 
   Dispatcher dis0(Phase::gapless, aligner, qryData, matrices);
   SegmentPairPot gaplessAlns;
@@ -970,7 +975,7 @@ void scan(LastAligner& aligner,
   if( gaplessAlns.size() == 0 ) return;
 
   if (maskMode == 1 || (maskMode == 2 && args.scoreType == 0))
-    unmaskLowercase(aligner, qryData, matrices);
+    unmaskLowercase(qryData, matrices);
 
   size_t frameSize = args.isFrameshift() ? (qryData.padLen / 3) : 0;
   AlignmentPot gappedAlns;
@@ -997,17 +1002,17 @@ void scan(LastAligner& aligner,
   Dispatcher dis3(Phase::postgapped, aligner, qryData, matrices);
 
   if (maskMode == 2 && args.scoreType != 0) {
-    unmaskLowercase(aligner, qryData, matrices);
+    unmaskLowercase(qryData, matrices);
     alignPostgapped(aligner, gappedAlns, frameSize, dis3);
   }
 
   if (maskMode == 2 && args.scoreType == 0) {
-    remaskLowercase(aligner, qryData, matrices);
+    remaskLowercase(qryData, matrices);
     eraseWeakAlignments(gappedAlns, frameSize, dis0);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
     if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
-      unmaskLowercase(aligner, qryData, matrices);
+      unmaskLowercase(qryData, matrices);
   }
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
@@ -1101,18 +1106,20 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
 			  size_t qryNum, bool isFirstVolume) {
   size_t padBeg = query.padBeg(qryNum);
   size_t padEnd = query.padEnd(qryNum);
+  size_t padLen = padEnd - padBeg;
 
   const uchar *qual = query.qualityReader();
   if (qual) qual += padBeg * query.qualsPerLetter();
 
   SeqData qryData = {qryNum,
-    padEnd - padBeg,
+    padLen,
     query.seqBeg(qryNum) - padBeg,
     query.seqEnd(qryNum) - padBeg,
     query.seqWriter() + padBeg,
     query.seqReader() + padBeg,
     query.seqReader() + padEnd,
-    qual};
+    qual,
+    qualityPssmSpace(aligner, padLen)};
 
   if (isFirstVolume) {
     aligner.numOfNormalLetters +=
