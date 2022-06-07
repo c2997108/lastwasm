@@ -77,6 +77,7 @@ struct SeqData {
   size_t padLen;
   size_t seqBeg;
   size_t seqEnd;
+  size_t frameSize;
   uchar *seq;
   const uchar *seqPadBeg;
   const uchar *seqPadEnd;
@@ -733,8 +734,7 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
 // Do gapped extensions of the gapless alignments
 void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 		 SegmentPairPot &gaplessAlns, const SeqData &qryData,
-		 const SubstitutionMatrices &matrices, size_t frameSize,
-		 Phase::Enum phase) {
+		 const SubstitutionMatrices &matrices, Phase::Enum phase) {
   Dispatcher dis(phase, qryData, matrices);
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
@@ -779,14 +779,14 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 		  dis.a, dis.b, args.globality,
 		  dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 		  dis.r, matrices.stats.lambda(), gapCosts, dis.d,
-		  frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
+		  qryData.frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
     ++gappedExtensionCount;
 
     if( aln.score < args.minScoreGapped ) continue;
 
     if (args.scoreType == 0 &&
 	!aln.isOptimal(dis.a, dis.b, args.globality, dis.m, dis.d, gapCosts,
-		       frameSize, dis.p, dis.t, dis.i, dis.j)) {
+		       qryData.frameSize, dis.p, dis.t, dis.i, dis.j)) {
       // If retained, non-"optimal" alignments can hide "optimal"
       // alignments, e.g. during non-redundantization.
       continue;
@@ -824,8 +824,7 @@ static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish(LastAligner &aligner, const MultiSequence &qrySeqs,
 		 const SeqData &qryData, const AlignmentPot &gappedAlns,
-		 const SubstitutionMatrices &matrices, size_t frameSize,
-		 const Dispatcher &dis) {
+		 const SubstitutionMatrices &matrices, const Dispatcher &dis) {
   for( size_t i = 0; i < gappedAlns.size(); ++i ){
     const Alignment& aln = gappedAlns.items[i];
     AlignmentExtras extras;
@@ -839,8 +838,8 @@ void alignFinish(LastAligner &aligner, const MultiSequence &qrySeqs,
 			dis.a, dis.b, args.globality,
 			dis.m, scoreMatrix.maxScore, scoreMatrix.minScore,
 			dis.r, matrices.stats.lambda(), gapCosts, dis.d,
-			frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras,
-			args.gamma, args.outputType);
+			qryData.frameSize, dis.p, dis.t, dis.i, dis.j, alph,
+			extras, args.gamma, args.outputType);
       assert(aln.score != -INF);
       if (args.maskLowercase == 2 && args.scoreType != 0)
 	probAln.score = aln.score;
@@ -981,10 +980,8 @@ void scan(LastAligner &aligner, const MultiSequence &qrySeqs,
   if (maskMode == 1 || (maskMode == 2 && args.scoreType == 0))
     unmaskLowercase(qryData, matrices);
 
-  size_t frameSize = args.isFrameshift() ? (qryData.padLen / 3) : 0;
-  AlignmentPot gappedAlns;
-
   size_t qryLen = qryData.padLen;
+  AlignmentPot gappedAlns;
   Centroid &centroid = aligner.engines.centroid;
 
   if (args.scoreType != 0 && dis0.p) {
@@ -995,24 +992,24 @@ void scan(LastAligner &aligner, const MultiSequence &qrySeqs,
 
   if (args.maxDropFinal != args.maxDropGapped) {
     alignGapped(aligner, gappedAlns, gaplessAlns, qryData, matrices,
-		frameSize, Phase::pregapped);
+		Phase::pregapped);
     erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
   }
 
   alignGapped(aligner, gappedAlns, gaplessAlns, qryData, matrices,
-	      frameSize, Phase::gapped);
+	      Phase::gapped);
   if( gappedAlns.size() == 0 ) return;
 
   Dispatcher dis3(Phase::postgapped, qryData, matrices);
 
   if (maskMode == 2 && args.scoreType != 0) {
     unmaskLowercase(qryData, matrices);
-    alignPostgapped(aligner, gappedAlns, frameSize, dis3);
+    alignPostgapped(aligner, gappedAlns, qryData.frameSize, dis3);
   }
 
   if (maskMode == 2 && args.scoreType == 0) {
     remaskLowercase(qryData, matrices);
-    eraseWeakAlignments(gappedAlns, frameSize, dis0);
+    eraseWeakAlignments(gappedAlns, qryData.frameSize, dis0);
     LOG2("lowercase-filtered alignments=" << gappedAlns.size());
     if (gappedAlns.size() == 0) return;
     if (args.outputType > 3)
@@ -1038,7 +1035,7 @@ void scan(LastAligner &aligner, const MultiSequence &qrySeqs,
   }
 
   if (!isCollatedAlignments()) gappedAlns.sort();  // sort by score
-  alignFinish(aligner, qrySeqs, qryData, gappedAlns, matrices, frameSize, dis3);
+  alignFinish(aligner, qrySeqs, qryData, gappedAlns, matrices, dis3);
 }
 
 static void tantanMaskOneQuery(const SeqData &qryData) {
@@ -1121,6 +1118,7 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
     padLen,
     query.seqBeg(qryNum) - padBeg,
     query.seqEnd(qryNum) - padBeg,
+    args.isFrameshift() ? (padLen / 3) : 0,
     query.seqWriter() + padBeg,
     query.seqReader() + padBeg,
     query.seqReader() + padEnd,
