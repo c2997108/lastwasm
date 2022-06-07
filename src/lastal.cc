@@ -82,6 +82,7 @@ struct SeqData {
   const uchar *seqPadEnd;
   const uchar *qual;
   int *qualityPssm;
+  const ScoreMatrixRow *pssm;
 };
 
 namespace {
@@ -472,15 +473,15 @@ static int *qualityPssmSpace(LastAligner &aligner, size_t padLen) {
   return &aligner.qualityPssm[0];
 }
 
-static const ScoreMatrixRow *getQueryPssm(const LastAligner &aligner,
-					  size_t queryNum) {
+static const ScoreMatrixRow *getQueryPssm(const int *qualityPssm,
+					  size_t padBeg) {
   if (args.isGreedy) return 0;
-  if (args.inputFormat == sequenceFormat::pssm)
-    return query.pssmReader() + query.padBeg(queryNum);
-  const std::vector<int> &qualityPssm = aligner.qualityPssm;
-  if (qualityPssm.empty())
-    return 0;
-  return reinterpret_cast<const ScoreMatrixRow *>(&qualityPssm[0]);
+
+  if (args.inputFormat == sequenceFormat::pssm) {
+    return query.pssmReader() + padBeg;
+  }
+
+  return reinterpret_cast<const ScoreMatrixRow *>(qualityPssm);
 }
 
 namespace Phase{ enum Enum{ gapless, pregapped, gapped, postgapped }; }
@@ -503,13 +504,13 @@ struct Dispatcher{
   int d;  // the maximum score drop
   int z;
 
-  Dispatcher(Phase::Enum e, const LastAligner &aligner, const SeqData &qryData,
+  Dispatcher(Phase::Enum e, const SeqData &qryData,
 	     const SubstitutionMatrices &matrices) :
       a( refSeqs.seqReader() ),
       b( qryData.seq ),
       i( refSeqs.qualityReader() ),
       j( qryData.qual ),
-      p( getQueryPssm(aligner, qryData.seqNum) ),
+      p( qryData.pssm ),
       m( isMaskLowercase(e) ? matrices.scoresMasked : matrices.scores ),
       r( isMaskLowercase(e) ? matrices.ratiosMasked : matrices.ratios ),
       t( isMaskLowercase(e) ? matrices.twoQualMasked : matrices.twoQual ),
@@ -731,7 +732,7 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 		 SegmentPairPot &gaplessAlns, const SeqData &qryData,
 		 const SubstitutionMatrices &matrices, size_t frameSize,
 		 Phase::Enum phase) {
-  Dispatcher dis(phase, aligner, qryData, matrices);
+  Dispatcher dis(phase, qryData, matrices);
   countT gappedExtensionCount = 0, gappedAlignmentCount = 0;
 
   // Redo the gapless extensions, using gapped score parameters.
@@ -968,7 +969,7 @@ void scan(LastAligner &aligner,
   const int maskMode = args.maskLowercase;
   makeQualityPssm(qryData, matrices, maskMode > 0);
 
-  Dispatcher dis0(Phase::gapless, aligner, qryData, matrices);
+  Dispatcher dis0(Phase::gapless, qryData, matrices);
   SegmentPairPot gaplessAlns;
   alignGapless(aligner, gaplessAlns, qryData, dis0);
   if( args.outputType == 1 ) return;  // we just want gapless alignments
@@ -999,7 +1000,7 @@ void scan(LastAligner &aligner,
 	      frameSize, Phase::gapped);
   if( gappedAlns.size() == 0 ) return;
 
-  Dispatcher dis3(Phase::postgapped, aligner, qryData, matrices);
+  Dispatcher dis3(Phase::postgapped, qryData, matrices);
 
   if (maskMode == 2 && args.scoreType != 0) {
     unmaskLowercase(qryData, matrices);
@@ -1111,6 +1112,8 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
   const uchar *qual = query.qualityReader();
   if (qual) qual += padBeg * query.qualsPerLetter();
 
+  int *qualityPssm = qualityPssmSpace(aligner, padLen);
+
   SeqData qryData = {qryNum,
     padLen,
     query.seqBeg(qryNum) - padBeg,
@@ -1119,7 +1122,8 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
     query.seqReader() + padBeg,
     query.seqReader() + padEnd,
     qual,
-    qualityPssmSpace(aligner, padLen)};
+    qualityPssm,
+    getQueryPssm(qualityPssm, padBeg)};
 
   if (isFirstVolume) {
     aligner.numOfNormalLetters +=
