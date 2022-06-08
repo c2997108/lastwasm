@@ -103,7 +103,7 @@ namespace {
   std::vector<LastAligner> aligners;
   LastEvaluer evaluer;
   LastEvaluer gaplessEvaluer;
-  MultiSequence query;  // sequence that hasn't been indexed by lastdb
+  MultiSequence qrySeqsGlobal;  // sequence that hasn't been indexed by lastdb
   MultiSequence refSeqs;  // sequence that has been indexed by lastdb
   sequenceFormat::Enum referenceFormat = sequenceFormat::fasta;
   int minScoreGapless;
@@ -1156,8 +1156,8 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   size_t numOfChunks = aligners.size();
   LastAligner &aligner = aligners[chunkNum];
   std::vector<AlignmentText> &textAlns = aligner.textAlns;
-  size_t beg = firstSequenceInChunk(query, numOfChunks, chunkNum);
-  size_t end = firstSequenceInChunk(query, numOfChunks, chunkNum + 1);
+  size_t beg = firstSequenceInChunk(qrySeqsGlobal, numOfChunks, chunkNum);
+  size_t end = firstSequenceInChunk(qrySeqsGlobal, numOfChunks, chunkNum + 1);
   bool isMultiVolume = (numOfVolumes > 1);
   bool isFirstVolume = (volume == 0);
   bool isFirstThread = (chunkNum == 0);
@@ -1170,7 +1170,7 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   }
   for (size_t i = beg; i < end; ++i) {
     size_t oldNumOfAlns = textAlns.size();
-    alignOneQuery(aligner, query, i, i - beg,
+    alignOneQuery(aligner, qrySeqsGlobal, i, i - beg,
 		  finalCullingLimit, isFirstVolume);
     if (isSortPerQuery) sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     if (isPrintPerQuery) printAndClear(textAlns);
@@ -1197,7 +1197,7 @@ static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
   }
   if (volume + 1 == numOfVolumes) {
     LastAligner &aligner = aligners[numOfThreadsLeft - 1];
-    writeCounts(aligner.matchCounts, query, firstSequence);
+    writeCounts(aligner.matchCounts, qrySeqsGlobal, firstSequence);
     aligner.matchCounts.clear();
     printAndClear(aligner.textAlns);
   }
@@ -1272,7 +1272,8 @@ void readVolume( unsigned volumeNumber ){
 
 // Scan one batch of query sequences against all database volumes
 void scanAllVolumes() {
-  encodeSequences(query, args.inputFormat, queryAlph, args.isKeepLowercase, 0);
+  encodeSequences(qrySeqsGlobal, args.inputFormat, queryAlph,
+		  args.isKeepLowercase, 0);
 
   for (unsigned i = 0; i < numOfVolumes; ++i) {
     if (refSeqs.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
@@ -1439,24 +1440,24 @@ void lastal( int argc, char** argv ){
   char* defaultInput[] = { defaultInputName, 0 };
   char** inputBegin = argv + args.inputStart;
 
-  initSequences(query, queryAlph, args.isTranslated(), false);
+  initSequences(qrySeqsGlobal, queryAlph, args.isTranslated(), false);
 
   for( char** i = *inputBegin ? inputBegin : defaultInput; *i; ++i ){
     mcf::izstream inFileStream;
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
-    while (appendSequence(query, in, maxSeqLen, args.inputFormat, queryAlph,
-			  args.maskLowercase > 1)) {
-      if (!query.isFinished()) {
+    while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
+			  queryAlph, args.maskLowercase > 1)) {
+      if (!qrySeqsGlobal.isFinished()) {
         // this enables downstream parsers to read one batch at a time:
 	std::cout << "# batch " << queryBatchCount++ << "\n";
 	scanAllVolumes();
-	query.reinitForAppending();
+	qrySeqsGlobal.reinitForAppending();
       }
     }
   }
 
-  if( query.finishedSequences() > 0 ){
+  if (qrySeqsGlobal.finishedSequences() > 0) {
     std::cout << "# batch " << queryBatchCount << "\n";
     scanAllVolumes();
   }
