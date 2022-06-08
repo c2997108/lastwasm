@@ -1061,7 +1061,7 @@ static void tantanMaskTranslatedQuery(const SeqData &qryData) {
 
 // Scan one query sequence strand against one database volume,
 // after optionally translating and/or masking the query
-void translateAndScan(LastAligner &aligner,
+void translateAndScan(LastAligner &aligner, MultiSequence &qrySeqs,
 		      SeqData &qryData, size_t chunkQryNum,
 		      size_t finalCullingLimit,
 		      const SubstitutionMatrices &matrices) {
@@ -1094,11 +1094,11 @@ void translateAndScan(LastAligner &aligner,
     countMatches(aligner.matchCounts[chunkQryNum], qryData);
   } else {
     size_t oldNumOfAlns = aligner.textAlns.size();
-    scan(aligner, query, qryData, matrices);
+    scan(aligner, qrySeqs, qryData, matrices);
     cullFinalAlignments(aligner.textAlns, oldNumOfAlns, finalCullingLimit);
   }
 
-  qryData.seq = query.seqWriter() + query.padBeg(qryData.seqNum);
+  qryData.seq = qrySeqs.seqWriter() + qrySeqs.padBeg(qryData.seqNum);
 
   if (args.tantanSetting && !args.isKeepLowercase) {
     queryAlph.makeUppercase(qryData.seq + qryData.seqBeg,
@@ -1106,29 +1106,29 @@ void translateAndScan(LastAligner &aligner,
   }
 }
 
-static void alignOneQuery(LastAligner &aligner,
+static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
 			  size_t qryNum, size_t chunkQryNum,
 			  size_t finalCullingLimit, bool isFirstVolume) {
-  size_t padBeg = query.padBeg(qryNum);
-  size_t padEnd = query.padEnd(qryNum);
+  size_t padBeg = qrySeqs.padBeg(qryNum);
+  size_t padEnd = qrySeqs.padEnd(qryNum);
   size_t padLen = padEnd - padBeg;
 
-  const uchar *qual = query.qualityReader();
-  if (qual) qual += padBeg * query.qualsPerLetter();
+  const uchar *qual = qrySeqs.qualityReader();
+  if (qual) qual += padBeg * qrySeqs.qualsPerLetter();
 
   int *qualityPssm = qualityPssmSpace(aligner, padLen);
 
   SeqData qryData = {qryNum,
     padLen,
-    query.seqBeg(qryNum) - padBeg,
-    query.seqEnd(qryNum) - padBeg,
+    qrySeqs.seqBeg(qryNum) - padBeg,
+    qrySeqs.seqEnd(qryNum) - padBeg,
     args.isFrameshift() ? (padLen / 3) : 0,
-    query.seqWriter() + padBeg,
-    query.seqReader() + padBeg,
-    query.seqReader() + padEnd,
+    qrySeqs.seqWriter() + padBeg,
+    qrySeqs.seqReader() + padBeg,
+    qrySeqs.seqReader() + padEnd,
     qual,
     qualityPssm,
-    getQueryPssm(qualityPssm, query, padBeg)};
+    getQueryPssm(qualityPssm, qrySeqs, padBeg)};
 
   if (isFirstVolume) {
     aligner.numOfNormalLetters +=
@@ -1138,17 +1138,17 @@ static void alignOneQuery(LastAligner &aligner,
   }
 
   if (args.strand == 2 && !isFirstVolume)
-    query.reverseComplementOneSequence(qryNum, queryAlph.complement);
+    qrySeqs.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
   if (args.strand != 0)
-    translateAndScan(aligner, qryData, chunkQryNum, finalCullingLimit,
+    translateAndScan(aligner, qrySeqs, qryData, chunkQryNum, finalCullingLimit,
 		     fwdMatrices);
 
   if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
-    query.reverseComplementOneSequence(qryNum, queryAlph.complement);
+    qrySeqs.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
   if (args.strand != 1)
-    translateAndScan(aligner, qryData, chunkQryNum, finalCullingLimit,
+    translateAndScan(aligner, qrySeqs, qryData, chunkQryNum, finalCullingLimit,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 }
 
@@ -1170,7 +1170,8 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   }
   for (size_t i = beg; i < end; ++i) {
     size_t oldNumOfAlns = textAlns.size();
-    alignOneQuery(aligner, i, i - beg, finalCullingLimit, isFirstVolume);
+    alignOneQuery(aligner, query, i, i - beg,
+		  finalCullingLimit, isFirstVolume);
     if (isSortPerQuery) sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     if (isPrintPerQuery) printAndClear(textAlns);
   }
