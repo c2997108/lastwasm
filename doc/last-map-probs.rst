@@ -44,10 +44,9 @@ Details
 * This script can read alignments in either of the formats produced by
   lastal (maf or tabular).
 
-* The script reads one batch of alignments at a time (by looking for
-  lines starting with "# batch").  If the batches are huge
-  (e.g. because there are no lines starting with "# batch"), it might
-  need too much memory.
+* The input must not mix alignments of different query sequences.  In
+  other words, all the alignments of one query must be next to each
+  other.
 
 Limitations
 -----------

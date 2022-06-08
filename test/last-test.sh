@@ -254,6 +254,7 @@ lastdb -uBISR -R10 r hg19-M.fa
 ../examples/last-bisulfite.sh f r bs100.fastq | grep -v '^#' | diff bs100.maf -
 rm f.* r.*
 
+./last-map-probs-test.sh
 ./last-pair-test.sh
 ./last-postmask-test.sh
 ./last-split-test.sh

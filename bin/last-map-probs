@@ -19,10 +19,10 @@ def myOpen(fileName):
         return gzip.open(fileName, "rt")  # xxx dubious for Python2
     return open(fileName)
 
-def logsum(numbers):
+def logsum(numbers, temperature):
     """Adds numbers, in log space, to avoid overflow."""
-    m = max(numbers)
-    s = sum(math.exp(i - m) for i in numbers)
+    m = max(numbers) / temperature
+    s = sum(math.exp(i / temperature - m) for i in numbers)
     return m + math.log(s)
 
 def mafScore(aLine):
@@ -31,36 +31,16 @@ def mafScore(aLine):
             return float(word[6:])
     raise Exception("found an alignment without a score")
 
-def namesAndScores(lines):
-    queryNames = []
-    scores = []
-    for line in lines:
-        if line[0] == "a":  # faster than line.startswith("a")
-            s = mafScore(line)
-            scores.append(s)
-            sLineCount = 0
-        elif line[0] == "s":
-            sLineCount += 1
-            if sLineCount == 2: queryNames.append(line.split(None, 2)[1])
-        elif line[0].isdigit():  # we have an alignment in tabular format
-            w = line.split(None, 7)
-            scores.append(float(w[0]))
-            queryNames.append(w[6])
-    return queryNames, scores
+def doOneBatch(lines, scores, opts, temperature):
+    if scores:
+        logDenominator = logsum(scores, temperature)
 
-def scoreTotals(queryNames, scores, temperature):
-    queryLists = {}
-    for n, s in zip(queryNames, scores):
-        queryLists.setdefault(n, []).append(s / temperature)
-    return dict((k, logsum(queryLists[k])) for k in queryLists)
-
-def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
     isWanted = True
     i = 0
     for line in lines:
         if line[0] == "a":
             s = scores[i]
-            p = 1.0 - math.exp(s / temperature - denominators[queryNames[i]])
+            p = 1.0 - math.exp(s / temperature - logDenominator)
             i += 1
             if s < opts.score or p > opts.mismap:
                 isWanted = False
@@ -69,18 +49,13 @@ def writeOneBatch(lines, queryNames, scores, denominators, opts, temperature):
                 line = line.rstrip() + newLineEnd
         elif line[0].isdigit():  # we have an alignment in tabular format
             s = scores[i]
-            p = 1.0 - math.exp(s / temperature - denominators[queryNames[i]])
+            p = 1.0 - math.exp(s / temperature - logDenominator)
             i += 1
             if s < opts.score or p > opts.mismap: continue
             newLineEnd = "\tmismap=%.3g\n" % p
             line = line.rstrip() + newLineEnd
         if isWanted: print(line, end="")
         if line.isspace(): isWanted = True  # reset at end of maf paragraph
-
-def doOneBatch(lines, opts, temperature):
-    queryNames, scores = namesAndScores(lines)
-    denominators = scoreTotals(queryNames, scores, temperature)
-    writeOneBatch(lines, queryNames, scores, denominators, opts, temperature)
 
 def readHeaderOrDie(lines):
     t = 0.0
@@ -100,13 +75,36 @@ def doOneFile(opts, f):
     temperature, e = readHeaderOrDie(f)
     if opts.score < 0: opts.score = e + round(temperature * math.log(1000))
     lines = []
+    scores = []
+    queryName = ""
 
     for line in f:
-        if line.startswith("# batch"):
-            doOneBatch(lines, opts, temperature)
-            lines = []
+        if line[0] == "a":
+            batchEnd = len(lines)
+            score = mafScore(line)
+            sLineCount = 0
+        elif line[0] == "s":
+            sLineCount += 1
+            if sLineCount == 2:
+                qName = line.split(None, 2)[1]
+                if qName != queryName:
+                    doOneBatch(lines[:batchEnd], scores, opts, temperature)
+                    lines = lines[batchEnd:]
+                    scores = []
+                    queryName = qName
+                scores.append(score)
+        elif line[0].isdigit():  # we have an alignment in tabular format
+            fields = line.split(None, 7)
+            qName = fields[6]
+            if qName != queryName:
+                doOneBatch(lines, scores, opts, temperature)
+                lines = []
+                scores = []
+                queryName = qName
+            scores.append(float(fields[0]))
         lines.append(line)
-    doOneBatch(lines, opts, temperature)
+
+    doOneBatch(lines, scores, opts, temperature)
 
 def lastMapProbs(opts, args):
     if args:
