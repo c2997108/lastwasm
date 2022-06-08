@@ -49,6 +49,7 @@ struct LastAligner {  // data that changes between queries
   Aligners engines;
   std::vector<int> qualityPssm;
   std::vector<AlignmentText> textAlns;
+  std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   countT numOfNormalLetters;
   countT numOfSequences;
 };
@@ -104,7 +105,6 @@ namespace {
   LastEvaluer gaplessEvaluer;
   MultiSequence query;  // sequence that hasn't been indexed by lastdb
   MultiSequence refSeqs;  // sequence that has been indexed by lastdb
-  std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   sequenceFormat::Enum referenceFormat = sequenceFormat::fasta;
   int minScoreGapless;
   int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
@@ -440,9 +440,10 @@ static size_t seedSearchEnd(size_t seqEnd) {
 }
 
 // Write match counts for each query sequence
-void writeCounts() {
+void writeCounts(const std::vector< std::vector<countT> > &matchCounts,
+		 const MultiSequence &qrySeqs, size_t firstSequence) {
   for (indexT i = 0; i < matchCounts.size(); ++i) {
-    std::cout << query.seqName(i) << '\n';
+    std::cout << qrySeqs.seqName(firstSequence + i) << '\n';
     for (size_t j = args.minHitDepth; j < matchCounts[i].size(); ++j) {
       std::cout << j << '\t' << matchCounts[i][j] << '\n';
     }
@@ -1061,7 +1062,8 @@ static void tantanMaskTranslatedQuery(const SeqData &qryData) {
 // Scan one query sequence strand against one database volume,
 // after optionally translating and/or masking the query
 void translateAndScan(LastAligner &aligner,
-		      SeqData &qryData, size_t finalCullingLimit,
+		      SeqData &qryData, size_t chunkQryNum,
+		      size_t finalCullingLimit,
 		      const SubstitutionMatrices &matrices) {
   std::vector<uchar> modifiedQuery;
 
@@ -1089,7 +1091,7 @@ void translateAndScan(LastAligner &aligner,
   }
 
   if (args.outputType == 0) {
-    countMatches(matchCounts[qryData.seqNum], qryData);
+    countMatches(aligner.matchCounts[chunkQryNum], qryData);
   } else {
     size_t oldNumOfAlns = aligner.textAlns.size();
     scan(aligner, query, qryData, matrices);
@@ -1104,8 +1106,9 @@ void translateAndScan(LastAligner &aligner,
   }
 }
 
-static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
-			  size_t qryNum, bool isFirstVolume) {
+static void alignOneQuery(LastAligner &aligner,
+			  size_t qryNum, size_t chunkQryNum,
+			  size_t finalCullingLimit, bool isFirstVolume) {
   size_t padBeg = query.padBeg(qryNum);
   size_t padEnd = query.padEnd(qryNum);
   size_t padLen = padEnd - padBeg;
@@ -1138,17 +1141,18 @@ static void alignOneQuery(LastAligner &aligner, size_t finalCullingLimit,
     query.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
   if (args.strand != 0)
-    translateAndScan(aligner, qryData, finalCullingLimit, fwdMatrices);
+    translateAndScan(aligner, qryData, chunkQryNum, finalCullingLimit,
+		     fwdMatrices);
 
   if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
     query.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
   if (args.strand != 1)
-    translateAndScan(aligner, qryData, finalCullingLimit,
+    translateAndScan(aligner, qryData, chunkQryNum, finalCullingLimit,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 }
 
-static void alignSomeQueries(size_t chunkNum, unsigned volume) {
+static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   size_t numOfChunks = aligners.size();
   LastAligner &aligner = aligners[chunkNum];
   std::vector<AlignmentText> &textAlns = aligner.textAlns;
@@ -1161,9 +1165,12 @@ static void alignSomeQueries(size_t chunkNum, unsigned volume) {
   bool isPrintPerQuery = (isFirstThread && !isMultiVolume);
   size_t finalCullingLimit = args.cullingLimitForFinalAlignments ?
     args.cullingLimitForFinalAlignments : isMultiVolume;
+  if (args.outputType == 0 && isFirstVolume) {
+    aligner.matchCounts.resize(end - beg);
+  }
   for (size_t i = beg; i < end; ++i) {
     size_t oldNumOfAlns = textAlns.size();
-    alignOneQuery(aligner, finalCullingLimit, i, isFirstVolume);
+    alignOneQuery(aligner, i, i - beg, finalCullingLimit, isFirstVolume);
     if (isSortPerQuery) sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     if (isPrintPerQuery) printAndClear(textAlns);
   }
@@ -1171,22 +1178,27 @@ static void alignSomeQueries(size_t chunkNum, unsigned volume) {
     cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
     sort(textAlns.begin(), textAlns.end());
   }
+  return beg;
 }
 
 static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
+  size_t firstSequence = 0;
   if (numOfThreadsLeft > 1) {
 #ifdef HAS_CXX_THREADS
     std::thread t(scanOneVolume, volume, numOfThreadsLeft - 1);
     // Exceptions from threads are not handled nicely, but I don't
     // think it matters much.
-    alignSomeQueries(numOfThreadsLeft - 1, volume);
+    firstSequence = alignSomeQueries(numOfThreadsLeft - 1, volume);
     t.join();
 #endif
   } else {
-    alignSomeQueries(0, volume);
+    firstSequence = alignSomeQueries(0, volume);
   }
   if (volume + 1 == numOfVolumes) {
-    printAndClear(aligners[numOfThreadsLeft - 1].textAlns);
+    LastAligner &aligner = aligners[numOfThreadsLeft - 1];
+    writeCounts(aligner.matchCounts, query, firstSequence);
+    aligner.matchCounts.clear();
+    printAndClear(aligner.textAlns);
   }
 }
 
@@ -1259,19 +1271,12 @@ void readVolume( unsigned volumeNumber ){
 
 // Scan one batch of query sequences against all database volumes
 void scanAllVolumes() {
-  if( args.outputType == 0 ){
-    matchCounts.clear();
-    matchCounts.resize( query.finishedSequences() );
-  }
-
   encodeSequences(query, args.inputFormat, queryAlph, args.isKeepLowercase, 0);
 
   for (unsigned i = 0; i < numOfVolumes; ++i) {
     if (refSeqs.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
     scanOneVolume(i, aligners.size());
   }
-
-  if (args.outputType == 0) writeCounts();
 }
 
 void writeHeader(countT numOfRefSeqs, countT refLetters, std::ostream &out) {
