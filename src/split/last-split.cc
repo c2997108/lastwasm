@@ -200,7 +200,6 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
     }
   }
 
-  if (a.isFlipped()) cbrc::flipMafStrands(s.begin(), s.end());
   s.insert(s.begin(), &aLine[0]);
   if (opts.no_split && a.linesEnd[-1][0] == 'c') s.push_back(a.linesEnd[-1]);
   cbrc::printMaf(s);

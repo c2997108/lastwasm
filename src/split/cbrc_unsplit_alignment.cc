@@ -302,6 +302,9 @@ std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
 				  unsigned alnBeg, unsigned alnEnd,
 				  const double *probs) {
   std::vector<std::string> out;
+
+  unsigned alnLen = alnEnd - alnBeg;
+
   for (StringCi i = aln.linesBeg; i < aln.linesEnd; ++i) {
     const char *c = i->c_str();
     const char *d, *e, *f;
@@ -325,9 +328,17 @@ std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
       std::sprintf(buffer, " %u %u", beg, len);
       out.push_back(std::string(c, d) + buffer +
 		    std::string(e, f) + std::string(f + alnBeg, f + alnEnd));
+      if (aln.isFlipped()) {
+	reverse(out.back().end() - alnLen, out.back().end());
+	transform(out.back().end() - alnLen, out.back().end(),
+		  out.back().end() - alnLen, complement);
+      }
     } else if (*c == 'q') {
       d = skipSpace(skipWord(skipWord(c)));
       out.push_back(std::string(c, d) + std::string(d + alnBeg, d + alnEnd));
+      if (aln.isFlipped()) {
+	reverse(out.back().end() - alnLen, out.back().end());
+      }
     } else if (*c == 'p') {
       d = skipSpace(skipWord(c));
       const char *g = rskipSpace(c + i->size());
@@ -337,8 +348,6 @@ std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
 		     : std::string(d + alnBeg, d + alnEnd)));
     }
   }
-
-  unsigned alnLen = alnEnd - alnBeg;
 
   std::string s(2 + alnLen, ' ');
   s[0] = 'p';
