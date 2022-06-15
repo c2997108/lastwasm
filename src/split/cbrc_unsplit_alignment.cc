@@ -117,6 +117,13 @@ static void parseSeqLine(char *line, char *lineEnd, const char *&seqName,
   *lineEnd = 0;  // trim any trailing whitespace
 }
 
+static void parseQualLine(char *line, char *lineEnd, char *&qual) {
+  const char *s = skipSpace(skipWord(skipWord(line)));
+  if (!s || s >= lineEnd) err(std::string("bad MAF line: ") + line);
+  qual = line + (s - line);
+  *lineEnd = 0;  // trim any trailing whitespace
+}
+
 void UnsplitAlignment::init(bool isTopSeqQuery) {
   const unsigned rankOfQrySeq = 2 - isTopSeqQuery;
   const unsigned rankOfRefSeq = isTopSeqQuery + 1;
@@ -124,17 +131,16 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   char refStrand, qryStrand;
   unsigned refSpan, qrySpan;
   unsigned refSeqLen, qrySeqLen;
-  qQual = 0;  // in case the input lacks sequence quality data
   char *refAln;
   char *refAlnEnd;
   char *qryAln;
   char *qryAlnEnd;
+  char *qual = 0;
   unsigned sLineCount = 0;
 
   for (char **i = linesBeg; i < linesEnd; ++i) {
     char *line = i[0];
     char *lineEnd = rskipSpace(i[1] - 1);
-    const char *f;
     if (line[0] == 's') {
       ++sLineCount;
       if (sLineCount == rankOfRefSeq) {
@@ -148,11 +154,8 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
       if (sLineCount != rankOfQrySeq) {
 	err("I can only handle quality data for the query sequence");
       }
-      f = skipSpace(skipWord(skipWord(line)));
-      if (!f || f >= lineEnd) err(std::string("bad MAF line: ") + line);
-      *lineEnd = 0;  // trim any trailing whitespace
-      if (qryStrand == '-') std::reverse(line + (f - line), lineEnd);
-      qQual = f;
+      parseQualLine(line, lineEnd, qual);
+      if (qryStrand == '-') std::reverse(qual, lineEnd);
     }
   }
 
@@ -171,6 +174,7 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   qend = qstart + qrySpan;
   ralign = refAln;
   qalign = qryAln;
+  qQual = qual;
 }
 
 static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
