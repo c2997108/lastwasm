@@ -39,8 +39,6 @@ public:
     bool isFlipped() const { return qstrand % 2; }
 };
 
-void flipMafStrands(StringIt linesBeg, StringIt linesEnd);
-
 std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
 				  unsigned alnBeg, unsigned alnEnd,
 				  const double *probs);

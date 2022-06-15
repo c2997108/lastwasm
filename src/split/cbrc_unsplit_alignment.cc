@@ -94,33 +94,6 @@ struct Complement {
 };
 static Complement complement;
 
-void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
-  for (StringIt i = linesBeg; i < linesEnd; ++i) {
-    const char *c = i->c_str();
-    const char *lineEnd = c + i->size();
-    const char *f;
-    const char *g = rskipSpace(lineEnd);
-    if (*c == 's') {
-      f = skipWord(c);
-      f = skipWord(f);
-      f = skipWord(f);
-      f = skipWord(f);
-      f = skipWord(f);
-      f = skipWord(f);
-      f = skipSpace(f);
-      if (!f || f >= g) err("bad MAF line: " + *i);
-      std::string::iterator beg = i->begin() + (f - c);
-      std::string::iterator end = i->begin() + (g - c);
-      reverse(beg, end);
-      transform(beg, end, beg, complement);
-    } else if (*c == 'q') {
-      f = skipSpace(skipWord(skipWord(c)));
-      if (!f || f >= g) err("bad MAF line: " + *i);
-      reverse(i->begin() + (f - c), i->begin() + (g - c));
-    }
-  }
-}
-
 static bool isRevQryStrand(StringIt linesBeg, StringIt linesEnd,
 			   unsigned rankOfQrySeq) {
   char strand = 0;
@@ -149,7 +122,6 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   unsigned sLineCount = 0;
 
   bool isRev = isRevQryStrand(linesBeg, linesEnd, rankOfQrySeq);
-  if (isRev) flipMafStrands(linesBeg, linesEnd);
 
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
@@ -178,7 +150,6 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 	refSpan = len;
 	refStrand = strand;
 	refSeqLen = seqLen;
-	qstrand = (strand == '-') * 2;
 	rname = d;
 	ralign = f;
       } else if (sLineCount == rankOfQrySeq) {
@@ -186,28 +157,37 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 	qrySpan = len;
 	qryStrand = strand;
 	qrySeqLen = seqLen;
-	if (strand == '-') qstrand = 3 - qstrand;
 	qname = d;
 	qalign = f;
       }
-    } else if (*c == 'q') {
-      if (sLineCount == rankOfRefSeq)
-        err("I can't handle quality data for the genomic sequence");
-      if (sLineCount == rankOfQrySeq) {
-	f = skipSpace(skipWord(skipWord(c)));
-	if (!f || f >= g) err("bad MAF line: " + *i);
-	if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
-	qQual = f;
+      if (isRev) {
+	std::string::iterator beg = i->begin() + (f - c);
+	std::string::iterator end = i->begin() + (g - c);
+	reverse(beg, end);
+	transform(beg, end, beg, complement);
       }
+    } else if (*c == 'q') {
+      if (sLineCount != rankOfQrySeq) {
+	err("I can only handle quality data for the query sequence");
+      }
+      f = skipSpace(skipWord(skipWord(c)));
+      if (!f || f >= g) err("bad MAF line: " + *i);
+      if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
+      if (qryStrand == '-') {
+	reverse(i->begin() + (f - c), i->begin() + (g - c));
+      }
+      qQual = f;
     }
   }
 
-  if (sLineCount < 2) err("bad MAF data");
+  if (sLineCount != 2) err("I need 2 sequences per alignment");
 
   if (qryStrand == '-') {
     rstart = refSeqLen - rstart - refSpan;
     qstart = qrySeqLen - qstart - qrySpan;
   }
+
+  qstrand = (qryStrand != refStrand) * 2 + (qryStrand == '-');
 
   rend = rstart + refSpan;
   qend = qstart + qrySpan;
