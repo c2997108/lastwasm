@@ -142,19 +142,22 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   const unsigned rankOfQrySeq = 2 - isTopSeqQuery;
   const unsigned rankOfRefSeq = isTopSeqQuery + 1;
 
+  char refStrand, qryStrand;
+  unsigned refSpan, qrySpan;
+  unsigned refSeqLen, qrySeqLen;
+  qQual = 0;  // in case the input lacks sequence quality data
+  unsigned sLineCount = 0;
+
   bool isRev = isRevQryStrand(linesBeg, linesEnd, rankOfQrySeq);
   if (isRev) flipMafStrands(linesBeg, linesEnd);
 
-  qQual = 0;  // in case the input lacks sequence quality data
-
-  unsigned s = 0;
   for (StringIt i = linesBeg; i < linesEnd; ++i) {
     const char *c = i->c_str();
     const char *lineEnd = c + i->size();
     const char *d, *e, *f;
     const char *g = rskipSpace(lineEnd);
     if (*c == 's') {
-      ++s;
+      ++sLineCount;
       unsigned start = 0;
       unsigned len = 0;
       unsigned seqLen = 0;
@@ -170,26 +173,27 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
       if (!f || f >= g) err("bad MAF line: " + *i);
       (*i)[e - c] = 0;  // write a terminator for the sequence name
       if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
-      if (isRev) {
-	start = seqLen - start - len;
-      }
-      if (s == rankOfRefSeq) {
+      if (sLineCount == rankOfRefSeq) {
 	rstart = start;
-	rend = start + len;
+	refSpan = len;
+	refStrand = strand;
+	refSeqLen = seqLen;
 	qstrand = (strand == '-') * 2;
 	rname = d;
 	ralign = f;
-      } else if (s == rankOfQrySeq) {
+      } else if (sLineCount == rankOfQrySeq) {
 	qstart = start;
-	qend = start + len;
+	qrySpan = len;
+	qryStrand = strand;
+	qrySeqLen = seqLen;
 	if (strand == '-') qstrand = 3 - qstrand;
 	qname = d;
 	qalign = f;
       }
     } else if (*c == 'q') {
-      if (s == rankOfRefSeq)
+      if (sLineCount == rankOfRefSeq)
         err("I can't handle quality data for the genomic sequence");
-      if (s == rankOfQrySeq) {
+      if (sLineCount == rankOfQrySeq) {
 	f = skipSpace(skipWord(skipWord(c)));
 	if (!f || f >= g) err("bad MAF line: " + *i);
 	if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
@@ -198,7 +202,15 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
     }
   }
 
-  if (s < 2) err("bad MAF data");
+  if (sLineCount < 2) err("bad MAF data");
+
+  if (qryStrand == '-') {
+    rstart = refSeqLen - rstart - refSpan;
+    qstart = qrySeqLen - qstart - qrySpan;
+  }
+
+  rend = rstart + refSpan;
+  qend = qstart + qrySpan;
 }
 
 static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
