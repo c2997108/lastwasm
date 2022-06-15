@@ -42,7 +42,8 @@ public:
 void flipMafStrands(StringIt linesBeg, StringIt linesEnd);
 
 std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
-				  unsigned alnBeg, unsigned alnEnd);
+				  unsigned alnBeg, unsigned alnEnd,
+				  const double *probs);
 
 void mafSliceBeg(const char* rAln, const char* qAln,
 		 unsigned qBeg, unsigned& qSliceBeg, unsigned& alnBeg);
@@ -51,8 +52,6 @@ void mafSliceEnd(const char* rAln, const char* qAln,
 		 unsigned qEnd, unsigned& qSliceEnd, unsigned& alnEnd);
 
 void printMaf(const std::vector<std::string>& maf);
-
-std::string pLineFromProbs(const std::vector<double>& p, bool isFlipped);
 
 double pLinesToErrorProb(const char *line1, const char *line2);
 

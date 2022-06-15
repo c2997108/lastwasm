@@ -299,7 +299,8 @@ static char asciiFromProb(double probRight) {
 }
 
 std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
-				  unsigned alnBeg, unsigned alnEnd) {
+				  unsigned alnBeg, unsigned alnEnd,
+				  const double *probs) {
   std::vector<std::string> out;
   for (StringCi i = aln.linesBeg; i < aln.linesEnd; ++i) {
     const char *c = i->c_str();
@@ -336,6 +337,15 @@ std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
 		     : std::string(d + alnBeg, d + alnEnd)));
     }
   }
+
+  unsigned alnLen = alnEnd - alnBeg;
+
+  std::string s(2 + alnLen, ' ');
+  s[0] = 'p';
+  transform(probs, probs + alnLen, s.begin() + 2, asciiFromProb);
+  if (aln.isFlipped()) reverse(s.begin() + 2, s.end());
+  out.push_back(s);
+
   return out;
 }
 
@@ -372,14 +382,6 @@ void printMaf(const std::vector<std::string>& maf) {
   }
 
   std::cout << '\n';
-}
-
-std::string pLineFromProbs(const std::vector<double>& p, bool isFlipped) {
-  std::string s(2 + p.size(), ' ');
-  s[0] = 'p';
-  transform(p.begin(), p.end(), s.begin() + 2, asciiFromProb);
-  if (isFlipped) reverse(s.begin() + 2, s.end());
-  return s;
 }
 
 double pLinesToErrorProb(const char *line1, const char *line2) {
