@@ -114,6 +114,8 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
 			       bool isSenseStrand, double senseStrandLogOdds,
 			       const LastSplitOptions& opts,
 			       bool isAlreadySplit) {
+  std::vector<char> outputText;
+
   if (qSliceBeg >= a.qend || qSliceEnd <= a.qstart) {
     return;  // this can happen for spliced alignment!
   }
@@ -180,12 +182,12 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   }
 
   const std::string &aLineOld = a.linesBeg[0];
-  std::vector<char> aLine(aLineOld.size() + 128);
+  size_t aLineOldSize = aLineOld.size();
+  std::vector<char> aLine(aLineOldSize + 128);
   char *out = &aLine[0];
-
   if (opts.no_split && aLineOld[0] == 'a') {
-    memcpy(out, aLineOld.data(), aLineOld.size());
-    out += aLineOld.size();
+    memcpy(out, aLineOld.data(), aLineOldSize);
+    out += aLineOldSize;
   } else {
     out += sprintf(out, "a score=%d", score);
   }
@@ -205,12 +207,18 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   }
   *out++ = '\n';
 
-  std::cout.write(&aLine[0], out - &aLine[0]);
-  std::cout.write(sliceBeg, sliceEnd - sliceBeg);
-  if (opts.no_split && a.linesEnd[-1][0] == 'c') {
-    std::cout << a.linesEnd[-1] << '\n';
+  outputText.insert(outputText.end(), &aLine[0], out);
+  outputText.insert(outputText.end(), sliceBeg, sliceEnd);
+
+  const std::string &s = a.linesEnd[-1];
+  if (opts.no_split && s[0] == 'c') {
+    outputText.insert(outputText.end(), s.c_str(), s.c_str() + s.size() + 1);
+    outputText.back() = '\n';
   }
-  std::cout << '\n';
+
+  outputText.push_back('\n');
+
+  std::cout.write(&outputText[0], outputText.size());
 }
 
 static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
