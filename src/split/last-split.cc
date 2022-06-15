@@ -16,6 +16,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <streambuf>
 
 static void err(const std::string& s) {
   throw std::runtime_error(s);
@@ -26,6 +27,19 @@ static std::istream& openIn(const std::string& fileName, std::ifstream& ifs) {
   ifs.open(fileName.c_str());
   if (!ifs) err("can't open file: " + fileName);
   return ifs;
+}
+
+static bool appendLine(std::istream &s, std::vector<char> &v) {
+  std::streambuf *b = s.rdbuf();
+  int c = b->sbumpc();
+  if (c == std::streambuf::traits_type::eof()) return false;
+  while (c != '\n') {
+    v.push_back(c);
+    c = b->sbumpc();
+    if (c == std::streambuf::traits_type::eof()) break;
+  }
+  v.push_back(0);
+  return true;
 }
 
 // Does the string start with the prefix?
@@ -181,12 +195,12 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
     while (*(sliceEnd - lineLen) == 'p') sliceEnd -= lineLen;
   }
 
-  const std::string &aLineOld = a.linesBeg[0];
-  size_t aLineOldSize = aLineOld.size();
+  const char *aLineOld = a.linesBeg[0];
+  size_t aLineOldSize = a.linesBeg[1] - a.linesBeg[0] - 1;
   std::vector<char> aLine(aLineOldSize + 128);
   char *out = &aLine[0];
   if (opts.no_split && aLineOld[0] == 'a') {
-    memcpy(out, aLineOld.data(), aLineOldSize);
+    memcpy(out, aLineOld, aLineOldSize);
     out += aLineOldSize;
   } else {
     out += sprintf(out, "a score=%d", score);
@@ -210,9 +224,8 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   outputText.insert(outputText.end(), &aLine[0], out);
   outputText.insert(outputText.end(), sliceBeg, sliceEnd);
 
-  const std::string &s = a.linesEnd[-1];
-  if (opts.no_split && s[0] == 'c') {
-    outputText.insert(outputText.end(), s.c_str(), s.c_str() + s.size() + 1);
+  if (opts.no_split && a.linesEnd[-1][0] == 'c') {
+    outputText.insert(outputText.end(), a.linesEnd[-1], a.linesEnd[0]);
     outputText.back() = '\n';
   }
 
@@ -297,15 +310,21 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
   }
 }
 
-static void doOneBatch(std::vector<std::string> &mafLines,
+static void doOneBatch(std::vector<char> &inputText,
+		       const std::vector<size_t> &lineEnds,
 		       const std::vector<unsigned> &mafEnds,
 		       cbrc::SplitAligner &sa, const LastSplitOptions &opts,
 		       bool isAlreadySplit) {
+  std::vector<char *> linePtrs(lineEnds.size());
+  for (size_t i = 0; i < lineEnds.size(); ++i) {
+    linePtrs[i] = &inputText[0] + lineEnds[i];
+  }
+
   std::vector<cbrc::UnsplitAlignment> mafs;
   mafs.reserve(mafEnds.size() - 1);  // saves memory: no excess capacity
   for (unsigned i = 1; i < mafEnds.size(); ++i)
-    mafs.push_back(cbrc::UnsplitAlignment(mafLines.begin() + mafEnds[i-1],
-					  mafLines.begin() + mafEnds[i],
+    mafs.push_back(cbrc::UnsplitAlignment(&linePtrs[0] + mafEnds[i-1],
+					  &linePtrs[0] + mafEnds[i],
 					  opts.isTopSeqQuery));
 
   sort(mafs.begin(), mafs.end(), less);
@@ -339,15 +358,21 @@ static void printParameters(const LastSplitOptions& opts) {
 }
 
 static void addMaf(std::vector<unsigned> &mafEnds,
-		   const std::vector<std::string> &mafLines) {
-  if (mafLines.size() > mafEnds.back())  // if we have new maf lines:
-    mafEnds.push_back(mafLines.size());  // store the new end
+		   const std::vector<size_t> &lineEnds) {
+  if (lineEnds.size() - 1 > mafEnds.back())  // if we have new maf lines:
+    mafEnds.push_back(lineEnds.size() - 1);
 }
 
-static void eraseOldInput(std::vector<std::string> &mafLines,
+static void eraseOldInput(std::vector<char> &inputText,
+			  std::vector<size_t> &lineEnds,
 			  std::vector<unsigned> &mafEnds) {
   size_t numOfOldLines = mafEnds.back();
-  mafLines.erase(mafLines.begin(), mafLines.begin() + numOfOldLines);
+  size_t numOfOldChars = lineEnds[numOfOldLines];
+  inputText.erase(inputText.begin(), inputText.begin() + numOfOldChars);
+  lineEnds.erase(lineEnds.begin(), lineEnds.begin() + numOfOldLines);
+  for (size_t i = 0; i < lineEnds.size(); ++i) {
+    lineEnds[i] -= numOfOldChars;
+  }
   mafEnds.resize(1);
 }
 
@@ -355,7 +380,7 @@ void lastSplit(LastSplitOptions& opts) {
   cbrc::SplitAligner sa;
   std::vector< std::vector<int> > scoreMatrix;
   std::string rowNames, colNames;
-  std::string line, word, name, key;
+  std::string word, name, key;
   int state = 0;
   int sequenceFormat = -1;
   int gapExistenceCost = -1;
@@ -365,19 +390,20 @@ void lastSplit(LastSplitOptions& opts) {
   int lastalScoreThreshold = -1;
   double scale = 0;
   double genomeSize = 0;
-  std::vector<std::string> mafLines;  // lines of multiple MAF blocks
+  std::vector<char> inputText;
+  std::vector<size_t> lineEnds(1);  // offsets in inputText of line starts/ends
   std::vector<unsigned> mafEnds(1);  // which lines are in which MAF block
   unsigned sLineCount = 0;
-  unsigned qNameLineNum = 0;
+  size_t qNameLineBeg = 0;
   bool isAlreadySplit = false;  // has the input already undergone last-split?
 
   for (unsigned i = 0; i < opts.inputFileNames.size(); ++i) {
     std::ifstream inFileStream;
     std::istream& input = openIn(opts.inputFileNames[i], inFileStream);
-    while (getline(input, line)) {
-      const char *linePtr = line.c_str();
+    while (appendLine(input, inputText)) {
+      const char *linePtr = &inputText[0] + lineEnds.back();
       if (state == -1) {  // we are reading the score matrix within the header
-	std::istringstream ls(line);
+	std::istringstream ls(linePtr);
 	std::vector<int> row;
 	int score;
 	ls >> word >> name;
@@ -391,7 +417,7 @@ void lastSplit(LastSplitOptions& opts) {
 	}
       }
       if (state == 0) {  // we are reading the header
-	std::istringstream ls(line);
+	std::istringstream ls(linePtr);
 	std::string names;
 	ls >> word;
 	while (ls >> name) {
@@ -402,7 +428,7 @@ void lastSplit(LastSplitOptions& opts) {
 	  colNames = names;
 	  state = -1;
 	} else if (linePtr[0] == '#') {
-	  std::istringstream ls(line);
+	  std::istringstream ls(linePtr);
 	  while (ls >> word) {
 	    std::istringstream ws(word);
 	    getline(ws, key, '=');
@@ -460,21 +486,22 @@ void lastSplit(LastSplitOptions& opts) {
       }
       if (state == 1) {  // we are reading alignments
 	if (isBlankLine(linePtr)) {
-	  addMaf(mafEnds, mafLines);
+	  addMaf(mafEnds, lineEnds);
 	} else if (strchr(opts.no_split ? "asqpc" : "sqp", linePtr[0])) {
 	  if (!opts.isTopSeqQuery && linePtr[0] == 's' && sLineCount++ % 2 &&
-	      !isSameName(mafLines[qNameLineNum].c_str(), linePtr)) {
-	    doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
-	    eraseOldInput(mafLines, mafEnds);
-	    qNameLineNum = mafLines.size();
+	      !isSameName(&inputText[qNameLineBeg], linePtr)) {
+	    doOneBatch(inputText, lineEnds, mafEnds, sa, opts, isAlreadySplit);
+	    eraseOldInput(inputText, lineEnds, mafEnds);
+	    qNameLineBeg = lineEnds.back();
 	  }
-	  mafLines.push_back(line);
+	  lineEnds.push_back(inputText.size());
 	}
       }
       if (linePtr[0] == '#' && !startsWith(linePtr, "# batch"))
-	std::cout << line << "\n";
+	std::cout << linePtr << "\n";
+      inputText.resize(lineEnds.back());
     }
   }
-  addMaf(mafEnds, mafLines);
-  doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
+  addMaf(mafEnds, lineEnds);
+  doOneBatch(inputText, lineEnds, mafEnds, sa, opts, isAlreadySplit);
 }

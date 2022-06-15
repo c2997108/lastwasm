@@ -10,18 +10,14 @@
 
 #include <stddef.h>
 
-#include <string>
 #include <vector>
 
 namespace cbrc {
 
-typedef std::vector<std::string>::iterator       StringIt;
-typedef std::vector<std::string>::const_iterator StringCi;
-
 class UnsplitAlignment {
 public:
-    StringIt linesBeg;
-    StringIt linesEnd;
+    char **linesBeg;
+    char **linesEnd;
     const char *qname;
     unsigned qstart;
     unsigned qend;
@@ -33,8 +29,7 @@ public:
     const char *qalign;
     const char *qQual;
     UnsplitAlignment(){}
-    UnsplitAlignment(StringIt linesBegIn,
-		     StringIt linesEndIn, bool isTopSeqQuery)
+    UnsplitAlignment(char **linesBegIn, char **linesEndIn, bool isTopSeqQuery)
       : linesBeg(linesBegIn), linesEnd(linesEndIn) { init(isTopSeqQuery); }
     void init(bool isTopSeqQuery);
     bool isForwardStrand() const { return qstrand < 2; }

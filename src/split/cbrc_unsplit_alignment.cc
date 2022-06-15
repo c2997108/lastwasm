@@ -11,6 +11,7 @@
 #include <algorithm>
 //#include <iostream>
 #include <stdexcept>
+#include <string>
 
 static void err(const std::string& s) {
   throw std::runtime_error(s);
@@ -98,12 +99,12 @@ static void reverseComplement(char *beg, char *end) {
   std::transform(beg, end, beg, complement);
 }
 
-static bool isRevQryStrand(StringIt linesBeg, StringIt linesEnd,
+static bool isRevQryStrand(char **linesBeg, char **linesEnd,
 			   unsigned rankOfQrySeq) {
   char strand = 0;
   unsigned s = 0;
-  for (StringIt i = linesBeg; i < linesEnd; ++i) {
-    const char *c = i->c_str();
+  for (char **i = linesBeg; i < linesEnd; ++i) {
+    const char *c = i[0];
     if (*c == 's' && ++s == rankOfQrySeq) {
       c = skipWord(c);
       c = skipWord(c);
@@ -127,9 +128,9 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 
   bool isRev = isRevQryStrand(linesBeg, linesEnd, rankOfQrySeq);
 
-  for (StringIt i = linesBeg; i < linesEnd; ++i) {
-    const char *c = i->c_str();
-    const char *lineEnd = c + i->size();
+  for (char **i = linesBeg; i < linesEnd; ++i) {
+    const char *c = i[0];
+    const char *lineEnd = i[1] - 1;
     const char *d, *e, *f;
     const char *g = rskipSpace(lineEnd);
     if (*c == 's') {
@@ -146,7 +147,7 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
       f = readChar(f, strand);
       f = readUint(f, seqLen);
       f = skipSpace(f);
-      if (!f || f >= g) err("bad MAF line: " + *i);
+      if (!f || f >= g) err(std::string("bad MAF line: ") + c);
       (*i)[e - c] = 0;  // write a terminator for the sequence name
       if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
       if (sLineCount == rankOfRefSeq) {
@@ -165,20 +166,20 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 	qalign = f;
       }
       if (isRev) {
-	std::string::iterator beg = i->begin() + (f - c);
-	std::string::iterator end = i->begin() + (g - c);
-	reverse(beg, end);
-	transform(beg, end, beg, complement);
+	char *beg = i[0] + (f - c);
+	char *end = i[0] + (g - c);
+	std::reverse(beg, end);
+	std::transform(beg, end, beg, complement);
       }
     } else if (*c == 'q') {
       if (sLineCount != rankOfQrySeq) {
 	err("I can only handle quality data for the query sequence");
       }
       f = skipSpace(skipWord(skipWord(c)));
-      if (!f || f >= g) err("bad MAF line: " + *i);
+      if (!f || f >= g) err(std::string("bad MAF line: ") + c);
       if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
       if (qryStrand == '-') {
-	reverse(i->begin() + (f - c), i->begin() + (g - c));
+	std::reverse(i[0] + (f - c), i[0] + (g - c));
       }
       qQual = f;
     }
@@ -294,8 +295,8 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
   unsigned numOfLines = 1;  // for an extra "p" line at the end
 
   int j = 0;
-  for (StringCi i = aln.linesBeg; i < aln.linesEnd; ++i) {
-    const char *c = i->c_str();
+  for (char **i = aln.linesBeg; i < aln.linesEnd; ++i) {
+    const char *c = i[0];
     numOfLines += (*c == 's' || *c == 'q' || *c == 'p');
     if (*c == 's') {
       unsigned beg = 0;
@@ -325,8 +326,8 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
   char *out = &outputText[outputSize];
 
   j = 0;
-  for (StringCi i = aln.linesBeg; i < aln.linesEnd; ++i) {
-    const char *in = i->c_str();
+  for (char **i = aln.linesBeg; i < aln.linesEnd; ++i) {
+    const char *in = i[0];
     if (*in == 's') {
       sprintLeft(out, in, w[0]);
       sprintLeft(out, in, w[1]);
@@ -352,7 +353,7 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
     } else if (*in == 'p') {
       sprintLeft(out, in, w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + 5);
       const char *beg = aln.isFlipped()
-	? rskipSpace(in + i->size()) - alnEnd
+	? rskipSpace(i[1] - 1) - alnEnd
 	: skipSpace(in) + alnBeg;
       memcpy(out, beg, alnLen);
       out += alnLen;
