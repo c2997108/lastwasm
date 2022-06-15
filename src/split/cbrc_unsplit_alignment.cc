@@ -205,48 +205,6 @@ static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
   return alnPos - std::count(aln, aln + alnPos, '-');
 }
 
-std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
-				  bool isFlipped,
-				  unsigned alnBeg, unsigned alnEnd) {
-  std::vector<std::string> out;
-  for (StringCi i = linesBeg; i < linesEnd; ++i) {
-    const char *c = i->c_str();
-    const char *d, *e, *f;
-    if (*c == 's') {
-      unsigned x = 0;  // initialize it to keep the compiler happy
-      unsigned span;
-      unsigned seqLen;
-      d = skipWord(skipWord(c));
-      e = d + 1;  // skip over the string terminator
-      e = readUint(e, x);
-      e = readUint(e, span);
-      f = skipWord(e);
-      f = readUint(f, seqLen);
-      f = skipSpace(f);
-      if (isFlipped) x = seqLen - x - span;
-      unsigned beg = x + seqPosFromAlnPos(alnBeg, f);
-      unsigned end = x + seqPosFromAlnPos(alnEnd, f);
-      unsigned len = end - beg;
-      if (isFlipped) beg = seqLen - end;
-      char buffer[64];
-      std::sprintf(buffer, " %u %u", beg, len);
-      out.push_back(std::string(c, d) + buffer +
-		    std::string(e, f) + std::string(f + alnBeg, f + alnEnd));
-    } else if (*c == 'q') {
-      d = skipSpace(skipWord(skipWord(c)));
-      out.push_back(std::string(c, d) + std::string(d + alnBeg, d + alnEnd));
-    } else if (*c == 'p') {
-      d = skipSpace(skipWord(c));
-      const char *g = rskipSpace(c + i->size());
-      out.push_back(std::string(c, d) +
-		    (isFlipped
-		     ? std::string(g - alnEnd, g - alnBeg)
-		     : std::string(d + alnBeg, d + alnEnd)));
-    }
-  }
-  return out;
-}
-
 static unsigned nthBasePrefix(const char* sequenceWithGapsBeg, unsigned n) {
   for (unsigned i = 0; /* noop */; ++i)
     if (sequenceWithGapsBeg[i] != '-') {
@@ -332,6 +290,56 @@ static void sprintRight(char*& dest, const char*& src, int width) {
   ++dest;
 }
 
+// Probability -> phred score in fastq-sanger ASCII representation
+static char asciiFromProb(double probRight) {
+  double probWrong = 1 - probRight;
+  double e = std::max(probWrong, 1e-10);  // avoid overflow errors
+  int s = std::floor(-10 * std::log10(e));  // phred score, rounded down
+  return std::min(s + 33, 126);
+}
+
+std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
+				  bool isFlipped,
+				  unsigned alnBeg, unsigned alnEnd) {
+  std::vector<std::string> out;
+  for (StringCi i = linesBeg; i < linesEnd; ++i) {
+    const char *c = i->c_str();
+    const char *d, *e, *f;
+    if (*c == 's') {
+      unsigned x = 0;  // initialize it to keep the compiler happy
+      unsigned span;
+      unsigned seqLen;
+      d = skipWord(skipWord(c));
+      e = d + 1;  // skip over the string terminator
+      e = readUint(e, x);
+      e = readUint(e, span);
+      f = skipWord(e);
+      f = readUint(f, seqLen);
+      f = skipSpace(f);
+      if (isFlipped) x = seqLen - x - span;
+      unsigned beg = x + seqPosFromAlnPos(alnBeg, f);
+      unsigned end = x + seqPosFromAlnPos(alnEnd, f);
+      unsigned len = end - beg;
+      if (isFlipped) beg = seqLen - end;
+      char buffer[64];
+      std::sprintf(buffer, " %u %u", beg, len);
+      out.push_back(std::string(c, d) + buffer +
+		    std::string(e, f) + std::string(f + alnBeg, f + alnEnd));
+    } else if (*c == 'q') {
+      d = skipSpace(skipWord(skipWord(c)));
+      out.push_back(std::string(c, d) + std::string(d + alnBeg, d + alnEnd));
+    } else if (*c == 'p') {
+      d = skipSpace(skipWord(c));
+      const char *g = rskipSpace(c + i->size());
+      out.push_back(std::string(c, d) +
+		    (isFlipped
+		     ? std::string(g - alnEnd, g - alnBeg)
+		     : std::string(d + alnBeg, d + alnEnd)));
+    }
+  }
+  return out;
+}
+
 void printMaf(const std::vector<std::string>& maf) {
   std::vector<int> w = sLineFieldWidths(maf);
   unsigned lineLength = std::accumulate(w.begin(), w.end(), w.size());
@@ -365,14 +373,6 @@ void printMaf(const std::vector<std::string>& maf) {
   }
 
   std::cout << '\n';
-}
-
-// Probability -> phred score in fastq-sanger ASCII representation
-static char asciiFromProb(double probRight) {
-  double probWrong = 1 - probRight;
-  double e = std::max(probWrong, 1e-10);  // avoid overflow errors
-  int s = std::floor(-10 * std::log10(e));  // phred score, rounded down
-  return std::min(s + 33, 126);
 }
 
 std::string pLineFromProbs(const std::vector<double>& p, bool isFlipped) {
