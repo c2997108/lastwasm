@@ -290,16 +290,16 @@ void mafSliceEnd(const char* rAln, const char* qAln,
   qSliceEnd -= numInserts;
 }
 
-static std::vector<unsigned>
+static std::vector<int>
 sLineFieldWidths(const std::vector<std::string>& maf) {
-  std::vector<unsigned> widths;
+  std::vector<int> widths;
   for (unsigned i = 0; i < maf.size(); ++i) {
     const char* p = maf[i].c_str();
     if (*p != 's') continue;
     for (unsigned j = 0; *p; ++j) {
       const char* pOld = p;
       while (isGraph(*p)) ++p;
-      unsigned width = p - pOld;
+      int width = p - pOld;
       if (widths.size() <= j) widths.push_back(width);
       else widths[j] = std::max(widths[j], width);
       while (isSpace(*p)) ++p;
@@ -309,28 +309,27 @@ sLineFieldWidths(const std::vector<std::string>& maf) {
 }
 
 // Copy the next field of src to dest, left-justified
-static void sprintLeft(char*& dest, const char*& src, unsigned width) {
+static void sprintLeft(char*& dest, const char*& src, int width) {
+  const char *end = dest + width;
   while (isSpace(*src)) ++src;
-  const char* s = src;
   while (isGraph(*src)) *dest++ = *src++;
-  unsigned w = src - s;
-  while (w++ < width) *dest++ = ' ';
+  while (dest < end) *dest++ = ' ';
   ++dest;
 }
 
 // Copy the next field of src to dest, right-justified
-static void sprintRight(char*& dest, const char*& src, unsigned width) {
+static void sprintRight(char*& dest, const char*& src, int width) {
   while (isSpace(*src)) ++src;
   const char* s = src;
   while (isGraph(*s)) ++s;
-  unsigned w = s - src;
+  int w = s - src;
   while (w++ < width) *dest++ = ' ';
   while (isGraph(*src)) *dest++ = *src++;
   ++dest;
 }
 
 void printMaf(const std::vector<std::string>& maf) {
-  std::vector<unsigned> w = sLineFieldWidths(maf);
+  std::vector<int> w = sLineFieldWidths(maf);
   unsigned lineLength = std::accumulate(w.begin(), w.end(), w.size());
   std::vector<char> line(lineLength, ' ');
   line[lineLength - 1] = '\n';
