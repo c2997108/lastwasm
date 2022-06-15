@@ -2,13 +2,13 @@
 
 #include "cbrc_unsplit_alignment.hh"
 
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
 #include <algorithm>
-#include <cerrno>
-#include <climits>
-#include <cmath>
-#include <cstdio>  // sprintf
-#include <cstdlib>  // strtoul
-#include <cstring>  // strlen
 #include <iostream>
 #include <numeric>  // accumulate
 #include <stdexcept>
@@ -84,8 +84,8 @@ struct Complement {
     static const char y[] = "TGCAYRSWMKVHDBN";
     for (unsigned i = 0; i < UCHAR_MAX+1; ++i) c[i] = i;
     for (unsigned i = 0; x[i] && y[i]; ++i) {
-      c[std::toupper(x[i])] = std::toupper(y[i]);
-      c[std::tolower(x[i])] = std::tolower(y[i]);
+      c[toupper(x[i])] = toupper(y[i]);
+      c[tolower(x[i])] = tolower(y[i]);
     }
   }
   unsigned char operator()(unsigned char x) {
@@ -228,7 +228,7 @@ void mafSliceBeg(const char* rAln, const char* qAln,
 
 void mafSliceEnd(const char* rAln, const char* qAln,
 		 unsigned qEnd, unsigned& qSliceEnd, unsigned& alnEnd) {
-  unsigned alnLength = std::strlen(qAln);
+  unsigned alnLength = strlen(qAln);
   if (qSliceEnd > qEnd) {
     qSliceEnd = qEnd;
     alnEnd = alnLength;
@@ -286,7 +286,7 @@ static void sprintRight(char*& dest, const char*& src, int width) {
 static char asciiFromProb(double probRight) {
   double probWrong = 1 - probRight;
   double e = std::max(probWrong, 1e-10);  // avoid overflow errors
-  int s = std::floor(-10 * std::log10(e));  // phred score, rounded down
+  int s = floor(-10 * log10(e));  // phred score, rounded down
   return std::min(s + 33, 126);
 }
 
@@ -317,7 +317,7 @@ std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
       unsigned len = end - beg;
       if (aln.isFlipped()) beg = seqLen - end;
       char buffer[64];
-      std::sprintf(buffer, " %u %u", beg, len);
+      sprintf(buffer, " %u %u", beg, len);
       out.push_back(std::string(c, d) + buffer +
 		    std::string(e, f) + std::string(f + alnBeg, f + alnEnd));
       if (aln.isFlipped()) {
@@ -390,8 +390,8 @@ double pLinesToErrorProb(const char *line1, const char *line2) {
   const char *i = skipSpace(skipWord(line1));
   const char *j = skipSpace(skipWord(line2));
   while (isGraph(*i) && isGraph(*j)) {
-    double x = std::pow(0.1, (*i - 33) * 0.1);  // error probability
-    double y = std::pow(0.1, (*j - 33) * 0.1);  // error probability
+    double x = pow(0.1, (*i - 33) * 0.1);  // error probability
+    double y = pow(0.1, (*j - 33) * 0.1);  // error probability
     double z = (1 - x) * (1 - y);  // probability that neither is an error
     if (z > maxGoodProb) maxGoodProb = z;
     ++i;
