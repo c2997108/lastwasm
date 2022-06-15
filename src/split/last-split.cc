@@ -168,7 +168,8 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   const char *secondLastLine = pLine - lineLen;
 
   if (isAlreadySplit && secondLastLine[0] == 'p') {
-    mismap = cbrc::pLinesToErrorProb(secondLastLine, pLine);
+    size_t backToSeq = alnEnd - alnBeg + 1;
+    mismap = cbrc::pLinesToErrorProb(pLine - backToSeq, sliceEnd - backToSeq);
     if (mismap > opts.mismap) return;
     mismapPrecision = 2;
   }

@@ -93,6 +93,11 @@ struct Complement {
 };
 static Complement complement;
 
+static void reverseComplement(char *beg, char *end) {
+  std::reverse(beg, end);
+  std::transform(beg, end, beg, complement);
+}
+
 static bool isRevQryStrand(StringIt linesBeg, StringIt linesEnd,
 			   unsigned rankOfQrySeq) {
   char strand = 0;
@@ -151,7 +156,7 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 	refSeqLen = seqLen;
 	rname = d;
 	ralign = f;
-      } else if (sLineCount == rankOfQrySeq) {
+      } else {
 	qstart = start;
 	qrySpan = len;
 	qryStrand = strand;
@@ -332,10 +337,7 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
       sprintRight(out, in, w[5]);
       in = skipSpace(in);
       memcpy(out, in + alnBeg, alnLen);
-      if (aln.isFlipped()) {
-	std::reverse(out, out + alnLen);
-	std::transform(out, out + alnLen, out, complement);
-      }
+      if (aln.isFlipped()) reverseComplement(out, out + alnLen);
       out += alnLen;
       *out++ = '\n';
       ++j;
@@ -370,8 +372,8 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
 
 double pLinesToErrorProb(const char *line1, const char *line2) {
   double maxGoodProb = 0;
-  const char *i = skipSpace(skipWord(line1));
-  const char *j = skipSpace(skipWord(line2));
+  const char *i = line1;
+  const char *j = line2;
   while (isGraph(*i) && isGraph(*j)) {
     double x = pow(0.1, (*i - 33) * 0.1);  // error probability
     double y = pow(0.1, (*j - 33) * 0.1);  // error probability
