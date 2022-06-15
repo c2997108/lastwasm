@@ -99,6 +99,24 @@ static void reverseComplement(char *beg, char *end) {
   std::transform(beg, end, beg, complement);
 }
 
+static void parseSeqLine(char *line, char *lineEnd, const char *&seqName,
+			 unsigned &start, unsigned &span, char &strand,
+			 unsigned &seqLen, char *&aln, char *&alnEnd) {
+  seqName = skipSpace(skipWord(line));
+  const char *nameEnd = skipWord(seqName);
+  const char *s = nameEnd;
+  s = readUint(s, start);
+  s = readUint(s, span);
+  s = readChar(s, strand);
+  s = readUint(s, seqLen);
+  s = skipSpace(s);
+  if (!s || s >= lineEnd) err(std::string("bad MAF line: ") + line);
+  aln = line + (s - line);
+  alnEnd = lineEnd;
+  line[nameEnd - line] = 0;
+  *lineEnd = 0;  // trim any trailing whitespace
+}
+
 void UnsplitAlignment::init(bool isTopSeqQuery) {
   const unsigned rankOfQrySeq = 2 - isTopSeqQuery;
   const unsigned rankOfRefSeq = isTopSeqQuery + 1;
@@ -116,40 +134,15 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   for (char **i = linesBeg; i < linesEnd; ++i) {
     char *line = i[0];
     char *lineEnd = rskipSpace(i[1] - 1);
-    const char *d, *e, *f;
+    const char *f;
     if (line[0] == 's') {
       ++sLineCount;
-      unsigned start = 0;
-      unsigned len = 0;
-      unsigned seqLen = 0;
-      char strand = 0;
-      d = skipWord(line);
-      d = skipSpace(d);
-      e = skipWord(d);
-      f = readUint(e, start);
-      f = readUint(f, len);
-      f = readChar(f, strand);
-      f = readUint(f, seqLen);
-      f = skipSpace(f);
-      if (!f || f >= lineEnd) err(std::string("bad MAF line: ") + line);
-      line[e - line] = 0;  // write a terminator for the sequence name
-      *lineEnd = 0;  // trim any trailing whitespace
       if (sLineCount == rankOfRefSeq) {
-	rstart = start;
-	refSpan = len;
-	refStrand = strand;
-	refSeqLen = seqLen;
-	rname = d;
-	refAln = line + (f - line);
-	refAlnEnd = lineEnd;
+	parseSeqLine(line, lineEnd, rname, rstart, refSpan, refStrand,
+		     refSeqLen, refAln, refAlnEnd);
       } else {
-	qstart = start;
-	qrySpan = len;
-	qryStrand = strand;
-	qrySeqLen = seqLen;
-	qname = d;
-	qryAln = line + (f - line);
-	qryAlnEnd = lineEnd;
+	parseSeqLine(line, lineEnd, qname, qstart, qrySpan, qryStrand,
+		     qrySeqLen, qryAln, qryAlnEnd);
       }
     } else if (line[0] == 'q') {
       if (sLineCount != rankOfQrySeq) {
