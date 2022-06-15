@@ -53,7 +53,7 @@ void mafSliceEnd(const char* rAln, const char* qAln,
 
 void printMaf(const std::vector<std::string>& maf);
 
-std::string pLineFromProbs(const std::vector<double>& p);
+std::string pLineFromProbs(const std::vector<double>& p, bool isFlipped);
 
 double pLinesToErrorProb(const char *line1, const char *line2);
 

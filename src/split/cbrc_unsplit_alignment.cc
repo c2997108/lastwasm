@@ -117,10 +117,6 @@ void flipMafStrands(StringIt linesBeg, StringIt linesEnd) {
       f = skipSpace(skipWord(skipWord(c)));
       if (!f || f >= g) err("bad MAF line: " + *i);
       reverse(i->begin() + (f - c), i->begin() + (g - c));
-    } else if (*c == 'p') {
-      f = skipSpace(skipWord(c));
-      if (!f || f >= g) err("bad MAF line: " + *i);
-      reverse(i->begin() + (f - c), i->begin() + (g - c));
     }
   }
 }
@@ -241,7 +237,11 @@ std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
       out.push_back(std::string(c, d) + std::string(d + alnBeg, d + alnEnd));
     } else if (*c == 'p') {
       d = skipSpace(skipWord(c));
-      out.push_back(std::string(c, d) + std::string(d + alnBeg, d + alnEnd));
+      const char *g = rskipSpace(c + i->size());
+      out.push_back(std::string(c, d) +
+		    (isFlipped
+		     ? std::string(g - alnEnd, g - alnBeg)
+		     : std::string(d + alnBeg, d + alnEnd)));
     }
   }
   return out;
@@ -375,10 +375,11 @@ static char asciiFromProb(double probRight) {
   return std::min(s + 33, 126);
 }
 
-std::string pLineFromProbs(const std::vector<double>& p) {
+std::string pLineFromProbs(const std::vector<double>& p, bool isFlipped) {
   std::string s(2 + p.size(), ' ');
   s[0] = 'p';
   transform(p.begin(), p.end(), s.begin() + 2, asciiFromProb);
+  if (isFlipped) reverse(s.begin() + 2, s.end());
   return s;
 }
 
