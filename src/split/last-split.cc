@@ -297,9 +297,9 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
   }
 }
 
-static void doOneBatch(std::vector<std::string>& mafLines,
-		       const std::vector<unsigned>& mafEnds,
-                       cbrc::SplitAligner& sa, const LastSplitOptions& opts,
+static void doOneBatch(std::vector<std::string> &mafLines,
+		       const std::vector<unsigned> &mafEnds,
+		       cbrc::SplitAligner &sa, const LastSplitOptions &opts,
 		       bool isAlreadySplit) {
   std::vector<cbrc::UnsplitAlignment> mafs;
   mafs.reserve(mafEnds.size() - 1);  // saves memory: no excess capacity
@@ -338,10 +338,17 @@ static void printParameters(const LastSplitOptions& opts) {
   std::cout << "\n" << std::setprecision(6);
 }
 
-static void addMaf(std::vector<unsigned>& mafEnds,
-		   const std::vector<std::string>& mafLines) {
+static void addMaf(std::vector<unsigned> &mafEnds,
+		   const std::vector<std::string> &mafLines) {
   if (mafLines.size() > mafEnds.back())  // if we have new maf lines:
     mafEnds.push_back(mafLines.size());  // store the new end
+}
+
+static void eraseOldInput(std::vector<std::string> &mafLines,
+			  std::vector<unsigned> &mafEnds) {
+  size_t numOfOldLines = mafEnds.back();
+  mafLines.erase(mafLines.begin(), mafLines.begin() + numOfOldLines);
+  mafEnds.resize(1);
 }
 
 void lastSplit(LastSplitOptions& opts) {
@@ -454,12 +461,11 @@ void lastSplit(LastSplitOptions& opts) {
       if (state == 1) {  // we are reading alignments
 	if (isBlankLine(linePtr)) {
 	  addMaf(mafEnds, mafLines);
-	} else if (strchr(opts.no_split ? "asqpc" : "sqpc", linePtr[0])) {
+	} else if (strchr(opts.no_split ? "asqpc" : "sqp", linePtr[0])) {
 	  if (!opts.isTopSeqQuery && linePtr[0] == 's' && sLineCount++ % 2 &&
 	      !isSameName(mafLines[qNameLineNum].c_str(), linePtr)) {
 	    doOneBatch(mafLines, mafEnds, sa, opts, isAlreadySplit);
-	    mafLines.erase(mafLines.begin(), mafLines.begin()+mafEnds.back());
-	    mafEnds.resize(1);
+	    eraseOldInput(mafLines, mafEnds);
 	    qNameLineNum = mafLines.size();
 	  }
 	  mafLines.push_back(line);
