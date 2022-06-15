@@ -72,7 +72,7 @@ static const char *skipSpace(const char *c) {
   return c;
 }
 
-static const char *rskipSpace(const char *c) {
+static char *rskipSpace(char *c) {
   while (isSpace(*(c-1))) --c;
   return c;
 }
@@ -129,17 +129,16 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   bool isRev = isRevQryStrand(linesBeg, linesEnd, rankOfQrySeq);
 
   for (char **i = linesBeg; i < linesEnd; ++i) {
-    const char *c = i[0];
-    const char *lineEnd = i[1] - 1;
+    char *line = i[0];
+    char *lineEnd = rskipSpace(i[1] - 1);
     const char *d, *e, *f;
-    const char *g = rskipSpace(lineEnd);
-    if (*c == 's') {
+    if (line[0] == 's') {
       ++sLineCount;
       unsigned start = 0;
       unsigned len = 0;
       unsigned seqLen = 0;
       char strand = 0;
-      d = skipWord(c);
+      d = skipWord(line);
       d = skipSpace(d);
       e = skipWord(d);
       f = readUint(e, start);
@@ -147,9 +146,9 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
       f = readChar(f, strand);
       f = readUint(f, seqLen);
       f = skipSpace(f);
-      if (!f || f >= g) err(std::string("bad MAF line: ") + c);
-      (*i)[e - c] = 0;  // write a terminator for the sequence name
-      if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
+      if (!f || f >= lineEnd) err(std::string("bad MAF line: ") + line);
+      line[e - line] = 0;  // write a terminator for the sequence name
+      *lineEnd = 0;  // trim any trailing whitespace
       if (sLineCount == rankOfRefSeq) {
 	rstart = start;
 	refSpan = len;
@@ -165,22 +164,15 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 	qname = d;
 	qalign = f;
       }
-      if (isRev) {
-	char *beg = i[0] + (f - c);
-	char *end = i[0] + (g - c);
-	std::reverse(beg, end);
-	std::transform(beg, end, beg, complement);
-      }
-    } else if (*c == 'q') {
+      if (isRev) reverseComplement(line + (f - line), lineEnd);
+    } else if (line[0] == 'q') {
       if (sLineCount != rankOfQrySeq) {
 	err("I can only handle quality data for the query sequence");
       }
-      f = skipSpace(skipWord(skipWord(c)));
-      if (!f || f >= g) err(std::string("bad MAF line: ") + c);
-      if (g < lineEnd) (*i)[g - c] = 0;  // trim trailing whitespace
-      if (qryStrand == '-') {
-	std::reverse(i[0] + (f - c), i[0] + (g - c));
-      }
+      f = skipSpace(skipWord(skipWord(line)));
+      if (!f || f >= lineEnd) err(std::string("bad MAF line: ") + line);
+      *lineEnd = 0;  // trim any trailing whitespace
+      if (qryStrand == '-') std::reverse(line + (f - line), lineEnd);
       qQual = f;
     }
   }
