@@ -160,8 +160,7 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   if (mismap > opts.mismap) return;
   int mismapPrecision = 3;
 
-  std::vector<std::string> s = cbrc::mafSlice(a.linesBeg, a.linesEnd,
-					      a.isFlipped(), alnBeg, alnEnd);
+  std::vector<std::string> s = cbrc::mafSlice(a, alnBeg, alnEnd);
   s.push_back(cbrc::pLineFromProbs(p, a.isFlipped()));
   const char *pLine = s.back().c_str();
   const char *secondLastLine = s.end()[-2].c_str();

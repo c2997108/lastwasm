@@ -41,8 +41,7 @@ public:
 
 void flipMafStrands(StringIt linesBeg, StringIt linesEnd);
 
-std::vector<std::string> mafSlice(StringCi linesBeg, StringCi linesEnd,
-				  bool isFlipped,
+std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
 				  unsigned alnBeg, unsigned alnEnd);
 
 void mafSliceBeg(const char* rAln, const char* qAln,
