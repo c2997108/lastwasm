@@ -301,23 +301,21 @@ std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
     const char *c = i->c_str();
     const char *d, *e, *f;
     if (*c == 's') {
-      unsigned x = 0;  // initialize it to keep the compiler happy
-      unsigned span;
-      unsigned seqLen;
+      unsigned beg = 0;
+      unsigned len = 0;
       d = skipWord(skipWord(c));
       e = d + 1;  // skip over the string terminator
-      e = readUint(e, x);
-      e = readUint(e, span);
+      e = readUint(e, beg);
+      e = readUint(e, len);
       f = skipWord(e);
-      f = readUint(f, seqLen);
+      f = skipWord(f);
       f = skipSpace(f);
-      if (aln.isFlipped()) x = seqLen - x - span;
-      unsigned beg = x + seqPosFromAlnPos(alnBeg, f);
-      unsigned end = x + seqPosFromAlnPos(alnEnd, f);
-      unsigned len = end - beg;
-      if (aln.isFlipped()) beg = seqLen - end;
+      unsigned begPos = seqPosFromAlnPos(alnBeg, f);
+      unsigned endPos = seqPosFromAlnPos(alnEnd, f);
+      unsigned newBeg = aln.isFlipped() ? beg + len - endPos : beg + begPos;
+      unsigned newLen = endPos - begPos;
       char buffer[64];
-      sprintf(buffer, " %u %u", beg, len);
+      sprintf(buffer, " %u %u", newBeg, newLen);
       out.push_back(std::string(c, d) + buffer +
 		    std::string(e, f) + std::string(f + alnBeg, f + alnEnd));
       if (aln.isFlipped()) {
