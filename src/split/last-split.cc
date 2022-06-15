@@ -163,9 +163,11 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   std::vector<std::string> s = cbrc::mafSlice(a.linesBeg, a.linesEnd,
 					      a.isFlipped(), alnBeg, alnEnd);
   s.push_back(cbrc::pLineFromProbs(p));
+  const char *pLine = s.back().c_str();
+  const char *secondLastLine = s.end()[-2].c_str();
 
-  if (isAlreadySplit && s.end()[-2][0] == 'p') {
-    mismap = cbrc::pLinesToErrorProb(s.end()[-2].c_str(), s.end()[-1].c_str());
+  if (isAlreadySplit && secondLastLine[0] == 'p') {
+    mismap = cbrc::pLinesToErrorProb(secondLastLine, pLine);
     if (mismap > opts.mismap) return;
     mismapPrecision = 2;
   }

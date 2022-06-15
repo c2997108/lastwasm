@@ -290,6 +290,14 @@ void mafSliceEnd(const char* rAln, const char* qAln,
   qSliceEnd -= numInserts;
 }
 
+static const char *updateFieldWidth(const char *p, int &width) {
+  const char *b = p;
+  while (isGraph(*p)) ++p;
+  if (p - b > width) width = p - b;
+  while (isSpace(*p)) ++p;
+  return p;
+}
+
 static std::vector<int>
 sLineFieldWidths(const std::vector<std::string>& maf) {
   std::vector<int> widths;
@@ -297,12 +305,8 @@ sLineFieldWidths(const std::vector<std::string>& maf) {
     const char* p = maf[i].c_str();
     if (*p != 's') continue;
     for (unsigned j = 0; *p; ++j) {
-      const char* pOld = p;
-      while (isGraph(*p)) ++p;
-      int width = p - pOld;
-      if (widths.size() <= j) widths.push_back(width);
-      else widths[j] = std::max(widths[j], width);
-      while (isSpace(*p)) ++p;
+      if (widths.size() <= j) widths.push_back(0);
+      p = updateFieldWidth(p, widths[j]);
     }
   }
   return widths;
