@@ -99,23 +99,6 @@ static void reverseComplement(char *beg, char *end) {
   std::transform(beg, end, beg, complement);
 }
 
-static bool isRevQryStrand(char **linesBeg, char **linesEnd,
-			   unsigned rankOfQrySeq) {
-  char strand = 0;
-  unsigned s = 0;
-  for (char **i = linesBeg; i < linesEnd; ++i) {
-    const char *c = i[0];
-    if (*c == 's' && ++s == rankOfQrySeq) {
-      c = skipWord(c);
-      c = skipWord(c);
-      c = skipWord(c);
-      c = skipWord(c);
-      c = readChar(c, strand);
-    }
-  }
-  return strand == '-';
-}
-
 void UnsplitAlignment::init(bool isTopSeqQuery) {
   const unsigned rankOfQrySeq = 2 - isTopSeqQuery;
   const unsigned rankOfRefSeq = isTopSeqQuery + 1;
@@ -124,9 +107,11 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   unsigned refSpan, qrySpan;
   unsigned refSeqLen, qrySeqLen;
   qQual = 0;  // in case the input lacks sequence quality data
+  char *refAln;
+  char *refAlnEnd;
+  char *qryAln;
+  char *qryAlnEnd;
   unsigned sLineCount = 0;
-
-  bool isRev = isRevQryStrand(linesBeg, linesEnd, rankOfQrySeq);
 
   for (char **i = linesBeg; i < linesEnd; ++i) {
     char *line = i[0];
@@ -155,16 +140,17 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
 	refStrand = strand;
 	refSeqLen = seqLen;
 	rname = d;
-	ralign = f;
+	refAln = line + (f - line);
+	refAlnEnd = lineEnd;
       } else {
 	qstart = start;
 	qrySpan = len;
 	qryStrand = strand;
 	qrySeqLen = seqLen;
 	qname = d;
-	qalign = f;
+	qryAln = line + (f - line);
+	qryAlnEnd = lineEnd;
       }
-      if (isRev) reverseComplement(line + (f - line), lineEnd);
     } else if (line[0] == 'q') {
       if (sLineCount != rankOfQrySeq) {
 	err("I can only handle quality data for the query sequence");
@@ -182,12 +168,16 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   if (qryStrand == '-') {
     rstart = refSeqLen - rstart - refSpan;
     qstart = qrySeqLen - qstart - qrySpan;
+    reverseComplement(refAln, refAlnEnd);
+    reverseComplement(qryAln, qryAlnEnd);
   }
 
   qstrand = (qryStrand != refStrand) * 2 + (qryStrand == '-');
 
   rend = rstart + refSpan;
   qend = qstart + qrySpan;
+  ralign = refAln;
+  qalign = qryAln;
 }
 
 static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
