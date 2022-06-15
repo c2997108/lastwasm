@@ -9,8 +9,7 @@
 #include <string.h>
 
 #include <algorithm>
-#include <iostream>
-#include <numeric>  // accumulate
+//#include <iostream>
 #include <stdexcept>
 
 static void err(const std::string& s) {
@@ -241,25 +240,11 @@ void mafSliceEnd(const char* rAln, const char* qAln,
 }
 
 static const char *updateFieldWidth(const char *p, int &width) {
+  while (isSpace(*p)) ++p;
   const char *b = p;
   while (isGraph(*p)) ++p;
   if (p - b > width) width = p - b;
-  while (isSpace(*p)) ++p;
   return p;
-}
-
-static std::vector<int>
-sLineFieldWidths(const std::vector<std::string>& maf) {
-  std::vector<int> widths;
-  for (unsigned i = 0; i < maf.size(); ++i) {
-    const char* p = maf[i].c_str();
-    if (*p != 's') continue;
-    for (unsigned j = 0; *p; ++j) {
-      if (widths.size() <= j) widths.push_back(0);
-      p = updateFieldWidth(p, widths[j]);
-    }
-  }
-  return widths;
 }
 
 // Copy the next field of src to dest, left-justified
@@ -268,7 +253,7 @@ static void sprintLeft(char*& dest, const char*& src, int width) {
   while (isSpace(*src)) ++src;
   while (isGraph(*src)) *dest++ = *src++;
   while (dest < end) *dest++ = ' ';
-  ++dest;
+  *dest++ = ' ';
 }
 
 // Copy the next field of src to dest, right-justified
@@ -279,7 +264,13 @@ static void sprintRight(char*& dest, const char*& src, int width) {
   int w = s - src;
   while (w++ < width) *dest++ = ' ';
   while (isGraph(*src)) *dest++ = *src++;
-  ++dest;
+  *dest++ = ' ';
+}
+
+static void sprintReplaceRight(char *&dest, const char *&oldIn,
+			       const char *newIn, int width) {
+  sprintRight(dest, newIn, width);
+  oldIn = skipWord(oldIn);
 }
 
 // Probability -> phred score in fastq-sanger ASCII representation
@@ -290,97 +281,91 @@ static char asciiFromProb(double probRight) {
   return std::min(s + 33, 126);
 }
 
-std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
-				  unsigned alnBeg, unsigned alnEnd,
-				  const double *probs) {
-  std::vector<std::string> out;
+size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
+		unsigned alnBeg, unsigned alnEnd, const double *probs) {
+  char begTexts[2][32];
+  char lenTexts[2][32];
+  int w[6] = {0};
+  unsigned numOfLines = 1;  // for an extra "p" line at the end
 
-  unsigned alnLen = alnEnd - alnBeg;
-
+  int j = 0;
   for (StringCi i = aln.linesBeg; i < aln.linesEnd; ++i) {
     const char *c = i->c_str();
-    const char *d, *e, *f;
+    numOfLines += (*c == 's' || *c == 'q' || *c == 'p');
     if (*c == 's') {
       unsigned beg = 0;
       unsigned len = 0;
-      d = skipWord(skipWord(c));
-      e = d + 1;  // skip over the string terminator
-      e = readUint(e, beg);
-      e = readUint(e, len);
-      f = skipWord(e);
-      f = skipWord(f);
-      f = skipSpace(f);
-      unsigned begPos = seqPosFromAlnPos(alnBeg, f);
-      unsigned endPos = seqPosFromAlnPos(alnEnd, f);
+      c = updateFieldWidth(c, w[0]);
+      c = updateFieldWidth(c, w[1]);
+      ++c;  // skip over the string terminator
+      c = readUint(c, beg);
+      c = readUint(c, len);
+      c = updateFieldWidth(c, w[4]);
+      c = updateFieldWidth(c, w[5]);
+      c = skipSpace(c);
+      unsigned begPos = seqPosFromAlnPos(alnBeg, c);
+      unsigned endPos = seqPosFromAlnPos(alnEnd, c);
       unsigned newBeg = aln.isFlipped() ? beg + len - endPos : beg + begPos;
       unsigned newLen = endPos - begPos;
-      char buffer[64];
-      sprintf(buffer, " %u %u", newBeg, newLen);
-      out.push_back(std::string(c, d) + buffer +
-		    std::string(e, f) + std::string(f + alnBeg, f + alnEnd));
-      if (aln.isFlipped()) {
-	reverse(out.back().end() - alnLen, out.back().end());
-	transform(out.back().end() - alnLen, out.back().end(),
-		  out.back().end() - alnLen, complement);
-      }
-    } else if (*c == 'q') {
-      d = skipSpace(skipWord(skipWord(c)));
-      out.push_back(std::string(c, d) + std::string(d + alnBeg, d + alnEnd));
-      if (aln.isFlipped()) {
-	reverse(out.back().end() - alnLen, out.back().end());
-      }
-    } else if (*c == 'p') {
-      d = skipSpace(skipWord(c));
-      const char *g = rskipSpace(c + i->size());
-      out.push_back(std::string(c, d) +
-		    (aln.isFlipped()
-		     ? std::string(g - alnEnd, g - alnBeg)
-		     : std::string(d + alnBeg, d + alnEnd)));
+      w[2] = std::max(w[2], sprintf(begTexts[j], "%u", newBeg));
+      w[3] = std::max(w[3], sprintf(lenTexts[j], "%u", newLen));
+      ++j;
     }
   }
 
-  std::string s(2 + alnLen, ' ');
-  s[0] = 'p';
-  transform(probs, probs + alnLen, s.begin() + 2, asciiFromProb);
-  if (aln.isFlipped()) reverse(s.begin() + 2, s.end());
-  out.push_back(s);
+  unsigned alnLen = alnEnd - alnBeg;
+  size_t lineLength = w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + alnLen + 7;
+  size_t outputSize = outputText.size();
+  outputText.insert(outputText.end(), numOfLines * lineLength, 0);
+  char *out = &outputText[outputSize];
 
-  return out;
-}
-
-void printMaf(const std::vector<std::string>& maf) {
-  std::vector<int> w = sLineFieldWidths(maf);
-  unsigned lineLength = std::accumulate(w.begin(), w.end(), w.size());
-  std::vector<char> line(lineLength, ' ');
-  line[lineLength - 1] = '\n';
-
-  for (unsigned i = 0; i < maf.size(); ++i) {
-    const char* src = maf[i].c_str();
-    char* dest = &line[0];
-    if (*src == 's') {
-      sprintLeft(dest, src, w[0]);
-      sprintLeft(dest, src, w[1]);
-      sprintRight(dest, src, w[2]);
-      sprintRight(dest, src, w[3]);
-      sprintLeft(dest, src, w[4]);
-      sprintRight(dest, src, w[5]);
-      sprintLeft(dest, src, w[6]);
-      std::cout.write(&line[0], lineLength);
-    } else if (*src == 'q') {
-      sprintLeft(dest, src, w[0]);
-      sprintLeft(dest, src, w[1] + w[2] + w[3] + w[4] + w[5] + 4);
-      sprintLeft(dest, src, w[6]);
-      std::cout.write(&line[0], lineLength);
-    } else if (*src == 'p') {
-      sprintLeft(dest, src, w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + 5);
-      sprintLeft(dest, src, w[6]);
-      std::cout.write(&line[0], lineLength);
-    } else {
-      std::cout << src << '\n';
+  j = 0;
+  for (StringCi i = aln.linesBeg; i < aln.linesEnd; ++i) {
+    const char *in = i->c_str();
+    if (*in == 's') {
+      sprintLeft(out, in, w[0]);
+      sprintLeft(out, in, w[1]);
+      ++in;  // skip over the string terminator
+      sprintReplaceRight(out, in, begTexts[j], w[2]);
+      sprintReplaceRight(out, in, lenTexts[j], w[3]);
+      sprintLeft(out, in, w[4]);
+      sprintRight(out, in, w[5]);
+      in = skipSpace(in);
+      memcpy(out, in + alnBeg, alnLen);
+      if (aln.isFlipped()) {
+	std::reverse(out, out + alnLen);
+	std::transform(out, out + alnLen, out, complement);
+      }
+      out += alnLen;
+      *out++ = '\n';
+      ++j;
+    } else if (*in == 'q') {
+      sprintLeft(out, in, w[0]);
+      sprintLeft(out, in, w[1] + w[2] + w[3] + w[4] + w[5] + 4);
+      in = skipSpace(in);
+      memcpy(out, in + alnBeg, alnLen);
+      if (aln.isFlipped()) std::reverse(out, out + alnLen);
+      out += alnLen;
+      *out++ = '\n';
+    } else if (*in == 'p') {
+      sprintLeft(out, in, w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + 5);
+      const char *beg = aln.isFlipped()
+	? rskipSpace(in + i->size()) - alnEnd
+	: skipSpace(in) + alnBeg;
+      memcpy(out, beg, alnLen);
+      out += alnLen;
+      *out++ = '\n';
     }
   }
 
-  std::cout << '\n';
+  const char *in = "p";
+  sprintLeft(out, in, w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + 5);
+  std::transform(probs, probs + alnLen, out, asciiFromProb);
+  if (aln.isFlipped()) std::reverse(out, out + alnLen);
+  out += alnLen;
+  *out++ = '\n';
+
+  return lineLength;
 }
 
 double pLinesToErrorProb(const char *line1, const char *line2) {

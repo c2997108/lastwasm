@@ -160,9 +160,12 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   if (mismap > opts.mismap) return;
   int mismapPrecision = 3;
 
-  std::vector<std::string> s = cbrc::mafSlice(a, alnBeg, alnEnd, &p[0]);
-  const char *pLine = s.back().c_str();
-  const char *secondLastLine = s.end()[-2].c_str();
+  std::vector<char> slice;
+  size_t lineLen = cbrc::mafSlice(slice, a, alnBeg, alnEnd, &p[0]);
+  const char *sliceBeg = &slice[0];
+  const char *sliceEnd = sliceBeg + slice.size();
+  const char *pLine = sliceEnd - lineLen;
+  const char *secondLastLine = pLine - lineLen;
 
   if (isAlreadySplit && secondLastLine[0] == 'p') {
     mismap = cbrc::pLinesToErrorProb(secondLastLine, pLine);
@@ -170,9 +173,9 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
     mismapPrecision = 2;
   }
 
-  bool isLastalProbs = (s.end()[-(2 + isAlreadySplit)][0] == 'p');
+  bool isLastalProbs = (*(secondLastLine - isAlreadySplit * lineLen) == 'p');
   if (opts.format == 'm' || (opts.format == 0 && !isLastalProbs)) {
-    while (s.end()[-1][0] == 'p') s.pop_back();
+    while (*(sliceEnd - lineLen) == 'p') sliceEnd -= lineLen;
   }
 
   const std::string &aLineOld = a.linesBeg[0];
@@ -199,10 +202,14 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
       out += 2;
     }
   }
+  *out++ = '\n';
 
-  s.insert(s.begin(), &aLine[0]);
-  if (opts.no_split && a.linesEnd[-1][0] == 'c') s.push_back(a.linesEnd[-1]);
-  cbrc::printMaf(s);
+  std::cout.write(&aLine[0], out - &aLine[0]);
+  std::cout.write(sliceBeg, sliceEnd - sliceBeg);
+  if (opts.no_split && a.linesEnd[-1][0] == 'c') {
+    std::cout << a.linesEnd[-1] << '\n';
+  }
+  std::cout << '\n';
 }
 
 static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,

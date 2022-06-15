@@ -8,6 +8,8 @@
 #ifndef CBRC_UNSPLIT_ALIGNMENT_HH
 #define CBRC_UNSPLIT_ALIGNMENT_HH
 
+#include <stddef.h>
+
 #include <string>
 #include <vector>
 
@@ -39,17 +41,17 @@ public:
     bool isFlipped() const { return qstrand % 2; }
 };
 
-std::vector<std::string> mafSlice(const UnsplitAlignment &aln,
-				  unsigned alnBeg, unsigned alnEnd,
-				  const double *probs);
+// Appends maf "s", "q", and "p" lines to outputText.
+// Appends an extra "p" line for "probs".
+// Returns the line length (including a newline).
+size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
+		unsigned alnBeg, unsigned alnEnd, const double *probs);
 
 void mafSliceBeg(const char* rAln, const char* qAln,
 		 unsigned qBeg, unsigned& qSliceBeg, unsigned& alnBeg);
 
 void mafSliceEnd(const char* rAln, const char* qAln,
 		 unsigned qEnd, unsigned& qSliceEnd, unsigned& alnEnd);
-
-void printMaf(const std::vector<std::string>& maf);
 
 double pLinesToErrorProb(const char *line1, const char *line2);
 
