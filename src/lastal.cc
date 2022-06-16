@@ -569,11 +569,6 @@ static bool isCollatedAlignments() {
     args.cullingLimitForFinalAlignments + 1 || numOfVolumes > 1;
 }
 
-static void printAndDelete(char *text) {
-  std::cout << text;
-  delete[] text;
-}
-
 static void writeAlignment(LastAligner &aligner, const MultiSequence &qrySeqs,
 			   const SeqData &qryData, const Alignment &aln,
 			   const AlignmentExtras &extras = AlignmentExtras()) {
@@ -585,7 +580,8 @@ static void writeAlignment(LastAligner &aligner, const MultiSequence &qrySeqs,
   if (isCollatedAlignments() || aligners.size() > 1) {
     aligner.textAlns.push_back(a);
   } else {
-    printAndDelete(a.text);
+    std::cout << a.text;
+    delete[] a.text;
   }
 }
 
@@ -929,9 +925,16 @@ static void cullFinalAlignments(std::vector<AlignmentText> &textAlns,
   textAlns.resize(i);
 }
 
-static void printAndClear(std::vector<AlignmentText> &textAlns) {
-  for (size_t i = 0; i < textAlns.size(); ++i)
-    printAndDelete(textAlns[i].text);
+static void printAlignments(const std::vector<AlignmentText> &textAlns) {
+  for (size_t i = 0; i < textAlns.size(); ++i) {
+    std::cout << textAlns[i].text;
+  }
+}
+
+static void clearAlignments(std::vector<AlignmentText> &textAlns) {
+  for (size_t i = 0; i < textAlns.size(); ++i) {
+    delete[] textAlns[i].text;
+  }
   textAlns.clear();
 }
 
@@ -1168,8 +1171,6 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   size_t end = firstSequenceInChunk(qrySeqsGlobal, numOfChunks, chunkNum + 1);
   bool isMultiVolume = (numOfVolumes > 1);
   bool isFirstVolume = (volume == 0);
-  bool isFirstThread = (chunkNum == 0);
-  bool isPrintPerQuery = (isFirstThread && !isMultiVolume);
   size_t finalCullingLimit = args.cullingLimitForFinalAlignments ?
     args.cullingLimitForFinalAlignments : isMultiVolume;
   if (args.outputType == 0 && isFirstVolume) {
@@ -1178,7 +1179,6 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   for (size_t i = beg; i < end; ++i) {
     alignOneQuery(aligner, qrySeqsGlobal, i, i - beg,
 		  finalCullingLimit, isFirstVolume);
-    if (isPrintPerQuery) printAndClear(textAlns);
   }
   if (isMultiVolume && volume + 1 == numOfVolumes) {
     cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
@@ -1204,7 +1204,8 @@ static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
     LastAligner &aligner = aligners[numOfThreadsLeft - 1];
     writeCounts(aligner.matchCounts, qrySeqsGlobal, firstSequence);
     aligner.matchCounts.clear();
-    printAndClear(aligner.textAlns);
+    printAlignments(aligner.textAlns);
+    clearAlignments(aligner.textAlns);
   }
 }
 
