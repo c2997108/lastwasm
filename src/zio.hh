@@ -12,6 +12,10 @@
 
 namespace cbrc {
 
+inline bool isSingleDash(const char *text) {
+  return text[0] == '-' && text[1] == 0;
+}
+
 inline void openOrThrow(mcf::izstream &z, const char *fileName) {
   z.open(fileName);
   if (!z) {
@@ -21,9 +25,7 @@ inline void openOrThrow(mcf::izstream &z, const char *fileName) {
 
 // open an input file, but if the name is "-", just return cin
 inline std::istream &openIn(const char *fileName, mcf::izstream &z) {
-  if (fileName[0] == '-' && fileName[1] == 0) {
-    return std::cin;
-  }
+  if (isSingleDash(fileName)) return std::cin;
   openOrThrow(z, fileName);
   return z;
 }

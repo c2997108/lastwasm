@@ -26,12 +26,12 @@
 #include "threadUtil.hh"
 
 #include <math.h>
+#include <stdlib.h>  // EXIT_SUCCESS, EXIT_FAILURE
 
 #include <iomanip>  // setw
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-#include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << args.programName << ": " << x << '\n'
@@ -1429,8 +1429,8 @@ void lastal( int argc, char** argv ){
   args.setDefaultsFromMatrix(fwdMatrices.stats.lambda(), minScore, eg2);
 
   minScoreGapless = calcMinScoreGapless(refLetters);
-  if( !isMultiVolume ) args.minScoreGapless = minScoreGapless;
-  if( args.outputType > 0 ) makeQualityScorers();
+  if (!isMultiVolume) args.minScoreGapless = minScoreGapless;
+  if (args.outputType > 0) makeQualityScorers();
 
   if (numOfVolumes + 1 == 0) {
     readIndex(args.lastdbName, numOfRefSeqs);
@@ -1439,18 +1439,18 @@ void lastal( int argc, char** argv ){
 
   writeHeader(numOfRefSeqs, refLetters, std::cout);
   countT queryBatchCount = 0;
-  indexT maxSeqLen = -1;
 
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
   char** inputBegin = argv + args.inputStart;
 
+  indexT maxSeqLen = -1;
   initSequences(qrySeqsGlobal, queryAlph, args.isTranslated(), false);
 
-  for( char** i = *inputBegin ? inputBegin : defaultInput; *i; ++i ){
+  for (char** i = *inputBegin ? inputBegin : defaultInput; *i; ++i) {
     mcf::izstream inFileStream;
-    std::istream& in = openIn( *i, inFileStream );
-    LOG( "reading " << *i << "..." );
+    std::istream& in = openIn(*i, inFileStream);
+    LOG("reading " << *i << "...");
     while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
 			  queryAlph, args.maskLowercase > 1)) {
       if (qrySeqsGlobal.isFinished()) {
@@ -1466,7 +1466,6 @@ void lastal( int argc, char** argv ){
       }
     }
   }
-
   if (qrySeqsGlobal.finishedSequences() > 0) {
     std::cout << "# batch " << queryBatchCount << "\n";
     scanAllVolumes();
