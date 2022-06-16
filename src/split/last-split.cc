@@ -484,6 +484,9 @@ void lastSplit(LastSplitOptions& opts) {
 	  state = 1;
 	}
       }
+      if (linePtr[0] == '#' && !startsWith(linePtr, "# batch")) {
+	std::cout << linePtr << "\n";
+      }
       if (state == 1) {  // we are reading alignments
 	if (isBlankLine(linePtr)) {
 	  addMaf(mafEnds, lineEnds);
@@ -497,8 +500,6 @@ void lastSplit(LastSplitOptions& opts) {
 	  lineEnds.push_back(inputText.size());
 	}
       }
-      if (linePtr[0] == '#' && !startsWith(linePtr, "# batch"))
-	std::cout << linePtr << "\n";
       inputText.resize(lineEnds.back());
     }
   }
