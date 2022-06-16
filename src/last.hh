@@ -22,6 +22,8 @@ const size_t posLimit = size_t(-1) >> ((sizeof(size_t) - posSize) * CHAR_BIT);
 
 inline void err(const char *s) { throw std::runtime_error(s); }
 
+inline void throwSeqTooBig() { err("encountered a sequence that's too long"); }
+
 inline void initSequences(MultiSequence &m, const Alphabet &a,
 			  bool isTranslated, bool isAppendStopSymbol) {
   m.initForAppending(isTranslated ? 3 : 1, isAppendStopSymbol);
@@ -58,10 +60,6 @@ inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
     m.appendFromPssm(in, maxSeqLen, a.encode, isMaskLowercase);
   } else {
     m.appendFromFastq(in, maxSeqLen, true);
-  }
-
-  if (!m.isFinished() && m.finishedSequences() == 0) {
-    err("encountered a sequence that's too long");
   }
 
   return in;

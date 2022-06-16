@@ -469,6 +469,7 @@ void lastdb( int argc, char** argv ){
 	}
         ++sequenceCount;
       } else {
+	if (multi.finishedSequences() == 0) throwSeqTooBig();
 	std::string baseName = args.lastdbName + stringify(volumeNumber++);
 	makeVolume(seeds, wordsFinder, multi, args, alph, letterCounts,
 		   maxSeqLenSeen, tantanMasker, numOfThreads, seedText,

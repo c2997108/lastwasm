@@ -582,10 +582,11 @@ static void writeAlignment(LastAligner &aligner, const MultiSequence &qrySeqs,
 			      alph, queryAlph,
 			      translationType, geneticCode.getCodonToAmino(),
 			      evaluer, args.outputFormat, extras);
-  if (isCollatedAlignments() || aligners.size() > 1)
+  if (isCollatedAlignments() || aligners.size() > 1) {
     aligner.textAlns.push_back(a);
-  else
+  } else {
     printAndDelete(a.text);
+  }
 }
 
 static void writeSegmentPair(LastAligner &aligner,
@@ -1137,6 +1138,9 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
     aligner.numOfSequences += 1;
   }
 
+  std::vector<AlignmentText> &textAlns = aligner.textAlns;
+  size_t oldNumOfAlns = textAlns.size();
+
   if (args.strand == 2 && !isFirstVolume)
     qrySeqs.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
@@ -1150,6 +1154,10 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
   if (args.strand != 1)
     translateAndScan(aligner, qrySeqs, qryData, chunkQryNum, finalCullingLimit,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
+
+  if (isCollatedAlignments() && numOfVolumes < 2) {
+    sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
+  }
 }
 
 static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
@@ -1161,7 +1169,6 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   bool isMultiVolume = (numOfVolumes > 1);
   bool isFirstVolume = (volume == 0);
   bool isFirstThread = (chunkNum == 0);
-  bool isSortPerQuery = (isCollatedAlignments() && !isMultiVolume);
   bool isPrintPerQuery = (isFirstThread && !isMultiVolume);
   size_t finalCullingLimit = args.cullingLimitForFinalAlignments ?
     args.cullingLimitForFinalAlignments : isMultiVolume;
@@ -1169,10 +1176,8 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
     aligner.matchCounts.resize(end - beg);
   }
   for (size_t i = beg; i < end; ++i) {
-    size_t oldNumOfAlns = textAlns.size();
     alignOneQuery(aligner, qrySeqsGlobal, i, i - beg,
 		  finalCullingLimit, isFirstVolume);
-    if (isSortPerQuery) sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     if (isPrintPerQuery) printAndClear(textAlns);
   }
   if (isMultiVolume && volume + 1 == numOfVolumes) {
@@ -1449,6 +1454,7 @@ void lastal( int argc, char** argv ){
     while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
 			  queryAlph, args.maskLowercase > 1)) {
       if (!qrySeqsGlobal.isFinished()) {
+	if (qrySeqsGlobal.finishedSequences() == 0) throwSeqTooBig();
         // this enables downstream parsers to read one batch at a time:
 	std::cout << "# batch " << queryBatchCount++ << "\n";
 	scanAllVolumes();
