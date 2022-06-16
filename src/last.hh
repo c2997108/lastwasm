@@ -46,8 +46,6 @@ inline void encodeSequences(MultiSequence &m, sequenceFormat::Enum f,
 inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
 				    indexT maxSeqLen, sequenceFormat::Enum f,
 				    const Alphabet &a, bool isMaskLowercase) {
-  if (m.finishedSequences() == 0) maxSeqLen = posLimit;
-
   if (f == sequenceFormat::fasta) {
     m.appendFromFasta(in, maxSeqLen);
   } else if (f == sequenceFormat::fastx) {

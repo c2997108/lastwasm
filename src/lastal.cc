@@ -1438,8 +1438,7 @@ void lastal( int argc, char** argv ){
 
   writeHeader(numOfRefSeqs, refLetters, std::cout);
   countT queryBatchCount = 0;
-  indexT maxSeqLen = args.batchSize;
-  if (maxSeqLen < args.batchSize) maxSeqLen = -1;
+  indexT maxSeqLen = -1;
 
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
@@ -1453,12 +1452,16 @@ void lastal( int argc, char** argv ){
     LOG( "reading " << *i << "..." );
     while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
 			  queryAlph, args.maskLowercase > 1)) {
-      if (!qrySeqsGlobal.isFinished()) {
+      if (qrySeqsGlobal.isFinished()) {
+	maxSeqLen = args.batchSize;
+	if (maxSeqLen < args.batchSize) maxSeqLen = -1;
+      } else {
 	if (qrySeqsGlobal.finishedSequences() == 0) throwSeqTooBig();
         // this enables downstream parsers to read one batch at a time:
 	std::cout << "# batch " << queryBatchCount++ << "\n";
 	scanAllVolumes();
 	qrySeqsGlobal.reinitForAppending();
+	maxSeqLen = -1;
       }
     }
   }
