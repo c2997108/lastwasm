@@ -38,8 +38,7 @@ struct LastalArguments{
   void setDefaultsFromAlphabet( bool isDna, bool isProtein,
 				bool isKeepRefLowercase, int refTantanSetting,
                                 bool isCaseSensitiveSeeds, bool isVolumes,
-				size_t refMinimizerWindow,
-				unsigned realNumOfThreads );
+				size_t refMinimizerWindow );
   void setDefaultsFromMatrix(double lambda, double minScore,
 			     double maxEvalueDefault);
 

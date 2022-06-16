@@ -4,25 +4,20 @@ Running LAST in parallel
 You can make LAST faster by running it on multiple CPUs / cores.  The
 easiest way is with lastal_'s -P option::
 
-  lastal -P4 my-index queries.fasta > out.maf
+  lastal -P8 my-index queries.fasta > out.maf
 
-This will use 4 parallel threads.  If you specify -P0, it will use as
+This will use 8 parallel threads.  If you specify -P0, it will use as
 many threads as your computer claims it can handle simultaneously.
 
 This works by aligning different query sequences in different threads
 - so if you only have one query you won't get any parallelization!
 
-Dealing with very long query sequences
---------------------------------------
+Long query sequences use more memory
+------------------------------------
 
-lastal_ aligns one "batch" of queries at a time, so if the batch has
-only one query you won't get any parallelization.  This can be fixed
-by increasing the batch size, with option -i::
-
-  lastal -P4 -i3G my-index queries.fasta > out.maf
-
-This specifies a batch size of 3 gibi-bytes.  The downside is that
-more memory is needed to hold the batch and its alignments.
+If the query sequences are very long (e.g. chromosomes), many threads
+may use a lot of memory, because each thread holds one query and its
+alignments.  So you have to trade thread number against memory use.
 
 Dealing with pipelines
 ----------------------

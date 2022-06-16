@@ -109,7 +109,7 @@ LastalArguments::LastalArguments() :
   cullingLimitForFinalAlignments(-1),
   queryStep(1),
   minimizerWindow(0),  // depends on the reference's minimizer window
-  batchSize(0),  // depends on the outputType, and voluming
+  batchSize(0),  // depends on voluming
   numOfThreads(1),
   maxRepeatDistance(1000),  // sufficiently conservative?
   temperature(-1),  // depends on the score matrix
@@ -172,7 +172,7 @@ Miscellaneous options (default settings):\n\
 -C: omit gapless alignments in >= C others with > score-per-length (off)\n\
 -P: number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
--i: query batch size (64M if multi-volume, else 32M if multi-thread, else 8K)\n\
+-i: query batch size (64M if multi-volume, else off)\n\
 -M: find minimum-difference alignments (faster but cruder)\n\
 -T: type of alignment: 0=local, 1=overlap ("
     + stringify(globality) + ")\n\
@@ -455,8 +455,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 					       int refTantanSetting,
                                                bool isCaseSensitiveSeeds,
 					       bool isVolumes,
-					       size_t refMinimizerWindow,
-					       unsigned realNumOfThreads ){
+					       size_t refMinimizerWindow ){
   if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
 
   if( isGreedy ){
@@ -512,32 +511,7 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
       maskLowercase = 0;
   }
 
-  if( batchSize == 0 ){
-    // With voluming, we want the batches to be as large as will
-    // comfortably fit into memory, because each volume gets read from
-    // disk once per batch.  With multi-threads, we want large batches
-    // so that long query sequences can be processed in parallel.
-    if( !isVolumes && realNumOfThreads == 1 )
-      batchSize = 0x2000;  // 8 Kbytes (?)
-    else if( inputFormat == sequenceFormat::pssm )
-      batchSize = 0x100000;   // 1 Mbyte
-    else if( outputType == 0 )
-      batchSize = 0x1000000;  // 16 Mbytes
-    else if( !isVolumes )
-      batchSize = 0x2000000;   // 32 Mbytes
-    // 32 Mbytes gave quite good load-balancing when aligning human
-    // nanopore reads with 16 threads.  Sometimes 64M (and even 128M)
-    // was better.  With WindowMasker, smaller batches were fine.
-    else if( inputFormat == sequenceFormat::prb )
-      batchSize = 0x2000000;  // 32 Mbytes (?)
-    else
-      batchSize = 0x4000000;  // 64 Mbytes (?)
-    // 128 Mbytes seemed to sometimes use excessive memory to store
-    // the alignments.  I suspect 64 Mbytes may still be too much
-    // sometimes.
-    if( verbosity )
-      std::cerr << programName << ": batch size=" << batchSize << '\n';
-  }
+  if (batchSize == 0 && isVolumes) batchSize = 0x4000000;  // 64 Mbytes (?)
 
   if( maxGaplessAlignmentsPerQueryPosition == 0 )
     maxGaplessAlignmentsPerQueryPosition =

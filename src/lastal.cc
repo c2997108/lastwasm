@@ -26,12 +26,15 @@
 #include "threadUtil.hh"
 
 #include <math.h>
+#include <signal.h>
 #include <stdlib.h>  // EXIT_SUCCESS, EXIT_FAILURE
 
 #include <iomanip>  // setw
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+
+#include <mutex>
 
 #define ERR(x) throw std::runtime_error(x)
 #define LOG(x) if( args.verbosity > 0 ) std::cerr << args.programName << ": " << x << '\n'
@@ -88,6 +91,12 @@ struct SeqData {
 };
 
 namespace {
+  std::mutex inputMutex;
+  std::mutex outputMutex;
+
+  char **querySequenceFileNames;
+  mcf::izstream querySequenceFile;
+
   LastalArguments args;
   Alphabet alph;
   Alphabet queryAlph;  // for translated alignment
@@ -1209,6 +1218,86 @@ static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
   }
 }
 
+static void openIfFile(mcf::izstream &z, const char *fileName) {
+  if (fileName && !isSingleDash(fileName)) openOrThrow(z, fileName);
+}
+
+static bool readSequenceData(MultiSequence &qrySeqs) {
+  const size_t maxPairedSeqLen = 2000;  // xxx ???
+  const bool isMask = (args.maskLowercase > 1);
+  std::lock_guard<std::mutex> lockGuard(inputMutex);
+
+  while (*querySequenceFileNames) {
+    bool isFile = !isSingleDash(*querySequenceFileNames);
+    std::istream &in = isFile ? querySequenceFile : std::cin;
+    if (appendSequence(qrySeqs, in, -1, args.inputFormat, queryAlph, isMask)) {
+      if (qrySeqs.isFinished() && qrySeqs.seqLen(0) <= maxPairedSeqLen) {
+	appendSequence(qrySeqs, in, -1, args.inputFormat, queryAlph, isMask);
+      }
+      return true;
+    }
+    if (isFile) querySequenceFile.close();
+    ++querySequenceFileNames;
+    openIfFile(querySequenceFile, *querySequenceFileNames);
+  }
+
+  return false;
+}
+
+static void runOneThread(unsigned threadNum) {
+  LastAligner &aligner = aligners[threadNum];
+  std::vector< std::vector<countT> > &matchCounts = aligner.matchCounts;
+  std::vector<AlignmentText> &textAlns = aligner.textAlns;
+  MultiSequence qrySeqs;
+  initSequences(qrySeqs, queryAlph, args.isTranslated(), false);
+
+  while (readSequenceData(qrySeqs)) {
+    if (!qrySeqs.isFinished()) throwSeqTooBig();
+    encodeSequences(qrySeqs, args.inputFormat, queryAlph,
+		    args.isKeepLowercase, 0);
+    if (args.outputType == 0) matchCounts.resize(qrySeqs.finishedSequences());
+    for (size_t i = 0; i < qrySeqs.finishedSequences(); ++i) {
+      alignOneQuery(aligner, qrySeqs, i, i,
+		    args.cullingLimitForFinalAlignments, true);
+    }
+    if (!textAlns.empty()) {
+      {
+	std::lock_guard<std::mutex> lockGuard(outputMutex);
+	printAlignments(textAlns);
+      }
+      clearAlignments(textAlns);
+    } else if (!matchCounts.empty()) {
+      {
+	std::lock_guard<std::mutex> lockGuard(outputMutex);
+	writeCounts(matchCounts, qrySeqs, 0);
+      }
+      matchCounts.clear();
+    }
+    qrySeqs.reinitForAppending();
+  }
+}
+
+static void runOneThreadSafely(unsigned threadNum) {
+  try {
+    runOneThread(threadNum);
+  } catch (const std::exception &e) {
+    std::cerr << args.programName << ": " << e.what() << '\n';
+    raise(SIGTERM);  // quick_exit doesn't work on Mac
+  }
+}
+
+static void runThreads(unsigned numOfThreads) {
+  if (numOfThreads > 1) {
+#ifdef HAS_CXX_THREADS
+    std::thread t(runThreads, numOfThreads - 1);
+    runOneThreadSafely(numOfThreads - 1);
+    t.join();
+#endif
+  } else {
+    runOneThreadSafely(0);
+  }
+}
+
 void readIndex( const std::string& baseName, indexT seqCount ) {
   LOG( "reading " << baseName << "..." );
   refSeqs.fromFiles(baseName, seqCount,
@@ -1381,8 +1470,8 @@ void lastal( int argc, char** argv ){
   bool isMultiVolume = (numOfVolumes + 1 > 0 && numOfVolumes > 1);
   args.setDefaultsFromAlphabet( isDna, isProtein,
 				isKeepRefLowercase, refTantanSetting,
-                                isCaseSensitiveSeeds, isMultiVolume,
-				refMinimizerWindow, aligners.size() );
+                                isCaseSensitiveSeeds, numOfVolumes + 1 > 0,
+				refMinimizerWindow );
   makeScoreMatrix(matrixName, matrixFile);
   gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
 		  args.insOpenCosts, args.insGrowCosts,
@@ -1443,32 +1532,37 @@ void lastal( int argc, char** argv ){
   char defaultInputName[] = "-";
   char* defaultInput[] = { defaultInputName, 0 };
   char** inputBegin = argv + args.inputStart;
+  querySequenceFileNames = *inputBegin ? inputBegin : defaultInput;
 
-  indexT maxSeqLen = -1;
-  initSequences(qrySeqsGlobal, queryAlph, args.isTranslated(), false);
-
-  for (char** i = *inputBegin ? inputBegin : defaultInput; *i; ++i) {
-    mcf::izstream inFileStream;
-    std::istream& in = openIn(*i, inFileStream);
-    LOG("reading " << *i << "...");
-    while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
-			  queryAlph, args.maskLowercase > 1)) {
-      if (qrySeqsGlobal.isFinished()) {
-	maxSeqLen = args.batchSize;
-	if (maxSeqLen < args.batchSize) maxSeqLen = -1;
-      } else {
-	if (qrySeqsGlobal.finishedSequences() == 0) throwSeqTooBig();
-        // this enables downstream parsers to read one batch at a time:
-	std::cout << "# batch " << queryBatchCount++ << "\n";
-	scanAllVolumes();
-	qrySeqsGlobal.reinitForAppending();
-	maxSeqLen = -1;
+  if (args.batchSize < 1) {
+    openIfFile(querySequenceFile, *querySequenceFileNames);
+    runThreads(aligners.size());
+  } else {
+    indexT maxSeqLen = -1;
+    initSequences(qrySeqsGlobal, queryAlph, args.isTranslated(), false);
+    for (char **i = querySequenceFileNames; *i; ++i) {
+      mcf::izstream inFileStream;
+      std::istream& in = openIn(*i, inFileStream);
+      LOG("reading " << *i << "...");
+      while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
+			    queryAlph, args.maskLowercase > 1)) {
+	if (qrySeqsGlobal.isFinished()) {
+	  maxSeqLen = args.batchSize;
+	  if (maxSeqLen < args.batchSize) maxSeqLen = -1;
+	} else {
+	  if (qrySeqsGlobal.finishedSequences() == 0) throwSeqTooBig();
+	  // this enables downstream parsers to read one batch at a time:
+	  std::cout << "# batch " << queryBatchCount++ << "\n";
+	  scanAllVolumes();
+	  qrySeqsGlobal.reinitForAppending();
+	  maxSeqLen = -1;
+	}
       }
     }
-  }
-  if (qrySeqsGlobal.finishedSequences() > 0) {
-    std::cout << "# batch " << queryBatchCount << "\n";
-    scanAllVolumes();
+    if (qrySeqsGlobal.finishedSequences() > 0) {
+      std::cout << "# batch " << queryBatchCount << "\n";
+      scanAllVolumes();
+    }
   }
 
   countT numOfSequences = 0;

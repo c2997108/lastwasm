@@ -308,20 +308,25 @@ Miscellaneous options
 
 -P THREADS
     Divide the work between this number of threads running in
-    parallel.  0 means use as many threads as your computer claims
-    it can handle simultaneously.  Single query sequences are not
-    divided between threads, so you need multiple queries per batch
-    for this option to take effect.
+    parallel.  0 means use as many threads as your computer claims it
+    can handle simultaneously.  Single query sequences are not divided
+    between threads, so you need multiple queries for this option to
+    take effect.  With multiple threads, the order of the output is
+    not fixed, but there are two guarantees:
+
+    * All the alignments for one query sequence will appear together,
+      and in a fixed order.
+    * If each query sequence has length <= 2000, then pairs of queries
+      stay together, e.g. the output for the 2nd query will be
+      immediately after the output for the 1st query.
 
 -i BYTES
-    Search queries in batches of at most this many bytes.  If a
-    single sequence exceeds this amount, however, it is not split.
-    You can use suffixes K, M, and G to specify KibiBytes,
-    MebiBytes, and GibiBytes.  This option has no effect on the
-    results.
-
-    If the reference was split into volumes by lastdb_, then each
-    volume will be read into memory once per query batch.
+    Process the query sequences in batches, of at most this many
+    bytes.  If a single sequence exceeds this amount, however, it is
+    not split.  You can use suffixes K, M, and G to specify KibiBytes,
+    MebiBytes, and GibiBytes.  This option makes ``-P`` less
+    efficient, because each batch is separately multi-threaded, but it
+    fixes the output order to be the same as the input.
 
 -M  Find minimum-difference alignments, which is faster but cruder.
     This treats all matches the same, and minimizes the number of
