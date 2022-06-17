@@ -20,7 +20,7 @@
 
 class MyString {
 public:
-  MyString() { e = s = 0; }
+  MyString() : v(1), s(0), e(0) {}
 
   size_t size() const { return s; }
 
@@ -41,13 +41,13 @@ public:
   bool appendLine(std::istream &stream) {
     size_t i = s;
     for (;;) {
-      for (; i < e; ++i) {
-	if (v[i] == '\n') {
-	  v[i] = 0;
-	  s = i + 1;
-	  return true;
-	}
+      char *x = static_cast<char *>(memchr(&v[0] + i, '\n', e - i));
+      if (x) {
+	*x = 0;
+	s = x - &v[0] + 1;
+	return true;
       }
+      i = e;
       e += 256;  // xxx ???
       if (v.size() < e) v.resize(e);
       e = i + stream.rdbuf()->sgetn(&v[i], e - i);
