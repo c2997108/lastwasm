@@ -18,6 +18,44 @@
 #include <stdexcept>
 #include <streambuf>
 
+class MyString {
+public:
+  MyString() { s = 0; }
+
+  size_t size() const { return s; }
+
+  char &operator[](size_t i) { return v[i]; }
+
+  void resize(size_t i) { s = i; }
+
+  void erasePrefix(size_t len) {
+    s -= len;
+    memmove(&v[0], &v[0] + len, s);
+  }
+
+  bool appendLine(std::istream &stream) {
+    const int len = 1024;
+    std::streambuf *b = stream.rdbuf();
+    int c = b->sbumpc();
+    if (c == std::streambuf::traits_type::eof()) return false;
+    for (;;) {
+      if (v.size() < s + len) v.resize(s + len);
+      for (int i = 0; i < len; ++i) {
+	if (c == std::streambuf::traits_type::eof() || c == '\n') {
+	  v[s++] = 0;
+	  return true;
+	}
+	v[s++] = c;
+	c = b->sbumpc();
+      }
+    }
+  }
+
+private:
+  std::vector<char> v;
+  size_t s;
+};
+
 static void err(const std::string& s) {
   throw std::runtime_error(s);
 }
@@ -27,19 +65,6 @@ static std::istream& openIn(const std::string& fileName, std::ifstream& ifs) {
   ifs.open(fileName.c_str());
   if (!ifs) err("can't open file: " + fileName);
   return ifs;
-}
-
-static bool appendLine(std::istream &s, std::vector<char> &v) {
-  std::streambuf *b = s.rdbuf();
-  int c = b->sbumpc();
-  if (c == std::streambuf::traits_type::eof()) return false;
-  while (c != '\n') {
-    v.push_back(c);
-    c = b->sbumpc();
-    if (c == std::streambuf::traits_type::eof()) break;
-  }
-  v.push_back(0);
-  return true;
 }
 
 // Does the string start with the prefix?
@@ -310,7 +335,7 @@ static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
   }
 }
 
-static void doOneBatch(std::vector<char> &inputText,
+static void doOneBatch(MyString &inputText,
 		       const std::vector<size_t> &lineEnds,
 		       const std::vector<unsigned> &mafEnds,
 		       cbrc::SplitAligner &sa, const LastSplitOptions &opts,
@@ -363,12 +388,12 @@ static void addMaf(std::vector<unsigned> &mafEnds,
     mafEnds.push_back(lineEnds.size() - 1);
 }
 
-static void eraseOldInput(std::vector<char> &inputText,
+static void eraseOldInput(MyString &inputText,
 			  std::vector<size_t> &lineEnds,
 			  std::vector<unsigned> &mafEnds) {
   size_t numOfOldLines = mafEnds.back();
   size_t numOfOldChars = lineEnds[numOfOldLines];
-  inputText.erase(inputText.begin(), inputText.begin() + numOfOldChars);
+  inputText.erasePrefix(numOfOldChars);
   lineEnds.erase(lineEnds.begin(), lineEnds.begin() + numOfOldLines);
   for (size_t i = 0; i < lineEnds.size(); ++i) {
     lineEnds[i] -= numOfOldChars;
@@ -390,7 +415,7 @@ void lastSplit(LastSplitOptions& opts) {
   int lastalScoreThreshold = -1;
   double scale = 0;
   double genomeSize = 0;
-  std::vector<char> inputText;
+  MyString inputText;
   std::vector<size_t> lineEnds(1);  // offsets in inputText of line starts/ends
   std::vector<unsigned> mafEnds(1);  // which lines are in which MAF block
   unsigned sLineCount = 0;
@@ -400,7 +425,7 @@ void lastSplit(LastSplitOptions& opts) {
   for (unsigned i = 0; i < opts.inputFileNames.size(); ++i) {
     std::ifstream inFileStream;
     std::istream& input = openIn(opts.inputFileNames[i], inFileStream);
-    while (appendLine(input, inputText)) {
+    while (inputText.appendLine(input)) {
       const char *linePtr = &inputText[0] + lineEnds.back();
       if (state == -1) {  // we are reading the score matrix within the header
 	std::istringstream ls(linePtr);
