@@ -20,33 +20,42 @@
 
 class MyString {
 public:
-  MyString() { s = 0; }
+  MyString() { e = s = 0; }
 
   size_t size() const { return s; }
 
   char &operator[](size_t i) { return v[i]; }
 
-  void resize(size_t i) { s = i; }
+  void resize(size_t i) {
+    memmove(&v[0] + i, &v[0] + s, e - s);
+    e -= s - i;
+    s = i;
+  }
 
   void erasePrefix(size_t len) {
     s -= len;
-    memmove(&v[0], &v[0] + len, s);
+    e -= len;
+    memmove(&v[0], &v[0] + len, e);
   }
 
   bool appendLine(std::istream &stream) {
-    const int len = 1024;
-    std::streambuf *b = stream.rdbuf();
-    int c = b->sbumpc();
-    if (c == std::streambuf::traits_type::eof()) return false;
+    size_t i = s;
     for (;;) {
-      if (v.size() < s + len) v.resize(s + len);
-      for (int i = 0; i < len; ++i) {
-	if (c == std::streambuf::traits_type::eof() || c == '\n') {
-	  v[s++] = 0;
+      for (; i < e; ++i) {
+	if (v[i] == '\n') {
+	  v[i] = 0;
+	  s = i + 1;
 	  return true;
 	}
-	v[s++] = c;
-	c = b->sbumpc();
+      }
+      e += 256;  // xxx ???
+      if (v.size() < e) v.resize(e);
+      e = i + stream.rdbuf()->sgetn(&v[i], e - i);
+      if (e == i) {
+	if (i == s) return false;
+	v[i] = 0;
+	e = s = i + 1;
+	return true;
       }
     }
   }
@@ -54,6 +63,7 @@ public:
 private:
   std::vector<char> v;
   size_t s;
+  size_t e;
 };
 
 static void err(const std::string& s) {
