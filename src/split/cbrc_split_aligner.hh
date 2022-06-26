@@ -77,7 +77,7 @@ public:
     long viterbi() {  // returns the optimal split-alignment score
       resizeMatrix(Vmat);
       resizeVector(Vvec);
-      return (restartProb > 0) ? viterbiSplit() : viterbiSplice();
+      return (restartProb <= 0) ? viterbiSplice() : viterbiSplit();
     }
 
     // Gets the chunks of an optimal split alignment.
@@ -99,12 +99,12 @@ public:
       resizeVector(rescales);
       resizeMatrix(Fmat);
       resizeMatrix(Bmat);
-      if (restartProb > 0) {
-	forwardSplit();
-	backwardSplit();
-      } else {
+      if (restartProb <= 0) {
 	forwardSplice();
 	backwardSplice();
+      } else {
+	forwardSplit();
+	backwardSplit();
       }
     }
 

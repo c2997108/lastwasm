@@ -4,16 +4,16 @@
 #include "cbrc_split_aligner.hh"
 #include "mcf_substitution_matrix_stats.hh"
 
+#include <assert.h>
+#include <float.h>
+#include <string.h>
+
 #include <algorithm>
-#include <cassert>
 #include <cctype>
-#include <cstring>  // strcmp
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-
-#include <float.h>
 
 static void err(const std::string& s) {
   throw std::runtime_error(s);
@@ -418,17 +418,17 @@ void SplitAligner::traceBack(long viterbiScore,
 			     std::vector<unsigned>& queryBegs,
 			     std::vector<unsigned>& queryEnds) const {
   unsigned i, j;
-  if (restartProb > 0) {
+  if (restartProb <= 0) {
+    i = findEndScore(viterbiScore);
+    assert(i < numAlns);
+    j = alns[i].qend;
+  } else {
     j = maxEnd;
     long t = cell(Vvec, j);
     if (t == 0) return;
     while (t == cell(Vvec, j-1)) --j;
     i = findScore(j, t);
     assert(i < numAlns);
-  } else {
-    i = findEndScore(viterbiScore);
-    assert(i < numAlns);
-    j = alns[i].qend;
   }
 
   alnNums.push_back(i);
@@ -917,11 +917,11 @@ void SplitAligner::spliceBegSignal(char *out,
 				   bool isSenseStrand) const {
   const UnsplitAlignment& a = alns[alnNum];
   bool isForwardStrand = a.isForwardStrand();
+  unsigned coord = cell(spliceBegCoords, alnNum, queryPos);
   StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
   size_t v = f->second % maxGenomeVolumes();
   size_t c = f->second / maxGenomeVolumes();
   uchar signal[2];
-  unsigned coord = cell(spliceBegCoords, alnNum, queryPos);
   if (isForwardStrand) getNextSignal(signal, seqBeg(genome[v], c) + coord);
   else                 getPrevSignal(signal, seqEnd(genome[v], c) - coord);
   decodeSpliceSignal(out, signal, alphabet.decode, alphabet.complement,
@@ -933,11 +933,11 @@ void SplitAligner::spliceEndSignal(char *out,
 				   bool isSenseStrand) const {
   const UnsplitAlignment& a = alns[alnNum];
   bool isForwardStrand = a.isForwardStrand();
+  unsigned coord = cell(spliceEndCoords, alnNum, queryPos);
   StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
   size_t v = f->second % maxGenomeVolumes();
   size_t c = f->second / maxGenomeVolumes();
   uchar signal[2];
-  unsigned coord = cell(spliceEndCoords, alnNum, queryPos);
   if (isForwardStrand) getPrevSignal(signal, seqBeg(genome[v], c) + coord);
   else                 getNextSignal(signal, seqEnd(genome[v], c) - coord);
   decodeSpliceSignal(out, signal, alphabet.decode, alphabet.complement,
@@ -950,7 +950,7 @@ struct RnameAndStrandLess {
   bool operator()(unsigned a, unsigned b) const {
     return
       alns[a].qstrand != alns[b].qstrand ? alns[a].qstrand < alns[b].qstrand :
-      std::strcmp(alns[a].rname, alns[b].rname) < 0;
+      strcmp(alns[a].rname, alns[b].rname) < 0;
   }
 
   const UnsplitAlignment *alns;
@@ -1393,14 +1393,11 @@ static int min(const std::vector< std::vector<int> >& matrix) {
 }
 
 static int matrixLookup(const std::vector< std::vector<int> >& matrix,
-			const std::string& rowNames,
-			const std::string& colNames, char x, char y) {
-  std::string::size_type row = rowNames.find(x);
-  std::string::size_type col = colNames.find(y);
-  if (row == std::string::npos || col == std::string::npos)
-    return min(matrix);
-  else
-    return matrix.at(row).at(col);
+			const char *rowNames,
+			const char *colNames, char x, char y) {
+  const char *r = strchr(rowNames, x);
+  const char *c = strchr(colNames, y);
+  return (r && c) ? matrix.at(r - rowNames).at(c - colNames) : min(matrix);
 }
 
 void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
@@ -1415,7 +1412,7 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
   for (unsigned i = 0; i < blen; ++i) bmat[i] = &bvec[i * blen];
   for (unsigned i = 0; i < blen; ++i)
     for (unsigned j = 0; j < blen; ++j)
-      bmat[i][j] = matrixLookup(matrix, rowNames, colNames,
+      bmat[i][j] = matrixLookup(matrix, rowNames.c_str(), colNames.c_str(),
 				bases[i], bases[j]);
 
   mcf::SubstitutionMatrixStats stats;
@@ -1425,7 +1422,7 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
     char x = std::toupper(i);
     for (int j = 64; j < 128; ++j) {
       char y = std::toupper(j);
-      int score = matrixLookup(matrix, rowNames, colNames, x, y);
+      int score = matrixLookup(matrix, rowNames.c_str(), colNames.c_str(), x, y);
       for (int q = 0; q < numQualCodes; ++q) {
 	std::string::size_type xc = bases.find(x);
 	std::string::size_type yc = bases.find(y);
