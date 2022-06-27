@@ -12,21 +12,14 @@
 
 #include <stddef.h>
 
+#include <map>
 #include <string>
 #include <vector>
-#include <cmath>
-#include <climits>
-#include <map>
 
 namespace cbrc {
 
 class SplitAligner {
 public:
-    SplitAligner() {
-      setParams(-7, -1, -7, -1, -40, INT_MIN/2, 1.0, 33);  // xxx ???
-      setSpliceParams(0.0, 7.0, 1.7);
-    }
-
     // A gap of length k scores: gapExistenceScore + k * gapExtensionScore.
 
     // We allow for the possibility that insertions get different scores:
@@ -234,8 +227,7 @@ private:
     void readGenomeVolume(const std::string& baseName,
 			  size_t seqCount, size_t volumeNumber);
 
-    void dpExtensionMinScores(int maxJumpScore,
-			      size_t& minScore1, size_t& minScore2) const;
+    void dpExtensionMinScores(size_t &minScore1, size_t &minScore2) const;
 
     void updateInplayAlnIndicesF(unsigned& sortedAlnPos,
 				 unsigned& oldNumInplay,

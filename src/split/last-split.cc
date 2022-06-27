@@ -4,11 +4,12 @@
 
 #include "cbrc_split_aligner.hh"
 
+#include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <algorithm>
-#include <cassert>
 #include <cctype>
 #include <cmath>
 #include <fstream>

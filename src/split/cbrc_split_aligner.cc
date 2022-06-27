@@ -6,10 +6,12 @@
 
 #include <assert.h>
 #include <float.h>
+#include <limits.h>
 #include <string.h>
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -385,8 +387,8 @@ long SplitAligner::viterbiSplice() {
 
 	    long s = scoreFromJump;
 	    if (splicePrior > 0.0)
-	      s = std::max(s,
-			   scoreFromSplice(i, j, oldNumInplay, oldInplayPos));
+	      s = std::max(s, scoreFromSplice(i, j,
+					      oldNumInplay, oldInplayPos));
 	    s += spliceEndScore(isGenome, ij);
 	    s = std::max(s, Vmat[ij] + Smat[ij*2]);
 	    if (alns[i].qstart == j && s < 0) s = 0;
@@ -977,13 +979,15 @@ void SplitAligner::initRnameAndStrandIds() {
   }
 }
 
-void SplitAligner::dpExtensionMinScores(int maxJumpScore,
-					size_t& minScore1,
-					size_t& minScore2) const {
-  if (!chromosomeIndex.empty()) maxJumpScore += maxSpliceBegEndScore;
-  assert(maxJumpScore + insExistenceScore <= 0);
-  minScore1 = 1 - (maxJumpScore + insExistenceScore);
-  minScore2 = 1 - (maxJumpScore + maxJumpScore + insExistenceScore);
+void SplitAligner::dpExtensionMinScores(size_t &minScore1,
+					size_t &minScore2) const {
+  if (jumpProb > 0 || splicePrior > 0) {
+    int maxJumpScore = (splicePrior > 0) ? maxSpliceScore : jumpScore;
+    if (!chromosomeIndex.empty()) maxJumpScore += maxSpliceBegEndScore;
+    assert(maxJumpScore + insExistenceScore <= 0);
+    minScore1 = 1 - (maxJumpScore + insExistenceScore);
+    minScore2 = 1 - (maxJumpScore + maxJumpScore + insExistenceScore);
+  }
 }
 
 static size_t dpExtension(size_t maxScore, size_t minScore, size_t divisor) {
@@ -1024,10 +1028,7 @@ void SplitAligner::initDpBounds() {
 
   size_t minScore1 = -1;
   size_t minScore2 = -1;
-  if (jumpProb > 0.0 || splicePrior > 0.0) {
-    int m = (splicePrior > 0.0) ? maxSpliceScore : jumpScore;
-    dpExtensionMinScores(m, minScore1, minScore2);
-  }
+  dpExtensionMinScores(minScore1, minScore2);
 
   for (unsigned i = 0; i < numAlns; ++i) {
     size_t b = alns[i].qstart;
