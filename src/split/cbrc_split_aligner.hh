@@ -20,10 +20,8 @@ namespace cbrc {
 
 class SplitAligner {
 public:
-    // A gap of length k scores: gapExistenceScore + k * gapExtensionScore.
-
-    // We allow for the possibility that insertions get different scores:
-    // insExistenceScore + k * insExtensionScore.
+    // A   deletion of length k scores: delOpenScore + k * delGrowScore
+    // An insertion of length k scores: insOpenScore + k * insGrowScore
 
     // "jumpScore" is the (negative) score for a trans-splice.
 
@@ -33,8 +31,8 @@ public:
 
     // "qualityOffset" is 33 for fastq-sanger or 64 for fastq-illumina
 
-    void setParams(int gapExistenceScoreIn, int gapExtensionScoreIn,
-		   int insExistenceScoreIn, int insExtensionScoreIn,
+    void setParams(int delOpenScoreIn, int delGrowScoreIn,
+		   int insOpenScoreIn, int insGrowScoreIn,
 		   int jumpScoreIn, int restartScoreIn, double scaleIn,
 		   int qualityOffsetIn);
 
@@ -127,10 +125,10 @@ private:
     static int score_mat[64][64][numQualCodes];
     int maxMatchScore;
     int qualityOffset;
-    int gapExistenceScore;
-    int gapExtensionScore;
-    int insExistenceScore;
-    int insExtensionScore;
+    int delOpenScore;
+    int delGrowScore;
+    int insOpenScore;
+    int insGrowScore;
     int jumpScore;
     int restartScore;
     double jumpProb;
