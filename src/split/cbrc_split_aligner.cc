@@ -326,6 +326,7 @@ void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
 }
 
 long SplitAligner::viterbiSplit() {
+  const int restartScore = params.restartScore;
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
   unsigned *sortedAlnPtr = &sortedAlnIndices[0];
@@ -364,6 +365,7 @@ long SplitAligner::viterbiSplit() {
 }
 
 long SplitAligner::viterbiSplice() {
+    const int restartScore = params.restartScore;
     const bool isGenome = !chromosomeIndex.empty();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
@@ -425,7 +427,7 @@ void SplitAligner::traceBack(long viterbiScore,
 			     std::vector<unsigned>& queryEnds) const {
   const bool isGenome = !chromosomeIndex.empty();
   unsigned i, j;
-  if (restartProb <= 0) {
+  if (params.isSpliced()) {
     i = findEndScore(viterbiScore);
     assert(i < numAlns);
     j = alns[i].qend;
@@ -445,7 +447,7 @@ void SplitAligner::traceBack(long viterbiScore,
     --j;
     size_t ij = matrixRowOrigins[i] + j;
     long score = Vmat[ij + 1] - Smat[ij*2+1];
-    if (restartProb <= 0 && alns[i].qstart == j && score == 0) {
+    if (params.isSpliced() && alns[i].qstart == j && score == 0) {
       queryBegs.push_back(j);
       return;
     }
@@ -460,7 +462,7 @@ void SplitAligner::traceBack(long viterbiScore,
     if (isStay && alns[i].isForwardStrand()) continue;
 
     long s = score - spliceEndScore(isGenome, ij);
-    long t = s - restartScore;
+    long t = s - params.restartScore;
     if (t == cell(Vvec, j)) {
       queryBegs.push_back(j);
       if (t == 0) return;
@@ -553,6 +555,7 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 }
 
 void SplitAligner::forwardSplit() {
+  const double restartProb = params.restartProb;
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
   unsigned *sortedAlnPtr = &sortedAlnIndices[0];
@@ -642,6 +645,7 @@ void SplitAligner::forwardSplice() {
 }
 
 void SplitAligner::backwardSplit() {
+  const double restartProb = params.restartProb;
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
   unsigned *sortedAlnPtr = &sortedAlnIndices[0];
@@ -1072,7 +1076,7 @@ void SplitAligner::layout(const UnsplitAlignment *beg,
     for (unsigned i = 0; i < numAlns; ++i) sortedAlnIndices[i] = i;
     newInplayAlnIndices.resize(numAlns);
 
-    if (restartProb <= 0) {
+    if (params.isSpliced()) {
       oldInplayAlnIndices.resize(numAlns);
       rBegs.resize(numAlns);
       rEnds.resize(numAlns);
@@ -1215,12 +1219,12 @@ void SplitAligner::setParams(int delOpenScoreIn, int delGrowScoreIn,
   params.insOpenScore = insOpenScoreIn;
   params.insGrowScore = insGrowScoreIn;
   jumpScore = jumpScoreIn;
-  restartScore = restartScoreIn;
+  params.restartScore = restartScoreIn;
   scale = scaleIn;
   scaledExp.setBase(std::exp(1.0 / scale));
   params.qualityOffset = qualityOffsetIn;
   jumpProb = scaledExp(jumpScore);
-  restartProb = scaledExp(restartScore);
+  params.restartProb = scaledExp(params.restartScore);
 }
 
 static int scoreFromProb(double prob, double scale) {

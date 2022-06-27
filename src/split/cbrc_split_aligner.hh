@@ -35,6 +35,10 @@ struct SplitAlignerParams {
   int delGrowScore;
   int insOpenScore;
   int insGrowScore;
+  int restartScore;
+  double restartProb;
+
+  bool isSpliced() const { return restartProb <= 0; }
 };
 
 class SplitAligner {
@@ -75,7 +79,7 @@ public:
     long viterbi() {  // returns the optimal split-alignment score
       resizeMatrix(Vmat);
       resizeVector(Vvec);
-      return (restartProb <= 0) ? viterbiSplice() : viterbiSplit();
+      return params.isSpliced() ? viterbiSplice() : viterbiSplit();
     }
 
     // Gets the chunks of an optimal split alignment.
@@ -97,7 +101,7 @@ public:
       resizeVector(rescales);
       resizeMatrix(Fmat);
       resizeMatrix(Bmat);
-      if (restartProb <= 0) {
+      if (params.isSpliced()) {
 	forwardSplice();
 	backwardSplice();
       } else {
@@ -134,9 +138,7 @@ private:
     int maxMatchScore;
     SplitAlignerParams params;
     int jumpScore;
-    int restartScore;
     double jumpProb;
-    double restartProb;
     double scale;
     IntExponentiator scaledExp;  // for fast calculation of exp(x / scale)
     unsigned numAlns;  // the number of candidate alignments (for 1 query)
