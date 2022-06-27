@@ -365,6 +365,7 @@ long SplitAligner::viterbiSplit() {
 }
 
 long SplitAligner::viterbiSplice() {
+    const int jumpScore = params.jumpScore;
     const int restartScore = params.restartScore;
     const double splicePrior = params.splicePrior;
     const bool isGenome = params.isGenome();
@@ -472,7 +473,7 @@ void SplitAligner::traceBack(long viterbiScore,
     } else {
       if (isStay) continue;
       queryBegs.push_back(j);
-      unsigned k = findScore(isGenome, j, s - jumpScore);
+      unsigned k = findScore(isGenome, j, s - params.jumpScore);
       i = (k < numAlns) ? k : findSpliceScore(i, j, score);
     }
     assert(i < numAlns);
@@ -600,6 +601,7 @@ void SplitAligner::forwardSplit() {
 
 void SplitAligner::forwardSplice() {
     const double splicePrior = params.splicePrior;
+    const double jumpProb = params.jumpProb;
     const bool isGenome = params.isGenome();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
@@ -685,6 +687,7 @@ void SplitAligner::backwardSplit() {
 
 void SplitAligner::backwardSplice() {
     const double splicePrior = params.splicePrior;
+    const double jumpProb = params.jumpProb;
     const bool isGenome = params.isGenome();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
@@ -997,6 +1000,8 @@ void SplitAligner::initRnameAndStrandIds() {
 void SplitAligner::dpExtensionMinScores(size_t &minScore1,
 					size_t &minScore2) const {
   const double splicePrior = params.splicePrior;
+  const double jumpProb = params.jumpProb;
+  const int jumpScore = params.jumpScore;
   if (jumpProb > 0 || splicePrior > 0) {
     int maxJumpScore = (splicePrior > 0) ? maxSpliceScore : jumpScore;
     if (params.isGenome()) maxJumpScore += maxSpliceBegEndScore;
@@ -1178,6 +1183,7 @@ double SplitAligner::spliceSignalStrandLogOdds() const {
 void SplitAligner::setSpliceParams(double splicePriorIn,
 				   double meanLogDistIn,
 				   double sdevLogDistIn) {
+  const int jumpScore = params.jumpScore;
   params.splicePrior = splicePriorIn;
   meanLogDist = meanLogDistIn;
   sdevLogDist = sdevLogDistIn;
@@ -1227,12 +1233,12 @@ void SplitAligner::setParams(int delOpenScoreIn, int delGrowScoreIn,
   params.delGrowScore = delGrowScoreIn;
   params.insOpenScore = insOpenScoreIn;
   params.insGrowScore = insGrowScoreIn;
-  jumpScore = jumpScoreIn;
+  params.jumpScore = jumpScoreIn;
   params.restartScore = restartScoreIn;
   params.scale = scaleIn;
   params.scaledExp.setBase(std::exp(1.0 / params.scale));
   params.qualityOffset = qualityOffsetIn;
-  jumpProb = params.scaledExp(jumpScore);
+  params.jumpProb = params.scaledExp(params.jumpScore);
   params.restartProb = params.scaledExp(params.restartScore);
 }
 
@@ -1296,11 +1302,11 @@ void SplitAligner::setSpliceSignals() {
 }
 
 void SplitAligner::printParameters() const {
-  if (jumpProb > 0.0) {
-    std::cout << "# trans=" << jumpScore << "\n";
+  if (params.jumpProb > 0.0) {
+    std::cout << "# trans=" << params.jumpScore << "\n";
   }
 
-  if (params.splicePrior > 0.0 && jumpProb > 0.0) {
+  if (params.splicePrior > 0.0 && params.jumpProb > 0.0) {
     std::cout << "# cismax=" << maxSpliceDist << "\n";
   }
 

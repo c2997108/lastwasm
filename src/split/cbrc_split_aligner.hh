@@ -43,7 +43,9 @@ struct SplitAlignerParams {
   int delGrowScore;
   int insOpenScore;
   int insGrowScore;
+  int jumpScore;
   int restartScore;
+  double jumpProb;
   double restartProb;
   double scale;
   IntExponentiator scaledExp;  // for fast calculation of exp(x / scale)
@@ -178,8 +180,6 @@ public:
 
 private:
     SplitAlignerParams params;
-    int jumpScore;
-    double jumpProb;
     unsigned numAlns;  // the number of candidate alignments (for 1 query)
     const UnsplitAlignment *alns;  // the candidates
     unsigned minBeg;  // the minimum query start coordinate of any candidate
