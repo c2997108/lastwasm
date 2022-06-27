@@ -145,14 +145,14 @@ void mergeInto(unsigned* beg1,
   }
 }
 
-int SplitAligner::score_mat[64][64][numQualCodes];
+int SplitAlignerParams::score_mat[64][64][numQualCodes];
 
 // The score for a cis-splice with the given distance (i.e. intron length)
 int SplitAligner::calcSpliceScore(double dist) const {
     double logDist = std::log(dist);
     double d = logDist - meanLogDist;
     double s = spliceTerm1 + spliceTerm2 * d * d - logDist;
-    return std::floor(scale * s + 0.5);
+    return std::floor(params.scale * s + 0.5);
 }
 
 // The dinucleotide immediately downstream on the forward strand
@@ -792,7 +792,7 @@ void SplitAligner::calcBaseScores(unsigned i) {
   while (*qAlign) {
     unsigned char x = *rAlign++;
     unsigned char y = *qAlign++;
-    int q = qQual ? (*qQual++ - qualityOffset) : (numQualCodes - 1);
+    int q = qQual ? (*qQual++ - qualityOffset) : (params.numQualCodes - 1);
     if (x == '-') {  // gap in reference sequence: insertion
       *matBeg++ = delScore + insCompensationScore;
       *matBeg++ = firstInsScore;
@@ -804,9 +804,9 @@ void SplitAligner::calcBaseScores(unsigned i) {
       insCompensationScore = 0;
     } else {
       assert(q >= 0);
-      if (q >= numQualCodes) q = numQualCodes - 1;
+      if (q >= params.numQualCodes) q = params.numQualCodes - 1;
       *matBeg++ = delScore;
-      *matBeg++ = score_mat[x % 64][y % 64][q];
+      *matBeg++ = params.score_mat[x % 64][y % 64][q];
       delScore = 0;
       insCompensationScore = 0;
     }
@@ -1032,6 +1032,7 @@ void SplitAligner::initDpBounds() {
   // An extension of length x must have a (negative) score <=
   // maxJumpScore + insOpenScore + insGrowScore * x
 
+  int maxMatchScore = params.maxMatchScore;
   assert(params.insGrowScore < 0);
   assert(maxMatchScore >= 0);
 
@@ -1125,7 +1126,8 @@ void SplitAligner::initMatricesForOneQuery() {
     for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(i);
   }
 
-  std::transform(&Smat[0], &Smat[0] + doubleMatrixSize, &Sexp[0], scaledExp);
+  std::transform(&Smat[0], &Smat[0] + doubleMatrixSize, &Sexp[0],
+		 params.scaledExp);
   // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
@@ -1184,14 +1186,14 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
   spliceTerm2 = -0.5 / s2;
 
   double max1 = spliceTerm1 - meanLogDist + s2 * 0.5;
-  int max2 = std::floor(scale * max1 + 0.5);
+  int max2 = std::floor(params.scale * max1 + 0.5);
   maxSpliceScore = std::max(max2, jumpScore);
 
   // Set maxSpliceDist so as to ignore splices whose score would be
   // less than jumpScore.  By solving this quadratic equation:
   // spliceTerm1 + spliceTerm2 * (logDist - meanLogDist)^2 - logDist =
   // jumpScore / scale
-  double r = s2 + 2 * (spliceTerm1 - meanLogDist - jumpScore / scale);
+  double r = s2 + 2 * (spliceTerm1 - meanLogDist - jumpScore / params.scale);
   if (r < 0) {
     maxSpliceDist = 0;
   } else {
@@ -1209,7 +1211,7 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
   for (unsigned i = 1; i < spliceTableSize; ++i) {
     int s = calcSpliceScore(i);
     spliceScoreTable[i] = s;
-    spliceProbTable[i] = scaledExp(s);
+    spliceProbTable[i] = params.scaledExp(s);
   }
 }
 
@@ -1223,11 +1225,11 @@ void SplitAligner::setParams(int delOpenScoreIn, int delGrowScoreIn,
   params.insGrowScore = insGrowScoreIn;
   jumpScore = jumpScoreIn;
   params.restartScore = restartScoreIn;
-  scale = scaleIn;
-  scaledExp.setBase(std::exp(1.0 / scale));
+  params.scale = scaleIn;
+  params.scaledExp.setBase(std::exp(1.0 / params.scale));
   params.qualityOffset = qualityOffsetIn;
-  jumpProb = scaledExp(jumpScore);
-  params.restartProb = scaledExp(params.restartScore);
+  jumpProb = params.scaledExp(jumpScore);
+  params.restartProb = params.scaledExp(params.restartScore);
 }
 
 static int scoreFromProb(double prob, double scale) {
@@ -1270,20 +1272,20 @@ void SplitAligner::setSpliceSignals() {
   double aAvg = (aAG + aAC + aNN * 14) / 16;
 
   for (int i = 0; i < 17; ++i) {
-    spliceBegScores[i] = scoreFromProb(dNN / dAvg, scale);
-    spliceEndScores[i] = scoreFromProb(aNN / aAvg, scale);
+    spliceBegScores[i] = scoreFromProb(dNN / dAvg, params.scale);
+    spliceEndScores[i] = scoreFromProb(aNN / aAvg, params.scale);
   }
 
-  spliceBegScores[2 * 4 + 3] = scoreFromProb(dGT / dAvg, scale);
-  spliceBegScores[2 * 4 + 1] = scoreFromProb(dGC / dAvg, scale);
-  spliceBegScores[0 * 4 + 3] = scoreFromProb(dAT / dAvg, scale);
+  spliceBegScores[2 * 4 + 3] = scoreFromProb(dGT / dAvg, params.scale);
+  spliceBegScores[2 * 4 + 1] = scoreFromProb(dGC / dAvg, params.scale);
+  spliceBegScores[0 * 4 + 3] = scoreFromProb(dAT / dAvg, params.scale);
 
-  spliceEndScores[0 * 4 + 2] = scoreFromProb(aAG / aAvg, scale);
-  spliceEndScores[0 * 4 + 1] = scoreFromProb(aAC / aAvg, scale);
+  spliceEndScores[0 * 4 + 2] = scoreFromProb(aAG / aAvg, params.scale);
+  spliceEndScores[0 * 4 + 1] = scoreFromProb(aAC / aAvg, params.scale);
 
   for (int i = 0; i < 17; ++i) {
-    spliceBegProbs[i] = scaledExp(spliceBegScores[i]);
-    spliceEndProbs[i] = scaledExp(spliceEndScores[i]);
+    spliceBegProbs[i] = params.scaledExp(spliceBegScores[i]);
+    spliceEndProbs[i] = params.scaledExp(spliceEndScores[i]);
   }
 
   maxSpliceBegEndScore = arrayMax(spliceBegScores) + arrayMax(spliceEndScores);
@@ -1422,9 +1424,9 @@ static int matrixLookup(const std::vector< std::vector<int> >& matrix,
   return (r && c) ? matrix.at(r - rowNames).at(c - colNames) : min(matrix);
 }
 
-void SplitAligner::setScoreMat(const std::vector< std::vector<int> > &sm,
-			       const char *rowNames,
-			       const char *colNames) {
+void SplitAlignerParams::setScoreMat(const std::vector< std::vector<int> > &sm,
+				     const char *rowNames,
+				     const char *colNames) {
   const std::string bases = "ACGT";
 
   // Reverse-engineer the abundances of ACGT from the score matrix:

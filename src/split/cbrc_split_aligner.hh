@@ -30,8 +30,14 @@ struct SplitAlignerParams {
 
   // "qualityOffset" is 33 for fastq-sanger or 64 for fastq-illumina
 
+  void setScoreMat(const std::vector< std::vector<int> > &sm,
+		   const char *rowNames, const char *colNames);
+
   void readGenome(const std::string &baseName);
 
+  static const int numQualCodes = 64;
+  static int score_mat[64][64][numQualCodes];
+  int maxMatchScore;
   int qualityOffset;
   int delOpenScore;
   int delGrowScore;
@@ -39,6 +45,8 @@ struct SplitAlignerParams {
   int insGrowScore;
   int restartScore;
   double restartProb;
+  double scale;
+  IntExponentiator scaledExp;  // for fast calculation of exp(x / scale)
 
   MultiSequence genome[32];
   Alphabet alphabet;
@@ -75,7 +83,8 @@ public:
 			 double meanLogDistIn, double sdevLogDistIn);
 
     void setScoreMat(const std::vector< std::vector<int> > &sm,
-		     const char *rowNames, const char *colNames);
+		     const char *rowNames, const char *colNames)
+    { params.setScoreMat(sm, rowNames, colNames); }
 
     void readGenome(const std::string &baseName)
     { params.readGenome(baseName); }
@@ -165,14 +174,9 @@ public:
     }
 
 private:
-    static const int numQualCodes = 64;
-    static int score_mat[64][64][numQualCodes];
-    int maxMatchScore;
     SplitAlignerParams params;
     int jumpScore;
     double jumpProb;
-    double scale;
-    IntExponentiator scaledExp;  // for fast calculation of exp(x / scale)
     unsigned numAlns;  // the number of candidate alignments (for 1 query)
     const UnsplitAlignment *alns;  // the candidates
     unsigned minBeg;  // the minimum query start coordinate of any candidate
@@ -248,7 +252,7 @@ private:
     int spliceScore(unsigned d) const
     { return d < spliceTableSize ? spliceScoreTable[d] : calcSpliceScore(d); }
     double calcSpliceProb(double dist) const
-    { return scaledExp(calcSpliceScore(dist)); }
+    { return params.scaledExp(calcSpliceScore(dist)); }
     double spliceProb(unsigned d) const
     { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
     void initSpliceCoords(unsigned i);
