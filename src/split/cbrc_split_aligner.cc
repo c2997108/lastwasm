@@ -868,17 +868,24 @@ static const uchar *seqEnd(const MultiSequence &m, size_t sequenceIndex) {
   return m.seqReader() + m.seqEnd(sequenceIndex);
 }
 
-void SplitAligner::initSpliceSignals(unsigned i) {
-  const uchar *toUnmasked = alphabet.numbersToUppercase;
-  const UnsplitAlignment& a = alns[i];
-
-  StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
+void SplitAligner::seqEnds(const uchar *&beg, const uchar *&end,
+			   const char *seqName) const {
+  StringNumMap::const_iterator f = chromosomeIndex.find(seqName);
   if (f == chromosomeIndex.end())
-    err("can't find " + std::string(a.rname) + " in the genome");
+    err("can't find " + std::string(seqName) + " in the genome");
   size_t v = f->second % maxGenomeVolumes();
   size_t c = f->second / maxGenomeVolumes();
-  const uchar *chromBeg = seqBeg(genome[v], c);
-  const uchar *chromEnd = seqEnd(genome[v], c);
+  beg = seqBeg(genome[v], c);
+  end = seqEnd(genome[v], c);
+}
+
+void SplitAligner::initSpliceSignals(unsigned i) {
+  const uchar *toUnmasked = alphabet.numbersToUppercase;
+  const UnsplitAlignment &a = alns[i];
+
+  const uchar *chromBeg;
+  const uchar *chromEnd;
+  seqEnds(chromBeg, chromEnd, a.rname);
   if (a.rend > chromEnd - chromBeg)
     err("alignment beyond the end of " + std::string(a.rname));
 

@@ -224,6 +224,8 @@ private:
     double spliceProb(unsigned d) const
     { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
     void initSpliceCoords(unsigned i);
+    void seqEnds(const uchar *&beg, const uchar *&end,
+		 const char *seqName) const;
     void initSpliceSignals(unsigned i);
     void initRnameAndStrandIds();
     void initRbegsAndEnds();
