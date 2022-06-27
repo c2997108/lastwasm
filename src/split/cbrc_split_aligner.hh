@@ -47,9 +47,8 @@ public:
     void setSpliceParams(double splicePriorIn,
 			 double meanLogDistIn, double sdevLogDistIn);
 
-    void setScoreMat(const std::vector< std::vector<int> >& matrix,
-		     const std::string& rowNames,
-		     const std::string& colNames);
+    void setScoreMat(const std::vector< std::vector<int> > &sm,
+		     const char *rowNames, const char *colNames);
 
     void readGenome(const std::string& baseName);
 

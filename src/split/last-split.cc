@@ -511,7 +511,7 @@ void lastSplit(LastSplitOptions& opts) {
 		       -jumpCost, -restartCost, scale, qualityOffset);
 	  double splicePrior = opts.isSplicedAlignment ? opts.cis : 0.0;
 	  sa.setSpliceParams(splicePrior, opts.mean, opts.sdev);
-	  sa.setScoreMat(scoreMatrix, rowNames, colNames);
+	  sa.setScoreMat(scoreMatrix, rowNames.c_str(), colNames.c_str());
 	  sa.setSpliceSignals();
 	  if (!opts.genome.empty()) sa.readGenome(opts.genome);
 	  sa.printParameters();

@@ -1400,9 +1400,9 @@ static int matrixLookup(const std::vector< std::vector<int> >& matrix,
   return (r && c) ? matrix.at(r - rowNames).at(c - colNames) : min(matrix);
 }
 
-void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
-			       const std::string& rowNames,
-			       const std::string& colNames) {
+void SplitAligner::setScoreMat(const std::vector< std::vector<int> > &sm,
+			       const char *rowNames,
+			       const char *colNames) {
   const std::string bases = "ACGT";
 
   // Reverse-engineer the abundances of ACGT from the score matrix:
@@ -1412,8 +1412,7 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
   for (unsigned i = 0; i < blen; ++i) bmat[i] = &bvec[i * blen];
   for (unsigned i = 0; i < blen; ++i)
     for (unsigned j = 0; j < blen; ++j)
-      bmat[i][j] = matrixLookup(matrix, rowNames.c_str(), colNames.c_str(),
-				bases[i], bases[j]);
+      bmat[i][j] = matrixLookup(sm, rowNames, colNames, bases[i], bases[j]);
 
   mcf::SubstitutionMatrixStats stats;
   stats.calcFromScale(&bmat[0], blen, scale);
@@ -1422,7 +1421,7 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
     char x = std::toupper(i);
     for (int j = 64; j < 128; ++j) {
       char y = std::toupper(j);
-      int score = matrixLookup(matrix, rowNames.c_str(), colNames.c_str(), x, y);
+      int score = matrixLookup(sm, rowNames, colNames, x, y);
       for (int q = 0; q < numQualCodes; ++q) {
 	std::string::size_type xc = bases.find(x);
 	std::string::size_type yc = bases.find(y);
@@ -1436,7 +1435,7 @@ void SplitAligner::setScoreMat(const std::vector< std::vector<int> >& matrix,
     }
   }
 
-  maxMatchScore = max(matrix);
+  maxMatchScore = max(sm);
 }
 
 }
