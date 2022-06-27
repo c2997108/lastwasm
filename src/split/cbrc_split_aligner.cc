@@ -206,7 +206,7 @@ unsigned SplitAligner::findScore(bool isGenome, unsigned j, long score) const {
 
 unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 				       long score) const {
-    assert(splicePrior > 0.0);
+    assert(params.splicePrior > 0.0);
     const bool isGenome = params.isGenome();
     size_t ij = matrixRowOrigins[i] + j;
     unsigned iSeq = rnameAndStrandIds[i];
@@ -366,6 +366,7 @@ long SplitAligner::viterbiSplit() {
 
 long SplitAligner::viterbiSplice() {
     const int restartScore = params.restartScore;
+    const double splicePrior = params.splicePrior;
     const bool isGenome = params.isGenome();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
@@ -598,6 +599,7 @@ void SplitAligner::forwardSplit() {
 }
 
 void SplitAligner::forwardSplice() {
+    const double splicePrior = params.splicePrior;
     const bool isGenome = params.isGenome();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
@@ -682,6 +684,7 @@ void SplitAligner::backwardSplit() {
 }
 
 void SplitAligner::backwardSplice() {
+    const double splicePrior = params.splicePrior;
     const bool isGenome = params.isGenome();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
@@ -993,6 +996,7 @@ void SplitAligner::initRnameAndStrandIds() {
 
 void SplitAligner::dpExtensionMinScores(size_t &minScore1,
 					size_t &minScore2) const {
+  const double splicePrior = params.splicePrior;
   if (jumpProb > 0 || splicePrior > 0) {
     int maxJumpScore = (splicePrior > 0) ? maxSpliceScore : jumpScore;
     if (params.isGenome()) maxJumpScore += maxSpliceBegEndScore;
@@ -1084,7 +1088,7 @@ void SplitAligner::layout(const UnsplitAlignment *beg,
       oldInplayAlnIndices.resize(numAlns);
       rBegs.resize(numAlns);
       rEnds.resize(numAlns);
-      if (splicePrior > 0.0 || params.isGenome()) {
+      if (params.isSpliceCoords()) {
 	initRbegsAndEnds();
       }
       initRnameAndStrandIds();
@@ -1096,7 +1100,7 @@ void SplitAligner::layout(const UnsplitAlignment *beg,
 size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
   size_t numOfStrands = isBothSpliceStrands ? 2 : 1;
   size_t x = 2 * sizeof(int) + 2 * sizeof(float);
-  if (splicePrior > 0 || params.isGenome()) x += 2 * sizeof(unsigned);
+  if (params.isSpliceCoords()) x += 2 * sizeof(unsigned);
   if (params.isGenome()) x += 2;
   if (isViterbi) x += sizeof(long) * numOfStrands;
   x += 2 * sizeof(double) * numOfStrands;
@@ -1114,7 +1118,7 @@ void SplitAligner::initMatricesForOneQuery() {
 
   for (unsigned i = 0; i < numAlns; i++) calcBaseScores(i);
 
-  if (splicePrior > 0.0 || params.isGenome()) {
+  if (params.isSpliceCoords()) {
     resizeMatrix(spliceBegCoords);
     resizeMatrix(spliceEndCoords);
     for (unsigned i = 0; i < numAlns; ++i) initSpliceCoords(i);
@@ -1174,15 +1178,15 @@ double SplitAligner::spliceSignalStrandLogOdds() const {
 void SplitAligner::setSpliceParams(double splicePriorIn,
 				   double meanLogDistIn,
 				   double sdevLogDistIn) {
-  splicePrior = splicePriorIn;
+  params.splicePrior = splicePriorIn;
   meanLogDist = meanLogDistIn;
   sdevLogDist = sdevLogDistIn;
 
-  if (splicePrior <= 0.0) return;
+  if (params.splicePrior <= 0.0) return;
 
   const double rootTwoPi = std::sqrt(8.0 * std::atan(1.0));
   double s2 = sdevLogDist * sdevLogDist;
-  spliceTerm1 = -std::log(sdevLogDist * rootTwoPi / splicePrior);
+  spliceTerm1 = -std::log(sdevLogDist * rootTwoPi / params.splicePrior);
   spliceTerm2 = -0.5 / s2;
 
   double max1 = spliceTerm1 - meanLogDist + s2 * 0.5;
@@ -1296,7 +1300,7 @@ void SplitAligner::printParameters() const {
     std::cout << "# trans=" << jumpScore << "\n";
   }
 
-  if (splicePrior > 0.0 && jumpProb > 0.0) {
+  if (params.splicePrior > 0.0 && jumpProb > 0.0) {
     std::cout << "# cismax=" << maxSpliceDist << "\n";
   }
 

@@ -48,6 +48,7 @@ struct SplitAlignerParams {
   double scale;
   IntExponentiator scaledExp;  // for fast calculation of exp(x / scale)
 
+  double splicePrior;
   MultiSequence genome[32];
   Alphabet alphabet;
   typedef std::map<std::string, unsigned long long> StringNumMap;
@@ -56,6 +57,8 @@ struct SplitAlignerParams {
   bool isSpliced() const { return restartProb <= 0; }
 
   bool isGenome() const { return !chromosomeIndex.empty(); }
+
+  bool isSpliceCoords() const { return splicePrior > 0 || isGenome(); }
 
   void seqEnds(const uchar *&beg, const uchar *&end,
 	       const char *seqName) const;
@@ -214,7 +217,6 @@ private:
     std::vector<unsigned> oldInplayAlnIndices;
     std::vector<unsigned> newInplayAlnIndices;
 
-    double splicePrior;
     double meanLogDist;
     double sdevLogDist;
     double spliceTerm1;
