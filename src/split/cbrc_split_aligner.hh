@@ -144,7 +144,7 @@ public:
     long viterbi() {  // returns the optimal split-alignment score
       resizeMatrix(Vmat);
       resizeVector(Vvec);
-      return params.isSpliced() ? viterbiSplice() : viterbiSplit();
+      return params.isSpliced() ? viterbiSplice(params) : viterbiSplit(params);
     }
 
     // Gets the chunks of an optimal split alignment.
@@ -167,11 +167,11 @@ public:
       resizeMatrix(Fmat);
       resizeMatrix(Bmat);
       if (params.isSpliced()) {
-	forwardSplice();
-	backwardSplice();
+	forwardSplice(params);
+	backwardSplice(params);
       } else {
-	forwardSplit();
-	backwardSplit();
+	forwardSplit(params);
+	backwardSplit(params);
       }
     }
 
@@ -268,7 +268,7 @@ private:
       return isGenome ? spliceEndProbs[spliceEndSignals[ij]] : 1.0;
     }
     void initSpliceCoords(unsigned i);
-    void initSpliceSignals(unsigned i);
+    void initSpliceSignals(const SplitAlignerParams &params, unsigned i);
     void initRnameAndStrandIds();
     void initRbegsAndEnds();
 
@@ -280,17 +280,19 @@ private:
 				 unsigned& oldNumInplay,
 				 unsigned& newNumInplay, unsigned j);
 
-    long viterbiSplit();
-    long viterbiSplice();
+    long viterbiSplit(const SplitAlignerParams &params);
+    long viterbiSplice(const SplitAlignerParams &params);
 
-    void forwardSplit();
-    void backwardSplit();
-    void forwardSplice();
-    void backwardSplice();
+    void forwardSplit(const SplitAlignerParams &params);
+    void backwardSplit(const SplitAlignerParams &params);
+    void forwardSplice(const SplitAlignerParams &params);
+    void backwardSplice(const SplitAlignerParams &params);
 
     unsigned findScore(bool isGenome, unsigned j, long score) const;
-    unsigned findSpliceScore(unsigned i, unsigned j, long score) const;
-    long scoreFromSplice(unsigned i, unsigned j, unsigned oldNumInplay,
+    unsigned findSpliceScore(const SplitAlignerParams &params,
+			     unsigned i, unsigned j, long score) const;
+    long scoreFromSplice(const SplitAlignerParams &params,
+			 unsigned i, unsigned j, unsigned oldNumInplay,
 			 unsigned& oldInplayPos) const;
     long endScore() const;
     unsigned findEndScore(long score) const;
@@ -330,14 +332,16 @@ private:
       if (m.size() < s) m.resize(s);
     }
 
-    double probFromSpliceF(unsigned i, unsigned j, unsigned oldNumInplay,
+    double probFromSpliceF(const SplitAlignerParams &params,
+			   unsigned i, unsigned j, unsigned oldNumInplay,
 			   unsigned& oldInplayPos) const;
 
-    double probFromSpliceB(unsigned i, unsigned j, unsigned oldNumInplay,
+    double probFromSpliceB(const SplitAlignerParams &params,
+			   unsigned i, unsigned j, unsigned oldNumInplay,
 			   unsigned& oldInplayPos) const;
 
-    void calcBaseScores(unsigned i);
-    void initDpBounds();
+    void calcBaseScores(const SplitAlignerParams &params, unsigned i);
+    void initDpBounds(const SplitAlignerParams &params);
 };
 
 }

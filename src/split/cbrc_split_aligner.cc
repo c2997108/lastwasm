@@ -204,7 +204,8 @@ unsigned SplitAligner::findScore(bool isGenome, unsigned j, long score) const {
   return numAlns;
 }
 
-unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
+unsigned SplitAligner::findSpliceScore(const SplitAlignerParams &params,
+				       unsigned i, unsigned j,
 				       long score) const {
     assert(params.splicePrior > 0.0);
     const bool isGenome = params.isGenome();
@@ -225,7 +226,8 @@ unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
     return numAlns;
 }
 
-long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
+long SplitAligner::scoreFromSplice(const SplitAlignerParams &params,
+				   unsigned i, unsigned j,
 				   unsigned oldNumInplay,
 				   unsigned& oldInplayPos) const {
   const unsigned maxSpliceDist = params.maxSpliceDist;
@@ -326,7 +328,7 @@ void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
   newNumInplay = (newEnd - newBeg) + (sortedAlnPos - sortedAlnOldPos);
 }
 
-long SplitAligner::viterbiSplit() {
+long SplitAligner::viterbiSplit(const SplitAlignerParams &params) {
   const int restartScore = params.restartScore;
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
@@ -365,7 +367,7 @@ long SplitAligner::viterbiSplit() {
   return maxScore;
 }
 
-long SplitAligner::viterbiSplice() {
+long SplitAligner::viterbiSplice(const SplitAlignerParams &params) {
     const int jumpScore = params.jumpScore;
     const int restartScore = params.restartScore;
     const double splicePrior = params.splicePrior;
@@ -392,7 +394,7 @@ long SplitAligner::viterbiSplice() {
 
 	    long s = scoreFromJump;
 	    if (splicePrior > 0.0)
-	      s = std::max(s, scoreFromSplice(i, j,
+	      s = std::max(s, scoreFromSplice(params, i, j,
 					      oldNumInplay, oldInplayPos));
 	    s += spliceEndScore(isGenome, ij);
 	    s = std::max(s, Vmat[ij] + Smat[ij*2]);
@@ -475,7 +477,7 @@ void SplitAligner::traceBack(long viterbiScore,
       if (isStay) continue;
       queryBegs.push_back(j);
       unsigned k = findScore(isGenome, j, s - params.jumpScore);
-      i = (k < numAlns) ? k : findSpliceScore(i, j, score);
+      i = (k < numAlns) ? k : findSpliceScore(params, i, j, score);
     }
     assert(i < numAlns);
     alnNums.push_back(i);
@@ -495,7 +497,8 @@ int SplitAligner::segmentScore(unsigned alnNum,
   return score;
 }
 
-double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
+double SplitAligner::probFromSpliceF(const SplitAlignerParams &params,
+				     unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
   const unsigned maxSpliceDist = params.maxSpliceDist;
@@ -528,7 +531,8 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
   return sum;
 }
 
-double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
+double SplitAligner::probFromSpliceB(const SplitAlignerParams &params,
+				     unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
   const unsigned maxSpliceDist = params.maxSpliceDist;
@@ -561,7 +565,7 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
   return sum;
 }
 
-void SplitAligner::forwardSplit() {
+void SplitAligner::forwardSplit(const SplitAlignerParams &params) {
   const double restartProb = params.restartProb;
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
@@ -604,7 +608,7 @@ void SplitAligner::forwardSplit() {
   cell(rescales, maxEnd) = 1 / sumOfProbs;  // makes scaled sumOfProbs equal 1
 }
 
-void SplitAligner::forwardSplice() {
+void SplitAligner::forwardSplice(const SplitAlignerParams &params) {
     const double splicePrior = params.splicePrior;
     const double jumpProb = params.jumpProb;
     const bool isGenome = params.isGenome();
@@ -634,7 +638,7 @@ void SplitAligner::forwardSplice() {
 
 	    double p = probFromJump;
 	    if (splicePrior > 0.0)
-	      p += probFromSpliceF(i, j, oldNumInplay, oldInplayPos);
+	      p += probFromSpliceF(params, i, j, oldNumInplay, oldInplayPos);
 	    p *= spliceEndProb(isGenome, ij);
 	    p += Fmat[ij] * Sexp[ij*2];
 	    if (alns[i].qstart == j) p += begprob;
@@ -653,7 +657,7 @@ void SplitAligner::forwardSplice() {
     cell(rescales, maxEnd) = 1 / zF;  // this causes scaled zF to equal 1
 }
 
-void SplitAligner::backwardSplit() {
+void SplitAligner::backwardSplit(const SplitAlignerParams &params) {
   const double restartProb = params.restartProb;
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
@@ -690,7 +694,7 @@ void SplitAligner::backwardSplit() {
   }
 }
 
-void SplitAligner::backwardSplice() {
+void SplitAligner::backwardSplice(const SplitAlignerParams &params) {
     const double splicePrior = params.splicePrior;
     const double jumpProb = params.jumpProb;
     const bool isGenome = params.isGenome();
@@ -718,7 +722,7 @@ void SplitAligner::backwardSplice() {
 
 	    double p = probFromJump;
 	    if (splicePrior > 0.0)
-	      p += probFromSpliceB(i, j, oldNumInplay, oldInplayPos);
+	      p += probFromSpliceB(params, i, j, oldNumInplay, oldInplayPos);
 	    p *= spliceBegProb(isGenome, ij);
 	    p += Bmat[ij] * Sexp[ij*2];
 	    if (alns[i].qend == j) p += endprob;
@@ -769,7 +773,8 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 // produces suitable affine gap scores, even if we jump from one
 // alignment to another in the middle of a gap.
 
-void SplitAligner::calcBaseScores(unsigned i) {
+void SplitAligner::calcBaseScores(const SplitAlignerParams &params,
+				  unsigned i) {
   const int qualityOffset = params.qualityOffset;
   const int delOpenScore = params.delOpenScore;
   const int delGrowScore = params.delGrowScore;
@@ -890,7 +895,8 @@ void SplitAlignerParams::seqEnds(const uchar *&beg, const uchar *&end,
   end = seqEnd(genome[v], c);
 }
 
-void SplitAligner::initSpliceSignals(unsigned i) {
+void SplitAligner::initSpliceSignals(const SplitAlignerParams &params,
+				     unsigned i) {
   const uchar *toUnmasked = params.alphabet.numbersToUppercase;
   const UnsplitAlignment &a = alns[i];
 
@@ -1017,7 +1023,7 @@ static size_t dpExtension(size_t maxScore, size_t minScore, size_t divisor) {
   return (maxScore > minScore) ? (maxScore - minScore) / divisor : 0;
 }
 
-void SplitAligner::initDpBounds() {
+void SplitAligner::initDpBounds(const SplitAlignerParams &params) {
   minBeg = -1;
   for (unsigned i = 0; i < numAlns; ++i)
     minBeg = std::min(minBeg, alns[i].qstart);
@@ -1101,7 +1107,7 @@ void SplitAligner::layout(const UnsplitAlignment *beg,
       initRnameAndStrandIds();
     }
 
-    initDpBounds();
+    initDpBounds(params);
 }
 
 size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
@@ -1123,7 +1129,7 @@ void SplitAligner::initMatricesForOneQuery() {
     Sexp.resize(doubleMatrixSize);
   }
 
-  for (unsigned i = 0; i < numAlns; i++) calcBaseScores(i);
+  for (unsigned i = 0; i < numAlns; i++) calcBaseScores(params, i);
 
   if (params.isSpliceCoords()) {
     resizeMatrix(spliceBegCoords);
@@ -1134,7 +1140,7 @@ void SplitAligner::initMatricesForOneQuery() {
   if (params.isGenome()) {
     resizeMatrix(spliceBegSignals);
     resizeMatrix(spliceEndSignals);
-    for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(i);
+    for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(params, i);
   }
 
   std::transform(&Smat[0], &Smat[0] + doubleMatrixSize, &Sexp[0],
@@ -1282,17 +1288,19 @@ void SplitAligner::setSpliceSignals() {
   double dAvg = (dGT + dGC + dAT + dNN * 13) / 16;
   double aAvg = (aAG + aAC + aNN * 14) / 16;
 
+  const double scale = params.scale;
+
   for (int i = 0; i < 17; ++i) {
-    spliceBegScores[i] = scoreFromProb(dNN / dAvg, params.scale);
-    spliceEndScores[i] = scoreFromProb(aNN / aAvg, params.scale);
+    spliceBegScores[i] = scoreFromProb(dNN / dAvg, scale);
+    spliceEndScores[i] = scoreFromProb(aNN / aAvg, scale);
   }
 
-  spliceBegScores[2 * 4 + 3] = scoreFromProb(dGT / dAvg, params.scale);
-  spliceBegScores[2 * 4 + 1] = scoreFromProb(dGC / dAvg, params.scale);
-  spliceBegScores[0 * 4 + 3] = scoreFromProb(dAT / dAvg, params.scale);
+  spliceBegScores[2 * 4 + 3] = scoreFromProb(dGT / dAvg, scale);
+  spliceBegScores[2 * 4 + 1] = scoreFromProb(dGC / dAvg, scale);
+  spliceBegScores[0 * 4 + 3] = scoreFromProb(dAT / dAvg, scale);
 
-  spliceEndScores[0 * 4 + 2] = scoreFromProb(aAG / aAvg, params.scale);
-  spliceEndScores[0 * 4 + 1] = scoreFromProb(aAC / aAvg, params.scale);
+  spliceEndScores[0 * 4 + 2] = scoreFromProb(aAG / aAvg, scale);
+  spliceEndScores[0 * 4 + 1] = scoreFromProb(aAC / aAvg, scale);
 
   for (int i = 0; i < 17; ++i) {
     spliceBegProbs[i] = params.scaledExp(spliceBegScores[i]);
