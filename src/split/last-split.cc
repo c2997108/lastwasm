@@ -156,14 +156,14 @@ static int printSense(char *out, double senseStrandLogOdds) {
   return sprintf(out, " sense=%.*g", precision, b);
 }
 
-static void doOneAlignmentPart(cbrc::SplitAligner& sa,
-			       const cbrc::UnsplitAlignment& a,
+static void doOneAlignmentPart(cbrc::SplitAligner &sa,
+			       const LastSplitOptions &opts,
+			       bool isAlreadySplit,
+			       const cbrc::UnsplitAlignment &a,
 			       unsigned numOfParts, unsigned partNum,
 			       unsigned alnNum,
 			       unsigned qSliceBeg, unsigned qSliceEnd,
-			       bool isSenseStrand, double senseStrandLogOdds,
-			       const LastSplitOptions& opts,
-			       bool isAlreadySplit) {
+			       bool isSenseStrand, double senseStrandLogOdds) {
   std::vector<char> outputText;
 
   if (qSliceBeg >= a.qend || qSliceEnd <= a.qstart) {
@@ -302,9 +302,9 @@ static void doOneQuery(cbrc::SplitAligner &sa, const LastSplitOptions &opts,
     if (opts.verbose) std::cerr << "\n";
     unsigned numOfParts = end - beg;
     for (unsigned i = 0; i < numOfParts; ++i) {
-      doOneAlignmentPart(sa, beg[i], numOfParts, i, i,
-			 beg[i].qstart, beg[i].qend,
-			 true, senseStrandLogOdds, opts, isAlreadySplit);
+      doOneAlignmentPart(sa, opts, isAlreadySplit, beg[i],
+			 numOfParts, i, i, beg[i].qstart, beg[i].qend,
+			 true, senseStrandLogOdds);
     }
   } else {
     long viterbiScore = LONG_MIN;
@@ -338,10 +338,9 @@ static void doOneQuery(cbrc::SplitAligner &sa, const LastSplitOptions &opts,
     unsigned numOfParts = alnNums.size();
     for (unsigned k = 0; k < numOfParts; ++k) {
       unsigned i = alnNums[k];
-      doOneAlignmentPart(sa, beg[i], numOfParts, k, i,
-			 queryBegs[k], queryEnds[k],
-			 isSenseStrand, senseStrandLogOdds,
-			 opts, isAlreadySplit);
+      doOneAlignmentPart(sa, opts, isAlreadySplit, beg[i],
+			 numOfParts, k, i, queryBegs[k], queryEnds[k],
+			 isSenseStrand, senseStrandLogOdds );
     }
   }
 }
