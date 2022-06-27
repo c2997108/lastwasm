@@ -30,6 +30,11 @@ struct SplitAlignerParams {
 
   // "qualityOffset" is 33 for fastq-sanger or 64 for fastq-illumina
 
+  void setParams(int delOpenScoreIn, int delGrowScoreIn,
+		 int insOpenScoreIn, int insGrowScoreIn,
+		 int jumpScoreIn, int restartScoreIn, double scaleIn,
+		 int qualityOffsetIn);
+
   void setSpliceParams(double splicePriorIn,
 		       double meanLogDistIn, double sdevLogDistIn);
 
@@ -108,7 +113,11 @@ public:
     void setParams(int delOpenScoreIn, int delGrowScoreIn,
 		   int insOpenScoreIn, int insGrowScoreIn,
 		   int jumpScoreIn, int restartScoreIn, double scaleIn,
-		   int qualityOffsetIn);
+		   int qualityOffsetIn) {
+      params.setParams(delOpenScoreIn, delGrowScoreIn,
+		       insOpenScoreIn, insGrowScoreIn,
+		       jumpScoreIn, restartScoreIn, scaleIn, qualityOffsetIn);
+    }
 
     void setSpliceParams(double splicePriorIn,
 			 double meanLogDistIn, double sdevLogDistIn)

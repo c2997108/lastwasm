@@ -1232,21 +1232,21 @@ void SplitAlignerParams::setSpliceParams(double splicePriorIn,
   }
 }
 
-void SplitAligner::setParams(int delOpenScoreIn, int delGrowScoreIn,
-			     int insOpenScoreIn, int insGrowScoreIn,
-			     int jumpScoreIn, int restartScoreIn,
-			     double scaleIn, int qualityOffsetIn) {
-  params.delOpenScore = delOpenScoreIn;
-  params.delGrowScore = delGrowScoreIn;
-  params.insOpenScore = insOpenScoreIn;
-  params.insGrowScore = insGrowScoreIn;
-  params.jumpScore = jumpScoreIn;
-  params.restartScore = restartScoreIn;
-  params.scale = scaleIn;
-  params.scaledExp.setBase(std::exp(1.0 / params.scale));
-  params.qualityOffset = qualityOffsetIn;
-  params.jumpProb = params.scaledExp(params.jumpScore);
-  params.restartProb = params.scaledExp(params.restartScore);
+void SplitAlignerParams::setParams(int delOpenScoreIn, int delGrowScoreIn,
+				   int insOpenScoreIn, int insGrowScoreIn,
+				   int jumpScoreIn, int restartScoreIn,
+				   double scaleIn, int qualityOffsetIn) {
+  delOpenScore = delOpenScoreIn;
+  delGrowScore = delGrowScoreIn;
+  insOpenScore = insOpenScoreIn;
+  insGrowScore = insGrowScoreIn;
+  jumpScore = jumpScoreIn;
+  restartScore = restartScoreIn;
+  scale = scaleIn;
+  scaledExp.setBase(std::exp(1.0 / scale));
+  qualityOffset = qualityOffsetIn;
+  jumpProb = scaledExp(jumpScore);
+  restartProb = scaledExp(restartScore);
 }
 
 static int scoreFromProb(double prob, double scale) {
