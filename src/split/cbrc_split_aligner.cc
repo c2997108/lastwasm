@@ -193,11 +193,11 @@ static unsigned spliceEndSignalRev(const uchar *seqPtr,
   return 15 - (n1 * 4 + n2);  // reverse-complement
 }
 
-unsigned SplitAligner::findScore(unsigned j, long score) const {
+unsigned SplitAligner::findScore(bool isGenome, unsigned j, long score) const {
   for (unsigned i = 0; i < numAlns; ++i) {
     if (dpBeg(i) >= j || dpEnd(i) < j) continue;
     size_t ij = matrixRowOrigins[i] + j;
-    if (Vmat[ij] + spliceBegScore(ij) == score) return i;
+    if (Vmat[ij] + spliceBegScore(isGenome, ij) == score) return i;
   }
   return numAlns;
 }
@@ -205,17 +205,19 @@ unsigned SplitAligner::findScore(unsigned j, long score) const {
 unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 				       long score) const {
     assert(splicePrior > 0.0);
+    const bool isGenome = !chromosomeIndex.empty();
     size_t ij = matrixRowOrigins[i] + j;
     unsigned iSeq = rnameAndStrandIds[i];
     unsigned iEnd = spliceEndCoords[ij];
-    int iScore = spliceEndScore(ij);
+    int iScore = spliceEndScore(isGenome, ij);
     for (unsigned k = 0; k < numAlns; k++) {
 	if (rnameAndStrandIds[k] != iSeq) continue;
 	if (dpBeg(k) >= j || dpEnd(k) < j) continue;
 	size_t kj = matrixRowOrigins[k] + j;
 	unsigned kBeg = spliceBegCoords[kj];
 	if (iEnd <= kBeg) continue;
-	int s = iScore + spliceBegScore(kj) + spliceScore(iEnd - kBeg);
+	int s = iScore + spliceBegScore(isGenome, kj) +
+	  spliceScore(iEnd - kBeg);
 	if (Vmat[kj] + s == score) return k;
     }
     return numAlns;
@@ -224,6 +226,7 @@ unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
 				   unsigned oldNumInplay,
 				   unsigned& oldInplayPos) const {
+  const bool isGenome = !chromosomeIndex.empty();
   size_t ij = matrixRowOrigins[i] + j;
   long score = LONG_MIN;
   unsigned iSeq = rnameAndStrandIds[i];
@@ -245,8 +248,8 @@ long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
     unsigned kBeg = spliceBegCoords[kj];
     if (iEnd <= kBeg) continue;
     if (iEnd - kBeg > maxSpliceDist) continue;
-    score = std::max(score,
-		     Vmat[kj] + spliceBegScore(kj) + spliceScore(iEnd - kBeg));
+    score = std::max(score, Vmat[kj] + spliceBegScore(isGenome, kj) +
+		            spliceScore(iEnd - kBeg));
   }
 
   return score;
@@ -359,6 +362,7 @@ long SplitAligner::viterbiSplit() {
 }
 
 long SplitAligner::viterbiSplice() {
+    const bool isGenome = !chromosomeIndex.empty();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -383,13 +387,13 @@ long SplitAligner::viterbiSplice() {
 	    if (splicePrior > 0.0)
 	      s = std::max(s,
 			   scoreFromSplice(i, j, oldNumInplay, oldInplayPos));
-	    s += spliceEndScore(ij);
+	    s += spliceEndScore(isGenome, ij);
 	    s = std::max(s, Vmat[ij] + Smat[ij*2]);
 	    if (alns[i].qstart == j && s < 0) s = 0;
 	    s += Smat[ij*2+1];
 
 	    Vmat[ij + 1] = s;
-	    sMax = std::max(sMax, s + spliceBegScore(ij + 1));
+	    sMax = std::max(sMax, s + spliceBegScore(isGenome, ij + 1));
 	}
 	maxScore = std::max(sMax, maxScore);
 	scoreFromJump = std::max(sMax + jumpScore, maxScore + restartScore);
@@ -417,6 +421,7 @@ void SplitAligner::traceBack(long viterbiScore,
 			     std::vector<unsigned>& alnNums,
 			     std::vector<unsigned>& queryBegs,
 			     std::vector<unsigned>& queryEnds) const {
+  const bool isGenome = !chromosomeIndex.empty();
   unsigned i, j;
   if (restartProb <= 0) {
     i = findEndScore(viterbiScore);
@@ -427,7 +432,7 @@ void SplitAligner::traceBack(long viterbiScore,
     long t = cell(Vvec, j);
     if (t == 0) return;
     while (t == cell(Vvec, j-1)) --j;
-    i = findScore(j, t);
+    i = findScore(isGenome, j, t);
     assert(i < numAlns);
   }
 
@@ -452,17 +457,17 @@ void SplitAligner::traceBack(long viterbiScore,
     bool isStay = (score == Vmat[ij] + Smat[ij*2]);
     if (isStay && alns[i].isForwardStrand()) continue;
 
-    long s = score - spliceEndScore(ij);
+    long s = score - spliceEndScore(isGenome, ij);
     long t = s - restartScore;
     if (t == cell(Vvec, j)) {
       queryBegs.push_back(j);
       if (t == 0) return;
       while (t == cell(Vvec, j-1)) --j;
-      i = findScore(j, t);
+      i = findScore(isGenome, j, t);
     } else {
       if (isStay) continue;
       queryBegs.push_back(j);
-      unsigned k = findScore(j, s - jumpScore);
+      unsigned k = findScore(isGenome, j, s - jumpScore);
       i = (k < numAlns) ? k : findSpliceScore(i, j, score);
     }
     assert(i < numAlns);
@@ -486,6 +491,7 @@ int SplitAligner::segmentScore(unsigned alnNum,
 double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
+  const bool isGenome = !chromosomeIndex.empty();
   size_t ij = matrixRowOrigins[i] + j;
   double sum = 0.0;
   unsigned iSeq = rnameAndStrandIds[i];
@@ -507,7 +513,7 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
     unsigned kBeg = spliceBegCoords[kj];
     if (iEnd <= kBeg) continue;
     if (iEnd - kBeg > maxSpliceDist) continue;
-    sum += Fmat[kj] * spliceBegProb(kj) * spliceProb(iEnd - kBeg);
+    sum += Fmat[kj] * spliceBegProb(isGenome, kj) * spliceProb(iEnd - kBeg);
   }
 
   return sum;
@@ -516,6 +522,7 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
+  const bool isGenome = !chromosomeIndex.empty();
   size_t ij = matrixRowOrigins[i] + j;
   double sum = 0.0;
   unsigned iSeq = rnameAndStrandIds[i];
@@ -537,7 +544,7 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
     unsigned kEnd = spliceEndCoords[kj];
     if (kEnd <= iBeg) continue;
     if (kEnd - iBeg > maxSpliceDist) continue;
-    sum += Bmat[kj] * spliceEndProb(kj) * spliceProb(kEnd - iBeg);
+    sum += Bmat[kj] * spliceEndProb(isGenome, kj) * spliceProb(kEnd - iBeg);
   }
 
   return sum;
@@ -586,6 +593,7 @@ void SplitAligner::forwardSplit() {
 }
 
 void SplitAligner::forwardSplice() {
+    const bool isGenome = !chromosomeIndex.empty();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -613,14 +621,14 @@ void SplitAligner::forwardSplice() {
 	    double p = probFromJump;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceF(i, j, oldNumInplay, oldInplayPos);
-	    p *= spliceEndProb(ij);
+	    p *= spliceEndProb(isGenome, ij);
 	    p += Fmat[ij] * Sexp[ij*2];
 	    if (alns[i].qstart == j) p += begprob;
 	    p = p * Sexp[ij*2+1] * rescale;
 
 	    Fmat[ij + 1] = p;
 	    if (alns[i].qend == j+1) zF += p;
-	    pSum += p * spliceBegProb(ij + 1);
+	    pSum += p * spliceBegProb(isGenome, ij + 1);
 	    rNew += p;
         }
         begprob *= rescale;
@@ -668,6 +676,7 @@ void SplitAligner::backwardSplit() {
 }
 
 void SplitAligner::backwardSplice() {
+    const bool isGenome = !chromosomeIndex.empty();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -693,7 +702,7 @@ void SplitAligner::backwardSplice() {
 	    double p = probFromJump;
 	    if (splicePrior > 0.0)
 	      p += probFromSpliceB(i, j, oldNumInplay, oldInplayPos);
-	    p *= spliceBegProb(ij);
+	    p *= spliceBegProb(isGenome, ij);
 	    p += Bmat[ij] * Sexp[ij*2];
 	    if (alns[i].qend == j) p += endprob;
 	    p = p * Sexp[ij*2-1] * rescale;
@@ -705,7 +714,7 @@ void SplitAligner::backwardSplice() {
 
 	    Bmat[ij - 1] = p;
 	    //if (alns[i].qstart == j-1) zB += p;
-	    pSum += p * spliceEndProb(ij - 1);
+	    pSum += p * spliceEndProb(isGenome, ij - 1);
         }
         endprob *= rescale;
 	probFromJump = pSum * jumpProb;

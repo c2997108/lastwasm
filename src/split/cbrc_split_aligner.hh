@@ -207,21 +207,17 @@ private:
     int spliceEndScores[4 * 4 + 1];  // acceptor score for any dinucleotide
     double spliceBegProbs[4 * 4 + 1];
     double spliceEndProbs[4 * 4 + 1];
-    int spliceBegScore(size_t ij) const {
-      if (chromosomeIndex.empty()) return 0;
-      return spliceBegScores[spliceBegSignals[ij]];
+    int spliceBegScore(bool isGenome, size_t ij) const {
+      return isGenome ? spliceBegScores[spliceBegSignals[ij]] : 0;
     }
-    int spliceEndScore(size_t ij) const {
-      if (chromosomeIndex.empty()) return 0;
-      return spliceEndScores[spliceEndSignals[ij]];
+    int spliceEndScore(bool isGenome, size_t ij) const {
+      return isGenome ? spliceEndScores[spliceEndSignals[ij]] : 0;
     }
-    double spliceBegProb(size_t ij) const {
-      if (chromosomeIndex.empty()) return 1;
-      return spliceBegProbs[spliceBegSignals[ij]];
+    double spliceBegProb(bool isGenome, size_t ij) const {
+      return isGenome ? spliceBegProbs[spliceBegSignals[ij]] : 1.0;
     }
-    double spliceEndProb(size_t ij) const {
-      if (chromosomeIndex.empty()) return 1;
-      return spliceEndProbs[spliceEndSignals[ij]];
+    double spliceEndProb(bool isGenome, size_t ij) const {
+      return isGenome ? spliceEndProbs[spliceEndSignals[ij]] : 1.0;
     }
     int calcSpliceScore(double dist) const;
     int spliceScore(unsigned d) const
@@ -257,7 +253,7 @@ private:
     void forwardSplice();
     void backwardSplice();
 
-    unsigned findScore(unsigned j, long score) const;
+    unsigned findScore(bool isGenome, unsigned j, long score) const;
     unsigned findSpliceScore(unsigned i, unsigned j, long score) const;
     long scoreFromSplice(unsigned i, unsigned j, unsigned oldNumInplay,
 			 unsigned& oldInplayPos) const;
