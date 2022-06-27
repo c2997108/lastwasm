@@ -958,7 +958,7 @@ struct RnameAndStrandLess {
 
 void SplitAligner::initRnameAndStrandIds() {
   rnameAndStrandIds.resize(numAlns);
-  RnameAndStrandLess less(&alns[0]);
+  RnameAndStrandLess less(alns);
   stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(), less);
   unsigned c = 0;
   for (unsigned i = 0; i < numAlns; ++i) {
@@ -1047,8 +1047,8 @@ void SplitAligner::initDpBounds() {
   }
 }
 
-void SplitAligner::layout(std::vector<UnsplitAlignment>::const_iterator beg,
-			  std::vector<UnsplitAlignment>::const_iterator end) {
+void SplitAligner::layout(const UnsplitAlignment *beg,
+			  const UnsplitAlignment *end) {
     assert(end > beg);
     numAlns = end - beg;
     alns = beg;

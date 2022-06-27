@@ -269,10 +269,10 @@ static void doOneAlignmentPart(cbrc::SplitAligner& sa,
   std::cout.write(&outputText[0], outputText.size());
 }
 
-static void doOneQuery(std::vector<cbrc::UnsplitAlignment>::const_iterator beg,
-		       std::vector<cbrc::UnsplitAlignment>::const_iterator end,
-		       cbrc::SplitAligner& sa, const LastSplitOptions& opts,
-		       bool isAlreadySplit) {
+static void doOneQuery(cbrc::SplitAligner &sa, const LastSplitOptions &opts,
+		       bool isAlreadySplit,
+		       const cbrc::UnsplitAlignment *beg,
+		       const cbrc::UnsplitAlignment *end) {
   if (opts.verbose) std::cerr << beg->qname << "\t" << (end - beg);
   sa.layout(beg, end);
   if (opts.verbose) std::cerr << "\tcells=" << sa.cellsPerDpMatrix();
@@ -363,16 +363,19 @@ static void doOneBatch(MyString &inputText,
 					  opts.isTopSeqQuery));
 
   sort(mafs.begin(), mafs.end(), less);
-  std::vector<cbrc::UnsplitAlignment>::const_iterator b = mafs.begin();
-  std::vector<cbrc::UnsplitAlignment>::const_iterator e = mafs.begin();
+
+  const cbrc::UnsplitAlignment *beg = mafs.empty() ? 0 : &mafs[0];
+  const cbrc::UnsplitAlignment *end = beg + mafs.size();
+  const cbrc::UnsplitAlignment *mid = beg;
   size_t qendMax = 0;
-  while (e < mafs.end()) {
-    if (e->qend > qendMax) qendMax = e->qend;
-    ++e;
-    if (e == mafs.end() || strcmp(e->qname, b->qname) != 0 ||
-	(e->qstart >= qendMax && !opts.isSplicedAlignment)) {
-      doOneQuery(b, e, sa, opts, isAlreadySplit);
-      b = e;
+
+  while (mid < end) {
+    if (mid->qend > qendMax) qendMax = mid->qend;
+    ++mid;
+    if (mid == end || strcmp(mid->qname, beg->qname) != 0 ||
+	(mid->qstart >= qendMax && !opts.isSplicedAlignment)) {
+      doOneQuery(sa, opts, isAlreadySplit, beg, mid);
+      beg = mid;
       qendMax = 0;
     }
   }

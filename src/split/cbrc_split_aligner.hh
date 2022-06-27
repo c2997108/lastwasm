@@ -10,11 +10,12 @@
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
 
+#include <stddef.h>
+
 #include <string>
 #include <vector>
 #include <cmath>
 #include <climits>
-#include <stddef.h>  // size_t
 #include <map>
 
 namespace cbrc {
@@ -50,7 +51,7 @@ public:
     void setScoreMat(const std::vector< std::vector<int> > &sm,
 		     const char *rowNames, const char *colNames);
 
-    void readGenome(const std::string& baseName);
+    void readGenome(const std::string &baseName);
 
     // XXX this should allow us to specify scores for gt-ag, at-ac, etc.
     void setSpliceSignals();
@@ -60,8 +61,7 @@ public:
 
     // Prepares to analyze some candidate alignments for one query
     // sequence: sets the number of DP matrix cells (and thus memory)
-    void layout(std::vector<UnsplitAlignment>::const_iterator beg,
-		std::vector<UnsplitAlignment>::const_iterator end);
+    void layout(const UnsplitAlignment *beg, const UnsplitAlignment *end);
 
     // The number of cells in each dynamic programming matrix
     size_t cellsPerDpMatrix() const
@@ -145,7 +145,7 @@ private:
     double scale;
     IntExponentiator scaledExp;  // for fast calculation of exp(x / scale)
     unsigned numAlns;  // the number of candidate alignments (for 1 query)
-    std::vector<UnsplitAlignment>::const_iterator alns;  // the candidates
+    const UnsplitAlignment *alns;  // the candidates
     unsigned minBeg;  // the minimum query start coordinate of any candidate
     unsigned maxEnd;  // the maximum query end coordinate of any candidate
     std::vector<unsigned> dpBegs;  // dynamic programming begin coords
