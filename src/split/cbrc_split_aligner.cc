@@ -148,11 +148,11 @@ void mergeInto(unsigned* beg1,
 int SplitAlignerParams::score_mat[64][64][numQualCodes];
 
 // The score for a cis-splice with the given distance (i.e. intron length)
-int SplitAligner::calcSpliceScore(double dist) const {
+int SplitAlignerParams::calcSpliceScore(double dist) const {
     double logDist = std::log(dist);
     double d = logDist - meanLogDist;
     double s = spliceTerm1 + spliceTerm2 * d * d - logDist;
-    return std::floor(params.scale * s + 0.5);
+    return std::floor(scale * s + 0.5);
 }
 
 // The dinucleotide immediately downstream on the forward strand
@@ -219,7 +219,7 @@ unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 	unsigned kBeg = spliceBegCoords[kj];
 	if (iEnd <= kBeg) continue;
 	int s = iScore + spliceBegScore(isGenome, kj) +
-	  spliceScore(iEnd - kBeg);
+	  params.spliceScore(iEnd - kBeg);
 	if (Vmat[kj] + s == score) return k;
     }
     return numAlns;
@@ -228,6 +228,7 @@ unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
 				   unsigned oldNumInplay,
 				   unsigned& oldInplayPos) const {
+  const unsigned maxSpliceDist = params.maxSpliceDist;
   const bool isGenome = params.isGenome();
   size_t ij = matrixRowOrigins[i] + j;
   long score = LONG_MIN;
@@ -251,7 +252,7 @@ long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
     if (iEnd <= kBeg) continue;
     if (iEnd - kBeg > maxSpliceDist) continue;
     score = std::max(score, Vmat[kj] + spliceBegScore(isGenome, kj) +
-		            spliceScore(iEnd - kBeg));
+		            params.spliceScore(iEnd - kBeg));
   }
 
   return score;
@@ -497,6 +498,7 @@ int SplitAligner::segmentScore(unsigned alnNum,
 double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
+  const unsigned maxSpliceDist = params.maxSpliceDist;
   const bool isGenome = params.isGenome();
   size_t ij = matrixRowOrigins[i] + j;
   double sum = 0.0;
@@ -519,7 +521,8 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
     unsigned kBeg = spliceBegCoords[kj];
     if (iEnd <= kBeg) continue;
     if (iEnd - kBeg > maxSpliceDist) continue;
-    sum += Fmat[kj] * spliceBegProb(isGenome, kj) * spliceProb(iEnd - kBeg);
+    sum += Fmat[kj] * spliceBegProb(isGenome, kj) *
+           params.spliceProb(iEnd - kBeg);
   }
 
   return sum;
@@ -528,6 +531,7 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
+  const unsigned maxSpliceDist = params.maxSpliceDist;
   const bool isGenome = params.isGenome();
   size_t ij = matrixRowOrigins[i] + j;
   double sum = 0.0;
@@ -550,7 +554,8 @@ double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
     unsigned kEnd = spliceEndCoords[kj];
     if (kEnd <= iBeg) continue;
     if (kEnd - iBeg > maxSpliceDist) continue;
-    sum += Bmat[kj] * spliceEndProb(isGenome, kj) * spliceProb(kEnd - iBeg);
+    sum += Bmat[kj] * spliceEndProb(isGenome, kj) *
+           params.spliceProb(kEnd - iBeg);
   }
 
   return sum;
@@ -997,17 +1002,14 @@ void SplitAligner::initRnameAndStrandIds() {
   }
 }
 
-void SplitAligner::dpExtensionMinScores(size_t &minScore1,
-					size_t &minScore2) const {
-  const double splicePrior = params.splicePrior;
-  const double jumpProb = params.jumpProb;
-  const int jumpScore = params.jumpScore;
+void SplitAlignerParams::dpExtensionMinScores(size_t &minScore1,
+					      size_t &minScore2) const {
   if (jumpProb > 0 || splicePrior > 0) {
     int maxJumpScore = (splicePrior > 0) ? maxSpliceScore : jumpScore;
-    if (params.isGenome()) maxJumpScore += maxSpliceBegEndScore;
-    assert(maxJumpScore + params.insOpenScore <= 0);
-    minScore1 = 1 - (maxJumpScore + params.insOpenScore);
-    minScore2 = 1 - (maxJumpScore + maxJumpScore + params.insOpenScore);
+    if (isGenome()) maxJumpScore += maxSpliceBegEndScore;
+    assert(maxJumpScore + insOpenScore <= 0);
+    minScore1 = 1 - (maxJumpScore + insOpenScore);
+    minScore2 = 1 - (maxJumpScore + maxJumpScore + insOpenScore);
   }
 }
 
@@ -1050,7 +1052,7 @@ void SplitAligner::initDpBounds() {
 
   size_t minScore1 = -1;
   size_t minScore2 = -1;
-  dpExtensionMinScores(minScore1, minScore2);
+  params.dpExtensionMinScores(minScore1, minScore2);
 
   for (unsigned i = 0; i < numAlns; ++i) {
     size_t b = alns[i].qstart;
@@ -1180,30 +1182,29 @@ double SplitAligner::spliceSignalStrandLogOdds() const {
 // estimated mean ln[distance] 7.01031
 // estimated standard deviation of ln[distance] 1.72269
 
-void SplitAligner::setSpliceParams(double splicePriorIn,
-				   double meanLogDistIn,
-				   double sdevLogDistIn) {
-  const int jumpScore = params.jumpScore;
-  params.splicePrior = splicePriorIn;
+void SplitAlignerParams::setSpliceParams(double splicePriorIn,
+					 double meanLogDistIn,
+					 double sdevLogDistIn) {
+  splicePrior = splicePriorIn;
   meanLogDist = meanLogDistIn;
   sdevLogDist = sdevLogDistIn;
 
-  if (params.splicePrior <= 0.0) return;
+  if (splicePrior <= 0.0) return;
 
   const double rootTwoPi = std::sqrt(8.0 * std::atan(1.0));
   double s2 = sdevLogDist * sdevLogDist;
-  spliceTerm1 = -std::log(sdevLogDist * rootTwoPi / params.splicePrior);
+  spliceTerm1 = -std::log(sdevLogDist * rootTwoPi / splicePrior);
   spliceTerm2 = -0.5 / s2;
 
   double max1 = spliceTerm1 - meanLogDist + s2 * 0.5;
-  int max2 = std::floor(params.scale * max1 + 0.5);
+  int max2 = std::floor(scale * max1 + 0.5);
   maxSpliceScore = std::max(max2, jumpScore);
 
   // Set maxSpliceDist so as to ignore splices whose score would be
   // less than jumpScore.  By solving this quadratic equation:
   // spliceTerm1 + spliceTerm2 * (logDist - meanLogDist)^2 - logDist =
   // jumpScore / scale
-  double r = s2 + 2 * (spliceTerm1 - meanLogDist - jumpScore / params.scale);
+  double r = s2 + 2 * (spliceTerm1 - meanLogDist - jumpScore / scale);
   if (r < 0) {
     maxSpliceDist = 0;
   } else {
@@ -1221,7 +1222,7 @@ void SplitAligner::setSpliceParams(double splicePriorIn,
   for (unsigned i = 1; i < spliceTableSize; ++i) {
     int s = calcSpliceScore(i);
     spliceScoreTable[i] = s;
-    spliceProbTable[i] = params.scaledExp(s);
+    spliceProbTable[i] = scaledExp(s);
   }
 }
 
@@ -1298,7 +1299,7 @@ void SplitAligner::setSpliceSignals() {
     spliceEndProbs[i] = params.scaledExp(spliceEndScores[i]);
   }
 
-  maxSpliceBegEndScore = arrayMax(spliceBegScores) + arrayMax(spliceEndScores);
+  params.maxSpliceBegEndScore = arrayMax(spliceBegScores) + arrayMax(spliceEndScores);
 }
 
 void SplitAligner::printParameters() const {
@@ -1307,7 +1308,7 @@ void SplitAligner::printParameters() const {
   }
 
   if (params.splicePrior > 0.0 && params.jumpProb > 0.0) {
-    std::cout << "# cismax=" << maxSpliceDist << "\n";
+    std::cout << "# cismax=" << params.maxSpliceDist << "\n";
   }
 
   if (params.isGenome()) {

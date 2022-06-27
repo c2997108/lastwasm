@@ -30,6 +30,9 @@ struct SplitAlignerParams {
 
   // "qualityOffset" is 33 for fastq-sanger or 64 for fastq-illumina
 
+  void setSpliceParams(double splicePriorIn,
+		       double meanLogDistIn, double sdevLogDistIn);
+
   void setScoreMat(const std::vector< std::vector<int> > &sm,
 		   const char *rowNames, const char *colNames);
 
@@ -51,6 +54,16 @@ struct SplitAlignerParams {
   IntExponentiator scaledExp;  // for fast calculation of exp(x / scale)
 
   double splicePrior;
+  double meanLogDist;
+  double sdevLogDist;
+  double spliceTerm1;
+  double spliceTerm2;
+  unsigned maxSpliceDist;
+  int maxSpliceScore;
+  int maxSpliceBegEndScore;
+  std::vector<int> spliceScoreTable;  // lookup table
+  std::vector<double> spliceProbTable;  // lookup table
+  unsigned spliceTableSize;
   MultiSequence genome[32];
   Alphabet alphabet;
   typedef std::map<std::string, unsigned long long> StringNumMap;
@@ -62,14 +75,27 @@ struct SplitAlignerParams {
 
   bool isSpliceCoords() const { return splicePrior > 0 || isGenome(); }
 
+  void dpExtensionMinScores(size_t &minScore1, size_t &minScore2) const;
+
   void seqEnds(const uchar *&beg, const uchar *&end,
 	       const char *seqName) const;
+
+  int spliceScore(unsigned d) const
+  { return d < spliceTableSize ? spliceScoreTable[d] : calcSpliceScore(d); }
+
+  double spliceProb(unsigned d) const
+  { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
 
   void spliceBegSignal(char *out, const char *seqName, bool isForwardStrand,
 		       bool isSenseStrand, unsigned coord) const;
 
   void spliceEndSignal(char *out, const char *seqName, bool isForwardStrand,
 		       bool isSenseStrand, unsigned coord) const;
+
+  int calcSpliceScore(double dist) const;
+
+  double calcSpliceProb(double dist) const
+  { return scaledExp(calcSpliceScore(dist)); }
 
   size_t maxGenomeVolumes() const { return sizeof genome / sizeof *genome; }
 
@@ -85,7 +111,8 @@ public:
 		   int qualityOffsetIn);
 
     void setSpliceParams(double splicePriorIn,
-			 double meanLogDistIn, double sdevLogDistIn);
+			 double meanLogDistIn, double sdevLogDistIn)
+    { params.setSpliceParams(splicePriorIn, meanLogDistIn, sdevLogDistIn); }
 
     void setScoreMat(const std::vector< std::vector<int> > &sm,
 		     const char *rowNames, const char *colNames)
@@ -217,13 +244,6 @@ private:
     std::vector<unsigned> oldInplayAlnIndices;
     std::vector<unsigned> newInplayAlnIndices;
 
-    double meanLogDist;
-    double sdevLogDist;
-    double spliceTerm1;
-    double spliceTerm2;
-    unsigned maxSpliceDist;
-    int maxSpliceScore;
-    int maxSpliceBegEndScore;
     std::vector<unsigned> spliceBegCoords;
     std::vector<unsigned> spliceEndCoords;
     std::vector<unsigned char> spliceBegSignals;
@@ -231,9 +251,6 @@ private:
     std::vector<unsigned> rBegs;  // genomic beg coordinate of each candidate
     std::vector<unsigned> rEnds;  // genomic end coordinate of each candidate
     std::vector<unsigned> rnameAndStrandIds;
-    std::vector<int> spliceScoreTable;  // lookup table
-    std::vector<double> spliceProbTable;  // lookup table
-    unsigned spliceTableSize;
     int spliceBegScores[4 * 4 + 1];  // donor score for any dinucleotide
     int spliceEndScores[4 * 4 + 1];  // acceptor score for any dinucleotide
     double spliceBegProbs[4 * 4 + 1];
@@ -250,19 +267,10 @@ private:
     double spliceEndProb(bool isGenome, size_t ij) const {
       return isGenome ? spliceEndProbs[spliceEndSignals[ij]] : 1.0;
     }
-    int calcSpliceScore(double dist) const;
-    int spliceScore(unsigned d) const
-    { return d < spliceTableSize ? spliceScoreTable[d] : calcSpliceScore(d); }
-    double calcSpliceProb(double dist) const
-    { return params.scaledExp(calcSpliceScore(dist)); }
-    double spliceProb(unsigned d) const
-    { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
     void initSpliceCoords(unsigned i);
     void initSpliceSignals(unsigned i);
     void initRnameAndStrandIds();
     void initRbegsAndEnds();
-
-    void dpExtensionMinScores(size_t &minScore1, size_t &minScore2) const;
 
     void updateInplayAlnIndicesF(unsigned& sortedAlnPos,
 				 unsigned& oldNumInplay,
