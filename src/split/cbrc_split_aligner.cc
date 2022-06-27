@@ -207,7 +207,7 @@ unsigned SplitAligner::findScore(bool isGenome, unsigned j, long score) const {
 unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 				       long score) const {
     assert(splicePrior > 0.0);
-    const bool isGenome = !chromosomeIndex.empty();
+    const bool isGenome = params.isGenome();
     size_t ij = matrixRowOrigins[i] + j;
     unsigned iSeq = rnameAndStrandIds[i];
     unsigned iEnd = spliceEndCoords[ij];
@@ -228,7 +228,7 @@ unsigned SplitAligner::findSpliceScore(unsigned i, unsigned j,
 long SplitAligner::scoreFromSplice(unsigned i, unsigned j,
 				   unsigned oldNumInplay,
 				   unsigned& oldInplayPos) const {
-  const bool isGenome = !chromosomeIndex.empty();
+  const bool isGenome = params.isGenome();
   size_t ij = matrixRowOrigins[i] + j;
   long score = LONG_MIN;
   unsigned iSeq = rnameAndStrandIds[i];
@@ -366,7 +366,7 @@ long SplitAligner::viterbiSplit() {
 
 long SplitAligner::viterbiSplice() {
     const int restartScore = params.restartScore;
-    const bool isGenome = !chromosomeIndex.empty();
+    const bool isGenome = params.isGenome();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -425,7 +425,7 @@ void SplitAligner::traceBack(long viterbiScore,
 			     std::vector<unsigned>& alnNums,
 			     std::vector<unsigned>& queryBegs,
 			     std::vector<unsigned>& queryEnds) const {
-  const bool isGenome = !chromosomeIndex.empty();
+  const bool isGenome = params.isGenome();
   unsigned i, j;
   if (params.isSpliced()) {
     i = findEndScore(viterbiScore);
@@ -495,7 +495,7 @@ int SplitAligner::segmentScore(unsigned alnNum,
 double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
-  const bool isGenome = !chromosomeIndex.empty();
+  const bool isGenome = params.isGenome();
   size_t ij = matrixRowOrigins[i] + j;
   double sum = 0.0;
   unsigned iSeq = rnameAndStrandIds[i];
@@ -526,7 +526,7 @@ double SplitAligner::probFromSpliceF(unsigned i, unsigned j,
 double SplitAligner::probFromSpliceB(unsigned i, unsigned j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
-  const bool isGenome = !chromosomeIndex.empty();
+  const bool isGenome = params.isGenome();
   size_t ij = matrixRowOrigins[i] + j;
   double sum = 0.0;
   unsigned iSeq = rnameAndStrandIds[i];
@@ -598,7 +598,7 @@ void SplitAligner::forwardSplit() {
 }
 
 void SplitAligner::forwardSplice() {
-    const bool isGenome = !chromosomeIndex.empty();
+    const bool isGenome = params.isGenome();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -682,7 +682,7 @@ void SplitAligner::backwardSplit() {
 }
 
 void SplitAligner::backwardSplice() {
-    const bool isGenome = !chromosomeIndex.empty();
+    const bool isGenome = params.isGenome();
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
@@ -868,8 +868,8 @@ static const uchar *seqEnd(const MultiSequence &m, size_t sequenceIndex) {
   return m.seqReader() + m.seqEnd(sequenceIndex);
 }
 
-void SplitAligner::seqEnds(const uchar *&beg, const uchar *&end,
-			   const char *seqName) const {
+void SplitAlignerParams::seqEnds(const uchar *&beg, const uchar *&end,
+				 const char *seqName) const {
   StringNumMap::const_iterator f = chromosomeIndex.find(seqName);
   if (f == chromosomeIndex.end())
     err("can't find " + std::string(seqName) + " in the genome");
@@ -880,12 +880,12 @@ void SplitAligner::seqEnds(const uchar *&beg, const uchar *&end,
 }
 
 void SplitAligner::initSpliceSignals(unsigned i) {
-  const uchar *toUnmasked = alphabet.numbersToUppercase;
+  const uchar *toUnmasked = params.alphabet.numbersToUppercase;
   const UnsplitAlignment &a = alns[i];
 
   const uchar *chromBeg;
   const uchar *chromEnd;
-  seqEnds(chromBeg, chromEnd, a.rname);
+  params.seqEnds(chromBeg, chromEnd, a.rname);
   if (a.rend > chromEnd - chromBeg)
     err("alignment beyond the end of " + std::string(a.rname));
 
@@ -939,13 +939,11 @@ static void decodeSpliceSignal(char *out,
   }
 }
 
-void SplitAligner::spliceBegSignal(char *out,
-				   unsigned alnNum, unsigned queryPos,
-				   bool isSenseStrand) const {
-  const UnsplitAlignment& a = alns[alnNum];
-  bool isForwardStrand = a.isForwardStrand();
-  unsigned coord = cell(spliceBegCoords, alnNum, queryPos);
-  StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
+void SplitAlignerParams::spliceBegSignal(char *out, const char *seqName,
+					 bool isForwardStrand,
+					 bool isSenseStrand,
+					 unsigned coord) const {
+  StringNumMap::const_iterator f = chromosomeIndex.find(seqName);
   size_t v = f->second % maxGenomeVolumes();
   size_t c = f->second / maxGenomeVolumes();
   uchar signal[2];
@@ -955,13 +953,11 @@ void SplitAligner::spliceBegSignal(char *out,
 		     isSenseStrand == isForwardStrand);
 }
 
-void SplitAligner::spliceEndSignal(char *out,
-				   unsigned alnNum, unsigned queryPos,
-				   bool isSenseStrand) const {
-  const UnsplitAlignment& a = alns[alnNum];
-  bool isForwardStrand = a.isForwardStrand();
-  unsigned coord = cell(spliceEndCoords, alnNum, queryPos);
-  StringNumMap::const_iterator f = chromosomeIndex.find(a.rname);
+void SplitAlignerParams::spliceEndSignal(char *out, const char *seqName,
+					 bool isForwardStrand,
+					 bool isSenseStrand,
+					 unsigned coord) const {
+  StringNumMap::const_iterator f = chromosomeIndex.find(seqName);
   size_t v = f->second % maxGenomeVolumes();
   size_t c = f->second / maxGenomeVolumes();
   uchar signal[2];
@@ -999,7 +995,7 @@ void SplitAligner::dpExtensionMinScores(size_t &minScore1,
 					size_t &minScore2) const {
   if (jumpProb > 0 || splicePrior > 0) {
     int maxJumpScore = (splicePrior > 0) ? maxSpliceScore : jumpScore;
-    if (!chromosomeIndex.empty()) maxJumpScore += maxSpliceBegEndScore;
+    if (params.isGenome()) maxJumpScore += maxSpliceBegEndScore;
     assert(maxJumpScore + params.insOpenScore <= 0);
     minScore1 = 1 - (maxJumpScore + params.insOpenScore);
     minScore2 = 1 - (maxJumpScore + maxJumpScore + params.insOpenScore);
@@ -1087,7 +1083,7 @@ void SplitAligner::layout(const UnsplitAlignment *beg,
       oldInplayAlnIndices.resize(numAlns);
       rBegs.resize(numAlns);
       rEnds.resize(numAlns);
-      if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
+      if (splicePrior > 0.0 || params.isGenome()) {
 	initRbegsAndEnds();
       }
       initRnameAndStrandIds();
@@ -1099,8 +1095,8 @@ void SplitAligner::layout(const UnsplitAlignment *beg,
 size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
   size_t numOfStrands = isBothSpliceStrands ? 2 : 1;
   size_t x = 2 * sizeof(int) + 2 * sizeof(float);
-  if (splicePrior > 0 || !chromosomeIndex.empty()) x += 2 * sizeof(unsigned);
-  if (!chromosomeIndex.empty()) x += 2;
+  if (splicePrior > 0 || params.isGenome()) x += 2 * sizeof(unsigned);
+  if (params.isGenome()) x += 2;
   if (isViterbi) x += sizeof(long) * numOfStrands;
   x += 2 * sizeof(double) * numOfStrands;
   return x * cellsPerDpMatrix();
@@ -1117,13 +1113,13 @@ void SplitAligner::initMatricesForOneQuery() {
 
   for (unsigned i = 0; i < numAlns; i++) calcBaseScores(i);
 
-  if (splicePrior > 0.0 || !chromosomeIndex.empty()) {
+  if (splicePrior > 0.0 || params.isGenome()) {
     resizeMatrix(spliceBegCoords);
     resizeMatrix(spliceEndCoords);
     for (unsigned i = 0; i < numAlns; ++i) initSpliceCoords(i);
   }
 
-  if (!chromosomeIndex.empty()) {
+  if (params.isGenome()) {
     resizeMatrix(spliceBegSignals);
     resizeMatrix(spliceEndSignals);
     for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(i);
@@ -1302,7 +1298,7 @@ void SplitAligner::printParameters() const {
     std::cout << "# cismax=" << maxSpliceDist << "\n";
   }
 
-  if (!chromosomeIndex.empty()) {
+  if (params.isGenome()) {
     std::cout << "#"
 	      << " GT=" << spliceBegScores[2 * 4 + 3]
 	      << " GC=" << spliceBegScores[2 * 4 + 1]
@@ -1348,9 +1344,9 @@ static void readPrjFile(const std::string& baseName,
   }
 }
 
-void SplitAligner::readGenomeVolume(const std::string& baseName,
-				    size_t seqCount,
-				    size_t volumeNumber) {
+void SplitAlignerParams::readGenomeVolume(const std::string &baseName,
+					  size_t seqCount,
+					  size_t volumeNumber) {
   if (seqCount + 1 == 0) err("can't read: " + baseName);
 
   genome[volumeNumber].fromFiles(baseName, seqCount, 0);
@@ -1365,7 +1361,7 @@ void SplitAligner::readGenomeVolume(const std::string& baseName,
   }
 }
 
-void SplitAligner::readGenome(const std::string& baseName) {
+void SplitAlignerParams::readGenome(const std::string &baseName) {
   std::string alphabetLetters;
   size_t seqCount, volumes;
   readPrjFile(baseName, alphabetLetters, seqCount, volumes);

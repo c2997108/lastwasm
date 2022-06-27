@@ -30,6 +30,8 @@ struct SplitAlignerParams {
 
   // "qualityOffset" is 33 for fastq-sanger or 64 for fastq-illumina
 
+  void readGenome(const std::string &baseName);
+
   int qualityOffset;
   int delOpenScore;
   int delGrowScore;
@@ -38,7 +40,28 @@ struct SplitAlignerParams {
   int restartScore;
   double restartProb;
 
+  MultiSequence genome[32];
+  Alphabet alphabet;
+  typedef std::map<std::string, unsigned long long> StringNumMap;
+  StringNumMap chromosomeIndex;
+
   bool isSpliced() const { return restartProb <= 0; }
+
+  bool isGenome() const { return !chromosomeIndex.empty(); }
+
+  void seqEnds(const uchar *&beg, const uchar *&end,
+	       const char *seqName) const;
+
+  void spliceBegSignal(char *out, const char *seqName, bool isForwardStrand,
+		       bool isSenseStrand, unsigned coord) const;
+
+  void spliceEndSignal(char *out, const char *seqName, bool isForwardStrand,
+		       bool isSenseStrand, unsigned coord) const;
+
+  size_t maxGenomeVolumes() const { return sizeof genome / sizeof *genome; }
+
+  void readGenomeVolume(const std::string &baseName,
+			size_t seqCount, size_t volumeNumber);
 };
 
 class SplitAligner {
@@ -54,7 +77,8 @@ public:
     void setScoreMat(const std::vector< std::vector<int> > &sm,
 		     const char *rowNames, const char *colNames);
 
-    void readGenome(const std::string &baseName);
+    void readGenome(const std::string &baseName)
+    { params.readGenome(baseName); }
 
     // XXX this should allow us to specify scores for gt-ag, at-ac, etc.
     void setSpliceSignals();
@@ -125,12 +149,20 @@ public:
     // Gets the 2 genome bases immediately downstream of queryPos in
     // alnNum, and writes them into the buffer pointed to by "out"
     void spliceBegSignal(char *out, unsigned alnNum, unsigned queryPos,
-			 bool isSenseStrand) const;
+			 bool isSenseStrand) const {
+      const UnsplitAlignment &a = alns[alnNum];
+      params.spliceBegSignal(out, a.rname, a.isForwardStrand(), isSenseStrand,
+			     cell(spliceBegCoords, alnNum, queryPos));
+    }
 
     // Gets the 2 genome bases immediately upstream of queryPos in
     // alnNum, and writes them into the buffer pointed to by "out"
     void spliceEndSignal(char *out, unsigned alnNum, unsigned queryPos,
-			 bool isSenseStrand) const;
+			 bool isSenseStrand) const {
+      const UnsplitAlignment &a = alns[alnNum];
+      params.spliceEndSignal(out, a.rname, a.isForwardStrand(), isSenseStrand,
+			     cell(spliceEndCoords, alnNum, queryPos));
+    }
 
 private:
     static const int numQualCodes = 64;
@@ -196,10 +228,6 @@ private:
     std::vector<int> spliceScoreTable;  // lookup table
     std::vector<double> spliceProbTable;  // lookup table
     unsigned spliceTableSize;
-    MultiSequence genome[32];
-    Alphabet alphabet;
-    typedef std::map<std::string, unsigned long long> StringNumMap;
-    StringNumMap chromosomeIndex;
     int spliceBegScores[4 * 4 + 1];  // donor score for any dinucleotide
     int spliceEndScores[4 * 4 + 1];  // acceptor score for any dinucleotide
     double spliceBegProbs[4 * 4 + 1];
@@ -224,14 +252,9 @@ private:
     double spliceProb(unsigned d) const
     { return d < spliceTableSize ? spliceProbTable[d] : calcSpliceProb(d); }
     void initSpliceCoords(unsigned i);
-    void seqEnds(const uchar *&beg, const uchar *&end,
-		 const char *seqName) const;
     void initSpliceSignals(unsigned i);
     void initRnameAndStrandIds();
     void initRbegsAndEnds();
-    size_t maxGenomeVolumes() const { return sizeof genome / sizeof *genome; }
-    void readGenomeVolume(const std::string& baseName,
-			  size_t seqCount, size_t volumeNumber);
 
     void dpExtensionMinScores(size_t &minScore1, size_t &minScore2) const;
 
