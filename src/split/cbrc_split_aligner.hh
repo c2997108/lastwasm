@@ -18,19 +18,27 @@
 
 namespace cbrc {
 
+struct SplitAlignerParams {
+  // A   deletion of length k scores: delOpenScore + k * delGrowScore
+  // An insertion of length k scores: insOpenScore + k * insGrowScore
+
+  // "jumpScore" is the (negative) score for a trans-splice.
+
+  // "restartScore" is the (negative) score for re-starting an
+  // alignment, in the repeated matches algorithm from chapter 2 of
+  // Durbin, Eddy, et al.  In that book, it is called "-T".
+
+  // "qualityOffset" is 33 for fastq-sanger or 64 for fastq-illumina
+
+  int qualityOffset;
+  int delOpenScore;
+  int delGrowScore;
+  int insOpenScore;
+  int insGrowScore;
+};
+
 class SplitAligner {
 public:
-    // A   deletion of length k scores: delOpenScore + k * delGrowScore
-    // An insertion of length k scores: insOpenScore + k * insGrowScore
-
-    // "jumpScore" is the (negative) score for a trans-splice.
-
-    // "restartScore" is the (negative) score for re-starting an
-    // alignment, in the repeated matches algorithm from chapter 2 of
-    // Durbin, Eddy, et al.  In that book, it is called "-T".
-
-    // "qualityOffset" is 33 for fastq-sanger or 64 for fastq-illumina
-
     void setParams(int delOpenScoreIn, int delGrowScoreIn,
 		   int insOpenScoreIn, int insGrowScoreIn,
 		   int jumpScoreIn, int restartScoreIn, double scaleIn,
@@ -124,11 +132,7 @@ private:
     static const int numQualCodes = 64;
     static int score_mat[64][64][numQualCodes];
     int maxMatchScore;
-    int qualityOffset;
-    int delOpenScore;
-    int delGrowScore;
-    int insOpenScore;
-    int insGrowScore;
+    SplitAlignerParams params;
     int jumpScore;
     int restartScore;
     double jumpProb;

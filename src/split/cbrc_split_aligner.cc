@@ -755,6 +755,11 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 // alignment to another in the middle of a gap.
 
 void SplitAligner::calcBaseScores(unsigned i) {
+  const int qualityOffset = params.qualityOffset;
+  const int delOpenScore = params.delOpenScore;
+  const int delGrowScore = params.delGrowScore;
+  const int insOpenScore = params.insOpenScore;
+  const int insGrowScore = params.insGrowScore;
   const int firstInsScore = insOpenScore + insGrowScore;
   const int tweenInsScore = -insOpenScore;
 
@@ -984,9 +989,9 @@ void SplitAligner::dpExtensionMinScores(size_t &minScore1,
   if (jumpProb > 0 || splicePrior > 0) {
     int maxJumpScore = (splicePrior > 0) ? maxSpliceScore : jumpScore;
     if (!chromosomeIndex.empty()) maxJumpScore += maxSpliceBegEndScore;
-    assert(maxJumpScore + insOpenScore <= 0);
-    minScore1 = 1 - (maxJumpScore + insOpenScore);
-    minScore2 = 1 - (maxJumpScore + maxJumpScore + insOpenScore);
+    assert(maxJumpScore + params.insOpenScore <= 0);
+    minScore1 = 1 - (maxJumpScore + params.insOpenScore);
+    minScore2 = 1 - (maxJumpScore + maxJumpScore + params.insOpenScore);
   }
 }
 
@@ -1020,11 +1025,11 @@ void SplitAligner::initDpBounds() {
   // An extension of length x must have a (negative) score <=
   // maxJumpScore + insOpenScore + insGrowScore * x
 
-  assert(insGrowScore < 0);
+  assert(params.insGrowScore < 0);
   assert(maxMatchScore >= 0);
 
-  size_t oldDiv = -insGrowScore;
-  size_t newDiv = maxMatchScore - insGrowScore;
+  size_t oldDiv = -params.insGrowScore;
+  size_t newDiv = maxMatchScore - params.insGrowScore;
 
   size_t minScore1 = -1;
   size_t minScore2 = -1;
@@ -1205,15 +1210,15 @@ void SplitAligner::setParams(int delOpenScoreIn, int delGrowScoreIn,
 			     int insOpenScoreIn, int insGrowScoreIn,
 			     int jumpScoreIn, int restartScoreIn,
 			     double scaleIn, int qualityOffsetIn) {
-  delOpenScore = delOpenScoreIn;
-  delGrowScore = delGrowScoreIn;
-  insOpenScore = insOpenScoreIn;
-  insGrowScore = insGrowScoreIn;
+  params.delOpenScore = delOpenScoreIn;
+  params.delGrowScore = delGrowScoreIn;
+  params.insOpenScore = insOpenScoreIn;
+  params.insGrowScore = insGrowScoreIn;
   jumpScore = jumpScoreIn;
   restartScore = restartScoreIn;
   scale = scaleIn;
   scaledExp.setBase(std::exp(1.0 / scale));
-  qualityOffset = qualityOffsetIn;
+  params.qualityOffset = qualityOffsetIn;
   jumpProb = scaledExp(jumpScore);
   restartProb = scaledExp(restartScore);
 }
