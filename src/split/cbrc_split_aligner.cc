@@ -424,7 +424,8 @@ unsigned SplitAligner::findEndScore(long score) const {
     return numAlns;
 }
 
-void SplitAligner::traceBack(long viterbiScore,
+void SplitAligner::traceBack(const SplitAlignerParams &params,
+			     long viterbiScore,
 			     std::vector<unsigned>& alnNums,
 			     std::vector<unsigned>& queryBegs,
 			     std::vector<unsigned>& queryEnds) const {
@@ -1085,7 +1086,8 @@ void SplitAligner::initDpBounds(const SplitAlignerParams &params) {
   }
 }
 
-void SplitAligner::layout(const UnsplitAlignment *beg,
+void SplitAligner::layout(const SplitAlignerParams &params,
+			  const UnsplitAlignment *beg,
 			  const UnsplitAlignment *end) {
     assert(end > beg);
     numAlns = end - beg;
@@ -1108,7 +1110,8 @@ void SplitAligner::layout(const UnsplitAlignment *beg,
     initDpBounds(params);
 }
 
-size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
+size_t SplitAligner::memory(const SplitAlignerParams &params,
+			    bool isViterbi, bool isBothSpliceStrands) const {
   size_t numOfStrands = isBothSpliceStrands ? 2 : 1;
   size_t x = 2 * sizeof(int) + 2 * sizeof(float);
   if (params.isSpliceCoords()) x += 2 * sizeof(unsigned);
@@ -1118,7 +1121,7 @@ size_t SplitAligner::memory(bool isViterbi, bool isBothSpliceStrands) const {
   return x * cellsPerDpMatrix();
 }
 
-void SplitAligner::initMatricesForOneQuery() {
+void SplitAligner::initMatricesForOneQuery(const SplitAlignerParams &params) {
   size_t doubleMatrixSize = cellsPerDpMatrix() * 2;
   // The final cell per row is never used, because there's one less
   // Aij than Dij per candidate alignment.
@@ -1151,7 +1154,7 @@ void SplitAligner::initMatricesForOneQuery() {
   // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
-void SplitAligner::flipSpliceSignals() {
+void SplitAligner::flipSpliceSignals(const SplitAlignerParams &params) {
   Vmat.swap(VmatRev);
   Vvec.swap(VvecRev);
   Fmat.swap(FmatRev);

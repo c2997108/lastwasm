@@ -120,47 +120,24 @@ struct SplitAlignerParams {
 
 class SplitAligner {
 public:
-    void setParams(int delOpenScoreIn, int delGrowScoreIn,
-		   int insOpenScoreIn, int insGrowScoreIn,
-		   int jumpScoreIn, int restartScoreIn, double scaleIn,
-		   int qualityOffsetIn) {
-      params.setParams(delOpenScoreIn, delGrowScoreIn,
-		       insOpenScoreIn, insGrowScoreIn,
-		       jumpScoreIn, restartScoreIn, scaleIn, qualityOffsetIn);
-    }
-
-    void setSpliceParams(double splicePriorIn,
-			 double meanLogDistIn, double sdevLogDistIn)
-    { params.setSpliceParams(splicePriorIn, meanLogDistIn, sdevLogDistIn); }
-
-    void setScoreMat(const std::vector< std::vector<int> > &sm,
-		     const char *rowNames, const char *colNames)
-    { params.setScoreMat(sm, rowNames, colNames); }
-
-    void readGenome(const std::string &baseName)
-    { params.readGenome(baseName); }
-
-    // XXX this should allow us to specify scores for gt-ag, at-ac, etc.
-    void setSpliceSignals() { params.setSpliceSignals(); }
-
-    // Outputs some algorithm parameters on lines starting with "#"
-    void printParameters() const { params.print(); }
-
     // Prepares to analyze some candidate alignments for one query
     // sequence: sets the number of DP matrix cells (and thus memory)
-    void layout(const UnsplitAlignment *beg, const UnsplitAlignment *end);
+    void layout(const SplitAlignerParams &params,
+		const UnsplitAlignment *beg, const UnsplitAlignment *end);
 
     // The number of cells in each dynamic programming matrix
     size_t cellsPerDpMatrix() const
     { return matrixRowOrigins[numAlns-1] + dpEnd(numAlns-1) + 1; }
 
     // Bytes of memory needed for the current query sequence (roughly)
-    size_t memory(bool isViterbi, bool isBothSpliceStrands) const;
+    size_t memory(const SplitAlignerParams &params,
+		  bool isViterbi, bool isBothSpliceStrands) const;
 
     // Call this before viterbi/forward/backward, and after layout
-    void initMatricesForOneQuery();
+    void initMatricesForOneQuery(const SplitAlignerParams &params);
 
-    long viterbi() {  // returns the optimal split-alignment score
+    // returns the optimal split-alignment score
+    long viterbi(const SplitAlignerParams &params) {
       resizeMatrix(Vmat);
       resizeVector(Vvec);
       return params.isSpliced() ? viterbiSplice(params) : viterbiSplit(params);
@@ -172,7 +149,7 @@ public:
     // 2. The chunk's start coordinate in the query sequence
     // 3. The chunk's end coordinate in the query sequence
     // It gets the chunks in reverse order, from query end to query start.
-    void traceBack(long viterbiScore,
+    void traceBack(const SplitAlignerParams &params, long viterbiScore,
 		   std::vector<unsigned>& alnNums,
 		   std::vector<unsigned>& queryBegs,
 		   std::vector<unsigned>& queryEnds) const;
@@ -181,7 +158,7 @@ public:
     int segmentScore(unsigned alnNum,
 		     unsigned queryBeg, unsigned queryEnd) const;
 
-    void forwardBackward() {
+    void forwardBackward(const SplitAlignerParams &params) {
       resizeVector(rescales);
       resizeMatrix(Fmat);
       resizeMatrix(Bmat);
@@ -199,7 +176,7 @@ public:
 				      unsigned alnBeg, unsigned alnEnd) const;
 
     // Toggles between forward and reverse-complement splice signals
-    void flipSpliceSignals();
+    void flipSpliceSignals(const SplitAlignerParams &params);
 
     // This returns log(p / (1-p)), where p is the probability that
     // the query uses splice signals in the orientation currently set
@@ -208,7 +185,8 @@ public:
 
     // Gets the 2 genome bases immediately downstream of queryPos in
     // alnNum, and writes them into the buffer pointed to by "out"
-    void spliceBegSignal(char *out, unsigned alnNum, unsigned queryPos,
+    void spliceBegSignal(char *out, const SplitAlignerParams &params,
+			 unsigned alnNum, unsigned queryPos,
 			 bool isSenseStrand) const {
       const UnsplitAlignment &a = alns[alnNum];
       params.spliceBegSignal(out, a.rname, a.isForwardStrand(), isSenseStrand,
@@ -217,7 +195,8 @@ public:
 
     // Gets the 2 genome bases immediately upstream of queryPos in
     // alnNum, and writes them into the buffer pointed to by "out"
-    void spliceEndSignal(char *out, unsigned alnNum, unsigned queryPos,
+    void spliceEndSignal(char *out, const SplitAlignerParams &params,
+			 unsigned alnNum, unsigned queryPos,
 			 bool isSenseStrand) const {
       const UnsplitAlignment &a = alns[alnNum];
       params.spliceEndSignal(out, a.rname, a.isForwardStrand(), isSenseStrand,
@@ -225,7 +204,6 @@ public:
     }
 
 private:
-    SplitAlignerParams params;
     unsigned numAlns;  // the number of candidate alignments (for 1 query)
     const UnsplitAlignment *alns;  // the candidates
     unsigned minBeg;  // the minimum query start coordinate of any candidate
