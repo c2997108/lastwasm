@@ -23,9 +23,7 @@ static void err(const std::string& s) {
 
 namespace cbrc {
 
-template<typename T, int N> T arrayMax(T (&array)[N]) {
-  return *std::max_element(array, array + N);
-}
+static int myMax(const int *b, int s) { return *std::max_element(b, b + s); }
 
 // Orders candidate alignments by increasing DP start coordinate.
 // Breaks ties by decreasing DP end coordinate.
@@ -1138,6 +1136,11 @@ void SplitAligner::initMatricesForOneQuery() {
   }
 
   if (params.isGenome()) {
+    spliceBegScores = params.spliceBegScores;
+    spliceEndScores = params.spliceEndScores;
+    spliceBegProbs = params.spliceBegProbs;
+    spliceEndProbs = params.spliceEndProbs;
+
     resizeMatrix(spliceBegSignals);
     resizeMatrix(spliceEndSignals);
     for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(params, i);
@@ -1155,11 +1158,11 @@ void SplitAligner::flipSpliceSignals() {
   Bmat.swap(BmatRev);
   rescales.swap(rescalesRev);
 
-  for (int i = 0; i < 16; ++i) {
-    int j = 15 - ((i%4) * 4 + (i/4));  // reverse-complement
-    std::swap(spliceBegScores[i], spliceEndScores[j]);
-    std::swap(spliceBegProbs[i], spliceEndProbs[j]);
-  }
+  int d = 17 - (spliceBegScores - params.spliceBegScores);
+  spliceBegScores = params.spliceBegScores + d;
+  spliceEndScores = params.spliceEndScores + d;
+  spliceBegProbs = params.spliceBegProbs + d;
+  spliceEndProbs = params.spliceEndProbs + d;
 }
 
 double SplitAligner::spliceSignalStrandLogOdds() const {
@@ -1253,7 +1256,7 @@ static int scoreFromProb(double prob, double scale) {
   return std::floor(scale * std::log(prob) + 0.5);
 }
 
-void SplitAligner::setSpliceSignals() {
+void SplitAlignerParams::setSpliceSignals() {
   // If an RNA-DNA alignment reaches position i in the DNA, the
   // probability of splicing from i to j is:
   //   P(i & j)  =  d(i) * a(j) * f(j - i),
@@ -1288,9 +1291,7 @@ void SplitAligner::setSpliceSignals() {
   double dAvg = (dGT + dGC + dAT + dNN * 13) / 16;
   double aAvg = (aAG + aAC + aNN * 14) / 16;
 
-  const double scale = params.scale;
-
-  for (int i = 0; i < 17; ++i) {
+  for (int i = 0; i < 17 * 2; ++i) {
     spliceBegScores[i] = scoreFromProb(dNN / dAvg, scale);
     spliceEndScores[i] = scoreFromProb(aNN / aAvg, scale);
   }
@@ -1302,24 +1303,31 @@ void SplitAligner::setSpliceSignals() {
   spliceEndScores[0 * 4 + 2] = scoreFromProb(aAG / aAvg, scale);
   spliceEndScores[0 * 4 + 1] = scoreFromProb(aAC / aAvg, scale);
 
-  for (int i = 0; i < 17; ++i) {
-    spliceBegProbs[i] = params.scaledExp(spliceBegScores[i]);
-    spliceEndProbs[i] = params.scaledExp(spliceEndScores[i]);
+  for (int i = 0; i < 16; ++i) {
+    int j = 15 - ((i%4) * 4 + (i/4));  // reverse-complement
+    spliceBegScores[17 + i] = spliceEndScores[j];
+    spliceEndScores[17 + i] = spliceBegScores[j];
   }
 
-  params.maxSpliceBegEndScore = arrayMax(spliceBegScores) + arrayMax(spliceEndScores);
+  for (int i = 0; i < 17 * 2; ++i) {
+    spliceBegProbs[i] = scaledExp(spliceBegScores[i]);
+    spliceEndProbs[i] = scaledExp(spliceEndScores[i]);
+  }
+
+  maxSpliceBegEndScore =
+    myMax(spliceBegScores, 17) + myMax(spliceEndScores, 17);
 }
 
-void SplitAligner::printParameters() const {
-  if (params.jumpProb > 0.0) {
-    std::cout << "# trans=" << params.jumpScore << "\n";
+void SplitAlignerParams::print() const {
+  if (jumpProb > 0.0) {
+    std::cout << "# trans=" << jumpScore << "\n";
   }
 
-  if (params.splicePrior > 0.0 && params.jumpProb > 0.0) {
-    std::cout << "# cismax=" << params.maxSpliceDist << "\n";
+  if (splicePrior > 0.0 && jumpProb > 0.0) {
+    std::cout << "# cismax=" << maxSpliceDist << "\n";
   }
 
-  if (params.isGenome()) {
+  if (isGenome()) {
     std::cout << "#"
 	      << " GT=" << spliceBegScores[2 * 4 + 3]
 	      << " GC=" << spliceBegScores[2 * 4 + 1]

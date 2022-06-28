@@ -43,6 +43,12 @@ struct SplitAlignerParams {
 
   void readGenome(const std::string &baseName);
 
+  // XXX this should allow us to specify scores for gt-ag, at-ac, etc.
+  void setSpliceSignals();
+
+  // Outputs some algorithm parameters on lines starting with "#"
+  void print() const;
+
   static const int numQualCodes = 64;
   static int score_mat[64][64][numQualCodes];
   int maxMatchScore;
@@ -73,6 +79,10 @@ struct SplitAlignerParams {
   Alphabet alphabet;
   typedef std::map<std::string, unsigned long long> StringNumMap;
   StringNumMap chromosomeIndex;
+  int spliceBegScores[(4 * 4 + 1) * 2];  // donor score for any dinucleotide
+  int spliceEndScores[(4 * 4 + 1) * 2];  // acceptor score for any dinucleotide
+  double spliceBegProbs[(4 * 4 + 1) * 2];
+  double spliceEndProbs[(4 * 4 + 1) * 2];
 
   bool isSpliced() const { return restartProb <= 0; }
 
@@ -131,10 +141,10 @@ public:
     { params.readGenome(baseName); }
 
     // XXX this should allow us to specify scores for gt-ag, at-ac, etc.
-    void setSpliceSignals();
+    void setSpliceSignals() { params.setSpliceSignals(); }
 
     // Outputs some algorithm parameters on lines starting with "#"
-    void printParameters() const;
+    void printParameters() const { params.print(); }
 
     // Prepares to analyze some candidate alignments for one query
     // sequence: sets the number of DP matrix cells (and thus memory)
@@ -260,10 +270,10 @@ private:
     std::vector<unsigned> rBegs;  // genomic beg coordinate of each candidate
     std::vector<unsigned> rEnds;  // genomic end coordinate of each candidate
     std::vector<unsigned> rnameAndStrandIds;
-    int spliceBegScores[4 * 4 + 1];  // donor score for any dinucleotide
-    int spliceEndScores[4 * 4 + 1];  // acceptor score for any dinucleotide
-    double spliceBegProbs[4 * 4 + 1];
-    double spliceEndProbs[4 * 4 + 1];
+    const int *spliceBegScores;
+    const int *spliceEndScores;
+    const double *spliceBegProbs;
+    const double *spliceEndProbs;
     int spliceBegScore(bool isGenome, size_t ij) const {
       return isGenome ? spliceBegScores[spliceBegSignals[ij]] : 0;
     }
