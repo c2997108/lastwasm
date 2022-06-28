@@ -8,7 +8,6 @@
 
 #include <getopt.h>
 
-#include <cctype>
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 #include <iostream>
 
@@ -22,32 +21,8 @@ static size_t defaultBytes(bool isSplicedAlignment) {
   return b;
 }
 
-static char parseOutputFormat(const char *text) {
-  std::string s = text;
-  for (size_t i = 0; i < s.size(); ++i) {
-    s[i] = std::tolower(s[i]);
-  }
-  if (s == "maf")  return 'm';
-  if (s == "maf+") return 'M';
-  return 0;
-}
-
 static void run(int argc, char* argv[]) {
   LastSplitOptions opts;
-
-  opts.format = 0;
-  opts.isTopSeqQuery = false;
-  opts.direction = 1;
-  opts.cis = 0.004;
-  opts.trans = 1e-05;
-  opts.mean = 7.0;
-  opts.sdev = 1.7;
-  opts.mismap = 1.0;
-  opts.score = -1;
-  opts.no_split = false;
-  opts.bytes = 0;
-  opts.verbose = false;
-  opts.isSplicedAlignment = false;
 
   std::string version = "last-split "
 #include "version.hh"
@@ -112,7 +87,7 @@ Options:\n\
       std::cout << help;
       return;
     case 'f':
-      opts.format = parseOutputFormat(optarg);
+      opts.format = LastSplitOptions::parseOutputFormat(optarg);
       break;
     case 'r':
       opts.isTopSeqQuery = true;

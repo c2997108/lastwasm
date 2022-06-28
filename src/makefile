@@ -45,7 +45,7 @@ lastal.o
 
 splitObj0 = Alphabet.o LambdaCalculator.o fileMap.o cbrc_linalg.o	\
 mcf_substitution_matrix_stats.o split/cbrc_unsplit_alignment.o		\
-split/last-split-main.o
+split/last_split_options.o split/last-split-main.o
 
 splitObj4 = MultiSequence.o split/cbrc_split_aligner.o	\
 split/last-split.o

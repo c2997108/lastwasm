@@ -13,28 +13,8 @@
 #ifndef LAST_SPLIT_HH
 #define LAST_SPLIT_HH
 
-#include <stddef.h>  // size_t
-#include <string>
-#include <vector>
+#include "last_split_options.hh"
 
-struct LastSplitOptions {
-  int format;
-  bool isTopSeqQuery;
-  std::string genome;
-  int direction;
-  double cis;
-  double trans;
-  double mean;
-  double sdev;
-  double mismap;
-  int score;
-  bool no_split;
-  size_t bytes;
-  bool verbose;
-  bool isSplicedAlignment;
-  std::vector<std::string> inputFileNames;
-};
-
-void lastSplit(LastSplitOptions& opts);
+void lastSplit(LastSplitOptions &opts);
 
 #endif
