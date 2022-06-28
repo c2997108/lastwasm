@@ -115,10 +115,6 @@ static bool isSameName(const char *sLine1, const char *sLine2) {
   }
 }
 
-static int scoreFromProb(double prob, double scale) {
-  return std::floor(scale * std::log(prob) + 0.5);
-}
-
 static void transpose(std::vector< std::vector<int> > &matrix) {
   size_t rows = matrix.size();
   size_t cols = matrix[0].size();
@@ -496,14 +492,14 @@ void lastSplit(LastSplitOptions& opts) {
 	    err("unsupported Q format");
 	  if (opts.score < 0)
 	    opts.score = lastalScoreThreshold +
-	      (opts.isSplicedAlignment ? scoreFromProb(100, scale) : 0);
+	      (opts.isSplicedAlignment ? params.scoreFromProb(100, scale) : 0);
 	  int restartCost =
 	    opts.isSplicedAlignment ? -(INT_MIN/2) : opts.score - 1;
 	  double jumpProb = opts.isSplicedAlignment
 	    ? opts.trans / (2 * genomeSize)  // 2 strands
 	    : 0.0;
-	  int jumpCost =
-	    (jumpProb > 0.0) ? -scoreFromProb(jumpProb, scale) : -(INT_MIN/2);
+	  int jumpCost = (jumpProb > 0.0) ?
+	    -params.scoreFromProb(jumpProb, scale) : -(INT_MIN/2);
 	  int qualityOffset =
             (sequenceFormat == 0) ? 0 : (sequenceFormat == 3) ? 64 : 33;
 	  printParameters(opts);

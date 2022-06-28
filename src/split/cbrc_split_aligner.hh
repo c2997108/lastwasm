@@ -10,6 +10,7 @@
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
 
+#include <math.h>
 #include <stddef.h>
 
 #include <map>
@@ -19,6 +20,10 @@
 namespace cbrc {
 
 struct SplitAlignerParams {
+  static int scoreFromProb(double prob, double scale) {
+    return floor(scale * log(prob) + 0.5);
+  }
+
   // A   deletion of length k scores: delOpenScore + k * delGrowScore
   // An insertion of length k scores: insOpenScore + k * insGrowScore
 

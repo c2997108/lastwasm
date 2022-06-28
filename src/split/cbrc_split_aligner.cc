@@ -1255,10 +1255,6 @@ void SplitAlignerParams::setParams(int delOpenScoreIn, int delGrowScoreIn,
   restartProb = scaledExp(restartScore);
 }
 
-static int scoreFromProb(double prob, double scale) {
-  return std::floor(scale * std::log(prob) + 0.5);
-}
-
 void SplitAlignerParams::setSpliceSignals() {
   // If an RNA-DNA alignment reaches position i in the DNA, the
   // probability of splicing from i to j is:
