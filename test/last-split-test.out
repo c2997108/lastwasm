@@ -9,15 +9,15 @@ Options:
  -f, --format=FMT   output format: MAF, MAF+ (default: depends on input)
  -r, --reverse      reverse the roles of the 2 sequences in each alignment
  -g, --genome=NAME  lastdb genome name
- -d, --direction=D  RNA direction: 0=reverse, 1=forward, 2=mixed (default=1)
- -c, --cis=PROB     cis-splice probability per base (default=0.004)
- -t, --trans=PROB   trans-splice probability per base (default=1e-05)
- -M, --mean=MEAN    mean of ln[intron length] (default=7)
- -S, --sdev=SDEV    standard deviation of ln[intron length] (default=1.7)
- -m, --mismap=PROB  maximum mismap probability (default=1)
- -s, --score=INT    minimum alignment score (default=e OR e+t*ln[100])
+ -d, --direction=D  RNA direction: 0=reverse, 1=forward, 2=mixed (default: 1)
+ -c, --cis=PROB     cis-splice probability per base (default: 0.004)
+ -t, --trans=PROB   trans-splice probability per base (default: 1e-05)
+ -M, --mean=MEAN    mean of ln[intron length] (default: 7.0)
+ -S, --sdev=SDEV    standard deviation of ln[intron length] (default: 1.7)
+ -m, --mismap=PROB  maximum mismap probability (default: 1.0)
+ -s, --score=INT    minimum alignment score (default: e OR e+t*ln[100])
  -n, --no-split     write original, not split, alignments
- -b, --bytes=B      maximum memory (default=8T for split, 8G for spliced)
+ -b, --bytes=B      maximum memory (default: 8T for split, 8G for spliced)
  -v, --verbose      be verbose
  -V, --version      show version information and exit
 # LAST version 356

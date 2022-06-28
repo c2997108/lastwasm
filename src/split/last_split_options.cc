@@ -15,6 +15,9 @@
 #define OPT_S 1.7
 #define OPT_m 1.0
 
+#define MACROS_SUCK(X) #X
+#define STR(X) MACROS_SUCK(X)
+
 LastSplitOptions::LastSplitOptions()
   : format(0),
     isTopSeqQuery(false),
@@ -29,6 +32,42 @@ LastSplitOptions::LastSplitOptions()
     bytes(0),
     verbose(false),
     isSplicedAlignment(false) {}
+
+const char LastSplitOptions::helpf[] =
+  "output format: MAF, MAF+ (default: depends on input)";
+
+const char LastSplitOptions::helpr[] =
+  "reverse the roles of the 2 sequences in each alignment";
+
+const char LastSplitOptions::helpg[] =
+  "lastdb genome name";
+
+const char LastSplitOptions::helpd[] =
+  "RNA direction: 0=reverse, 1=forward, 2=mixed (default: " STR(OPT_d) ")";
+
+const char LastSplitOptions::helpc[] =
+  "cis-splice probability per base (default: " STR(OPT_c) ")";
+
+const char LastSplitOptions::helpt[] =
+  "trans-splice probability per base (default: " STR(OPT_t) ")";
+
+const char LastSplitOptions::helpM[] =
+  "mean of ln[intron length] (default: " STR(OPT_M) ")";
+
+const char LastSplitOptions::helpS[] =
+  "standard deviation of ln[intron length] (default: " STR(OPT_S) ")";
+
+const char LastSplitOptions::helpm[] =
+  "maximum mismap probability (default: " STR(OPT_m) ")";
+
+const char LastSplitOptions::helps[] =
+  "minimum alignment score (default: e OR e+t*ln[100])";
+
+const char LastSplitOptions::helpn[] =
+  "write original, not split, alignments";
+
+const char LastSplitOptions::helpb[] =
+  "maximum memory (default: 8T for split, 8G for spliced)";
 
 static size_t defaultBytes(bool isSplicedAlignment) {
   size_t b = isSplicedAlignment ? 8 : 8 * 1024;

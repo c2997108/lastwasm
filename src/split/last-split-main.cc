@@ -27,24 +27,18 @@ come from different parts of the genome.\n\
 \n\
 Options:\n\
  -h, --help         show this help message and exit\n\
- -f, --format=FMT   output format: MAF, MAF+ (default: depends on input)\n\
- -r, --reverse      reverse the roles of the 2 sequences in each alignment\n\
- -g, --genome=NAME  lastdb genome name\n\
- -d, --direction=D  RNA direction: 0=reverse, 1=forward, 2=mixed (default="
-    + cbrc::stringify(opts.direction) + ")\n\
- -c, --cis=PROB     cis-splice probability per base (default="
-    + cbrc::stringify(opts.cis) + ")\n\
- -t, --trans=PROB   trans-splice probability per base (default="
-    + cbrc::stringify(opts.trans) + ")\n\
- -M, --mean=MEAN    mean of ln[intron length] (default="
-    + cbrc::stringify(opts.mean) + ")\n\
- -S, --sdev=SDEV    standard deviation of ln[intron length] (default="
-    + cbrc::stringify(opts.sdev) + ")\n\
- -m, --mismap=PROB  maximum mismap probability (default="
-    + cbrc::stringify(opts.mismap) + ")\n\
- -s, --score=INT    minimum alignment score (default=e OR e+t*ln[100])\n\
- -n, --no-split     write original, not split, alignments\n\
- -b, --bytes=B      maximum memory (default=8T for split, 8G for spliced)\n\
+ -f, --format=FMT   " + LastSplitOptions::helpf + "\n\
+ -r, --reverse      " + LastSplitOptions::helpr + "\n\
+ -g, --genome=NAME  " + LastSplitOptions::helpg + "\n\
+ -d, --direction=D  " + LastSplitOptions::helpd + "\n\
+ -c, --cis=PROB     " + LastSplitOptions::helpc + "\n\
+ -t, --trans=PROB   " + LastSplitOptions::helpt + "\n\
+ -M, --mean=MEAN    " + LastSplitOptions::helpM + "\n\
+ -S, --sdev=SDEV    " + LastSplitOptions::helpS + "\n\
+ -m, --mismap=PROB  " + LastSplitOptions::helpm + "\n\
+ -s, --score=INT    " + LastSplitOptions::helps + "\n\
+ -n, --no-split     " + LastSplitOptions::helpn + "\n\
+ -b, --bytes=B      " + LastSplitOptions::helpb + "\n\
  -v, --verbose      be verbose\n\
  -V, --version      show version information and exit\n\
 ";
