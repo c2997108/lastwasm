@@ -13,7 +13,6 @@
 #include <cctype>
 #include <cmath>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -380,20 +379,6 @@ static void doOneBatch(MyString &inputText,
   }
 }
 
-static void printParameters(const LastSplitOptions& opts) {
-  std::cout << std::setprecision(12) << "#"
-	    << " m=" << opts.mismap
-	    << " s=" << opts.score;
-  if (opts.isSplicedAlignment) {
-    std::cout << " d=" << opts.direction
-	      << " c=" << opts.cis
-	      << " t=" << opts.trans
-	      << " M=" << opts.mean
-	      << " S=" << opts.sdev;
-  }
-  std::cout << "\n" << std::setprecision(6);
-}
-
 static void addMaf(std::vector<unsigned> &mafEnds,
 		   const std::vector<size_t> &lineEnds) {
   if (lineEnds.size() - 1 > mafEnds.back())  // if we have new maf lines:
@@ -502,7 +487,7 @@ void lastSplit(LastSplitOptions& opts) {
 	    -params.scoreFromProb(jumpProb, scale) : -(INT_MIN/2);
 	  int qualityOffset =
             (sequenceFormat == 0) ? 0 : (sequenceFormat == 3) ? 64 : 33;
-	  printParameters(opts);
+	  opts.print();
 	  if (opts.isTopSeqQuery) {
 	    transpose(scoreMatrix);
 	    std::swap(rowNames, colNames);

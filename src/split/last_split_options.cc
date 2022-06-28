@@ -5,6 +5,8 @@
 
 #include <ctype.h>
 
+#include <iostream>
+
 #define OPT_d 1
 #define OPT_c 0.004
 #define OPT_t 1e-05
@@ -26,6 +28,22 @@ LastSplitOptions::LastSplitOptions()
     bytes(0),
     verbose(false),
     isSplicedAlignment(false) {}
+
+void LastSplitOptions::print() const {
+  std::streamsize p = std::cout.precision(12);
+  std::cout << '#'
+	    << " m=" << mismap
+	    << " s=" << score;
+  if (isSplicedAlignment) {
+    std::cout << " d=" << direction
+	      << " c=" << cis
+	      << " t=" << trans
+	      << " M=" << mean
+	      << " S=" << sdev;
+  }
+  std::cout << '\n';
+  std::cout.precision(p);
+}
 
 char LastSplitOptions::parseOutputFormat(const char *text) {
   std::string s = text;
