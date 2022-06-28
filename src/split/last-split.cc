@@ -475,9 +475,7 @@ void lastSplit(LastSplitOptions& opts) {
 	    err("can't read the header");
 	  if (sequenceFormat == 2 || sequenceFormat >= 4)
 	    err("unsupported Q format");
-	  if (opts.score < 0)
-	    opts.score = lastalScoreThreshold +
-	      (opts.isSplicedAlignment ? params.scoreFromProb(100, scale) : 0);
+	  opts.setUnspecifiedValues(lastalScoreThreshold, scale);
 	  int restartCost =
 	    opts.isSplicedAlignment ? -(INT_MIN/2) : opts.score - 1;
 	  double jumpProb = opts.isSplicedAlignment

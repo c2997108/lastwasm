@@ -11,16 +11,6 @@
 #include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
 #include <iostream>
 
-static size_t defaultBytes(bool isSplicedAlignment) {
-  size_t b = isSplicedAlignment ? 8 : 8 * 1024;
-  for (int i = 0; i < 3; ++i) {
-    size_t n = b * 1024;
-    if (n / 1024 != b) return -1;
-    b = n;
-  }
-  return b;
-}
-
 static void run(int argc, char* argv[]) {
   LastSplitOptions opts;
 
@@ -138,8 +128,6 @@ Options:\n\
       throw std::runtime_error("");
     }
   }
-
-  if (!opts.bytes) opts.bytes = defaultBytes(opts.isSplicedAlignment);
 
   opts.inputFileNames.assign(argv + optind, argv + argc);
 

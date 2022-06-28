@@ -4,6 +4,7 @@
 #include "last_split_options.hh"
 
 #include <ctype.h>
+#include <math.h>
 
 #include <iostream>
 
@@ -28,6 +29,25 @@ LastSplitOptions::LastSplitOptions()
     bytes(0),
     verbose(false),
     isSplicedAlignment(false) {}
+
+static size_t defaultBytes(bool isSplicedAlignment) {
+  size_t b = isSplicedAlignment ? 8 : 8 * 1024;
+  for (int i = 0; i < 3; ++i) {
+    size_t n = b * 1024;
+    if (n / 1024 != b) return -1;
+    b = n;
+  }
+  return b;
+}
+
+void LastSplitOptions::setUnspecifiedValues(int lastalMinScore, double scale) {
+  if (!bytes) bytes = defaultBytes(isSplicedAlignment);
+
+  if (score < 0) {
+    score = lastalMinScore;
+    if (isSplicedAlignment) score += floor(scale * log(100.0) + 0.5);
+  }
+}
 
 void LastSplitOptions::print() const {
   std::streamsize p = std::cout.precision(12);
