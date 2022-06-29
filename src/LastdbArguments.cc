@@ -14,15 +14,6 @@ static void badopt( char opt, const char* arg ){
   ERR( std::string("bad option value: -") + opt + ' ' + arg );
 }
 
-static int myGetopt( int argc, char** argv, const char* optstring ){
-  if( optind < argc ){
-    std::string nextarg = argv[optind];
-    if( nextarg == "--help"    ) return 'h';
-    if( nextarg == "--version" ) return 'V';
-  }
-  return getopt( argc, argv, optstring );
-}
-
 using namespace cbrc;
 
 LastdbArguments::LastdbArguments() :
@@ -93,8 +84,14 @@ Advanced Options (default settings):\n\
 
   static const char sOpts[] = "hVpqR:cm:d:S:s:w:W:P:u:a:i:b:B:C:xDvQ:";
 
+  static struct option lOpts[] = {
+    { "help",    no_argument, 0, 'h' },
+    { "version", no_argument, 0, 'V' },
+    { 0, 0, 0, 0}
+  };
+
   int c;
-  while ((c = myGetopt(argc, argv, sOpts)) != -1) {
+  while ((c = getopt_long(argc, argv, sOpts, lOpts, &c)) != -1) {
     switch(c){
     case 'h':
       std::cout << help;

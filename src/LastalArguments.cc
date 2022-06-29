@@ -40,15 +40,6 @@ static void writeIntList(std::ostream &s, const std::vector<int> &v) {
   }
 }
 
-static int myGetopt( int argc, char** argv, const char* optstring ){
-  if( optind < argc ){
-    std::string nextarg = argv[optind];
-    if( nextarg == "--help"    ) return 'h';
-    if( nextarg == "--version" ) return 'V';
-  }
-  return getopt( argc, argv, optstring );
-}
-
 static char parseOutputFormat( const char* text ){
   std::string s = text;
   for( size_t i = 0; i < s.size(); ++i ){
@@ -202,8 +193,14 @@ Miscellaneous options (default settings):\n\
     "D:E:"
     "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:J:Q:";
 
+  static struct option lOpts[] = {
+    { "help",    no_argument, 0, 'h' },
+    { "version", no_argument, 0, 'V' },
+    { 0, 0, 0, 0}
+  };
+
   int c;
-  while ((c = myGetopt(argc, argv, sOpts)) != -1) {
+  while ((c = getopt_long(argc, argv, sOpts, lOpts, &c)) != -1) {
     switch(c){
     case 'h':
       std::cout << help;
