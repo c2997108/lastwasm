@@ -1,4 +1,5 @@
-// Copyright 2013, 2014 Martin C. Frith
+// Author: Martin C. Frith 2013
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // Parse the command line and run last-split.
 

@@ -1,4 +1,5 @@
-// Copyright 2013 Martin C. Frith
+// Author: Martin C. Frith 2013
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // This routine reads alignments of query sequences to a genome, and
 // estimates which alignment parts represent the source of each query.
