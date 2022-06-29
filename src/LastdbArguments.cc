@@ -56,39 +56,39 @@ Usage: " + std::string(programName) +
 Prepare sequences for subsequent alignment with lastal.\n\
 \n\
 Main Options:\n\
--h, --help: show all options and their default settings, and exit\n\
--p: interpret the sequences as proteins\n\
--c: soft-mask lowercase letters (in reference *and* query sequences)\n\
--u: seeding scheme (default: YASS for DNA, else exact-match seeds)\n\
--P: number of parallel threads (default: " + stringify(numOfThreads) + ")";
+ -h, --help  show all options and their default settings, and exit\n\
+ -p  interpret the sequences as proteins\n\
+ -c  soft-mask lowercase letters (in reference *and* query sequences)\n\
+ -u  seeding scheme (default: YASS for DNA, else exact-match seeds)\n\
+ -P  number of parallel threads (default: " + stringify(numOfThreads) + ")";
 
   std::string help = usage + "\n\
 \n\
 Advanced Options (default settings):\n\
--R: lowercase & simple-sequence options (default: 03 for -q, else 01)\n\
--w: use initial matches starting at every w-th position in each sequence ("
+ -R  lowercase & simple-sequence options (default: 03 for -q, else 01)\n\
+ -w  use initial matches starting at every w-th position in each sequence ("
     + stringify(indexStep) + ")\n\
--W: use \"minimum\" positions in sliding windows of W consecutive positions ("
+ -W  use \"minimum\" positions in sliding windows of W consecutive positions ("
     + stringify(minimizerWindow) + ")\n\
--S: strand: 0=reverse, 1=forward, 2=both ("
+ -S  strand: 0=reverse, 1=forward, 2=both ("
     + stringify(strand) + ")\n\
--s: volume size (unlimited)\n\
--Q: input format: fastx, keep, sanger, solexa, illumina (default=fasta)\n\
--q: interpret the sequences as proteins and append */STOP\n\
--m: seed patterns (1=match, 0=anything, @=transition)\n\
--d: DNA seed patterns (N=match, n=anything, R=purine match, etc.)\n\
--a: user-defined alphabet\n\
--i: minimum limit on initial matches per query position ("
+ -s  volume size (unlimited)\n\
+ -Q  input format: fastx, keep, sanger, solexa, illumina (default=fasta)\n\
+ -q  interpret the sequences as proteins and append */STOP\n\
+ -m  seed patterns (1=match, 0=anything, @=transition)\n\
+ -d  DNA seed patterns (N=match, n=anything, R=purine match, etc.)\n\
+ -a  user-defined alphabet\n\
+ -i  minimum limit on initial matches per query position ("
     + stringify(minSeedLimit) + ")\n\
--b: maximum length for buckets\n\
--B: use max bucket length with memory <= (memory for stored positions) / B ("
+ -b  maximum length for buckets\n\
+ -B  use max bucket length with memory <= (memory for stored positions) / B ("
     + stringify(minIndexedPositionsPerBucket) + ")\n\
--C: child table type: 0=none, 1=byte-size, 2=short-size, 3=full ("
+ -C  child table type: 0=none, 1=byte-size, 2=short-size, 3=full ("
     + stringify(childTableType) + ")\n\
--x: just count sequences and letters\n\
--D: print all sequences in lastdb files\n\
--v: be verbose: write messages about what lastdb is doing\n\
--V, --version: show version information, and exit\n\
+ -x  just count sequences and letters\n\
+ -D  print all sequences in lastdb files\n\
+ -v  be verbose: write messages about what lastdb is doing\n\
+ -V, --version  show version information, and exit\n\
 ";
 
   static const char sOpts[] = "hVpqR:cm:d:S:s:w:W:P:u:a:i:b:B:C:xDvQ:";

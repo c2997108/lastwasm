@@ -124,85 +124,86 @@ void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
 Find and align similar sequences.\n\
 \n\
 Cosmetic options:\n\
--h, --help: show all options and their default settings, and exit\n\
--V, --version: show version information, and exit\n\
--v: be verbose: write messages about what lastal is doing\n\
--f: output format: TAB, MAF, BlastTab, BlastTab+ (default=MAF)";
+ -h, --help     show all options and their default settings, and exit\n\
+ -V, --version  show version information, and exit\n\
+ -v             be verbose: write messages about what lastal is doing\n\
+ -f             output format: TAB, MAF, BlastTab, BlastTab+ (default: MAF)";
 
   std::string help = usage + "\n\
 \n\
 E-value options (default settings):\n\
--D: query letters per random alignment ("
+ -D  query letters per random alignment ("
     + stringify(queryLettersPerRandomAlignment) + ")\n\
--E: maximum expected alignments per square giga (1e+18/D/refSize/numOfStrands)\n\
+ -E  maximum expected alignments per square giga (1e+18/D/refSize/numOfStrands)\n\
 \n\
 Score options (default settings):\n\
--r: match score   (2 if -M, else  6 if 1<=Q<=4, else 1 if DNA)\n\
--q: mismatch cost (3 if -M, else 18 if 1<=Q<=4, else 1 if DNA)\n\
--p: match/mismatch score matrix (protein-protein: BL62, DNA-protein: BL80)\n\
--X: N/X is ambiguous in: 0=neither sequence, 1=reference, 2=query, 3=both ("
+ -r  match score   (2 if -M, else  6 if 1<=Q<=4, else 1 if DNA)\n\
+ -q  mismatch cost (3 if -M, else 18 if 1<=Q<=4, else 1 if DNA)\n\
+ -p  match/mismatch score matrix (protein-protein: BL62, DNA-protein: BL80)\n\
+ -X  N/X is ambiguous in: 0=neither sequence, 1=reference, 2=query, 3=both ("
     + stringify(ambiguousLetterOpt) + ")\n\
--a: gap existence cost (DNA: 7, protein: 11, 1<=Q<=4: 21)\n\
--b: gap extension cost (DNA: 1, protein:  2, 1<=Q<=4:  9)\n\
--A: insertion existence cost (a)\n\
--B: insertion extension cost (b)\n\
--c: unaligned residue pair cost (off)\n\
--F: frameshift cost(s) (off)\n\
--x: maximum score drop for preliminary gapped alignments (z)\n\
--y: maximum score drop for gapless alignments (min[t*10, x])\n\
--z: maximum score drop for final gapped alignments (e-1)\n\
--d: minimum score for gapless alignments (min[e, 2500/n query letters per hit])\n\
--e: minimum score for gapped alignments\n\
+ -a  gap existence cost (DNA: 7, protein: 11, 1<=Q<=4: 21)\n\
+ -b  gap extension cost (DNA: 1, protein:  2, 1<=Q<=4:  9)\n\
+ -A  insertion existence cost (a)\n\
+ -B  insertion extension cost (b)\n\
+ -c  unaligned residue pair cost (off)\n\
+ -F  frameshift cost(s) (off)\n\
+ -x  maximum score drop for preliminary gapped alignments (z)\n\
+ -y  maximum score drop for gapless alignments (min[t*10, x])\n\
+ -z  maximum score drop for final gapped alignments (e-1)\n\
+ -d  minimum score for gapless alignments (min[e, 2500/n query letters per hit])\n\
+ -e  minimum score for gapped alignments\n\
 \n\
 Initial-match options (default settings):\n\
--m: maximum initial matches per query position ("
+ -m  maximum initial matches per query position ("
     + stringify(oneHitMultiplicity) + ")\n\
--l: minimum length for initial matches ("
+ -l  minimum length for initial matches ("
     + stringify(minHitDepth) + ")\n\
--L: maximum length for initial matches (infinity)\n\
--k: use initial matches starting at every k-th position in each query ("
+ -L  maximum length for initial matches (infinity)\n\
+ -k  use initial matches starting at every k-th position in each query ("
     + stringify(queryStep) + ")\n\
--W: use \"minimum\" positions in sliding windows of W consecutive positions\n\
+ -W  use \"minimum\" positions in sliding windows of W consecutive positions\n\
 \n\
 Miscellaneous options (default settings):\n\
--s: strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
--S: score matrix applies to forward strand of: 0=reference, 1=query ("
+ -s  strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
+ -S  score matrix applies to forward strand of: 0=reference, 1=query ("
     + stringify(isQueryStrandMatrix) + ")\n\
--K: omit alignments whose query range lies in >= K others with > score (off)\n\
--C: omit gapless alignments in >= C others with > score-per-length (off)\n\
--P: number of parallel threads ("
+ -K  omit alignments whose query range lies in >= K others with > score (off)\n\
+ -C  omit gapless alignments in >= C others with > score-per-length (off)\n\
+ -P  number of parallel threads ("
     + stringify(numOfThreads) + ")\n\
--i: query batch size (64M if multi-volume, else off)\n\
--M: find minimum-difference alignments (faster but cruder)\n\
--T: type of alignment: 0=local, 1=overlap ("
+ -i  query batch size (64M if multi-volume, else off)\n\
+ -M  find minimum-difference alignments (faster but cruder)\n\
+ -T  type of alignment: 0=local, 1=overlap ("
     + stringify(globality) + ")\n\
--n: maximum gapless alignments per query position (infinity if m=0, else m)\n\
--N: stop after the first N alignments per query strand\n\
--R: lowercase & simple-sequence options (the same as was used by lastdb)\n\
--u: mask lowercase during extensions: 0=never, 1=gapless,\n\
-    2=gapless+postmask, 3=always (2 if lastdb -c and Q!=pssm, else 0)\n\
--w: suppress repeats inside exact matches, offset by <= this distance ("
+ -n  maximum gapless alignments per query position (infinity if m=0, else m)\n\
+ -N  stop after the first N alignments per query strand\n\
+ -R  lowercase & simple-sequence options (the same as was used by lastdb)\n\
+ -u  mask lowercase during extensions: 0=never, 1=gapless,\n\
+     2=gapless+postmask, 3=always (2 if lastdb -c and Q!=pssm, else 0)\n\
+ -w  suppress repeats inside exact matches, offset by <= this distance ("
     + stringify(maxRepeatDistance) + ")\n\
--G: genetic code (" + geneticCodeFile + ")\n\
--t: 'temperature' for calculating probabilities (1/lambda)\n\
--g: 'gamma' parameter for gamma-centroid and LAMA ("
+ -G  genetic code (" + geneticCodeFile + ")\n\
+ -t  'temperature' for calculating probabilities (1/lambda)\n\
+ -g  'gamma' parameter for gamma-centroid and LAMA ("
     + stringify(gamma) + ")\n\
--j: output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
-                 4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA,\n\
-                 7=expected counts ("
+ -j  output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
+                  4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA,\n\
+                  7=expected counts ("
     + stringify(outputType) + ")\n\
--J: score type: 0=ordinary, 1=full (1 for new-style frameshifts, else 0)\n\
--Q: input format: fastx, keep, sanger, solexa, illumina, prb, pssm\n\
-                  (default=fasta)\n\
+ -J  score type: 0=ordinary, 1=full (1 for new-style frameshifts, else 0)\n\
+ -Q  input format: fastx, keep, sanger, solexa, illumina, prb, pssm\n\
+                   (default: fasta)\n\
 ";
 
-  int c;
-  const char optionString[] =
+  static const char sOpts[] =
     "hVvf:"
     "r:q:p:X:a:b:A:B:c:F:x:y:z:d:e:"
     "D:E:"
     "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:J:Q:";
-  while( (c = myGetopt(argc, argv, optionString)) != -1 ){
+
+  int c;
+  while ((c = myGetopt(argc, argv, sOpts)) != -1) {
     switch(c){
     case 'h':
       std::cout << help;
