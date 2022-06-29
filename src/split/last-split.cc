@@ -1,17 +1,16 @@
 // Copyright 2013, 2014 Martin C. Frith
 
-#include "last-split.hh"
-
 #include "cbrc_split_aligner.hh"
+#include "last-split.hh"
 
 #include <assert.h>
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <algorithm>
 #include <cctype>
-#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -143,10 +142,10 @@ static bool less(const cbrc::UnsplitAlignment& a,
 }
 
 static int printSense(char *out, double senseStrandLogOdds) {
-  double b = senseStrandLogOdds / std::log(2.0);
+  double b = senseStrandLogOdds / log(2.0);
   if (b < 0.1 && b > -0.1) b = 0;
-  else if (b > 10) b = std::floor(b + 0.5);
-  else if (b < -10) b = std::ceil(b - 0.5);
+  else if (b > 10) b = floor(b + 0.5);
+  else if (b < -10) b = ceil(b - 0.5);
   int precision = (b < 10 && b > -10) ? 2 : 3;
   return sprintf(out, " sense=%.*g", precision, b);
 }
@@ -194,7 +193,7 @@ static void doOneAlignmentPart(cbrc::SplitAligner &sa,
   }
   if (opts.direction == 0) p.swap(pRev);
   if (opts.direction == 2) {
-    double reverseProb = 1 / (1 + std::exp(senseStrandLogOdds));
+    double reverseProb = 1 / (1 + exp(senseStrandLogOdds));
     // the exp might overflow to inf, but that should be OK
     double forwardProb = 1 - reverseProb;
     for (unsigned i = 0; i < p.size(); ++i) {
@@ -355,10 +354,11 @@ static void doOneBatch(MyString &inputText,
 
   std::vector<cbrc::UnsplitAlignment> mafs;
   mafs.reserve(mafEnds.size() - 1);  // saves memory: no excess capacity
-  for (unsigned i = 1; i < mafEnds.size(); ++i)
+  for (unsigned i = 1; i < mafEnds.size(); ++i) {
     mafs.push_back(cbrc::UnsplitAlignment(&linePtrs[0] + mafEnds[i-1],
 					  &linePtrs[0] + mafEnds[i],
 					  opts.isTopSeqQuery));
+  }
 
   sort(mafs.begin(), mafs.end(), less);
 
