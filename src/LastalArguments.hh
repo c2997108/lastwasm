@@ -6,6 +6,7 @@
 #define LASTAL_ARGUMENTS_HH
 
 #include "SequenceFormat.hh"
+#include "split/last_split_options.hh"
 
 #include <limits.h>
 #include <stddef.h>
@@ -119,6 +120,9 @@ struct LastalArguments{
   double gamma;        // parameter for gamma-centroid alignment
   std::string geneticCodeFile;
   int verbosity;
+
+  bool isSplit;
+  LastSplitOptions splitOpts;
 
   // positional arguments:
   const char* programName;

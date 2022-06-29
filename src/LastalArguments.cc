@@ -106,7 +106,8 @@ LastalArguments::LastalArguments() :
   temperature(-1),  // depends on the score matrix
   gamma(1),
   geneticCodeFile("1"),
-  verbosity(0){}
+  verbosity(0),
+  isSplit(false){}
 
 void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
   programName = argv[0];
@@ -185,6 +186,20 @@ Miscellaneous options (default settings):\n\
  -J  score type: 0=ordinary, 1=full (1 for new-style frameshifts, else 0)\n\
  -Q  input format: fastx, keep, sanger, solexa, illumina, prb, pssm\n\
                    (default: fasta)\n\
+\n\
+Split options:\n\
+ --split         do split alignment\n\
+ --splice        do spliced alignment\n\
+ --split-f=FMT   " + LastSplitOptions::helpf + "\n\
+ --split-d=D     " + LastSplitOptions::helpd + "\n\
+ --split-c=PROB  " + LastSplitOptions::helpc + "\n\
+ --split-t=PROB  " + LastSplitOptions::helpt + "\n\
+ --split-M=MEAN  " + LastSplitOptions::helpM + "\n\
+ --split-S=SDEV  " + LastSplitOptions::helpS + "\n\
+ --split-m=PROB  " + LastSplitOptions::helpm + "\n\
+ --split-s=INT   " + LastSplitOptions::helps + "\n\
+ --split-n       " + LastSplitOptions::helpn + "\n\
+ --split-b=B     " + LastSplitOptions::helpb + "\n\
 ";
 
   static const char sOpts[] =
@@ -194,8 +209,20 @@ Miscellaneous options (default settings):\n\
     "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:J:Q:";
 
   static struct option lOpts[] = {
-    { "help",    no_argument, 0, 'h' },
-    { "version", no_argument, 0, 'V' },
+    { "help",    no_argument,       0, 'h' },
+    { "version", no_argument,       0, 'V' },
+    { "split",   no_argument,       0, 128 + 0 },
+    { "splice",  no_argument,       0, 128 + 1 },
+    { "split-f", required_argument, 0, 128 + 'f' },
+    { "split-d", required_argument, 0, 128 + 'd' },
+    { "split-c", required_argument, 0, 128 + 'c' },
+    { "split-t", required_argument, 0, 128 + 't' },
+    { "split-M", required_argument, 0, 128 + 'M' },
+    { "split-S", required_argument, 0, 128 + 'S' },
+    { "split-m", required_argument, 0, 128 + 'm' },
+    { "split-s", required_argument, 0, 128 + 's' },
+    { "split-n", no_argument,       0, 128 + 'n' },
+    { "split-b", required_argument, 0, 128 + 'b' },
     { 0, 0, 0, 0}
   };
 
@@ -371,9 +398,50 @@ Miscellaneous options (default settings):\n\
       unstringify( inputFormat, optarg );
       break;
 
+    case 128 + 1:
+      splitOpts.isSplicedAlignment = true;
+      break;
+    case 128 + 'f':
+      splitOpts.format = LastSplitOptions::parseOutputFormat(optarg);
+      break;
+    case 128 + 'd':
+      splitOpts.isSplicedAlignment = true;
+      unstringify(splitOpts.direction, optarg);
+      break;
+    case 128 + 'c':
+      splitOpts.isSplicedAlignment = true;
+      unstringify(splitOpts.cis, optarg);
+      break;
+    case 128 + 't':
+      splitOpts.isSplicedAlignment = true;
+      unstringify(splitOpts.trans, optarg);
+      break;
+    case 128 + 'M':
+      splitOpts.isSplicedAlignment = true;
+      unstringify(splitOpts.mean, optarg);
+      break;
+    case 128 + 'S':
+      splitOpts.isSplicedAlignment = true;
+      unstringify(splitOpts.sdev, optarg);
+      break;
+    case 128 + 'm':
+      unstringify(splitOpts.mismap, optarg);
+      break;
+    case 128 + 's':
+      unstringify(splitOpts.score, optarg);
+      break;
+    case 128 + 'n':
+      splitOpts.no_split = true;
+      break;
+    case 128 + 'b':
+      unstringifySize(splitOpts.bytes, optarg);
+      break;
+
     case '?':
       ERR( "bad option" );
     }
+
+    if (c >= 128) isSplit = true;
   }
 
   if( maskLowercase == 1 && inputFormat == 5 )
@@ -414,6 +482,7 @@ Miscellaneous options (default settings):\n\
       ERR( "please give me a database name and sequence file(s)\n\n" + usage );
     lastdbName = argv[optind++];
     inputStart = optind;
+    if (splitOpts.isSplicedAlignment) splitOpts.genome = lastdbName;
   }
 
   resetGetopt();
@@ -583,6 +652,17 @@ To proceed without E-values, set a score threshold with option -e.");
     if( temperature < 0 ) maxDropGapless = 0;  // shouldn't happen
     else                  maxDropGapless = int( 10.0 * temperature + 0.5 );
     maxDropGapless = std::min( maxDropGapless, maxDropGapped );
+  }
+
+  if (isSplit) {
+    if (outputFormat != 'm')
+      ERR("can't do split alignment with non-MAF output");
+    if (isTranslated())
+      ERR("can't do split DNA-protein alignment");
+    if (gapPairCost > 0)
+      ERR("can't do split alignment with option -c");
+    if (verbosity > 1) splitOpts.verbose = true;
+    splitOpts.setUnspecifiedValues(minScoreGapped, temperature);
   }
 }
 

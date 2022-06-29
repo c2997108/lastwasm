@@ -34,7 +34,7 @@ LastSplitOptions::LastSplitOptions()
     isSplicedAlignment(false) {}
 
 const char LastSplitOptions::helpf[] =
-  "output format: MAF, MAF+ (default: depends on input)";
+  "output format: MAF, MAF+";
 
 const char LastSplitOptions::helpr[] =
   "reverse the roles of the 2 sequences in each alignment";

@@ -36,7 +36,7 @@ mcf_frameshift_xdrop_aligner.o mcf_gap_costs.o GeneticCode.o		\
 GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
 QualityPssmMaker.o TwoQualityScoreMatrix.o gaplessXdrop.o		\
 gaplessPssmXdrop.o gaplessTwoQualityXdrop.o cbrc_linalg.o		\
-mcf_substitution_matrix_stats.o $(alpObj)
+mcf_substitution_matrix_stats.o split/last_split_options.o $(alpObj)
 
 alignObj4 = Alignment.o AlignmentPot.o AlignmentWrite.o Centroid.o	\
 DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\

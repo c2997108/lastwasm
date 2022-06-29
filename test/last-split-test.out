@@ -6,7 +6,7 @@ come from different parts of the genome.
 
 Options:
  -h, --help         show this help message and exit
- -f, --format=FMT   output format: MAF, MAF+ (default: depends on input)
+ -f, --format=FMT   output format: MAF, MAF+
  -r, --reverse      reverse the roles of the 2 sequences in each alignment
  -g, --genome=NAME  lastdb genome name
  -d, --direction=D  RNA direction: 0=reverse, 1=forward, 2=mixed (default: 1)
