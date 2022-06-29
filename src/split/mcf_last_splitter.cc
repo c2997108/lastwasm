@@ -267,7 +267,7 @@ void setLastSplitParams(cbrc::SplitAlignerParams &params,
     -params.scoreFromProb(jumpProb, scale) : -(INT_MIN/2);
 
   if (sequenceFormat == 2 || sequenceFormat == 4 || sequenceFormat == 5) {
-    throw std::runtime_error("unsupported Q format");
+    throw std::runtime_error("unsupported last-split Q format");
   }
 
   int qualityOffset =

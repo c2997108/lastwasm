@@ -24,6 +24,7 @@
 #include "zio.hh"
 #include "stringify.hh"
 #include "threadUtil.hh"
+#include "split/mcf_last_splitter.hh"
 
 #include <math.h>
 #include <signal.h>
@@ -50,6 +51,7 @@ typedef unsigned long long countT;
 
 struct LastAligner {  // data that changes between queries
   Aligners engines;
+  LastSplitter splitter;
   std::vector<int> qualityPssm;
   std::vector<AlignmentText> textAlns;
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
@@ -102,6 +104,7 @@ namespace {
   Alphabet queryAlph;  // for translated alignment
   TantanMasker tantanMasker;
   GeneticCode geneticCode;
+  SplitAlignerParams splitParams;
   const unsigned maxNumOfIndexes = 16;
   SubsetSuffixArray suffixArrays[maxNumOfIndexes];
   DnaWordsFinder wordsFinder;
@@ -586,7 +589,7 @@ static void writeAlignment(LastAligner &aligner, const MultiSequence &qrySeqs,
 			      alph, queryAlph,
 			      translationType, geneticCode.getCodonToAmino(),
 			      evaluer, args.outputFormat, extras);
-  if (isCollatedAlignments() || aligners.size() > 1) {
+  if (isCollatedAlignments() || aligners.size() > 1 || args.isSplit) {
     aligner.textAlns.push_back(a);
   } else {
     std::cout << a.text;
@@ -1119,6 +1122,35 @@ void translateAndScan(LastAligner &aligner, MultiSequence &qrySeqs,
   }
 }
 
+static void splitAlignments(LastSplitter &splitter,
+			    std::vector<AlignmentText> &textAlns,
+			    bool isQryQual) {
+  if (!args.isSplit) return;
+
+  unsigned linesPerMaf =
+    3 + isQryQual + (args.outputType > 3) + (args.outputType > 6);
+
+  splitter.reserve(textAlns.size());
+  std::vector<char *> linePtrs((linesPerMaf + 1) * textAlns.size());
+
+  char **beg = linePtrs.empty() ? 0 : &linePtrs[0];
+  for (size_t i = 0; i < textAlns.size(); ++i) {
+    char **end = beg;
+    char *text = textAlns[i].text;
+    for (unsigned j = 0; j < linesPerMaf; ++j) {
+      *end++ = text;
+      text = strchr(text, '\n');
+      *text++ = 0;
+    }
+    *end = text;
+    splitter.addMaf(beg, end, false);
+    beg = end + 1;
+  }
+
+  splitter.split(args.splitOpts, splitParams, false);
+  clearAlignments(textAlns);
+}
+
 static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
 			  size_t qryNum, size_t chunkQryNum,
 			  size_t finalCullingLimit, bool isFirstVolume) {
@@ -1167,15 +1199,17 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
     translateAndScan(aligner, qrySeqs, qryData, chunkQryNum, finalCullingLimit,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 
-  if (isCollatedAlignments() && numOfVolumes < 2) {
-    sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
+  if (numOfVolumes < 2) {
+    if (isCollatedAlignments()) {
+      sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
+    }
+    splitAlignments(aligner.splitter, textAlns, qrySeqs.qualsPerLetter());
   }
 }
 
 static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   size_t numOfChunks = aligners.size();
   LastAligner &aligner = aligners[chunkNum];
-  std::vector<AlignmentText> &textAlns = aligner.textAlns;
   size_t beg = firstSequenceInChunk(qrySeqsGlobal, numOfChunks, chunkNum);
   size_t end = firstSequenceInChunk(qrySeqsGlobal, numOfChunks, chunkNum + 1);
   bool isMultiVolume = (numOfVolumes > 1);
@@ -1190,8 +1224,11 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
 		  finalCullingLimit, isFirstVolume);
   }
   if (isMultiVolume && volume + 1 == numOfVolumes) {
+    std::vector<AlignmentText> &textAlns = aligner.textAlns;
     cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
     sort(textAlns.begin(), textAlns.end());
+    splitAlignments(aligner.splitter, textAlns,
+		    qrySeqsGlobal.qualsPerLetter());
   }
   return beg;
 }
@@ -1215,6 +1252,10 @@ static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
     aligner.matchCounts.clear();
     printAlignments(aligner.textAlns);
     clearAlignments(aligner.textAlns);
+    if (!aligner.splitter.isOutputEmpty()) {
+      aligner.splitter.printOutput();
+      aligner.splitter.clearOutput();
+    }
   }
 }
 
@@ -1246,6 +1287,7 @@ static bool readSequenceData(MultiSequence &qrySeqs) {
 
 static void runOneThread(unsigned threadNum) {
   LastAligner &aligner = aligners[threadNum];
+  LastSplitter &splitter = aligner.splitter;
   std::vector< std::vector<countT> > &matchCounts = aligner.matchCounts;
   std::vector<AlignmentText> &textAlns = aligner.textAlns;
   MultiSequence qrySeqs;
@@ -1260,7 +1302,13 @@ static void runOneThread(unsigned threadNum) {
       alignOneQuery(aligner, qrySeqs, i, i,
 		    args.cullingLimitForFinalAlignments, true);
     }
-    if (!textAlns.empty()) {
+    if (!splitter.isOutputEmpty()) {
+      {
+	std::lock_guard<std::mutex> lockGuard(outputMutex);
+	splitter.printOutput();
+      }
+      splitter.clearOutput();
+    } else if (!textAlns.empty()) {
       {
 	std::lock_guard<std::mutex> lockGuard(outputMutex);
 	printAlignments(textAlns);
@@ -1419,6 +1467,12 @@ void writeHeader(countT numOfRefSeqs, countT refLetters, std::ostream &out) {
       if( args.outputFormat == 'B' ) out << ", query length, subject length";
       out << '\n';
     }
+
+    if (args.isSplit) {
+      args.splitOpts.print();
+      splitParams.print();
+      std::cout << "#\n";
+    }
   }
 }
 
@@ -1520,6 +1574,15 @@ void lastal( int argc, char** argv ){
   minScoreGapless = calcMinScoreGapless(refLetters);
   if (!isMultiVolume) args.minScoreGapless = minScoreGapless;
   if (args.outputType > 0) makeQualityScorers();
+
+  if (args.isSplit) {
+    setLastSplitParams(splitParams, args.splitOpts, scoreMatrix.cells,
+		       scoreMatrix.rowSymbols.c_str(),
+		       scoreMatrix.colSymbols.c_str(),
+		       args.delOpenCosts[0], args.delGrowCosts[0],
+		       args.insOpenCosts[0], args.insGrowCosts[0],
+		       args.temperature, refLetters, args.inputFormat);
+  }
 
   if (numOfVolumes + 1 == 0) {
     readIndex(args.lastdbName, numOfRefSeqs);

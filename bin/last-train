@@ -734,6 +734,9 @@ def fixedLastalArgs(opts, lastalProgName):
     if opts.verbose: x.append("-" + "v" * opts.verbose)
     if opts.codon:
         x.append("-K1")
+    else:
+        x.append("--split-n")
+        x.append("--split-m=0.01")  # xxx ???
     return x
 
 def process(args, inStream):
@@ -744,14 +747,6 @@ def versionFromLastal():
     args = ["lastal", "--version"]
     proc = process(args, None)
     return proc.stdout.read().split()[1]
-
-def lastSplitProcess(opts, proc):
-    splitArgs = ["last-split", "-n", "-m0.01"]  # xxx ???
-    proc = process(splitArgs, proc.stdout)
-    if opts.postmask:
-        maskArgs = ["last-postmask"]
-        proc = process(maskArgs, proc.stdout)
-    return proc
 
 def doTraining(opts, args):
     tryToMakeChildProgramsFindable()
@@ -781,7 +776,8 @@ def doTraining(opts, args):
         if opts.A: lastalArgs.append("-A" + opts.A)
         if opts.B: lastalArgs.append("-B" + opts.B)
         proc = process(lastalArgs + args, None)
-        proc = lastSplitProcess(opts, proc)
+        if opts.postmask:
+            proc = process(["last-postmask"], proc.stdout)
         if not opts.scale:
             outerScale = scaleFromHeader(proc.stdout)
 
@@ -836,8 +832,8 @@ def doTraining(opts, args):
         writeGapCosts(opts, delCosts, insCosts, True, proc.stdin)
         writeScoreMatrixFunc(proc.stdin, matScores, "")
         proc.stdin.close()
-        if not opts.codon:
-            proc = lastSplitProcess(opts, proc)
+        if opts.postmask and not opts.codon:
+            proc = process(["last-postmask"], proc.stdout)
         matProbs, gapProbs = probsFromFile(opts, lastalArgs, maxGapGrowProb,
                                            codonMatches, proc.stdout)
 

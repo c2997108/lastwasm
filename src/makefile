@@ -36,12 +36,13 @@ mcf_frameshift_xdrop_aligner.o mcf_gap_costs.o GeneticCode.o		\
 GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
 QualityPssmMaker.o TwoQualityScoreMatrix.o gaplessXdrop.o		\
 gaplessPssmXdrop.o gaplessTwoQualityXdrop.o cbrc_linalg.o		\
-mcf_substitution_matrix_stats.o split/last_split_options.o $(alpObj)
+mcf_substitution_matrix_stats.o split/cbrc_unsplit_alignment.o		\
+split/last_split_options.o $(alpObj)
 
 alignObj4 = Alignment.o AlignmentPot.o AlignmentWrite.o Centroid.o	\
 DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\
 SegmentPairPot.o SubsetSuffixArray.o SubsetSuffixArraySearch.o		\
-lastal.o
+lastal.o split/cbrc_split_aligner.o split/mcf_last_splitter.o
 
 splitObj0 = Alphabet.o LambdaCalculator.o fileMap.o cbrc_linalg.o	\
 mcf_substitution_matrix_stats.o split/cbrc_unsplit_alignment.o		\
