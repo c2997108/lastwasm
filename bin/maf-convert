@@ -194,8 +194,10 @@ def mafInput(opts, lines):
                 r = fields[1].upper()
                 for c, x in zip(matrixColumnNames, fields[2:]):
                     opts.scoreMatrix[r, c] = int(x)
-            if opts.isKeepComments:
+            if opts.headerMode == 1:
                 print(line, end="")
+            if opts.headerMode == 2 and line.startswith("# LAST version "):
+                print("@PG\tID:lastal\tPN:lastal\tVN:" + fields[3])
     if sLines: yield aLine, sLines, qLines, pLines
 
 def isJoinable(opts, oldMaf, newMaf):
@@ -1168,7 +1170,7 @@ def mafConvert(opts, args):
     formatName = args[0].lower()
     fileNames = args[1:]
 
-    opts.isKeepComments = False
+    opts.headerMode = 0
     opts.bitScoreA = None
     opts.bitScoreB = None
 
@@ -1179,8 +1181,9 @@ def mafConvert(opts, args):
             writeHtmlHeader()
         if isFormat(formatName, "sam"):
             writeSamHeader(opts, fileNames)
+            opts.headerMode = 2
         if isFormat(formatName, "tabular"):
-            opts.isKeepComments = True
+            opts.headerMode = 1
 
     if not fileNames:
         fileNames = ["-"]
