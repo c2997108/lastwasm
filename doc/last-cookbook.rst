@@ -150,7 +150,7 @@ align them to a genome like this::
 
   lastdb -P8 -uRY4 mydb genome.fa
   last-train -P8 -Q0 mydb reads.fastq > reads.train
-  lastal -P8 -p reads.train mydb reads.fastq | last-split > out.maf
+  lastal -P8 --split -p reads.train mydb reads.fastq > out.maf
 
 ``-P8`` makes it faster by running 8 parallel threads, adjust as
 appropriate for your computer.  This has no effect on the results.
@@ -161,14 +161,14 @@ memory use, but also reduces sensitivity.
 ``-Q0`` makes it discard the fastq_ quality information (or you can
 keep-but-ignore it with ``-Qkeep``).
 
-last-split_ cuts the output of ``lastal`` down to a unique best
-alignment for each part of each read.  It gives each alignment a
-`mismap probability`_, which is high if that part of the read is
-almost equally similar to several parts of the genome.
+``--split`` cuts the output down to a unique best alignment for each
+part of each read.  It gives each alignment a `mismap probability`_,
+which is high if that part of the read is almost equally similar to
+several parts of the genome.
 
 Here we didn't suppress alignments caused by simple sequence (like
 ``cacacacacacacacacacacaca``), so as not to hide anything from
-last-split_.  You can discard such alignments with last-postmask_
+``--split``.  You can discard such alignments with last-postmask_
 (though they may help to explain each part of a DNA read).
 
 To make it more sensitive but slow, replace ``RY4`` with ``NEAR``:
@@ -213,10 +213,11 @@ Aligning Illumina DNA reads to a genome
 
   lastdb -P8 -uNEAR mydb genome.fasta
   last-train -P8 -Q1 mydb reads.fastq.gz > reads.train
-  lastal -P8 -p reads.train mydb reads.fastq.gz | last-split | gzip > out.maf.gz
+  lastal -P8 --split -p reads.train mydb reads.fastq.gz | gzip > out.maf.gz
 
 Most LAST commands accept ``.gz`` compressed files, and you can
-compress output with ``gzip`` as above.
+compress output with ``gzip`` as above.  You can get faster but
+slightly worse compression with e.g. ``gzip -5``.
 
 ``-Q1`` makes it use the fastq_ quality information to improve the
 training and alignment.  LAST **assumes** that the qualities reflect
@@ -245,8 +246,8 @@ Aligning paired-end Illumina DNA reads to a genome
 You can use last-split-pe_, or the older last-pair-probs_.  The
 difference is that ``last-split-pe`` allows different parts of one
 read (i.e. one "end") to align to different parts of the genome, like
-``last-split``.  (Or you could align the reads individually, ignoring
-the pair relationships.)
+``--split``.  (Or you could align the reads individually, ignoring the
+pair relationships.)
 
 Aligning potentially-spliced Illumina reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -261,7 +262,7 @@ is a slow-and-sensitive recipe::
 
   lastdb -P8 -uNEAR humdb human_no_alt_analysis_set.fa
   last-train -P8 --revsym -E0.05 -C2 humdb chimp.fa > humchi.train
-  lastal -E0.05 -C2 -p humchi.train humdb chimp.fa | last-split -fMAF+ > humchi1.maf
+  lastal -E0.05 -C2 --split-f=MAF+ -p humchi.train humdb chimp.fa > humchi1.maf
 
 ``--revsym`` makes the substitution rates the same on both strands.
 For example, it makes A→G equal T→C (because A→G on one strand means
@@ -273,9 +274,10 @@ asymmetric "heavy" and "light" strands).
 expected to occur by chance at a rate ≤ 0.05 times per pair of random
 sequences of length 1 billion each.
 
-``-fMAF+`` makes it show `per-base mismap probabilities`_: the
-probability that each query (chimp) base should be aligned to a
-different part of the reference (human).
+``--split-f=MAF+`` has the same effect as ``--split``, and also makes
+it show `per-base mismap probabilities`_: the probability that each
+query (chimp) base should be aligned to a different part of the
+reference (human).
 
 The result so far is asymmetric: each part of the chimp genome is
 aligned to at most one part of the human genome, but not vice-versa.

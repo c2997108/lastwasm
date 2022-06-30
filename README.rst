@@ -7,8 +7,8 @@ proteomes).  It's especially good at:
 * Finding rearrangements and recombinations: we believe last-split_
   does that more rigorously than anything else.
 
-* Finding DNA-versus-protein related regions, especially protein
-  fossils (but introns are not considered).
+* Finding DNA-versus-protein related regions, especially protein_
+  fossils_.
 
 * Unusual data, e.g. AT-rich DNA, because we can fit_ parameters to
   the data and calculate significance_.
@@ -30,7 +30,9 @@ apply to older versions of LAST!  You can see your version with::
 Install
 -------
 
-Please download the highest version number from
+You can install it from bioconda_ or `Debian Med`_, or like this...
+
+Download the highest version number from
 https://gitlab.com/mcfrith/last/-/tags.  Using the command line, go
 into the downloaded directory and type::
 
@@ -63,10 +65,6 @@ up your computer to find them automatically.  Some possible ways:
 You might have to log out and back in before your computer recognizes
 the new programs.
 
-**Alternative:** Install LAST from bioconda_.  But it might not be the
-latest version: usually that doesn't matter, but it might work
-inferiorly or differently from this documentation.
-
 Further info
 ------------
 
@@ -88,7 +86,10 @@ LAST is brought to you by:
 .. _significance: doc/last-evalues.rst
 .. _cookbook: doc/last-cookbook.rst
 .. _LAST papers: doc/last-papers.rst
+.. _protein: https://doi.org/10.1109/TCBB.2022.3177855
+.. _fossils: https://doi.org/10.1093/molbev/msac068
 .. _bioconda: https://bioconda.github.io/
+.. _Debian Med: https://www.debian.org/devel/debian-med/
 .. _PATH variable: https://en.wikipedia.org/wiki/PATH_(variable)
 .. _Computational Omics Research Team: https://www.airc.aist.go.jp/en/cort/
 .. _AIRC: https://www.airc.aist.go.jp/en/

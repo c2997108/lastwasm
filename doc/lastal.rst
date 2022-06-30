@@ -43,6 +43,9 @@ Steps in lastal
 7) Redo the alignments to minimize column ambiguity, using either
    gamma-centroid or LAMA (OFF by default).
 
+8) Cut the alignments down to a unique best alignment for each part of
+   each query sequence (OFF by default).
+
 Options
 -------
 
@@ -584,6 +587,32 @@ Miscellaneous options
     -p).  There is evidence these E-values will be accurate if the
     PSSM is "constructed to the same scale" as the match/mismatch
     scores (SF Altschul et al. 1997, NAR 25(17):3389-402).
+
+Split options
+~~~~~~~~~~~~~
+
+--split
+    Cut the alignments down to a unique best alignment for each part
+    of each query sequence.  This is useful for DNA queries that cross
+    rearrangement breakpoints.  It's the same as running last-split_
+    with default options.
+
+--splice
+    This is similar to ``--split``, but it favors alignments that
+    would be expected due to intron/exon splicing.  So it favors
+    alignments where parts of a query sequence are separated by
+    intron-like gaps with GT-AG splice signals.  This is the same as
+    running last-split_ with option ``-g``.
+
+--split-f, --split-m, --split-s, --split-n, --split-b
+    These are equivalent to last-split_ options ``-f``, ``-m``,
+    ``-s``, ``-n``, and ``-b``.  If you use one of these, you don't
+    need to also specify ``--split``.
+
+--split-d, --split-c, --split-t, --split-M, --split-S
+    These are equivalent to last-split_ options ``-d``, ``-c``,
+    ``-t``, ``-M``, and ``-S``.  They imply ``--splice``, so you don't
+    need to also specify ``--splice``.
 
 Parallel processes and memory sharing
 -------------------------------------
