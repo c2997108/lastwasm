@@ -1115,12 +1115,12 @@ size_t SplitAligner::memory(const SplitAlignerParams &params,
 }
 
 void SplitAligner::initMatricesForOneQuery(const SplitAlignerParams &params) {
-  size_t doubleMatrixSize = cellsPerDpMatrix() * 2;
+  size_t nCells = cellsPerDpMatrix();
   // The final cell per row is never used, because there's one less
   // Aij than Dij per candidate alignment.
-  if (Smat.size() < doubleMatrixSize) {
-    Smat.resize(doubleMatrixSize);
-    Sexp.resize(doubleMatrixSize);
+  if (Smat.size() < nCells * 2) {
+    Smat.resize(nCells * 2);
+    Sexp.resize(nCells * 2);
   }
 
   for (unsigned i = 0; i < numAlns; i++) calcBaseScores(params, i);
@@ -1142,8 +1142,7 @@ void SplitAligner::initMatricesForOneQuery(const SplitAlignerParams &params) {
     for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(params, i);
   }
 
-  std::transform(&Smat[0], &Smat[0] + doubleMatrixSize, &Sexp[0],
-		 params.scaledExp);
+  std::transform(&Smat[0], &Smat[0] + nCells * 2, &Sexp[0], params.scaledExp);
   // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
