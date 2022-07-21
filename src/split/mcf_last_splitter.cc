@@ -166,6 +166,12 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   }
   sa.initMatricesForOneQuery(params);
 
+  long viterbiScore = LONG_MIN;
+  long viterbiScoreRev = LONG_MIN;
+  std::vector<unsigned> alnNums;
+  std::vector<unsigned> queryBegs;
+  std::vector<unsigned> queryEnds;
+
   if (opts.direction != 0) {
     sa.forwardBackward(params);
   }
@@ -187,12 +193,10 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 			 true, senseStrandLogOdds);
     }
   } else {
-    long viterbiScore = LONG_MIN;
     if (opts.direction != 0) {
       viterbiScore = sa.viterbi(params);
       if (opts.verbose) std::cerr << "\t" << viterbiScore;
     }
-    long viterbiScoreRev = LONG_MIN;
     if (opts.direction != 1) {
       sa.flipSpliceSignals(params);
       viterbiScoreRev = sa.viterbi(params);
@@ -200,9 +204,6 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
       if (opts.verbose) std::cerr << "\t" << viterbiScoreRev;
     }
     bool isSenseStrand = (viterbiScore >= viterbiScoreRev);
-    std::vector<unsigned> alnNums;
-    std::vector<unsigned> queryBegs;
-    std::vector<unsigned> queryEnds;
     if (isSenseStrand) {
       sa.traceBack(params, viterbiScore, alnNums, queryBegs, queryEnds);
     } else {
