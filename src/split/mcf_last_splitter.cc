@@ -189,6 +189,12 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
       viterbiScore = sa.viterbi(params);
       if (opts.verbose) std::cerr << "\t" << viterbiScore;
     }
+    if (opts.direction != 1) {
+      sa.flipSpliceSignals(params);
+      viterbiScoreRev = sa.viterbi(params);
+      sa.flipSpliceSignals(params);
+      if (opts.verbose) std::cerr << "\t" << viterbiScoreRev;
+    }
   }
 
   if (opts.no_split) {
@@ -200,12 +206,6 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 			 true, senseStrandLogOdds);
     }
   } else {
-    if (opts.direction != 1) {
-      sa.flipSpliceSignals(params);
-      viterbiScoreRev = sa.viterbi(params);
-      sa.flipSpliceSignals(params);
-      if (opts.verbose) std::cerr << "\t" << viterbiScoreRev;
-    }
     bool isSenseStrand = (viterbiScore >= viterbiScoreRev);
     if (isSenseStrand) {
       sa.traceBack(params, viterbiScore, alnNums, queryBegs, queryEnds);
