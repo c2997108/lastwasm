@@ -157,14 +157,14 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   if (opts.verbose) std::cerr << beg->qname << "\t" << (end - beg);
   sa.layout(params, beg, end);
   if (opts.verbose) std::cerr << "\tcells=" << sa.cellsPerDpMatrix();
-  size_t bytes = sa.memory(params, !opts.no_split, opts.direction == 2);
+  size_t bytes = sa.memory(params, opts.direction == 2);
   if (bytes > opts.bytes) {
     if (opts.verbose) std::cerr << "\n";
     std::cerr << "last-split: skipping sequence " << beg->qname
 	      << " (" << bytes << " bytes)\n";
     return;
   }
-  sa.initMatricesForOneQuery(params);
+  sa.initMatricesForOneQuery(params, opts.direction == 2);
 
   long viterbiScore = LONG_MIN;
   long viterbiScoreRev = LONG_MIN;

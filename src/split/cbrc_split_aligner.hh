@@ -137,14 +137,14 @@ public:
 
     // Bytes of memory needed for the current query sequence (roughly)
     size_t memory(const SplitAlignerParams &params,
-		  bool isViterbi, bool isBothSpliceStrands) const;
+		  bool isBothSpliceStrands) const;
 
     // Call this before viterbi/forward/backward, and after layout
-    void initMatricesForOneQuery(const SplitAlignerParams &params);
+    void initMatricesForOneQuery(const SplitAlignerParams &params,
+				 bool isBothSpliceStrands);
 
     // returns the optimal split-alignment score
     long viterbi(const SplitAlignerParams &params) {
-      resizeMatrix(Vmat);
       resizeVector(Vvec);
       for (unsigned i = 0; i < numAlns; ++i) {
 	Vmat[matrixRowOrigins[i] + dpBegs[i]] = INT_MIN/2;
@@ -169,8 +169,6 @@ public:
 
     void forwardBackward(const SplitAlignerParams &params) {
       resizeVector(rescales);
-      resizeMatrix(Fmat);
-      resizeMatrix(Bmat);
       for (unsigned i = 0; i < numAlns; ++i) {
 	Fmat[matrixRowOrigins[i] + dpBegs[i]] = 0;
 	Bmat[matrixRowOrigins[i] + dpEnds[i]] = 0;
@@ -225,6 +223,8 @@ private:
     std::vector<unsigned> dpEnds;  // dynamic programming end coords
     std::vector<size_t> matrixRowOrigins;  // layout of ragged matrices
 
+    void *dpMemory;
+
     std::vector<int> Smat;
     // Smat holds position-specific substitution, insertion, and
     // deletion scores for the candidate alignments of one query
@@ -233,21 +233,21 @@ private:
     // Aij holds scores at query bases, in Smat[i][1,3,5,...,2n-1].
     // Dij holds scores between query bases, in Smat[i][0,2,4,...,2n].
 
-    std::vector<long> Vmat;  // DP matrix for Viterbi algorithm
+    long *Vmat;  // DP matrix for Viterbi algorithm
     std::vector<long> Vvec;  // DP vector for Viterbi algorithm
 
     std::vector<float> Sexp;
     // Sexp holds exp(Smat / t): these values are called A'ij and D'ij
     // in [Frith&Kawaguchi 2015].
 
-    std::vector<double> Fmat;  // DP matrix for Forward algorithm
-    std::vector<double> Bmat;  // DP matrix for Backward algorithm
+    double *Fmat;  // DP matrix for Forward algorithm
+    double *Bmat;  // DP matrix for Backward algorithm
     std::vector<double> rescales;  // the usual scaling for numerical stability
 
-    std::vector<long> VmatRev;
+    long *VmatRev;
     std::vector<long> VvecRev;
-    std::vector<double> FmatRev;
-    std::vector<double> BmatRev;
+    double *FmatRev;
+    double *BmatRev;
     std::vector<double> rescalesRev;
 
     std::vector<unsigned> sortedAlnIndices;
@@ -327,6 +327,9 @@ private:
     // cell j in row i of a ragged matrix
     template<typename T> const T&
     cell(const std::vector<T>& v, unsigned i, unsigned j) const
+    { return v[matrixRowOrigins[i] + j]; }
+
+    long cell(const long *v, unsigned i, unsigned j) const
     { return v[matrixRowOrigins[i] + j]; }
 
     template<typename T>

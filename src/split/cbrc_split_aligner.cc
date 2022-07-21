@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <float.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <algorithm>
@@ -13,6 +14,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <new>
 #include <sstream>
 #include <stdexcept>
 
@@ -1104,23 +1106,32 @@ void SplitAligner::layout(const SplitAlignerParams &params,
 }
 
 size_t SplitAligner::memory(const SplitAlignerParams &params,
-			    bool isViterbi, bool isBothSpliceStrands) const {
+			    bool isBothSpliceStrands) const {
   size_t numOfStrands = isBothSpliceStrands ? 2 : 1;
   size_t x = 2 * sizeof(int) + 2 * sizeof(float);
   if (params.isSpliceCoords()) x += 2 * sizeof(unsigned);
   if (params.isGenome()) x += 2;
-  if (isViterbi) x += sizeof(long) * numOfStrands;
   x += 2 * sizeof(double) * numOfStrands;
   return x * cellsPerDpMatrix();
 }
 
-void SplitAligner::initMatricesForOneQuery(const SplitAlignerParams &params) {
+void SplitAligner::initMatricesForOneQuery(const SplitAlignerParams &params,
+					   bool isBothSpliceStrands) {
   size_t nCells = cellsPerDpMatrix();
   // The final cell per row is never used, because there's one less
   // Aij than Dij per candidate alignment.
   if (Smat.size() < nCells * 2) {
+    if (Smat.size()) free(dpMemory);
     Smat.resize(nCells * 2);
     Sexp.resize(nCells * 2);
+    dpMemory = malloc(nCells * 2 * (isBothSpliceStrands + 1) * sizeof(double));
+    if (!dpMemory) throw std::bad_alloc();
+    Vmat = static_cast<long *>(dpMemory);
+    Fmat = static_cast<double *>(dpMemory);
+    Bmat = Fmat + nCells;
+    VmatRev = Vmat + isBothSpliceStrands * nCells;
+    FmatRev = Fmat + isBothSpliceStrands * nCells * 2;
+    BmatRev = Bmat + isBothSpliceStrands * nCells * 2;
   }
 
   for (unsigned i = 0; i < numAlns; i++) calcBaseScores(params, i);
@@ -1147,10 +1158,10 @@ void SplitAligner::initMatricesForOneQuery(const SplitAlignerParams &params) {
 }
 
 void SplitAligner::flipSpliceSignals(const SplitAlignerParams &params) {
-  Vmat.swap(VmatRev);
+  std::swap(Vmat, VmatRev);
   Vvec.swap(VvecRev);
-  Fmat.swap(FmatRev);
-  Bmat.swap(BmatRev);
+  std::swap(Fmat, FmatRev);
+  std::swap(Bmat, BmatRev);
   rescales.swap(rescalesRev);
 
   int d = 17 - (spliceBegScores - params.spliceBegScores);
