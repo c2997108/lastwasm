@@ -10,6 +10,7 @@
 #include "Alphabet.hh"
 #include "MultiSequence.hh"
 
+#include <limits.h>
 #include <math.h>
 #include <stddef.h>
 
@@ -145,6 +146,9 @@ public:
     long viterbi(const SplitAlignerParams &params) {
       resizeMatrix(Vmat);
       resizeVector(Vvec);
+      for (unsigned i = 0; i < numAlns; ++i) {
+	Vmat[matrixRowOrigins[i] + dpBegs[i]] = INT_MIN/2;
+      }
       return params.isSpliced() ? viterbiSplice(params) : viterbiSplit(params);
     }
 
@@ -167,6 +171,10 @@ public:
       resizeVector(rescales);
       resizeMatrix(Fmat);
       resizeMatrix(Bmat);
+      for (unsigned i = 0; i < numAlns; ++i) {
+	Fmat[matrixRowOrigins[i] + dpBegs[i]] = 0;
+	Bmat[matrixRowOrigins[i] + dpEnds[i]] = 0;
+      }
       if (params.isSpliced()) {
 	forwardSplice(params);
 	backwardSplice(params);

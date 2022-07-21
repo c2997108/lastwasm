@@ -6,7 +6,6 @@
 
 #include <assert.h>
 #include <float.h>
-#include <limits.h>
 #include <string.h>
 
 #include <algorithm>
@@ -336,7 +335,6 @@ long SplitAligner::viterbiSplit(const SplitAlignerParams &params) {
   std::stable_sort(sortedAlnPtr, sortedAlnEnd,
 		   DpBegLess(&dpBegs[0], &dpEnds[0]));
 
-  for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
   long maxScore = 0;
 
   for (unsigned j = minBeg; j < maxEnd; j++) {
@@ -377,7 +375,6 @@ long SplitAligner::viterbiSplice(const SplitAlignerParams &params) {
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
 		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
 
-    for (unsigned i = 0; i < numAlns; ++i) cell(Vmat, i, dpBeg(i)) = INT_MIN/2;
     long maxScore = 0;
     long scoreFromJump = restartScore;
 
@@ -574,7 +571,6 @@ void SplitAligner::forwardSplit(const SplitAlignerParams &params) {
   std::stable_sort(sortedAlnPtr, sortedAlnEnd,
 		   DpBegLess(&dpBegs[0], &dpEnds[0]));
 
-  for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
   double sumOfProbs = 1;
   double rescale = 1;
 
@@ -618,7 +614,6 @@ void SplitAligner::forwardSplice(const SplitAlignerParams &params) {
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
 		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
 
-    for (unsigned i = 0; i < numAlns; ++i) cell(Fmat, i, dpBeg(i)) = 0.0;
     double probFromJump = 0;
     double begprob = 1.0;
     double zF = 0.0;  // sum of probabilities from the forward algorithm
@@ -666,7 +661,6 @@ void SplitAligner::backwardSplit(const SplitAlignerParams &params) {
   std::stable_sort(sortedAlnPtr, sortedAlnEnd,
 		   DpEndLess(&dpBegs[0], &dpEnds[0]));
 
-  for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
   double sumOfProbs = 1;
 
   for (unsigned j = maxEnd; j > minBeg; j--) {
@@ -704,7 +698,6 @@ void SplitAligner::backwardSplice(const SplitAlignerParams &params) {
     stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
 		QendLess(&dpEnds[0], &rnameAndStrandIds[0], &rEnds[0]));
 
-    for (unsigned i = 0; i < numAlns; ++i) cell(Bmat, i, dpEnd(i)) = 0.0;
     double probFromJump = 0;
     double endprob = 1.0;
     //double zB = 0.0;  // sum of probabilities from the backward algorithm
