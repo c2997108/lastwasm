@@ -1328,6 +1328,9 @@ static void runOneThread(unsigned threadNum) {
 static void runOneThreadSafely(unsigned threadNum) {
   try {
     runOneThread(threadNum);
+  } catch (const std::bad_alloc &e) {
+    std::cerr << args.programName << ": out of memory\n";
+    raise(SIGTERM);
   } catch (const std::exception &e) {
     std::cerr << args.programName << ": " << e.what() << '\n';
     raise(SIGTERM);  // quick_exit doesn't work on Mac
