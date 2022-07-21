@@ -172,18 +172,6 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   std::vector<unsigned> queryBegs;
   std::vector<unsigned> queryEnds;
 
-  if (opts.direction != 0) {
-    sa.forwardBackward(params);
-  }
-  if (opts.direction != 1) {
-    sa.flipSpliceSignals(params);
-    sa.forwardBackward(params);
-    sa.flipSpliceSignals(params);
-  }
-
-  double senseStrandLogOdds =
-    (opts.direction == 2) ? sa.spliceSignalStrandLogOdds() : 0;
-
   if (!opts.no_split) {
     if (opts.direction != 0) {
       viterbiScore = sa.viterbi(params);
@@ -206,6 +194,18 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
     std::reverse(queryBegs.begin(), queryBegs.end());
     std::reverse(queryEnds.begin(), queryEnds.end());
   }
+
+  if (opts.direction != 0) {
+    sa.forwardBackward(params);
+  }
+  if (opts.direction != 1) {
+    sa.flipSpliceSignals(params);
+    sa.forwardBackward(params);
+    sa.flipSpliceSignals(params);
+  }
+
+  double senseStrandLogOdds =
+    (opts.direction == 2) ? sa.spliceSignalStrandLogOdds() : 0;
 
   if (opts.verbose) std::cerr << "\n";
 
