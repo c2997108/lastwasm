@@ -127,12 +127,12 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
   if (!opts.genome.empty() && !opts.no_split) {
     if (partNum > 0) {
       out = strcpy(out, isSenseStrand ? " acc=" : " don=") + 5;
-      sa.spliceEndSignal(out, params, alnNum, qSliceBegOld, isSenseStrand);
+      sa.spliceEndSignal(out, params, alnNum, qSliceBeg, isSenseStrand);
       out += 2;
     }
     if (partNum + 1 < numOfParts) {
       out = strcpy(out, isSenseStrand ? " don=" : " acc=") + 5;
-      sa.spliceBegSignal(out, params, alnNum, qSliceEndOld, isSenseStrand);
+      sa.spliceBegSignal(out, params, alnNum, qSliceEnd, isSenseStrand);
       out += 2;
     }
   }
