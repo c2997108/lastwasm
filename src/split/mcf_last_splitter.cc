@@ -51,30 +51,30 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
     return;  // this can happen for spliced alignment!
   }
 
-  unsigned qSliceBegTrimmed = qSliceBeg;
-  unsigned qSliceEndTrimmed = qSliceEnd;
+  unsigned qSliceBegOld = qSliceBeg;
+  unsigned qSliceEndOld = qSliceEnd;
   unsigned alnBeg, alnEnd;
-  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBegTrimmed, alnBeg);
-  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEndTrimmed, alnEnd);
+  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, alnBeg);
+  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEnd, alnEnd);
 
-  if (qSliceBegTrimmed >= qSliceEndTrimmed) {
+  if (qSliceBeg >= qSliceEnd) {
     return;  // I think this can happen for spliced alignment
   }
 
   int score =
-    sa.segmentScore(alnNum, qSliceBeg, qSliceEnd) -
-    sa.segmentScore(alnNum, qSliceBeg, qSliceBegTrimmed) -
-    sa.segmentScore(alnNum, qSliceEndTrimmed, qSliceEnd);
+    sa.segmentScore(alnNum, qSliceBegOld, qSliceEndOld) -
+    sa.segmentScore(alnNum, qSliceBegOld, qSliceBeg) -
+    sa.segmentScore(alnNum, qSliceEnd, qSliceEndOld);
   if (score < opts.score) return;
 
   std::vector<double> p;
   if (opts.direction != 0) {
-    p = sa.marginalProbs(qSliceBegTrimmed, alnNum, alnBeg, alnEnd);
+    p = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
   }
   std::vector<double> pRev;
   if (opts.direction != 1) {
     sa.flipSpliceSignals(params);
-    pRev = sa.marginalProbs(qSliceBegTrimmed, alnNum, alnBeg, alnEnd);
+    pRev = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
     sa.flipSpliceSignals(params);
   }
   if (opts.direction == 0) p.swap(pRev);
@@ -127,12 +127,12 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
   if (!opts.genome.empty() && !opts.no_split) {
     if (partNum > 0) {
       out = strcpy(out, isSenseStrand ? " acc=" : " don=") + 5;
-      sa.spliceEndSignal(out, params, alnNum, qSliceBeg, isSenseStrand);
+      sa.spliceEndSignal(out, params, alnNum, qSliceBegOld, isSenseStrand);
       out += 2;
     }
     if (partNum + 1 < numOfParts) {
       out = strcpy(out, isSenseStrand ? " don=" : " acc=") + 5;
-      sa.spliceBegSignal(out, params, alnNum, qSliceEnd, isSenseStrand);
+      sa.spliceBegSignal(out, params, alnNum, qSliceEndOld, isSenseStrand);
       out += 2;
     }
   }
