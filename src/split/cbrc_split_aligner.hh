@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <math.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include <map>
 #include <string>
@@ -126,6 +127,9 @@ struct SplitAlignerParams {
 
 class SplitAligner {
 public:
+    SplitAligner() { maxCellsPerMatrix = 0; scMemory = dpMemory = 0; }
+    ~SplitAligner() { free(scMemory); free(dpMemory); }
+
     // Prepares to analyze some candidate alignments for one query
     // sequence: sets the number of DP matrix cells (and thus memory)
     void layout(const SplitAlignerParams &params,
@@ -229,9 +233,11 @@ private:
     std::vector<unsigned> dpEnds;  // dynamic programming end coords
     std::vector<size_t> matrixRowOrigins;  // layout of ragged matrices
 
+    size_t maxCellsPerMatrix;
+    void *scMemory;
     void *dpMemory;
 
-    std::vector<int> Smat;
+    int *Smat;
     // Smat holds position-specific substitution, insertion, and
     // deletion scores for the candidate alignments of one query
     // sequence to a genome.  These scores, for each candidate
@@ -242,7 +248,7 @@ private:
     long *Vmat;  // DP matrix for Viterbi algorithm
     std::vector<long> Vvec;  // DP vector for Viterbi algorithm
 
-    std::vector<float> Sexp;
+    float *Sexp;
     // Sexp holds exp(Smat / t): these values are called A'ij and D'ij
     // in [Frith&Kawaguchi 2015].
 

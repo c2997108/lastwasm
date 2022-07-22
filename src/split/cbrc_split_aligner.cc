@@ -6,7 +6,6 @@
 
 #include <assert.h>
 #include <float.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <algorithm>
@@ -1108,7 +1107,7 @@ void SplitAligner::layout(const SplitAlignerParams &params,
 size_t SplitAligner::memory(const SplitAlignerParams &params,
 			    bool isBothSpliceStrands) const {
   size_t numOfStrands = isBothSpliceStrands ? 2 : 1;
-  size_t x = 2 * sizeof(int) + 2 * sizeof(float);
+  size_t x = 2 * sizeof(float);
   if (params.isSpliceCoords()) x += 2 * sizeof(unsigned);
   if (params.isGenome()) x += 2;
   x += 2 * sizeof(double) * numOfStrands;
@@ -1120,12 +1119,15 @@ void SplitAligner::initMatricesForOneQuery(const SplitAlignerParams &params,
   size_t nCells = cellsPerDpMatrix();
   // The final cell per row is never used, because there's one less
   // Aij than Dij per candidate alignment.
-  if (Smat.size() < nCells * 2) {
-    if (Smat.size()) free(dpMemory);
-    Smat.resize(nCells * 2);
-    Sexp.resize(nCells * 2);
+  if (nCells > maxCellsPerMatrix) {
+    free(scMemory);
+    free(dpMemory);
+    scMemory = malloc(nCells * 2 * sizeof(float));
     dpMemory = malloc(nCells * 2 * (isBothSpliceStrands + 1) * sizeof(double));
-    if (!dpMemory) throw std::bad_alloc();
+    if (!scMemory || !dpMemory) throw std::bad_alloc();
+    maxCellsPerMatrix = nCells;
+    Smat = static_cast<int *>(scMemory);
+    Sexp = static_cast<float *>(scMemory);
     Vmat = static_cast<long *>(dpMemory);
     Fmat = static_cast<double *>(dpMemory);
     Bmat = Fmat + nCells;
