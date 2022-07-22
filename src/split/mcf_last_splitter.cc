@@ -174,9 +174,11 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 
   if (opts.no_split) {
     unsigned numOfParts = end - beg;
+    alnNums.resize(numOfParts);
     queryBegs.resize(numOfParts);
     queryEnds.resize(numOfParts);
     for (unsigned i = 0; i < numOfParts; ++i) {
+      alnNums[i] = i;
       queryBegs[i] = beg[i].qstart;
       queryEnds[i] = beg[i].qend;
     }
@@ -203,6 +205,8 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
     std::reverse(queryEnds.begin(), queryEnds.end());
   }
 
+  unsigned numOfParts = alnNums.size();
+
   if (opts.direction != 0) {
     sa.forwardBackward(params);
   }
@@ -219,21 +223,11 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 
   if (opts.verbose) std::cerr << "\n";
 
-  if (opts.no_split) {
-    unsigned numOfParts = end - beg;
-    for (unsigned i = 0; i < numOfParts; ++i) {
-      doOneAlignmentPart(opts, params, isAlreadySplit, beg[i],
-			 numOfParts, i, i, queryBegs[i], queryEnds[i],
-			 isSenseStrand, senseStrandLogOdds);
-    }
-  } else {
-    unsigned numOfParts = alnNums.size();
-    for (unsigned k = 0; k < numOfParts; ++k) {
-      unsigned i = alnNums[k];
-      doOneAlignmentPart(opts, params, isAlreadySplit, beg[i],
-			 numOfParts, k, i, queryBegs[k], queryEnds[k],
-			 isSenseStrand, senseStrandLogOdds);
-    }
+  for (unsigned k = 0; k < numOfParts; ++k) {
+    unsigned i = alnNums[k];
+    doOneAlignmentPart(opts, params, isAlreadySplit, beg[i], numOfParts, k,
+		       i, queryBegs[k], queryEnds[k],
+		       isSenseStrand, senseStrandLogOdds);
   }
 }
 
