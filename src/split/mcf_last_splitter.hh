@@ -19,6 +19,12 @@ void setLastSplitParams(cbrc::SplitAlignerParams &params,
 			int insOpenCost, int insGrowCost,
 			double scale, double genomeSize, int sequenceFormat);
 
+struct SliceData {
+  unsigned alnBeg;
+  unsigned alnEnd;
+  int score;
+};
+
 class LastSplitter {
 public:
   void reserve(size_t s) { mafs.reserve(s); }
@@ -41,6 +47,7 @@ public:
 private:
   cbrc::SplitAligner sa;
   std::vector<cbrc::UnsplitAlignment> mafs;
+  std::vector<SliceData> slices;
   std::vector<char> outputText;
 
   void doOneQuery(const LastSplitOptions &opts,
@@ -50,9 +57,9 @@ private:
 
   void doOneAlignmentPart(const LastSplitOptions &opts,
 			  const cbrc::SplitAlignerParams &params,
-			  bool isAlreadySplit,
-			  const cbrc::UnsplitAlignment &a, unsigned numOfParts,
-			  unsigned partNum, unsigned alnNum,
+			  bool isAlreadySplit, const cbrc::UnsplitAlignment &a,
+			  unsigned numOfParts, unsigned partNum,
+			  const SliceData &sd, unsigned alnNum,
 			  unsigned qSliceBeg, unsigned qSliceEnd,
 			  bool isSenseStrand, double senseStrandLogOdds);
 };

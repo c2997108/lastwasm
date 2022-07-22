@@ -38,43 +38,49 @@ static int printSense(char *out, double senseStrandLogOdds) {
 
 namespace mcf {
 
-void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
-				      const cbrc::SplitAlignerParams &params,
-				      bool isAlreadySplit,
-				      const cbrc::UnsplitAlignment &a,
-				      unsigned numOfParts, unsigned partNum,
-				      unsigned alnNum,
-				      unsigned qSliceBeg, unsigned qSliceEnd,
-				      bool isSenseStrand,
-				      double senseStrandLogOdds) {
+static void doOneSlice(SliceData &sd, unsigned &qSliceBeg, unsigned &qSliceEnd,
+		       const cbrc::SplitAligner &sa,
+		       const cbrc::UnsplitAlignment &a, unsigned alnNum) {
+  sd.score = -1;
+
   if (qSliceBeg >= a.qend || qSliceEnd <= a.qstart) {
     return;  // this can happen for spliced alignment!
   }
 
   unsigned qSliceBegOld = qSliceBeg;
   unsigned qSliceEndOld = qSliceEnd;
-  unsigned alnBeg, alnEnd;
-  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, alnBeg);
-  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEnd, alnEnd);
+  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, sd.alnBeg);
+  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEnd, sd.alnEnd);
 
   if (qSliceBeg >= qSliceEnd) {
     return;  // I think this can happen for spliced alignment
   }
 
-  int score =
+  sd.score =
     sa.segmentScore(alnNum, qSliceBegOld, qSliceEndOld) -
     sa.segmentScore(alnNum, qSliceBegOld, qSliceBeg) -
     sa.segmentScore(alnNum, qSliceEnd, qSliceEndOld);
-  if (score < opts.score) return;
+}
+
+void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
+				      const cbrc::SplitAlignerParams &params,
+				      bool isAlreadySplit,
+				      const cbrc::UnsplitAlignment &a,
+				      unsigned numOfParts, unsigned partNum,
+				      const SliceData &sd, unsigned alnNum,
+				      unsigned qSliceBeg, unsigned qSliceEnd,
+				      bool isSenseStrand,
+				      double senseStrandLogOdds) {
+  if (sd.score < opts.score) return;
 
   std::vector<double> p;
   if (opts.direction != 0) {
-    p = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
+    p = sa.marginalProbs(qSliceBeg, alnNum, sd.alnBeg, sd.alnEnd);
   }
   std::vector<double> pRev;
   if (opts.direction != 1) {
     sa.flipSpliceSignals(params);
-    pRev = sa.marginalProbs(qSliceBeg, alnNum, alnBeg, alnEnd);
+    pRev = sa.marginalProbs(qSliceBeg, alnNum, sd.alnBeg, sd.alnEnd);
     sa.flipSpliceSignals(params);
   }
   if (opts.direction == 0) p.swap(pRev);
@@ -94,14 +100,14 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
   int mismapPrecision = 3;
 
   std::vector<char> slice;
-  size_t lineLen = cbrc::mafSlice(slice, a, alnBeg, alnEnd, &p[0]);
+  size_t lineLen = cbrc::mafSlice(slice, a, sd.alnBeg, sd.alnEnd, &p[0]);
   const char *sliceBeg = &slice[0];
   const char *sliceEnd = sliceBeg + slice.size();
   const char *pLine = sliceEnd - lineLen;
   const char *secondLastLine = pLine - lineLen;
 
   if (isAlreadySplit && secondLastLine[0] == 'p') {
-    size_t backToSeq = alnEnd - alnBeg + 1;
+    size_t backToSeq = sd.alnEnd - sd.alnBeg + 1;
     mismap = cbrc::pLinesToErrorProb(pLine - backToSeq, sliceEnd - backToSeq);
     if (mismap > opts.mismap) return;
     mismapPrecision = 2;
@@ -120,7 +126,7 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
     memcpy(out, aLineOld, aLineOldSize);
     out += aLineOldSize;
   } else {
-    out += sprintf(out, "a score=%d", score);
+    out += sprintf(out, "a score=%d", sd.score);
   }
   out += sprintf(out, " mismap=%.*g", mismapPrecision, mismap);
   if (opts.direction == 2) out += printSense(out, senseStrandLogOdds);
@@ -206,6 +212,11 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   }
 
   unsigned numOfParts = alnNums.size();
+  slices.resize(numOfParts);
+  for (unsigned k = 0; k < numOfParts; ++k) {
+    unsigned i = alnNums[k];
+    doOneSlice(slices[k], queryBegs[k], queryEnds[k], sa, beg[i], i);
+  }
 
   if (opts.direction != 0) {
     sa.forwardBackward(params);
@@ -226,7 +237,7 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   for (unsigned k = 0; k < numOfParts; ++k) {
     unsigned i = alnNums[k];
     doOneAlignmentPart(opts, params, isAlreadySplit, beg[i], numOfParts, k,
-		       i, queryBegs[k], queryEnds[k],
+		       slices[k], i, queryBegs[k], queryEnds[k],
 		       isSenseStrand, senseStrandLogOdds);
   }
 }
