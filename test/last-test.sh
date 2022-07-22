@@ -245,6 +245,9 @@ trap 'rm -f $db*' EXIT
     # tricky Forward-Backward bug that happened once
     lastdb $db alli.fa
     lastal -j7 -r5 -q5 -a15 -b3 $db huma.fa
+
+    lastdb -uNEAR $db od-xsr-100k.fa
+    lastal -D10 --split-d=2 -p od.mat $db od-rna.fq
 } 2>&1 |
 grep -v version | diff -u last-test.out -
 
