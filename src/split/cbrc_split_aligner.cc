@@ -1152,9 +1152,6 @@ void SplitAligner::initMatricesForOneQuery(const SplitAlignerParams &params,
     resizeMatrix(spliceEndSignals);
     for (unsigned i = 0; i < numAlns; ++i) initSpliceSignals(params, i);
   }
-
-  std::transform(&Smat[0], &Smat[0] + nCells * 2, &Sexp[0], params.scaledExp);
-  // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
 }
 
 void SplitAligner::flipSpliceSignals(const SplitAlignerParams &params) {

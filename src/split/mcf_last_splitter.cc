@@ -218,6 +218,8 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
     doOneSlice(slices[k], queryBegs[k], queryEnds[k], sa, beg[i], i);
   }
 
+  sa.exponentiateScores(params);
+
   if (opts.direction != 0) {
     sa.forwardBackward(params);
   }

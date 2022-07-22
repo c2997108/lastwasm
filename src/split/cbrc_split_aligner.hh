@@ -167,6 +167,12 @@ public:
     int segmentScore(unsigned alnNum,
 		     unsigned queryBeg, unsigned queryEnd) const;
 
+    void exponentiateScores(const SplitAlignerParams &params) {
+      size_t s = cellsPerDpMatrix() * 2;
+      for (size_t i = 0; i < s; ++i) Sexp[i] = params.scaledExp(Smat[i]);
+      // if x/scale < about -745, then exp(x/scale) will be exactly 0.0
+    }
+
     void forwardBackward(const SplitAlignerParams &params) {
       resizeVector(rescales);
       for (unsigned i = 0; i < numAlns; ++i) {
