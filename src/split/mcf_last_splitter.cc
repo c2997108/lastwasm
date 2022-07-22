@@ -172,7 +172,15 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   std::vector<unsigned> queryBegs;
   std::vector<unsigned> queryEnds;
 
-  if (!opts.no_split) {
+  if (opts.no_split) {
+    unsigned numOfParts = end - beg;
+    queryBegs.resize(numOfParts);
+    queryEnds.resize(numOfParts);
+    for (unsigned i = 0; i < numOfParts; ++i) {
+      queryBegs[i] = beg[i].qstart;
+      queryEnds[i] = beg[i].qend;
+    }
+  } else {
     if (opts.direction != 0) {
       viterbiScore = sa.viterbi(params);
       if (opts.verbose) std::cerr << "\t" << viterbiScore;
@@ -204,6 +212,8 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
     sa.flipSpliceSignals(params);
   }
 
+  bool isSenseStrand = (viterbiScore >= viterbiScoreRev);
+
   double senseStrandLogOdds =
     (opts.direction == 2) ? sa.spliceSignalStrandLogOdds() : 0;
 
@@ -213,11 +223,10 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
     unsigned numOfParts = end - beg;
     for (unsigned i = 0; i < numOfParts; ++i) {
       doOneAlignmentPart(opts, params, isAlreadySplit, beg[i],
-			 numOfParts, i, i, beg[i].qstart, beg[i].qend,
-			 true, senseStrandLogOdds);
+			 numOfParts, i, i, queryBegs[i], queryEnds[i],
+			 isSenseStrand, senseStrandLogOdds);
     }
   } else {
-    bool isSenseStrand = (viterbiScore >= viterbiScoreRev);
     unsigned numOfParts = alnNums.size();
     for (unsigned k = 0; k < numOfParts; ++k) {
       unsigned i = alnNums[k];
