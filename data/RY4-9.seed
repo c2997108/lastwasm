@@ -1,5 +1,7 @@
 # This DNA seeding scheme reduces run time and memory use, by only
-# seeking seeds at ~1/4 of positions in each sequence.
+# seeking seeds at ~1/4 of positions in each sequence.  (From "How to
+# optimally sample a sequence for rapid analysis" by MC Frith, J Shaw,
+# JL Spouge.)
 
 #abbreviation RY4
 

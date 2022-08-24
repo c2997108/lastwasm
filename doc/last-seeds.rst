@@ -179,7 +179,9 @@ RY4-9 (abbreviation: RY4)
 -------------------------
 
 This DNA seeding scheme reduces run time and memory use, by only
-seeking seeds at ~1/4 of positions in each sequence.
+seeking seeds at ~1/4 of positions in each sequence.  (From "How to
+optimally sample a sequence for rapid analysis" by MC Frith, J Shaw,
+JL Spouge.)
 It uses this seed alphabet::
 
   R  A G
@@ -227,7 +229,9 @@ RY8-10 (abbreviation: RY8)
 --------------------------
 
 This DNA seeding scheme reduces run time and memory use, by only
-seeking seeds at ~1/8 of positions in each sequence.
+seeking seeds at ~1/8 of positions in each sequence.  (From "How to
+optimally sample a sequence for rapid analysis" by MC Frith, J Shaw,
+JL Spouge.)
 It uses this seed alphabet::
 
   R  A G
@@ -275,7 +279,9 @@ RY16-11 (abbreviation: RY16)
 ----------------------------
 
 This DNA seeding scheme reduces run time and memory use, by only
-seeking seeds at ~1/16 of positions in each sequence.
+seeking seeds at ~1/16 of positions in each sequence.  (From "How to
+optimally sample a sequence for rapid analysis" by MC Frith, J Shaw,
+JL Spouge.)
 It uses this seed alphabet::
 
   R  A G
@@ -323,7 +329,9 @@ RY32-12 (abbreviation: RY32)
 ----------------------------
 
 This DNA seeding scheme reduces run time and memory use, by only
-seeking seeds at ~1/32 of positions in each sequence.
+seeking seeds at ~1/32 of positions in each sequence.  (From "How to
+optimally sample a sequence for rapid analysis" by MC Frith, J Shaw,
+JL Spouge.)
 It uses this seed alphabet::
 
   R  A G

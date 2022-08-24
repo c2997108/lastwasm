@@ -122,15 +122,22 @@ research to society.
 
     __ https://doi.org/10.1093/bioinformatics/btaa1054
 
-    Describes the ``lastdb -u RY`` sparsity options.
+    Describes the ``lastdb -u RY`` sparsity options, for LAST version < 1407.
 
 15. `Improved DNA-versus-protein homology search for protein fossils`__.
-    Yao Y, Frith MC.
+    Yao Y, Frith MC.  IEEE/ACM Trans Comput Biol Bioinform. 2022
 
-    __ https://doi.org/10.1007/978-3-030-74432-8_11
+    __ https://doi.org/10.1109/TCBB.2022.3177855
 
     Describes "new-style" DNA-versus-protein search with
     ``last-train --codon``.
+
+16. `How to optimally sample a sequence for rapid analysis`__.
+    Frith MC, Shaw J, Spouge JL.
+
+    __ https://doi.org/10.1101/2022.08.18.504476
+
+    Describes the ``lastdb -u RY`` sparsity options, for LAST version >= 1407.
 
 External methods
 ----------------
