@@ -708,16 +708,19 @@ def tryToMakeChildProgramsFindable():
     # put it first, to avoid getting older versions of LAST:
     os.environ["PATH"] = d + os.pathsep + os.environ["PATH"]
 
-def readLastalProgName(lastdbIndexName):
+def readLastdbData(lastdbIndexName):
     bitsPerInt = "32"
     with open(lastdbIndexName + ".prj") as f:
         for line in f:
+            if line.startswith("alphabet="):
+                alphabet = line.split("=")[1].strip()
             if line.startswith("integersize="):
                 bitsPerInt = line.split("=")[1].strip()
     suffix = "" if bitsPerInt == "32" else str(int(bitsPerInt) // 8)
-    return "lastal" + suffix
+    lastalProgName = "lastal" + suffix
+    return lastalProgName, alphabet
 
-def fixedLastalArgs(opts, lastalProgName):
+def fixedLastalArgs(opts, lastalProgName, alphabet):
     x = [lastalProgName, "-j7"]
     if opts.D: x.append("-D" + opts.D)
     if opts.E: x.append("-E" + opts.E)
@@ -732,11 +735,13 @@ def fixedLastalArgs(opts, lastalProgName):
     if opts.X: x.append("-X" + opts.X)
     if opts.Q: x.append("-Q" + opts.Q)
     if opts.verbose: x.append("-" + "v" * opts.verbose)
-    if opts.codon:
-        x.append("-K1")
-    else:
+    if len(alphabet) < 20:
         x.append("--split-n")
         x.append("--split-m=0.01")  # xxx ???
+    else:
+        if opts.revsym:
+            raise RuntimeError("--revsym is for DNA only")
+        x.append("-K1")
     return x
 
 def process(args, inStream):
@@ -750,8 +755,15 @@ def versionFromLastal():
 
 def doTraining(opts, args):
     tryToMakeChildProgramsFindable()
-    lastalProgName = readLastalProgName(args[0])
+    lastalProgName, alphabet = readLastdbData(args[0])
     lastalVersion = versionFromLastal()
+
+    if not opts.p and (not opts.Q or opts.Q in ("0", "fastx", "keep")):
+        if not opts.r: opts.r = "5" if len(alphabet) < 20 else "12"
+        if not opts.q: opts.q = "5" if len(alphabet) < 20 else "7"
+        if not opts.a: opts.a = "15"
+        if not opts.b: opts.b = "3"
+
     print("# lastal version:", lastalVersion)
     print("# maximum percent identity:", opts.pid)
 
@@ -767,7 +779,7 @@ def doTraining(opts, args):
         writeScoreMatrixFunc = writeScoreMatrix
         codonMatches = None
 
-        lastalArgs = fixedLastalArgs(opts, lastalProgName)
+        lastalArgs = fixedLastalArgs(opts, lastalProgName, alphabet)
         if opts.r: lastalArgs.append("-r" + opts.r)
         if opts.q: lastalArgs.append("-q" + opts.q)
         if opts.p: lastalArgs.append("-p" + opts.p)
@@ -825,7 +837,7 @@ def doTraining(opts, args):
             if parameters in oldParameters:
                 break
         oldParameters.append(parameters)
-        lastalArgs = fixedLastalArgs(opts, lastalProgName)
+        lastalArgs = fixedLastalArgs(opts, lastalProgName, alphabet)
         lastalArgs.append("-t{0:.6}".format(scale))
         lastalArgs.append("-p-")
         proc = process(lastalArgs + args, subprocess.PIPE)
@@ -895,10 +907,10 @@ if __name__ == "__main__":
     op.add_option_group(og)
 
     og = optparse.OptionGroup(op, "Initial parameter options")
-    og.add_option("-r", metavar="SCORE",
-                  help="match score (default: 6 if Q>=1, else 5)")
-    og.add_option("-q", metavar="COST",
-                  help="mismatch cost (default: 18 if Q>=1, else 5)")
+    og.add_option("-r", metavar="SCORE", help=
+                  "match score   (default:  6 if Q>=1, or 5 if DNA, or 12)")
+    og.add_option("-q", metavar="COST", help=
+                  "mismatch cost (default: 18 if Q>=1, or 5 if DNA, or  7)")
     og.add_option("-p", metavar="NAME", help="match/mismatch score matrix")
     og.add_option("-a", metavar="COST",
                   help="gap existence cost (default: 21 if Q>=1, else 15)")
@@ -954,11 +966,6 @@ if __name__ == "__main__":
         if not opts.A: opts.A = opts.a
         if not opts.B: opts.B = opts.b
         opts.S = None
-    if not opts.p and (not opts.Q or opts.Q in ("0", "fastx", "keep")):
-        if not opts.r: opts.r = "5"
-        if not opts.q: opts.q = "5"
-        if not opts.a: opts.a = "15"
-        if not opts.b: opts.b = "3"
 
     try: lastTrain(opts, args)
     except KeyboardInterrupt: pass  # avoid silly error message
