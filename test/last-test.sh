@@ -23,6 +23,7 @@ db=/tmp/last-test
 trap 'rm -f $db*' EXIT
 
 {
+    lastdb -uMURPHY10 $db /dev/null  # this triggered a getopt reset bug
     lastdb $db /dev/null
     lastdb -D $db
     lastal $db /dev/null

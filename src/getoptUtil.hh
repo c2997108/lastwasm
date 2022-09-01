@@ -6,8 +6,13 @@
 
 #include <getopt.h>
 
-inline void resetGetopt() {
-  optind = 1;  // xxx ???
+inline void resetGetopt() {  // XXX fragile voodoo
+#ifdef __GLIBC__
+  optind = 0;
+#else
+  optind = 1;
+  //optreset = 1;  // XXX ???
+#endif
 }
 
 #endif
