@@ -50,7 +50,7 @@ Main Options:\n\
  -h, --help  show all options and their default settings, and exit\n\
  -p  interpret the sequences as proteins\n\
  -c  soft-mask lowercase letters (in reference *and* query sequences)\n\
- -u  seeding scheme (default: YASS for DNA, else exact-match seeds)\n\
+ -u  seeding scheme (default: YASS if DNA, else PSEUDO if -q, else exact-match)\n\
  -P  number of parallel threads (default: " + stringify(numOfThreads) + ")";
 
   std::string help = usage + "\n\

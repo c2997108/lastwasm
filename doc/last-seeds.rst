@@ -159,6 +159,21 @@ And this pattern::
 It sets this lastal default:
 -r6 -q18 -a21 -b9
 
+PSEUDO
+------
+
+This seeding scheme slightly increases sensitivity of
+DNA-versus-protein search for pseudogenes.
+It uses this seed alphabet::
+
+  1  A C D E F G H I K L M N P Q R S T V W Y *
+  0  ACDEFGHIKLMNPQRSTVWY*
+  2  ACST DEN FHWY G KQR* P ILMV
+
+And this pattern::
+
+  1120
+
 YASS
 ----
 

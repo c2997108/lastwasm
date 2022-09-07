@@ -77,9 +77,10 @@ static void makeSubsetSeeds( std::vector< CyclicSubsetSeed >& seeds,
     }
   }
   else{
-    std::string s = (alph.letters == alph.dna)
-      ? CyclicSubsetSeed::stringFromName( "YASS" )
-      : CyclicSubsetSeed::stringFromPatterns( "1", a );
+    std::string s =
+      (alph.letters == alph.dna) ? CyclicSubsetSeed::stringFromName("YASS") :
+      args.isAddStops ? CyclicSubsetSeed::stringFromName("PSEUDO") :
+      CyclicSubsetSeed::stringFromPatterns("1", a);
     CyclicSubsetSeed::addPatterns(seeds, s, isCaseSens, alph.encode, a);
   }
 
