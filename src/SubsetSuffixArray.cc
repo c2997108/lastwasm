@@ -221,6 +221,20 @@ static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
   return bucketIndex + offParts;
 }
 
+static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
+			    const SubsetSuffixArray::indexT *steps,
+			    unsigned depth, OffPart *buckBeg, OffPart *buckPtr,
+			    const PosPart *textPosPtr,
+			    size_t textPosBeg, size_t textPosEnd) {
+  for (size_t i = textPosBeg; i < textPosEnd; ++i) {
+    OffPart *b = buckBeg + bucketPos(text, seed, steps, depth, textPosPtr);
+    for (; buckPtr < b; buckPtr += offParts) {
+      offSet(buckPtr, i);
+    }
+    textPosPtr += posParts;
+  }
+}
+
 void SubsetSuffixArray::makeBuckets(const uchar *text,
 				    unsigned wordLength,
 				    const size_t *cumulativeCounts,
@@ -252,17 +266,13 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     unsigned depth = bucketDepths[s];
     const indexT *steps = bucketStepEnds[s];
     size_t textPosEnd = cumulativeCounts[s];
-
-    while (textPosBeg < textPosEnd) {
-      size_t bucketIndex = bucketPos(text, seed, steps, depth, sa);
-      OffPart *lastBucketPtr = buckBeg + bucketIndex;
-      for (; buckPtr < lastBucketPtr; buckPtr += offParts) {
-	offSet(buckPtr, textPosBeg);
-      }
-      sa += posParts;
-      ++textPosBeg;
+    makeSomeBuckets(text, seed, steps, depth, buckBeg,
+		    buckPtr, sa, textPosBeg, textPosEnd);
+    sa += posParts * (textPosEnd - textPosBeg);
+    if (textPosEnd > textPosBeg) {
+      buckPtr = buckBeg + bucketPos(text, seed, steps, depth, sa - posParts);
     }
-
+    textPosBeg = textPosEnd;
     buckBeg += steps[0];
   }
 
