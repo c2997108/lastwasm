@@ -242,10 +242,10 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   buckets.v.resize(bucketsSize());
   initBucketEnds();
 
+  const PosPart *sa = suffixArray.begin();
   OffPart *buckBeg = &buckets.v[0];
   OffPart *buckPtr = buckBeg;
   size_t textPosBeg = 0;
-  const PosPart *suffixArrayPtr = suffixArray.begin();
 
   for (size_t s = 0; s < seeds.size(); ++s) {
     const CyclicSubsetSeed &seed = seeds[s];
@@ -254,14 +254,13 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     size_t textPosEnd = cumulativeCounts[s];
 
     while (textPosBeg < textPosEnd) {
-      size_t bucketIndex = bucketPos(text, seed, steps, depth, suffixArrayPtr);
+      size_t bucketIndex = bucketPos(text, seed, steps, depth, sa);
       OffPart *lastBucketPtr = buckBeg + bucketIndex;
       for (; buckPtr < lastBucketPtr; buckPtr += offParts) {
 	offSet(buckPtr, textPosBeg);
       }
-
+      sa += posParts;
       ++textPosBeg;
-      suffixArrayPtr += posParts;
     }
 
     buckBeg += steps[0];
