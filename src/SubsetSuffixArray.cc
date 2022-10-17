@@ -199,6 +199,28 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   memoryToBinaryFile( chibiTable.begin(), chibiTable.end(), fileName );
 }
 
+static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
+			const SubsetSuffixArray::indexT *steps, unsigned depth,
+			const PosPart *textPosPtr) {
+  const uchar *textPtr = text + posGet(textPosPtr);
+
+  size_t bucketIndex = 0;
+  const uchar *subsetMap = seed.firstMap();
+  unsigned d = 0;
+  while (d < depth) {
+    uchar subset = subsetMap[*textPtr];
+    if (subset == CyclicSubsetSeed::DELIMITER) {
+      return bucketIndex + steps[d];  // d > 0
+    }
+    ++textPtr;
+    ++d;
+    bucketIndex += subset * steps[d];
+    subsetMap = seed.nextMap(subsetMap);
+  }
+
+  return bucketIndex + offParts;
+}
+
 void SubsetSuffixArray::makeBuckets(const uchar *text,
 				    unsigned wordLength,
 				    const size_t *cumulativeCounts,
@@ -232,25 +254,9 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     indexT endInSuffixArray = cumulativeCounts[s];
 
     while (posInSuffixArray < endInSuffixArray) {
-      const uchar* textPtr = text + posGet(suffixArrayPtr);
-      const uchar* subsetMap = seed.firstMap();
-      indexT bucketIndex = 0;
-      unsigned depth = 0;
-
-      while (depth < myBucketDepth) {
-	uchar subset = subsetMap[ *textPtr ];
-	if( subset == CyclicSubsetSeed::DELIMITER ){
-	  bucketIndex += steps[depth] - offParts;  // depth > 0
-	  break;
-	}
-	++textPtr;
-	++depth;
-	bucketIndex += subset * steps[depth];
-	subsetMap = seed.nextMap( subsetMap );
-      }
-
+      size_t bucketIndex = bucketPos(text, seed, steps, myBucketDepth, suffixArrayPtr);
       OffPart *lastBucketPtr = buckBeg + bucketIndex;
-      for (; buckPtr <= lastBucketPtr; buckPtr += offParts) {
+      for (; buckPtr < lastBucketPtr; buckPtr += offParts) {
 	offSet(buckPtr, posInSuffixArray);
       }
 
