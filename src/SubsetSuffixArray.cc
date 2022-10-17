@@ -220,10 +220,11 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   buckets.v.resize(bucketsSize());
   initBucketEnds();
 
-  OffPart *myBuckets = &buckets.v[0];
-  OffPart *bucketPtr = myBuckets;
+  OffPart *buckBeg = &buckets.v[0];
+  OffPart *buckPtr = buckBeg;
   indexT posInSuffixArray = 0;
   const PosPart *suffixArrayPtr = suffixArray.begin();
+
   for (size_t s = 0; s < seeds.size(); ++s) {
     const CyclicSubsetSeed &seed = seeds[s];
     unsigned myBucketDepth = bucketDepths[s];
@@ -248,20 +249,20 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 	subsetMap = seed.nextMap( subsetMap );
       }
 
-      OffPart *lastBucketPtr = myBuckets + bucketIndex;
-      for (; bucketPtr <= lastBucketPtr; bucketPtr += offParts) {
-	offSet(bucketPtr, posInSuffixArray);
+      OffPart *lastBucketPtr = buckBeg + bucketIndex;
+      for (; buckPtr <= lastBucketPtr; buckPtr += offParts) {
+	offSet(buckPtr, posInSuffixArray);
       }
 
       ++posInSuffixArray;
       suffixArrayPtr += posParts;
     }
 
-    myBuckets += steps[0];
+    buckBeg += steps[0];
   }
 
-  for (; bucketPtr <= myBuckets; bucketPtr += offParts) {
-    offSet(bucketPtr, posInSuffixArray);
+  for (; buckPtr <= buckBeg; buckPtr += offParts) {
+    offSet(buckPtr, posInSuffixArray);
   }
 }
 
