@@ -7,6 +7,8 @@
 #include <cstdio>  // remove
 #include <sstream>
 
+#include <thread>
+
 using namespace cbrc;
 
 static void err(const std::string &s) {
@@ -235,11 +237,33 @@ static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
   }
 }
 
+static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
+		       const SubsetSuffixArray::indexT *steps, unsigned depth,
+		       OffPart *buckBeg, OffPart *buckPtr, const PosPart *sa,
+		       size_t saBeg, size_t saEnd, size_t numOfThreads) {
+  const CyclicSubsetSeed &seed = *seedPtr;
+  if (numOfThreads > 1) {
+    size_t len = (saEnd - saBeg + numOfThreads - 1) / numOfThreads;
+    size_t mid = saBeg + len;
+    const PosPart *m = sa + posParts * len;
+    OffPart *b = buckBeg + bucketPos(text, seed, steps, depth, m - posParts);
+    std::thread t(runThreads, text, seedPtr, steps, depth, buckBeg,
+		  b, m, mid, saEnd, numOfThreads - 1);
+    makeSomeBuckets(text, seed, steps, depth, buckBeg,
+		    buckPtr, sa, saBeg, mid);
+    t.join();
+  } else {
+    makeSomeBuckets(text, seed, steps, depth, buckBeg,
+		    buckPtr, sa, saBeg, saEnd);
+  }
+}
+
 void SubsetSuffixArray::makeBuckets(const uchar *text,
 				    unsigned wordLength,
 				    const size_t *cumulativeCounts,
 				    size_t minPositionsPerBucket,
-				    unsigned bucketDepth) {
+				    unsigned bucketDepth,
+				    size_t numOfThreads) {
   std::vector<unsigned> bucketDepths(seeds.size(), bucketDepth);
   if (bucketDepth+1 == 0) {
     assert(minPositionsPerBucket > 0);
@@ -266,13 +290,13 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     unsigned depth = bucketDepths[s];
     const indexT *steps = bucketStepEnds[s];
     size_t textPosEnd = cumulativeCounts[s];
-    makeSomeBuckets(text, seed, steps, depth, buckBeg,
-		    buckPtr, sa, textPosBeg, textPosEnd);
-    sa += posParts * (textPosEnd - textPosBeg);
     if (textPosEnd > textPosBeg) {
+      runThreads(text, &seed, steps, depth, buckBeg,
+		 buckPtr, sa, textPosBeg, textPosEnd, numOfThreads);
+      sa += posParts * (textPosEnd - textPosBeg);
       buckPtr = buckBeg + bucketPos(text, seed, steps, depth, sa - posParts);
+      textPosBeg = textPosEnd;
     }
-    textPosBeg = textPosEnd;
     buckBeg += steps[0];
   }
 

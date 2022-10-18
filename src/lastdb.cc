@@ -273,7 +273,8 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 
     LOG( "bucketing..." );
     myIndex.makeBuckets(seq, wordsFinder.wordLength, wordCounts,
-			args.minIndexedPositionsPerBucket, args.bucketDepth);
+			args.minIndexedPositionsPerBucket, args.bucketDepth,
+			numOfThreads);
 
     LOG( "writing..." );
     if( numOfIndexes > 1 ){

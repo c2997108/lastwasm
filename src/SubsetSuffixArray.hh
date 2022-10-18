@@ -117,7 +117,8 @@ public:
   // (memory use of stored positions) / minPositionsPerBucket.
   void makeBuckets(const uchar *text,
 		   unsigned wordLength, const size_t *cumulativeCounts,
-		   size_t minPositionsPerBucket, unsigned bucketDepth);
+		   size_t minPositionsPerBucket, unsigned bucketDepth,
+		   size_t numOfThreads);
 
   void fromFiles(const std::string &baseName,
 		 bool isMaskLowercase, const uchar letterCode[],
