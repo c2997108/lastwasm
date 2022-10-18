@@ -226,14 +226,13 @@ static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
 static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
 			    const SubsetSuffixArray::indexT *steps,
 			    unsigned depth, OffPart *buckBeg, OffPart *buckPtr,
-			    const PosPart *textPosPtr,
-			    size_t textPosBeg, size_t textPosEnd) {
-  for (size_t i = textPosBeg; i < textPosEnd; ++i) {
-    OffPart *b = buckBeg + bucketPos(text, seed, steps, depth, textPosPtr);
+			    const PosPart *sa, size_t saBeg, size_t saEnd) {
+  for (size_t i = saBeg; i < saEnd; ++i) {
+    OffPart *b = buckBeg + bucketPos(text, seed, steps, depth, sa);
     for (; buckPtr < b; buckPtr += offParts) {
       offSet(buckPtr, i);
     }
-    textPosPtr += posParts;
+    sa += posParts;
   }
 }
 
@@ -283,25 +282,25 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   const PosPart *sa = suffixArray.begin();
   OffPart *buckBeg = &buckets.v[0];
   OffPart *buckPtr = buckBeg;
-  size_t textPosBeg = 0;
+  size_t saBeg = 0;
 
   for (size_t s = 0; s < seeds.size(); ++s) {
     const CyclicSubsetSeed &seed = seeds[s];
     unsigned depth = bucketDepths[s];
     const indexT *steps = bucketStepEnds[s];
-    size_t textPosEnd = cumulativeCounts[s];
-    if (textPosEnd > textPosBeg) {
+    size_t saEnd = cumulativeCounts[s];
+    if (saEnd > saBeg) {
       runThreads(text, &seed, steps, depth, buckBeg,
-		 buckPtr, sa, textPosBeg, textPosEnd, numOfThreads);
-      sa += posParts * (textPosEnd - textPosBeg);
+		 buckPtr, sa, saBeg, saEnd, numOfThreads);
+      sa += posParts * (saEnd - saBeg);
       buckPtr = buckBeg + bucketPos(text, seed, steps, depth, sa - posParts);
-      textPosBeg = textPosEnd;
+      saBeg = saEnd;
     }
     buckBeg += steps[0];
   }
 
   for (; buckPtr <= buckBeg; buckPtr += offParts) {
-    offSet(buckPtr, textPosBeg);
+    offSet(buckPtr, saBeg);
   }
 }
 
