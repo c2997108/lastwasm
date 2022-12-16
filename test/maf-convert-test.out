@@ -1,6 +1,7 @@
 Usage: 
   maf-convert --help
   maf-convert axt mafFile(s)
+  maf-convert bed mafFile(s)
   maf-convert blast mafFile(s)
   maf-convert blasttab mafFile(s)
   maf-convert chain mafFile(s)
@@ -14,6 +15,7 @@ Read MAF-format alignments & write them in another format.
 
 Options:
   -h, --help            show this help message and exit
+  -s N, --subject=N     which sequence to use as subject/reference
   -p, --protein         assume protein alignments, for psl match counts
   -j N, --join=N        join consecutive co-linear alignments separated by <=
                         N letters
@@ -7843,6 +7845,191 @@ Query: 852   LysArgAlaGlnIleAlaLysAlaIleLeuSerLysLys 864
 Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
              LysArgSerLeuIleAlaLysAlaLeuLeuSerLysLys
 
+Query= UN-L1MA6_pol#LINE/L1
+         (1275 letters)
+
+>chrUn_KI270748v1
+          Length = 93321
+
+ Score = 1559.7, Expect = 2e-147
+ Identities = 180/292 (61%), Gaps = 23/292 (7%)
+ Strand = Plus / Minus
+
+Query: 884   LysThrAlaTrpTyrTrpHisLys--AsnArgHisIleAspGlnTrpAsnArgIleGlu  902
+                   ||||||              |||||||||||||||||||||||||||||||||
+Sbjct: 90089 TaatcagcctggtaatcaCGT---AAAACAGACACATAGACCAGTGGAACAGAATAGAG  90034
+             ***SerAlaTrp***SerArg     AsnArgHisIleAspGlnTrpAsnArgIleGlu
+
+Query: 903   SerProGluIleAsnProArgIleTyrSerGlnLeuIlePheAspLysGlyAlaLysAsn 922
+                |||   |||||||||   |||||||||||||||||||||   ||||||      |||
+Sbjct: 90033 AACCCAGATATAAATCCACACATTTACAGCCAGCTCATCTTCAGCAAAGGCACCAACAAC 89974
+             AsnProAspIleAsnProHisIleTyrSerGlnLeuIlePheSerLysGlyThrAsnAsn
+
+Query: 923   ThrGlnTrp-GlyLysAspSerLeuPheAsnLysTrpCysTrpGluAsnTrpIleSer   941
+                          ||||||   ||||||   |||||||||      |||   |||   
+Sbjct: 89973 ATACGA---GCGAAAGGACGGTCTCTTCCATAAGTGGTGCAGGGGAAACTAGATAAAG   89919
+             IleArg    ArgLysAspGlyLeuPheHisLysTrpCysArgGlyAsn***IleLys
+
+Query: 942   ThrCysArgArgMetLysLeuAspProTyrLeuSerProTyrThrLysIleAsnSerLys 961
+                ||||||||||||||||||||||||   |||   |||||||||   |||   |||   
+Sbjct: 89918 ATATGCAGAAGAATGAAACTAGACCCGTCTCTCTTACCATACACAGAAATCAAATCAGAA 89859
+             IleCysArgArgMetLysLeuAspProSerLeuLeuProTyrThrGluIleLysSerGlu
+
+Query: 962   TrpIleLysAspLeu-AsnValArgProGluThrMetLysLeuLeuGluGluAsnIle   980
+             |||||||||             |||||||||      |||||||||||||||||||||
+Sbjct: 89858 TGGATTAAAGGT---AAAACTGAGACCTGAAAGTATAAAACTACTGGAAGAAAACATT   89804
+             TrpIleLysGly    LysLeuArgProGluSerIleLysLeuLeuGluGluAsnIle
+
+Query: 981   GlyGluMetLeuHisAspIleGlyLeuGlyLysAspPheLeuAspLysThrSerLysAla 1000
+                |||   |||   ||||||   |||   |||||||||               ||||||
+Sbjct: 89803 AGGGAAGTGCTCCAGGACATTGTTCTCAGCAAAGACTTTTTCAGTAGGGCCCCAAAAGCA 89744
+             ArgGluValLeuGlnAspIleValLeuSerLysAspPhePheSerArgAlaProLysAla
+
+Query: 1001  GlnAlaThrLysAlaLysIleAspLysTrpAspTyrIleLysLeuLysSerPheCysThr 1020
+             ||||||||||||||||||   ||||||            ||||||         |||   
+Sbjct: 89743 CAGGCAACCAAAGCAAAAACAGACAAGTGAAATCACACCAAGCTAAGAACCCTCTGCAGA 89684
+             GlnAlaThrLysAlaLysThrAspLys***AsnHisThrLysLeuArgThrLeuCysArg
+
+Query: 1021  AlaLysGluThrIleAsnArgValLysArgGlnProThrGluTrpGluLysIlePheAla 1040
+                ||||||      |||      ||||||||||||||||||||||||||||||   |||
+Sbjct: 89683 CCAAAGGAAAAAGTCAACAAACTGAAGAGACAACCCACAGAATGGGAGAAAATACTTGCA 89624
+             ProLysGluLysValAsnLysLeuLysArgGlnProThrGluTrpGluLysIleLeuAla
+
+Query: 1041  AsnTyrAlaSerAspLysGlyLeuIleSerArgIleTyrLys--GluLeuLysGlnLeu  1059
+                |||      |||||||||   |||                 ||||||||||||   
+Sbjct: 89623 AGCTACCCACCTGACAAGGGATTCATAACC------------AGGAGCTCAAACAA---  89580
+             SerTyrProProAspLysGlyPheIleThr              GluLeuLysGln   
+
+Query: 1060  AsnSerLysLysThrAsnAsnProIleXaaLysTrpAlaLysAspLeuAsnArgHisPhe 1079
+                         |||   |||   |||   |||||||||   ||||||   |||||||||
+Sbjct: 89579 ------TAGCAAACAATTAATCGAATTTTAAAATGGGCAAGAGACCTGAGTAGACATTTC 89526
+                   ***GlnThrIleAsnArgIleLeuLysTrpAlaArgAspLeuSerArgHisPhe
+
+Query: 1080  SerLysGluAspIleGlnMetAlaAsnArgTyrMetLysLysCysSerThrSerLeuIle 1099
+             ||||||||||||   |||||||||   |||||||||||||||||||||||||||||||||
+Sbjct: 89525 TCAAAAGAAGATGTACAAATGGCCAGCAGGTACATGAAAAAATGCTCAACATCACTAATC 89466
+             SerLysGluAspValGlnMetAlaSerArgTyrMetLysLysCysSerThrSerLeuIle
+
+Query: 1100  IleArgGluMetGlnIle-LysThrThrMetArgTyrHisLeuThrProValArgMet   1118
+             |||||||||   |||||| ||||||   ||||||      ||||||   |||   |||
+Sbjct: 89465 ATCAGAGAAACGCAAATAAAAAACTGCAATGAGGTCTTCTCTCACCTCAGTTAAAATG   89408
+             IleArgGluThrGlnIle LysThrAlaMetArgSerSerLeuThrSerValLysMet
+
+Query: 1119  AlaIleIleLysLysThrLysAspAsnLysCysTrpArgGlyCysGlyGluLysGlyThr 1138
+             |||      |||                  |||||||||||||||||||||   ||||||
+Sbjct: 89407 GCTTTCGTCAAAAACGCAGGGAATAAGGGATGCTGGCGAGGATGTGGAGAAAGGGGGACC 89348
+             AlaPheValLysAsnAlaGlyAsnLysGlyCysTrpArgGlyCysGlyGluArgGlyThr
+
+Query: 1139  LeuThrHisCysTrp--TrpGluCysLysLeuValGlnProLeuTrpLysThrVal--   1156
+             ||||||||||||     ||||||      ||||||||||||||||||||||||     
+Sbjct: 89347 CTCACACACTGT---TGTGGGAACGTTGATTAGTACAACCACTATGGAAAACA---GA   89296
+             LeuThrHisCys     TrpGluArg***LeuValGlnProLeuTrpLysThr     
+
+Query: 1157  TrpArgPheLeuLysLysLeuLys 1164
+             ||||||   |||||||||   |||
+Sbjct: 89295 TGGAGGCTCCTCAaaaaaccaaaa 89272
+             TrpArgLeuLeuLysLysProLys
+
+Query= UN-L1PA16_pol#LINE/L1
+         (1276 letters)
+
+>chrUn_KI270748v1
+          Length = 93321
+
+ Score = 1508.0, Expect = 3.8e-142
+ Identities = 230/359 (64%), Gaps = 33/359 (9%)
+ Strand = Plus / Plus
+
+Query: 527   LysGluAsnTyrArgProIleSerLeuMetAsnIleAspAlaLysIleLeuAsnLysIle 546
+             ||||||||||||         ||||||   |||   |||   ||||||||||||||||||
+Sbjct: 17572 AAAGAAAACTACAAATCCTTATCCCTGATCAACACAGATGTAAAAATACTCAACAAAATT 17631
+             LysGluAsnTyrLysSerLeuSerLeuIleAsnThrAspValLysIleLeuAsnLysIle
+
+Query: 547   LeuAlaAsnArgIleGlnGlnHisIleLysLysLeuIleHisHisAspGlnValGlyPhe 566
+             |||||||||         |||||||||||||||   ||||||||||||||||||||||||
+Sbjct: 17632 CTAGCAAACTGAAGCTAACAACACATCAAAAAGATAATTCATCATGATCAAGTGGGCTTT 17691
+             LeuAlaAsn***Ser***GlnHisIleLysLysIleIleHisHisAspGlnValGlyPhe
+
+Query: 567   IleProGlyMetGlnGlyTrpPheAsnIleArgLysSerIleAsnValIleHisHisIle 586
+             |||||||||         ||||||   |||   ||||||||||||   ||||||||||||
+Sbjct: 17692 ATTCCAGGGGTGCTTGAATGGTTCAAAATAGACAAATCAATAAACATGATTCACCACATA 17751
+             IleProGlyValLeuGluTrpPheLysIleAspLysSerIleAsnMetIleHisHisIle
+
+Query: 587   AsnArgIleLysAsnLysAsnHisMetIleIleSerIleAspAlaGluLysAlaPheAsp 606
+             |||         |||||||||   ||||||||||||   |||||||||   |||||||||
+Sbjct: 17752 AATGGAACTGAGAACAAAAACCCTATGATCATCTCATTAGATGCAGAATaagcatttgat 17811
+             AsnGlyThrGluAsnLysAsnProMetIleIleSerLeuAspAlaGlu***AlaPheAsp
+
+Query: 607   LysIleGlnHisProPheMetIleLysThrLeuXaaLysLeuGlyIleGluGlyThrTyr 626
+             ||||||||||||   ||||||||||||||||||         ||||||   |||   |||
+Sbjct: 17812 aaaatccaacatctgtttatgataaaaaccctcaACAATATAGGTATAGATGGAGTATAC 17871
+             LysIleGlnHisLeuPheMetIleLysThrLeuAsnAsnIleGlyIleAspGlyValTyr
+
+Query: 627   LeuLysIleIleArgAlaIleTyrAspLysProThrAlaAsnIleIleLeuAsnGlyGln 646
+             ||||||            ||||||||||||   ||||||||||||||||||   ||||||
+Sbjct: 17872 CTCAAA---AAATGAGTCATCTATGACAAAGCCACAGCCAACATCATCCTGGATGGGCAA 17928
+             LeuLys   Lys***ValIleTyrAspLysAlaThrAlaAsnIleIleLeuAspGlyGln
+
+Query: 647   LysLeuGluAlaPheProLeuArgThrGlyThrArgGlnGlyCysProLeuSerProLeu 666
+             |||||||||         |||   ||||||      |||||||||      |||      
+Sbjct: 17929 AAGTTAGAAGTGTTGCTTCTAGAAACTGGAAAAAAGCAAGGATGTTCACCTTCATCATTC 17988
+             LysLeuGluValLeuLeuLeuGluThrGlyLysLysGlnGlyCysSerProSerSerPhe
+
+Query: 667   LeuPheAsnIleValLeuGluValLeuAlaArgAlaIleArgGlnGluLysGluIleLys 686
+             |||||||||   |||||||||||||||||||||   ||||||   |||||||||||||||
+Sbjct: 17989 CTATTCAATACAGTACTGGAAGTGCTAGCCAGAACTATCAGAAAGGAGAAAGAAATAAAA 18048
+             LeuPheAsnThrValLeuGluValLeuAlaArgThrIleArgLysGluLysGluIleLys
+
+Query: 687   GlyIleGlnIleGlyLysGluGluValLysLeuSerLeuPheAlaAspAspMetIleLeu 706
+             ||||||||||||   |||   |||||||||   ||||||      |||||||||      
+Sbjct: 18049 GGTATACAAATTAGAAAA---GAAGTCAAATGATCTCTGCTCACTGATGACATGACTGTA 18105
+             GlyIleGlnIleArgLys   GluValLys***SerLeuLeuThrAspAspMetThrVal
+
+Query: 707   TyrLeuGluAsnProLysAspSerAlaLysArgLeuLeuGluLeuIleAsnAspPheSer 726
+                |||||||||||||||            |||||||||   ||||||   |||||||||
+Sbjct: 18106 GGCCTAGAAAACCCTAAAGTCTTC---AGAAGACTCCTAGACTTGATACACGACTTCAGT 18162
+             GlyLeuGluAsnProLysValPhe   ArgArgLeuLeuAspLeuIleHisAspPheSer
+
+Query: 727   LysValSerGlyTyrLysIleAsnVal--GlnLysSerValAlaPheLeuTyrThrAsn  745
+             ||||||   |||                 ||||||||||||   ||||||||||||   
+Sbjct: 18163 AAAGTCTTGGGATAAACAAGC------CACAAAAATCAGTTGTATTTCTATACACCAAA  18215
+             LysValLeuGly***ThrSer        GlnLysSerValValPheLeuTyrThrLys
+
+Query: 746   AsnValGlnAla-----------------------------GluSerGlnIleLysAsn  755
+                   ||||||                             |||   ||||||||||||
+Sbjct: 18216 TACATTCAAGCTGTTTGAATGTTTGTTGAGATTAATTtgttgAGAACCAAATTAAGAAC  18274
+             TyrIleGlnAla                             GluAsnGlnIleLysAsn
+
+Query: 756   AlaIleProPheThrIleAlaThrLysLysIle--LysTyrLeuGlyIleHisLeu-Thr 774
+                      ||||||||||||              ||||||||||||   |||    |||
+Sbjct: 18275 TCAACTGAATTTACAATAGCCATG---------AAAAATACCTAGGAATGCAT---AACT 18322
+             SerThrGluPheThrIleAlaMet           LysTyrLeuGlyMetHis    Thr
+
+Query: 775   LysGluValLysAspLeuTyrLysGluAsnTyrLysThrLeuLeuLysGluIleIleAsp 794
+                      |||||||||||||||||||||||||||   |||   |||||||||||||||
+Sbjct: 18323 ATATAAATGAAAGATCTCTACAAGGAGAACTACAAAATACTAATGAAAGAAATTATAGAT 18382
+             Ile***MetLysAspLeuTyrLysGluAsnTyrLysIleLeuMetLysGluIleIleAsp
+
+Query: 795   AspThrAsnLysTrpLysAsnIleProCysSerTrpIleGlyArgIleAsnIle-Val   813
+             |||   |||||||||||||||||||||||||||||||||      ||||||       
+Sbjct: 18383 GACATAAACAAATGGAAAAACATCCCATGCTCATGGATTAGAAAAATCAAT---AGCT   18437
+             AspIleAsnLysTrpLysAsnIleProCysSerTrpIleArgLysIleAsn    Ala
+
+Query: 814   LysMetAlaIleLeuProLys--AlaIleTyrArgPheAsnAlaIleProIleLysLeu  832
+             |||      |||   |||        |||||||||   |||||||||||||||||||||
+Sbjct: 18438 AAAGTGACCATATCACCC---ATACAATCTATAGAGTTAATGCAATTCCCATCAAATTA  18493
+             LysValThrIleSerPro     ThrIleTyrArgValAsnAlaIleProIleLysLeu
+
+Query: 833   ProMetSerPhePheThrGluLeuGluLysThr-IleLeuLysPheIleTrpAsnGln-  851
+             |||      |||   |||   |||   |||    ||||||||||||   |||   ||| 
+Sbjct: 18494 CCAACGTTATTTCTCACAaaattaaaaaaa---aaTCCTAAAGTTCACATGGAGCCAAA  18549
+             ProThrLeuPheLeuThrLysLeuLysLys    IleLeuLysPheThrTrpSerGln 
+
+Query: 852   LysArgAlaGlnIleAlaLysAlaIleLeuSerLysLys 864
+             ||||||      ||||||||||||   ||||||||||||
+Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
+             LysArgSerLeuIleAlaLysAlaLeuLeuSerLysLys
+
 0	chrM	93.10	87	6	0	87	1	13914	14000
 1	chrM	85.06	87	13	0	1	87	1544	1630
 2	chrM	71.43	84	24	0	4	87	12301	12384
@@ -7943,6 +8130,11 @@ chrUn_KI270748v1	UN-L1PA2_pol#LINE/L1	93.39	227	15	0	3860	4540	1049	1275	1.5e-16
 chrUn_KI270748v1	UN-L1MA6_pol#LINE/L1	62.18	386	107	14	3661	2577	518	879	2.5e-152	546
 chrUn_KI270748v1	UN-L1MA6_pol#LINE/L1	61.64	292	89	8	90089	89272	884	1164	2e-147	530
 chrUn_KI270748v1	UN-L1PA16_pol#LINE/L1	64.07	359	96	11	17572	18588	527	864	3.8e-142	512
+UN-L1MA6_pol#LINE/L1	chrUn_KI270748v1	63.82	633	194	13	658	1273	13905	15715	0	1.08e+03
+UN-L1PA2_pol#LINE/L1	chrUn_KI270748v1	93.39	227	15	0	1049	1275	3860	4540	1.5e-169	603
+UN-L1MA6_pol#LINE/L1	chrUn_KI270748v1	62.18	386	107	14	518	879	3661	2577	2.5e-152	546
+UN-L1MA6_pol#LINE/L1	chrUn_KI270748v1	61.64	292	89	8	884	1164	90089	89272	2e-147	530
+UN-L1PA16_pol#LINE/L1	chrUn_KI270748v1	64.07	359	96	11	527	864	17572	18588	3.8e-142	512
 chain 221 chr1 249250621 + 160106735 160106810 SRR359290.9001 75 - 0 75 1
 75
 chain 450 chr1 249250621 + 231468663 231468738 SRR359290.9002 75 + 0 75 2
@@ -8573,11 +8765,232 @@ chr19	maf-convert	match_part	1395388	1395484	291	-	.	Target=102 4 102;Name=102:4
 chr22	maf-convert	match	20726589	20726617	.	-	.	ID=102.73;Name=102:69-95
 chr22	maf-convert	match_part	20726589	20726617	115	-	.	Target=102 69 95;Name=102:69-95;Parent=102.73
 ##gff-version 3
+102	maf-convert	match	7	28	.	+	.	ID=chr5.1;Name=chr5:93489543-93489564
+102	maf-convert	match_part	7	28	118	+	.	Target=chr5 93489543 93489564;Name=chr5:93489543-93489564;Parent=chr5.1
+102	maf-convert	match	11	29	.	+	.	ID=chr5.2;Name=chr5:74376578-74376596
+102	maf-convert	match_part	11	29	114	+	.	Target=chr5 74376578 74376596;Name=chr5:74376578-74376596;Parent=chr5.2
+102	maf-convert	match	88	112	.	+	.	ID=chr3.1;Name=chr3:152862894-152862920
+102	maf-convert	match_part	88	112	116	+	.	Target=chr3 152862894 152862920;Name=chr3:152862894-152862920;Parent=chr3.1
+102	maf-convert	match	92	118	.	+	.	ID=chr2.1;Name=chr2:240456632-240456656
+102	maf-convert	match_part	92	118	125	+	.	Target=chr2 240456632 240456656;Name=chr2:240456632-240456656;Parent=chr2.1
+102	maf-convert	match	141	159	.	+	.	ID=chr1.1;Name=chr1:145870018-145870036
+102	maf-convert	match_part	141	159	114	+	.	Target=chr1 145870018 145870036;Name=chr1:145870018-145870036;Parent=chr1.1
+102	maf-convert	match	257	277	.	+	.	ID=chr18.1;Name=chr18:55335093-55335113
+102	maf-convert	match_part	257	277	112	+	.	Target=chr18 55335093 55335113;Name=chr18:55335093-55335113;Parent=chr18.1
+102	maf-convert	match	372	403	.	+	.	ID=chr19.1;Name=chr19:47072202-47072237
+102	maf-convert	match_part	372	403	110	+	.	Target=chr19 47072202 47072237;Name=chr19:47072202-47072237;Parent=chr19.1
+102	maf-convert	match	426	465	.	+	.	ID=chr8.1;Name=chr8:76840859-76840909
+102	maf-convert	match_part	426	465	117	+	.	Target=chr8 76840859 76840909;Name=chr8:76840859-76840909;Parent=chr8.1
+102	maf-convert	match	434	454	.	+	.	ID=chr4.1;Name=chr4:3839063-3839083
+102	maf-convert	match_part	434	454	112	+	.	Target=chr4 3839063 3839083;Name=chr4:3839063-3839083;Parent=chr4.1
+102	maf-convert	match	443	463	.	+	.	ID=chr20.1;Name=chr20:4034148-4034168
+102	maf-convert	match_part	443	463	110	+	.	Target=chr20 4034148 4034168;Name=chr20:4034148-4034168;Parent=chr20.1
+102	maf-convert	match	443	463	.	+	.	ID=chr3.2;Name=chr3:186865652-186865672
+102	maf-convert	match_part	443	463	110	+	.	Target=chr3 186865652 186865672;Name=chr3:186865652-186865672;Parent=chr3.2
+102	maf-convert	match	443	463	.	+	.	ID=chr7.1;Name=chr7:65260307-65260327
+102	maf-convert	match_part	443	463	110	+	.	Target=chr7 65260307 65260327;Name=chr7:65260307-65260327;Parent=chr7.1
+102	maf-convert	match	459	490	.	+	.	ID=chr1.2;Name=chr1:161050906-161050943
+102	maf-convert	match_part	459	490	119	+	.	Target=chr1 161050906 161050943;Name=chr1:161050906-161050943;Parent=chr1.2
+102	maf-convert	match	460	490	.	+	.	ID=chr18.2;Name=chr18:8561209-8561245
+102	maf-convert	match_part	460	490	114	+	.	Target=chr18 8561209 8561245;Name=chr18:8561209-8561245;Parent=chr18.2
+102	maf-convert	match	465	494	.	+	.	ID=chr17.1;Name=chr17:28925930-28925955
+102	maf-convert	match_part	465	494	111	+	.	Target=chr17 28925930 28925955;Name=chr17:28925930-28925955;Parent=chr17.1
+102	maf-convert	match	468	504	.	+	.	ID=chr1.3;Name=chr1:21590631-21590682
+102	maf-convert	match_part	468	504	121	+	.	Target=chr1 21590631 21590682;Name=chr1:21590631-21590682;Parent=chr1.3
+102	maf-convert	match	468	491	.	+	.	ID=chr15.1;Name=chr15:45614750-45614773
+102	maf-convert	match_part	468	491	118	+	.	Target=chr15 45614750 45614773;Name=chr15:45614750-45614773;Parent=chr15.1
+102	maf-convert	match	471	489	.	+	.	ID=chr13.1;Name=chr13:113342216-113342234
+102	maf-convert	match_part	471	489	114	+	.	Target=chr13 113342216 113342234;Name=chr13:113342216-113342234;Parent=chr13.1
+102	maf-convert	match	471	489	.	+	.	ID=chr17.2;Name=chr17:19079610-19079628
+102	maf-convert	match_part	471	489	114	+	.	Target=chr17 19079610 19079628;Name=chr17:19079610-19079628;Parent=chr17.2
+102	maf-convert	match	471	489	.	+	.	ID=chr17.3;Name=chr17:19205792-19205810
+102	maf-convert	match_part	471	489	114	+	.	Target=chr17 19205792 19205810;Name=chr17:19205792-19205810;Parent=chr17.3
+102	maf-convert	match	471	489	.	+	.	ID=chr22.1;Name=chr22:23657491-23657509
+102	maf-convert	match_part	471	489	114	+	.	Target=chr22 23657491 23657509;Name=chr22:23657491-23657509;Parent=chr22.1
+102	maf-convert	match	473	499	.	+	.	ID=chr10.1;Name=chr10:122813035-122813060
+102	maf-convert	match_part	473	499	120	+	.	Target=chr10 122813035 122813060;Name=chr10:122813035-122813060;Parent=chr10.1
+102	maf-convert	match	473	491	.	+	.	ID=chr5.3;Name=chr5:4867426-4867444
+102	maf-convert	match_part	473	491	114	+	.	Target=chr5 4867426 4867444;Name=chr5:4867426-4867444;Parent=chr5.3
+102	maf-convert	match	477	499	.	+	.	ID=chr11.1;Name=chr11:67464147-67464169
+102	maf-convert	match_part	477	499	124	+	.	Target=chr11 67464147 67464169;Name=chr11:67464147-67464169;Parent=chr11.1
+102	maf-convert	match	480	508	.	+	.	ID=chr14.1;Name=chr14:104715673-104715703
+102	maf-convert	match_part	480	508	126	+	.	Target=chr14 104715673 104715703;Name=chr14:104715673-104715703;Parent=chr14.1
+102	maf-convert	match	486	508	.	+	.	ID=chr3.3;Name=chr3:127741376-127741402
+102	maf-convert	match_part	486	508	112	+	.	Target=chr3 127741376 127741402;Name=chr3:127741376-127741402;Parent=chr3.3
+102	maf-convert	match	488	512	.	+	.	ID=chr5.4;Name=chr5:169763616-169763644
+102	maf-convert	match_part	488	512	110	+	.	Target=chr5 169763616 169763644;Name=chr5:169763616-169763644;Parent=chr5.4
+102	maf-convert	match	494	515	.	+	.	ID=chr7.2;Name=chr7:157969524-157969545
+102	maf-convert	match_part	494	515	114	+	.	Target=chr7 157969524 157969545;Name=chr7:157969524-157969545;Parent=chr7.2
+102	maf-convert	match	509	533	.	+	.	ID=chr5.5;Name=chr5:173701200-173701222
+102	maf-convert	match_part	509	533	113	+	.	Target=chr5 173701200 173701222;Name=chr5:173701200-173701222;Parent=chr5.5
+102	maf-convert	match	547	565	.	+	.	ID=chr17.4;Name=chr17:27793640-27793658
+102	maf-convert	match_part	547	565	114	+	.	Target=chr17 27793640 27793658;Name=chr17:27793640-27793658;Parent=chr17.4
+102	maf-convert	match	619	638	.	+	.	ID=chr10.2;Name=chr10:124281395-124281414
+102	maf-convert	match_part	619	638	120	+	.	Target=chr10 124281395 124281414;Name=chr10:124281395-124281414;Parent=chr10.2
+102	maf-convert	match	641	667	.	+	.	ID=chr14.2;Name=chr14:80332130-80332156
+102	maf-convert	match_part	641	667	118	+	.	Target=chr14 80332130 80332156;Name=chr14:80332130-80332156;Parent=chr14.2
+102	maf-convert	match	667	693	.	+	.	ID=chr21.1;Name=chr21:14291181-14291209
+102	maf-convert	match_part	667	693	114	+	.	Target=chr21 14291181 14291209;Name=chr21:14291181-14291209;Parent=chr21.1
+102	maf-convert	match	674	696	.	+	.	ID=chr3.4;Name=chr3:23607557-23607579
+102	maf-convert	match_part	674	696	138	+	.	Target=chr3 23607557 23607579;Name=chr3:23607557-23607579;Parent=chr3.4
+102	maf-convert	match	681	699	.	+	.	ID=chrX.1;Name=chrX:83302602-83302620
+102	maf-convert	match_part	681	699	114	+	.	Target=chrX 83302602 83302620;Name=chrX:83302602-83302620;Parent=chrX.1
+102	maf-convert	match	636	657	.	-	.	ID=chr22.2;Name=chr22:46458801-46458822
+102	maf-convert	match_part	636	657	115	-	.	Target=chr22 46458801 46458822;Name=chr22:46458801-46458822;Parent=chr22.2
+102	maf-convert	match	626	646	.	-	.	ID=chr19.2;Name=chr19:17615431-17615451
+102	maf-convert	match_part	626	646	126	-	.	Target=chr19 17615431 17615451;Name=chr19:17615431-17615451;Parent=chr19.2
+102	maf-convert	match	614	645	.	-	.	ID=chr19.3;Name=chr19:1383911-1383942
+102	maf-convert	match_part	614	645	178	-	.	Target=chr19 1383911 1383942;Name=chr19:1383911-1383942;Parent=chr19.3
+102	maf-convert	match	605	637	.	-	.	ID=chr10.3;Name=chr10:126932870-126932910
+102	maf-convert	match_part	605	637	115	-	.	Target=chr10 126932870 126932910;Name=chr10:126932870-126932910;Parent=chr10.3
+102	maf-convert	match	575	616	.	-	.	ID=chr19.4;Name=chr19:1387808-1387847
+102	maf-convert	match_part	575	616	215	-	.	Target=chr19 1387808 1387847;Name=chr19:1387808-1387847;Parent=chr19.4
+102	maf-convert	match	507	575	.	-	.	ID=chr19.5;Name=chr19:1388524-1388593
+102	maf-convert	match_part	507	575	321	-	.	Target=chr19 1388524 1388593;Name=chr19:1388524-1388593;Parent=chr19.5
+102	maf-convert	match	541	563	.	-	.	ID=chr5.6;Name=chr5:177958542-177958564
+102	maf-convert	match_part	541	563	111	-	.	Target=chr5 177958542 177958564;Name=chr5:177958542-177958564;Parent=chr5.6
+102	maf-convert	match	510	533	.	-	.	ID=chr15.2;Name=chr15:78230486-78230510
+102	maf-convert	match_part	510	533	110	-	.	Target=chr15 78230486 78230510;Name=chr15:78230486-78230510;Parent=chr15.2
+102	maf-convert	match	501	526	.	-	.	ID=chr2.2;Name=chr2:192414463-192414489
+102	maf-convert	match_part	501	526	115	-	.	Target=chr2 192414463 192414489;Name=chr2:192414463-192414489;Parent=chr2.2
+102	maf-convert	match	503	526	.	-	.	ID=chr3.5;Name=chr3:33026625-33026648
+102	maf-convert	match_part	503	526	112	-	.	Target=chr3 33026625 33026648;Name=chr3:33026625-33026648;Parent=chr3.5
+102	maf-convert	match	486	524	.	-	.	ID=chr1.4;Name=chr1:155997874-155997913
+102	maf-convert	match_part	486	524	110	-	.	Target=chr1 155997874 155997913;Name=chr1:155997874-155997913;Parent=chr1.4
+102	maf-convert	match	484	524	.	-	.	ID=chr7.3;Name=chr7:101590380-101590420
+102	maf-convert	match_part	484	524	133	-	.	Target=chr7 101590380 101590420;Name=chr7:101590380-101590420;Parent=chr7.3
+102	maf-convert	match	503	521	.	-	.	ID=chr3.6;Name=chr3:89815480-89815498
+102	maf-convert	match_part	503	521	114	-	.	Target=chr3 89815480 89815498;Name=chr3:89815480-89815498;Parent=chr3.6
+102	maf-convert	match	486	510	.	-	.	ID=chr3.7;Name=chr3:130609409-130609434
+102	maf-convert	match_part	486	510	119	-	.	Target=chr3 130609409 130609434;Name=chr3:130609409-130609434;Parent=chr3.7
+102	maf-convert	match	402	509	.	-	.	ID=chr19.6;Name=chr19:1388830-1388938
+102	maf-convert	match_part	402	509	495	-	.	Target=chr19 1388830 1388938;Name=chr19:1388830-1388938;Parent=chr19.6
+102	maf-convert	match	485	509	.	-	.	ID=chr8.2;Name=chr8:98433262-98433291
+102	maf-convert	match_part	485	509	121	-	.	Target=chr8 98433262 98433291;Name=chr8:98433262-98433291;Parent=chr8.2
+102	maf-convert	match	485	508	.	-	.	ID=chr6.1;Name=chr6:170257702-170257727
+102	maf-convert	match_part	485	508	110	-	.	Target=chr6 170257702 170257727;Name=chr6:170257702-170257727;Parent=chr6.1
+102	maf-convert	match	489	507	.	-	.	ID=chr12.1;Name=chr12:19357536-19357554
+102	maf-convert	match_part	489	507	114	-	.	Target=chr12 19357536 19357554;Name=chr12:19357536-19357554;Parent=chr12.1
+102	maf-convert	match	481	505	.	-	.	ID=chr19.7;Name=chr19:18430560-18430588
+102	maf-convert	match_part	481	505	124	-	.	Target=chr19 18430560 18430588;Name=chr19:18430560-18430588;Parent=chr19.7
+102	maf-convert	match	485	503	.	-	.	ID=chr21.2;Name=chr21:43027935-43027953
+102	maf-convert	match_part	485	503	114	-	.	Target=chr21 43027935 43027953;Name=chr21:43027935-43027953;Parent=chr21.2
+102	maf-convert	match	478	496	.	-	.	ID=chr17.5;Name=chr17:29190070-29190088
+102	maf-convert	match_part	478	496	114	-	.	Target=chr17 29190070 29190088;Name=chr17:29190070-29190088;Parent=chr17.5
+102	maf-convert	match	458	491	.	-	.	ID=chr7.4;Name=chr7:101723246-101723286
+102	maf-convert	match_part	458	491	115	-	.	Target=chr7 101723246 101723286;Name=chr7:101723246-101723286;Parent=chr7.4
+102	maf-convert	match	459	490	.	-	.	ID=chr12.2;Name=chr12:71544987-71545025
+102	maf-convert	match_part	459	490	129	-	.	Target=chr12 71544987 71545025;Name=chr12:71544987-71545025;Parent=chr12.2
+102	maf-convert	match	471	489	.	-	.	ID=chr17.6;Name=chr17:19172451-19172469
+102	maf-convert	match_part	471	489	114	-	.	Target=chr17 19172451 19172469;Name=chr17:19172451-19172469;Parent=chr17.6
+102	maf-convert	match	471	489	.	-	.	ID=chr17.7;Name=chr17:58670491-58670509
+102	maf-convert	match_part	471	489	114	-	.	Target=chr17 58670491 58670509;Name=chr17:58670491-58670509;Parent=chr17.7
+102	maf-convert	match	471	489	.	-	.	ID=chr6.2;Name=chr6:1842832-1842850
+102	maf-convert	match_part	471	489	114	-	.	Target=chr6 1842832 1842850;Name=chr6:1842832-1842850;Parent=chr6.2
+102	maf-convert	match	471	489	.	-	.	ID=chr7.5;Name=chr7:100370597-100370615
+102	maf-convert	match_part	471	489	114	-	.	Target=chr7 100370597 100370615;Name=chr7:100370597-100370615;Parent=chr7.5
+102	maf-convert	match	471	489	.	-	.	ID=chrX.2;Name=chrX:39928417-39928435
+102	maf-convert	match_part	471	489	114	-	.	Target=chrX 39928417 39928435;Name=chrX:39928417-39928435;Parent=chrX.2
+102	maf-convert	match	459	488	.	-	.	ID=chr4.2;Name=chr4:54783705-54783740
+102	maf-convert	match_part	459	488	120	-	.	Target=chr4 54783705 54783740;Name=chr4:54783705-54783740;Parent=chr4.2
+102	maf-convert	match	457	475	.	-	.	ID=chr5.7;Name=chr5:171574455-171574473
+102	maf-convert	match_part	457	475	114	-	.	Target=chr5 171574455 171574473;Name=chr5:171574455-171574473;Parent=chr5.7
+102	maf-convert	match	222	410	.	-	.	ID=chr19.8;Name=chr19:1390856-1391052
+102	maf-convert	match_part	222	410	954	-	.	Target=chr19 1390856 1391052;Name=chr19:1390856-1391052;Parent=chr19.8
+102	maf-convert	match	224	246	.	-	.	ID=chr6.3;Name=chr6:65786102-65786124
+102	maf-convert	match_part	224	246	110	-	.	Target=chr6 65786102 65786124;Name=chr6:65786102-65786124;Parent=chr6.3
+102	maf-convert	match	99	225	.	-	.	ID=chr19.9;Name=chr19:1391117-1393331
+102	maf-convert	match_part	99	178	320	-	.	Target=chr19 1393241 1393331;Name=chr19:1393241-1393331;Parent=chr19.9
+102	maf-convert	match_part	179	225	237	-	.	Target=chr19 1391117 1391163;Name=chr19:1391117-1391163;Parent=chr19.9
+102	maf-convert	match	90	126	.	-	.	ID=chr3.8;Name=chr3:37588377-37588414
+102	maf-convert	match_part	90	126	117	-	.	Target=chr3 37588377 37588414;Name=chr3:37588377-37588414;Parent=chr3.8
+102	maf-convert	match	103	121	.	-	.	ID=chr20.2;Name=chr20:17684745-17684763
+102	maf-convert	match_part	103	121	114	-	.	Target=chr20 17684745 17684763;Name=chr20:17684745-17684763;Parent=chr20.2
+102	maf-convert	match	88	113	.	-	.	ID=chr16.1;Name=chr16:722484-722513
+102	maf-convert	match_part	88	113	116	-	.	Target=chr16 722484 722513;Name=chr16:722484-722513;Parent=chr16.1
+102	maf-convert	match	4	102	.	-	.	ID=chr19.10;Name=chr19:1395388-1395484
+102	maf-convert	match_part	4	102	291	-	.	Target=chr19 1395388 1395484;Name=chr19:1395388-1395484;Parent=chr19.10
+102	maf-convert	match	69	95	.	-	.	ID=chr22.3;Name=chr22:20726589-20726617
+102	maf-convert	match_part	69	95	115	-	.	Target=chr22 20726589 20726617;Name=chr22:20726589-20726617;Parent=chr22.3
+##gff-version 3
 chrUn_KI270748v1	maf-convert	match	13905	15715	3177.2	+	.	Target=UN-L1MA6_pol#LINE/L1 658 1273;Name=UN-L1MA6_pol#LINE/L1:658-1273
 chrUn_KI270748v1	maf-convert	match	3860	4540	1775.7	+	.	Target=UN-L1PA2_pol#LINE/L1 1049 1275;Name=UN-L1PA2_pol#LINE/L1:1049-1275
 chrUn_KI270748v1	maf-convert	match	2577	3661	1607.4	-	.	Target=UN-L1MA6_pol#LINE/L1 518 879;Name=UN-L1MA6_pol#LINE/L1:518-879
 chrUn_KI270748v1	maf-convert	match	89272	90089	1559.7	-	.	Target=UN-L1MA6_pol#LINE/L1 884 1164;Name=UN-L1MA6_pol#LINE/L1:884-1164
 chrUn_KI270748v1	maf-convert	match	17572	18588	1508.0	+	.	Target=UN-L1PA16_pol#LINE/L1 527 864;Name=UN-L1PA16_pol#LINE/L1:527-864
+102	6	28	chr5	0	+	6	6	0	1	22	0
+102	10	29	chr5	0	+	10	10	0	1	19	0
+102	87	112	chr3	0	+	87	87	0	1	25	0
+102	91	118	chr2	0	+	91	91	0	1	27	0
+102	140	159	chr1	0	+	140	140	0	1	19	0
+102	256	277	chr18	0	+	256	256	0	1	21	0
+102	371	403	chr19	0	+	371	371	0	1	32	0
+102	425	465	chr8	0	+	425	425	0	1	40	0
+102	433	454	chr4	0	+	433	433	0	1	21	0
+102	442	463	chr20	0	+	442	442	0	1	21	0
+102	442	463	chr3	0	+	442	442	0	1	21	0
+102	442	463	chr7	0	+	442	442	0	1	21	0
+102	458	490	chr1	0	+	458	458	0	1	32	0
+102	459	490	chr18	0	+	459	459	0	1	31	0
+102	464	494	chr17	0	+	464	464	0	1	30	0
+102	467	504	chr1	0	+	467	467	0	1	37	0
+102	467	491	chr15	0	+	467	467	0	1	24	0
+102	470	489	chr13	0	+	470	470	0	1	19	0
+102	470	489	chr17	0	+	470	470	0	1	19	0
+102	470	489	chr17	0	+	470	470	0	1	19	0
+102	470	489	chr22	0	+	470	470	0	1	19	0
+102	472	499	chr10	0	+	472	472	0	1	27	0
+102	472	491	chr5	0	+	472	472	0	1	19	0
+102	476	499	chr11	0	+	476	476	0	1	23	0
+102	479	508	chr14	0	+	479	479	0	1	29	0
+102	485	508	chr3	0	+	485	485	0	1	23	0
+102	487	512	chr5	0	+	487	487	0	1	25	0
+102	493	515	chr7	0	+	493	493	0	1	22	0
+102	508	533	chr5	0	+	508	508	0	1	25	0
+102	546	565	chr17	0	+	546	546	0	1	19	0
+102	618	638	chr10	0	+	618	618	0	1	20	0
+102	640	667	chr14	0	+	640	640	0	1	27	0
+102	666	693	chr21	0	+	666	666	0	1	27	0
+102	673	696	chr3	0	+	673	673	0	1	23	0
+102	680	699	chrX	0	+	680	680	0	1	19	0
+102	635	657	chr22	0	-	635	635	0	1	22	0
+102	625	646	chr19	0	-	625	625	0	1	21	0
+102	613	645	chr19	0	-	613	613	0	1	32	0
+102	604	637	chr10	0	-	604	604	0	1	33	0
+102	574	616	chr19	0	-	574	574	0	1	42	0
+102	506	575	chr19	0	-	506	506	0	1	69	0
+102	540	563	chr5	0	-	540	540	0	1	23	0
+102	509	533	chr15	0	-	509	509	0	1	24	0
+102	500	526	chr2	0	-	500	500	0	1	26	0
+102	502	526	chr3	0	-	502	502	0	1	24	0
+102	485	524	chr1	0	-	485	485	0	1	39	0
+102	483	524	chr7	0	-	483	483	0	1	41	0
+102	502	521	chr3	0	-	502	502	0	1	19	0
+102	485	510	chr3	0	-	485	485	0	1	25	0
+102	401	509	chr19	0	-	401	401	0	1	108	0
+102	484	509	chr8	0	-	484	484	0	1	25	0
+102	484	508	chr6	0	-	484	484	0	1	24	0
+102	488	507	chr12	0	-	488	488	0	1	19	0
+102	480	505	chr19	0	-	480	480	0	1	25	0
+102	484	503	chr21	0	-	484	484	0	1	19	0
+102	477	496	chr17	0	-	477	477	0	1	19	0
+102	457	491	chr7	0	-	457	457	0	1	34	0
+102	458	490	chr12	0	-	458	458	0	1	32	0
+102	470	489	chr17	0	-	470	470	0	1	19	0
+102	470	489	chr17	0	-	470	470	0	1	19	0
+102	470	489	chr6	0	-	470	470	0	1	19	0
+102	470	489	chr7	0	-	470	470	0	1	19	0
+102	470	489	chrX	0	-	470	470	0	1	19	0
+102	458	488	chr4	0	-	458	458	0	1	30	0
+102	456	475	chr5	0	-	456	456	0	1	19	0
+102	221	410	chr19	0	-	221	221	0	1	189	0
+102	223	246	chr6	0	-	223	223	0	1	23	0
+102	98	225	chr19	0	-	98	98	0	2	80,47	0,80
+102	89	126	chr3	0	-	89	89	0	1	37	0
+102	102	121	chr20	0	-	102	102	0	1	19	0
+102	87	113	chr16	0	-	87	87	0	1	26	0
+102	3	102	chr19	0	-	3	3	0	1	99	0
+102	68	95	chr22	0	-	68	68	0	1	27	0
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
  "http://www.w3.org/TR/html4/strict.dtd">
@@ -11631,6 +12044,76 @@ SRR359290.9033      1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCC     41
 21	2	0	0	0	0	0	0	-	102	699	223	246	chr6	170805979	65786101	65786124	1	23,	453,	65786101,
 24	0	0	0	0	0	2	2	-	102	699	484	508	chr6	170805979	170257701	170257727	3	17,1,6,	191,208,209,	170257701,170257719,170257721,
 23	1	0	0	0	0	1	1	-	102	699	509	533	chr15	101991189	78230485	78230510	2	20,4,	166,186,	78230485,78230506,
+23	0	0	0	0	0	0	0	+	chr3	198295559	23607556	23607579	102	699	673	696	1	23,	23607556,	673,
+28	1	0	0	2	2	0	0	+	chr14	107043718	104715672	104715703	102	699	479	508	3	23,2,4,	104715672,104715696,104715699,	479,502,504,
+25	0	0	0	0	0	1	2	+	chr2	242193529	240456631	240456656	102	699	91	118	2	19,6,	240456631,240456650,	91,112,
+22	1	0	0	0	0	0	0	+	chr11	135086622	67464146	67464169	102	699	476	499	1	23,	67464146,	476,
+36	1	0	0	3	15	0	0	+	chr1	248956422	21590630	21590682	102	699	467	504	4	13,6,1,17,	21590630,21590645,21590657,21590665,	467,480,486,487,
+45	1	0	0	1	1468334	2	120	+	chr10	133797422	122813034	124281414	102	699	472	638	3	17,9,20,	122813034,122813051,124281394,	472,490,618,
+31	1	0	0	2	6	0	0	+	chr1	248956422	161050905	161050943	102	699	458	490	3	10,2,20,	161050905,161050918,161050923,	458,468,470,
+21	1	0	0	0	0	0	0	+	chr5	181538259	93489542	93489564	102	699	6	28	1	22,	93489542,	6,
+25	2	0	0	0	0	0	0	+	chr14	107043718	80332129	80332156	102	699	640	667	1	27,	80332129,	640,
+23	1	0	0	0	0	0	0	+	chr15	101991189	45614749	45614773	102	699	467	491	1	24,	45614749,	467,
+38	1	0	0	3	12	1	1	+	chr8	145138636	76840858	76840909	102	699	425	465	5	16,5,6,5,7,	76840858,76840875,76840887,76840897,76840902,	425,441,446,452,458,
+25	0	0	0	2	2	0	0	+	chr3	198295559	152862893	152862920	102	699	87	112	3	16,3,6,	152862893,152862910,152862914,	87,103,106,
+19	0	0	0	0	0	0	0	+	chr1	248956422	145870017	145870036	102	699	140	159	1	19,	145870017,	140,
+19	0	0	0	0	0	0	0	+	chr5	181538259	4867425	4867444	102	699	472	491	1	19,	4867425,	472,
+19	0	0	0	0	0	0	0	+	chr5	181538259	74376577	74376596	102	699	10	29	1	19,	74376577,	10,
+21	1	0	0	0	0	0	0	+	chr7	159345973	157969523	157969545	102	699	493	515	1	22,	157969523,	493,
+19	0	0	0	0	0	0	0	+	chr13	114364328	113342215	113342234	102	699	470	489	1	19,	113342215,	470,
+19	0	0	0	0	0	0	0	+	chr17	83257441	19079609	19079628	102	699	470	489	1	19,	19079609,	470,
+38	0	0	0	1	8587829	1	57	+	chr17	83257441	19205791	27793658	102	699	470	565	2	19,19,	19205791,27793639,	470,546,
+30	1	0	0	2	6	0	0	+	chr18	80373285	8561208	8561245	102	699	459	490	3	6,2,23,	8561208,8561215,8561222,	459,465,467,
+26	1	0	0	2	2	0	0	+	chr21	46709983	14291180	14291209	102	699	666	693	3	18,1,8,	14291180,14291199,14291201,	666,684,685,
+19	0	0	0	0	0	0	0	+	chr22	50818468	23657490	23657509	102	699	470	489	1	19,	23657490,	470,
+19	0	0	0	0	0	0	0	+	chrX	156040895	83302601	83302620	102	699	680	699	1	19,	83302601,	680,
+23	0	0	0	0	0	1	2	+	chr5	181538259	173701199	173701222	102	699	508	533	2	16,7,	173701199,173701215,	508,526,
+23	0	0	0	1	4	0	0	+	chr3	198295559	127741375	127741402	102	699	485	508	2	5,18,	127741375,127741384,	485,490,
+20	1	0	0	0	0	0	0	+	chr4	190214555	3839062	3839083	102	699	433	454	1	21,	3839062,	433,
+20	1	0	0	0	0	0	0	+	chr18	80373285	55335092	55335113	102	699	256	277	1	21,	55335092,	256,
+25	1	0	0	0	0	1	4	+	chr17	83257441	28925929	28925955	102	699	464	494	2	9,17,	28925929,28925938,	464,477,
+20	1	0	0	0	0	0	0	+	chr3	198295559	186865651	186865672	102	699	442	463	1	21,	186865651,	442,
+25	0	0	0	2	4	0	0	+	chr5	181538259	169763615	169763644	102	699	487	512	3	16,1,8,	169763615,169763634,169763636,	487,503,504,
+20	1	0	0	0	0	0	0	+	chr7	159345973	65260306	65260327	102	699	442	463	1	21,	65260306,	442,
+30	2	0	0	2	4	0	0	+	chr19	58617616	47072201	47072237	102	699	371	403	3	3,21,8,	47072201,47072205,47072229,	371,374,395,
+20	1	0	0	0	0	0	0	+	chr20	64444167	4034147	4034168	102	699	442	463	1	21,	4034147,	442,
+184	2	0	0	5	11	1	3	-	chr19	58617616	1390855	1391052	102	699	221	410	7	9,21,56,4,88,3,5,	57226564,57226574,57226595,57226653,57226659,57226749,57226756,	221,230,254,310,314,402,405,
+102	4	0	0	1	3	2	2	-	chr19	58617616	1388829	1388938	102	699	401	509	4	41,38,5,22,	57228678,57228719,57228757,57228765,	401,443,482,487,
+67	0	0	0	2	3	2	2	-	chr19	58617616	1388523	1388593	102	699	506	575	5	13,7,3,31,13,	57229023,57229037,57229046,57229049,57229080,	506,519,526,530,562,
+77	3	0	0	5	11	0	0	-	chr19	58617616	1393240	1393331	102	699	98	178	6	5,3,24,9,2,37,	57224285,57224291,57224296,57224324,57224336,57224339,	98,103,106,130,139,141,
+171	5	0	0	7	7501	7	437	-	chr19	58617616	1387807	1395484	102	699	3	616	13	20,1,9,1,8,14,7,30,9,30,7,27,13,	57222132,57222154,57222155,57222164,57222167,57222176,57222192,57222199,57226453,57226463,57226493,57229769,57229796,	3,23,31,41,42,50,64,72,178,187,218,574,603,
+31	1	0	0	0	0	0	0	-	chr19	58617616	1383910	1383942	102	699	613	645	1	32,	57233674,	613,
+37	2	0	0	2	2	1	2	-	chr7	159345973	101590379	101590420	102	699	483	524	4	8,18,4,9,	57755553,57755561,57755580,57755585,	483,493,511,515,
+32	0	0	0	3	7	0	0	-	chr12	133275309	71544986	71545025	102	699	458	490	4	10,2,17,3,	61730284,61730297,61730302,61730320,	458,468,470,487,
+21	0	0	0	0	0	0	0	-	chr19	58617616	17615430	17615451	102	699	625	646	1	21,	41002165,	625,
+25	0	0	0	1	4	0	0	-	chr19	58617616	18430559	18430588	102	699	480	505	2	18,7,	40187028,40187050,	480,498,
+25	0	0	0	1	5	0	0	-	chr8	145138636	98433261	98433291	102	699	484	509	2	18,7,	46705345,46705368,	484,502,
+29	1	0	0	2	6	0	0	-	chr4	190214555	54783704	54783740	102	699	458	488	3	7,1,22,	135430815,135430823,135430829,	458,465,466,
+24	1	0	0	1	1	0	0	-	chr3	198295559	130609408	130609434	102	699	485	510	2	6,19,	67686125,67686132,	485,491,
+33	2	0	0	2	3	1	2	-	chr3	198295559	37588376	37588414	102	699	89	126	4	7,20,4,4,	160707145,160707154,160707174,160707179,	89,96,118,122,
+25	1	0	0	1	4	0	0	-	chr16	90338345	722483	722513	102	699	87	113	2	5,21,	89615832,89615841,	87,92,
+25	1	0	0	1	1	0	0	-	chr2	242193529	192414462	192414489	102	699	500	526	2	21,5,	49779040,49779062,	500,521,
+33	1	0	0	3	7	0	0	-	chr7	159345973	101723245	101723286	102	699	457	491	4	11,2,17,4,	57622687,57622701,57622706,57622724,	457,468,470,487,
+32	1	0	0	3	8	0	0	-	chr10	133797422	126932869	126932910	102	699	604	637	4	16,5,3,9,	6864512,6864531,6864539,6864544,	604,620,625,628,
+26	1	0	0	1	2	0	0	-	chr22	50818468	20726588	20726617	102	699	68	95	2	23,4,	30091851,30091876,	68,91,
+21	1	0	0	0	0	0	0	-	chr22	50818468	46458800	46458822	102	699	635	657	1	22,	4359646,	635,
+19	0	0	0	0	0	0	0	-	chr3	198295559	89815479	89815498	102	699	502	521	1	19,	108480061,	502,
+19	0	0	0	0	0	0	0	-	chr5	181538259	171574454	171574473	102	699	456	475	1	19,	9963786,	456,
+19	0	0	0	0	0	0	0	-	chr6	170805979	1842831	1842850	102	699	470	489	1	19,	168963129,	470,
+19	0	0	0	0	0	0	0	-	chr7	159345973	100370596	100370615	102	699	470	489	1	19,	58975358,	470,
+19	0	0	0	0	0	0	0	-	chr12	133275309	19357535	19357554	102	699	488	507	1	19,	113917755,	488,
+19	0	0	0	0	0	0	0	-	chr17	83257441	19172450	19172469	102	699	470	489	1	19,	64084972,	470,
+19	0	0	0	0	0	0	0	-	chr17	83257441	29190069	29190088	102	699	477	496	1	19,	54067353,	477,
+19	0	0	0	0	0	0	0	-	chr17	83257441	58670490	58670509	102	699	470	489	1	19,	24586932,	470,
+19	0	0	0	0	0	0	0	-	chr20	64444167	17684744	17684763	102	699	102	121	1	19,	46759404,	102,
+19	0	0	0	0	0	0	0	-	chr21	46709983	43027934	43027953	102	699	484	503	1	19,	3682030,	484,
+19	0	0	0	0	0	0	0	-	chrX	156040895	39928416	39928435	102	699	470	489	1	19,	116112460,	470,
+22	2	0	0	0	0	0	0	-	chr3	198295559	33026624	33026648	102	699	502	526	1	24,	165268911,	502,
+22	1	0	0	0	0	0	0	-	chr5	181538259	177958541	177958564	102	699	540	563	1	23,	3579695,	540,
+35	2	0	0	1	3	2	2	-	chr1	248956422	155997873	155997913	102	699	485	524	4	23,2,4,8,	92958509,92958535,92958537,92958541,	485,508,511,516,
+21	2	0	0	0	0	0	0	-	chr6	170805979	65786101	65786124	102	699	223	246	1	23,	105019855,	223,
+24	0	0	0	2	2	0	0	-	chr6	170805979	170257701	170257727	102	699	484	508	3	6,1,17,	548252,548259,548261,	484,490,491,
+23	1	0	0	1	1	0	0	-	chr15	101991189	78230485	78230510	102	699	509	533	2	4,20,	23760679,23760684,	509,513,
 21	1	0	0	0	0	0	0	+	102	699	6	28	chr5	181538259	93489542	93489564	1	22,	6,	93489542,
 19	0	0	0	0	0	0	0	+	102	699	10	29	chr5	181538259	74376577	74376596	1	19,	10,	74376577,
 25	0	0	0	0	0	2	2	+	102	699	87	112	chr3	198295559	152862893	152862920	3	16,3,6,	87,103,106,	152862893,152862910,152862914,
@@ -11730,6 +12213,11 @@ SRR359290.9033      1 CAAAGTGCTGGGATTGCAGGCATAAGCCACTGTGCGTGGCC     41
 240	107	0	0	12	15	11	44	+-	UN-L1MA6_pol#LINE/L1	1275	517	879	chrUn_KI270748v1	93321	2576	3661	15	10,16,12,5,4,8,13,92,15,35,11,14,24,80,8,	517,528,544,557,563,570,579,593,686,703,739,751,765,790,871,	89660,89692,89742,89780,89797,89810,89834,89873,90150,90195,90301,90335,90407,90480,90721,
 180	89	0	0	7	12	7	11	+-	UN-L1MA6_pol#LINE/L1	1275	883	1164	chrUn_KI270748v1	93321	89271	90089	9	7,33,40,84,4,44,37,12,8,	883,891,925,966,1054,1061,1105,1143,1156,	3232,3255,3355,3476,3730,3742,3875,3988,4026,
 230	96	0	0	9	12	8	39	++	UN-L1PA16_pol#LINE/L1	1276	526	864	chrUn_KI270748v1	93321	17571	18588	12	102,63,21,18,14,14,6,38,7,22,8,13,	526,629,693,715,735,749,766,773,812,820,843,851,	17571,17877,18066,18129,18185,18256,18300,18319,18434,18457,18524,18549,
+404	194	0	0	12	17	12	18	++	chrUn_KI270748v1	93321	13904	15715	UN-L1MA6_pol#LINE/L1	1275	657	1273	14	59,30,16,143,13,18,19,15,43,67,48,18,75,34,	13904,14082,14173,14223,14654,14695,14749,14807,14853,14983,15185,15331,15387,15613,	657,717,747,766,910,924,944,964,980,1024,1092,1142,1163,1239,
+212	15	0	0	0	0	0	0	++	chrUn_KI270748v1	93321	3859	4540	UN-L1PA2_pol#LINE/L1	1276	1048	1275	1	227,	3859,	1048,
+240	107	0	0	11	44	12	15	-+	chrUn_KI270748v1	93321	2576	3661	UN-L1MA6_pol#LINE/L1	1275	517	879	15	10,16,12,5,4,8,13,92,15,35,11,14,24,80,8,	89660,89692,89742,89780,89797,89810,89834,89873,90150,90195,90301,90335,90407,90480,90721,	517,528,544,557,563,570,579,593,686,703,739,751,765,790,871,
+180	89	0	0	7	11	7	12	-+	chrUn_KI270748v1	93321	89271	90089	UN-L1MA6_pol#LINE/L1	1275	883	1164	9	7,33,40,84,4,44,37,12,8,	3232,3255,3355,3476,3730,3742,3875,3988,4026,	883,891,925,966,1054,1061,1105,1143,1156,
+230	96	0	0	8	39	9	12	++	chrUn_KI270748v1	93321	17571	18588	UN-L1PA16_pol#LINE/L1	1276	526	864	12	102,63,21,18,14,14,6,38,7,22,8,13,	17571,17877,18066,18129,18185,18256,18300,18319,18434,18457,18524,18549,	526,629,693,715,735,749,766,773,812,820,843,851,
 0	16	chrM	13914	71	3=1X11=1X28=2X21=1X15=1X3=	*	0	0	TCGAATTCTACCCTAACATCACACACCGCACAATCCCCTATCTAAACCTTCTTACGAGCCAAAACCTACCCCTACTCCTCCTAAACC	C@A=<3CC@@CBCCC8CBAC?BBBC?BB@BCCBBBCCCCBBBCBCABCBBBCCCCBCBBAC@CCBBCCACCACCCCCCBCCACCA?B	NM:i:6	AS:i:429
 1	0	chrM	1544	71	14=1X9=1X12=1X9=1X1=1X5=1X4=1X9=1X4=1X1=1X6=3X	*	0	0	TTATATAGAGGAGATAAGTCGTAATATGGTAAGTGTATTGGAAAGTGTATTTGGATGAACTAGAGTGTAGTTTAATATAAAGCATTT	BB@1;?@B@BBBC@BBBCACBBA>B??=?A@B?B?B=7@4BB;B>@@@A?>=B@A@>@7>BA>BA6BA?@@B@@?B?AABBAB=<>B	NM:i:13	AS:i:420
 2	0	chrM	12301	71	3H2=4X13=1X2=1X1=2X15=2X3=1X1=1X1=1X2=1X5=2X1=2X5=2X3=1X2=3X4=	*	0	0	GGTTTTAAAAATTTTGGTGTAATTTTAAATAAAAGTAATAATTATGTATATTATTATAATTATTCTAACTTTGATTTTTTTAAT	B@B>BB?B;=B@@=BBABA@<A5??'8@@>=3@47>@+AA9?;@@>@9?@(A>-9@A=(=>?1;=7=96@.4<(49=.2.1(==	NM:i:24	AS:i:364

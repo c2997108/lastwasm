@@ -2,7 +2,7 @@ maf-convert
 ===========
 
 This script reads alignments in maf_ format, and writes them in
-another format.  It can write them in these formats: axt_, blast,
+another format.  It can write them in these formats: axt_, bed_, blast,
 blasttab, chain_, gff, html, psl_, sam, tab.  You can use it like this::
 
   maf-convert psl my-alignments.maf > my-alignments.psl
@@ -12,8 +12,8 @@ It's often convenient to pipe in the input, like this::
   ... | maf-convert psl > my-alignments.psl
 
 This script takes the first (topmost) maf sequence as the "reference"
-/ "subject" / "target", and the second sequence as the "query".
-(Exception: when converting DNA-to-protein alignments to gff or psl,
+/ "subject", and the second sequence as the "query".
+(Exception: when converting DNA-to-protein alignments to bed, gff or psl,
 the protein becomes the "query" and the DNA becomes the "reference".)
 
 For html: if the input includes probability lines starting with 'p',
@@ -22,6 +22,7 @@ starting with 'p', run lastal with option -j set to 4 or higher.)
 
 .. _maf: http://genome.ucsc.edu/FAQ/FAQformat.html#format5
 .. _axt: https://genome.ucsc.edu/goldenPath/help/axt.html
+.. _bed: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
 .. _chain: https://genome.ucsc.edu/goldenPath/help/chain.html
 .. _psl: https://genome.ucsc.edu/FAQ/FAQformat.html#format2
 
@@ -30,6 +31,11 @@ Options
 
 -h, --help
        Print a help message and exit.
+
+-s N, --subject=N
+       Use the Nth sequence in each alignment as the "reference" /
+       "subject".  This option affects these formats: bed, blast,
+       blasttab, gff, psl.
 
 -p, --protein
        Specify that the alignments are of proteins, rather than
@@ -41,12 +47,12 @@ Options
        the same sequences and strands, with the parts being in the
        same order in each sequence), are separated by at most N
        letters in each sequence, and are consecutive in the input.
-       This affects psl and gff formats only.
+       This affects bed, gff, and psl formats only.
 
 -J N, --Join=N
        Join alignments that are co-linear, are separated by at most
        N letters in each sequence, and are nearest in each sequence.
-       This affects psl and gff formats only, and reads the whole
+       This affects bed, gff and psl formats only, and reads the whole
        input into memory.
 
 -n, --noheader
