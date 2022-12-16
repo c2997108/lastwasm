@@ -777,7 +777,7 @@ def codonMatchSymbols(opts, geneticCode, aaSeq, ntSeq):
             j = i + 3
             a = aminoAcidCodes.get(aaSeq[i:j], "X")
             b = ntSeq[i:j]
-            if geneticCode.get(b, "X") == a:
+            if geneticCode.get(b, "Z") == a:
                 yield "|||"
             else:
                 score = opts.scoreMatrix.get((a, b), -1)

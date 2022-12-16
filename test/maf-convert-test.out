@@ -7395,7 +7395,7 @@ Sbjct: 658   GlnGlyCysProLeuSerProLeuLeuPheAsnIleValLeuGluValLeuAlaArgAlaIleArgG
              LeuPheAlaValAspMetIleLeuTyrIleGluAsnThrAsnAsnSerAlaLysLys    LeuGluPheIleAsnGluPheSerLysValAlaGlyTyrAsnValAsnIleGlnAsn
 Query: 14025 CTGTTTGCAGTTGACATGATCTTATATATAGAAAACACCAATAACTCTGCCAAAAAA---TTTAGAATTCATAAATGAATTTAGTAAAGTTGCAGGATACAATGTGAACATACAAAAT   14139
              |||||||||   ||||||||||||||||||||||||   ::::::|||:::||||||    ||||||:::||||||||||||||||||||||||||||||::::::|||||||||:::
-Sbjct: 698   LeuPheAlaAspAspMetIleLeuTyrIleGluAsnProLysAspSerThrLysLysLeu-LeuGluLeuIleAsnGluPheSerLysValAlaGlyTyrLysIleAsnIleGlnLys   736
+Sbjct: 698   LeuPheAlaAspAspMetIleLeuTyrIleGluAsnProLysAspSerThrLysLysXaa-LeuGluLeuIleAsnGluPheSerLysValAlaGlyTyrLysIleAsnIleGlnLys   736
 
              SerValAlaPheLeuHisIleAsnAsnLysLeu ThrLysLysGluIleLysLysThrIleLeuPheIleIleAlaThrLys           TyrLeuAspValAsnLeuAsnLysGlu
 Query: 14140 TCAGTAGCATTTCTACACATCAACAACAAACTATACAAAAAAagaaatcaagaaaacaATCCTATTTATAATAGCAACAAAA---------AATACTTAGATGTAAATTTAAACAAAGAG 14250
