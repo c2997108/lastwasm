@@ -390,6 +390,7 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # G    -65   -200    164   -169
 # T   -112    -68   -215     89
 
+# substitution percent identity: 72.6161
 #last -t4.4363
 #last -a 26
 #last -A 24
@@ -838,6 +839,7 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # G    -46   -202    114    -79
 # T   -111    -77   -126     82
 
+# substitution percent identity: 71.8801
 #last -t4.6475
 #last -a 26
 #last -A 23
@@ -1243,6 +1245,7 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # G    -72   -186    164   -186
 # T   -111    -44   -186     89
 
+# substitution percent identity: 73.3262
 #last -t4.41768
 #last -a 26
 #last -A 26
@@ -1734,6 +1737,7 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # G   -430   -239    147   -504
 # T   -497   -228   -437     61
 
+# substitution percent identity: 76.2866
 #last -Q 1
 #last -t4.28179
 #last -a 39

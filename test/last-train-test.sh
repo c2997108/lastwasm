@@ -22,5 +22,4 @@ trap 'rm -f $db*' EXIT
     try last-train -m1 -k16 --matsym --gapsym $db ../examples/mouseMito.fa
     try last-train -Q1 $db bs100.fastq
 } 2>&1 |
-grep -v '^# lastal' |
-diff -u $(basename $0 .sh).out -
+    grep -v '^# lastal' | diff -u last-train-test.out -

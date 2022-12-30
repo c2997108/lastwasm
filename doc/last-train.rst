@@ -170,9 +170,9 @@ Details
   "-t" option for lastal, e.g. "-t4.4363".
 
 * In rare cases, it may be impossible to find such an adjusted scale
-  factor.  If that happens, last-train doubles the original scale (to
-  reduce the inaccuracy of integer rounding), until the problem goes
-  away.
+  factor.  If that happens, last-train increases the original scale
+  (to reduce the inaccuracy of integer rounding), until the problem
+  goes away.
 
 .. _btz576: https://doi.org/10.1093/bioinformatics/btz576
 

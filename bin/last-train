@@ -424,10 +424,10 @@ def scoresAndScale(originalScale, matParams, delRatios, insRatios):
             rowFreqs = homogeneousLetterFreqs(scale, zip(*matScores))
             colFreqs = homogeneousLetterFreqs(scale, matScores)
             if all(i >= 0 for i in rowFreqs + colFreqs):
-                return matScores, delCosts, insCosts, scale
+                return matScores, delCosts, insCosts, scale, rowFreqs, colFreqs
         print("# the integer-rounded scores are too inaccurate: "
-              "doubling the scale")
-        originalScale *= 2
+              "increasing the scale")
+        originalScale *= 1.1
 
 ### Routines for codons & frameshifts:
 
@@ -646,7 +646,7 @@ def codonScoresAndScale(originalScale, matParams, delRatios, insRatios):
         scale = balancedScale(frameshiftScoreImbalance, originalScale, args)
         if scale > 0:
             matScores = matScores, rowFreqs, colFreqs
-            return matScores, delCosts, insCosts, scale
+            return matScores, delCosts, insCosts, scale, None, None
         print("# the integer-rounded scores are too inaccurate: "
               "doubling the scale")
         originalScale *= 2
@@ -822,7 +822,7 @@ def doTraining(opts, args):
             colProbs = [freqText(i) for i in colProbs]
         matParams = matchRatio, matProbs, rowProbs, colProbs
         ss = scoresAndScaleFunc(innerScale, matParams, delRatios, insRatios)
-        matScores, delCosts, insCosts, scale = ss
+        matScores, delCosts, insCosts, scale, rowFreqs, colFreqs = ss
         writeGapCosts(opts, delCosts, insCosts, False, None)
         print()
         print("# score matrix "
@@ -850,7 +850,11 @@ def doTraining(opts, args):
                                            codonMatches, proc.stdout)
 
     ss = scoresAndScaleFunc(outerScale, matParams, delRatios, insRatios)
-    matScores, delCosts, insCosts, scale = ss
+    matScores, delCosts, insCosts, scale, rowFreqs, colFreqs = ss
+    if not opts.codon:
+        pid = sum(math.exp(matScores[i][i] / scale) * rowFreqs[i] * colFreqs[i]
+                  for i in range(len(matScores))) / sum(colFreqs)
+        print("# substitution percent identity: {0:.6}".format(100 * pid))
     if opts.X: print("#last -X", opts.X)
     if opts.R: print("#last -R", opts.R)
     if opts.Q: print("#last -Q", opts.Q)
