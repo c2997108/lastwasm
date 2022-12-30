@@ -183,7 +183,7 @@ def scaleFromHeader(lines):
                 return float(i[2:])
     raise Exception("couldn't read the scale")
 
-def countsFromLastOutput(opts, codonMatches, lines):
+def countsFromLastOutput(opts, maxPercentIdentity, codonMatches, lines):
     nTransitions = 9 if opts.codon else 5
     tranCounts = [1.0] * nTransitions  # +1 pseudocounts
     tranCounts[1] = 2.0  # deletes: opens + extensions, so 2 pseudocounts
@@ -207,7 +207,7 @@ def countsFromLastOutput(opts, codonMatches, lines):
             else:
                 identities = sum(counts[i * nCols + i] for i in range(nRows))
             alignmentLength = sum(counts[:matrixSize])
-            if 100 * identities > opts.pid * alignmentLength:
+            if 100 * identities > maxPercentIdentity * alignmentLength:
                 continue
             for i in range(nRows):
                 for j in range(nCols):
@@ -694,7 +694,9 @@ def probsFromFile(opts, lastalArgs, maxGapGrowProb, codonMatches, lines):
     print("#", *lastalArgs)
     print()
     sys.stdout.flush()
-    matCounts, gapCounts = countsFromLastOutput(opts, codonMatches, lines)
+    # For the 1st iteration, use a % identity cutoff closer to 100:
+    pid = opts.pid if lastalArgs[-1] == "-p-" else opts.pid * 0.8 + 20
+    matCounts, gapCounts = countsFromLastOutput(opts, pid, codonMatches, lines)
     if opts.codon:
         gapProbs = frameshiftProbsFromCounts(gapCounts, opts)
         matProbs = codonMatProbsFromCounts(matCounts, opts)
