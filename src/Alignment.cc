@@ -137,42 +137,35 @@ static int gapCost(const SegmentPair &x, const SegmentPair &y,
   return cost;
 }
 
-bool Alignment::isOptimal( const uchar* seq1, const uchar* seq2, int globality,
-			   const ScoreMatrixRow* scoreMatrix, int maxDrop,
-			   const GapCosts& gapCosts, size_t frameSize,
-			   const ScoreMatrixRow* pssm2,
-                           const TwoQualityScoreMatrix& sm2qual,
-                           const uchar* qual1, const uchar* qual2 ) const{
+bool Alignment::isOptimal(const uchar *seq1, const uchar *seq2, int globality,
+			  const ScoreMatrixRow *scoreMatrix, int maxDrop,
+			  const GapCosts &gapCosts, size_t frameSize,
+			  const ScoreMatrixRow *pssm2,
+			  const TwoQualityScoreMatrix &sm2qual,
+			  const uchar *qual1, const uchar *qual2) const {
   int maxScore = 0;
-  int runningScore = 0;
+  int score = 0;
 
-  for( size_t i = 0; i < blocks.size(); ++i ){
-    const SegmentPair& y = blocks[i];
-
-    if( i > 0 ){  // between each pair of aligned blocks:
-      const SegmentPair& x = blocks[i - 1];
-      runningScore -= gapCost( x, y, gapCosts, frameSize );
-      if( !globality && runningScore <= 0 ) return false;
-      if( runningScore < maxScore - maxDrop ) return false;
+  for (size_t i = 0; i < blocks.size(); ++i) {
+    if (i > 0) {  // between each pair of aligned blocks:
+      score -= gapCost(blocks[i - 1], blocks[i], gapCosts, frameSize);
+      if (!globality && score <= 0) return false;
+      if (score < maxScore - maxDrop) return false;
     }
 
-    const uchar* s1 = seq1 + y.beg1();
-    const uchar* s2 = seq2 + y.beg2();
-    const uchar* e1 = seq1 + y.end1();
+    size_t x = blocks[i].beg1();
+    size_t y = blocks[i].beg2();
+    size_t s = blocks[i].size;
 
-    const ScoreMatrixRow* p2 = pssm2 ? pssm2 + y.beg2() : 0;
-    const uchar* q1 = qual1 ? qual1 + y.beg1() : 0;
-    const uchar* q2 = qual2 ? qual2 + y.beg2() : 0;
+    for (size_t j = 0; j < s; ++j) {
+      score += sm2qual ? sm2qual(seq1[x+j], seq2[y+j], qual1[x+j], qual2[y+j])
+	:      pssm2   ? pssm2[y+j][seq1[x+j]]
+	:                scoreMatrix[seq1[x+j]][seq2[y+j]];
 
-    while( s1 < e1 ){
-      /**/ if( sm2qual ) runningScore += sm2qual( *s1++, *s2++, *q1++, *q2++ );
-      else if( pssm2 )   runningScore += ( *p2++ )[ *s1++ ];
-      else               runningScore += scoreMatrix[ *s1++ ][ *s2++ ];
-
-      if( runningScore > maxScore ) maxScore = runningScore;
-      else if( !globality && runningScore <= 0 ) return false;
-      else if( !globality && (s1 == e1 && i+1 == blocks.size()) ) return false;
-      else if( runningScore < maxScore - maxDrop ) return false;
+      if (score > maxScore) maxScore = score;
+      else if (!globality && score <= 0) return false;
+      else if (!globality && j+1 == s && i+1 == blocks.size()) return false;
+      else if (score < maxScore - maxDrop) return false;
     }
   }
 
@@ -188,25 +181,19 @@ bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
   int score = 0;
 
   for (size_t i = 0; i < blocks.size(); ++i) {
-    const SegmentPair& y = blocks[i];
-
     if (i > 0) {  // between each pair of aligned blocks:
-      score -= gapCost(blocks[i - 1], y, gapCosts, frameSize);
+      score -= gapCost(blocks[i - 1], blocks[i], gapCosts, frameSize);
       if (score < 0) score = 0;
     }
 
-    const uchar *s1 = seq1 + y.beg1();
-    const uchar *s2 = seq2 + y.beg2();
-    const uchar *e1 = seq1 + y.end1();
+    size_t x = blocks[i].beg1();
+    size_t y = blocks[i].beg2();
+    size_t s = blocks[i].size;
 
-    const ScoreMatrixRow *p2 = pssm2 ? pssm2 + y.beg2() : 0;
-    const uchar *q1 = qual1 ? qual1 + y.beg1() : 0;
-    const uchar *q2 = qual2 ? qual2 + y.beg2() : 0;
-
-    while (s1 < e1) {
-      /**/ if (sm2qual) score += sm2qual(*s1++, *s2++, *q1++, *q2++);
-      else if (pssm2)   score += (*p2++)[*s1++];
-      else              score += scoreMatrix[*s1++][*s2++];
+    for (size_t j = 0; j < s; ++j) {
+      score += sm2qual ? sm2qual(seq1[x+j], seq2[y+j], qual1[x+j], qual2[y+j])
+	:      pssm2   ? pssm2[y+j][seq1[x+j]]
+	:                scoreMatrix[seq1[x+j]][seq2[y+j]];
 
       if (score >= minScore) return true;
       if (score < 0) score = 0;
@@ -276,6 +263,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   Centroid &centroid = aligners.centroid;
   GappedXdropAligner& aligner = centroid.aligner();
   GreedyXdropAligner &greedyAligner = aligners.greedyAligner;
+  const uchar *s1 = seq1 + start1;
+  const uchar *s2 = seq2 + start2;
 
   double *subsCounts[scoreMatrixRowSize];
   double *tranCounts;
@@ -294,25 +283,22 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 
     size_t dnaStart = aaToDna( start2, frameSize );
     size_t frame1 = isForward ? dnaStart + 1 : dnaStart - 1;
+    const uchar *f1 = seq2 + dnaToAa(frame1, frameSize);
     size_t end1, end2, size;
     int gapCost;
 
     if (gap.isNewFrameshifts()) {
       assert(isFullScore);
       size_t frame2 = isForward ? dnaStart + 2 : dnaStart - 2;
-      aligner.alignFrame(seq1 + start1, seq2 + start2,
-			 seq2 + dnaToAa(frame1, frameSize),
-			 seq2 + dnaToAa(frame2, frameSize),
-			 isForward, sm, gap, maxDrop);
+      const uchar *f2 = seq2 + dnaToAa(frame2, frameSize);
+      aligner.alignFrame(s1, s2, f1, f2, isForward, sm, gap, maxDrop);
       while (aligner.getNextChunkFrame(end1, end2, size, gapCost, gap))
 	chunks.push_back(SegmentPair(end1 - size, end2 - size * 3, size,
 				     gapCost));
       if (!probMat) return;
       FrameshiftXdropAligner &fxa = aligners.frameshiftAligner;
       double probDropLimit = exp(scale * -maxDrop);
-      double s = fxa.forward(seq1 + start1, seq2 + start2,
-			     seq2 + dnaToAa(frame1, frameSize),
-			     seq2 + dnaToAa(frame2, frameSize),
+      double s = fxa.forward(s1, s2, f1, f2,
 			     isForward, probMat, gap, probDropLimit);
       score += s / scale;
       if (outputType < 4) return;
@@ -323,9 +309,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       assert(!isFullScore);
       assert(outputType < 4);
       size_t frame2 = isForward ? dnaStart - 1 : dnaStart + 1;
-      score += aligner.align3(seq1 + start1, seq2 + start2,
-			      seq2 + dnaToAa(frame1, frameSize),
-			      seq2 + dnaToAa(frame2, frameSize), isForward,
+      const uchar *f2 = seq2 + dnaToAa(frame2, frameSize);
+      score += aligner.align3(s1, s2, f1, f2, isForward,
 			      sm, del.openCost, del.growCost, gap.pairCost,
 			      gap.frameshiftCost, maxDrop, smMax);
       // This should be OK even if end2 < size * 3:
@@ -341,9 +326,9 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if (!isForward) {
     --start1;
     --start2;
+    --s1;
+    --s2;
   }
-  seq1 += start1;
-  seq2 += start2;
 
   bool isSimdMatrix = (alph.size == 4 && !globality && gap.isAffine &&
 		       smMin >= SCHAR_MIN &&
@@ -354,24 +339,23 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 	isSimdMatrix = false;
 
   int extensionScore =
-    isGreedy  ? greedyAligner.align(seq1, seq2, isForward, sm,
-				    maxDrop, alph.size)
-    : sm2qual ? aligner.align2qual(seq1, qual1 + start1, seq2, qual2 + start2,
+    isGreedy  ? greedyAligner.align(s1, s2, isForward, sm, maxDrop, alph.size)
+    : sm2qual ? aligner.align2qual(s1, qual1 + start1, s2, qual2 + start2,
 				   isForward, globality, sm2qual,
 				   del.openCost, del.growCost,
 				   ins.openCost, ins.growCost,
 				   gap.pairCost, gap.isAffine, maxDrop, smMax)
-    : pssm2   ? aligner.alignPssm(seq1, pssm2 + start2, isForward, globality,
+    : pssm2   ? aligner.alignPssm(s1, pssm2 + start2, isForward, globality,
 				  del.openCost, del.growCost,
 				  ins.openCost, ins.growCost,
 				  gap.pairCost, gap.isAffine, maxDrop, smMax)
 #if defined __SSE4_1__ || defined __ARM_NEON
-    : isSimdMatrix ? aligner.alignDna(seq1, seq2, isForward, sm,
+    : isSimdMatrix ? aligner.alignDna(s1, s2, isForward, sm,
 				      del.openCost, del.growCost,
 				      ins.openCost, ins.growCost,
 				      maxDrop, smMax, alph.numbersToUppercase)
 #endif
-    :           aligner.align(seq1, seq2, isForward, globality, sm,
+    :           aligner.align(s1, s2, isForward, globality, sm,
 			      del.openCost, del.growCost,
 			      ins.openCost, ins.growCost,
 			      gap.pairCost, gap.isAffine, maxDrop, smMax);
@@ -409,7 +393,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if (outputType > 3 || isFullScore) {
     assert( !isGreedy );
     assert( !sm2qual );
-    double s = centroid.forward(seq1, seq2, start2, isForward,
+    double s = centroid.forward(s1, s2, start2, isForward,
 				probMat, gap, globality);
     if (isFullScore) {
       score += s / scale;
