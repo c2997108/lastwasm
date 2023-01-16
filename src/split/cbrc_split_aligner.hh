@@ -99,8 +99,7 @@ struct SplitAlignerParams {
 
   void dpExtensionMinScores(size_t &minScore1, size_t &minScore2) const;
 
-  void seqEnds(const uchar *&beg, const uchar *&end,
-	       const char *seqName) const;
+  const uchar *seqEnds(size_t &beg, size_t &end, const char *seqName) const;
 
   int spliceScore(unsigned d) const
   { return d < spliceTableSize ? spliceScoreTable[d] : calcSpliceScore(d); }

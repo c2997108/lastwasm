@@ -154,41 +154,41 @@ int SplitAlignerParams::calcSpliceScore(double dist) const {
 }
 
 // The dinucleotide immediately downstream on the forward strand
-static unsigned spliceBegSignalFwd(const uchar *seqPtr,
+static unsigned spliceBegSignalFwd(const uchar *seq, size_t pos,
 				   const uchar *toUnmasked) {
-  unsigned n1 = toUnmasked[*seqPtr];
+  unsigned n1 = toUnmasked[seq[pos]];
   if (n1 >= 4) return 16;
-  unsigned n2 = toUnmasked[*(seqPtr + 1)];
+  unsigned n2 = toUnmasked[seq[pos + 1]];
   if (n2 >= 4) return 16;
   return n1 * 4 + n2;
 }
 
 // The dinucleotide immediately downstream on the reverse strand
-static unsigned spliceBegSignalRev(const uchar *seqPtr,
+static unsigned spliceBegSignalRev(const uchar *seq, size_t pos,
 				   const uchar *toUnmasked) {
-  unsigned n1 = toUnmasked[*(seqPtr - 1)];
+  unsigned n1 = toUnmasked[seq[pos - 1]];
   if (n1 >= 4) return 16;
-  unsigned n2 = toUnmasked[*(seqPtr - 2)];
+  unsigned n2 = toUnmasked[seq[pos - 2]];
   if (n2 >= 4) return 16;
   return 15 - (n1 * 4 + n2);  // reverse-complement
 }
 
 // The dinucleotide immediately upstream on the forward strand
-static unsigned spliceEndSignalFwd(const uchar *seqPtr,
+static unsigned spliceEndSignalFwd(const uchar *seq, size_t pos,
 				   const uchar *toUnmasked) {
-  unsigned n2 = toUnmasked[*(seqPtr - 1)];
+  unsigned n2 = toUnmasked[seq[pos - 1]];
   if (n2 >= 4) return 16;
-  unsigned n1 = toUnmasked[*(seqPtr - 2)];
+  unsigned n1 = toUnmasked[seq[pos - 2]];
   if (n1 >= 4) return 16;
   return n1 * 4 + n2;
 }
 
 // The dinucleotide immediately upstream on the reverse strand
-static unsigned spliceEndSignalRev(const uchar *seqPtr,
+static unsigned spliceEndSignalRev(const uchar *seq, size_t pos,
 				   const uchar *toUnmasked) {
-  unsigned n2 = toUnmasked[*seqPtr];
+  unsigned n2 = toUnmasked[seq[pos]];
   if (n2 >= 4) return 16;
-  unsigned n1 = toUnmasked[*(seqPtr + 1)];
+  unsigned n1 = toUnmasked[seq[pos + 1]];
   if (n1 >= 4) return 16;
   return 15 - (n1 * 4 + n2);  // reverse-complement
 }
@@ -869,23 +869,16 @@ void SplitAligner::initSpliceCoords(unsigned i) {
   assert(k == a.rend);  // xxx
 }
 
-static const uchar *seqBeg(const MultiSequence &m, size_t sequenceIndex) {
-  return m.seqReader() + m.seqBeg(sequenceIndex);
-}
-
-static const uchar *seqEnd(const MultiSequence &m, size_t sequenceIndex) {
-  return m.seqReader() + m.seqEnd(sequenceIndex);
-}
-
-void SplitAlignerParams::seqEnds(const uchar *&beg, const uchar *&end,
-				 const char *seqName) const {
+const uchar *SplitAlignerParams::seqEnds(size_t &beg, size_t &end,
+					 const char *seqName) const {
   StringNumMap::const_iterator f = chromosomeIndex.find(seqName);
   if (f == chromosomeIndex.end())
     err("can't find " + std::string(seqName) + " in the genome");
   size_t v = f->second % maxGenomeVolumes();
   size_t c = f->second / maxGenomeVolumes();
-  beg = seqBeg(genome[v], c);
-  end = seqEnd(genome[v], c);
+  beg = genome[v].seqBeg(c);
+  end = genome[v].seqEnd(c);
+  return genome[v].seqReader();
 }
 
 void SplitAligner::initSpliceSignals(const SplitAlignerParams &params,
@@ -893,10 +886,9 @@ void SplitAligner::initSpliceSignals(const SplitAlignerParams &params,
   const uchar *toUnmasked = params.alphabet.numbersToUppercase;
   const UnsplitAlignment &a = alns[i];
 
-  const uchar *chromBeg;
-  const uchar *chromEnd;
-  params.seqEnds(chromBeg, chromEnd, a.rname);
-  if (a.rend > chromEnd - chromBeg)
+  size_t seqBeg, seqEnd;
+  const uchar *seq = params.seqEnds(seqBeg, seqEnd, a.rname);
+  if (a.rend > seqEnd - seqBeg)
     err("alignment beyond the end of " + std::string(a.rname));
 
   size_t rowBeg = matrixRowOrigins[i] + dpBeg(i);
@@ -908,27 +900,27 @@ void SplitAligner::initSpliceSignals(const SplitAlignerParams &params,
 
   if (a.isForwardStrand()) {
     for (unsigned j = 0; j <= dpLen; ++j) {
-      begSignals[j] = spliceBegSignalFwd(chromBeg + begCoords[j], toUnmasked);
-      endSignals[j] = spliceEndSignalFwd(chromBeg + endCoords[j], toUnmasked);
+      begSignals[j] = spliceBegSignalFwd(seq, seqBeg+begCoords[j], toUnmasked);
+      endSignals[j] = spliceEndSignalFwd(seq, seqBeg+endCoords[j], toUnmasked);
     }
   } else {
     for (unsigned j = 0; j <= dpLen; ++j) {
-      begSignals[j] = spliceBegSignalRev(chromEnd - begCoords[j], toUnmasked);
-      endSignals[j] = spliceEndSignalRev(chromEnd - endCoords[j], toUnmasked);
+      begSignals[j] = spliceBegSignalRev(seq, seqEnd-begCoords[j], toUnmasked);
+      endSignals[j] = spliceEndSignalRev(seq, seqEnd-endCoords[j], toUnmasked);
     }
   }
 }
 
 const uchar sequenceEndSentinel = 4;
 
-static void getNextSignal(uchar *out, const uchar *seq) {
-  out[0] = seq[0];
-  out[1] = (seq[0] == sequenceEndSentinel) ? sequenceEndSentinel : seq[1];
+static void getNextSignal(uchar *out, const uchar *seq, size_t pos) {
+  out[0] = seq[pos];
+  out[1] = (out[0] == sequenceEndSentinel) ? sequenceEndSentinel : seq[pos+1];
 }
 
-static void getPrevSignal(uchar *out, const uchar *seq) {
-  out[1] = seq[-1];
-  out[0] = (seq[-1] == sequenceEndSentinel) ? sequenceEndSentinel : seq[-2];
+static void getPrevSignal(uchar *out, const uchar *seq, size_t pos) {
+  out[1] = seq[pos-1];
+  out[0] = (out[1] == sequenceEndSentinel) ? sequenceEndSentinel : seq[pos-2];
 }
 
 static char decodeOneBase(const uchar *decode, uchar x) {
@@ -953,12 +945,11 @@ void SplitAlignerParams::spliceBegSignal(char *out, const char *seqName,
 					 bool isForwardStrand,
 					 bool isSenseStrand,
 					 unsigned coord) const {
-  StringNumMap::const_iterator f = chromosomeIndex.find(seqName);
-  size_t v = f->second % maxGenomeVolumes();
-  size_t c = f->second / maxGenomeVolumes();
   uchar signal[2];
-  if (isForwardStrand) getNextSignal(signal, seqBeg(genome[v], c) + coord);
-  else                 getPrevSignal(signal, seqEnd(genome[v], c) - coord);
+  size_t seqBeg, seqEnd;
+  const uchar *seq = seqEnds(seqBeg, seqEnd, seqName);
+  if (isForwardStrand) getNextSignal(signal, seq, seqBeg + coord);
+  else                 getPrevSignal(signal, seq, seqEnd - coord);
   decodeSpliceSignal(out, signal, alphabet.decode, alphabet.complement,
 		     isSenseStrand == isForwardStrand);
 }
@@ -967,12 +958,11 @@ void SplitAlignerParams::spliceEndSignal(char *out, const char *seqName,
 					 bool isForwardStrand,
 					 bool isSenseStrand,
 					 unsigned coord) const {
-  StringNumMap::const_iterator f = chromosomeIndex.find(seqName);
-  size_t v = f->second % maxGenomeVolumes();
-  size_t c = f->second / maxGenomeVolumes();
   uchar signal[2];
-  if (isForwardStrand) getPrevSignal(signal, seqBeg(genome[v], c) + coord);
-  else                 getNextSignal(signal, seqEnd(genome[v], c) - coord);
+  size_t seqBeg, seqEnd;
+  const uchar *seq = seqEnds(seqBeg, seqEnd, seqName);
+  if (isForwardStrand) getPrevSignal(signal, seq, seqBeg + coord);
+  else                 getNextSignal(signal, seq, seqEnd - coord);
   decodeSpliceSignal(out, signal, alphabet.decode, alphabet.complement,
 		     isSenseStrand == isForwardStrand);
 }
