@@ -101,22 +101,22 @@ static void fastEqualRange(const PosPart *sufArray, indexT &beg, indexT &end,
 }
 
 static indexT lowerBound2(const PosPart *sufArray, indexT beg, indexT end,
-			  const uchar *textBase, const uchar *subsetMap,
+			  const uchar *text, size_t depth, const uchar *subsetMap,
 			  const uchar *queryBeg, const uchar *queryEnd,
 			  const CyclicSubsetSeed &seed) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    indexT offset = posGetAt(sufArray, mid);
-    const uchar *t = textBase + offset;
+    size_t offset = posGetAt(sufArray, mid);
+    size_t t = depth + offset;
     const uchar *q = queryBeg;
     const uchar *s = subsetMap;
     for (;;) {  // loop over consecutive letters
       const uchar *textSubsetMap = seed.originalSubsetMap(s);
-      if (textSubsetMap[*t] < s[*q]) {
+      if (textSubsetMap[text[t]] < s[*q]) {
 	beg = mid + 1;
 	// the next 3 lines are unnecessary, but make it faster:
 	queryBeg = q;
-	textBase = t - offset;
+	depth = t - offset;
 	subsetMap = s;
 	break;
       }
@@ -133,22 +133,22 @@ static indexT lowerBound2(const PosPart *sufArray, indexT beg, indexT end,
 }
 
 static indexT upperBound2(const PosPart *sufArray, indexT beg, indexT end,
-			  const uchar *textBase, const uchar *subsetMap,
+			  const uchar *text, size_t depth, const uchar *subsetMap,
 			  const uchar *queryBeg, const uchar *queryEnd,
 			  const CyclicSubsetSeed &seed) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    indexT offset = posGetAt(sufArray, mid);
-    const uchar *t = textBase + offset;
+    size_t offset = posGetAt(sufArray, mid);
+    size_t t = depth + offset;
     const uchar *q = queryBeg;
     const uchar *s = subsetMap;
     for (;;) {  // loop over consecutive letters
       const uchar *textSubsetMap = seed.originalSubsetMap(s);
-      if (textSubsetMap[*t] > s[*q]) {
+      if (textSubsetMap[text[t]] > s[*q]) {
 	end = mid;
 	// the next 3 lines are unnecessary, but make it faster:
 	queryBeg = q;
-	textBase = t - offset;
+	depth = t - offset;
 	subsetMap = s;
         break;
       }
@@ -167,21 +167,21 @@ static indexT upperBound2(const PosPart *sufArray, indexT beg, indexT end,
 // Find the suffix array range of string [queryBeg, queryEnd) within
 // the suffix array range [beg, end)
 static void equalRange2(const PosPart *sufArray, indexT &beg, indexT &end,
-			const uchar *textBase, const uchar *subsetMap,
+			const uchar *text, size_t depth, const uchar *subsetMap,
 			const uchar *queryBeg, const uchar *queryEnd,
 			const CyclicSubsetSeed &seed) {
   const uchar *qBeg = queryBeg;
   const uchar *qEnd = qBeg;
-  const uchar *tBeg = textBase;
-  const uchar *tEnd = tBeg;
+  size_t tBeg = depth;
+  size_t tEnd = tBeg;
   const uchar *sBeg = subsetMap;
   const uchar *sEnd = sBeg;
 
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
-    indexT offset = posGetAt(sufArray, mid);
+    size_t offset = posGetAt(sufArray, mid);
     const uchar *q;
-    const uchar *t;
+    size_t t;
     const uchar *s;
     if (qBeg < qEnd) {
       q = qBeg;
@@ -195,14 +195,14 @@ static void equalRange2(const PosPart *sufArray, indexT &beg, indexT &end,
     uchar x, y;
     for (;;) {  // loop over consecutive letters
       const uchar *textSubsetMap = seed.originalSubsetMap(s);
-      x = textSubsetMap[*t];  // this text letter's subset
+      x = textSubsetMap[text[t]];  // this text letter's subset
       y = s[*q];  // this query letter's subset
       if (x != y) break;
       ++q;  // next query letter
       if (q == queryEnd) {  // we found a full match to [queryBeg, queryEnd)
-	beg = lowerBound2(sufArray, beg, mid, tBeg, sBeg,
+	beg = lowerBound2(sufArray, beg, mid, text, tBeg, sBeg,
 			  qBeg, queryEnd, seed);
-	end = upperBound2(sufArray, mid + 1, end, tEnd, sEnd,
+	end = upperBound2(sufArray, mid + 1, end, text, tEnd, sEnd,
 			  qEnd, queryEnd, seed);
 	return;
       }
@@ -233,36 +233,36 @@ static void equalRange2(const PosPart *sufArray, indexT &beg, indexT &end,
 // of [queryBeg, queryBeg+d), which is guaranteed to include the whole
 // range for the smallest d whose range is no longer than maxHits.
 static size_t equalRange3(const PosPart *sufArray, indexT &beg, indexT &end,
-			  const uchar *&subsetMap, const uchar *textBase,
+			  const uchar *&subsetMap, const uchar *text, size_t depth,
 			  const uchar *queryBeg, const CyclicSubsetSeed &seed,
 			  size_t maxHits) {
   if (subsetMap[*queryBeg] == CyclicSubsetSeed::DELIMITER) return 0;
   assert(end - beg > maxHits);
   const uchar *qBeg = queryBeg;
-  const uchar *tBeg = textBase;
+  size_t tBeg = depth;
   const uchar *sBeg = subsetMap;
   const uchar *qBegOld = qBeg;
-  const uchar *tBegOld = tBeg;
+  size_t tBegOld = tBeg;
   const uchar *sBegOld = sBeg;
   const uchar *qEnd = queryBeg;
-  const uchar *tEnd = textBase;
+  size_t tEnd = depth;
   const uchar *sEnd = subsetMap;
   const uchar *qEndOld = qEnd;
-  const uchar *tEndOld = tEnd;
+  size_t tEndOld = tEnd;
   const uchar *sEndOld = sEnd;
   const uchar *qMid = queryBeg;
-  const uchar *tMid = textBase;
+  size_t tMid = depth;
   const uchar *sMid = subsetMap;
 
   while (end - beg > maxHits * 2) {
     indexT mid = beg + (end - beg) / 2;
-    indexT offset = posGetAt(sufArray, mid);
+    size_t offset = posGetAt(sufArray, mid);
     tMid += offset;
     int iterations = 1023;  // xxx ???
     uchar tChar, qChar;
     for (;;) {  // loop over consecutive letters
       const uchar *textSubsetMap = seed.originalSubsetMap(sMid);
-      tChar = textSubsetMap[*tMid];  // this text letter's subset
+      tChar = textSubsetMap[text[tMid]];  // this text letter's subset
       qChar = sMid[*qMid];  // this query letter's subset
       if (tChar != qChar || qChar == CyclicSubsetSeed::DELIMITER) break;
       if (--iterations == 0) {  // avoid huge self-comparisons
@@ -311,21 +311,23 @@ static size_t equalRange3(const PosPart *sufArray, indexT &beg, indexT &end,
     qMid = std::max(qBeg, qEndOld) + 1;
     subsetMap = seed.nextMap(qBeg > qEndOld ? sBeg : sEndOld);
     if (qMid > qEnd) {
-      equalRange2(sufArray, beg, end, tBeg, sBeg, qBeg, qMid, seed);
+      equalRange2(sufArray, beg, end, text, tBeg, sBeg, qBeg, qMid, seed);
     } else {
-      beg = lowerBound2(sufArray, beg, end, tBeg, sBeg, qBeg, qMid, seed);
+      beg = lowerBound2(sufArray, beg, end,
+			text, tBeg, sBeg, qBeg, qMid, seed);
       end = upperBound2(sufArray, end + 1, end + maxHits + 1,
-			tEndOld, sEndOld, qEndOld, qMid, seed);
+			text, tEndOld, sEndOld, qEndOld, qMid, seed);
     }
   } else {
     qMid = std::max(qEnd, qBegOld) + 1;
     subsetMap = seed.nextMap(qEnd > qBegOld ? sEnd : sBegOld);
     if (qMid > qBeg) {
-      equalRange2(sufArray, beg, end, tEnd, sEnd, qEnd, qMid, seed);
+      equalRange2(sufArray, beg, end, text, tEnd, sEnd, qEnd, qMid, seed);
     } else {
       beg = lowerBound2(sufArray, beg - maxHits - 1, beg - 1,
-			tBegOld, sBegOld, qBegOld, qMid, seed);
-      end = upperBound2(sufArray, beg, end, tEnd, sEnd, qEnd, qMid, seed);
+			text, tBegOld, sBegOld, qBegOld, qMid, seed);
+      end = upperBound2(sufArray, beg, end,
+			text, tEnd, sEnd, qEnd, qMid, seed);
     }
   }
 
@@ -392,14 +394,14 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
       ++depth;
       subsetMap = seed.nextMap( subsetMap );
     }
-    equalRange2(sufArray, beg, end, text + d, s,
+    equalRange2(sufArray, beg, end, text, d, s,
 		queryPtr + d, queryPtr + depth, seed);
   }
 
   if (end - beg > maxHits * 2 && maxDepth + 1 == 0 &&
       childTable.empty() && kiddyTable.empty() && chibiTable.empty()) {
     depth += equalRange3(sufArray, beg, end, subsetMap,
-			 text + depth, queryPtr + depth, seed, maxHits);
+			 text, depth, queryPtr + depth, seed, maxHits);
   }
 
   ChildDirection childDirection = UNKNOWN;
