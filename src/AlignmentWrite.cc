@@ -148,10 +148,10 @@ static size_t matchCount(const std::vector<SegmentPair> &blocks,
   size_t matches = 0;
   for (size_t i = 0; i < blocks.size(); ++i) {
     const SegmentPair &b = blocks[i];
-    const uchar *x = seq1 + b.beg1();
-    const uchar *y = seq2 + b.beg2();
+    size_t beg1 = b.beg1();
+    size_t beg2 = b.beg2();
     for (size_t j = 0; j < b.size; ++j)
-      if (map1[x[j]] == map2[y[j]])
+      if (map1[seq1[beg1 + j]] == map2[seq2[beg2 + j]])
 	++matches;
   }
   return matches;
@@ -621,7 +621,7 @@ static char *writeSeq(char *dest, const uchar *seq, size_t beg, size_t end,
 		      const Alphabet &alph, size_t qualsPerBase, bool isAA) {
   return qualsPerBase ? writeQuals(dest, seq, beg, end, qualsPerBase)
     : isAA ? writeAmino(dest, seq + beg, seq + end, alph.numbersToUppercase)
-    :        alph.rtCopy(seq + beg, seq + end, dest);
+    :        alph.rtCopy(dest, seq, beg, end);
 }
 
 char *Alignment::writeTopSeq(char *dest, const uchar *seq,

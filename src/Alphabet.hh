@@ -50,10 +50,13 @@ struct Alphabet{
   void tr( uchar* beg, uchar* end, bool isKeepLowercase=true ) const;
 
   // reverse-translate (decode) a sequence of numbers to letters
-  // return the position after the last written position in dest
-  char* rtCopy( const uchar* beg, const uchar* end, char* dest ) const;
+  // return the position after the last written position in "out"
+  char *rtCopy(char *out, const uchar *seq, size_t beg, size_t end) const {
+    while (beg < end) *out++ = decode[seq[beg++]];
+    return out;
+  }
 
-  void makeUppercase(uchar *beg, uchar *end) {
+  void makeUppercase(uchar *beg, uchar *end) const {
     for (; beg < end; ++beg) *beg = numbersToUppercase[*beg];
   }
 

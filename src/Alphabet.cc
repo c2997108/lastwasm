@@ -45,13 +45,6 @@ void Alphabet::tr( uchar* beg, uchar* end, bool isKeepLowercase ) const{
   }
 }
 
-char* Alphabet::rtCopy( const uchar* beg, const uchar* end, char* dest ) const{
-  while( beg < end ){
-    *dest++ = decode[ *beg++ ];
-  }
-  return dest;
-}
-
 void Alphabet::init(){
   for( std::string::iterator i = letters.begin(); i < letters.end(); ++i )
     *i = std::toupper( *i );
