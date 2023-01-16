@@ -1,34 +1,30 @@
-// Copyright 2008, 2009, 2011, 2012 Martin C. Frith
+// Author: Martin C. Frith 2023
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "SegmentPair.hh"
 
-namespace cbrc{
+namespace cbrc {
 
-void SegmentPair::maxIdenticalRun( const uchar* seq1, const uchar* seq2,
-				   const uchar* map1, const uchar* map2 ){
-  const uchar* s1 = seq1 + beg1();
-  const uchar* s2 = seq2 + beg2();
-  const uchar* e1 = seq1 + end1();
-
-  const uchar* bestEnd1 = s1;
-  indexT bestSize = 0;
+void SegmentPair::maxIdenticalRun(const uchar *seq1, const uchar *seq2,
+				  const uchar *map1, const uchar *map2) {
   indexT runSize = 0;
+  indexT bestSize = 0;
+  indexT bestEnd = 0;
 
-  while( s1 < e1 ){
-    if( map1[ *s1++ ] == map2[ *s2++ ] ){
+  for (indexT i = 0; i < size; ++i) {
+    if (map1[seq1[start1 + i]] == map2[seq2[start2 + i]]) {
       ++runSize;
-      if( runSize > bestSize ){
+      if (runSize > bestSize) {
 	bestSize = runSize;
-	bestEnd1 = s1;
+	bestEnd = i + 1;
       }
+    } else {
+      runSize = 0;
     }
-    else runSize = 0;
   }
 
-  const uchar* bestBeg1 = bestEnd1 - bestSize;
-  indexT offset = bestBeg1 - seq1 - beg1();
-  start1 += offset;
-  start2 += offset;
+  start1 += bestEnd - bestSize;
+  start2 += bestEnd - bestSize;
   size = bestSize;
 }
 
