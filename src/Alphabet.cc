@@ -21,11 +21,6 @@ const char* Alphabet::dna = "ACGT";
 const char* Alphabet::protein = "ACDEFGHIKLMNPQRSTVWY";
 const char* Alphabet::proteinWithStop = "ACDEFGHIKLMNPQRSTVWY*";
 
-void Alphabet::fromString( const std::string& alphString ){
-  letters = alphString;
-  init();
-}
-
 void Alphabet::count( const uchar* beg, const uchar* end,
                       countT* counts ) const{
   for( /* noop */; beg < end; ++beg ){
@@ -45,7 +40,8 @@ void Alphabet::tr( uchar* beg, uchar* end, bool isKeepLowercase ) const{
   }
 }
 
-void Alphabet::init(){
+void Alphabet::init(const std::string &mainLetters) {
+  letters = mainLetters;
   for( std::string::iterator i = letters.begin(); i < letters.end(); ++i )
     *i = std::toupper( *i );
 
@@ -120,10 +116,4 @@ void Alphabet::makeComplement(){
 
 std::ostream& cbrc::operator<<( std::ostream& s, const Alphabet& a ){
   return s << a.letters;
-}
-
-std::istream& cbrc::operator>>( std::istream& s, Alphabet& a ){
-  s >> a.letters;
-  if( s ) a.init();
-  return s;
 }

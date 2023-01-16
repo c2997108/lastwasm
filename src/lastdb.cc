@@ -29,11 +29,11 @@ static void openOrDie(std::ifstream &file, const std::string &name) {
 }
 
 // Set up an alphabet (e.g. DNA or protein), based on the user options
-void makeAlphabet( Alphabet& alph, const LastdbArguments& args ){
-  if( !args.userAlphabet.empty() )  alph.fromString( args.userAlphabet );
-  else if( args.isAddStops )        alph.fromString( alph.proteinWithStop );
-  else if( args.isProtein )         alph.fromString( alph.protein );
-  else                              alph.fromString( alph.dna );
+void makeAlphabet(Alphabet &alph, const LastdbArguments &args) {
+  if (!args.userAlphabet.empty()) alph.init(args.userAlphabet);
+  else if (args.isAddStops)       alph.init(alph.proteinWithStop);
+  else if (args.isProtein)        alph.init(alph.protein);
+  else                            alph.init(alph.dna);
 }
 
 // Does the first sequence look like it isn't really DNA?
@@ -348,7 +348,7 @@ static void dump1(const std::string &dbName, const uchar *decode,
 
 static void dump(const std::string &dbName) {
   std::ios_base::sync_with_stdio(false);  // makes it much faster!
-  Alphabet alph;
+  std::string alphabetLetters;
   unsigned volumes = -1;
   size_t seqCount = -1;
   size_t bitsPerInt = 4 * CHAR_BIT;
@@ -359,16 +359,18 @@ static void dump(const std::string &dbName) {
   while (getline(file, line)) {
     std::istringstream iss(line);
     getline(iss, word, '=');
-    if (word == "alphabet") iss >> alph;
+    if (word == "alphabet") iss >> alphabetLetters;
     if (word == "numofsequences") iss >> seqCount;
     if (word == "sequenceformat") iss >> fmt;
     if (word == "volumes") iss >> volumes;
     if (word == "integersize") iss >> bitsPerInt;
   }
-  if (alph.letters.empty()) ERR("can't read file: " + dbName + ".prj");
+  if (alphabetLetters.empty()) ERR("can't read file: " + dbName + ".prj");
   size_t b = bitsPerInt / CHAR_BIT;
   if (posSize > 4 && b <= 4) ERR("please use lastdb for " + dbName);
   if (posSize <= 4 && b > 4) ERR("please use lastdb5 for " + dbName);
+  Alphabet alph;
+  alph.init(alphabetLetters);
   if (volumes + 1 == 0) {
     dump1(dbName, alph.decode, seqCount, fmt != sequenceFormat::fasta);
   } else {

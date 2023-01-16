@@ -29,11 +29,11 @@ struct Alphabet{
 
   static const unsigned capacity = 256;
 
+  // make an Alphabet from a string containing the "proper" letters
+  void init(const std::string &mainLetters);
+
   // does this alphabet start with the standard protein alphabet?
   bool isProtein() const{ return letters.find( protein ) == 0; }
-
-  // make an Alphabet from a string containing the "proper" letters
-  void fromString( const std::string& alphString );
 
   // add counts of "proper" letters to "counts" (counting lowercase too)
   void count( const uchar* beg, const uchar* end, countT* counts ) const;
@@ -69,14 +69,12 @@ struct Alphabet{
   uchar lettersToUppercase[capacity];  // translate letters to uppercase codes
   uchar complement[capacity];  // translate DNA codes to their complements
 
-  void init();
   void addLetters( const std::string& lettersToAdd, unsigned& code );
   void initCaseConversions( unsigned codeEnd );
   void makeComplement();
 };
 
 std::ostream& operator<<( std::ostream& s, const Alphabet& a );
-std::istream& operator>>( std::istream& s, Alphabet& a );
 
 }
 

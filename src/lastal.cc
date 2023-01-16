@@ -377,6 +377,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
   size_t fileBitsPerInt = 32;
+  std::string alphabetLetters;
   std::string trigger = "#lastal";
 
   std::string line, word;
@@ -388,7 +389,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     std::istringstream iss(line);
     getline( iss, word, '=' );
     if( word == "version" ) iss >> version;
-    if( word == "alphabet" ) iss >> alph;
+    if( word == "alphabet" ) iss >> alphabetLetters;
     if( word == "numofsequences" ) iss >> numOfRefSeqs;
     if( word == "numofletters" ) iss >> refLetters;
     if( word == "maxsequenceletters" ) iss >> refMaxSeqLen;
@@ -404,7 +405,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
   }
 
   if( f.eof() && !f.bad() ) f.clear();
-  if( alph.letters.empty() || numOfRefSeqs+1 == 0 || refLetters+1 == 0 ||
+  if( alphabetLetters.empty() || numOfRefSeqs+1 == 0 || refLetters+1 == 0 ||
       (refMaxSeqLen == 0 && refLetters != 0) ||
       isCaseSensitiveSeeds < 0 || numOfIndexes > maxNumOfIndexes ||
       referenceFormat == sequenceFormat::prb ||
@@ -421,6 +422,8 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     if (fileBitsPerInt == 64) ERR("please use lastal8 for " + fileName);
     ERR("weird integersize in " + fileName);
   }
+
+  alph.init(alphabetLetters);
 }
 
 // Read a per-volume .prj file, with info about a database volume
@@ -1538,7 +1541,7 @@ void lastal( int argc, char** argv ){
   if( args.isTranslated() ){
     if( isDna )  // allow user-defined alphabet
       ERR( "expected protein database, but got DNA" );
-    queryAlph.fromString( queryAlph.dna );
+    queryAlph.init(queryAlph.dna);
     geneticCode.fromString(GeneticCode::stringFromName(args.geneticCodeFile));
     if (scoreMatrix.isCodonCols()) {
       geneticCode.initCodons(queryAlph.encode, alph.encode,

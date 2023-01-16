@@ -1398,7 +1398,7 @@ void SplitAlignerParams::readGenome(const std::string &baseName) {
     readGenomeVolume(baseName, seqCount, 0);
   }
 
-  alphabet.fromString(alphabetLetters);
+  alphabet.init(alphabetLetters);
 }
 
 static double probFromPhred(double s) {
