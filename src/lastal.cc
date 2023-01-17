@@ -457,7 +457,7 @@ static size_t seedSearchEnd(size_t seqEnd) {
 // Write match counts for each query sequence
 void writeCounts(const std::vector< std::vector<countT> > &matchCounts,
 		 const MultiSequence &qrySeqs, size_t firstSequence) {
-  for (indexT i = 0; i < matchCounts.size(); ++i) {
+  for (size_t i = 0; i < matchCounts.size(); ++i) {
     std::cout << qrySeqs.seqName(firstSequence + i) << '\n';
     for (size_t j = args.minHitDepth; j < matchCounts[i].size(); ++j) {
       std::cout << j << '\t' << matchCounts[i][j] << '\n';
@@ -536,10 +536,10 @@ struct Dispatcher{
          (e == Phase::pregapped ) ? args.maxDropGapped : args.maxDropFinal ),
       z( t ? 2 : p ? 1 : 0 ){}
 
-  int gaplessOverlap( indexT x, indexT y, size_t &rev, size_t &fwd ) const{
-    if( z==0 ) return gaplessXdropOverlap( a+x, b+y, m, d, rev, fwd );
-    if( z==1 ) return gaplessPssmXdropOverlap( a+x, p+y, d, rev, fwd );
-    return gaplessTwoQualityXdropOverlap( a+x, i+x, b+y, j+y, t, d, rev, fwd );
+  int gaplessOverlap(size_t x, size_t y, size_t &rev, size_t &fwd) const {
+    if (z==0) return gaplessXdropOverlap(a+x, b+y, m, d, rev, fwd);
+    if (z==1) return gaplessPssmXdropOverlap(a+x, p+y, d, rev, fwd);
+    return gaplessTwoQualityXdropOverlap(a+x, i+x, b+y, j+y, t, d, rev, fwd);
   }
 
   int forwardGaplessScore( indexT x, indexT y ) const{
@@ -554,28 +554,28 @@ struct Dispatcher{
     return reverseGaplessTwoQualityXdropScore( a+x, i+x, b+y, j+y, t, d );
   }
 
-  indexT forwardGaplessEnd( indexT x, indexT y, int s ) const{
+  size_t forwardGaplessEnd(size_t x, size_t y, int s) const {
     if( z==0 ) return forwardGaplessXdropEnd( a+x, b+y, m, s ) - a;
     if( z==1 ) return forwardGaplessPssmXdropEnd( a+x, p+y, s ) - a;
     return forwardGaplessTwoQualityXdropEnd( a+x, i+x, b+y, j+y, t, s ) - a;
   }
 
-  indexT reverseGaplessEnd( indexT x, indexT y, int s ) const{
+  size_t reverseGaplessEnd(size_t x, size_t y, int s) const {
     if( z==0 ) return reverseGaplessXdropEnd( a+x, b+y, m, s ) - a;
     if( z==1 ) return reverseGaplessPssmXdropEnd( a+x, p+y, s ) - a;
     return reverseGaplessTwoQualityXdropEnd( a+x, i+x, b+y, j+y, t, s ) - a;
   }
 
-  bool isOptimalGapless( indexT x, indexT e, indexT y ) const{
+  bool isOptimalGapless(size_t x, size_t e, size_t y) const {
     if( z==0 ) return isOptimalGaplessXdrop( a+x, a+e, b+y, m, d );
     if( z==1 ) return isOptimalGaplessPssmXdrop( a+x, a+e, p+y, d );
     return isOptimalGaplessTwoQualityXdrop( a+x, a+e, i+x, b+y, j+y, t, d );
   }
 
-  int gaplessScore( indexT x, indexT e, indexT y ) const{
-    if( z==0 ) return gaplessAlignmentScore( a+x, a+e, b+y, m );
-    if( z==1 ) return gaplessPssmAlignmentScore( a+x, a+e, p+y );
-    return gaplessTwoQualityAlignmentScore( a+x, a+e, i+x, b+y, j+y, t );
+  int gaplessScore(size_t x, size_t y, size_t length) const {
+    if (z==0) return gaplessAlignmentScore(a+x, a+x+length, b+y, m);
+    if (z==1) return gaplessPssmAlignmentScore(a+x, a+x+length, p+y);
+    return gaplessTwoQualityAlignmentScore(a+x, a+x+length, i+x, b+y, j+y, t);
   }
 };
 
@@ -629,13 +629,13 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 	   args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth);
   counts.matchCount += posCount(beg, end);
 
-  indexT qryPos = qryPtr - dis.b;  // coordinate in the query sequence
+  size_t qryPos = qryPtr - dis.b;  // coordinate in the query sequence
   size_t maxAlignments = args.maxGaplessAlignmentsPerQueryPosition;
 
   for (/* noop */; beg < end; beg += posParts) {
     if (maxAlignments == 0) break;
 
-    indexT refPos = posGet(beg);  // coordinate in the reference sequence
+    size_t refPos = posGet(beg);  // coordinate in the reference sequence
     if (dt.isCovered(qryPos, refPos)) continue;
     ++counts.gaplessExtensionCount;
     int score;
@@ -648,15 +648,15 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       dt.addEndpoint(sp.end2(), sp.end1());
       writeSegmentPair(aligner, qrySeqs, qryData, sp);
     } else {
-      int fs = dis.forwardGaplessScore(refPos, qryPos);
-      int rs = dis.reverseGaplessScore(refPos, qryPos);
-      score = fs + rs;
+      int fwdScore = dis.forwardGaplessScore(refPos, qryPos);
+      int revScore = dis.reverseGaplessScore(refPos, qryPos);
+      score = fwdScore + revScore;
 
       if (score < minScoreGapless) continue;
 
-      indexT tEnd = dis.forwardGaplessEnd(refPos, qryPos, fs);
-      indexT tBeg = dis.reverseGaplessEnd(refPos, qryPos, rs);
-      indexT qBeg = qryPos - (refPos - tBeg);
+      size_t tEnd = dis.forwardGaplessEnd(refPos, qryPos, fwdScore);
+      size_t tBeg = dis.reverseGaplessEnd(refPos, qryPos, revScore);
+      size_t qBeg = qryPos - (refPos - tBeg);
       if (!dis.isOptimalGapless(tBeg, tEnd, qBeg)) continue;
       SegmentPair sp(tBeg, qBeg, tEnd - tBeg, score);
       dt.addEndpoint(sp.end2(), sp.end1());
@@ -742,7 +742,7 @@ void shrinkToLongestIdenticalRun( SegmentPair& sp, const Dispatcher& dis ){
   const uchar *map2 = scoreMatrix.isCodonCols() ?
     geneticCode.getCodonToAmino() : alph.numbersToUppercase;
   sp.maxIdenticalRun(dis.a, dis.b, alph.numbersToUppercase, map2);
-  sp.score = dis.gaplessScore( sp.beg1(), sp.end1(), sp.beg2() );
+  sp.score = dis.gaplessScore(sp.beg1(), sp.beg2(), sp.size);
 }
 
 // Do gapped extensions of the gapless alignments
@@ -758,12 +758,12 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
   for( size_t i = 0; i < gaplessAlns.size(); ++i ){
     SegmentPair& sp = gaplessAlns.items[i];
 
-    int fs = dis.forwardGaplessScore( sp.beg1(), sp.beg2() );
-    int rs = dis.reverseGaplessScore( sp.beg1(), sp.beg2() );
-    indexT tEnd = dis.forwardGaplessEnd( sp.beg1(), sp.beg2(), fs );
-    indexT tBeg = dis.reverseGaplessEnd( sp.beg1(), sp.beg2(), rs );
-    indexT qBeg = sp.beg2() - (sp.beg1() - tBeg);
-    sp = SegmentPair( tBeg, qBeg, tEnd - tBeg, fs + rs );
+    int fwdScore = dis.forwardGaplessScore(sp.beg1(), sp.beg2());
+    int revScore = dis.reverseGaplessScore(sp.beg1(), sp.beg2());
+    size_t tEnd = dis.forwardGaplessEnd(sp.beg1(), sp.beg2(), fwdScore);
+    size_t tBeg = dis.reverseGaplessEnd(sp.beg1(), sp.beg2(), revScore);
+    size_t qBeg = sp.beg2() - (sp.beg1() - tBeg);
+    sp = SegmentPair(tBeg, qBeg, tEnd - tBeg, fwdScore + revScore);
 
     if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ){
       SegmentPairPot::mark(sp);
@@ -1410,13 +1410,13 @@ int calcMinScoreGapless(double numLettersInReference) {
 }
 
 // Read one database volume
-void readVolume( unsigned volumeNumber ){
+void readVolume(unsigned volumeNumber) {
   std::string baseName = args.lastdbName + stringify(volumeNumber);
   indexT seqCount = indexT(-1);
   indexT seqLen = indexT(-1);
-  readInnerPrj( baseName + ".prj", seqCount, seqLen );
+  readInnerPrj(baseName + ".prj", seqCount, seqLen);
   minScoreGapless = calcMinScoreGapless(seqLen);
-  readIndex( baseName, seqCount );
+  readIndex(baseName, seqCount);
 }
 
 // Scan one batch of query sequences against all database volumes
@@ -1425,7 +1425,9 @@ void scanAllVolumes() {
 		  args.isKeepLowercase, 0);
 
   for (unsigned i = 0; i < numOfVolumes; ++i) {
-    if (refSeqs.unfinishedSize() == 0 || numOfVolumes > 1) readVolume(i);
+    if (refSeqs.unfinishedSize() == 0 || numOfVolumes > 1) {
+      readVolume(i);
+    }
     scanOneVolume(i, aligners.size());
   }
 }
