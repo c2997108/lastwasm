@@ -34,8 +34,7 @@ GappedXdropAligner2qual.o GappedXdropAligner3frame.o			\
 GappedXdropAlignerFrame.o mcf_aligment_path_adder.o			\
 mcf_frameshift_xdrop_aligner.o mcf_gap_costs.o GeneticCode.o		\
 GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
-QualityPssmMaker.o TwoQualityScoreMatrix.o gaplessXdrop.o		\
-gaplessPssmXdrop.o gaplessTwoQualityXdrop.o cbrc_linalg.o		\
+QualityPssmMaker.o TwoQualityScoreMatrix.o cbrc_linalg.o		\
 mcf_substitution_matrix_stats.o split/cbrc_unsplit_alignment.o		\
 split/last_split_options.o $(alpObj)
 
@@ -192,12 +191,6 @@ CyclicSubsetSeed.o CyclicSubsetSeed.o5 CyclicSubsetSeed.o8: CyclicSubsetSeed.cc 
 DiagonalTable.o DiagonalTable.o5 DiagonalTable.o8: DiagonalTable.cc DiagonalTable.hh
 dna_words_finder.o dna_words_finder.o5 dna_words_finder.o8: dna_words_finder.cc dna_words_finder.hh
 fileMap.o fileMap.o5 fileMap.o8: fileMap.cc fileMap.hh stringify.hh
-gaplessPssmXdrop.o gaplessPssmXdrop.o5 gaplessPssmXdrop.o8: gaplessPssmXdrop.cc gaplessPssmXdrop.hh \
- ScoreMatrixRow.hh
-gaplessTwoQualityXdrop.o gaplessTwoQualityXdrop.o5 gaplessTwoQualityXdrop.o8: gaplessTwoQualityXdrop.cc \
- gaplessTwoQualityXdrop.hh TwoQualityScoreMatrix.hh \
- mcf_substitution_matrix_stats.hh ScoreMatrixRow.hh
-gaplessXdrop.o gaplessXdrop.o5 gaplessXdrop.o8: gaplessXdrop.cc gaplessXdrop.hh ScoreMatrixRow.hh
 GappedXdropAligner2qual.o GappedXdropAligner2qual.o5 GappedXdropAligner2qual.o8: GappedXdropAligner2qual.cc \
  GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
  mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh \

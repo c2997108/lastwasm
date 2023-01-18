@@ -1,4 +1,5 @@
-// Copyright 2010 Martin C. Frith
+// Author: Martin C. Frith 2023
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // Functions that find gapless X-drop alignments between two sequences.
 
@@ -6,7 +7,9 @@
 #define GAPLESS_XDROP_HH
 
 #include "ScoreMatrixRow.hh"
+
 #include <stddef.h>
+#include <stdexcept>
 
 namespace cbrc {
 
@@ -19,41 +22,84 @@ typedef unsigned char uchar;
 // The score might suffer overflow, for huge sequences and/or huge
 // scores.  If the function detects this (not guaranteed), it throws
 // an exception.
-int forwardGaplessXdropScore(const uchar *seq1,
-                             const uchar *seq2,
-                             const ScoreMatrixRow *scorer,
-                             int maxScoreDrop);
+static int forwardGaplessXdropScore(const uchar *seq1,
+				    const uchar *seq2,
+				    const ScoreMatrixRow *scorer,
+				    int maxScoreDrop) {
+  int score = 0;
+  int s = 0;
+  while (true) {
+    s += scorer[*seq1++][*seq2++];  // overflow risk
+    if (s < score - maxScoreDrop) break;
+    if (s > score) score = s;
+  }
+  if (score - s < 0)
+    throw std::overflow_error("score overflow in forward gapless extension");
+  return score;
+}
 
 // As above, but extending backwards.
-int reverseGaplessXdropScore(const uchar *seq1,
-                             const uchar *seq2,
-                             const ScoreMatrixRow *scorer,
-                             int maxScoreDrop);
+static int reverseGaplessXdropScore(const uchar *seq1,
+				    const uchar *seq2,
+				    const ScoreMatrixRow *scorer,
+				    int maxScoreDrop) {
+  int score = 0;
+  int s = 0;
+  while (true) {
+    s += scorer[*--seq1][*--seq2];  // overflow risk
+    if (s < score - maxScoreDrop) break;
+    if (s > score) score = s;
+  }
+  if (score - s < 0)
+    throw std::overflow_error("score overflow in reverse gapless extension");
+  return score;
+}
 
 // Return the endpoint in seq1 of the shortest alignment starting at
 // (seq1, seq2) and extending forwards, that has score equal to
 // "score".  This score should be the one that was found by
 // forwardGaplessXdropScore.
-const uchar *forwardGaplessXdropEnd(const uchar *seq1,
-                                    const uchar *seq2,
-                                    const ScoreMatrixRow *scorer,
-                                    int score);
+static const uchar *forwardGaplessXdropEnd(const uchar *seq1,
+					   const uchar *seq2,
+					   const ScoreMatrixRow *scorer,
+					   int score) {
+  int s = 0;
+  while (s < score) s += scorer[*seq1++][*seq2++];
+  return seq1;
+}
 
 // As above, but extending backwards.
-const uchar *reverseGaplessXdropEnd(const uchar *seq1,
-                                    const uchar *seq2,
-                                    const ScoreMatrixRow *scorer,
-                                    int score);
+static const uchar *reverseGaplessXdropEnd(const uchar *seq1,
+					   const uchar *seq2,
+					   const ScoreMatrixRow *scorer,
+					   int score) {
+  int s = 0;
+  while (s < score) s += scorer[*--seq1][*--seq2];
+  return seq1;
+}
 
 // Check whether the gapless alignment starting at (seq1, seq2) and
 // ending at seq1end is "optimal".  Here, "optimal" means: the
 // alignment has no prefix with score <= 0, no suffix with score <= 0,
 // and no region with score < -maxScoreDrop.
-bool isOptimalGaplessXdrop(const uchar *seq1,
-                           const uchar *seq1end,
-                           const uchar *seq2,
-                           const ScoreMatrixRow *scorer,
-                           int maxScoreDrop);
+static bool isOptimalGaplessXdrop(const uchar *seq1,
+				  const uchar *seq1end,
+				  const uchar *seq2,
+				  const ScoreMatrixRow *scorer,
+				  int maxScoreDrop) {
+  int score = 0;
+  int maxScore = 0;
+  while (seq1 < seq1end) {
+    score += scorer[*seq1++][*seq2++];
+    if (score > maxScore) maxScore = score;
+    else if (score <= 0 ||                       // non-optimal prefix
+             seq1 == seq1end ||                  // non-optimal suffix
+             score < maxScore - maxScoreDrop) {  // excessive score drop
+      return false;
+    }
+  }
+  return true;
+}
 
 // Returns the score, and sets the reverse and forward extension
 // lengths, for a gapless "overlap" alignment starting at (seq1,
@@ -62,19 +108,56 @@ bool isOptimalGaplessXdrop(const uchar *seq1,
 // sentinel indicating a sequence end).  If the alignment would have
 // any region with score < -maxScoreDrop, -INF is returned and the
 // extension lengths are not set.
-int gaplessXdropOverlap(const uchar *seq1,
-			const uchar *seq2,
-			const ScoreMatrixRow *scorer,
-			int maxScoreDrop,
-			size_t &reverseLength,
-			size_t &forwardLength);
+static int gaplessXdropOverlap(const uchar *seq1,
+			       const uchar *seq2,
+			       const ScoreMatrixRow *scorer,
+			       int maxScoreDrop,
+			       size_t &reverseLength,
+			       size_t &forwardLength) {
+  int minScore = 0;
+  int maxScore = 0;
+  int score = 0;
+
+  const uchar *r1 = seq1;
+  const uchar *r2 = seq2;
+  while (true) {
+    --r1;  --r2;
+    int s = scorer[*r1][*r2];
+    if (s <= -INF) break;
+    score += s;
+    if (score > maxScore) maxScore = score;
+    else if (score < maxScore - maxScoreDrop) return -INF;
+    else if (score < minScore) minScore = score;
+  }
+
+  maxScore = score - minScore;
+
+  const uchar *f1 = seq1;
+  const uchar *f2 = seq2;
+  while (true) {
+    int s = scorer[*f1][*f2];
+    if (s <= -INF) break;
+    score += s;
+    if (score > maxScore) maxScore = score;
+    else if (score < maxScore - maxScoreDrop) return -INF;
+    ++f1;  ++f2;
+  }
+
+  reverseLength = seq1 - (r1 + 1);
+  forwardLength = f1 - seq1;
+  return score;
+}
 
 // Calculate the score of the gapless alignment starting at (seq1,
 // seq2) and ending at seq1end.
-int gaplessAlignmentScore(const uchar *seq1,
-                          const uchar *seq1end,
-                          const uchar *seq2,
-                          const ScoreMatrixRow *scorer);
+static int gaplessAlignmentScore(const uchar *seq1,
+				 const uchar *seq1end,
+				 const uchar *seq2,
+				 const ScoreMatrixRow *scorer) {
+  int score = 0;
+  while (seq1 < seq1end) score += scorer[*seq1++][*seq2++];
+  return score;
+}
 
 }
 
