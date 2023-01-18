@@ -55,6 +55,14 @@ static int reverseGaplessXdropScore(const uchar *seq1,
   return score;
 }
 
+static void gaplessXdropScores(const uchar *seq1, const uchar *seq2,
+			       const ScoreMatrixRow *mat, int maxScoreDrop,
+			       size_t pos1, size_t pos2,
+			       int &fwdScore, int &revScore) {
+  fwdScore = forwardGaplessXdropScore(seq1+pos1, seq2+pos2, mat, maxScoreDrop);
+  revScore = reverseGaplessXdropScore(seq1+pos1, seq2+pos2, mat, maxScoreDrop);
+}
+
 // Find the shortest forward extension from (pos1, pos2) with score
 // "fwdScore", and the shortest reverse extension with score
 // "revScore".  Return the start coordinates and length of this alignment.

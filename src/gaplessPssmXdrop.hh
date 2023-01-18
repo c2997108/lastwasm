@@ -49,6 +49,15 @@ static int reverseGaplessPssmXdropScore(const uchar *seq,
   return score;
 }
 
+static void gaplessPssmXdropScores(const uchar *seq,
+				   const ScoreMatrixRow *pssm,
+				   int maxScoreDrop,
+				   size_t pos1, size_t pos2,
+				   int &fwdScore, int &revScore) {
+  fwdScore = forwardGaplessPssmXdropScore(seq+pos1, pssm+pos2, maxScoreDrop);
+  revScore = reverseGaplessPssmXdropScore(seq+pos1, pssm+pos2, maxScoreDrop);
+}
+
 static bool gaplessPssmXdropEnds(const uchar *seq, const ScoreMatrixRow *pssm,
 				 int maxScoreDrop, int fwdScore, int revScore,
 				 size_t &pos1, size_t &pos2, size_t &length) {

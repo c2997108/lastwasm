@@ -542,16 +542,16 @@ struct Dispatcher{
     return gaplessTwoQualityXdropOverlap(a+x, i+x, b+y, j+y, t, d, rev, fwd);
   }
 
-  int forwardGaplessScore( indexT x, indexT y ) const{
-    if( z==0 ) return forwardGaplessXdropScore( a+x, b+y, m, d );
-    if( z==1 ) return forwardGaplessPssmXdropScore( a+x, p+y, d );
-    return forwardGaplessTwoQualityXdropScore( a+x, i+x, b+y, j+y, t, d );
-  }
-
-  int reverseGaplessScore( indexT x, indexT y ) const{
-    if( z==0 ) return reverseGaplessXdropScore( a+x, b+y, m, d );
-    if( z==1 ) return reverseGaplessPssmXdropScore( a+x, p+y, d );
-    return reverseGaplessTwoQualityXdropScore( a+x, i+x, b+y, j+y, t, d );
+  void gaplessExtensionScores(size_t rPos, size_t qPos,
+			      int &fwdScore, int &revScore) const {
+    if (z == 0) {
+      gaplessXdropScores(a, b, m, d, rPos, qPos, fwdScore, revScore);
+    } else if (z == 1) {
+      gaplessPssmXdropScores(a, p, d, rPos, qPos, fwdScore, revScore);
+    } else {
+      gaplessTwoQualityXdropScores(a, i, b, j, t, d, rPos, qPos,
+				   fwdScore, revScore);
+    }
   }
 
   bool gaplessEnds(int fwdScore, int revScore,
@@ -640,8 +640,8 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       dt.addEndpoint(sp.end2(), sp.end1());
       writeSegmentPair(aligner, qrySeqs, qryData, sp);
     } else {
-      int fwdScore = dis.forwardGaplessScore(refPos, qryPos);
-      int revScore = dis.reverseGaplessScore(refPos, qryPos);
+      int fwdScore, revScore;
+      dis.gaplessExtensionScores(refPos, qryPos, fwdScore, revScore);
       score = fwdScore + revScore;
       if (score < minScoreGapless) continue;
       size_t rPos = refPos;
@@ -747,8 +747,8 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
   // huge gapped extensions.
   for( size_t i = 0; i < gaplessAlns.size(); ++i ){
     SegmentPair& sp = gaplessAlns.items[i];
-    int fwdScore = dis.forwardGaplessScore(sp.beg1(), sp.beg2());
-    int revScore = dis.reverseGaplessScore(sp.beg1(), sp.beg2());
+    int fwdScore, revScore;
+    dis.gaplessExtensionScores(sp.beg1(), sp.beg2(), fwdScore, revScore);
     size_t beg1 = sp.beg1();
     size_t beg2 = sp.beg2();
     size_t length;

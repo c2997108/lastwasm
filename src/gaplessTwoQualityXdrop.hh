@@ -55,6 +55,20 @@ static int reverseGaplessTwoQualityXdropScore(const uchar *seq1,
   return score;
 }
 
+static void gaplessTwoQualityXdropScores(const uchar *seq1, const uchar *qual1,
+					 const uchar *seq2, const uchar *qual2,
+					 const TwoQualityScoreMatrix &m,
+					 int maxScoreDrop,
+					 size_t pos1, size_t pos2,
+					 int &fwdScore, int &revScore) {
+  fwdScore = forwardGaplessTwoQualityXdropScore(seq1 + pos1, qual1 + pos1,
+						seq2 + pos2, qual2 + pos2,
+						m, maxScoreDrop);
+  revScore = reverseGaplessTwoQualityXdropScore(seq1 + pos1, qual1 + pos1,
+						seq2 + pos2, qual2 + pos2,
+						m, maxScoreDrop);
+}
+
 static bool gaplessTwoQualityXdropEnds(const uchar *seq1, const uchar *qual1,
 				       const uchar *seq2, const uchar *qual2,
 				       const TwoQualityScoreMatrix &m,
