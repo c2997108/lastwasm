@@ -55,43 +55,40 @@ static int reverseGaplessTwoQualityXdropScore(const uchar *seq1,
   return score;
 }
 
-static const uchar *forwardGaplessTwoQualityXdropEnd(const uchar *seq1,
-						     const uchar *qual1,
-						     const uchar *seq2,
-						     const uchar *qual2,
-						     const TwoQualityScoreMatrix &m,
-						     int score) {
-  int s = 0;
-  while (s < score) s += m(*seq1++, *seq2++, *qual1++, *qual2++);
-  return seq1;
-}
+static bool gaplessTwoQualityXdropEnds(const uchar *seq1, const uchar *qual1,
+				       const uchar *seq2, const uchar *qual2,
+				       const TwoQualityScoreMatrix &m,
+				       int maxScoreDrop,
+				       int fwdScore, int revScore,
+				       size_t &pos1, size_t &pos2,
+				       size_t &length) {
+  size_t beg1 = pos1;
+  size_t end1 = beg1;
+  size_t beg2 = pos2;
+  size_t end2 = beg2;
+  while (fwdScore) {
+    fwdScore -= m(seq1[end1], seq2[end2], qual1[end1], qual2[end2]);
+    end1++;
+    end2++;
+  }
+  while (revScore) {
+    --beg1;
+    --beg2;
+    revScore -= m(seq1[beg1], seq2[beg2], qual1[beg1], qual2[beg2]);
+  }
+  pos1 = beg1;
+  pos2 = beg2;
+  length = end1 - beg1;
 
-static const uchar *reverseGaplessTwoQualityXdropEnd(const uchar *seq1,
-						     const uchar *qual1,
-						     const uchar *seq2,
-						     const uchar *qual2,
-						     const TwoQualityScoreMatrix &m,
-						     int score) {
-  int s = 0;
-  while (s < score) s += m(*--seq1, *--seq2, *--qual1, *--qual2);
-  return seq1;
-}
-
-static bool isOptimalGaplessTwoQualityXdrop(const uchar *seq1,
-					    const uchar *seq1end,
-					    const uchar *qual1,
-					    const uchar *seq2,
-					    const uchar *qual2,
-					    const TwoQualityScoreMatrix &m,
-					    int maxScoreDrop) {
   int score = 0;
   int maxScore = 0;
-  while (seq1 < seq1end) {
-    score += m(*seq1++, *seq2++, *qual1++, *qual2++);
-    if (score > maxScore) maxScore = score;
-    else if (score <= 0 ||                       // non-optimal prefix
-             seq1 == seq1end ||                  // non-optimal suffix
-             score < maxScore - maxScoreDrop) {  // excessive score drop
+  while (beg1 < end1) {
+    score += m(seq1[beg1], seq2[beg2], qual1[beg1], qual2[beg2]);
+    beg1++;
+    beg2++;
+    if (score > maxScore) {
+      maxScore = score;
+    } else if (score <= 0 || beg1 == end1 || score < maxScore - maxScoreDrop) {
       return false;
     }
   }

@@ -49,34 +49,26 @@ static int reverseGaplessPssmXdropScore(const uchar *seq,
   return score;
 }
 
-static const uchar *forwardGaplessPssmXdropEnd(const uchar *seq,
-					       const ScoreMatrixRow *pssm,
-					       int score) {
-  int s = 0;
-  while (s < score) s += (*pssm++)[*seq++];
-  return seq;
-}
+static bool gaplessPssmXdropEnds(const uchar *seq, const ScoreMatrixRow *pssm,
+				 int maxScoreDrop, int fwdScore, int revScore,
+				 size_t &pos1, size_t &pos2, size_t &length) {
+  size_t beg1 = pos1;
+  size_t end1 = beg1;
+  size_t beg2 = pos2;
+  size_t end2 = beg2;
+  while (fwdScore) fwdScore -= pssm[end2++][seq[end1++]];
+  while (revScore) revScore -= pssm[--beg2][seq[--beg1]];
+  pos1 = beg1;
+  pos2 = beg2;
+  length = end1 - beg1;
 
-static const uchar *reverseGaplessPssmXdropEnd(const uchar *seq,
-					       const ScoreMatrixRow *pssm,
-					       int score) {
-  int s = 0;
-  while (s < score) s += (*--pssm)[*--seq];
-  return seq;
-}
-
-static bool isOptimalGaplessPssmXdrop(const uchar *seq,
-				      const uchar *seqEnd,
-				      const ScoreMatrixRow *pssm,
-				      int maxScoreDrop) {
   int score = 0;
   int maxScore = 0;
-  while (seq < seqEnd) {
-    score += (*pssm++)[*seq++];
-    if (score > maxScore) maxScore = score;
-    else if (score <= 0 ||                       // non-optimal prefix
-             seq == seqEnd ||                    // non-optimal suffix
-             score < maxScore - maxScoreDrop) {  // excessive score drop
+  while (beg1 < end1) {
+    score += pssm[beg2++][seq[beg1++]];
+    if (score > maxScore) {
+      maxScore = score;
+    } else if (score <= 0 || beg1 == end1 || score < maxScore - maxScoreDrop) {
       return false;
     }
   }

@@ -55,46 +55,32 @@ static int reverseGaplessXdropScore(const uchar *seq1,
   return score;
 }
 
-// Return the endpoint in seq1 of the shortest alignment starting at
-// (seq1, seq2) and extending forwards, that has score equal to
-// "score".  This score should be the one that was found by
-// forwardGaplessXdropScore.
-static const uchar *forwardGaplessXdropEnd(const uchar *seq1,
-					   const uchar *seq2,
-					   const ScoreMatrixRow *scorer,
-					   int score) {
-  int s = 0;
-  while (s < score) s += scorer[*seq1++][*seq2++];
-  return seq1;
-}
+// Find the shortest forward extension from (pos1, pos2) with score
+// "fwdScore", and the shortest reverse extension with score
+// "revScore".  Return the start coordinates and length of this alignment.
+static bool gaplessXdropEnds(const uchar *seq1, const uchar *seq2,
+			     const ScoreMatrixRow *scorer, int maxScoreDrop,
+			     int fwdScore, int revScore,
+			     size_t &pos1, size_t &pos2, size_t &length) {
+  size_t beg1 = pos1;
+  size_t end1 = beg1;
+  size_t beg2 = pos2;
+  size_t end2 = beg2;
+  while (fwdScore) fwdScore -= scorer[seq1[end1++]][seq2[end2++]];
+  while (revScore) revScore -= scorer[seq1[--beg1]][seq2[--beg2]];
+  pos1 = beg1;
+  pos2 = beg2;
+  length = end1 - beg1;
 
-// As above, but extending backwards.
-static const uchar *reverseGaplessXdropEnd(const uchar *seq1,
-					   const uchar *seq2,
-					   const ScoreMatrixRow *scorer,
-					   int score) {
-  int s = 0;
-  while (s < score) s += scorer[*--seq1][*--seq2];
-  return seq1;
-}
-
-// Check whether the gapless alignment starting at (seq1, seq2) and
-// ending at seq1end is "optimal".  Here, "optimal" means: the
-// alignment has no prefix with score <= 0, no suffix with score <= 0,
-// and no region with score < -maxScoreDrop.
-static bool isOptimalGaplessXdrop(const uchar *seq1,
-				  const uchar *seq1end,
-				  const uchar *seq2,
-				  const ScoreMatrixRow *scorer,
-				  int maxScoreDrop) {
+  // Check whether the alignment has no prefix with score <= 0, no
+  // suffix with score <= 0, and no region with score < -maxScoreDrop
   int score = 0;
   int maxScore = 0;
-  while (seq1 < seq1end) {
-    score += scorer[*seq1++][*seq2++];
-    if (score > maxScore) maxScore = score;
-    else if (score <= 0 ||                       // non-optimal prefix
-             seq1 == seq1end ||                  // non-optimal suffix
-             score < maxScore - maxScoreDrop) {  // excessive score drop
+  while (beg1 < end1) {
+    score += scorer[seq1[beg1++]][seq2[beg2++]];
+    if (score > maxScore) {
+      maxScore = score;
+    } else if (score <= 0 || beg1 == end1 || score < maxScore - maxScoreDrop) {
       return false;
     }
   }

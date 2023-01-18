@@ -554,22 +554,14 @@ struct Dispatcher{
     return reverseGaplessTwoQualityXdropScore( a+x, i+x, b+y, j+y, t, d );
   }
 
-  size_t forwardGaplessEnd(size_t x, size_t y, int s) const {
-    if( z==0 ) return forwardGaplessXdropEnd( a+x, b+y, m, s ) - a;
-    if( z==1 ) return forwardGaplessPssmXdropEnd( a+x, p+y, s ) - a;
-    return forwardGaplessTwoQualityXdropEnd( a+x, i+x, b+y, j+y, t, s ) - a;
-  }
-
-  size_t reverseGaplessEnd(size_t x, size_t y, int s) const {
-    if( z==0 ) return reverseGaplessXdropEnd( a+x, b+y, m, s ) - a;
-    if( z==1 ) return reverseGaplessPssmXdropEnd( a+x, p+y, s ) - a;
-    return reverseGaplessTwoQualityXdropEnd( a+x, i+x, b+y, j+y, t, s ) - a;
-  }
-
-  bool isOptimalGapless(size_t x, size_t e, size_t y) const {
-    if( z==0 ) return isOptimalGaplessXdrop( a+x, a+e, b+y, m, d );
-    if( z==1 ) return isOptimalGaplessPssmXdrop( a+x, a+e, p+y, d );
-    return isOptimalGaplessTwoQualityXdrop( a+x, a+e, i+x, b+y, j+y, t, d );
+  bool gaplessEnds(int fwdScore, int revScore,
+		   size_t &rPos, size_t &qPos, size_t &length) const {
+    return (z == 0) ? gaplessXdropEnds(a, b, m, d, fwdScore, revScore,
+				       rPos, qPos, length)
+      :    (z == 1) ? gaplessPssmXdropEnds(a, p, d, fwdScore, revScore,
+					   rPos, qPos, length)
+      :               gaplessTwoQualityXdropEnds(a, i, b, j, t, d, fwdScore,
+						 revScore, rPos, qPos, length);
   }
 
   int gaplessScore(size_t x, size_t y, size_t length) const {
@@ -651,14 +643,12 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       int fwdScore = dis.forwardGaplessScore(refPos, qryPos);
       int revScore = dis.reverseGaplessScore(refPos, qryPos);
       score = fwdScore + revScore;
-
       if (score < minScoreGapless) continue;
-
-      size_t tEnd = dis.forwardGaplessEnd(refPos, qryPos, fwdScore);
-      size_t tBeg = dis.reverseGaplessEnd(refPos, qryPos, revScore);
-      size_t qBeg = qryPos - (refPos - tBeg);
-      if (!dis.isOptimalGapless(tBeg, tEnd, qBeg)) continue;
-      SegmentPair sp(tBeg, qBeg, tEnd - tBeg, score);
+      size_t rPos = refPos;
+      size_t qPos = qryPos;
+      size_t length;
+      if (!dis.gaplessEnds(fwdScore, revScore, rPos, qPos, length)) continue;
+      SegmentPair sp(rPos, qPos, length, score);
       dt.addEndpoint(sp.end2(), sp.end1());
 
       if (args.outputType == 1) {  // we just want gapless alignments
@@ -757,15 +747,14 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
   // huge gapped extensions.
   for( size_t i = 0; i < gaplessAlns.size(); ++i ){
     SegmentPair& sp = gaplessAlns.items[i];
-
     int fwdScore = dis.forwardGaplessScore(sp.beg1(), sp.beg2());
     int revScore = dis.reverseGaplessScore(sp.beg1(), sp.beg2());
-    size_t tEnd = dis.forwardGaplessEnd(sp.beg1(), sp.beg2(), fwdScore);
-    size_t tBeg = dis.reverseGaplessEnd(sp.beg1(), sp.beg2(), revScore);
-    size_t qBeg = sp.beg2() - (sp.beg1() - tBeg);
-    sp = SegmentPair(tBeg, qBeg, tEnd - tBeg, fwdScore + revScore);
-
-    if( !dis.isOptimalGapless( tBeg, tEnd, qBeg ) ){
+    size_t beg1 = sp.beg1();
+    size_t beg2 = sp.beg2();
+    size_t length;
+    if (dis.gaplessEnds(fwdScore, revScore, beg1, beg2, length)) {
+      sp = SegmentPair(beg1, beg2, length, fwdScore + revScore);
+    } else {
       SegmentPairPot::mark(sp);
     }
   }
