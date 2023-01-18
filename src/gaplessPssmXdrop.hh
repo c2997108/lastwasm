@@ -87,8 +87,7 @@ static int gaplessPssmXdropOverlap(const uchar *seq,
   const uchar *rs = seq;
   const ScoreMatrixRow *rp = pssm;
   while (true) {
-    --rs;  --rp;
-    int s = (*rp)[*rs];
+    int s = (*--rp)[*--rs];
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
@@ -101,24 +100,23 @@ static int gaplessPssmXdropOverlap(const uchar *seq,
   const uchar *fs = seq;
   const ScoreMatrixRow *fp = pssm;
   while (true) {
-    int s = (*fp)[*fs];
+    int s = (*fp++)[*fs++];
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
     else if (score < maxScore - maxScoreDrop) return -INF;
-    ++fs;  ++fp;
   }
 
   reverseLength = seq - (rs + 1);
-  forwardLength = fs - seq;
+  forwardLength = (fs - 1) - seq;
   return score;
 }
 
 static int gaplessPssmAlignmentScore(const uchar *seq,
-				     const uchar *seqEnd,
-				     const ScoreMatrixRow *pssm) {
+				     const ScoreMatrixRow *pssm,
+				     size_t length) {
   int score = 0;
-  while (seq < seqEnd) score += (*pssm++)[*seq++];
+  while (length--) score += (*pssm++)[*seq++];
   return score;
 }
 

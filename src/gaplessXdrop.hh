@@ -107,8 +107,7 @@ static int gaplessXdropOverlap(const uchar *seq1,
   const uchar *r1 = seq1;
   const uchar *r2 = seq2;
   while (true) {
-    --r1;  --r2;
-    int s = scorer[*r1][*r2];
+    int s = scorer[*--r1][*--r2];
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
@@ -121,27 +120,24 @@ static int gaplessXdropOverlap(const uchar *seq1,
   const uchar *f1 = seq1;
   const uchar *f2 = seq2;
   while (true) {
-    int s = scorer[*f1][*f2];
+    int s = scorer[*f1++][*f2++];
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
     else if (score < maxScore - maxScoreDrop) return -INF;
-    ++f1;  ++f2;
   }
 
   reverseLength = seq1 - (r1 + 1);
-  forwardLength = f1 - seq1;
+  forwardLength = (f1 - 1) - seq1;
   return score;
 }
 
 // Calculate the score of the gapless alignment starting at (seq1,
-// seq2) and ending at seq1end.
-static int gaplessAlignmentScore(const uchar *seq1,
-				 const uchar *seq1end,
-				 const uchar *seq2,
-				 const ScoreMatrixRow *scorer) {
+// seq2) with the given length.
+static int gaplessAlignmentScore(const uchar *seq1, const uchar *seq2,
+				 const ScoreMatrixRow *scorer, size_t length) {
   int score = 0;
-  while (seq1 < seq1end) score += scorer[*seq1++][*seq2++];
+  while (length--) score += scorer[*seq1++][*seq2++];
   return score;
 }
 

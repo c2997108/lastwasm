@@ -565,9 +565,9 @@ struct Dispatcher{
   }
 
   int gaplessScore(size_t x, size_t y, size_t length) const {
-    if (z==0) return gaplessAlignmentScore(a+x, a+x+length, b+y, m);
-    if (z==1) return gaplessPssmAlignmentScore(a+x, a+x+length, p+y);
-    return gaplessTwoQualityAlignmentScore(a+x, a+x+length, i+x, b+y, j+y, t);
+    if (z==0) return gaplessAlignmentScore(a+x, b+y, m, length);
+    if (z==1) return gaplessPssmAlignmentScore(a+x, p+y, length);
+    return gaplessTwoQualityAlignmentScore(a+x, i+x, b+y, j+y, t, length);
   }
 };
 

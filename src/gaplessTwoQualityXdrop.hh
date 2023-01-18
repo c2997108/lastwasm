@@ -112,8 +112,7 @@ static int gaplessTwoQualityXdropOverlap(const uchar *seq1,
   const uchar *rs2 = seq2;
   const uchar *rq2 = qual2;
   while (true) {
-    --rs1;  --rq1;  --rs2;  --rq2;
-    int s = m(*rs1, *rs2, *rq1, *rq2);
+    int s = m(*--rs1, *--rs2, *--rq1, *--rq2);
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
@@ -128,27 +127,26 @@ static int gaplessTwoQualityXdropOverlap(const uchar *seq1,
   const uchar *fs2 = seq2;
   const uchar *fq2 = qual2;
   while (true) {
-    int s = m(*fs1, *fs2, *fq1, *fq2);
+    int s = m(*fs1++, *fs2++, *fq1++, *fq2++);
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
     else if (score < maxScore - maxScoreDrop) return -INF;
-    ++fs1;  ++fq1;  ++fs2;  ++fq2;
   }
 
   reverseLength = seq1 - (rs1 + 1);
-  forwardLength = fs1 - seq1;
+  forwardLength = (fs1 - 1) - seq1;
   return score;
 }
 
 static int gaplessTwoQualityAlignmentScore(const uchar *seq1,
-					   const uchar *seq1end,
 					   const uchar *qual1,
 					   const uchar *seq2,
 					   const uchar *qual2,
-					   const TwoQualityScoreMatrix &m) {
+					   const TwoQualityScoreMatrix &m,
+					   size_t length) {
   int score = 0;
-  while (seq1 < seq1end) score += m(*seq1++, *seq2++, *qual1++, *qual2++);
+  while (length--) score += m(*seq1++, *seq2++, *qual1++, *qual2++);
   return score;
 }
 
