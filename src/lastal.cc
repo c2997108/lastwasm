@@ -427,8 +427,8 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
 }
 
 // Read a per-volume .prj file, with info about a database volume
-void readInnerPrj( const std::string& fileName,
-		   indexT& seqCount, indexT& seqLen ){
+void readInnerPrj(const std::string &fileName,
+		  size_t &seqCount, size_t &seqLen) {
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
 
@@ -1352,7 +1352,7 @@ static void runThreads(unsigned numOfThreads) {
   }
 }
 
-void readIndex( const std::string& baseName, indexT seqCount ) {
+void readIndex(const std::string &baseName, size_t seqCount) {
   LOG( "reading " << baseName << "..." );
   refSeqs.fromFiles(baseName, seqCount,
 		    referenceFormat != sequenceFormat::fasta);
@@ -1412,8 +1412,8 @@ int calcMinScoreGapless(double numLettersInReference) {
 // Read one database volume
 void readVolume(unsigned volumeNumber) {
   std::string baseName = args.lastdbName + stringify(volumeNumber);
-  indexT seqCount = indexT(-1);
-  indexT seqLen = indexT(-1);
+  size_t seqCount = -1;
+  size_t seqLen = -1;
   readInnerPrj(baseName + ".prj", seqCount, seqLen);
   minScoreGapless = calcMinScoreGapless(seqLen);
   readIndex(baseName, seqCount);

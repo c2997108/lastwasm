@@ -41,8 +41,8 @@ class MultiSequence{
   }
 
   // read seqCount finished sequences, and their names, from binary files
-  void fromFiles( const std::string& baseName, indexT seqCount,
-                  size_t qualitiesPerLetter );
+  void fromFiles(const std::string &baseName, size_t seqCount,
+		 size_t qualitiesPerLetter);
 
   // write all the finished sequences and their names to binary files
   void toFiles( const std::string& baseName ) const;
@@ -75,33 +75,33 @@ class MultiSequence{
   bool isFinished() const{ return ends.size() == nameEnds.size(); }
 
   // how many finished sequences are there?
-  indexT finishedSequences() const{ return ends.size() - 1; }
+  size_t finishedSequences() const{ return ends.size() - 1; }
 
   // total length of finished and unfinished sequences plus delimiters
   size_t unfinishedSize() const{ return seq.size(); }
 
   // which sequence is the coordinate in?
-  indexT whichSequence( indexT coordinate ) const;
+  size_t whichSequence(indexT coordinate) const;
 
-  indexT padBeg( indexT seqNum ) const{ return ends[seqNum] - padSize; }
-  indexT seqBeg( indexT seqNum ) const{ return ends[seqNum]; }
-  indexT seqEnd( indexT seqNum ) const{ return ends[seqNum+1] - padSize; }
-  indexT padEnd( indexT seqNum ) const{ return ends[seqNum+1]; }
-  indexT seqLen( indexT seqNum ) const{ return seqEnd(seqNum)-seqBeg(seqNum); }
-  indexT padLen( indexT seqNum ) const{ return padEnd(seqNum)-padBeg(seqNum); }
+  size_t padBeg(size_t seqNum) const { return ends[seqNum] - padSize; }
+  size_t seqBeg(size_t seqNum) const { return ends[seqNum]; }
+  size_t seqEnd(size_t seqNum) const { return ends[seqNum+1] - padSize; }
+  size_t padEnd(size_t seqNum) const { return ends[seqNum+1]; }
+  size_t seqLen(size_t seqNum) const { return seqEnd(seqNum)-seqBeg(seqNum); }
+  size_t padLen(size_t seqNum) const { return padEnd(seqNum)-padBeg(seqNum); }
 
-  std::string seqName(indexT seqNum) const {
+  std::string seqName(size_t seqNum) const {
     const char *n = names.begin();
-    indexT b = nameEnds[seqNum];
-    indexT e = nameEnds[seqNum + 1];
+    size_t b = nameEnds[seqNum];
+    size_t e = nameEnds[seqNum + 1];
     if (e > b && n[e-1] <= ' ') --e;
     return std::string(n + b, n + e);
   }
 
-  char strand(indexT seqNum) const {
+  char strand(size_t seqNum) const {
     const char *n = names.begin();
-    indexT b = nameEnds[seqNum];
-    indexT e = nameEnds[seqNum + 1];
+    size_t b = nameEnds[seqNum];
+    size_t e = nameEnds[seqNum + 1];
     return (e > b && n[e-1] == '\t') ? '-' : '+';
   }
 
@@ -124,9 +124,9 @@ class MultiSequence{
   // none at all, one per letter, or several (e.g. 4) per letter.
   size_t qualsPerLetter() const { return qualityScoresPerLetter; }
 
-  void reverseComplementOneSequence(indexT seqNum, const uchar *complement);
+  void reverseComplementOneSequence(size_t seqNum, const uchar *complement);
 
-  void duplicateOneSequence(indexT seqNum);
+  void duplicateOneSequence(size_t seqNum);
 
  private:
   indexT padSize;  // number of delimiter chars between sequences
@@ -178,7 +178,7 @@ class MultiSequence{
     pssm.insert(pssm.end(), padSize * scoreMatrixRowSize, -INF);
   }
 
-  bool isRoomToAppendPad(indexT maxSeqLen) const {
+  bool isRoomToAppendPad(size_t maxSeqLen) const {
     return seq.v.size() <= maxSeqLen && padSize <= maxSeqLen - seq.v.size();
   }
 

@@ -38,8 +38,8 @@ void MultiSequence::reinitForAppending(){
   }
 }
 
-void MultiSequence::fromFiles( const std::string& baseName, indexT seqCount,
-                               size_t qualitiesPerLetter ){
+void MultiSequence::fromFiles(const std::string &baseName, size_t seqCount,
+			      size_t qualitiesPerLetter) {
   ends.m.open( baseName + ".ssp", seqCount + 1 );
   seq.m.open( baseName + ".tis", ends.m.back() );
   nameEnds.m.open( baseName + ".sds", seqCount + 1 );
@@ -109,7 +109,7 @@ MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
   return stream;
 }
 
-MultiSequence::indexT MultiSequence::whichSequence( indexT coordinate ) const{
+size_t MultiSequence::whichSequence(indexT coordinate) const {
   const indexT* u = std::upper_bound( ends.begin(), ends.end(), coordinate );
   assert( u != ends.begin() && u != ends.end() );
   return u - ends.begin() - 1;
@@ -127,7 +127,7 @@ static void reverseComplementPssm(int *beg, int *end,
   }
 }
 
-void MultiSequence::reverseComplementOneSequence(indexT seqNum,
+void MultiSequence::reverseComplementOneSequence(size_t seqNum,
 						 const uchar *complement) {
   size_t b = seqBeg(seqNum);
   size_t e = seqEnd(seqNum);
@@ -151,10 +151,10 @@ void MultiSequence::reverseComplementOneSequence(indexT seqNum,
   strandChar = "\n\t"[strandChar == '\n'];
 }
 
-void MultiSequence::duplicateOneSequence(indexT seqNum) {
-  indexT nameBeg = nameEnds[seqNum];
-  indexT nameEnd = nameEnds[seqNum + 1];
-  for (indexT i = nameBeg; i < nameEnd; ++i) {
+void MultiSequence::duplicateOneSequence(size_t seqNum) {
+  size_t nameBeg = nameEnds[seqNum];
+  size_t nameEnd = nameEnds[seqNum + 1];
+  for (size_t i = nameBeg; i < nameEnd; ++i) {
     names.v.push_back(names.v[i]);
   }
   finishName();
