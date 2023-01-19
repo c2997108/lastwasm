@@ -1337,7 +1337,8 @@ void SplitAlignerParams::print() const {
 static void readPrjFile(const std::string& baseName,
 			std::string& alphabetLetters,
 			size_t& seqCount,
-			size_t& volumes) {
+			size_t& volumes,
+			int& bitsPerBase) {
   size_t fileBitsPerInt = 32;
   seqCount = volumes = -1;
 
@@ -1353,6 +1354,7 @@ static void readPrjFile(const std::string& baseName,
     if (word == "numofsequences") iss >> seqCount;
     if (word == "volumes") iss >> volumes;
     if (word == "integersize") iss >> fileBitsPerInt;
+    if (word == "symbolsize") iss >> bitsPerBase;
   }
 
   if (alphabetLetters != "ACGT") err("can't read file: " + fileName);
@@ -1384,21 +1386,22 @@ void SplitAlignerParams::readGenomeVolume(const std::string &baseName,
 void SplitAlignerParams::readGenome(const std::string &baseName) {
   std::string alphabetLetters;
   size_t seqCount, volumes;
-  readPrjFile(baseName, alphabetLetters, seqCount, volumes);
+  int bitsPerBase = CHAR_BIT;
+  readPrjFile(baseName, alphabetLetters, seqCount, volumes, bitsPerBase);
 
   if (volumes + 1 > 0 && volumes > 1) {
     if (volumes > maxGenomeVolumes()) err("too many volumes: " + baseName);
     for (size_t i = 0; i < volumes; ++i) {
       std::string b = baseName + stringify(i);
       size_t c, v;
-      readPrjFile(b, alphabetLetters, c, v);
+      readPrjFile(b, alphabetLetters, c, v, bitsPerBase);
       readGenomeVolume(b, c, i);
     }
   } else {
     readGenomeVolume(baseName, seqCount, 0);
   }
 
-  alphabet.init(alphabetLetters);
+  alphabet.init(alphabetLetters, bitsPerBase == 4);
 }
 
 static double probFromPhred(double s) {

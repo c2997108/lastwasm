@@ -30,10 +30,10 @@ static void openOrDie(std::ifstream &file, const std::string &name) {
 
 // Set up an alphabet (e.g. DNA or protein), based on the user options
 void makeAlphabet(Alphabet &alph, const LastdbArguments &args) {
-  if (!args.userAlphabet.empty()) alph.init(args.userAlphabet);
-  else if (args.isAddStops)       alph.init(alph.proteinWithStop);
-  else if (args.isProtein)        alph.init(alph.protein);
-  else                            alph.init(alph.dna);
+  if (!args.userAlphabet.empty()) alph.init(args.userAlphabet, false);
+  else if (args.isAddStops)       alph.init(alph.proteinWithStop, false);
+  else if (args.isProtein)        alph.init(alph.protein, false);
+  else                            alph.init(alph.dna, false);
 }
 
 // Does the first sequence look like it isn't really DNA?
@@ -352,6 +352,7 @@ static void dump(const std::string &dbName) {
   unsigned volumes = -1;
   size_t seqCount = -1;
   size_t bitsPerInt = 4 * CHAR_BIT;
+  int bitsPerBase = CHAR_BIT;
   sequenceFormat::Enum fmt = sequenceFormat::fasta;
   std::string line, word;
   std::ifstream file;
@@ -364,13 +365,14 @@ static void dump(const std::string &dbName) {
     if (word == "sequenceformat") iss >> fmt;
     if (word == "volumes") iss >> volumes;
     if (word == "integersize") iss >> bitsPerInt;
+    if (word == "symbolsize") iss >> bitsPerBase;
   }
   if (alphabetLetters.empty()) ERR("can't read file: " + dbName + ".prj");
   size_t b = bitsPerInt / CHAR_BIT;
   if (posSize > 4 && b <= 4) ERR("please use lastdb for " + dbName);
   if (posSize <= 4 && b > 4) ERR("please use lastdb5 for " + dbName);
   Alphabet alph;
-  alph.init(alphabetLetters);
+  alph.init(alphabetLetters, bitsPerBase == 4);
   if (volumes + 1 == 0) {
     dump1(dbName, alph.decode, seqCount, fmt != sequenceFormat::fasta);
   } else {

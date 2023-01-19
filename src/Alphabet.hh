@@ -29,8 +29,13 @@ struct Alphabet{
 
   static const unsigned capacity = 256;
 
-  // make an Alphabet from a string containing the "proper" letters
-  void init(const std::string &mainLetters);
+  // Make an Alphabet from a string containing the "proper" letters.
+  // If is4bit: map N, R, Y to codes < 16 (which only makes sense for
+  // DNA, and should perhaps be done always regardless of is4bit).
+  void init(const std::string &mainLetters, bool is4bit);
+
+  // Make letters other than ACGTNRY map to the same thing as N
+  void set4bitAmbiguities();
 
   // does this alphabet start with the standard protein alphabet?
   bool isProtein() const{ return letters.find( protein ) == 0; }

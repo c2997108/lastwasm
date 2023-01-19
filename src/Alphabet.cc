@@ -40,7 +40,7 @@ void Alphabet::tr( uchar* beg, uchar* end, bool isKeepLowercase ) const{
   }
 }
 
-void Alphabet::init(const std::string &mainLetters) {
+void Alphabet::init(const std::string &mainLetters, bool is4bit) {
   letters = mainLetters;
   for( std::string::iterator i = letters.begin(); i < letters.end(); ++i )
     *i = std::toupper( *i );
@@ -54,6 +54,8 @@ void Alphabet::init(const std::string &mainLetters) {
 
   if( code - 1 != letters.size() ) err( "bad alphabet: " + letters );
 
+  if (is4bit) addLetters("NRY.acgtnry", code);  // uppercase<=>lowercase: +-8
+
   addLetters( "ABCDEFGHIJKLMNOPQRSTUVWXYZ", code );
   addLetters( "*", code );  // sometimes appears in protein sequences
   addLetters( "abcdefghijklmnopqrstuvwxyz", code );
@@ -61,6 +63,19 @@ void Alphabet::init(const std::string &mainLetters) {
 
   initCaseConversions( code );
   makeComplement();
+}
+
+void Alphabet::set4bitAmbiguities() {
+  static const char a[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ*";
+  for (const char *i = a; *i; ++i) {
+    int up = *i;
+    if (encode[up] > 15) {
+      int lo = std::tolower(up);
+      encode[lo] = encode['n'];
+      encode[up] = encode['N'];
+      lettersToUppercase[lo] = lettersToUppercase[up] = encode['N'];
+    }
+  }
 }
 
 void Alphabet::addLetters( const std::string& lettersToAdd, unsigned& code ){

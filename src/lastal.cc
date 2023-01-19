@@ -372,7 +372,7 @@ static void calculateScoreStatistics(const std::string& matrixName,
 void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
 		  size_t &minSeedLimit, bool &isKeepRefLowercase,
 		  int &refTantanSetting, countT &numOfRefSeqs,
-		  countT &refLetters, countT &refMaxSeqLen) {
+		  countT &refLetters, countT &refMaxSeqLen, int &bitsPerBase) {
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
@@ -402,6 +402,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     if( word == "volumes" ) iss >> numOfVolumes;
     if( word == "numofindexes" ) iss >> numOfIndexes;
     if( word == "integersize" ) iss >> fileBitsPerInt;
+    if( word == "symbolsize" ) iss >> bitsPerBase;
   }
 
   if( f.eof() && !f.bad() ) f.clear();
@@ -423,7 +424,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     ERR("weird integersize in " + fileName);
   }
 
-  alph.init(alphabetLetters);
+  alph.init(alphabetLetters, bitsPerBase == 4);
 }
 
 // Read a per-volume .prj file, with info about a database volume
@@ -1484,9 +1485,10 @@ void lastal( int argc, char** argv ){
   countT refMaxSeqLen = -1;
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
-  readOuterPrj(args.lastdbName + ".prj",
-	       refMinimizerWindow, minSeedLimit, isKeepRefLowercase,
-	       refTantanSetting, numOfRefSeqs, refLetters, refMaxSeqLen);
+  int bitsPerBase = CHAR_BIT;
+  readOuterPrj(args.lastdbName + ".prj", refMinimizerWindow, minSeedLimit,
+	       isKeepRefLowercase, refTantanSetting,
+	       numOfRefSeqs, refLetters, refMaxSeqLen, bitsPerBase);
   bool isDna = (alph.letters == alph.dna);
   bool isProtein = alph.isProtein();
 
@@ -1532,7 +1534,7 @@ void lastal( int argc, char** argv ){
   if( args.isTranslated() ){
     if( isDna )  // allow user-defined alphabet
       ERR( "expected protein database, but got DNA" );
-    queryAlph.init(queryAlph.dna);
+    queryAlph.init(queryAlph.dna, false);
     geneticCode.fromString(GeneticCode::stringFromName(args.geneticCodeFile));
     if (scoreMatrix.isCodonCols()) {
       geneticCode.initCodons(queryAlph.encode, alph.encode,
