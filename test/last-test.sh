@@ -249,6 +249,10 @@ trap 'rm -f $db*' EXIT
 
     lastdb -uNEAR $db od-xsr-100k.fa
     lastal -D10 --split-d=2 -p od.mat $db od-rna.fq
+
+    # lastdb strands & volumes
+    lastdb -S2 -s1 -m1 $db galGal3-M-32.fa
+    lastal -s0 -fTAB -p hufu.train $db hg19-M.fa
 } 2>&1 |
 grep -v version | diff -u last-test.out -
 
