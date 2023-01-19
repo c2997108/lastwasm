@@ -216,7 +216,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
 		maxSeqLen, letterCounts,
 		multi.qualsPerLetter(), -1, numOfIndexes, seedText );
-  multi.toFiles( baseName );
+  multi.toFiles(baseName, false);
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     SubsetSuffixArray myIndex;
@@ -326,10 +326,10 @@ static bool isRoomToDuplicateTheLastSequence(const MultiSequence &multi,
 }
 
 static void dump1(const std::string &dbName, const uchar *decode,
-		  size_t seqCount, bool isFastq) {
+		  size_t seqCount, bool isFastq, int bitsPerBase) {
   if (seqCount + 1 == 0) ERR("can't read file: " + dbName + ".prj");
   MultiSequence m;
-  m.fromFiles(dbName, seqCount, isFastq);
+  m.fromFiles(dbName, seqCount, isFastq, bitsPerBase == 4);
   const uchar *s = m.seqReader();
   for (size_t i = 0; i < m.finishedSequences(); ++i) {
     std::cout << ">@"[isFastq] << m.seqName(i) << '\n';
@@ -373,8 +373,9 @@ static void dump(const std::string &dbName) {
   if (posSize <= 4 && b > 4) ERR("please use lastdb5 for " + dbName);
   Alphabet alph;
   alph.init(alphabetLetters, bitsPerBase == 4);
+  bool isFastq = (fmt != sequenceFormat::fasta);
   if (volumes + 1 == 0) {
-    dump1(dbName, alph.decode, seqCount, fmt != sequenceFormat::fasta);
+    dump1(dbName, alph.decode, seqCount, isFastq, bitsPerBase);
   } else {
     for (unsigned i = 0; i < volumes; ++i) {
       std::string volName = dbName + stringify(i);
@@ -386,7 +387,7 @@ static void dump(const std::string &dbName) {
 	getline(iss, word, '=');
 	if (word == "numofsequences") iss >> seqCount;
       }
-      dump1(volName, alph.decode, seqCount, fmt != sequenceFormat::fasta);
+      dump1(volName, alph.decode, seqCount, isFastq, bitsPerBase);
     }
   }
 }

@@ -42,10 +42,10 @@ class MultiSequence{
 
   // read seqCount finished sequences, and their names, from binary files
   void fromFiles(const std::string &baseName, size_t seqCount,
-		 size_t qualitiesPerLetter);
+		 size_t qualitiesPerLetter, bool is4bit);
 
   // write all the finished sequences and their names to binary files
-  void toFiles( const std::string& baseName ) const;
+  void toFiles(const std::string &baseName, bool is4bit) const;
 
   // Append a sequence with delimiters.  Don't let the total size of
   // the concatenated sequences plus pads exceed maxSeqLen: thus it
@@ -127,6 +127,17 @@ class MultiSequence{
   void reverseComplementOneSequence(size_t seqNum, const uchar *complement);
 
   void duplicateOneSequence(size_t seqNum);
+
+  void convertTo4bit() {
+    uchar *s = &seq.v[0];
+    size_t e = ends.back();
+    for (size_t i = 1; i < e; i += 2) {
+      s[i / 2] = s[i - 1] + s[i] * 16;
+    }
+    if (e % 2) {
+      s[e / 2] = s[e - 1];
+    }
+  }
 
  private:
   indexT padSize;  // number of delimiter chars between sequences

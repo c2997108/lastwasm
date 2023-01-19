@@ -121,7 +121,7 @@ struct SplitAlignerParams {
   size_t maxGenomeVolumes() const { return sizeof genome / sizeof *genome; }
 
   void readGenomeVolume(const std::string &baseName,
-			size_t seqCount, size_t volumeNumber);
+			size_t seqCount, size_t volumeNumber, int bitsPerBase);
 };
 
 class SplitAligner {

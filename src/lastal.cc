@@ -1342,10 +1342,11 @@ static void runThreads(unsigned numOfThreads) {
   }
 }
 
-void readIndex(const std::string &baseName, size_t seqCount) {
+void readIndex(const std::string &baseName, size_t seqCount, int bitsPerBase) {
   LOG( "reading " << baseName << "..." );
   refSeqs.fromFiles(baseName, seqCount,
-		    referenceFormat != sequenceFormat::fasta);
+		    referenceFormat != sequenceFormat::fasta,
+		    bitsPerBase == 4);
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     if( numOfIndexes > 1 ){
       suffixArrays[x].fromFiles(baseName + char('a' + x), isCaseSensitiveSeeds,
@@ -1400,23 +1401,23 @@ int calcMinScoreGapless(double numLettersInReference) {
 }
 
 // Read one database volume
-void readVolume(unsigned volumeNumber) {
+void readVolume(unsigned volumeNumber, int bitsPerBase) {
   std::string baseName = args.lastdbName + stringify(volumeNumber);
   size_t seqCount = -1;
   size_t seqLen = -1;
   readInnerPrj(baseName + ".prj", seqCount, seqLen);
   minScoreGapless = calcMinScoreGapless(seqLen);
-  readIndex(baseName, seqCount);
+  readIndex(baseName, seqCount, bitsPerBase);
 }
 
 // Scan one batch of query sequences against all database volumes
-void scanAllVolumes() {
+void scanAllVolumes(int bitsPerBase) {
   encodeSequences(qrySeqsGlobal, args.inputFormat, queryAlph,
 		  args.isKeepLowercase, 0);
 
   for (unsigned i = 0; i < numOfVolumes; ++i) {
     if (refSeqs.unfinishedSize() == 0 || numOfVolumes > 1) {
-      readVolume(i);
+      readVolume(i, bitsPerBase);
     }
     scanOneVolume(i, aligners.size());
   }
@@ -1584,7 +1585,7 @@ void lastal( int argc, char** argv ){
   }
 
   if (numOfVolumes + 1 == 0) {
-    readIndex(args.lastdbName, numOfRefSeqs);
+    readIndex(args.lastdbName, numOfRefSeqs, bitsPerBase);
     numOfVolumes = 1;
   }
 
@@ -1615,7 +1616,7 @@ void lastal( int argc, char** argv ){
 	  if (qrySeqsGlobal.finishedSequences() == 0) throwSeqTooBig();
 	  // this enables downstream parsers to read one batch at a time:
 	  std::cout << "# batch " << queryBatchCount++ << "\n";
-	  scanAllVolumes();
+	  scanAllVolumes(bitsPerBase);
 	  qrySeqsGlobal.reinitForAppending();
 	  maxSeqLen = -1;
 	}
@@ -1623,7 +1624,7 @@ void lastal( int argc, char** argv ){
     }
     if (qrySeqsGlobal.finishedSequences() > 0) {
       std::cout << "# batch " << queryBatchCount << "\n";
-      scanAllVolumes();
+      scanAllVolumes(bitsPerBase);
     }
   }
 

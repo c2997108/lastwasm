@@ -1368,10 +1368,11 @@ static void readPrjFile(const std::string& baseName,
 
 void SplitAlignerParams::readGenomeVolume(const std::string &baseName,
 					  size_t seqCount,
-					  size_t volumeNumber) {
+					  size_t volumeNumber,
+					  int bitsPerBase) {
   if (seqCount + 1 == 0) err("can't read: " + baseName);
 
-  genome[volumeNumber].fromFiles(baseName, seqCount, 0);
+  genome[volumeNumber].fromFiles(baseName, seqCount, 0, bitsPerBase == 4);
 
   for (unsigned long long i = 0; i < seqCount; ++i) {
     char s = genome[volumeNumber].strand(i);
@@ -1395,10 +1396,10 @@ void SplitAlignerParams::readGenome(const std::string &baseName) {
       std::string b = baseName + stringify(i);
       size_t c, v;
       readPrjFile(b, alphabetLetters, c, v, bitsPerBase);
-      readGenomeVolume(b, c, i);
+      readGenomeVolume(b, c, i, bitsPerBase);
     }
   } else {
-    readGenomeVolume(baseName, seqCount, 0);
+    readGenomeVolume(baseName, seqCount, 0, bitsPerBase);
   }
 
   alphabet.init(alphabetLetters, bitsPerBase == 4);

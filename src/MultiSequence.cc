@@ -39,9 +39,9 @@ void MultiSequence::reinitForAppending(){
 }
 
 void MultiSequence::fromFiles(const std::string &baseName, size_t seqCount,
-			      size_t qualitiesPerLetter) {
+			      size_t qualitiesPerLetter, bool is4bit) {
   ends.m.open( baseName + ".ssp", seqCount + 1 );
-  seq.m.open( baseName + ".tis", ends.m.back() );
+  seq.m.open(baseName + ".tis", (ends.m.back() + is4bit) / (is4bit + 1));
   nameEnds.m.open( baseName + ".sds", seqCount + 1 );
   names.m.open( baseName + ".des", nameEnds.m.back() );
   padSize = ends.m[0];
@@ -51,10 +51,11 @@ void MultiSequence::fromFiles(const std::string &baseName, size_t seqCount,
   qualityScoresPerLetter = qualitiesPerLetter;
 }
 
-void MultiSequence::toFiles( const std::string& baseName ) const{
+void MultiSequence::toFiles(const std::string &baseName, bool is4bit) const {
   memoryToBinaryFile( ends.begin(), ends.end(), baseName + ".ssp" );
 
-  memoryToBinaryFile( seq.begin(), seq.begin() + ends.back(),
+  memoryToBinaryFile( seq.begin(),
+		      seq.begin() + (ends.back() + is4bit) / (is4bit + 1),
 		      baseName + ".tis" );
 
   memoryToBinaryFile( nameEnds.begin(), nameEnds.begin() + ends.size(),
