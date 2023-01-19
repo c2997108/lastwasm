@@ -33,7 +33,7 @@ void makeAlphabet(Alphabet &alph, const LastdbArguments &args) {
   if (!args.userAlphabet.empty()) alph.init(args.userAlphabet, false);
   else if (args.isAddStops)       alph.init(alph.proteinWithStop, false);
   else if (args.isProtein)        alph.init(alph.protein, false);
-  else                            alph.init(alph.dna, false);
+  else                            alph.init(alph.dna, args.bitsPerBase == 4);
 }
 
 // Does the first sequence look like it isn't really DNA?
@@ -142,6 +142,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
       f << "numofindexes=" << numOfIndexes << '\n';
     }
     f << "integersize=" << (posSize * CHAR_BIT) << '\n';
+    f << "symbolsize=" << args.bitsPerBase << '\n';
     writeLastalOptions( f, seedText );
   }
 
@@ -212,11 +213,9 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
     preprocessSeqs( multi, masker, alph.numbersToLowercase, numOfThreads );
   }
 
-  LOG( "writing..." );
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
 		maxSeqLen, letterCounts,
 		multi.qualsPerLetter(), -1, numOfIndexes, seedText );
-  multi.toFiles(baseName, false);
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     SubsetSuffixArray myIndex;
@@ -279,8 +278,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
     LOG( "writing..." );
     if( numOfIndexes > 1 ){
       myIndex.toFiles( baseName + char('a' + x), false, textLength );
-    }
-    else{
+    } else {
       myIndex.toFiles( baseName, true, textLength );
     }
 
@@ -291,6 +289,8 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
     }
   }
 
+  if (args.bitsPerBase == 4) multi.convertTo4bit();
+  multi.toFiles(baseName, args.bitsPerBase == 4);
   LOG( "done!" );
 }
 
@@ -417,6 +417,7 @@ void lastdb( int argc, char** argv ){
 		      args.tantanSetting == 3, alph.letters, alph.encode);
   std::vector< CyclicSubsetSeed > seeds;
   makeSubsetSeeds( seeds, seedText, args, alph );
+  if (args.bitsPerBase == 4) alph.set4bitAmbiguities();
 
   DnaWordsFinder wordsFinder;
   makeWordsFinder(wordsFinder, &seeds[0], seeds.size(), alph.encode,

@@ -56,6 +56,7 @@ struct LastdbArguments{
   bool isDump;
   int verbosity;
   sequenceFormat::Enum inputFormat;
+  int bitsPerBase;
 
   // positional arguments:
   const char* programName;

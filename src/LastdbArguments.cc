@@ -14,6 +14,10 @@ static void badopt( char opt, const char* arg ){
   ERR( std::string("bad option value: -") + opt + ' ' + arg );
 }
 
+static void badopt(const char *opt, const char *arg) {
+  ERR(std::string("bad option value: --") + opt  + '=' + arg);
+}
+
 using namespace cbrc;
 
 LastdbArguments::LastdbArguments() :
@@ -37,7 +41,8 @@ LastdbArguments::LastdbArguments() :
   isCountsOnly(false),
   isDump(false),
   verbosity(0),
-  inputFormat(sequenceFormat::fasta){}
+  inputFormat(sequenceFormat::fasta),
+  bitsPerBase(8){}
 
 void LastdbArguments::fromArgs( int argc, char** argv, bool isOptionsOnly ){
   programName = argv[0];
@@ -87,11 +92,12 @@ Advanced Options (default settings):\n\
   static struct option lOpts[] = {
     { "help",    no_argument, 0, 'h' },
     { "version", no_argument, 0, 'V' },
-    { 0, 0, 0, 0}
+    { "bits",    required_argument, 0, 128 },
+    { 0, 0, 0, 0 }
   };
 
-  int c;
-  while ((c = getopt_long(argc, argv, sOpts, lOpts, &c)) != -1) {
+  int c, optionIndex;
+  while ((c = getopt_long(argc, argv, sOpts, lOpts, &optionIndex)) != -1) {
     switch(c){
     case 'h':
       std::cout << help;
@@ -175,9 +181,18 @@ Advanced Options (default settings):\n\
       if (inputFormat == sequenceFormat::prb ||
 	  inputFormat == sequenceFormat::pssm) badopt(c, optarg);
       break;
+    case 128:
+      unstringify(bitsPerBase, optarg);
+      if (bitsPerBase != 4 &&
+	  bitsPerBase != 8) badopt(lOpts[optionIndex].name, optarg);
+      break;
     case '?':
       ERR( "bad option" );
     }
+  }
+
+  if (bitsPerBase < 8 && (!userAlphabet.empty() || isProtein || isAddStops)) {
+    ERR("can't use --bits=4 with non-default alphabet");
   }
 
   if( !isOptionsOnly ){
