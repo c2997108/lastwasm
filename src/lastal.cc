@@ -477,7 +477,7 @@ void countMatches(std::vector<countT> &counts, const SeqData &qryData) {
   for (size_t i = qryData.seqBeg; i < loopEnd; i += args.queryStep) {
     for (unsigned x = 0; x < numOfIndexes; ++x) {
       suffixArrays[x].countMatches(counts, qryData.seq + i,
-				   refSeqs.seqReader(), 0, args.maxHitDepth);
+				   refSeqs.seqPtr(), 0, args.maxHitDepth);
     }
   }
 }
@@ -512,7 +512,7 @@ static bool isMaskLowercase(Phase::Enum e) {
 }
 
 struct Dispatcher{
-  const uchar* a;  // the reference sequence
+  BigSeq a;  // the reference sequence
   const uchar* b;  // the query sequence
   const uchar* i;  // the reference quality data
   const uchar* j;  // the query quality data
@@ -525,7 +525,7 @@ struct Dispatcher{
 
   Dispatcher(Phase::Enum e, const SeqData &qryData,
 	     const SubstitutionMatrices &matrices) :
-      a( refSeqs.seqReader() ),
+      a( refSeqs.seqPtr() ),
       b( qryData.seq ),
       i( refSeqs.qualityReader() ),
       j( qryData.qual ),

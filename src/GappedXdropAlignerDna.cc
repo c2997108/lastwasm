@@ -14,7 +14,7 @@ const int seqLoadLen = simdBytes;
 
 const int delimiter = 4;
 
-int GappedXdropAligner::alignDna(const uchar *seq1,
+int GappedXdropAligner::alignDna(BigPtr seq1,
 				 const uchar *seq2,
 				 bool isForward,
 				 const ScoreMatrixRow *scorer,

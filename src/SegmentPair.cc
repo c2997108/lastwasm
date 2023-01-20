@@ -5,7 +5,7 @@
 
 namespace cbrc {
 
-void SegmentPair::maxIdenticalRun(const uchar *seq1, const uchar *seq2,
+void SegmentPair::maxIdenticalRun(mcf::BigSeq seq1, const uchar *seq2,
 				  const uchar *map1, const uchar *map2) {
   indexT runSize = 0;
   indexT bestSize = 0;

@@ -7,11 +7,13 @@
 #define GAPLESS_XDROP_HH
 
 #include "ScoreMatrixRow.hh"
+#include "mcf_big_seq.hh"
 
-#include <stddef.h>
 #include <stdexcept>
 
 namespace cbrc {
+
+using namespace mcf;
 
 typedef unsigned char uchar;
 
@@ -22,14 +24,14 @@ typedef unsigned char uchar;
 // The score might suffer overflow, for huge sequences and/or huge
 // scores.  If the function detects this (not guaranteed), it throws
 // an exception.
-static int forwardGaplessXdropScore(const uchar *seq1,
+static int forwardGaplessXdropScore(BigPtr seq1,
 				    const uchar *seq2,
 				    const ScoreMatrixRow *scorer,
 				    int maxScoreDrop) {
   int score = 0;
   int s = 0;
   while (true) {
-    s += scorer[*seq1++][*seq2++];  // overflow risk
+    s += scorer[getNext(seq1)][*seq2++];  // overflow risk
     if (s < score - maxScoreDrop) break;
     if (s > score) score = s;
   }
@@ -39,14 +41,14 @@ static int forwardGaplessXdropScore(const uchar *seq1,
 }
 
 // As above, but extending backwards.
-static int reverseGaplessXdropScore(const uchar *seq1,
+static int reverseGaplessXdropScore(BigPtr seq1,
 				    const uchar *seq2,
 				    const ScoreMatrixRow *scorer,
 				    int maxScoreDrop) {
   int score = 0;
   int s = 0;
   while (true) {
-    s += scorer[*--seq1][*--seq2];  // overflow risk
+    s += scorer[getPrev(seq1)][*--seq2];  // overflow risk
     if (s < score - maxScoreDrop) break;
     if (s > score) score = s;
   }
@@ -55,7 +57,7 @@ static int reverseGaplessXdropScore(const uchar *seq1,
   return score;
 }
 
-static void gaplessXdropScores(const uchar *seq1, const uchar *seq2,
+static void gaplessXdropScores(BigSeq seq1, const uchar *seq2,
 			       const ScoreMatrixRow *mat, int maxScoreDrop,
 			       size_t pos1, size_t pos2,
 			       int &fwdScore, int &revScore) {
@@ -66,7 +68,7 @@ static void gaplessXdropScores(const uchar *seq1, const uchar *seq2,
 // Find the shortest forward extension from (pos1, pos2) with score
 // "fwdScore", and the shortest reverse extension with score
 // "revScore".  Return the start coordinates and length of this alignment.
-static bool gaplessXdropEnds(const uchar *seq1, const uchar *seq2,
+static bool gaplessXdropEnds(BigSeq seq1, const uchar *seq2,
 			     const ScoreMatrixRow *scorer, int maxScoreDrop,
 			     int fwdScore, int revScore,
 			     size_t &pos1, size_t &pos2, size_t &length) {
@@ -102,7 +104,7 @@ static bool gaplessXdropEnds(const uchar *seq1, const uchar *seq2,
 // sentinel indicating a sequence end).  If the alignment would have
 // any region with score < -maxScoreDrop, -INF is returned and the
 // extension lengths are not set.
-static int gaplessXdropOverlap(const uchar *seq1,
+static int gaplessXdropOverlap(BigPtr seq1,
 			       const uchar *seq2,
 			       const ScoreMatrixRow *scorer,
 			       int maxScoreDrop,
@@ -112,10 +114,10 @@ static int gaplessXdropOverlap(const uchar *seq1,
   int maxScore = 0;
   int score = 0;
 
-  const uchar *r1 = seq1;
+  BigPtr r1 = seq1;
   const uchar *r2 = seq2;
   while (true) {
-    int s = scorer[*--r1][*--r2];
+    int s = scorer[getPrev(r1)][*--r2];
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
@@ -125,27 +127,26 @@ static int gaplessXdropOverlap(const uchar *seq1,
 
   maxScore = score - minScore;
 
-  const uchar *f1 = seq1;
   const uchar *f2 = seq2;
   while (true) {
-    int s = scorer[*f1++][*f2++];
+    int s = scorer[getNext(seq1)][*f2++];
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
     else if (score < maxScore - maxScoreDrop) return -INF;
   }
 
-  reverseLength = seq1 - (r1 + 1);
-  forwardLength = (f1 - 1) - seq1;
+  reverseLength = seq2 - (r2 + 1);
+  forwardLength = (f2 - 1) - seq2;
   return score;
 }
 
 // Calculate the score of the gapless alignment starting at (seq1,
 // seq2) with the given length.
-static int gaplessAlignmentScore(const uchar *seq1, const uchar *seq2,
+static int gaplessAlignmentScore(BigPtr seq1, const uchar *seq2,
 				 const ScoreMatrixRow *scorer, size_t length) {
   int score = 0;
-  while (length--) score += scorer[*seq1++][*seq2++];
+  while (length--) score += scorer[getNext(seq1)][*seq2++];
   return score;
 }
 

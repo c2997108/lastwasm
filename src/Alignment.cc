@@ -12,7 +12,7 @@
 
 using namespace cbrc;
 
-static void addSeedCounts(const uchar *seq1, const uchar *seq2, size_t size,
+static void addSeedCounts(BigPtr seq1, const uchar *seq2, size_t size,
 			  double *counts) {
   for (size_t i = 0; i < size; ++i) {
     ++counts[seq1[i] * scoreMatrixRowSize + seq2[i]];
@@ -26,7 +26,7 @@ static bool isNext( const SegmentPair& x, const SegmentPair& y ){
 }
 
 void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
-			   const uchar* seq1, const uchar* seq2, int globality,
+			   BigSeq seq1, const uchar *seq2, int globality,
 			   const ScoreMatrixRow* scoreMatrix,
 			   int smMax, int smMin,
 			   const const_dbl_ptr* probMatrix, double scale,
@@ -137,7 +137,7 @@ static int gapCost(const SegmentPair &x, const SegmentPair &y,
   return cost;
 }
 
-bool Alignment::isOptimal(const uchar *seq1, const uchar *seq2, int globality,
+bool Alignment::isOptimal(BigSeq seq1, const uchar *seq2, int globality,
 			  const ScoreMatrixRow *scoreMatrix, int maxDrop,
 			  const GapCosts &gapCosts, size_t frameSize,
 			  const ScoreMatrixRow *pssm2,
@@ -172,7 +172,7 @@ bool Alignment::isOptimal(const uchar *seq1, const uchar *seq2, int globality,
   return true;
 }
 
-bool Alignment::hasGoodSegment(const uchar *seq1, const uchar *seq2,
+bool Alignment::hasGoodSegment(BigSeq seq1, const uchar *seq2,
 			       int minScore, const ScoreMatrixRow *scoreMatrix,
 			       const GapCosts &gapCosts, size_t frameSize,
 			       const ScoreMatrixRow *pssm2,
@@ -247,7 +247,7 @@ static void getColumnCodes(const FrameshiftXdropAligner &fxa,
 void Alignment::extend( std::vector< SegmentPair >& chunks,
 			std::vector< char >& columnCodes,
 			Aligners &aligners, bool isGreedy, bool isFullScore,
-			const uchar* seq1, const uchar* seq2,
+			BigSeq seq1, const uchar* seq2,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
 			const ScoreMatrixRow* sm, int smMax, int smMin,
@@ -263,8 +263,6 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   Centroid &centroid = aligners.centroid;
   GappedXdropAligner& aligner = centroid.aligner();
   GreedyXdropAligner &greedyAligner = aligners.greedyAligner;
-  const uchar *s1 = seq1 + start1;
-  const uchar *s2 = seq2 + start2;
 
   double *subsCounts[scoreMatrixRowSize];
   double *tranCounts;
@@ -281,6 +279,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     assert( !pssm2 );
     assert( !sm2qual );
 
+    const uchar *s1 = seq1.beg + start1;
+    const uchar *s2 = seq2 + start2;
     size_t dnaStart = aaToDna( start2, frameSize );
     size_t frame1 = isForward ? dnaStart + 1 : dnaStart - 1;
     const uchar *f1 = seq2 + dnaToAa(frame1, frameSize);
@@ -326,9 +326,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if (!isForward) {
     --start1;
     --start2;
-    --s1;
-    --s2;
   }
+  const uchar *s2 = seq2 + start2;
 
   bool isSimdMatrix = (alph.size == 4 && !globality && gap.isAffine &&
 		       smMin >= SCHAR_MIN &&
@@ -339,23 +338,26 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 	isSimdMatrix = false;
 
   int extensionScore =
-    isGreedy  ? greedyAligner.align(s1, s2, isForward, sm, maxDrop, alph.size)
-    : sm2qual ? aligner.align2qual(s1, qual1 + start1, s2, qual2 + start2,
+    isGreedy  ? greedyAligner.align(seq1.beg + start1, s2,
+				    isForward, sm, maxDrop, alph.size)
+    : sm2qual ? aligner.align2qual(seq1.beg + start1, qual1 + start1,
+				   s2, qual2 + start2,
 				   isForward, globality, sm2qual,
 				   del.openCost, del.growCost,
 				   ins.openCost, ins.growCost,
 				   gap.pairCost, gap.isAffine, maxDrop, smMax)
-    : pssm2   ? aligner.alignPssm(s1, pssm2 + start2, isForward, globality,
+    : pssm2   ? aligner.alignPssm(seq1 + start1, pssm2 + start2,
+				  isForward, globality,
 				  del.openCost, del.growCost,
 				  ins.openCost, ins.growCost,
 				  gap.pairCost, gap.isAffine, maxDrop, smMax)
 #if defined __SSE4_1__ || defined __ARM_NEON
-    : isSimdMatrix ? aligner.alignDna(s1, s2, isForward, sm,
+    : isSimdMatrix ? aligner.alignDna(seq1 + start1, s2, isForward, sm,
 				      del.openCost, del.growCost,
 				      ins.openCost, ins.growCost,
 				      maxDrop, smMax, alph.numbersToUppercase)
 #endif
-    :           aligner.align(s1, s2, isForward, globality, sm,
+    :           aligner.align(seq1 + start1, s2, isForward, globality, sm,
 			      del.openCost, del.growCost,
 			      ins.openCost, ins.growCost,
 			      gap.pairCost, gap.isAffine, maxDrop, smMax);
@@ -393,7 +395,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if (outputType > 3 || isFullScore) {
     assert( !isGreedy );
     assert( !sm2qual );
-    double s = centroid.forward(s1, s2, start2, isForward,
+    double s = centroid.forward(seq1.beg + start1, s2, start2, isForward,
 				probMat, gap, globality);
     if (isFullScore) {
       score += s / scale;

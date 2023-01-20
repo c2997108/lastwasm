@@ -11,15 +11,17 @@
 #define GAPLESS_TWO_QUALITY_XDROP_HH
 
 #include "TwoQualityScoreMatrix.hh"
+#include "mcf_big_seq.hh"
 
-#include <stddef.h>
 #include <stdexcept>
 
 namespace cbrc {
 
+using namespace mcf;
+
 typedef unsigned char uchar;
 
-static int forwardGaplessTwoQualityXdropScore(const uchar *seq1,
+static int forwardGaplessTwoQualityXdropScore(BigPtr seq1,
 					      const uchar *qual1,
 					      const uchar *seq2,
 					      const uchar *qual2,
@@ -28,7 +30,7 @@ static int forwardGaplessTwoQualityXdropScore(const uchar *seq1,
   int score = 0;
   int s = 0;
   while (true) {
-    s += m(*seq1++, *seq2++, *qual1++, *qual2++);  // overflow risk
+    s += m(getNext(seq1), *seq2++, *qual1++, *qual2++);  // overflow risk
     if (s < score - maxScoreDrop) break;
     if (s > score) score = s;
   }
@@ -37,7 +39,7 @@ static int forwardGaplessTwoQualityXdropScore(const uchar *seq1,
   return score;
 }
 
-static int reverseGaplessTwoQualityXdropScore(const uchar *seq1,
+static int reverseGaplessTwoQualityXdropScore(BigPtr seq1,
 					      const uchar *qual1,
 					      const uchar *seq2,
 					      const uchar *qual2,
@@ -46,7 +48,7 @@ static int reverseGaplessTwoQualityXdropScore(const uchar *seq1,
   int score = 0;
   int s = 0;
   while (true) {
-    s += m(*--seq1, *--seq2, *--qual1, *--qual2);  // overflow risk
+    s += m(getPrev(seq1), *--seq2, *--qual1, *--qual2);  // overflow risk
     if (s < score - maxScoreDrop) break;
     if (s > score) score = s;
   }
@@ -55,7 +57,7 @@ static int reverseGaplessTwoQualityXdropScore(const uchar *seq1,
   return score;
 }
 
-static void gaplessTwoQualityXdropScores(const uchar *seq1, const uchar *qual1,
+static void gaplessTwoQualityXdropScores(BigSeq seq1, const uchar *qual1,
 					 const uchar *seq2, const uchar *qual2,
 					 const TwoQualityScoreMatrix &m,
 					 int maxScoreDrop,
@@ -69,7 +71,7 @@ static void gaplessTwoQualityXdropScores(const uchar *seq1, const uchar *qual1,
 						m, maxScoreDrop);
 }
 
-static bool gaplessTwoQualityXdropEnds(const uchar *seq1, const uchar *qual1,
+static bool gaplessTwoQualityXdropEnds(BigSeq seq1, const uchar *qual1,
 				       const uchar *seq2, const uchar *qual2,
 				       const TwoQualityScoreMatrix &m,
 				       int maxScoreDrop,
@@ -109,7 +111,7 @@ static bool gaplessTwoQualityXdropEnds(const uchar *seq1, const uchar *qual1,
   return true;
 }
 
-static int gaplessTwoQualityXdropOverlap(const uchar *seq1,
+static int gaplessTwoQualityXdropOverlap(BigPtr seq1,
 					 const uchar *qual1,
 					 const uchar *seq2,
 					 const uchar *qual2,
@@ -121,12 +123,12 @@ static int gaplessTwoQualityXdropOverlap(const uchar *seq1,
   int maxScore = 0;
   int score = 0;
 
-  const uchar *rs1 = seq1;
+  BigPtr rs1 = seq1;
   const uchar *rq1 = qual1;
   const uchar *rs2 = seq2;
   const uchar *rq2 = qual2;
   while (true) {
-    int s = m(*--rs1, *--rs2, *--rq1, *--rq2);
+    int s = m(getPrev(rs1), *--rs2, *--rq1, *--rq2);
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
@@ -136,31 +138,30 @@ static int gaplessTwoQualityXdropOverlap(const uchar *seq1,
 
   maxScore = score - minScore;
 
-  const uchar *fs1 = seq1;
   const uchar *fq1 = qual1;
   const uchar *fs2 = seq2;
   const uchar *fq2 = qual2;
   while (true) {
-    int s = m(*fs1++, *fs2++, *fq1++, *fq2++);
+    int s = m(getNext(seq1), *fs2++, *fq1++, *fq2++);
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
     else if (score < maxScore - maxScoreDrop) return -INF;
   }
 
-  reverseLength = seq1 - (rs1 + 1);
-  forwardLength = (fs1 - 1) - seq1;
+  reverseLength = seq2 - (rs2 + 1);
+  forwardLength = (fs2 - 1) - seq2;
   return score;
 }
 
-static int gaplessTwoQualityAlignmentScore(const uchar *seq1,
+static int gaplessTwoQualityAlignmentScore(BigPtr seq1,
 					   const uchar *qual1,
 					   const uchar *seq2,
 					   const uchar *qual2,
 					   const TwoQualityScoreMatrix &m,
 					   size_t length) {
   int score = 0;
-  while (length--) score += m(*seq1++, *seq2++, *qual1++, *qual2++);
+  while (length--) score += m(getNext(seq1), *seq2++, *qual1++, *qual2++);
   return score;
 }
 

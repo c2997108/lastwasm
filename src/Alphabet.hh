@@ -11,7 +11,7 @@
 #ifndef ALPHABET_HH
 #define ALPHABET_HH
 
-#include <stddef.h>
+#include "mcf_big_seq.hh"
 
 #include <string>
 #include <iosfwd>
@@ -56,7 +56,7 @@ struct Alphabet{
 
   // reverse-translate (decode) a sequence of numbers to letters
   // return the position after the last written position in "out"
-  char *rtCopy(char *out, const uchar *seq, size_t beg, size_t end) const {
+  char *rtCopy(char *out, mcf::BigSeq seq, size_t beg, size_t end) const {
     while (beg < end) *out++ = decode[seq[beg++]];
     return out;
   }

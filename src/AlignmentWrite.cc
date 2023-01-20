@@ -142,7 +142,7 @@ static size_t alignedColumnCount(const std::vector<SegmentPair> &blocks) {
 }
 
 static size_t matchCount(const std::vector<SegmentPair> &blocks,
-			 const uchar *seq1, const uchar *seq2,
+			 BigSeq seq1, const uchar *seq2,
 			 const uchar *map1, const uchar *map2) {
   // no special treatment of ambiguous bases/residues: same as NCBI BLAST
   size_t matches = 0;
@@ -406,12 +406,12 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   char *dest = std::copy(aLine, aLineEnd, text);
 
   dest = writeMafHeadS(dest, n1, nw, b1, bw, r1, rw, strand1, s1, sw);
-  dest = writeTopSeq(dest, seq1.seqReader(), alph, 0, frameSize2, isCodon);
+  dest = writeTopSeq(dest, seq1.seqPtr(), alph, 0, frameSize2, isCodon);
   *dest++ = '\n';
 
   if (isQuals1) {
     dest = writeMafHeadQ(dest, n1, nw, qLineBlankLen);
-    const uchar *q = seq1.qualityReader();
+    BigSeq q = {seq1.qualityReader(), false};
     dest = writeTopSeq(dest, q, alph, qualsPerBase1, frameSize2, isCodon);
     *dest++ = '\n';
   }
@@ -419,12 +419,13 @@ AlignmentText Alignment::writeMaf(const MultiSequence& seq1,
   dest = writeMafHeadS(dest, n2, nw, b2, bw, r2, rw, strand2, s2, sw);
   if (isCodon) seqData2 = seq2.seqReader() + seqOrigin2;
   const Alphabet &alph2 = isCodon ? dnaAlph : alph;
-  dest = writeBotSeq(dest, seqData2, alph2, 0, frameSize2, isCodon);
+  BigSeq bigSeq2 = {seqData2, false};
+  dest = writeBotSeq(dest, bigSeq2, alph2, 0, frameSize2, isCodon);
   *dest++ = '\n';
 
   if (isQuals2) {
     dest = writeMafHeadQ(dest, n2, nw, qLineBlankLen);
-    const uchar *q = seq2.qualityReader() + seqOrigin2 * qualsPerBase2;
+    BigSeq q = {seq2.qualityReader() + seqOrigin2 * qualsPerBase2, false};
     dest = writeBotSeq(dest, q, alph2, qualsPerBase2, frameSize2, isCodon);
     *dest++ = '\n';
   }
@@ -472,7 +473,7 @@ AlignmentText Alignment::writeBlastTab(const MultiSequence& seq1,
   size_t alnSize = numColumns(frameSize2, false);
   const uchar *map1 = alph.numbersToUppercase;
   const uchar *map2 = (translationType == 2) ? codonToAmino : map1;
-  size_t matches = matchCount(blocks, seq1.seqReader(), seqData2, map1, map2);
+  size_t matches = matchCount(blocks, seq1.seqPtr(), seqData2, map1, map2);
   size_t mismatches = alignedColumnCount(blocks) - matches;
   size_t gapOpens = blocks.size() - 1;  // xxx ???
   double matchPercent = 100.0 * matches / alnSize;
@@ -617,14 +618,15 @@ static char *writeAmino(char *dest, const uchar *beg, const uchar *end,
   return dest;
 }
 
-static char *writeSeq(char *dest, const uchar *seq, size_t beg, size_t end,
+static char *writeSeq(char *dest, BigSeq seq, size_t beg, size_t end,
 		      const Alphabet &alph, size_t qualsPerBase, bool isAA) {
-  return qualsPerBase ? writeQuals(dest, seq, beg, end, qualsPerBase)
-    : isAA ? writeAmino(dest, seq + beg, seq + end, alph.numbersToUppercase)
+  const uchar *s = seq.beg;
+  return qualsPerBase ? writeQuals(dest, s, beg, end, qualsPerBase)
+    : isAA ? writeAmino(dest, s + beg, s + end, alph.numbersToUppercase)
     :        alph.rtCopy(dest, seq, beg, end);
 }
 
-char *Alignment::writeTopSeq(char *dest, const uchar *seq,
+char *Alignment::writeTopSeq(char *dest, BigSeq seq,
 			     const Alphabet &alph, size_t qualsPerBase,
 			     size_t frameSize, bool isCodon) const {
   for( size_t i = 0; i < blocks.size(); ++i ){
@@ -651,7 +653,7 @@ char *Alignment::writeTopSeq(char *dest, const uchar *seq,
   return dest;
 }
 
-char *Alignment::writeBotSeq(char *dest, const uchar *seq,
+char *Alignment::writeBotSeq(char *dest, BigSeq seq,
 			     const Alphabet &alph, size_t qualsPerBase,
 			     size_t frameSize, bool isCodon) const {
   const int aaLen = isCodon ? 3 : 1;

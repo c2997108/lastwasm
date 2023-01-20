@@ -6,7 +6,7 @@
 #ifndef SEGMENT_PAIR_HH
 #define SEGMENT_PAIR_HH
 
-#include <stddef.h>
+#include "mcf_big_seq.hh"
 
 namespace cbrc{
 
@@ -27,8 +27,8 @@ struct SegmentPair{
   // Shrink the SegmentPair to the longest run of identical letters
   // within it.  Define "identical" as:
   // map1[ letter from seq1 ] == map2[ letter from seq2 ].
-  void maxIdenticalRun( const uchar* seq1, const uchar* seq2,
-			const uchar* map1, const uchar* map2 );
+  void maxIdenticalRun(mcf::BigSeq seq1, const uchar *seq2,
+		       const uchar *map1, const uchar *map2);
 
   indexT beg1() const{ return start1; }         // start in sequence 1
   indexT beg2() const{ return start2; }         // start in sequence 2

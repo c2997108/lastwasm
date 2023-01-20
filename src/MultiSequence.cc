@@ -42,6 +42,8 @@ void MultiSequence::fromFiles(const std::string &baseName, size_t seqCount,
 			      size_t qualitiesPerLetter, bool is4bit) {
   ends.m.open( baseName + ".ssp", seqCount + 1 );
   seq.m.open(baseName + ".tis", (ends.m.back() + is4bit) / (is4bit + 1));
+  theSeqPtr.beg = seq.m.begin();
+  theSeqPtr.is4bit = is4bit;
   nameEnds.m.open( baseName + ".sds", seqCount + 1 );
   names.m.open( baseName + ".des", nameEnds.m.back() );
   padSize = ends.m[0];

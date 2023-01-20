@@ -31,11 +31,14 @@
 
 #include "CyclicSubsetSeed.hh"
 #include "dna_words_finder.hh"
+#include "mcf_big_seq.hh"
 #include "VectorOrMmap.hh"
 
 #include <climits>
 
 namespace cbrc{
+
+using namespace mcf;
 
 #if LAST_POS_BYTES == 8
   typedef size_t PosPart;
@@ -133,13 +136,13 @@ public:
   // match-depth is maxDepth.  Return the range of matching indices
   // via begPtr and endPtr.
   void match( const PosPart *&begPtr, const PosPart *&endPtr,
-              const uchar* queryPtr, const uchar* text, unsigned seedNum,
+              const uchar *queryPtr, BigSeq text, unsigned seedNum,
               size_t maxHits, size_t minDepth, size_t maxDepth ) const;
 
   // Count matches of all sizes (up to maxDepth), starting at the
   // given position in the query.
   void countMatches( std::vector<unsigned long long>& counts,
-		     const uchar* queryPtr, const uchar* text,
+		     const uchar *queryPtr, BigSeq text,
 		     unsigned seedNum, size_t maxDepth ) const;
 
 private:
@@ -158,9 +161,8 @@ private:
   enum ChildDirection { FORWARD, REVERSE, UNKNOWN };
 
   // This does the same thing as equalRange, but uses a child table:
-  void childRange( indexT& beg, indexT& end, ChildDirection& childDirection,
-                   const uchar* textBase,
-                   const uchar* subsetMap, uchar subset ) const;
+  void childRange(indexT &beg, indexT &end, ChildDirection &childDirection,
+		  BigPtr textBase, const uchar *subsetMap, uchar subset) const;
 
   // Return the maximum prefix size covered by the buckets.
   size_t maxBucketPrefix(unsigned seedNum) const

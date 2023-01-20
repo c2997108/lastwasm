@@ -11,21 +11,21 @@
 #define GAPLESS_PSSM_XDROP_HH
 
 #include "ScoreMatrixRow.hh"
+#include "mcf_big_seq.hh"
 
-#include <stddef.h>
 #include <stdexcept>
 
 namespace cbrc {
 
-typedef unsigned char uchar;
+using namespace mcf;
 
-static int forwardGaplessPssmXdropScore(const uchar *seq,
+static int forwardGaplessPssmXdropScore(BigPtr seq,
 					const ScoreMatrixRow *pssm,
 					int maxScoreDrop) {
   int score = 0;
   int s = 0;
   while (true) {
-    s += (*pssm++)[*seq++];  // overflow risk
+    s += (*pssm++)[getNext(seq)];  // overflow risk
     if (s < score - maxScoreDrop) break;
     if (s > score) score = s;
   }
@@ -34,13 +34,13 @@ static int forwardGaplessPssmXdropScore(const uchar *seq,
   return score;
 }
 
-static int reverseGaplessPssmXdropScore(const uchar *seq,
+static int reverseGaplessPssmXdropScore(BigPtr seq,
 					const ScoreMatrixRow *pssm,
 					int maxScoreDrop) {
   int score = 0;
   int s = 0;
   while (true) {
-    s += (*--pssm)[*--seq];  // overflow risk
+    s += (*--pssm)[getPrev(seq)];  // overflow risk
     if (s < score - maxScoreDrop) break;
     if (s > score) score = s;
   }
@@ -49,8 +49,7 @@ static int reverseGaplessPssmXdropScore(const uchar *seq,
   return score;
 }
 
-static void gaplessPssmXdropScores(const uchar *seq,
-				   const ScoreMatrixRow *pssm,
+static void gaplessPssmXdropScores(BigSeq seq, const ScoreMatrixRow *pssm,
 				   int maxScoreDrop,
 				   size_t pos1, size_t pos2,
 				   int &fwdScore, int &revScore) {
@@ -58,7 +57,7 @@ static void gaplessPssmXdropScores(const uchar *seq,
   revScore = reverseGaplessPssmXdropScore(seq+pos1, pssm+pos2, maxScoreDrop);
 }
 
-static bool gaplessPssmXdropEnds(const uchar *seq, const ScoreMatrixRow *pssm,
+static bool gaplessPssmXdropEnds(BigSeq seq, const ScoreMatrixRow *pssm,
 				 int maxScoreDrop, int fwdScore, int revScore,
 				 size_t &pos1, size_t &pos2, size_t &length) {
   size_t beg1 = pos1;
@@ -84,7 +83,7 @@ static bool gaplessPssmXdropEnds(const uchar *seq, const ScoreMatrixRow *pssm,
   return true;
 }
 
-static int gaplessPssmXdropOverlap(const uchar *seq,
+static int gaplessPssmXdropOverlap(BigPtr seq,
 				   const ScoreMatrixRow *pssm,
 				   int maxScoreDrop,
 				   size_t &reverseLength,
@@ -93,10 +92,10 @@ static int gaplessPssmXdropOverlap(const uchar *seq,
   int maxScore = 0;
   int score = 0;
 
-  const uchar *rs = seq;
+  BigPtr rs = seq;
   const ScoreMatrixRow *rp = pssm;
   while (true) {
-    int s = (*--rp)[*--rs];
+    int s = (*--rp)[getPrev(rs)];
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
@@ -106,26 +105,25 @@ static int gaplessPssmXdropOverlap(const uchar *seq,
 
   maxScore = score - minScore;
 
-  const uchar *fs = seq;
   const ScoreMatrixRow *fp = pssm;
   while (true) {
-    int s = (*fp++)[*fs++];
+    int s = (*fp++)[getNext(seq)];
     if (s <= -INF) break;
     score += s;
     if (score > maxScore) maxScore = score;
     else if (score < maxScore - maxScoreDrop) return -INF;
   }
 
-  reverseLength = seq - (rs + 1);
-  forwardLength = (fs - 1) - seq;
+  reverseLength = pssm - (rp + 1);
+  forwardLength = (fp - 1) - pssm;
   return score;
 }
 
-static int gaplessPssmAlignmentScore(const uchar *seq,
+static int gaplessPssmAlignmentScore(BigPtr seq,
 				     const ScoreMatrixRow *pssm,
 				     size_t length) {
   int score = 0;
-  while (length--) score += (*pssm++)[*seq++];
+  while (length--) score += (*pssm++)[getNext(seq)];
   return score;
 }
 

@@ -9,6 +9,7 @@
 #ifndef MULTISEQUENCE_HH
 #define MULTISEQUENCE_HH
 
+#include "mcf_big_seq.hh"
 #include "ScoreMatrixRow.hh"
 #include "VectorOrMmap.hh"
 
@@ -108,6 +109,7 @@ class MultiSequence{
   // get a pointer to the start of the sequence data
   const uchar* seqReader() const{ return seq.begin(); }
   /***/ uchar* seqWriter()      { return &seq.v[0]; }
+  mcf::BigSeq seqPtr() const { return theSeqPtr; }
 
   // get a pointer to the start of the PSSM, or NULL if there is no PSSM
   // I am not totally sure about the reinterpret_cast...
@@ -145,6 +147,7 @@ class MultiSequence{
   VectorOrMmap<indexT> ends;  // coordinates of ends of delimiter pads
   VectorOrMmap<char> names;  // concatenated sequence names (to save memory)
   VectorOrMmap<indexT> nameEnds;  // endpoints of the names
+  mcf::BigSeq theSeqPtr;
 
   std::vector<int> pssm;  // position-specific scoring matrix
   std::vector<uchar> pssmColumnLetters;  // which input column is which letter

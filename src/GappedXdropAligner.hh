@@ -45,6 +45,7 @@
 #ifndef GAPPED_XDROP_ALIGNER_HH
 #define GAPPED_XDROP_ALIGNER_HH
 
+#include "mcf_big_seq.hh"
 #include "mcf_contiguous_queue.hh"
 #include "mcf_reverse_queue.hh"
 #include "mcf_gap_costs.hh"
@@ -73,7 +74,7 @@ const int droppedTinyScore = UCHAR_MAX;
 
 class GappedXdropAligner {
  public:
-  int align(const uchar *seq1,  // start point in the 1st sequence
+  int align(BigPtr seq1,  // start point in the 1st sequence
             const uchar *seq2,  // start point in the 2nd sequence
             bool isForward,  // forward or reverse extension?
 	    int globality,
@@ -88,7 +89,7 @@ class GappedXdropAligner {
             int maxMatchScore);
 
   // Like "align", but it aligns a sequence to a PSSM.
-  int alignPssm(const uchar *seq,
+  int alignPssm(BigPtr seq,
                 const ScoreMatrixRow *pssm,
                 bool isForward,
 		int globality,
@@ -122,7 +123,7 @@ class GappedXdropAligner {
   // scorer[i<4][j<4] fits in signed char.  Each sequence element is
   // first mapped through "toUnmasked".  If an unmasked sequence
   // element >= 4 appears, alignDna falls back to a slower algorithm.
-  int alignDna(const uchar *seq1,
+  int alignDna(BigPtr seq1,
 	       const uchar *seq2,
 	       bool isForward,
 	       const ScoreMatrixRow *scorer,

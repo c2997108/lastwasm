@@ -330,7 +330,7 @@ static void dump1(const std::string &dbName, const uchar *decode,
   if (seqCount + 1 == 0) ERR("can't read file: " + dbName + ".prj");
   MultiSequence m;
   m.fromFiles(dbName, seqCount, isFastq, bitsPerBase == 4);
-  const uchar *s = m.seqReader();
+  BigSeq s = m.seqPtr();
   for (size_t i = 0; i < m.finishedSequences(); ++i) {
     std::cout << ">@"[isFastq] << m.seqName(i) << '\n';
     std::streambuf *buf = std::cout.rdbuf();

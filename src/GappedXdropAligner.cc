@@ -54,7 +54,7 @@
 
 namespace cbrc {
 
-int GappedXdropAligner::align(const uchar *seq1,
+int GappedXdropAligner::align(BigPtr seq1,
                               const uchar *seq2,
                               bool isForward,
 			      int globality,

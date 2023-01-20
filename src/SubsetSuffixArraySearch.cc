@@ -23,7 +23,7 @@ static size_t offGet(const OffPart *p) {
 }
 
 static indexT lowerBound(const PosPart *sufArray, indexT beg, indexT end,
-			 const uchar *textBase, const uchar *subsetMap,
+			 const BigPtr &textBase, const uchar *subsetMap,
 			 uchar subset) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
@@ -37,7 +37,7 @@ static indexT lowerBound(const PosPart *sufArray, indexT beg, indexT end,
 }
 
 static indexT upperBound(const PosPart *sufArray, indexT beg, indexT end,
-			 const uchar *textBase, const uchar *subsetMap,
+			 const BigPtr &textBase, const uchar *subsetMap,
 			 uchar subset) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
@@ -53,7 +53,7 @@ static indexT upperBound(const PosPart *sufArray, indexT beg, indexT end,
 // Find the suffix array range of one letter, whose subset is
 // "subset", within the suffix array range [beg, end)
 static void equalRange(const PosPart *sufArray, indexT &beg, indexT &end,
-		       const uchar *textBase, const uchar *subsetMap,
+		       const BigPtr &textBase, const uchar *subsetMap,
 		       uchar subset) {
   while (beg < end) {
     indexT mid = beg + (end - beg) / 2;
@@ -72,7 +72,7 @@ static void equalRange(const PosPart *sufArray, indexT &beg, indexT &end,
 
 // Same as the 1st equalRange, but uses more info and may be faster
 static void equalRange(const PosPart *sufArray, indexT &beg, indexT &end,
-		       const uchar *textBase, const uchar *subsetMap,
+		       const BigPtr &textBase, const uchar *subsetMap,
 		       uchar subset, uchar begSubset, uchar endSubset,
 		       indexT begOffset, indexT endOffset) {
   indexT b = beg + begOffset;
@@ -90,7 +90,7 @@ static void equalRange(const PosPart *sufArray, indexT &beg, indexT &end,
 
 // Same as the 1st equalRange, but tries to be faster by checking endpoints
 static void fastEqualRange(const PosPart *sufArray, indexT &beg, indexT &end,
-			   const uchar *textBase, const uchar *subsetMap,
+			   const BigPtr &textBase, const uchar *subsetMap,
 			   uchar subset) {
   uchar b = subsetMap[textBase[posGetAt(sufArray, beg)]];
   if (subset < b) { end = beg; return; }
@@ -101,7 +101,7 @@ static void fastEqualRange(const PosPart *sufArray, indexT &beg, indexT &end,
 }
 
 static indexT lowerBound2(const PosPart *sufArray, indexT beg, indexT end,
-			  const uchar *text, size_t depth, const uchar *subsetMap,
+			  BigSeq text, size_t depth, const uchar *subsetMap,
 			  const uchar *queryBeg, const uchar *queryEnd,
 			  const CyclicSubsetSeed &seed) {
   while (beg < end) {
@@ -133,7 +133,7 @@ static indexT lowerBound2(const PosPart *sufArray, indexT beg, indexT end,
 }
 
 static indexT upperBound2(const PosPart *sufArray, indexT beg, indexT end,
-			  const uchar *text, size_t depth, const uchar *subsetMap,
+			  BigSeq text, size_t depth, const uchar *subsetMap,
 			  const uchar *queryBeg, const uchar *queryEnd,
 			  const CyclicSubsetSeed &seed) {
   while (beg < end) {
@@ -167,7 +167,7 @@ static indexT upperBound2(const PosPart *sufArray, indexT beg, indexT end,
 // Find the suffix array range of string [queryBeg, queryEnd) within
 // the suffix array range [beg, end)
 static void equalRange2(const PosPart *sufArray, indexT &beg, indexT &end,
-			const uchar *text, size_t depth, const uchar *subsetMap,
+			BigSeq text, size_t depth, const uchar *subsetMap,
 			const uchar *queryBeg, const uchar *queryEnd,
 			const CyclicSubsetSeed &seed) {
   const uchar *qBeg = queryBeg;
@@ -233,7 +233,7 @@ static void equalRange2(const PosPart *sufArray, indexT &beg, indexT &end,
 // of [queryBeg, queryBeg+d), which is guaranteed to include the whole
 // range for the smallest d whose range is no longer than maxHits.
 static size_t equalRange3(const PosPart *sufArray, indexT &beg, indexT &end,
-			  const uchar *&subsetMap, const uchar *text, size_t depth,
+			  const uchar *&subsetMap, BigSeq text, size_t depth,
 			  const uchar *queryBeg, const CyclicSubsetSeed &seed,
 			  size_t maxHits) {
   if (subsetMap[*queryBeg] == CyclicSubsetSeed::DELIMITER) return 0;
@@ -337,7 +337,7 @@ static size_t equalRange3(const PosPart *sufArray, indexT &beg, indexT &end,
 // use past results to speed up long matches?
 // could & probably should return the match depth
 void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
-			      const uchar *queryPtr, const uchar *text,
+			      const uchar *queryPtr, BigSeq text,
 			      unsigned seedNum, size_t maxHits,
 			      size_t minDepth, size_t maxDepth) const {
   // the next line is unnecessary, but makes it faster in some cases:
@@ -423,7 +423,7 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
 }
 
 void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
-				     const uchar *queryPtr, const uchar *text,
+				     const uchar *queryPtr, BigSeq text,
 				     unsigned seedNum, size_t maxDepth) const {
   size_t depth = 0;
   const CyclicSubsetSeed &seed = seeds[seedNum];
@@ -469,8 +469,7 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
 
 void SubsetSuffixArray::childRange( indexT& beg, indexT& end,
 				    ChildDirection& childDirection,
-				    const uchar* textBase,
-				    const uchar* subsetMap,
+				    BigPtr textBase, const uchar *subsetMap,
 				    uchar subset ) const{
   const PosPart *sufArray = suffixArray.begin();
 

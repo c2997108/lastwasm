@@ -84,7 +84,7 @@ struct Alignment{
   // If outputType > 3: calculates match probabilities.
   // If outputType > 4: does gamma-centroid alignment.
   void makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
-		  const uchar* seq1, const uchar* seq2, int globality,
+		  BigSeq seq1, const uchar* seq2, int globality,
 		  const ScoreMatrixRow* scoreMatrix, int smMax, int smMin,
 		  const const_dbl_ptr* probMatrix, double scale,
 		  const GapCosts& gap, int maxDrop, size_t frameSize,
@@ -98,7 +98,7 @@ struct Alignment{
   // with score <= 0, and no sub-segment with score < -maxDrop.
   // Alignments that pass this test may be non-optimal in other ways.
   // If "globality" is non-zero, skip the prefix and suffix checks.
-  bool isOptimal( const uchar* seq1, const uchar* seq2, int globality,
+  bool isOptimal( BigSeq seq1, const uchar* seq2, int globality,
                   const ScoreMatrixRow* scoreMatrix, int maxDrop,
                   const GapCosts& gapCosts, size_t frameSize,
 		  const ScoreMatrixRow* pssm2,
@@ -106,7 +106,7 @@ struct Alignment{
                   const uchar* qual1, const uchar* qual2 ) const;
 
   // Does the Alignment have any segment with score >= minScore?
-  bool hasGoodSegment(const uchar *seq1, const uchar *seq2,
+  bool hasGoodSegment(BigSeq seq1, const uchar *seq2,
 		      int minScore, const ScoreMatrixRow *scoreMatrix,
 		      const GapCosts &gapCosts, size_t frameSize,
 		      const ScoreMatrixRow *pssm2,
@@ -137,8 +137,7 @@ struct Alignment{
   void extend( std::vector< SegmentPair >& chunks,
 	       std::vector< char >& columnCodes,
 	       Aligners &aligners, bool isGreedy, bool isFullScore,
-	       const uchar* seq1, const uchar* seq2,
-	       size_t start1, size_t start2,
+	       BigSeq seq1, const uchar* seq2, size_t start1, size_t start2,
 	       bool isForward, int globality,
 	       const ScoreMatrixRow* sm, int smMax, int smMin,
 	       const const_dbl_ptr* probMat, double scale,
@@ -171,10 +170,10 @@ struct Alignment{
 
   size_t numColumns(size_t frameSize, bool isCodon) const;
 
-  char *writeTopSeq(char *dest, const uchar *seq, const Alphabet &alph,
+  char *writeTopSeq(char *dest, BigSeq seq, const Alphabet &alph,
 		    size_t qualsPerBase, size_t frameSize, bool isCodon) const;
 
-  char *writeBotSeq(char *dest, const uchar *seq, const Alphabet &alph,
+  char *writeBotSeq(char *dest, BigSeq seq, const Alphabet &alph,
 		    size_t qualsPerBase, size_t frameSize, bool isCodon) const;
 
   char *writeColumnProbs(char *dest, const char *probSymbols,

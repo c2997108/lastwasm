@@ -162,27 +162,27 @@ depend:
 	$(CXX) -MM -I. split/*.cc | sed 's|.*:|split/&|' | $(fix8) >> m
 	mv m makefile
 Alignment.o Alignment.o5 Alignment.o8: Alignment.cc Alignment.hh Centroid.hh GappedXdropAligner.hh \
- mcf_contiguous_queue.hh mcf_reverse_queue.hh mcf_gap_costs.hh \
- mcf_simd.hh ScoreMatrixRow.hh SegmentPair.hh OneQualityScoreMatrix.hh \
- mcf_substitution_matrix_stats.hh GreedyXdropAligner.hh \
- mcf_frameshift_xdrop_aligner.hh Alphabet.hh GeneticCode.hh \
- TwoQualityScoreMatrix.hh
-AlignmentPot.o AlignmentPot.o5 AlignmentPot.o8: AlignmentPot.cc AlignmentPot.hh Alignment.hh Centroid.hh \
- GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
+ mcf_big_seq.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
  mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh SegmentPair.hh \
  OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
+ GreedyXdropAligner.hh mcf_frameshift_xdrop_aligner.hh Alphabet.hh \
+ GeneticCode.hh TwoQualityScoreMatrix.hh
+AlignmentPot.o AlignmentPot.o5 AlignmentPot.o8: AlignmentPot.cc AlignmentPot.hh Alignment.hh Centroid.hh \
+ GappedXdropAligner.hh mcf_big_seq.hh mcf_contiguous_queue.hh \
+ mcf_reverse_queue.hh mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh \
+ SegmentPair.hh OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
  GreedyXdropAligner.hh mcf_frameshift_xdrop_aligner.hh
 AlignmentWrite.o AlignmentWrite.o5 AlignmentWrite.o8: AlignmentWrite.cc Alignment.hh Centroid.hh \
- GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
- mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh SegmentPair.hh \
- OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
+ GappedXdropAligner.hh mcf_big_seq.hh mcf_contiguous_queue.hh \
+ mcf_reverse_queue.hh mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh \
+ SegmentPair.hh OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
  GreedyXdropAligner.hh mcf_frameshift_xdrop_aligner.hh GeneticCode.hh \
  LastEvaluer.hh alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp \
  alp/sls_basic.hpp MultiSequence.hh VectorOrMmap.hh Mmap.hh fileMap.hh \
  stringify.hh Alphabet.hh
-Alphabet.o Alphabet.o5 Alphabet.o8: Alphabet.cc Alphabet.hh
+Alphabet.o Alphabet.o5 Alphabet.o8: Alphabet.cc Alphabet.hh mcf_big_seq.hh
 cbrc_linalg.o cbrc_linalg.o5 cbrc_linalg.o8: cbrc_linalg.cc cbrc_linalg.hh
-Centroid.o Centroid.o5 Centroid.o8: Centroid.cc Centroid.hh GappedXdropAligner.hh \
+Centroid.o Centroid.o5 Centroid.o8: Centroid.cc Centroid.hh GappedXdropAligner.hh mcf_big_seq.hh \
  mcf_contiguous_queue.hh mcf_reverse_queue.hh mcf_gap_costs.hh \
  mcf_simd.hh ScoreMatrixRow.hh SegmentPair.hh OneQualityScoreMatrix.hh \
  mcf_substitution_matrix_stats.hh GappedXdropAlignerInl.hh
@@ -192,29 +192,33 @@ DiagonalTable.o DiagonalTable.o5 DiagonalTable.o8: DiagonalTable.cc DiagonalTabl
 dna_words_finder.o dna_words_finder.o5 dna_words_finder.o8: dna_words_finder.cc dna_words_finder.hh
 fileMap.o fileMap.o5 fileMap.o8: fileMap.cc fileMap.hh stringify.hh
 GappedXdropAligner2qual.o GappedXdropAligner2qual.o5 GappedXdropAligner2qual.o8: GappedXdropAligner2qual.cc \
- GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
- mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh \
- TwoQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh
+ GappedXdropAligner.hh mcf_big_seq.hh mcf_contiguous_queue.hh \
+ mcf_reverse_queue.hh mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh \
+ GappedXdropAlignerInl.hh TwoQualityScoreMatrix.hh \
+ mcf_substitution_matrix_stats.hh
 GappedXdropAligner3frame.o GappedXdropAligner3frame.o5 GappedXdropAligner3frame.o8: GappedXdropAligner3frame.cc \
- GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
- mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
+ GappedXdropAligner.hh mcf_big_seq.hh mcf_contiguous_queue.hh \
+ mcf_reverse_queue.hh mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh \
+ GappedXdropAlignerInl.hh
 GappedXdropAligner3framePssm.o GappedXdropAligner3framePssm.o5 GappedXdropAligner3framePssm.o8: GappedXdropAligner3framePssm.cc \
- GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
- mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
+ GappedXdropAligner.hh mcf_big_seq.hh mcf_contiguous_queue.hh \
+ mcf_reverse_queue.hh mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh \
+ GappedXdropAlignerInl.hh
 GappedXdropAligner.o GappedXdropAligner.o5 GappedXdropAligner.o8: GappedXdropAligner.cc GappedXdropAligner.hh \
- mcf_contiguous_queue.hh mcf_reverse_queue.hh mcf_gap_costs.hh \
- mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
-GappedXdropAlignerDna.o GappedXdropAlignerDna.o5 GappedXdropAlignerDna.o8: GappedXdropAlignerDna.cc GappedXdropAligner.hh \
- mcf_contiguous_queue.hh mcf_reverse_queue.hh mcf_gap_costs.hh \
- mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
-GappedXdropAlignerFrame.o GappedXdropAlignerFrame.o5 GappedXdropAlignerFrame.o8: GappedXdropAlignerFrame.cc \
- GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
+ mcf_big_seq.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
  mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
+GappedXdropAlignerDna.o GappedXdropAlignerDna.o5 GappedXdropAlignerDna.o8: GappedXdropAlignerDna.cc GappedXdropAligner.hh \
+ mcf_big_seq.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
+ mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
+GappedXdropAlignerFrame.o GappedXdropAlignerFrame.o5 GappedXdropAlignerFrame.o8: GappedXdropAlignerFrame.cc \
+ GappedXdropAligner.hh mcf_big_seq.hh mcf_contiguous_queue.hh \
+ mcf_reverse_queue.hh mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh \
+ GappedXdropAlignerInl.hh
 GappedXdropAlignerPssm.o GappedXdropAlignerPssm.o5 GappedXdropAlignerPssm.o8: GappedXdropAlignerPssm.cc GappedXdropAligner.hh \
- mcf_contiguous_queue.hh mcf_reverse_queue.hh mcf_gap_costs.hh \
- mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
+ mcf_big_seq.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
+ mcf_gap_costs.hh mcf_simd.hh ScoreMatrixRow.hh GappedXdropAlignerInl.hh
 GeneticCode.o GeneticCode.o5 GeneticCode.o8: GeneticCode.cc GeneticCode.hh GeneticCodeData.hh \
- Alphabet.hh zio.hh mcf_zstream.hh
+ Alphabet.hh mcf_big_seq.hh zio.hh mcf_zstream.hh
 GreedyXdropAligner.o GreedyXdropAligner.o5 GreedyXdropAligner.o8: GreedyXdropAligner.cc GreedyXdropAligner.hh \
  ScoreMatrixRow.hh
 LambdaCalculator.o LambdaCalculator.o5 LambdaCalculator.o8: LambdaCalculator.cc LambdaCalculator.hh \
@@ -222,11 +226,11 @@ LambdaCalculator.o LambdaCalculator.o5 LambdaCalculator.o8: LambdaCalculator.cc 
 LastalArguments.o LastalArguments.o5 LastalArguments.o8: LastalArguments.cc LastalArguments.hh \
  SequenceFormat.hh split/last_split_options.hh stringify.hh getoptUtil.hh \
  version.hh
-lastal.o lastal.o5 lastal.o8: lastal.cc last.hh Alphabet.hh CyclicSubsetSeed.hh \
- MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh \
- stringify.hh SequenceFormat.hh SubsetSuffixArray.hh dna_words_finder.hh \
- qualityScoreUtil.hh LastalArguments.hh split/last_split_options.hh \
- QualityPssmMaker.hh OneQualityScoreMatrix.hh \
+lastal.o lastal.o5 lastal.o8: lastal.cc last.hh Alphabet.hh mcf_big_seq.hh \
+ CyclicSubsetSeed.hh MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh \
+ Mmap.hh fileMap.hh stringify.hh SequenceFormat.hh SubsetSuffixArray.hh \
+ dna_words_finder.hh qualityScoreUtil.hh LastalArguments.hh \
+ split/last_split_options.hh QualityPssmMaker.hh OneQualityScoreMatrix.hh \
  mcf_substitution_matrix_stats.hh TwoQualityScoreMatrix.hh LastEvaluer.hh \
  mcf_frameshift_xdrop_aligner.hh mcf_gap_costs.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
@@ -241,11 +245,11 @@ lastal.o lastal.o5 lastal.o8: lastal.cc last.hh Alphabet.hh CyclicSubsetSeed.hh 
  Alphabet.hh MultiSequence.hh split/last_split_options.hh version.hh
 LastdbArguments.o LastdbArguments.o5 LastdbArguments.o8: LastdbArguments.cc LastdbArguments.hh \
  SequenceFormat.hh stringify.hh getoptUtil.hh version.hh
-lastdb.o lastdb.o5 lastdb.o8: lastdb.cc last.hh Alphabet.hh CyclicSubsetSeed.hh \
- MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh \
- stringify.hh SequenceFormat.hh SubsetSuffixArray.hh dna_words_finder.hh \
- qualityScoreUtil.hh LastdbArguments.hh TantanMasker.hh tantan.hh zio.hh \
- mcf_zstream.hh threadUtil.hh version.hh
+lastdb.o lastdb.o5 lastdb.o8: lastdb.cc last.hh Alphabet.hh mcf_big_seq.hh \
+ CyclicSubsetSeed.hh MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh \
+ Mmap.hh fileMap.hh stringify.hh SequenceFormat.hh SubsetSuffixArray.hh \
+ dna_words_finder.hh qualityScoreUtil.hh LastdbArguments.hh \
+ TantanMasker.hh tantan.hh zio.hh mcf_zstream.hh threadUtil.hh version.hh
 LastEvaluer.o LastEvaluer.o5 LastEvaluer.o8: LastEvaluer.cc LastEvaluer.hh ScoreMatrixRow.hh \
  mcf_frameshift_xdrop_aligner.hh mcf_gap_costs.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
@@ -262,9 +266,9 @@ mcf_frameshift_xdrop_aligner.o mcf_frameshift_xdrop_aligner.o5 mcf_frameshift_xd
 mcf_gap_costs.o mcf_gap_costs.o5 mcf_gap_costs.o8: mcf_gap_costs.cc mcf_gap_costs.hh
 mcf_substitution_matrix_stats.o mcf_substitution_matrix_stats.o5 mcf_substitution_matrix_stats.o8: mcf_substitution_matrix_stats.cc \
  mcf_substitution_matrix_stats.hh LambdaCalculator.hh cbrc_linalg.hh
-MultiSequence.o MultiSequence.o5 MultiSequence.o8: MultiSequence.cc MultiSequence.hh ScoreMatrixRow.hh \
- VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh
-MultiSequenceQual.o MultiSequenceQual.o5 MultiSequenceQual.o8: MultiSequenceQual.cc MultiSequence.hh \
+MultiSequence.o MultiSequence.o5 MultiSequence.o8: MultiSequence.cc MultiSequence.hh mcf_big_seq.hh \
+ ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh io.hh
+MultiSequenceQual.o MultiSequenceQual.o5 MultiSequenceQual.o8: MultiSequenceQual.cc MultiSequence.hh mcf_big_seq.hh \
  ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
 OneQualityScoreMatrix.o OneQualityScoreMatrix.o5 OneQualityScoreMatrix.o8: OneQualityScoreMatrix.cc \
  OneQualityScoreMatrix.hh mcf_substitution_matrix_stats.hh \
@@ -274,19 +278,20 @@ QualityPssmMaker.o QualityPssmMaker.o5 QualityPssmMaker.o8: QualityPssmMaker.cc 
 ScoreMatrix.o ScoreMatrix.o5 ScoreMatrix.o8: ScoreMatrix.cc ScoreMatrix.hh ScoreMatrixRow.hh \
  ScoreMatrixData.hh qualityScoreUtil.hh stringify.hh zio.hh \
  mcf_zstream.hh
-SegmentPair.o SegmentPair.o5 SegmentPair.o8: SegmentPair.cc SegmentPair.hh
-SegmentPairPot.o SegmentPairPot.o5 SegmentPairPot.o8: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh
+SegmentPair.o SegmentPair.o5 SegmentPair.o8: SegmentPair.cc SegmentPair.hh mcf_big_seq.hh
+SegmentPairPot.o SegmentPairPot.o5 SegmentPairPot.o8: SegmentPairPot.cc SegmentPairPot.hh SegmentPair.hh \
+ mcf_big_seq.hh
 SubsetMinimizerFinder.o SubsetMinimizerFinder.o5 SubsetMinimizerFinder.o8: SubsetMinimizerFinder.cc \
  SubsetMinimizerFinder.hh CyclicSubsetSeed.hh
 SubsetSuffixArray.o SubsetSuffixArray.o5 SubsetSuffixArray.o8: SubsetSuffixArray.cc SubsetSuffixArray.hh \
- CyclicSubsetSeed.hh dna_words_finder.hh VectorOrMmap.hh Mmap.hh \
- fileMap.hh stringify.hh SubsetMinimizerFinder.hh io.hh
+ CyclicSubsetSeed.hh dna_words_finder.hh mcf_big_seq.hh VectorOrMmap.hh \
+ Mmap.hh fileMap.hh stringify.hh SubsetMinimizerFinder.hh io.hh
 SubsetSuffixArraySearch.o SubsetSuffixArraySearch.o5 SubsetSuffixArraySearch.o8: SubsetSuffixArraySearch.cc \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh dna_words_finder.hh \
- VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
+ mcf_big_seq.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
 SubsetSuffixArraySort.o SubsetSuffixArraySort.o5 SubsetSuffixArraySort.o8: SubsetSuffixArraySort.cc SubsetSuffixArray.hh \
- CyclicSubsetSeed.hh dna_words_finder.hh VectorOrMmap.hh Mmap.hh \
- fileMap.hh stringify.hh
+ CyclicSubsetSeed.hh dna_words_finder.hh mcf_big_seq.hh VectorOrMmap.hh \
+ Mmap.hh fileMap.hh stringify.hh
 tantan.o tantan.o5 tantan.o8: tantan.cc tantan.hh mcf_simd.hh
 TantanMasker.o TantanMasker.o5 TantanMasker.o8: TantanMasker.cc TantanMasker.hh ScoreMatrixRow.hh \
  tantan.hh ScoreMatrix.hh mcf_substitution_matrix_stats.hh
@@ -367,16 +372,17 @@ alp/sls_pvalues.o: alp/sls_pvalues.cpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
  alp/njn_uniform.hpp alp/sls_normal_distr_array.hpp
 split/cbrc_split_aligner.o split/cbrc_split_aligner.o5 split/cbrc_split_aligner.o8: split/cbrc_split_aligner.cc \
  split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \
- split/cbrc_int_exponentiator.hh Alphabet.hh MultiSequence.hh \
- ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
- mcf_substitution_matrix_stats.hh
+ split/cbrc_int_exponentiator.hh Alphabet.hh mcf_big_seq.hh \
+ MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh \
+ stringify.hh mcf_substitution_matrix_stats.hh
 split/cbrc_unsplit_alignment.o split/cbrc_unsplit_alignment.o5 split/cbrc_unsplit_alignment.o8: split/cbrc_unsplit_alignment.cc \
  split/cbrc_unsplit_alignment.hh
 split/last-split.o split/last-split.o5 split/last-split.o8: split/last-split.cc split/last-split.hh \
  split/last_split_options.hh split/mcf_last_splitter.hh \
  split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \
- split/cbrc_int_exponentiator.hh Alphabet.hh MultiSequence.hh \
- ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh
+ split/cbrc_int_exponentiator.hh Alphabet.hh mcf_big_seq.hh \
+ MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh fileMap.hh \
+ stringify.hh
 split/last-split-main.o split/last-split-main.o5 split/last-split-main.o8: split/last-split-main.cc split/last-split.hh \
  split/last_split_options.hh stringify.hh version.hh
 split/last_split_options.o split/last_split_options.o5 split/last_split_options.o8: split/last_split_options.cc \
@@ -384,5 +390,6 @@ split/last_split_options.o split/last_split_options.o5 split/last_split_options.
 split/mcf_last_splitter.o split/mcf_last_splitter.o5 split/mcf_last_splitter.o8: split/mcf_last_splitter.cc \
  split/mcf_last_splitter.hh split/cbrc_split_aligner.hh \
  split/cbrc_unsplit_alignment.hh split/cbrc_int_exponentiator.hh \
- Alphabet.hh MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh Mmap.hh \
- fileMap.hh stringify.hh split/last_split_options.hh
+ Alphabet.hh mcf_big_seq.hh MultiSequence.hh ScoreMatrixRow.hh \
+ VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh \
+ split/last_split_options.hh

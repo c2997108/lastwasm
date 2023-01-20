@@ -5,7 +5,7 @@
 
 namespace cbrc {
 
-int GappedXdropAligner::alignPssm(const uchar *seq,
+int GappedXdropAligner::alignPssm(BigPtr seq,
                                   const ScoreMatrixRow *pssm,
                                   bool isForward,
 				  int globality,
