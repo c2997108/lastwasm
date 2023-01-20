@@ -36,7 +36,7 @@
 
 #include <climits>
 
-namespace cbrc{
+namespace cbrc {
 
 using namespace mcf;
 
@@ -74,7 +74,7 @@ inline size_t posCount(const PosPart *beg, const PosPart *end) {
   return d / posParts;  // faster if the dividend is unsigned?
 }
 
-class SubsetSuffixArray{
+class SubsetSuffixArray {
 public:
 
 #if LAST_POS_BYTES > 4
@@ -214,39 +214,39 @@ private:
 
   size_t getChildForward(size_t from) const {
     return
-      !childTable.empty() ? childTable[ from ] :
-      !kiddyTable.empty() ? from + kiddyTable[ from ] :
-      !chibiTable.empty() ? from + chibiTable[ from ] : from;
+      !childTable.empty() ? childTable[from] :
+      !kiddyTable.empty() ? from + kiddyTable[from] :
+      !chibiTable.empty() ? from + chibiTable[from] : from;
   }
 
   size_t getChildReverse(size_t from) const {
     return
-      !childTable.empty() ? childTable[ from - 1 ] :
-      !kiddyTable.empty() ? from - kiddyTable[ from - 1 ] :
-      !chibiTable.empty() ? from - chibiTable[ from - 1 ] : from;
+      !childTable.empty() ? childTable[from - 1] :
+      !kiddyTable.empty() ? from - kiddyTable[from - 1] :
+      !chibiTable.empty() ? from - chibiTable[from - 1] : from;
   }
 
-  void setKiddy( indexT index, indexT value ){
-    kiddyTable.v[ index ] = (value < USHRT_MAX) ? value : 0;
+  void setKiddy(size_t index, size_t value) {
+    kiddyTable.v[index] = (value < USHRT_MAX) ? value : 0;
   }
 
-  void setChibi( indexT index, indexT value ){
-    chibiTable.v[ index ] = (value < UCHAR_MAX) ? value : 0;
+  void setChibi(size_t index, size_t value) {
+    chibiTable.v[index] = (value < UCHAR_MAX) ? value : 0;
   }
 
   void setChildForward(const PosPart *from, const PosPart *to) {
-    if( to == from ) return;
+    if (to == from) return;
     const PosPart *origin = &suffixArray.v[0];
-    indexT i = posCount(origin, from);
+    size_t i = posCount(origin, from);
     /**/ if (!childTable.v.empty()) childTable.v[i] = posCount(origin, to);
     else if (!kiddyTable.v.empty()) setKiddy(i, posCount(from, to));
     else if (!chibiTable.v.empty()) setChibi(i, posCount(from, to));
   }
 
   void setChildReverse(const PosPart *from, const PosPart *to) {
-    if( to == from ) return;
+    if (to == from) return;
     const PosPart *origin = &suffixArray.v[0];
-    indexT i = posCount(origin, from) - 1;
+    size_t i = posCount(origin, from) - 1;
     /**/ if (!childTable.v.empty()) childTable.v[i] = posCount(origin, to);
     else if (!kiddyTable.v.empty()) setKiddy(i, posCount(to, from));
     else if (!chibiTable.v.empty()) setChibi(i, posCount(to, from));
@@ -256,11 +256,12 @@ private:
     const PosPart *origin = &suffixArray.v[0];
     indexT i = posCount(origin, beg);
     return
-      !childTable.v.empty() ? childTable.v[ i ] == 0 :
-      !kiddyTable.v.empty() ? kiddyTable.v[ i ] == USHRT_MAX :
-      !chibiTable.v.empty() ? chibiTable.v[ i ] == UCHAR_MAX : true;
+      !childTable.v.empty() ? childTable.v[i] == 0 :
+      !kiddyTable.v.empty() ? kiddyTable.v[i] == USHRT_MAX :
+      !chibiTable.v.empty() ? chibiTable.v[i] == UCHAR_MAX : true;
   }
 };
 
-}  // end namespace
+}
+
 #endif

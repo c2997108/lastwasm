@@ -32,7 +32,7 @@ inline void initSequences(MultiSequence &m, const Alphabet &a,
 
 inline void encodeSequences(MultiSequence &m, sequenceFormat::Enum f,
 			    const Alphabet &a, bool isKeepLowercase,
-			    indexT start) {
+			    size_t start) {
   size_t beg = m.seqBeg(start);
   size_t end = m.seqBeg(m.finishedSequences());
   a.tr(m.seqWriter() + beg, m.seqWriter() + end, isKeepLowercase);
