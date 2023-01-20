@@ -99,7 +99,7 @@ struct SplitAlignerParams {
 
   void dpExtensionMinScores(size_t &minScore1, size_t &minScore2) const;
 
-  const uchar *seqEnds(size_t &beg, size_t &end, const char *seqName) const;
+  mcf::BigSeq seqEnds(size_t &beg, size_t &end, const char *seqName) const;
 
   int spliceScore(unsigned d) const
   { return d < spliceTableSize ? spliceScoreTable[d] : calcSpliceScore(d); }

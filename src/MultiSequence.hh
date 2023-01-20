@@ -141,6 +141,13 @@ class MultiSequence{
     }
   }
 
+  void convertTo8bit() {
+    uchar *s = &seq.v[0];
+    size_t e = ends.back();
+    size_t i = e / 2 + e % 2;
+    while (i-- > 0) s[i] = mcf::BigSeq::from4bit(s, i);
+  }
+
  private:
   indexT padSize;  // number of delimiter chars between sequences
   VectorOrMmap<uchar> seq;  // concatenated sequences

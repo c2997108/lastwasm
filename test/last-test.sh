@@ -33,7 +33,7 @@ trap 'rm -f $db*' EXIT
     try lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -z3400 -e2500 $db $dnaSeq
 
     # multiple volumes & query batches
-    lastdb -m1 -s1 -C2 -R10 $db $dnaSeq
+    lastdb --bits=4 -m1 -s1 -C2 -R10 $db $dnaSeq
     lastdb -D $db
     try lastal -fTAB -i1 -w0 -e40 $db $dnaSeq
 
@@ -247,11 +247,11 @@ trap 'rm -f $db*' EXIT
     lastdb $db alli.fa
     lastal -j7 -r5 -q5 -a15 -b3 $db huma.fa
 
-    lastdb -uNEAR $db od-xsr-100k.fa
+    lastdb --bits=4 -uNEAR $db od-xsr-100k.fa
     lastal -D10 --split-d=2 -p od.mat $db od-rna.fq
 
     # lastdb strands & volumes
-    lastdb -S2 -s1 -m1 $db galGal3-M-32.fa
+    lastdb --bits=4 -S2 -s1 -m1 $db galGal3-M-32.fa
     lastal -s0 -fTAB -p hufu.train $db hg19-M.fa
 } 2>&1 |
 grep -v version | diff -u last-test.out -

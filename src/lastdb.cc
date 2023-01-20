@@ -471,6 +471,7 @@ void lastdb( int argc, char** argv ){
 	      makeVolume(seeds, wordsFinder, multi, args, alph, letterCounts,
 			 maxSeqLenSeen, tantanMasker, numOfThreads, seedText,
 			 baseName);
+	      if (args.bitsPerBase == 4) multi.convertTo8bit();
 	      multi.eraseAllButTheLastSequence();
 	    }
 	  }

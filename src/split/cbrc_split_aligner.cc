@@ -154,7 +154,7 @@ int SplitAlignerParams::calcSpliceScore(double dist) const {
 }
 
 // The dinucleotide immediately downstream on the forward strand
-static unsigned spliceBegSignalFwd(const uchar *seq, size_t pos,
+static unsigned spliceBegSignalFwd(mcf::BigSeq seq, size_t pos,
 				   const uchar *toUnmasked) {
   unsigned n1 = toUnmasked[seq[pos]];
   if (n1 >= 4) return 16;
@@ -164,7 +164,7 @@ static unsigned spliceBegSignalFwd(const uchar *seq, size_t pos,
 }
 
 // The dinucleotide immediately downstream on the reverse strand
-static unsigned spliceBegSignalRev(const uchar *seq, size_t pos,
+static unsigned spliceBegSignalRev(mcf::BigSeq seq, size_t pos,
 				   const uchar *toUnmasked) {
   unsigned n1 = toUnmasked[seq[pos - 1]];
   if (n1 >= 4) return 16;
@@ -174,7 +174,7 @@ static unsigned spliceBegSignalRev(const uchar *seq, size_t pos,
 }
 
 // The dinucleotide immediately upstream on the forward strand
-static unsigned spliceEndSignalFwd(const uchar *seq, size_t pos,
+static unsigned spliceEndSignalFwd(mcf::BigSeq seq, size_t pos,
 				   const uchar *toUnmasked) {
   unsigned n2 = toUnmasked[seq[pos - 1]];
   if (n2 >= 4) return 16;
@@ -184,7 +184,7 @@ static unsigned spliceEndSignalFwd(const uchar *seq, size_t pos,
 }
 
 // The dinucleotide immediately upstream on the reverse strand
-static unsigned spliceEndSignalRev(const uchar *seq, size_t pos,
+static unsigned spliceEndSignalRev(mcf::BigSeq seq, size_t pos,
 				   const uchar *toUnmasked) {
   unsigned n2 = toUnmasked[seq[pos]];
   if (n2 >= 4) return 16;
@@ -869,8 +869,8 @@ void SplitAligner::initSpliceCoords(unsigned i) {
   assert(k == a.rend);  // xxx
 }
 
-const uchar *SplitAlignerParams::seqEnds(size_t &beg, size_t &end,
-					 const char *seqName) const {
+mcf::BigSeq SplitAlignerParams::seqEnds(size_t &beg, size_t &end,
+					const char *seqName) const {
   StringNumMap::const_iterator f = chromosomeIndex.find(seqName);
   if (f == chromosomeIndex.end())
     err("can't find " + std::string(seqName) + " in the genome");
@@ -878,7 +878,7 @@ const uchar *SplitAlignerParams::seqEnds(size_t &beg, size_t &end,
   size_t c = f->second / maxGenomeVolumes();
   beg = genome[v].seqBeg(c);
   end = genome[v].seqEnd(c);
-  return genome[v].seqReader();
+  return genome[v].seqPtr();
 }
 
 void SplitAligner::initSpliceSignals(const SplitAlignerParams &params,
@@ -887,7 +887,7 @@ void SplitAligner::initSpliceSignals(const SplitAlignerParams &params,
   const UnsplitAlignment &a = alns[i];
 
   size_t seqBeg, seqEnd;
-  const uchar *seq = params.seqEnds(seqBeg, seqEnd, a.rname);
+  mcf::BigSeq seq = params.seqEnds(seqBeg, seqEnd, a.rname);
   if (a.rend > seqEnd - seqBeg)
     err("alignment beyond the end of " + std::string(a.rname));
 
@@ -913,12 +913,12 @@ void SplitAligner::initSpliceSignals(const SplitAlignerParams &params,
 
 const uchar sequenceEndSentinel = 4;
 
-static void getNextSignal(uchar *out, const uchar *seq, size_t pos) {
+static void getNextSignal(uchar *out, mcf::BigSeq seq, size_t pos) {
   out[0] = seq[pos];
   out[1] = (out[0] == sequenceEndSentinel) ? sequenceEndSentinel : seq[pos+1];
 }
 
-static void getPrevSignal(uchar *out, const uchar *seq, size_t pos) {
+static void getPrevSignal(uchar *out, mcf::BigSeq seq, size_t pos) {
   out[1] = seq[pos-1];
   out[0] = (out[1] == sequenceEndSentinel) ? sequenceEndSentinel : seq[pos-2];
 }
@@ -947,7 +947,7 @@ void SplitAlignerParams::spliceBegSignal(char *out, const char *seqName,
 					 unsigned coord) const {
   uchar signal[2];
   size_t seqBeg, seqEnd;
-  const uchar *seq = seqEnds(seqBeg, seqEnd, seqName);
+  mcf::BigSeq seq = seqEnds(seqBeg, seqEnd, seqName);
   if (isForwardStrand) getNextSignal(signal, seq, seqBeg + coord);
   else                 getPrevSignal(signal, seq, seqEnd - coord);
   decodeSpliceSignal(out, signal, alphabet.decode, alphabet.complement,
@@ -960,7 +960,7 @@ void SplitAlignerParams::spliceEndSignal(char *out, const char *seqName,
 					 unsigned coord) const {
   uchar signal[2];
   size_t seqBeg, seqEnd;
-  const uchar *seq = seqEnds(seqBeg, seqEnd, seqName);
+  mcf::BigSeq seq = seqEnds(seqBeg, seqEnd, seqName);
   if (isForwardStrand) getPrevSignal(signal, seq, seqBeg + coord);
   else                 getNextSignal(signal, seq, seqEnd - coord);
   decodeSpliceSignal(out, signal, alphabet.decode, alphabet.complement,
