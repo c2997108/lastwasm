@@ -17,52 +17,38 @@ using namespace mcf;
 
 typedef unsigned char uchar;
 
-// Gets the maximum score for any gapless alignment starting at (seq1,
+// Get the maximum score for any gapless alignment starting at (seq1,
 // seq2) and extending forwards.  The score is not allowed to drop by
-// more than maxScoreDrop.  The sequences had better end with
-// sentinels that have score < -maxScoreDrop.
-// The score might suffer overflow, for huge sequences and/or huge
-// scores.  If the function detects this (not guaranteed), it throws
-// an exception.
-static int forwardGaplessXdropScore(BigPtr seq1,
-				    const uchar *seq2,
-				    const ScoreMatrixRow *scorer,
-				    int maxScoreDrop) {
-  int score = 0;
-  int s = 0;
-  while (true) {
-    s += scorer[getNext(seq1)][*seq2++];  // overflow risk
-    if (s < score - maxScoreDrop) break;
-    if (s > score) score = s;
-  }
-  if (score - s < 0)
-    throw std::overflow_error("score overflow in forward gapless extension");
-  return score;
-}
-
-// As above, but extending backwards.
-static int reverseGaplessXdropScore(BigPtr seq1,
-				    const uchar *seq2,
-				    const ScoreMatrixRow *scorer,
-				    int maxScoreDrop) {
-  int score = 0;
-  int s = 0;
-  while (true) {
-    s += scorer[getPrev(seq1)][*--seq2];  // overflow risk
-    if (s < score - maxScoreDrop) break;
-    if (s > score) score = s;
-  }
-  if (score - s < 0)
-    throw std::overflow_error("score overflow in reverse gapless extension");
-  return score;
-}
-
-static void gaplessXdropScores(BigSeq seq1, const uchar *seq2,
-			       const ScoreMatrixRow *mat, int maxScoreDrop,
-			       size_t pos1, size_t pos2,
+// more than maxScoreDrop.  Do the same extending backwards.  The
+// sequences had better end with sentinels that have score <
+// -maxScoreDrop.  The score might suffer overflow, for huge sequences
+// and/or huge scores.  If the function detects this (not guaranteed),
+// it throws an exception.
+static void gaplessXdropScores(BigPtr seq1, const uchar *seq2,
+			       const ScoreMatrixRow *scorer, int maxScoreDrop,
 			       int &fwdScore, int &revScore) {
-  fwdScore = forwardGaplessXdropScore(seq1+pos1, seq2+pos2, mat, maxScoreDrop);
-  revScore = reverseGaplessXdropScore(seq1+pos1, seq2+pos2, mat, maxScoreDrop);
+  BigPtr fwd1 = seq1;
+  const uchar *fwd2 = seq2;
+
+  int fScore = 0, f = 0;
+  while (true) {
+    f += scorer[getNext(fwd1)][*fwd2++];  // overflow risk
+    if (f < fScore - maxScoreDrop) break;
+    if (f > fScore) fScore = f;
+  }
+  if (fScore - f < 0)
+    throw std::overflow_error("score overflow in forward gapless extension");
+  fwdScore = fScore;
+
+  int rScore = 0, r = 0;
+  while (true) {
+    r += scorer[getPrev(seq1)][*--seq2];  // overflow risk
+    if (r < rScore - maxScoreDrop) break;
+    if (r > rScore) rScore = r;
+  }
+  if (rScore - r < 0)
+    throw std::overflow_error("score overflow in reverse gapless extension");
+  revScore = rScore;
 }
 
 // Find the shortest forward extension from (pos1, pos2) with score

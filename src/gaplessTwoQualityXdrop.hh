@@ -21,54 +21,35 @@ using namespace mcf;
 
 typedef unsigned char uchar;
 
-static int forwardGaplessTwoQualityXdropScore(BigPtr seq1,
-					      const uchar *qual1,
-					      const uchar *seq2,
-					      const uchar *qual2,
-					      const TwoQualityScoreMatrix &m,
-					      int maxScoreDrop) {
-  int score = 0;
-  int s = 0;
-  while (true) {
-    s += m(getNext(seq1), *seq2++, *qual1++, *qual2++);  // overflow risk
-    if (s < score - maxScoreDrop) break;
-    if (s > score) score = s;
-  }
-  if (score - s < 0)
-    throw std::overflow_error("score overflow in forward gapless extension with qualities");
-  return score;
-}
-
-static int reverseGaplessTwoQualityXdropScore(BigPtr seq1,
-					      const uchar *qual1,
-					      const uchar *seq2,
-					      const uchar *qual2,
-					      const TwoQualityScoreMatrix &m,
-					      int maxScoreDrop) {
-  int score = 0;
-  int s = 0;
-  while (true) {
-    s += m(getPrev(seq1), *--seq2, *--qual1, *--qual2);  // overflow risk
-    if (s < score - maxScoreDrop) break;
-    if (s > score) score = s;
-  }
-  if (score - s < 0)
-    throw std::overflow_error("score overflow in reverse gapless extension with qualities");
-  return score;
-}
-
-static void gaplessTwoQualityXdropScores(BigSeq seq1, const uchar *qual1,
+static void gaplessTwoQualityXdropScores(BigPtr seq1, const uchar *qual1,
 					 const uchar *seq2, const uchar *qual2,
 					 const TwoQualityScoreMatrix &m,
 					 int maxScoreDrop,
-					 size_t pos1, size_t pos2,
 					 int &fwdScore, int &revScore) {
-  fwdScore = forwardGaplessTwoQualityXdropScore(seq1 + pos1, qual1 + pos1,
-						seq2 + pos2, qual2 + pos2,
-						m, maxScoreDrop);
-  revScore = reverseGaplessTwoQualityXdropScore(seq1 + pos1, qual1 + pos1,
-						seq2 + pos2, qual2 + pos2,
-						m, maxScoreDrop);
+  BigPtr fwd1 = seq1;
+  const uchar *fwd2 = seq2;
+  const uchar *fqua1 = qual1;
+  const uchar *fqua2 = qual2;
+
+  int fScore = 0, f = 0;
+  while (true) {
+    f += m(getNext(fwd1), *fwd2++, *fqua1++, *fqua2++);  // overflow risk
+    if (f < fScore - maxScoreDrop) break;
+    if (f > fScore) fScore = f;
+  }
+  if (fScore - f < 0)
+    throw std::overflow_error("score overflow in forward gapless extension with qualities");
+  fwdScore = fScore;
+
+  int rScore = 0, r = 0;
+  while (true) {
+    r += m(getPrev(seq1), *--seq2, *--qual1, *--qual2);  // overflow risk
+    if (r < rScore - maxScoreDrop) break;
+    if (r > rScore) rScore = r;
+  }
+  if (rScore - r < 0)
+    throw std::overflow_error("score overflow in reverse gapless extension with qualities");
+  revScore = rScore;
 }
 
 static bool gaplessTwoQualityXdropEnds(BigSeq seq1, const uchar *qual1,

@@ -546,11 +546,11 @@ struct Dispatcher{
   void gaplessExtensionScores(size_t rPos, size_t qPos,
 			      int &fwdScore, int &revScore) const {
     if (z == 0) {
-      gaplessXdropScores(a, b, m, d, rPos, qPos, fwdScore, revScore);
+      gaplessXdropScores(a+rPos, b+qPos, m, d, fwdScore, revScore);
     } else if (z == 1) {
-      gaplessPssmXdropScores(a, p, d, rPos, qPos, fwdScore, revScore);
+      gaplessPssmXdropScores(a+rPos, p+qPos, d, fwdScore, revScore);
     } else {
-      gaplessTwoQualityXdropScores(a, i, b, j, t, d, rPos, qPos,
+      gaplessTwoQualityXdropScores(a+rPos, i+rPos, b+qPos, j+qPos, t, d,
 				   fwdScore, revScore);
     }
   }

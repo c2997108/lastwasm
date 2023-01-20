@@ -19,42 +19,31 @@ namespace cbrc {
 
 using namespace mcf;
 
-static int forwardGaplessPssmXdropScore(BigPtr seq,
-					const ScoreMatrixRow *pssm,
-					int maxScoreDrop) {
-  int score = 0;
-  int s = 0;
-  while (true) {
-    s += (*pssm++)[getNext(seq)];  // overflow risk
-    if (s < score - maxScoreDrop) break;
-    if (s > score) score = s;
-  }
-  if (score - s < 0)
-    throw std::overflow_error("score overflow in forward gapless extension with PSSM");
-  return score;
-}
-
-static int reverseGaplessPssmXdropScore(BigPtr seq,
-					const ScoreMatrixRow *pssm,
-					int maxScoreDrop) {
-  int score = 0;
-  int s = 0;
-  while (true) {
-    s += (*--pssm)[getPrev(seq)];  // overflow risk
-    if (s < score - maxScoreDrop) break;
-    if (s > score) score = s;
-  }
-  if (score - s < 0)
-    throw std::overflow_error("score overflow in reverse gapless extension with PSSM");
-  return score;
-}
-
-static void gaplessPssmXdropScores(BigSeq seq, const ScoreMatrixRow *pssm,
+static void gaplessPssmXdropScores(BigPtr seq, const ScoreMatrixRow *pssm,
 				   int maxScoreDrop,
-				   size_t pos1, size_t pos2,
 				   int &fwdScore, int &revScore) {
-  fwdScore = forwardGaplessPssmXdropScore(seq+pos1, pssm+pos2, maxScoreDrop);
-  revScore = reverseGaplessPssmXdropScore(seq+pos1, pssm+pos2, maxScoreDrop);
+  BigPtr fwd = seq;
+  const ScoreMatrixRow *fmat = pssm;
+
+  int fScore = 0, f = 0;
+  while (true) {
+    f += (*fmat++)[getNext(fwd)];  // overflow risk
+    if (f < fScore - maxScoreDrop) break;
+    if (f > fScore) fScore = f;
+  }
+  if (fScore - f < 0)
+    throw std::overflow_error("score overflow in forward gapless extension with PSSM");
+  fwdScore = fScore;
+
+  int rScore = 0, r = 0;
+  while (true) {
+    r += (*--pssm)[getPrev(seq)];  // overflow risk
+    if (r < rScore - maxScoreDrop) break;
+    if (r > rScore) rScore = r;
+  }
+  if (rScore - r < 0)
+    throw std::overflow_error("score overflow in reverse gapless extension with PSSM");
+  revScore = rScore;
 }
 
 static bool gaplessPssmXdropEnds(BigSeq seq, const ScoreMatrixRow *pssm,
