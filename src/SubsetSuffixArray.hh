@@ -161,7 +161,7 @@ private:
   enum ChildDirection { FORWARD, REVERSE, UNKNOWN };
 
   // This does the same thing as equalRange, but uses a child table:
-  void childRange(indexT &beg, indexT &end, ChildDirection &childDirection,
+  void childRange(size_t &beg, size_t &end, ChildDirection &childDirection,
 		  BigPtr textBase, const uchar *subsetMap, uchar subset) const;
 
   // Return the maximum prefix size covered by the buckets.
@@ -212,14 +212,14 @@ private:
 		   unsigned wordLength, const CyclicSubsetSeed& seed,
 		   size_t maxUnsortedInterval, size_t numOfThreads );
 
-  indexT getChildForward( indexT from ) const{
+  size_t getChildForward(size_t from) const {
     return
       !childTable.empty() ? childTable[ from ] :
       !kiddyTable.empty() ? from + kiddyTable[ from ] :
       !chibiTable.empty() ? from + chibiTable[ from ] : from;
   }
 
-  indexT getChildReverse( indexT from ) const{
+  size_t getChildReverse(size_t from) const {
     return
       !childTable.empty() ? childTable[ from - 1 ] :
       !kiddyTable.empty() ? from - kiddyTable[ from - 1 ] :
