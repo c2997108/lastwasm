@@ -231,6 +231,14 @@ Advanced Options
 
 -D  Read pre-existing lastdb files, and print all the sequences in them.
 
+--bits=N
+    Use this many bits per base for DNA sequences.  The only allowed
+    values are 4 or 8 (the default).  4 reduces the disk use and
+    lastal_'s memory use, but not lastdb's memory use.  It converts
+    letters other than ACGTRY to N.  4 can't be combined with ``-p``,
+    ``-q``, or ``-a``, and isn't currently supported by last-train_,
+    or lastal_ options ``-j`` > 3, ``-J1``, or ``-M``.
+
 -v  Be verbose: write messages about what lastdb is doing.
 
 -V, --version
@@ -277,6 +285,8 @@ This is modified by several options.
 
 * -S2: doubles the size of everything.
 
+* --bits=4: halves the sequence bytes.
+
 Limitations
 -----------
 
@@ -286,6 +296,7 @@ several GB per hour, but if it becomes much slower, try option "-i
 10", which is likely to solve the problem.
 
 .. _lastal: doc/lastal.rst
+.. _last-train: doc/last-train.rst
 .. _RY32:
 .. _MAM8: doc/last-seeds.rst
 .. _tantan: https://gitlab.com/mcfrith/tantan

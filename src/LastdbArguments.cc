@@ -83,6 +83,8 @@ Advanced Options (default settings):\n\
     + stringify(childTableType) + ")\n\
  -x  just count sequences and letters\n\
  -D  print all sequences in lastdb files\n\
+ --bits=N  use this many bits per base for DNA sequence ("
+    + stringify(bitsPerBase) + ")\n\
  -v  be verbose: write messages about what lastdb is doing\n\
  -V, --version  show version information, and exit\n\
 ";
