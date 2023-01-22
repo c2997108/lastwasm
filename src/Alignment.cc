@@ -143,29 +143,43 @@ bool Alignment::isOptimal(BigSeq seq1, const uchar *seq2, int globality,
 			  const ScoreMatrixRow *pssm2,
 			  const TwoQualityScoreMatrix &sm2qual,
 			  const uchar *qual1, const uchar *qual2) const {
+  bool isLocal = !globality;
+  size_t numOfBlocks = blocks.size();
   int maxScore = 0;
   int score = 0;
 
-  for (size_t i = 0; i < blocks.size(); ++i) {
+  for (size_t i = 0; i < numOfBlocks; ++i) {
     if (i > 0) {  // between each pair of aligned blocks:
       score -= gapCost(blocks[i - 1], blocks[i], gapCosts, frameSize);
-      if (!globality && score <= 0) return false;
-      if (score < maxScore - maxDrop) return false;
+      if ((isLocal && score <= 0) || score < maxScore - maxDrop) return false;
     }
 
     size_t x = blocks[i].beg1();
     size_t y = blocks[i].beg2();
-    size_t s = blocks[i].size;
+    size_t blockLength = blocks[i].size;
+    size_t theEnd = blockLength - (i+1 == numOfBlocks);
 
-    for (size_t j = 0; j < s; ++j) {
-      score += sm2qual ? sm2qual(seq1[x+j], seq2[y+j], qual1[x+j], qual2[y+j])
-	:      pssm2   ? pssm2[y+j][seq1[x+j]]
-	:                scoreMatrix[seq1[x+j]][seq2[y+j]];
-
-      if (score > maxScore) maxScore = score;
-      else if (!globality && score <= 0) return false;
-      else if (!globality && j+1 == s && i+1 == blocks.size()) return false;
-      else if (score < maxScore - maxDrop) return false;
+    if (sm2qual) {
+      for (size_t j = 0; j < blockLength; ++j) {
+	score += sm2qual(seq1[x+j], seq2[y+j], qual1[x+j], qual2[y+j]);
+	if (score > maxScore) maxScore = score;
+	else if ((isLocal && (score <= 0 || j == theEnd)) ||
+		 score < maxScore - maxDrop) return false;
+      }
+    } else if (pssm2) {
+      for (size_t j = 0; j < blockLength; ++j) {
+	score += pssm2[y+j][seq1[x+j]];
+	if (score > maxScore) maxScore = score;
+	else if ((isLocal && (score <= 0 || j == theEnd)) ||
+		 score < maxScore - maxDrop) return false;
+      }
+    } else {
+      for (size_t j = 0; j < blockLength; ++j) {
+	score += scoreMatrix[seq1[x+j]][seq2[y+j]];
+	if (score > maxScore) maxScore = score;
+	else if ((isLocal && (score <= 0 || j == theEnd)) ||
+		 score < maxScore - maxDrop) return false;
+      }
     }
   }
 

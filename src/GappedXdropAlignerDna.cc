@@ -239,14 +239,16 @@ bool GappedXdropAligner::getNextChunkDna(size_t &end1,
   end1 = bestSeq1position;
   end2 = bestAntidiagonal - bestSeq1position;
 
+  const size_t *origins = &scoreEndsAndOrigins[1];
+  size_t h, d;
   int x, y, z;
+
   while (1) {
-    size_t h = hori(bestAntidiagonal, bestSeq1position);
-    size_t v = vert(bestAntidiagonal, bestSeq1position);
-    size_t d = diag(bestAntidiagonal, bestSeq1position);
+    h = origins[bestAntidiagonal * 2 + 2] + bestSeq1position - 1;
+    d = origins[bestAntidiagonal * 2] + bestSeq1position - 1;
     x = xTinyScores[d] + scoreRises[bestAntidiagonal];
     y = yTinyScores[h] + delGrowCost;
-    z = zTinyScores[v] + insGrowCost;
+    z = zTinyScores[h + 1] + insGrowCost;
     if (x > y || x > z || bestAntidiagonal == 0) break;
     bestAntidiagonal -= 2;
     bestSeq1position -= 1;
@@ -258,13 +260,12 @@ bool GappedXdropAligner::getNextChunkDna(size_t &end1,
   while (1) {
     bool isDel = (y <= z);
     bestAntidiagonal -= 1;
-    if (isDel) bestSeq1position -= 1;
-    size_t h = hori(bestAntidiagonal, bestSeq1position);
-    size_t v = vert(bestAntidiagonal, bestSeq1position);
-    size_t d = diag(bestAntidiagonal, bestSeq1position);
+    bestSeq1position -= isDel;
+    h = d - isDel;
+    d = origins[bestAntidiagonal * 2] + bestSeq1position - 1;
     x = xTinyScores[d] + scoreRises[bestAntidiagonal];
     y = yTinyScores[h] + delGrowCost;
-    z = zTinyScores[v] + insGrowCost;
+    z = zTinyScores[h + 1] + insGrowCost;
     if (isDel) {
       y -= delOpenCost;
     } else {
