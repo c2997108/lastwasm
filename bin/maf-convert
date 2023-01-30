@@ -200,11 +200,13 @@ def mafInput(opts, lines):
                 print("@PG\tID:lastal\tPN:lastal\tVN:" + fields[3])
     if sLines: yield aLine, sLines, qLines, pLines
 
-def isJoinable(opts, oldMaf, newMaf):
+def isJoinable(opts, isTouchingInQuery, oldMaf, newMaf):
     x = oldMaf[1]
     y = newMaf[1]
     if x[-1][2] == "-":
         x, y = y, x
+    if isTouchingInQuery and x[1][5] < y[1][4]:
+        return False
     return all(i[:4] == j[:4] and i[5] <= j[4] and j[4] - i[5] <= opts.join
                for i, j in zip(x, y))
 
@@ -213,10 +215,10 @@ def fixOrder(mafs):
     if sLines[-1][2] == "-":
         mafs.reverse()
 
-def mafGroupInput(opts, lines):
+def mafGroupInput(opts, isTouchingInQuery, lines):
     x = []
     for i in mafInput(opts, lines):
-        if x and not isJoinable(opts, x[-1], i):
+        if x and not isJoinable(opts, isTouchingInQuery, x[-1], i):
             fixOrder(x)
             yield x
             x = []
@@ -407,7 +409,7 @@ def mafConvertToBed(opts, lines):
         for i in colinearMafInput(opts, lines):
             writeBed(opts, i)
     elif opts.join:
-        for i in mafGroupInput(opts, lines):
+        for i in mafGroupInput(opts, False, lines):
             writeBed(opts, i)
     else:
         for i in mafInput(opts, lines):
@@ -573,7 +575,7 @@ def mafConvertToPsl(opts, lines):
         for i in colinearMafInput(opts, lines):
             writePsl(opts, geneticCode, i)
     elif opts.join:
-        for i in mafGroupInput(opts, lines):
+        for i in mafGroupInput(opts, False, lines):
             writePsl(opts, geneticCode, i)
     else:
         for i in mafInput(opts, lines):
@@ -639,24 +641,19 @@ mapqMissing = "255"
 mapqMaximum = "254"
 mapqMaximumNum = float(mapqMaximum)
 
-def mapqFromProb(probString):
+def mismapProbabilityFromText(probString):
     try:
         p = float(probString)
     except ValueError:
         raise ValueError("bad probability: " + probString)
     if math.isnan(p):
         logging.warning("bad probability: " + probString)
-        return mapqMissing
+        return 2.0
     if p < 0 or p > 1:
         raise ValueError("bad probability: " + probString)
-    if p == 0: return mapqMaximum
-    phred = -10 * math.log(p, 10)
-    if phred >= mapqMaximumNum: return mapqMaximum
-    return str(int(round(phred)))
+    return p
 
-def cigarParts(beg, alignmentColumns, end):
-    if beg: yield str(beg) + "H"
-
+def cigarParts(alignmentColumns):
     # (doesn't handle translated alignments)
     # uses "read-ahead" technique, aiming to be as fast as possible:
     isActive = True
@@ -689,46 +686,65 @@ def cigarParts(beg, alignmentColumns, end):
             else: isActive = False
             yield str(size) + "X"
 
-    if end: yield str(end) + "H"
+def writeSam(readGroup, mafs):
+    seq = qual = cigar = score = evalue = ""
+    mismapProb = 2.0
+    editDistance = 0
+    for maf in mafs:
+        aLine, sLines, qLines, pLines = maf
+        fieldsA, fieldsB = pairOrDie(sLines, "SAM")
+        seqNameA, seqLenA, strandA, letterSizeA, begA, endA, rowA = fieldsA
+        seqNameB, seqLenB, strandB, letterSizeB, begB, endB, rowB = fieldsB
 
-def writeSam(readGroup, maf):
-    aLine, sLines, qLines, pLines = maf
-    fieldsA, fieldsB = pairOrDie(sLines, "SAM")
-    seqNameA, seqLenA, strandA, letterSizeA, begA, endA, rowA = fieldsA
-    seqNameB, seqLenB, strandB, letterSizeB, begB, endB, rowB = fieldsB
+        if letterSizeA > 1 or letterSizeB > 1:
+            raise Exception("this looks like translated DNA - can't convert to SAM format")
 
-    if letterSizeA > 1 or letterSizeB > 1:
-        raise Exception("this looks like translated DNA - can't convert to SAM format")
+        if strandA != "+":
+            raise Exception("for SAM, the 1st strand in each alignment must be +")
 
-    if strandA != "+":
-        raise Exception("for SAM, the 1st strand in each alignment must be +")
+        isSplice = False
+        for i in aLine.split():
+            if i.startswith("score="):
+                score = i[6:]
+            elif i.startswith("E="):
+                evalue = i[2:]
+            elif i.startswith("mismap="):
+                mismapProb = min(mismapProb, mismapProbabilityFromText(i[7:]))
+            elif i.startswith(("don=", "acc=")):
+                isSplice = True
 
-    score = None
-    evalue = None
-    mapq = mapqMissing
-    for i in aLine.split():
-        if i.startswith("score="):
-            v = i[6:]
-            if v.isdigit(): score = "AS:i:" + v  # it must be an integer
-        elif i.startswith("E="):
-            evalue = "EV:Z:" + i[2:]
-        elif i.startswith("mismap="):
-            mapq = mapqFromProb(i[7:])
+        if seq:
+            d = begA - oldEndA
+            cigar += str(d) + "DN"[isSplice]
+            if not isSplice: editDistance += d
+        else:
+            pos = str(begA + 1)  # convert to 1-based coordinate
+            if begB: cigar += str(begB) + "H"
+        oldEndA = endA
 
-    pos = str(begA + 1)  # convert to 1-based coordinate
+        alignmentColumns = list(zip(rowA.upper(), rowB.upper()))
+        cigar += "".join(cigarParts(iter(alignmentColumns)))
+        editDistance += sum(x != y for x, y in alignmentColumns)
+        # no special treatment of ambiguous bases: might be a minor bug
 
-    alignmentColumns = list(zip(rowA.upper(), rowB.upper()))
+        seq += rowB.replace("-", "")
+
+        if qLines:
+            qFields = qLines[-1].split()
+            if qFields[1] == seqNameB:
+                z = zip(rowB, qFields[2])
+                qual += ''.join(j for i, j in z if i != "-")
 
     revBegB = seqLenB - endB
-    cigar = "".join(cigarParts(begB, iter(alignmentColumns), revBegB))
+    if revBegB: cigar += str(revBegB) + "H"
 
-    seq = rowB.replace("-", "")
-
-    qual = "*"
-    if qLines:
-        qFields = qLines[-1].split()
-        if qFields[1] == seqNameB:
-            qual = ''.join(j for i, j in zip(rowB, qFields[2]) if i != "-")
+    if mismapProb > 1:
+        mapq = mapqMissing
+    elif mismapProb <= 0:
+        mapq = mapqMaximum
+    else:
+        mapq = -10 * math.log(mismapProb, 10)
+        mapq = str(int(round(mapq))) if mapq < mapqMaximumNum else mapqMaximum
 
     # It's hard to get all the pair info, so this is very
     # incomplete, but hopefully good enough.
@@ -745,14 +761,12 @@ def writeSam(readGroup, maf):
         if strandB == "+": flag = "0"
         else:              flag = "16"
 
-    editDistance = sum(x != y for x, y in alignmentColumns)
-    # no special treatment of ambiguous bases: might be a minor bug
-    editDistance = "NM:i:" + str(editDistance)
-
+    if len(qual) < len(seq): qual = "*"
     out = [seqNameB, flag, seqNameA, pos, mapq, cigar, "*\t0\t0", seq, qual]
-    out.append(editDistance)
-    if score: out.append(score)
-    if evalue: out.append(evalue)
+    out.append("NM:i:" + str(editDistance))
+    if len(mafs) < 2:
+        if score.isdigit(): out.append("AS:i:" + score)  # must be an integer
+        if evalue: out.append("EV:Z:" + evalue)
     if readGroup: out.append(readGroup)
     print("\t".join(out))
 
@@ -760,8 +774,12 @@ def mafConvertToSam(opts, lines):
     readGroup = ""
     if opts.readgroup:
         readGroup = "RG:Z:" + readGroupId(opts.readgroup.split())
-    for maf in mafInput(opts, lines):
-        writeSam(readGroup, maf)
+    if opts.join:
+        for i in mafGroupInput(opts, True, lines):
+            writeSam(readGroup, i)
+    else:
+        for i in mafInput(opts, lines):
+            writeSam(readGroup, [i])
 
 ##### Routines for converting to BLAST-like format: #####
 
@@ -1092,7 +1110,7 @@ def mafConvertToGff(opts, lines):
         for i in colinearMafInput(opts, lines):
             writeGffGroup(opts, qryNameCounts, i)
     elif opts.join:
-        for i in mafGroupInput(opts, lines):
+        for i in mafGroupInput(opts, False, lines):
             writeGffGroup(opts, qryNameCounts, i)
     else:
         for i in mafInput(opts, lines):

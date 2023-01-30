@@ -47,7 +47,7 @@ Options
        the same sequences and strands, with the parts being in the
        same order in each sequence), are separated by at most N
        letters in each sequence, and are consecutive in the input.
-       This affects bed, gff, and psl formats only.
+       This affects bed, gff, psl, and sam formats only.
 
 -J N, --Join=N
        Join alignments that are co-linear, are separated by at most
