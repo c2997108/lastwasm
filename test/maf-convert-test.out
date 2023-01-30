@@ -8030,6 +8030,36 @@ Query: 852   LysArgAlaGlnIleAlaLysAlaIleLeuSerLysLys 864
 Sbjct: 18550 AAAAGATCCCTAATAGCCAAAGCACTTCTAAGCAAAAAa 18588
              LysArgSerLeuIleAlaLysAlaLeuLeuSerLysLys
 
+Query= DF0000170.5
+         (8257 letters)
+
+>UniRef90_Q98298
+          Length = 230
+
+ Score = 102 bits (307.3), Expect = 8.2e-25
+ Identities = 77/211 (36%), Gaps = 20/211 (9%)
+ Strand = Plus / Plus
+
+            SerSerAspSerCysLeuLeuGlyProAsnValArgArgLeuAspPhePheProHisLeuAlaSerLysValIleProAlaArgGlnAspGlnAspSerLeuPheArgSerLeuLysPheLeuGlyTrpCysPro   GluAspProCysSerTrpCys
+Query: 401  TCTTCTGACtcctgcctcctgggtcctAATGTCCGCCGGCTAGACTTCTTTCCTCATCTCGCAAGCAAGGTTATTCCCGCTAGGCAGGATCAAGATTCCCTATTTAGAAGTCTTAAATTCTTGGGGTGGTGCCCA---GAAGATCCCTGTTCATGGTGC 556
+            :::||||||:::|||||||||||||||:::::::::      |||||||||      ||||||   :::::::::|||:::   :::   :::            |||   |||:::   |||||||||   |||   |||...   ||||||||||||
+Sbjct: 4    PheSerAspProCysLeuLeuGlyProSerAlaCysAsnGluAspPhePheGluGluLeuAlaArgGluIleLeuProThrProGluAlaLysAlaLeuAlaAlaArgLeuLeuArgArgLeuGlyTrpHisProSerGluGlyGlnCysSerTrpCys 56
+
+            ProProGlyPheArgGlnValSerProPheAspGlyTyrPheGluGlyProValProHisHisSerValTrpSerProThrSerGlyGlnPheLysAspArgSerValIlePheMetTrpIleValGluAlaLeuGlyHisPheLeuHisCysSerPro
+Query: 557  CCTCCAGGGTTTAGGCAGGTGTCGCCATTCGATGGCTATTTTGAAGGGCCAGTTCCCCACCATAGTGTATGGTCCCCCACATCAGGACAATTTAAAGACAGGTCTGTAATTTTCATGTGGATAGTAGAAGCCTTAGGGCATTTCCTCCATTGCTCCCCA 715
+            |||      :::      :::      :::         :::   ||||||||||||                           ...:::            :::...|||      |||:::...:::   |||||||||||||||   |||      
+Sbjct: 57   ProGluAlaTyrGluTyrLeuTyrAspLeuGlnPheArgTyrThrGlyProValPro---------------------LeuValArgLysHisProGlySerAlaLeuIleValArgTrpMetLeuAspGlyLeuGlyHisPheLeuPheCys------ 100
+
+            AspArgLeuSerProSerLeuGlyProLeuLysTyrAsnLeuTrpCysMetGlyThrAlaLeuArgAlaValGluLeuPhe     GlnProPheAsnAsnTrpTyrTrpLysGluGluAsnIleValSerTrpAspThrGlyTyrTrpTyrArgLeu
+Query: 716  GATAGACTTTCCCCTTCCTTGGGGCCTCTCAAGTACAATCTGTGGTGCATGGGCACAGCTCTTAGAGCCGTTGAATTGTTT---TTCAACCATTCAATAATTGGTATTGGAAGGAAGAAAATATAGTCAGTTGGGACACAGGATACTGGTACCGCCTT  870
+               |||:::               ||||||   |||:::|||   |||||||||:::|||:::|||:::   |||||||||     :::...   ::::::      |||:::......|||:::|||::::::         ||||||   :::   
+Sbjct: 101  ---ArgProArgValGlnGlyAsnProLeuThrTyrHisLeuSerCysMetGlySerAlaIleArgThrLeuGluLeuPheArg--GluGlnAlaHisSerHisLeuTrpGluGlnGlyAsnLeuValAspCys---------TyrTrpSerCys---  147
+
+            GluArgGlyAlaTyrSerPheAspGlyLysTrpGlyGlnLysAlaArgValGlnGlnLeuPheSerArgProTrpProArgGlyHisProProProProLeuSerLeuLeuSerLeuLeuSerLeuIleGlnArgPheLeuLeuGluGlyGln
+Query: 871  GAGAGAGGGGCTTACTCCTTTGATGGCAAGTGGGGACAGAAGGCTAGAGTACAGCAGCTGTTCTCTCGGCCCTGGCCTAGAGGACATCCACCACCCCCTTTAAGCTTACTAAGCCTCCTGTCGCTAATTCAGAGATTTCTCCTTGAAGGACAG 1023
+                        |||   ::::::|||||||||||||||:::|||   |||:::      :::|||   ||||||||||||   :::   ||||||:::|||   |||      |||   ::::::   :::      ||||||   ||||||
+Sbjct: 148  ---SerSerAspTyrGlyTyrGluGlyLysTrpGlyGlnGlnAlaValValArgGlyAlaLeuSerGlyProTrpproargproasp---proproserleuglnleuglncysleucysAlaIleTrpArgThrCysLeuLeuArgGlyGln 196
+
 0	chrM	93.10	87	6	0	87	1	13914	14000
 1	chrM	85.06	87	13	0	1	87	1544	1630
 2	chrM	71.43	84	24	0	4	87	12301	12384

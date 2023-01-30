@@ -920,7 +920,8 @@ def writeBlast(opts, geneticCode, codon2triplet, maf, oldQueryName):
         j = min(i + lineSize, numOfColumns)
         rem = 0
         if letterSizeA * letterSizeB < 1 and j < numOfColumns:
-            rem = (j - i - aaSeq.count("-", i, j)) % 3
+            rem = ((j - i - aaSeq.count("-", i, j)) % 3 or
+                   (j - i - txSeq.count(" ", i, j)) % 3)
             j -= rem
         bA, lineA, eA, begA = blastLineData(letterSizeA, begA, rowA[i:j])
         bB, lineB, eB, begB = blastLineData(letterSizeB, begB, rowB[i:j])
