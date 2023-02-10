@@ -121,6 +121,9 @@ struct LastalArguments{
   std::string geneticCodeFile;
   int verbosity;
 
+  int gumbelSimSequenceLength;
+  int gumbelSimAlignmentCount;
+
   bool isSplit;
   LastSplitOptions splitOpts;
 

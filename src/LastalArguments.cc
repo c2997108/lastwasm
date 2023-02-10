@@ -20,6 +20,10 @@ static void badopt( char opt, const char* arg ){
   ERR( std::string("bad option value: -") + opt + ' ' + arg );
 }
 
+static void badopt(const char *opt, const char *arg) {
+  ERR(std::string("bad option value: --") + opt  + '=' + arg);
+}
+
 static void parseIntList(const char *in, std::vector<int> &out) {
   std::istringstream s(in);
   out.clear();
@@ -107,6 +111,8 @@ LastalArguments::LastalArguments() :
   gamma(1),
   geneticCodeFile("1"),
   verbosity(0),
+  gumbelSimSequenceLength(200),  // xxx long enough to avoid edge effects ???
+  gumbelSimAlignmentCount(50),  // from Y-K Yu, R Bundschuh, T Hwa, 2002
   isSplit(false){}
 
 void LastalArguments::fromArgs( int argc, char** argv, bool optionsOnly ){
@@ -211,6 +217,8 @@ Split options:\n\
   static struct option lOpts[] = {
     { "help",    no_argument,       0, 'h' },
     { "version", no_argument,       0, 'V' },
+    { "gumbel-len", required_argument, 0, 128 + 'L' },
+    { "gumbel-num", required_argument, 0, 128 + 'N' },
     { "split",   no_argument,       0, 128 + 0 },
     { "splice",  no_argument,       0, 128 + 1 },
     { "split-f", required_argument, 0, 128 + 'f' },
@@ -226,8 +234,8 @@ Split options:\n\
     { 0, 0, 0, 0}
   };
 
-  int c;
-  while ((c = getopt_long(argc, argv, sOpts, lOpts, &c)) != -1) {
+  int c, lOptsIndex;
+  while ((c = getopt_long(argc, argv, sOpts, lOpts, &lOptsIndex)) != -1) {
     switch(c){
     case 'h':
       std::cout << help;
@@ -396,6 +404,15 @@ Split options:\n\
       break;
     case 'Q':
       unstringify( inputFormat, optarg );
+      break;
+
+    case 128 + 'L':
+      unstringify(gumbelSimSequenceLength, optarg);
+      if (gumbelSimSequenceLength <= 0) badopt(lOpts[lOptsIndex].name, optarg);
+      break;
+    case 128 + 'N':
+      unstringify(gumbelSimAlignmentCount, optarg);
+      if (gumbelSimAlignmentCount <= 0) badopt(lOpts[lOptsIndex].name, optarg);
       break;
 
     case 128 + 1:

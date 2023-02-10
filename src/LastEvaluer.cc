@@ -422,10 +422,9 @@ void LastEvaluer::initFullScores(const const_dbl_ptr *substitutionProbs,
 				 const double *letterFreqs1, int alphabetSize1,
 				 const double *letterFreqs2, int alphabetSize2,
 				 const GapCosts &gapCosts, double scale,
+				 int numOfAlignments, int seqLength,
 				 int verbosity, bool isFrameshift) {
-  int numOfAlignments = 50;  // suggested by Y-K Yu, R Bundschuh, T Hwa, 2002
-  int seqLength1 = 200;  // xxx long enough to avoid edge effects ???
-
+  int seqLength1 = seqLength;
   int seqLength2 = seqLength1;
   int seqLength3 = seqLength2;
   if (isFrameshift) {

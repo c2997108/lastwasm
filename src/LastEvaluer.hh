@@ -71,18 +71,9 @@ public:
   void initFullScores(const const_dbl_ptr *substitutionProbs,
 		      const double *letterFreqs1, int alphabetSize1,
 		      const double *letterFreqs2, int alphabetSize2,
-		      const GapCosts &gapCosts, double scale, int verbosity,
+		      const GapCosts &gapCosts, double scale,
+		      int numOfAlignments, int seqLength, int verbosity,
 		      bool isFrameshift = false);
-
-  void initFrameshift(const const_dbl_ptr *substitutionProbs,
-		      const double *proteinLetterFreqs, int numProteinLetters,
-		      const double *tranDnaLetterFreqs, int numTranDnaLetters,
-		      const GapCosts &gapCosts, double scale, int verbosity) {
-    initFullScores(substitutionProbs,
-		   proteinLetterFreqs, numProteinLetters,
-		   tranDnaLetterFreqs, numTranDnaLetters,
-		   gapCosts, scale, verbosity, true);
-  }
 
   void setSearchSpace(double databaseLength,  // number of database letters
 		      double databaseMaxSeqLength,  // length of longest seq

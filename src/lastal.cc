@@ -345,11 +345,15 @@ static void calculateScoreStatistics(const std::string& matrixName,
     gaplessEvaluer.init(0, 0, 0, alph.letters.c_str(), scoreMat, p1, p2, false,
 			0, 0, 0, 0, fsCost, geneticCode, 0, 0);
     if (args.scoreType != 0 && isGapped) {
-      if (args.temperature < 0) return;
+      if (args.temperature < 0 &&
+	  gapCosts.delProbPieces[0].openProb +
+	  gapCosts.insProbPieces[0].openProb > 0) return;
       unsigned alphSize2 = scoreMatrix.isCodonCols() ? 64 : alph.size;
       evaluer.initFullScores(fwdMatrices.ratios, p1, alph.size,
 			     stats.letterProbs2(), alphSize2,
-			     gapCosts, stats.lambda(), args.verbosity,
+			     gapCosts, stats.lambda(),
+			     args.gumbelSimAlignmentCount,
+			     args.gumbelSimSequenceLength, args.verbosity,
 			     gapCosts.isNewFrameshifts());
     } else {
       const mcf::GapCosts::Piece &del = gapCosts.delPieces[0];
