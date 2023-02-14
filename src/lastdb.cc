@@ -109,6 +109,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 #include "version.hh"
     << '\n';
   f << "alphabet=" << alph << '\n';
+  if (args.strand != 1) f << "strand=" << args.strand << '\n';
   f << "numofsequences=" << sequenceCount << '\n';
   f << "numofletters=" << letterTotal << '\n';
   f << "maxsequenceletters=" << maxSeqLen << '\n';

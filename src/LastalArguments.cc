@@ -111,7 +111,7 @@ LastalArguments::LastalArguments() :
   gamma(1),
   geneticCodeFile("1"),
   verbosity(0),
-  gumbelSimSequenceLength(200),  // xxx long enough to avoid edge effects ???
+  gumbelSimSequenceLength(0),
   gumbelSimAlignmentCount(50),  // from Y-K Yu, R Bundschuh, T Hwa, 2002
   isSplit(false){}
 
@@ -217,8 +217,8 @@ Split options:\n\
   static struct option lOpts[] = {
     { "help",    no_argument,       0, 'h' },
     { "version", no_argument,       0, 'V' },
-    { "gumbel-len", required_argument, 0, 128 + 'L' },
-    { "gumbel-num", required_argument, 0, 128 + 'N' },
+    { "gumbel-len", required_argument, 0, 'L' - 'A' },
+    { "gumbel-num", required_argument, 0, 'N' - 'A' },
     { "split",   no_argument,       0, 128 + 0 },
     { "splice",  no_argument,       0, 128 + 1 },
     { "split-f", required_argument, 0, 128 + 'f' },
@@ -406,11 +406,11 @@ Split options:\n\
       unstringify( inputFormat, optarg );
       break;
 
-    case 128 + 'L':
+    case 'L' - 'A':
       unstringify(gumbelSimSequenceLength, optarg);
       if (gumbelSimSequenceLength <= 0) badopt(lOpts[lOptsIndex].name, optarg);
       break;
-    case 128 + 'N':
+    case 'N' - 'A':
       unstringify(gumbelSimAlignmentCount, optarg);
       if (gumbelSimAlignmentCount <= 0) badopt(lOpts[lOptsIndex].name, optarg);
       break;
@@ -616,6 +616,11 @@ void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
 
   if (scoreType == 0 && frameshiftCosts.size() > 1)
     ERR("can't combine option -J0 with new-style frameshifts");
+
+  if (gumbelSimSequenceLength == 0) {
+    gumbelSimSequenceLength = isTranslated() ? 200 : 500;
+    // xxx long enough to avoid edge effects ???
+  }
 
   if (frameshiftCosts.size() == 1 && frameshiftCosts[0] > 0) {
     if (frameshiftCosts[0] < delGrowCosts[0])
