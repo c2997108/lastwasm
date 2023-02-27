@@ -177,6 +177,7 @@ void lastSplit(LastSplitOptions& opts) {
   std::string word, name, key;
   int state = 0;
   int sequenceFormat = 1;  // xxx ???
+  int substitutionMatrixStrand = 1;
   int gapExistenceCost = -1;
   int gapExtensionCost = -1;
   int insExistenceCost = -1;
@@ -231,6 +232,7 @@ void lastSplit(LastSplitOptions& opts) {
 	    if (key == "A") ws >> insExistenceCost;
 	    if (key == "B") ws >> insExtensionCost;
 	    if (key == "e") ws >> lastalScoreThreshold;
+	    if (key == "S") ws >> substitutionMatrixStrand;
 	    if (key == "t") ws >> scale;
 	    if (key == "Q") ws >> sequenceFormat;
 	    if (key == "letters") ws >> genomeSize;
@@ -253,6 +255,7 @@ void lastSplit(LastSplitOptions& opts) {
 	  }
 	  setLastSplitParams(params, opts,
 			     scoreMatrix, rowNames.c_str(), colNames.c_str(),
+			     substitutionMatrixStrand,
 			     gapExistenceCost, gapExtensionCost,
 			     insExistenceCost, insExtensionCost,
 			     scale, genomeSize, sequenceFormat);

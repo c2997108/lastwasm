@@ -303,15 +303,6 @@ Details
   You can combine both sources of error (roughly) by taking the
   maximum of the two error probabilities for each base.
 
-The following points matter only if you are doing something unusual
-(e.g. bisulfite alignment):
-
-* If the header has more than one score matrix, last-split will use
-  the first one.
-
-* It assumes this score matrix applies to all alignments, when the
-  alignments are oriented to use the forward strand of the query.
-
 last-split5
 -----------
 

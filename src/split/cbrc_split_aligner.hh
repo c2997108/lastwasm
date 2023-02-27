@@ -46,7 +46,7 @@ struct SplitAlignerParams {
 		       double meanLogDistIn, double sdevLogDistIn);
 
   void setScoreMat(const std::vector< std::vector<int> > &sm,
-		   const char *rowNames, const char *colNames);
+		   const char *rowNames, const char *colNames, bool isQrySeq);
 
   void readGenome(const std::string &baseName);
 
@@ -57,7 +57,7 @@ struct SplitAlignerParams {
   void print() const;
 
   static const int numQualCodes = 64;
-  static int score_mat[64][64][numQualCodes];
+  static int substitutionMatrix[2][64][64][numQualCodes];
   int maxMatchScore;
   int qualityOffset;
   int delOpenScore;

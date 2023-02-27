@@ -143,7 +143,7 @@ void mergeInto(unsigned* beg1,
   }
 }
 
-int SplitAlignerParams::score_mat[64][64][numQualCodes];
+int SplitAlignerParams::substitutionMatrix[2][64][64][numQualCodes];
 
 // The score for a cis-splice with the given distance (i.e. intron length)
 int SplitAlignerParams::calcSpliceScore(double dist) const {
@@ -778,6 +778,7 @@ void SplitAligner::calcBaseScores(const SplitAlignerParams &params,
 
   const UnsplitAlignment& a = alns[i];
   const size_t origin = matrixRowOrigins[i];
+  const bool isRev = !a.isForwardStrand();
 
   int *matBeg = &Smat[(origin + dpBeg(i)) * 2];
   int *alnBeg = &Smat[(origin + a.qstart) * 2];
@@ -815,7 +816,7 @@ void SplitAligner::calcBaseScores(const SplitAlignerParams &params,
       assert(q >= 0);
       if (q >= params.numQualCodes) q = params.numQualCodes - 1;
       *matBeg++ = delScore;
-      *matBeg++ = params.score_mat[x % 64][y % 64][q];
+      *matBeg++ = params.substitutionMatrix[isRev][x % 64][y % 64][q];
       delScore = 0;
       insCompensationScore = 0;
     }
@@ -1446,9 +1447,16 @@ static int matrixLookup(const std::vector< std::vector<int> >& matrix,
   return (r && c) ? matrix.at(r - rowNames).at(c - colNames) : min(matrix);
 }
 
+static int complementedMatrixIndex(int i) {
+  static const char fwd[] = "ACGTRYKMBDHVacgtrykmbdhv";
+  static const char rev[] = "TGCAYRMKVHDBtgcayrmkvhdb";
+  const char *p = strchr(fwd, i + 64);
+  return p ? rev[p - fwd] - 64 : i;
+}
+
 void SplitAlignerParams::setScoreMat(const std::vector< std::vector<int> > &sm,
 				     const char *rowNames,
-				     const char *colNames) {
+				     const char *colNames, bool isQrySeq) {
   const std::string bases = "ACGT";
 
   // Reverse-engineer the abundances of ACGT from the score matrix:
@@ -1462,6 +1470,7 @@ void SplitAlignerParams::setScoreMat(const std::vector< std::vector<int> > &sm,
 
   mcf::SubstitutionMatrixStats stats;
   stats.calcFromScale(&bmat[0], blen, scale);
+  const double *p2 = stats.letterProbs2();
 
   for (int i = 64; i < 128; ++i) {
     char x = std::toupper(i);
@@ -1471,13 +1480,19 @@ void SplitAlignerParams::setScoreMat(const std::vector< std::vector<int> > &sm,
       for (int q = 0; q < numQualCodes; ++q) {
 	std::string::size_type xc = bases.find(x);
 	std::string::size_type yc = bases.find(y);
-	if (xc == std::string::npos || yc == std::string::npos) {
-	  score_mat[i % 64][j % 64][q] = score;
-	} else {
-	  double p = stats.letterProbs2()[yc];
-	  score_mat[i % 64][j % 64][q] = generalizedScore(score, scale, q, p);
-	}
+	substitutionMatrix[0][i % 64][j % 64][q] =
+	  (xc == std::string::npos || yc == std::string::npos) ?
+	  score : generalizedScore(score, scale, q, p2[yc]);
       }
+    }
+  }
+
+  for (int i = 0; i < 64; ++i) {
+    for (int j = 0; j < 64; ++j) {
+      int x = isQrySeq ? i : complementedMatrixIndex(i);
+      int y = isQrySeq ? j : complementedMatrixIndex(j);
+      memcpy(substitutionMatrix[1][i][j], substitutionMatrix[0][x][y],
+	     sizeof substitutionMatrix[0][0][0]);
     }
   }
 

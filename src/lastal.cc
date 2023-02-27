@@ -1591,6 +1591,7 @@ void lastal( int argc, char** argv ){
     setLastSplitParams(splitParams, args.splitOpts, scoreMatrix.cells,
 		       scoreMatrix.rowSymbols.c_str(),
 		       scoreMatrix.colSymbols.c_str(),
+		       args.isQueryStrandMatrix,
 		       args.delOpenCosts[0], args.delGrowCosts[0],
 		       args.insOpenCosts[0], args.insGrowCosts[0],
 		       args.temperature, refLetters, args.inputFormat);

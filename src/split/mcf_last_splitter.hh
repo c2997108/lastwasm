@@ -15,6 +15,7 @@ void setLastSplitParams(cbrc::SplitAlignerParams &params,
 			const LastSplitOptions &opts,
 			const std::vector< std::vector<int> > &scoreMatrix,
 			const char *rowNames, const char *colNames,
+			int scoreMatrixStrand,
 			int delOpenCost, int delGrowCost,
 			int insOpenCost, int insGrowCost,
 			double scale, double genomeSize, int sequenceFormat);
