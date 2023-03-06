@@ -6,7 +6,6 @@
 
 #include "GappedXdropAligner.hh"
 #include "mcf_gap_costs.hh"
-#include "SegmentPair.hh"
 #include "OneQualityScoreMatrix.hh"
 
 #include <assert.h>
@@ -68,17 +67,21 @@ namespace cbrc{
       return 0;
     }
 
-    void traceback(std::vector<SegmentPair> &chunks,
-		   int outputType, double gamma) const {
-      if (outputType==5) traceback_centroid(chunks, gamma);
-      if (outputType==6) traceback_ama(chunks, gamma);
+    // Get the next gapless chunk of the alignment, in far-to-near
+    // order, or return false if there isn't one
+    bool traceback(size_t &beg1, size_t &beg2, size_t &length,
+		   int outputType, double gamma) {
+      return (outputType < 6) ? traceback_centroid(beg1, beg2, length, gamma)
+	:                       traceback_ama(beg1, beg2, length, gamma);
     }
 
     double dp_centroid( double gamma );
-    void traceback_centroid( std::vector< SegmentPair >& chunks, double gamma ) const;
+    bool traceback_centroid(size_t &beg1, size_t &beg2, size_t &length,
+			    double gamma);
 
     double dp_ama( double gamma );
-    void traceback_ama( std::vector< SegmentPair >& chunks, double gamma ) const;
+    bool traceback_ama(size_t &beg1, size_t &beg2, size_t &length,
+		       double gamma);
 
     void getMatchAmbiguities(std::vector<char>& ambiguityCodes,
 			     size_t seq1end, size_t seq2end,

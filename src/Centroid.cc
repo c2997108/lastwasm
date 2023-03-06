@@ -336,33 +336,34 @@ namespace cbrc{
     return bestScore;
   }
 
-  void Centroid::traceback_centroid( std::vector< SegmentPair >& chunks,
-				     double gamma ) const{
-    //std::cout << "[c] bestAntiDiagonal=" << bestAntiDiagonal << ": bestPos1=" << bestPos1 << std::endl;
+  bool Centroid::traceback_centroid(size_t &beg1, size_t &beg2, size_t &length,
+				    double gamma) {
+    size_t oldPos1 = bestPos1;
 
-    size_t k = bestAntiDiagonal;
-    size_t i = bestPos1;
-    size_t oldPos1 = i;
-
-    while( k > 0 ){
-      const size_t h = xa.hori( k, i );
-      const size_t v = xa.vert( k, i );
-      const size_t d = xa.diag( k, i );
+    while (bestAntiDiagonal > 0) {
+      const size_t h = xa.hori(bestAntiDiagonal, bestPos1);
+      const size_t v = xa.vert(bestAntiDiagonal, bestPos1);
+      const size_t d = xa.diag(bestAntiDiagonal, bestPos1);
       const double matchProb = fM[d] * bM[d];
       const int m = maxIndex( X[d] + (gamma + 1) * matchProb - 1, X[h], X[v] );
       if( m == 0 ){
-	k -= 2;
-	i -= 1;
+	bestAntiDiagonal -= 2;
+	bestPos1 -= 1;
       }
-      if( (m > 0 && oldPos1 != i) || k == 0 ){
-	chunks.push_back( SegmentPair( i, k - i, oldPos1 - i ) );
+      if ((m > 0 && oldPos1 != bestPos1) || bestAntiDiagonal == 0) {
+	beg1 = bestPos1;
+	beg2 = bestAntiDiagonal - bestPos1;
+	length = oldPos1 - bestPos1;
+	return true;
       }
       if( m > 0 ){
-	k -= 1;
-	i -= (m == 1);
-	oldPos1 = i;
+	bestAntiDiagonal -= 1;
+	bestPos1 -= (m == 1);
+	oldPos1 = bestPos1;
       }
     }
+
+    return false;
   }
 
   double Centroid::dp_ama( double gamma ){
@@ -420,41 +421,42 @@ namespace cbrc{
     return bestScore;
   }
 
-  void Centroid::traceback_ama( std::vector< SegmentPair >& chunks,
-			    double gamma ) const{
-    //std::cout << "[c] bestAntiDiagonal=" << bestAntiDiagonal << ": bestPos1=" << bestPos1 << std::endl;
+  bool Centroid::traceback_ama(size_t &beg1, size_t &beg2, size_t &length,
+			       double gamma) {
+    size_t oldPos1 = bestPos1;
 
-    size_t k = bestAntiDiagonal;
-    size_t i = bestPos1;
-    size_t oldPos1 = i;
-
-    while( k > 0 ){
-      const size_t j = k - i;
-      const size_t h = xa.hori( k, i );
-      const size_t v = xa.vert( k, i );
-      const size_t d = xa.diag( k, i );
+    while (bestAntiDiagonal > 0) {
+      const size_t bestPos2 = bestAntiDiagonal - bestPos1;
+      const size_t h = xa.hori(bestAntiDiagonal, bestPos1);
+      const size_t v = xa.vert(bestAntiDiagonal, bestPos1);
+      const size_t d = xa.diag(bestAntiDiagonal, bestPos1);
       const double matchProb = fM[d] * bM[d];
-      const double thisD = mD[i];
-      const double thisI = mI[j];
-      const double thisXD = mX1[i] - thisD;
-      const double thisXI = mX2[j] - thisI;
+      const double thisD = mD[bestPos1];
+      const double thisI = mI[bestPos2];
+      const double thisXD = mX1[bestPos1] - thisD;
+      const double thisXI = mX2[bestPos2] - thisI;
       const double s = 2 * gamma * matchProb - (thisXD + thisXI);
       const double t = gamma * thisI - thisXI;
       const double u = gamma * thisD - thisXD;
       const int m = maxIndex( X[d] + s, X[h] + u, X[v] + t );
       if( m == 0 ){
-	k -= 2;
-	i -= 1;
+	bestAntiDiagonal -= 2;
+	bestPos1 -= 1;
       }
-      if( (m > 0 && oldPos1 != i) || k == 0 ){
-	chunks.push_back( SegmentPair( i, k - i, oldPos1 - i ) );
+      if ((m > 0 && oldPos1 != bestPos1) || bestAntiDiagonal == 0) {
+	beg1 = bestPos1;
+	beg2 = bestAntiDiagonal - bestPos1;
+	length = oldPos1 - bestPos1;
+	return true;
       }
       if( m > 0 ){
-	k -= 1;
-	i -= (m == 1);
-	oldPos1 = i;
+	bestAntiDiagonal -= 1;
+	bestPos1 -= (m == 1);
+	oldPos1 = bestPos1;
       }
     }
+
+    return false;
   }
 
   void Centroid::getMatchAmbiguities(std::vector<char>& ambiguityCodes,

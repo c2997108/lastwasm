@@ -420,7 +420,10 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     centroid.backward(isForward, probMat, gap, globality);
     if (outputType > 4 && outputType < 7) {  // gamma-centroid / LAMA alignment
       centroid.dp(outputType, gamma);
-      centroid.traceback(chunks, outputType, gamma);
+      size_t beg1, beg2, length;
+      while (centroid.traceback(beg1, beg2, length, outputType, gamma)) {
+	chunks.push_back(SegmentPair(beg1, beg2, length));
+      }
     }
     getColumnCodes(centroid, columnCodes, chunks, isForward);
     if (outputType == 7) {
