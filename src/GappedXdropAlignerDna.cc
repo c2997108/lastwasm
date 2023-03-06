@@ -243,16 +243,15 @@ bool GappedXdropAligner::getNextChunkDna(size_t &end1,
   size_t h, d;
   int x, y, z;
 
-  while (1) {
+  do {
+    bestAntidiagonal -= 2;
+    bestSeq1position -= 1;
     h = origins[bestAntidiagonal * 2 + 2] + bestSeq1position - 1;
     d = origins[bestAntidiagonal * 2] + bestSeq1position - 1;
     x = xTinyScores[d] + scoreRises[bestAntidiagonal];
     y = yTinyScores[h] + delGrowCost;
     z = zTinyScores[h + 1] + insGrowCost;
-    if (x > y || x > z || bestAntidiagonal == 0) break;
-    bestAntidiagonal -= 2;
-    bestSeq1position -= 1;
-  }
+  } while (x <= y && x <= z && bestAntidiagonal > 0);
 
   length = end1 - bestSeq1position;
   if (bestAntidiagonal == 0) return true;
