@@ -24,6 +24,8 @@ static bool less(const cbrc::UnsplitAlignment& a,
   if (qalignCmp != 0        ) return qalignCmp < 0;
   int ralignCmp = strcmp(a.ralign, b.ralign);
   if (ralignCmp != 0        ) return ralignCmp < 0;
+  int rnameCmp = strcmp(a.rname, b.rname);
+  if (rnameCmp  != 0        ) return rnameCmp  < 0;
   return a.linesBeg < b.linesBeg;  // stabilizes the sort
 }
 
