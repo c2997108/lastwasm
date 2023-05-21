@@ -175,6 +175,7 @@ def mafInput(opts, lines):
             sLines.append(fields)
         elif line[0] == "a":
             aLine = line
+            opts.headerMode &= 1
         elif line[0] == "q":
             qLines.append(line)
         elif line[0] == "p":
