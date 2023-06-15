@@ -3,25 +3,41 @@ last-train
 
 last-train finds the rates (probabilities) of insertion, deletion, and
 substitutions between two sets of sequences.  It thereby finds
-suitable substitution and gap scores for aligning them.
-
-It (probabilistically) aligns the sequences using some initial score
-parameters, then estimates better score parameters based on the
-alignments, and repeats this procedure until the parameters stop
-changing.
-
-The usage is like this::
+suitable substitution and gap scores for aligning them.  You can use
+it like this::
 
   lastdb mydb reference.fasta
-  last-train mydb queries.fasta
-
-last-train prints a summary of each alignment step, followed by the
-final score parameters, in a format that can be read by `lastal's -p
-option <doc/lastal.rst>`_.
+  last-train mydb queries.fasta > my.train
 
 last-train can read .gz files, or from pipes::
 
-  bzcat queries.fasta.bz2 | last-train mydb
+  bzcat queries.fasta.bz2 | last-train mydb > my.train
+
+How it works
+------------
+
+1. For sake of speed, last-train just uses some pseudo-random chunks
+   of ``queries.fasta``.
+
+2. It starts with an initial guess for substitution and gap
+   parameters.
+
+3. Using these parameters, it finds similar segments between the
+   chunks and ``reference.fasta``.
+
+   If one part of the chunks matches several parts of
+   ``reference.fasta``, only the best matches are kept.
+
+4. It gets substitution and gap parameters from these similar
+   segments.
+
+5. It uses these parameters to find similar segments more accurately,
+   then gets parameters again, and repeats until the result stops
+   changing.
+
+last-train prints a summary of each iteration, followed by the final
+score parameters in a format that can be read by `lastal's -p option
+<doc/lastal.rst>`_.
 
 Options
 -------
@@ -44,9 +60,10 @@ Training options
 --gapsym
        Force the insertion costs to equal the deletion costs.
 --pid=PID
-       Ignore alignments with > PID% identity (matches / [matches +
-       mismatches]).  This aims to optimize the parameters for
-       low-similarity alignments (similarly to the BLOSUM matrices).
+       Ignore similar segments with > PID% identity (matches /
+       [matches + mismatches]).  This aims to optimize the parameters
+       for low-similarity alignments (similarly to the BLOSUM
+       matrices).
 --postmask=NUMBER
        By default, last-train ignores alignments of mostly-lowercase
        sequence (by using `last-postmask <doc/last-postmask.rst>`_).
@@ -185,6 +202,7 @@ Bugs
 
 * last-train can fail for various reasons, e.g. if the sequences are
   too dissimilar.  If it fails to find any alignments, you could try
-  reducing the alignment significance_ threshold with option ``-D``.
+  increasing the sample number, or reducing the alignment
+  significance_ threshold with option ``-D``.
 
 .. _significance: doc/last-evalues.rst

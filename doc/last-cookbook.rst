@@ -313,6 +313,11 @@ use, add lastdb seeding_ option ``-uMAM4`` or or ``-uMAM8``.  To
 increase them even more, add lastal_ option ``-m100`` (or as high as
 you can bear).
 
+Aligning distantly-related genomes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See https://github.com/mcfrith/last-genome-alignments
+
 Large reference sequences
 -------------------------
 

@@ -854,9 +854,15 @@ def doTraining(opts, args):
     ss = scoresAndScaleFunc(outerScale, matParams, delRatios, insRatios)
     matScores, delCosts, insCosts, scale, rowFreqs, colFreqs = ss
     if not opts.codon:
+        rowSum = sum(rowFreqs)
+        colSum = sum(colFreqs)
         pid = sum(math.exp(matScores[i][i] / scale) * rowFreqs[i] * colFreqs[i]
-                  for i in range(len(matScores))) / sum(colFreqs)
+                  for i in range(len(matScores))) / colSum
+        rowProbs = [i / rowSum for i in rowFreqs]
+        colProbs = [i / colSum for i in colFreqs]
         print("# substitution percent identity: {0:.6}".format(100 * pid))
+        print("# ref letter %:", *(format(100 * i, "#.3") for i in rowProbs))
+        print("# qry letter %:", *(format(100 * i, "#.3") for i in colProbs))
     if opts.X: print("#last -X", opts.X)
     if opts.R: print("#last -R", opts.R)
     if opts.Q: print("#last -Q", opts.Q)

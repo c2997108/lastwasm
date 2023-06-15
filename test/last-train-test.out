@@ -391,6 +391,8 @@ TEST last-train -m1 /tmp/last-train-test < ../examples/mouseMito.fa
 # T   -112    -68   -215     89
 
 # substitution percent identity: 72.6161
+# ref letter %: 28.4 30.3 13.4 27.9
+# qry letter %: 30.8 25.2 12.5 31.5
 #last -t4.4363
 #last -a 26
 #last -A 24
@@ -840,6 +842,8 @@ TEST last-train -m1 -C2 --revsym /tmp/last-train-test ../examples/mouseMito.fa
 # T   -111    -77   -126     82
 
 # substitution percent identity: 71.8801
+# ref letter %: 29.0 21.0 21.0 29.0
+# qry letter %: 33.1 16.9 16.9 33.1
 #last -t4.6475
 #last -a 26
 #last -A 23
@@ -1246,6 +1250,8 @@ TEST last-train -m1 -k16 --matsym --gapsym /tmp/last-train-test ../examples/mous
 # T   -111    -44   -186     89
 
 # substitution percent identity: 73.3262
+# ref letter %: 30.6 27.0 13.0 29.4
+# qry letter %: 30.6 27.0 13.0 29.4
 #last -t4.41768
 #last -a 26
 #last -A 26
@@ -1738,6 +1744,8 @@ TEST last-train -Q1 /tmp/last-train-test bs100.fastq
 # T   -497   -228   -437     61
 
 # substitution percent identity: 76.2866
+# ref letter %: 31.0 23.6 19.4 26.0
+# qry letter %: 31.0 0.0154 19.4 49.5
 #last -Q 1
 #last -t4.28179
 #last -a 39
