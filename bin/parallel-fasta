@@ -1,3 +1,3 @@
 #! /bin/sh
 
-exec parallel --round --recstart '>' "$@"
+exec parallel --pipe --round --recstart '>' "$@"
