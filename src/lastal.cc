@@ -1467,7 +1467,8 @@ void writeHeader(countT numOfRefSeqs, countT refLetters, std::ostream &out) {
       out << "# Fields: query id, subject id, % identity, alignment length, "
 	  << "mismatches, gap opens, q. start, q. end, s. start, s. end";
       if( evaluer.isGood() ) out << ", evalue, bit score";
-      if( args.outputFormat == 'B' ) out << ", query length, subject length";
+      if( args.outputFormat == 'B' )
+	out << ", query length, subject length, raw score";
       out << '\n';
     }
 

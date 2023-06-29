@@ -3581,7 +3581,7 @@ TEST lastal -fBlastTab+ -pBL62 -b1 -F15 -D1e3 /tmp/last-test galGal3-M-32.fa
 # X -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -4
 # * -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4  1
 #
-# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score, query length, subject length
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score, query length, subject length, raw score
 chrM	Q2LCP8	24.22	322	211	8	5259	6128	111	431	2.6e-19	84.9	16775	491	179
 chrM	Q2LCP8	27.27	88	60	2	11753	12007	102	188	0.0097	30.5	16775	491	59
 chrM	Q2LCP8	32.00	50	30	2	13893	14033	171	219	0.034	28.7	16775	491	55
