@@ -861,8 +861,8 @@ def doTraining(opts, args):
         rowProbs = [i / rowSum for i in rowFreqs]
         colProbs = [i / colSum for i in colFreqs]
         print("# substitution percent identity: {0:.6}".format(100 * pid))
-        print("# ref letter %:", *(format(100 * i, "#.3") for i in rowProbs))
-        print("# qry letter %:", *(format(100 * i, "#.3") for i in colProbs))
+        print("# ref letter %:", *("%#.3g" % (100 * i) for i in rowProbs))
+        print("# qry letter %:", *("%#.3g" % (100 * i) for i in colProbs))
     if opts.X: print("#last -X", opts.X)
     if opts.R: print("#last -R", opts.R)
     if opts.Q: print("#last -Q", opts.Q)
