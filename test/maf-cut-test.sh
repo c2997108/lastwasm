@@ -11,4 +11,8 @@ PATH=../bin:$PATH
 
     awk '(NR-1) % 4 < 2' bs100.fastq | tr '@' '>' |
 	maf-cut chrM:150-200 bs100.maf -
+
+    maf-cut chrUn_KI270748v1:2579-2609 frameshift-new.maf
+
+    maf-cut UN-L1MA6_pol#LINE/L1:884-892 frameshift-new.maf
 } | diff -u maf-cut-test.out -

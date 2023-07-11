@@ -38,14 +38,15 @@ def alignmentRange(cutBeg, cutEnd, sLineFields):
     beg = int(sLineFields[2])
     if beg >= cutEnd:
         return 0, 0
-    sequenceWithGaps = sLineFields[6]
-    span = len(sequenceWithGaps) - sequenceWithGaps.count("-")
+    span = int(sLineFields[3])
     end = beg + span
     if end <= cutBeg:
         return 0, 0
-    seqBeg = max(cutBeg - beg, 0)
+    sequenceWithGaps = sLineFields[6]
+    monomerLen = (len(sequenceWithGaps) - sequenceWithGaps.count("-")) // span
+    seqBeg = max(cutBeg - beg, 0) * monomerLen
     alnBeg = alnBegFromSeqBeg(sequenceWithGaps, seqBeg)
-    seqEnd = min(cutEnd - beg, span)
+    seqEnd = min(cutEnd - beg, span) * monomerLen
     alnEnd = alnEndFromSeqEnd(sequenceWithGaps, seqEnd)
     return alnBeg, alnEnd
 
@@ -57,6 +58,17 @@ def findTheSpecifiedSequence(seqName, mafLines):
                 return fields
     return None
 
+def sLineCutData(fields, alnBeg, alnEnd):
+    span = int(fields[3])
+    seq = fields[6]
+    n = len(seq)
+    begSpan = alnBeg - seq.count("-", 0, alnBeg)
+    endSpan = n - alnEnd - seq.count("-", alnEnd, n)
+    mul = (n - seq.count("-")) // span
+    b = begSpan // mul
+    e = endSpan // mul
+    return int(fields[2]) + b, span - b - e, begSpan % mul, endSpan % mul
+
 def addMafData(dataPerSeq, mafLines, alnBeg, alnEnd):
     for line in mafLines:
         if line[0] == "s":
@@ -64,9 +76,10 @@ def addMafData(dataPerSeq, mafLines, alnBeg, alnEnd):
             seqName = fields[1]  # xxx omit theSpecifiedSequence ?
             strand = fields[4]
             seqLen = int(fields[5])
-            oldSeq = fields[6]
-            beg = int(fields[2]) + alnBeg - oldSeq.count("-", 0, alnBeg)
-            end = beg + alnEnd - alnBeg - oldSeq.count("-", alnBeg, alnEnd)
+            beg, span, begRem, endRem = sLineCutData(fields, alnBeg, alnEnd)
+            alnBeg -= begRem
+            alnEnd += endRem
+            end = beg + span
             if strand == "-":
                 beg, end = seqLen - end, seqLen - beg
             seqData = seqLen, beg, end
@@ -76,10 +89,10 @@ def cutMafRecords(mafLines, alnBeg, alnEnd):
     for line in mafLines:
         fields = line.split()
         if line[0] == "s":
-            oldSeq = fields[6]
-            newSeq = oldSeq[alnBeg:alnEnd]
-            beg = int(fields[2]) + alnBeg - oldSeq.count("-", 0, alnBeg)
-            span = len(newSeq) - newSeq.count("-")
+            beg, span, begRem, endRem = sLineCutData(fields, alnBeg, alnEnd)
+            alnBeg -= begRem
+            alnEnd += endRem
+            newSeq = fields[6][alnBeg:alnEnd]
             yield fields[:2] + [str(beg), str(span)] + fields[4:6] + [newSeq]
         elif line[0] == "q":
             yield fields[:2] + [fields[2][alnBeg:alnEnd]]
