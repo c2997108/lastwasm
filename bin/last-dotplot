@@ -393,11 +393,19 @@ def allSortedRanges(opts, alignments, alignmentsB,
     t2 = mySortedRanges(seqRangesB2, oB2, 1, alignmentsB, s1)
     return s1 + t1, s2 + t2
 
+def myTextsize(textDraw, font, text):
+    try:
+        out = textDraw.textsize(text, font=font)
+    except AttributeError:
+        a, b, c, d = textDraw.textbbox((0, 0), text, font=font)
+        out = c, d
+    return out
+
 def sizesPerText(texts, font, textDraw):
     sizes = 0, 0
     for t in texts:
         if textDraw is not None:
-            sizes = textDraw.textsize(t, font=font)
+            sizes = myTextsize(textDraw, font, t)
         yield t, sizes
 
 def prettyNum(n):
@@ -432,7 +440,7 @@ def rangeLabels(seqRanges, labelOpt, font, textDraw, textRot):
     for r in seqRanges:
         text = labelText(r, labelOpt)
         if textDraw is not None:
-            x, y = textDraw.textsize(text, font=font)
+            x, y = myTextsize(textDraw, font, text)
             if textRot:
                 x, y = y, x
         yield text, x, y, r[3]
