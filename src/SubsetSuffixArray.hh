@@ -83,7 +83,7 @@ public:
   typedef unsigned indexT;
 #endif
 
-  struct Range {PosPart *beg; PosPart *end; indexT depth;};
+  struct Range {PosPart *beg; PosPart *end; size_t depth;};
 
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
@@ -190,22 +190,22 @@ private:
   void sort2( const uchar* text, const CyclicSubsetSeed& seed,
 	      PosPart *beg, const uchar* subsetMap );
 
-  void radixSort1( std::vector<Range>& rangeStack,
-		   const uchar* text, const uchar* subsetMap,
-		   PosPart *beg, PosPart *end, indexT depth );
-  void radixSort2( std::vector<Range>& rangeStack,
-		   const uchar* text, const uchar* subsetMap,
-		   PosPart *beg, PosPart *end, indexT depth );
-  void radixSort3( std::vector<Range>& rangeStack,
-		   const uchar* text, const uchar* subsetMap,
-		   PosPart *beg, PosPart *end, indexT depth );
-  void radixSort4( std::vector<Range>& rangeStack,
-		   const uchar* text, const uchar* subsetMap,
-		   PosPart *beg, PosPart *end, indexT depth );
-  void radixSortN( std::vector<Range>& rangeStack,
-		   const uchar* text, const uchar* subsetMap,
-		   PosPart *beg, PosPart *end, indexT depth,
-		   unsigned subsetCount, indexT* bucketSize );
+  void radixSort1(std::vector<Range> &rangeStack,
+		  const uchar *text, const uchar *subsetMap,
+		  PosPart *beg, PosPart *end, size_t depth);
+  void radixSort2(std::vector<Range> &rangeStack,
+		  const uchar *text, const uchar *subsetMap,
+		  PosPart *beg, PosPart *end, size_t depth);
+  void radixSort3(std::vector<Range> &rangeStack,
+		  const uchar *text, const uchar *subsetMap,
+		  PosPart *beg, PosPart *end, size_t depth);
+  void radixSort4(std::vector<Range> &rangeStack,
+		  const uchar *text, const uchar *subsetMap,
+		  PosPart *beg, PosPart *end, size_t depth);
+  void radixSortN(std::vector<Range> &rangeStack,
+		  const uchar *text, const uchar *subsetMap,
+		  PosPart *beg, PosPart *end, size_t depth,
+		  unsigned subsetCount, indexT *bucketSize);
 
   void sortRanges( std::vector<Range>* stacks, indexT* bucketSizes,
 		   const uchar* text,

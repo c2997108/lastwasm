@@ -27,7 +27,7 @@ namespace{
 }
 
 static void pushRange(std::vector<Range> &v,
-		      PosPart *beg, PosPart *end, indexT depth) {
+		      PosPart *beg, PosPart *end, size_t depth) {
   if (end - beg > posParts) {
     Range r = {beg, end, depth};
     v.push_back(r);
@@ -77,9 +77,9 @@ void SubsetSuffixArray::sort2(const uchar* text, const CyclicSubsetSeed &seed,
 
 // Specialized sort for 1 symbol + 1 delimiter.
 // E.g. wildcard positions in spaced seeds.
-void SubsetSuffixArray::radixSort1( std::vector<Range>& rangeStack,
-				    const uchar* text, const uchar* subsetMap,
-				    PosPart *beg, PosPart *end, indexT depth ){
+void SubsetSuffixArray::radixSort1(std::vector<Range> &rangeStack,
+				   const uchar *text, const uchar *subsetMap,
+				   PosPart *beg, PosPart *end, size_t depth) {
   PosPart *end0 = beg;  // end of '0's
   PosPart *begN = end;  // beginning of delimiters
 
@@ -109,9 +109,9 @@ void SubsetSuffixArray::radixSort1( std::vector<Range>& rangeStack,
 
 // Specialized sort for 2 symbols + 1 delimiter.
 // E.g. transition-constrained positions in subset seeds.
-void SubsetSuffixArray::radixSort2( std::vector<Range>& rangeStack,
-				    const uchar* text, const uchar* subsetMap,
-				    PosPart *beg, PosPart *end, indexT depth ){
+void SubsetSuffixArray::radixSort2(std::vector<Range> &rangeStack,
+				   const uchar *text, const uchar *subsetMap,
+				   PosPart *beg, PosPart *end, size_t depth) {
   PosPart *end0 = beg;  // end of '0's
   PosPart *end1 = beg;  // end of '1's
   PosPart *begN = end;  // beginning of delimiters
@@ -151,9 +151,9 @@ void SubsetSuffixArray::radixSort2( std::vector<Range>& rangeStack,
 
 // Specialized sort for 3 symbols + 1 delimiter.
 // E.g. subset seeds for bisulfite-converted DNA.
-void SubsetSuffixArray::radixSort3( std::vector<Range>& rangeStack,
-				    const uchar* text, const uchar* subsetMap,
-				    PosPart *beg, PosPart *end, indexT depth ){
+void SubsetSuffixArray::radixSort3(std::vector<Range> &rangeStack,
+				   const uchar *text, const uchar *subsetMap,
+				   PosPart *beg, PosPart *end, size_t depth) {
   PosPart *end0 = beg;  // end of '0's
   PosPart *end1 = beg;  // end of '1's
   PosPart *beg2 = end;  // beginning of '2's
@@ -203,9 +203,9 @@ void SubsetSuffixArray::radixSort3( std::vector<Range>& rangeStack,
 }
 
 // Specialized sort for 4 symbols + 1 delimiter.  E.g. DNA.
-void SubsetSuffixArray::radixSort4( std::vector<Range>& rangeStack,
-				    const uchar* text, const uchar* subsetMap,
-				    PosPart *beg, PosPart *end, indexT depth ){
+void SubsetSuffixArray::radixSort4(std::vector<Range> &rangeStack,
+				   const uchar *text, const uchar *subsetMap,
+				   PosPart *beg, PosPart *end, size_t depth) {
   PosPart *end0 = beg;  // end of '0's
   PosPart *end1 = beg;  // end of '1's
   PosPart *end2 = beg;  // end of '2's
@@ -267,10 +267,10 @@ void SubsetSuffixArray::radixSort4( std::vector<Range>& rangeStack,
 
 const unsigned numOfBuckets = 256;
 
-void SubsetSuffixArray::radixSortN( std::vector<Range>& rangeStack,
-				    const uchar* text, const uchar* subsetMap,
-				    PosPart *beg, PosPart *end, indexT depth,
-				    unsigned subsetCount, indexT* bucketSize ){
+void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
+				   const uchar *text, const uchar *subsetMap,
+				   PosPart *beg, PosPart *end, size_t depth,
+				   unsigned subsetCount, indexT* bucketSize) {
   PosPart *bucketEnd[numOfBuckets];
 
   // get bucket sizes (i.e. letter counts):
@@ -411,11 +411,11 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 
     PosPart *beg = myStack.back().beg;
     PosPart *end = myStack.back().end;
-    indexT depth = myStack.back().depth;
+    size_t depth = myStack.back().depth;
     myStack.pop_back();
 
     size_t interval = posCount(beg, end);
-    const indexT minLength = 1;
+    const size_t minLength = 1;
     if( interval <= maxUnsortedInterval && depth >= minLength ) continue;
 
     const uchar* textBase = text + depth;
