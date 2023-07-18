@@ -82,7 +82,7 @@ void MultiSequence::readFastxName(std::istream& stream) {
 }
 
 std::istream&
-MultiSequence::appendFromFasta( std::istream& stream, indexT maxSeqLen ){
+MultiSequence::appendFromFasta(std::istream &stream, size_t maxSeqLen) {
   if( isFinished() ){
     char c = '>';
     stream >> c;

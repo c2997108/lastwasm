@@ -12,7 +12,7 @@
 using namespace cbrc;
 
 std::istream&
-MultiSequence::appendFromFastx(std::istream& stream, indexT maxSeqLen,
+MultiSequence::appendFromFastx(std::istream &stream, size_t maxSeqLen,
 			       bool isKeepQualityData) {
   if (names.empty()) {
     isReadingFastq = false;
@@ -33,7 +33,7 @@ MultiSequence::appendFromFastx(std::istream& stream, indexT maxSeqLen,
 }
 
 std::istream&
-MultiSequence::appendFromFastq(std::istream& stream, indexT maxSeqLen,
+MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
 			       bool isKeepQualityData) {
   // initForAppending:
   qualityScoresPerLetter = isKeepQualityData;
@@ -83,8 +83,8 @@ MultiSequence::appendFromFastq(std::istream& stream, indexT maxSeqLen,
 }
 
 std::istream&
-MultiSequence::appendFromPrb( std::istream& stream, indexT maxSeqLen,
-			      unsigned alphSize, const uchar decode[] ){
+MultiSequence::appendFromPrb(std::istream &stream, size_t maxSeqLen,
+			     unsigned alphSize, const uchar decode[]) {
   // initForAppending:
   qualityScoresPerLetter = alphSize;
   if( qualityScores.v.empty() ) appendQualPad();
@@ -162,9 +162,9 @@ std::istream& MultiSequence::readPssmHeader( std::istream& stream ){
 }
 
 std::istream&
-MultiSequence::appendFromPssm( std::istream& stream, indexT maxSeqLen,
-                               const uchar* lettersToNumbers,
-                               bool isMaskLowercase ){
+MultiSequence::appendFromPssm(std::istream &stream, size_t maxSeqLen,
+			      const uchar *lettersToNumbers,
+			      bool isMaskLowercase) {
   // initForAppending:
   if( pssm.empty() ) appendPssmPad();
 

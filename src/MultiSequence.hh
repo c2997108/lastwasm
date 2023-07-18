@@ -51,26 +51,26 @@ class MultiSequence{
   // Append a sequence with delimiters.  Don't let the total size of
   // the concatenated sequences plus pads exceed maxSeqLen: thus it
   // may not finish reading the sequence.
-  std::istream& appendFromFasta( std::istream& stream, indexT maxSeqLen );
+  std::istream &appendFromFasta(std::istream &stream, size_t maxSeqLen);
 
   // As above, but read FASTQ format.
-  std::istream& appendFromFastq(std::istream& stream, indexT maxSeqLen,
+  std::istream &appendFromFastq(std::istream &stream, size_t maxSeqLen,
 				bool isKeepQualityData);
 
   // As above, but read either FASTA or FASTQ format.  The first
   // sequence may have either format, but subsequent sequences must
   // have the same format.
-  std::istream& appendFromFastx(std::istream& stream, indexT maxSeqLen,
+  std::istream &appendFromFastx(std::istream &stream, size_t maxSeqLen,
 				bool isKeepQualityData);
 
   // As above, but read quality scores too.
-  std::istream& appendFromPrb( std::istream& stream, indexT maxSeqLen,
-			       unsigned alphSize, const uchar decode[] );
+  std::istream &appendFromPrb(std::istream &stream, size_t maxSeqLen,
+			      unsigned alphSize, const uchar decode[]);
 
   // As above, but read a PSSM too, in PSI-BLAST ASCII format.
-  std::istream& appendFromPssm( std::istream& stream, indexT maxSeqLen,
-                                const uchar* lettersToNumbers,
-                                bool isMaskLowercase );
+  std::istream &appendFromPssm(std::istream &stream, size_t maxSeqLen,
+			       const uchar *lettersToNumbers,
+			       bool isMaskLowercase);
 
   // did we finish reading the last sequence?
   bool isFinished() const{ return ends.size() == nameEnds.size(); }
