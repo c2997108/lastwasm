@@ -347,7 +347,7 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
   size_t bucketDepth = maxBucketPrefix(seedNum);
   size_t startDepth = std::min( bucketDepth, maxDepth );
   const OffPart *bucketPtr = bucketEnds[seedNum];
-  const indexT* myBucketSteps = bucketStepEnds[seedNum];
+  const size_t *myBucketSteps = bucketStepEnds[seedNum];
 
   while( depth < startDepth ){
     uchar subset = subsetMap[ queryPtr[depth] ];
@@ -428,7 +428,7 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
   // match using buckets:
   size_t bucketDepth = maxBucketPrefix(seedNum);
   const OffPart *bucketPtr = bucketEnds[seedNum];
-  const indexT* myBucketSteps = bucketStepEnds[seedNum];
+  const size_t *myBucketSteps = bucketStepEnds[seedNum];
   size_t beg = offGet(bucketPtr);
   size_t end = offGet(bucketPtr + myBucketSteps[depth]);
 

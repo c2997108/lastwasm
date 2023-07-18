@@ -202,7 +202,7 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 }
 
 static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
-			const SubsetSuffixArray::indexT *steps, unsigned depth,
+			const size_t *steps, unsigned depth,
 			const PosPart *textPosPtr) {
   const uchar *textPtr = text + posGet(textPosPtr);
 
@@ -224,8 +224,8 @@ static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
 }
 
 static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
-			    const SubsetSuffixArray::indexT *steps,
-			    unsigned depth, OffPart *buckBeg, OffPart *buckPtr,
+			    const size_t *steps, unsigned depth,
+			    OffPart *buckBeg, OffPart *buckPtr,
 			    const PosPart *sa, size_t saBeg, size_t saEnd) {
   for (size_t i = saBeg; i < saEnd; ++i) {
     OffPart *b = buckBeg + bucketPos(text, seed, steps, depth, sa);
@@ -237,7 +237,7 @@ static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
 }
 
 static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
-		       const SubsetSuffixArray::indexT *steps, unsigned depth,
+		       const size_t *steps, unsigned depth,
 		       OffPart *buckBeg, OffPart *buckPtr, const PosPart *sa,
 		       size_t saBeg, size_t saEnd, size_t numOfThreads) {
   const CyclicSubsetSeed &seed = *seedPtr;
@@ -287,7 +287,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   for (size_t s = 0; s < seeds.size(); ++s) {
     const CyclicSubsetSeed &seed = seeds[s];
     unsigned depth = bucketDepths[s];
-    const indexT *steps = bucketStepEnds[s];
+    const size_t *steps = bucketStepEnds[s];
     size_t saEnd = cumulativeCounts[s];
     if (saEnd > saBeg) {
       runThreads(text, &seed, steps, depth, buckBeg,
@@ -304,11 +304,10 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   }
 }
 
-static void makeBucketStepsForOneSeed(SubsetSuffixArray::indexT *steps,
-				      unsigned depth,
+static void makeBucketStepsForOneSeed(size_t *steps, unsigned depth,
 				      const CyclicSubsetSeed &seed,
 				      size_t wordLength) {
-  SubsetSuffixArray::indexT step = offParts;
+  size_t step = offParts;
   steps[depth] = step;
 
   while (depth > 0) {
@@ -333,7 +332,7 @@ void SubsetSuffixArray::makeBucketSteps(const unsigned *bucketDepths,
   }
   bucketSteps.resize(numOfBucketSteps);
   bucketStepEnds.resize(numOfSeeds + 1);
-  indexT *steps = &bucketSteps[0];
+  size_t *steps = &bucketSteps[0];
   for (size_t i = 0; i < numOfSeeds; ++i) {
     bucketStepEnds[i] = steps;
     unsigned depth = bucketDepths[i];

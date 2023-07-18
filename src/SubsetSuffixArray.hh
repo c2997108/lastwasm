@@ -148,11 +148,11 @@ public:
 private:
   std::vector<CyclicSubsetSeed> seeds;
   std::vector<const OffPart *> bucketEnds;
-  std::vector<const indexT *> bucketStepEnds;
+  std::vector<const size_t *> bucketStepEnds;
 
   VectorOrMmap<PosPart> suffixArray;  // sorted indices
   VectorOrMmap<OffPart> buckets;
-  std::vector<indexT> bucketSteps;  // step size for each k-mer
+  std::vector<size_t> bucketSteps;  // step size for each k-mer
 
   VectorOrMmap<indexT> childTable;
   VectorOrMmap<unsigned short> kiddyTable;  // smaller child table
