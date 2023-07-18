@@ -323,12 +323,6 @@ def gapProbsFromCounts(counts, opts, maxGapGrowProb):
     print("# alignments:", alignments)
     print("# mean delete size: %g" % (deletes / delOpens))
     print("# mean insert size: %g" % (inserts / insOpens))
-    print("# matchProb: %g" % matchProb)
-    print("# delOpenProb: %g" % delOpenProb)
-    print("# insOpenProb: %g" % insOpenProb)
-    print("# delExtendProb: %g" % delGrowProb)
-    print("# insExtendProb: %g" % insGrowProb)
-    print()
     delGrowProb = min(delGrowProb, maxGapGrowProb)
     insGrowProb = min(insGrowProb, maxGapGrowProb)
     return matchProb, (delOpenProb, delGrowProb), (insOpenProb, insGrowProb)
@@ -357,6 +351,13 @@ def gapRatiosFromProbs(matchProb, delProbs, insProbs):
     insGrowRatio = insGrowProb / endProb
     insRatios = firstInsRatio, insGrowRatio
 
+    print("# matchProb: %g" % matchProb)
+    print("# delOpenProb: %g" % delOpenProb)
+    print("# insOpenProb: %g" % insOpenProb)
+    print("# delExtendProb: %g" % delGrowProb)
+    print("# insExtendProb: %g" % insGrowProb)
+    print("# endProb: %g" % endProb)
+    print()
     return matchRatio, delRatios, insRatios
 
 def scoreFromLetterProbs(scale, matchRatio, pairProb, rowProb, colProb):
@@ -557,13 +558,6 @@ def frameshiftProbsFromCounts(counts, opts):
     print("# frameshifts del-1,del-2,ins+1,ins+2: %.12g,%.12g,%.12g,%.12g"
           % (delOpens1, delOpens2, insOpens1, insOpens2))
     print("# alignments:", alignments)
-    print("# matchProb: %g" % matchProb)
-    print("# delOpenProb: %g" % delOpenProb)
-    print("# insOpenProb: %g" % insOpenProb)
-    print("# delExtendProb: %g" % delGrowProb)
-    print("# insExtendProb: %g" % insGrowProb)
-    print("# frameshiftProbs del-1,del-2,ins+1,ins+2: %g,%g,%g,%g"
-          % (delProb1, delProb2, insProb1, insProb2))
     print()
     delProbs = delOpenProb, delGrowProb, delProb1, delProb2
     insProbs = insOpenProb, insGrowProb, insProb1, insProb2
@@ -593,6 +587,15 @@ def frameshiftRatiosFromProbs(matchProb, delProbs, insProbs):
     delRatio2 = del2 * (1 - del1) / (delAdj * (delMean * endProb) ** 2)
     delRatios = delOpenRatio, delRatio0, delRatio1, delRatio2
 
+    print("# matchProb: %g" % matchProb)
+    print("# delOpenProb: %g" % delOpenProb)
+    print("# insOpenProb: %g" % insOpenProb)
+    print("# delExtendProb: %g" % delGrowProb)
+    print("# insExtendProb: %g" % insGrowProb)
+    print("# frameshiftProbs del-1,del-2,ins+1,ins+2: %g,%g,%g,%g"
+          % (del1, del2, ins1, ins2))
+    print("# endProb: %g" % endProb)
+    print()
     return matchRatio, delRatios, insRatios
 
 def frameshiftCostsFromProbRatios(scale, gapRatios):

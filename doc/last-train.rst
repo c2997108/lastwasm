@@ -20,20 +20,16 @@ How it works
    of ``queries.fasta``.
 
 2. It starts with an initial guess for substitution and gap
-   parameters.
+   rates/scores.
 
-3. Using these parameters, it finds similar segments between the
-   chunks and ``reference.fasta``.
+3. Using these rates, it finds similar segments between the chunks and
+   ``reference.fasta``.  (If one part of the chunks matches several
+   parts of ``reference.fasta``, only the best matches are kept.)
 
-   If one part of the chunks matches several parts of
-   ``reference.fasta``, only the best matches are kept.
+4. It gets substitution and gap rates from these similar segments.
 
-4. It gets substitution and gap parameters from these similar
-   segments.
-
-5. It uses these parameters to find similar segments more accurately,
-   then gets parameters again, and repeats until the result stops
-   changing.
+5. It uses these rates to find similar segments more accurately, then
+   gets rates again, and repeats until the result stops changing.
 
 last-train prints a summary of each iteration, followed by the final
 score parameters in a format that can be read by `lastal's -p option
@@ -171,13 +167,33 @@ Alignment options
 Details
 -------
 
-* last-train (and lastal) uses "Model A", in Figure 5A of btz576_.
+* last-train uses "Model A", in Figure 5A of btz576_.
 
-* last-train (and lastal) converts between path and alignment
-  parameters as in Supplementary Section 3.1 of btz576_.
+* It shows these gap probabilities at each iteration:
 
-* last-train uses parameters with "homogeneous letter probabilities"
-  and "balanced length probability" (btz576_).
+  =============  ========================
+  last-train     btz576_
+  =============  ========================
+  delOpenProb    α\ :sub:`D`
+  insOpenProb    α\ :sub:`I`
+  delExtendProb  β\ :sub:`D`
+  insExtendProb  β\ :sub:`I`
+  matchProb      γ
+  endProb        ω\ :sub:`D`, ω\ :sub:`I`
+  =============  ========================
+
+* At each iteration, last-train gets most of the probabilities from
+  the similar sequence segments that it finds.  But it gets these
+  probabilities in a different way:
+
+  - It assumes that ω\ :sub:`D` = ω\ :sub:`I`, and gets the unique
+    value that satisfies "balanced length probability" (btz576_).
+
+  - It gets φ\ :sub:`x` and ψ\ :sub:`y` by assuming "homogeneous
+    letter probabilities" (btz576_).
+
+* last-train converts between gap probabilities and gap scores as in
+  Supplementary Section 3.1 of btz576_.
 
 * last-train rounds the scores to integers, which makes them slightly
   inaccurate.  It then finds an adjusted scale factor (without

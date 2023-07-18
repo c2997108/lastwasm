@@ -169,6 +169,7 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
       }
     } else {
       stats.calcFromScale(scoreMat, alph.size, args.temperature);
+      LOG("score matrix bias=" << stats.bias());
     }
   }
 
