@@ -22,7 +22,6 @@ static void posSwap(PosPart *x, PosPart *y) {
 }
 
 namespace{
-  typedef SubsetSuffixArray::indexT indexT;
   typedef SubsetSuffixArray::Range Range;
 }
 
@@ -270,7 +269,7 @@ const unsigned numOfBuckets = 256;
 void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
 				   const uchar *text, const uchar *subsetMap,
 				   PosPart *beg, PosPart *end, size_t depth,
-				   unsigned subsetCount, indexT* bucketSize) {
+				   unsigned subsetCount, size_t *bucketSize) {
   PosPart *bucketEnd[numOfBuckets];
 
   // get bucket sizes (i.e. letter counts):
@@ -361,7 +360,7 @@ static size_t numOfThreadsForOneRange(size_t numOfThreads,
 }
 
 void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
-				   indexT *bucketSizes,
+				   size_t *bucketSizes,
 				   const uchar *text,
 				   unsigned wordLength,
 				   const CyclicSubsetSeed &seed,
@@ -465,7 +464,7 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
   if (childTableType == 3) childTable.v.assign(size(), 0);
 
   std::vector< std::vector<Range> > stacks(numOfThreads);
-  std::vector<indexT> bucketSizes(numOfThreads * numOfBuckets);
+  std::vector<size_t> bucketSizes(numOfThreads * numOfBuckets);
   PosPart *a = &suffixArray.v[0];
 
   PosPart *beg = a;

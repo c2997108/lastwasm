@@ -3,13 +3,12 @@
 #include "MultiSequence.hh"
 #include "io.hh"
 #include <sstream>
-#include <algorithm>  // upper_bound
 #include <cassert>
 #include <streambuf>
 
 using namespace cbrc;
 
-void MultiSequence::initForAppending(indexT padSizeIn,
+void MultiSequence::initForAppending(size_t padSizeIn,
 				     bool isAppendStopSymbol) {
   padSize = padSizeIn;
   seq.v.assign( padSize, ' ' );
@@ -110,12 +109,6 @@ MultiSequence::appendFromFasta(std::istream &stream, size_t maxSeqLen) {
   }
 
   return stream;
-}
-
-size_t MultiSequence::whichSequence(indexT coordinate) const {
-  const indexT* u = std::upper_bound( ends.begin(), ends.end(), coordinate );
-  assert( u != ends.begin() && u != ends.end() );
-  return u - ends.begin() - 1;
 }
 
 static void reverseComplementPssm(int *beg, int *end,

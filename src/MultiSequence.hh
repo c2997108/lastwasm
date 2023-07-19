@@ -13,6 +13,7 @@
 #include "ScoreMatrixRow.hh"
 #include "VectorOrMmap.hh"
 
+#include <algorithm>  // upper_bound
 #include <string>
 #include <iosfwd>
 
@@ -30,7 +31,7 @@ class MultiSequence{
 #endif
 
   // initialize with leftmost delimiter pad, ready for appending sequences
-  void initForAppending(indexT padSizeIn, bool isAppendStopSymbol = false);
+  void initForAppending(size_t padSizeIn, bool isAppendStopSymbol = false);
 
   // re-initialize, but keep the last sequence if it is unfinished
   void reinitForAppending();
@@ -82,7 +83,10 @@ class MultiSequence{
   size_t unfinishedSize() const{ return seq.size(); }
 
   // which sequence is the coordinate in?
-  size_t whichSequence(indexT coordinate) const;
+  size_t whichSequence(indexT coordinate) const {
+    return std::upper_bound(ends.begin(), ends.end(), coordinate)
+      - ends.begin() - 1;
+  }
 
   size_t padBeg(size_t seqNum) const { return ends[seqNum] - padSize; }
   size_t seqBeg(size_t seqNum) const { return ends[seqNum]; }
@@ -149,7 +153,7 @@ class MultiSequence{
   }
 
  private:
-  indexT padSize;  // number of delimiter chars between sequences
+  size_t padSize;  // number of delimiter chars between sequences
   VectorOrMmap<uchar> seq;  // concatenated sequences
   VectorOrMmap<indexT> ends;  // coordinates of ends of delimiter pads
   VectorOrMmap<char> names;  // concatenated sequence names (to save memory)

@@ -205,12 +205,12 @@ private:
   void radixSortN(std::vector<Range> &rangeStack,
 		  const uchar *text, const uchar *subsetMap,
 		  PosPart *beg, PosPart *end, size_t depth,
-		  unsigned subsetCount, indexT *bucketSize);
+		  unsigned subsetCount, size_t *bucketSize);
 
-  void sortRanges( std::vector<Range>* stacks, indexT* bucketSizes,
-		   const uchar* text,
-		   unsigned wordLength, const CyclicSubsetSeed& seed,
-		   size_t maxUnsortedInterval, size_t numOfThreads );
+  void sortRanges(std::vector<Range> *stacks, size_t *bucketSizes,
+		  const uchar *text,
+		  unsigned wordLength, const CyclicSubsetSeed &seed,
+		  size_t maxUnsortedInterval, size_t numOfThreads);
 
   size_t getChildForward(size_t from) const {
     return
@@ -254,7 +254,7 @@ private:
 
   bool isChildDirectionForward(const PosPart *beg) const {
     const PosPart *origin = &suffixArray.v[0];
-    indexT i = posCount(origin, beg);
+    size_t i = posCount(origin, beg);
     return
       !childTable.v.empty() ? childTable.v[i] == 0 :
       !kiddyTable.v.empty() ? kiddyTable.v[i] == USHRT_MAX :
