@@ -39,9 +39,9 @@ cbrc_linalg.o mcf_substitution_matrix_stats.o				\
 split/cbrc_unsplit_alignment.o split/last_split_options.o $(alpObj)
 
 alignObj4 = Alignment.o AlignmentPot.o AlignmentWrite.o			\
-DiagonalTable.o MultiSequence.o MultiSequenceQual.o SegmentPair.o	\
-SegmentPairPot.o SubsetSuffixArray.o SubsetSuffixArraySearch.o		\
-lastal.o split/cbrc_split_aligner.o split/mcf_last_splitter.o
+MultiSequence.o MultiSequenceQual.o SegmentPair.o SegmentPairPot.o	\
+SubsetSuffixArray.o SubsetSuffixArraySearch.o lastal.o			\
+split/cbrc_split_aligner.o split/mcf_last_splitter.o
 
 splitObj0 = Alphabet.o LambdaCalculator.o fileMap.o cbrc_linalg.o	\
 mcf_substitution_matrix_stats.o split/cbrc_unsplit_alignment.o		\
@@ -188,7 +188,6 @@ Centroid.o Centroid.o5 Centroid.o8: Centroid.cc Centroid.hh GappedXdropAligner.h
  mcf_substitution_matrix_stats.hh GappedXdropAlignerInl.hh
 CyclicSubsetSeed.o CyclicSubsetSeed.o5 CyclicSubsetSeed.o8: CyclicSubsetSeed.cc CyclicSubsetSeed.hh \
  CyclicSubsetSeedData.hh zio.hh mcf_zstream.hh stringify.hh
-DiagonalTable.o DiagonalTable.o5 DiagonalTable.o8: DiagonalTable.cc DiagonalTable.hh
 dna_words_finder.o dna_words_finder.o5 dna_words_finder.o8: dna_words_finder.cc dna_words_finder.hh
 fileMap.o fileMap.o5 fileMap.o8: fileMap.cc fileMap.hh stringify.hh
 GappedXdropAligner2qual.o GappedXdropAligner2qual.o5 GappedXdropAligner2qual.o8: GappedXdropAligner2qual.cc \

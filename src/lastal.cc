@@ -634,7 +634,8 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
     if (maxAlignments == 0) break;
 
     size_t refPos = posGet(beg);  // coordinate in the reference sequence
-    if (dt.isCovered(qryPos, refPos)) continue;
+    size_t diagonal = qryPos - refPos;
+    if (dt.isCovered(diagonal, qryPos)) continue;
     ++counts.gaplessExtensionCount;
     int score;
 
@@ -643,7 +644,7 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       score = dis.gaplessOverlap(refPos, qryPos, revLen, fwdLen);
       if (score < minScoreGapless) continue;
       SegmentPair sp(refPos - revLen, qryPos - revLen, revLen + fwdLen, score);
-      dt.addEndpoint(sp.end2(), sp.end1());
+      dt.addEndpoint(diagonal, sp.end2());
       writeSegmentPair(aligner, qrySeqs, qryData, sp);
     } else {
       int fwdScore, revScore;
@@ -655,7 +656,7 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
       size_t length;
       if (!dis.gaplessEnds(fwdScore, revScore, rPos, qPos, length)) continue;
       SegmentPair sp(rPos, qPos, length, score);
-      dt.addEndpoint(sp.end2(), sp.end1());
+      dt.addEndpoint(diagonal, sp.end2());
 
       if (args.outputType == 1) {  // we just want gapless alignments
 	writeSegmentPair(aligner, qrySeqs, qryData, sp);

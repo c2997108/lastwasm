@@ -1,4 +1,5 @@
-// Copyright 2008, 2010 Martin C. Frith
+// Author Martin C. Frith 2023
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // This struct records coverage of "diagonals" by gapless alignments,
 // when comparing two sequences.  The diagonal is the coordinate in
@@ -20,26 +21,35 @@
 #include <utility>  // pair
 #include <vector>
 
-namespace cbrc{
+namespace cbrc {
 
-struct DiagonalTable{
+struct DiagonalTable {
 
-#if LAST_POS_BYTES > 4
-  typedef size_t indexT;
-#else
-  typedef unsigned indexT;
-#endif
-
-  typedef std::pair<indexT, indexT> pairT;
+  typedef std::pair<size_t, size_t> pairT;
 
   enum { BINS = 256 };  // use a power-of-two for faster modulus (maybe)
                         // 256 is much faster than 65536 in my tests
 
   // is this position on this diagonal already covered by an alignment?
-  bool isCovered( indexT sequentialPos, indexT randomPos );
+  bool isCovered(size_t diagonal, size_t sequentialPos) {
+    std::vector<pairT> &v = hits[diagonal % BINS];
+
+    for (std::vector<pairT>::iterator i = v.begin(); i < v.end(); ) {
+      if (i->first >= sequentialPos) {
+	if (i->second == diagonal) return true;
+	++i;
+      } else {
+	i = v.erase(i);  // hopefully we rarely get here
+      }
+    }
+
+    return false;
+  }
 
   // add an alignment endpoint to the table:
-  void addEndpoint( indexT sequentialPos, indexT randomPos );
+  void addEndpoint(size_t diagonal, size_t sequentialPos) {
+    hits[diagonal % BINS].push_back(pairT(sequentialPos, diagonal));
+  }
 
   std::vector<pairT> hits[BINS];
 };
