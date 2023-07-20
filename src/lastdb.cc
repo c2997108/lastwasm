@@ -299,10 +299,10 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 // is likely to be less than volumeSize bytes.  (This is crude, it
 // neglects memory for the sequence names, and the fact that
 // lowercase-masked letters and DNA "N"s aren't indexed.)
-static indexT maxLettersPerVolume( const LastdbArguments& args,
-				   const DnaWordsFinder& wordsFinder,
-				   size_t qualityCodesPerLetter,
-				   unsigned numOfSeeds ){
+static size_t maxLettersPerVolume(const LastdbArguments &args,
+				  const DnaWordsFinder &wordsFinder,
+				  size_t qualityCodesPerLetter,
+				  unsigned numOfSeeds) {
   double b = args.minIndexedPositionsPerBucket;
   double x = posSize + offSize / b;  // bytes per indexed position
   if (wordsFinder.wordLength) {
@@ -316,7 +316,8 @@ static indexT maxLettersPerVolume( const LastdbArguments& args,
     }
   }
   double y = args.volumeSize / (1 + qualityCodesPerLetter + x);
-  return (y < posLimit) ? y : posLimit;
+  if (y < posLimit) return y;
+  return posLimit;
 }
 
 static bool isRoomToDuplicateTheLastSequence(const MultiSequence &multi,
@@ -432,8 +433,8 @@ void lastdb( int argc, char** argv ){
   unsigned volumeNumber = 0;
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
-  indexT maxLetters = 0;
-  indexT maxSeqLen = posLimit;
+  size_t maxLetters = 0;
+  size_t maxSeqLen = posLimit;
   size_t maxSeqLenSeen = 0;
 
   char defaultInputName[] = "-";
