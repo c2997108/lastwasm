@@ -31,21 +31,19 @@ static void gaplessXdropScores(BigPtr seq1, const uchar *seq2,
   const uchar *fwd2 = seq2;
 
   int fScore = 0, f = 0;
-  while (true) {
+  do {
     f += scorer[getNext(fwd1)][*fwd2++];  // overflow risk
-    if (f < fScore - maxScoreDrop) break;
     if (f > fScore) fScore = f;
-  }
+  } while (f >= fScore - maxScoreDrop);
   if (fScore - f < 0)
     throw std::overflow_error("score overflow in forward gapless extension");
   fwdScore = fScore;
 
   int rScore = 0, r = 0;
-  while (true) {
+  do {
     r += scorer[getPrev(seq1)][*--seq2];  // overflow risk
-    if (r < rScore - maxScoreDrop) break;
     if (r > rScore) rScore = r;
-  }
+  } while (r >= rScore - maxScoreDrop);
   if (rScore - r < 0)
     throw std::overflow_error("score overflow in reverse gapless extension");
   revScore = rScore;
@@ -62,25 +60,31 @@ static bool gaplessXdropEnds(BigSeq seq1, const uchar *seq2,
   size_t end1 = beg1;
   size_t beg2 = pos2;
   size_t end2 = beg2;
-  while (fwdScore) fwdScore -= scorer[seq1[end1++]][seq2[end2++]];
-  while (revScore) revScore -= scorer[seq1[--beg1]][seq2[--beg2]];
+
+  int fDrop = 0;
+  int fScore = fwdScore;
+  while (fScore) {
+    fScore -= scorer[seq1[end1++]][seq2[end2++]];
+    if (fScore > fDrop) fDrop = fScore;
+  }
+
+  int rDrop = 0;
+  int rScore = revScore;
+  while (rScore) {
+    rScore -= scorer[seq1[--beg1]][seq2[--beg2]];
+    if (rScore > rDrop) rDrop = rScore;
+  }
+
   pos1 = beg1;
   pos2 = beg2;
   length = end1 - beg1;
 
   // Check whether the alignment has no prefix with score <= 0, no
   // suffix with score <= 0, and no region with score < -maxScoreDrop
-  int score = 0;
-  int maxScore = 0;
-  while (beg1 < end1) {
-    score += scorer[seq1[beg1++]][seq2[beg2++]];
-    if (score > maxScore) {
-      maxScore = score;
-    } else if (score <= 0 || beg1 == end1 || score < maxScore - maxScoreDrop) {
-      return false;
-    }
-  }
-  return true;
+
+  fDrop -= fwdScore;
+  rDrop -= revScore;
+  return fDrop < revScore && rDrop < fwdScore && rDrop + fDrop <= maxScoreDrop;
 }
 
 // Returns the score, and sets the reverse and forward extension
