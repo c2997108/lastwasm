@@ -58,8 +58,7 @@ Training options
 --pid=PID
        Ignore similar segments with > PID% identity (matches /
        [matches + mismatches]).  This aims to optimize the parameters
-       for low-similarity alignments (similarly to the BLOSUM
-       matrices).
+       for low-similarity alignments.
 --postmask=NUMBER
        By default, last-train ignores alignments of mostly-lowercase
        sequence (by using `last-postmask <doc/last-postmask.rst>`_).
@@ -167,24 +166,23 @@ Alignment options
 Details
 -------
 
-* last-train uses "Model A", in Figure 5A of btz576_.
+last-train shows the gap probabilities at each iteration.  They
+correspond to "Model A" in Figure 5A of btz576_:
 
-* It shows these gap probabilities at each iteration:
+=============  ========================
+last-train     btz576_
+=============  ========================
+delOpenProb    α\ :sub:`D`
+insOpenProb    α\ :sub:`I`
+delExtendProb  β\ :sub:`D`
+insExtendProb  β\ :sub:`I`
+matchProb      γ
+endProb        ω\ :sub:`D`, ω\ :sub:`I`
+=============  ========================
 
-  =============  ========================
-  last-train     btz576_
-  =============  ========================
-  delOpenProb    α\ :sub:`D`
-  insOpenProb    α\ :sub:`I`
-  delExtendProb  β\ :sub:`D`
-  insExtendProb  β\ :sub:`I`
-  matchProb      γ
-  endProb        ω\ :sub:`D`, ω\ :sub:`I`
-  =============  ========================
-
-* At each iteration, last-train gets most of the probabilities from
-  the similar sequence segments that it finds.  But it gets these
-  probabilities in a different way:
+* last-train gets most of the probabilities from the similar sequence
+  segments that it finds.  But it gets these probabilities in a
+  different way:
 
   - It assumes that ω\ :sub:`D` = ω\ :sub:`I`, and gets the unique
     value that satisfies "balanced length probability" (btz576_).
@@ -207,7 +205,27 @@ Details
   (to reduce the inaccuracy of integer rounding), until the problem
   goes away.
 
-.. _btz576: https://doi.org/10.1093/bioinformatics/btz576
+When ``--codon`` is used, the gap probabilities correspond to Figure 2
+of DNA-versus-protein_:
+
+=============  ==========================
+last-train     DNA-versus-protein_
+=============  ==========================
+delOpenProb    α\ :sub:`D`
+insOpenProb    α\ :sub:`I`
+delExtendProb  β\ :sub:`D`
+insExtendProb  β\ :sub:`I`
+del-1          1 - δ\ :sub:`D`
+del-2          1 - ε\ :sub:`D`
+ins+1          1 - δ\ :sub:`I`
+ins+2          1 - ε\ :sub:`I`
+matchProb      Γ
+endProb        ω\ :sub:`i`, ∛ ω\ :sub:`D`
+=============  ==========================
+
+It assumes that ω\ :sub:`D` = ω\ :sub:`i`\ :sup:`3`, and gets the
+unique value that satisfies "balanced length probability"
+(DNA-versus-protein_).
 
 Bugs
 ----
@@ -221,4 +239,6 @@ Bugs
   increasing the sample number, or reducing the alignment
   significance_ threshold with option ``-D``.
 
+.. _btz576: https://doi.org/10.1093/bioinformatics/btz576
+.. _DNA-versus-protein: https://doi.org/10.1109/TCBB.2022.3177855
 .. _significance: doc/last-evalues.rst

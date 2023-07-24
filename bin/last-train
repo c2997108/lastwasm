@@ -64,11 +64,13 @@ def homogeneousLetterFreqs(scale, matScores):
             m[k], m[iMax] = m[iMax], m[k]
         if abs(m[k][k]) <= 0:
             raise ArithmeticError("singular matrix")
+        mk = m[k]
         for i in range(n):
             if i != k:
-                mul = m[i][k] / m[k][k]
+                mi = m[i]
+                mul = mi[k] / mk[k]
                 for j in range(k + 1, n + 1):
-                    m[i][j] -= m[k][j] * mul
+                    mi[j] -= mk[j] * mul
     return [m[k][n] / m[k][k] for k in range(n)]
 
 def randomSample(things, sampleSize):
@@ -393,6 +395,7 @@ def scoreImbalance(scale, matScores, delCosts, insCosts):
 
 def balancedScale(imbalanceFunc, nearScale, args):
     # Find a scale, near nearScale, with balanced length probability
+    sys.stdout.flush()
     bump = 1.000001
     rootFinders = rootOfDecreasingFunction, rootOfIncreasingFunction
     value = imbalanceFunc(nearScale, *args)
