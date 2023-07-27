@@ -147,6 +147,19 @@ lastal -f
 
 Option ``-fTAB`` **reduces the output size**, which can improve speed.
 
+lastdb -S2
+----------
+
+This makes lastdb index both strands of DNA.  This **doubles memory
+and disk use**, but **makes lastal faster** because it just scans one
+strand of the query DNA.
+
+lastdb -B
+---------
+
+Lower values (e.g. 1) make lastal **faster**, but use **more memory
+and disk**.  This has no effect on the results.
+
 lastdb -i
 ---------
 
@@ -160,12 +173,6 @@ lastdb -C2
 makes new versions of lastal slower.  If you already used this option,
 you can undo it by deleting the ``.chi2`` files (or move/rename them
 to test which is faster).
-
-lastdb -B
----------
-
-Lower values (e.g. 1) make lastal **faster**, but use **more memory
-and disk**.  This has no effect on the results.
 
 Repeat masking
 --------------

@@ -36,10 +36,10 @@ struct LastalArguments{
   const char* matrixName( bool isProtein ) const;
 
   // set default option values that depend on input files:
-  void setDefaultsFromAlphabet( bool isDna, bool isProtein,
-				bool isKeepRefLowercase, int refTantanSetting,
-                                bool isCaseSensitiveSeeds, bool isVolumes,
-				size_t refMinimizerWindow );
+  void setDefaultsFromAlphabet(bool isDna, bool isProtein, int refStrand,
+			       bool isKeepRefLowercase, int refTantanSetting,
+			       bool isCaseSensitiveSeeds, bool isVolumes,
+			       size_t refMinimizerWindow);
   void setDefaultsFromMatrix(double lambda, double minScore,
 			     double maxEvalueDefault);
 

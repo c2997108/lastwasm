@@ -163,7 +163,7 @@ Initial-match options (default settings):\n\
  -W  use \"minimum\" positions in sliding windows of W consecutive positions\n\
 \n\
 Miscellaneous options (default settings):\n\
- -s  strand: 0=reverse, 1=forward, 2=both (2 for DNA, 1 for protein)\n\
+ -s  strand: 0=reverse, 1=forward, 2=both (2 if DNA and not lastdb -S2, else 1)\n\
  -S  score matrix applies to forward strand of: 0=reference, 1=query ("
     + stringify(isQueryStrandMatrix) + ")\n\
  -K  omit alignments whose query range lies in >= K others with > score (off)\n\
@@ -534,13 +534,14 @@ const char* LastalArguments::matrixName( bool isProtein ) const{
   return matrixFile.c_str();
 }
 
-void LastalArguments::setDefaultsFromAlphabet( bool isDna, bool isProtein,
-					       bool isKeepRefLowercase,
-					       int refTantanSetting,
-                                               bool isCaseSensitiveSeeds,
-					       bool isVolumes,
-					       size_t refMinimizerWindow ){
-  if( strand < 0 ) strand = (isDna || isTranslated()) ? 2 : 1;
+void LastalArguments::setDefaultsFromAlphabet(bool isDna, bool isProtein,
+					      int refStrand,
+					      bool isKeepRefLowercase,
+					      int refTantanSetting,
+					      bool isCaseSensitiveSeeds,
+					      bool isVolumes,
+					      size_t refMinimizerWindow) {
+  if (strand < 0) strand = 1 + ((isDna || isTranslated()) && refStrand < 2);
 
   if( isGreedy ){
     if( matchScore     < 0 ) matchScore     =   2;

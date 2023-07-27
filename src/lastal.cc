@@ -376,7 +376,7 @@ static void calculateScoreStatistics(const std::string& matrixName,
 // Read the .prj file for the whole database
 void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
 		  size_t &minSeedLimit, bool &isKeepRefLowercase,
-		  int &refTantanSetting, countT &numOfRefSeqs,
+		  int &refTantanSetting, int &refStrand, countT &numOfRefSeqs,
 		  countT &refLetters, countT &refMaxSeqLen, int &bitsPerBase) {
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
@@ -395,6 +395,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     getline( iss, word, '=' );
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alphabetLetters;
+    if( word == "strand" ) iss >> refStrand;
     if( word == "numofsequences" ) iss >> numOfRefSeqs;
     if( word == "numofletters" ) iss >> refLetters;
     if( word == "maxsequenceletters" ) iss >> refMaxSeqLen;
@@ -1486,6 +1487,7 @@ void lastal( int argc, char** argv ){
   args.fromArgs( argc, argv );
   args.resetCumulativeOptions();  // because we will do fromArgs again
 
+  int refStrand = 1;  // assume this value, if not specified
   size_t refMinimizerWindow = 1;  // assume this value, if not specified
   size_t minSeedLimit = 0;
   countT numOfRefSeqs = -1;
@@ -1495,7 +1497,7 @@ void lastal( int argc, char** argv ){
   int refTantanSetting = 0;
   int bitsPerBase = CHAR_BIT;
   readOuterPrj(args.lastdbName + ".prj", refMinimizerWindow, minSeedLimit,
-	       isKeepRefLowercase, refTantanSetting,
+	       isKeepRefLowercase, refTantanSetting, refStrand,
 	       numOfRefSeqs, refLetters, refMaxSeqLen, bitsPerBase);
   bool isDna = (alph.letters == alph.dna);
   bool isProtein = alph.isProtein();
@@ -1529,10 +1531,10 @@ void lastal( int argc, char** argv ){
   aligners.resize( decideNumberOfThreads( args.numOfThreads,
 					  args.programName, args.verbosity ) );
   bool isMultiVolume = (numOfVolumes + 1 > 0 && numOfVolumes > 1);
-  args.setDefaultsFromAlphabet( isDna, isProtein,
-				isKeepRefLowercase, refTantanSetting,
-                                isCaseSensitiveSeeds, numOfVolumes + 1 > 0,
-				refMinimizerWindow );
+  args.setDefaultsFromAlphabet(isDna, isProtein, refStrand,
+			       isKeepRefLowercase, refTantanSetting,
+			       isCaseSensitiveSeeds, numOfVolumes + 1 > 0,
+			       refMinimizerWindow);
   makeScoreMatrix(matrixName, matrixFile);
   gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
 		  args.insOpenCosts, args.insGrowCosts,
