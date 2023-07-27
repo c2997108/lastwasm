@@ -3,7 +3,7 @@
 #include "LastEvaluer.hh"
 
 #include "GeneticCode.hh"
-#include "mcf_aligment_path_adder.hh"
+#include "mcf_alignment_path_adder.hh"
 
 #include "alp/sls_falp_alignment_evaluer.hpp"
 

@@ -1,7 +1,7 @@
 // Author: Martin C. Frith 2021
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "mcf_aligment_path_adder.hh"
+#include "mcf_alignment_path_adder.hh"
 
 #include <algorithm>
 

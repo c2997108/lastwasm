@@ -28,8 +28,8 @@
 // [Yao21]: "Improved DNA-versus-protein homology search for protein
 // fossils", Y Yao & MC Frith
 
-#ifndef MCF_ALIGMENT_PATH_ADDER_HH
-#define MCF_ALIGMENT_PATH_ADDER_HH
+#ifndef MCF_ALIGNMENT_PATH_ADDER_HH
+#define MCF_ALIGNMENT_PATH_ADDER_HH
 
 #include <vector>
 
