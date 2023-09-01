@@ -320,13 +320,17 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
 
   // permute items into the correct buckets:
   for (PosPart *i = beg; i < end; /* noop */) {
+    size_t position = posGet(i);
     unsigned subset;  // unsigned is faster than uchar!
     while (1) {
-      subset = subsetMap[text[posGet(i)]];
+      subset = subsetMap[text[position]];
       bucketEnd[subset] -= posParts;
       if (bucketEnd[subset] <= i) break;
-      posSwap(i, bucketEnd[subset]);
+      size_t p = posGet(bucketEnd[subset]);
+      posSet(bucketEnd[subset], position);
+      position = p;
     }
+    posSet(i, position);
     i += bucketSize[subset];
     bucketSize[subset] = 0;  // reset it so we can reuse it
   }
