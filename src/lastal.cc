@@ -10,7 +10,6 @@
 #include "TwoQualityScoreMatrix.hh"
 #include "LastEvaluer.hh"
 #include "GeneticCode.hh"
-#include "SubsetMinimizerFinder.hh"
 #include "AlignmentPot.hh"
 #include "Alignment.hh"
 #include "SegmentPairPot.hh"

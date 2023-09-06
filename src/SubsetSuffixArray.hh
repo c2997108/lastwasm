@@ -90,19 +90,14 @@ public:
 
   size_t size() const { return suffixArray.size() / posParts; }
 
-  PosPart *resizedPositions(size_t numOfPositions) {
+  void resizePositions(size_t numOfPositions) {
     suffixArray.v.resize(numOfPositions * posParts);
-    return &suffixArray.v[0];
   }
 
-  // Add positions in the range [beg,end) that are "minimizers" for
-  // the given window and seed pattern.  (Only minimizers at each
-  // step-th position are added: this step parameter may be useless.)
-  // Positions starting with delimiters aren't added.
-  // The positions aren't sorted.
-  void addMinimizerPositions(const uchar *seq,
-			     const uchar *beg, const uchar *end,
-			     size_t step, size_t minimizerWindow);
+  // Set the i-th entry of the suffix array to x
+  void setPosition(size_t i, size_t x) {
+    posSet(&suffixArray.v[i * posParts], x);
+  }
 
   // Store positions in [seqBeg, seqEnd) where certain "words" start.
   // The cumulative word counts must be provided.  (cumulativeCounts

@@ -1,7 +1,6 @@
 // Copyright 2008, 2009, 2010, 2013, 2014 Martin C. Frith
 
 #include "SubsetSuffixArray.hh"
-#include "SubsetMinimizerFinder.hh"
 #include "io.hh"
 #include <cassert>
 #include <cstdio>  // remove
@@ -42,27 +41,6 @@ static unsigned maxBucketDepth(const CyclicSubsetSeed &seed,
   }
 }
 
-void SubsetSuffixArray::addMinimizerPositions(const uchar *seq,
-					      const uchar *beg,
-					      const uchar *end,
-					      size_t step,
-					      size_t minimizerWindow) {
-  const CyclicSubsetSeed &seed = seeds[0];
-  SubsetMinimizerFinder f;
-  f.init(seed, beg, end);
-
-  while (beg < end) {
-    if (f.isMinimizer(seed, beg, end, minimizerWindow)) {
-      size_t s = suffixArray.v.size();
-      suffixArray.v.resize(s + posParts);
-      PosPart *a = &suffixArray.v[s];
-      posSet(a, beg - seq);
-    }
-    size_t d = end - beg;
-    beg += d < step ? d : step;
-  }
-}
-
 void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
 					 size_t *cumulativeCounts,
 					 const uchar *seqBeg,
@@ -72,7 +50,8 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
   for (size_t i = 0; i < numOfSeeds; ++i) {
     std::swap(cumulativeCounts[i], sumOfCounts);
   }
-  PosPart *a = resizedPositions(sumOfCounts);
+  resizePositions(sumOfCounts);
+  PosPart *a = &suffixArray.v[0];
 
   unsigned hash = 0;
   const uchar *seqPos = finder.init(seqBeg, seqEnd, &hash);

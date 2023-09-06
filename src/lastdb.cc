@@ -234,43 +234,39 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
     } else {
       indexSeeds.resize(1);
       seeds[x].swap(indexSeeds[0]);
-      if (args.minimizerWindow > 1) {
-	LOG("gathering...");
-	for (size_t i = 0; i < numOfSequences; ++i) {
-	  const uchar *beg = seq + multi.seqBeg(i);
-	  const uchar *end = seq + multi.seqEnd(i);
-	  myIndex.addMinimizerPositions(seq, beg, end,
-					args.indexStep, args.minimizerWindow);
-	}
-      } else {
-	const uchar *subsetMap = indexSeeds[0].firstMap();
-	size_t count = 0;
-	LOG("counting...");
-	for (size_t i = 0; i < numOfSequences; ++i) {
-	  const uchar *beg = seq + multi.seqBeg(i);
-	  const uchar *end = seq + multi.seqEnd(i);
-	  while (beg < end) {
-	    count += (subsetMap[*beg] < CyclicSubsetSeed::DELIMITER);
-	    size_t d = end - beg;
-	    beg += std::min(args.indexStep, d);
-	  }
-	}
-	LOG("gathering...");
-	PosPart *positions = myIndex.resizedPositions(count);
-	for (size_t i = 0; i < numOfSequences; ++i) {
-	  const uchar *beg = seq + multi.seqBeg(i);
-	  const uchar *end = seq + multi.seqEnd(i);
-	  while (beg < end) {
-	    if (subsetMap[*beg] < CyclicSubsetSeed::DELIMITER) {
-	      posSet(positions, beg - seq);
-	      positions += posParts;
-	    }
-	    size_t d = end - beg;
-	    beg += std::min(args.indexStep, d);
-	  }
+      SubsetMinimizerFinder f;
+      size_t window = args.minimizerWindow;
+      const CyclicSubsetSeed &seed = indexSeeds[0];
+      const uchar *subsetMap = seed.firstMap();
+      size_t count = 0;
+      LOG("counting...");
+      for (size_t i = 0; i < numOfSequences; ++i) {
+	const uchar *beg = seq + multi.seqBeg(i);
+	const uchar *end = seq + multi.seqEnd(i);
+	f.init(seed, beg, end);
+	while (beg < end) {
+	  count += (window > 1) ? f.isMinimizer(seed, beg, end, window) :
+	    (subsetMap[*beg] < CyclicSubsetSeed::DELIMITER);
+	  size_t d = end - beg;
+	  beg += std::min(args.indexStep, d);
 	}
       }
-      wordCounts[0] = myIndex.size();
+      LOG("gathering...");
+      myIndex.resizePositions(count);
+      count = 0;
+      for (size_t i = 0; i < numOfSequences; ++i) {
+	const uchar *beg = seq + multi.seqBeg(i);
+	const uchar *end = seq + multi.seqEnd(i);
+	f.init(seed, beg, end);
+	while (beg < end) {
+	  if ((window > 1) ? f.isMinimizer(seed, beg, end, window) :
+	      (subsetMap[*beg] < CyclicSubsetSeed::DELIMITER))
+	    myIndex.setPosition(count++, beg - seq);
+	  size_t d = end - beg;
+	  beg += std::min(args.indexStep, d);
+	}
+      }
+      wordCounts[0] = count;
     }
 
     LOG( "sorting..." );

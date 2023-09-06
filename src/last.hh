@@ -7,6 +7,7 @@
 #include "CyclicSubsetSeed.hh"
 #include "MultiSequence.hh"
 #include "SequenceFormat.hh"
+#include "SubsetMinimizerFinder.hh"
 #include "SubsetSuffixArray.hh"
 #include "dna_words_finder.hh"
 #include "qualityScoreUtil.hh"
