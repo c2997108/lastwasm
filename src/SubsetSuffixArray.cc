@@ -46,12 +46,12 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
 					 const uchar *seqBeg,
 					 const uchar *seqEnd) {
   size_t numOfSeeds = seeds.size();
+  size_t wordLength = finder.wordLength;
   size_t sumOfCounts = 0;
   for (size_t i = 0; i < numOfSeeds; ++i) {
     std::swap(cumulativeCounts[i], sumOfCounts);
   }
   resizePositions(sumOfCounts);
-  PosPart *a = &suffixArray.v[0];
 
   unsigned hash = 0;
   const uchar *seqPos = finder.init(seqBeg, seqEnd, &hash);
@@ -61,9 +61,7 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
     if (c != dnaWordsFinderNull) {
       unsigned w = finder.next(&hash, c);
       if (w != dnaWordsFinderNull) {
-	PosPart *b = a + cumulativeCounts[w] * posParts;
-	posSet(b, seqPos - seqBeg - finder.wordLength);
-	++cumulativeCounts[w];
+	setPosition(cumulativeCounts[w]++, seqPos - seqBeg - wordLength);
       }
     } else {
       seqPos = finder.init(seqPos, seqEnd, &hash);

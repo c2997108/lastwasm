@@ -463,16 +463,18 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 				   size_t maxUnsortedInterval,
 				   int childTableType,
 				   size_t numOfThreads ){
-  if (childTableType == 1) chibiTable.v.assign(size(), -1);
-  if (childTableType == 2) kiddyTable.v.assign(size(), -1);
-  if (childTableType == 3) childTable.v.assign(size(), 0);
+  size_t numOfSeeds = seeds.size();
+  size_t total = cumulativeCounts[numOfSeeds - 1];
+  if (childTableType == 1) chibiTable.v.assign(total, -1);
+  if (childTableType == 2) kiddyTable.v.assign(total, -1);
+  if (childTableType == 3) childTable.v.assign(total, 0);
 
   std::vector< std::vector<Range> > stacks(numOfThreads);
   std::vector<size_t> bucketSizes(numOfThreads * numOfBuckets);
   PosPart *a = &suffixArray.v[0];
 
   PosPart *beg = a;
-  for (size_t i = 0; i < seeds.size(); ++i) {
+  for (size_t i = 0; i < numOfSeeds; ++i) {
     PosPart *end = a + cumulativeCounts[i] * posParts;
     pushRange(stacks[0], beg, end, 0);
     setChildReverse(end, beg);
