@@ -47,8 +47,7 @@ void MultiSequence::fromFiles(const std::string &baseName, size_t seqCount,
   names.m.open( baseName + ".des", nameEnds.m.back() );
   padSize = ends.m[0];
 
-  qualityScores.m.open( baseName + ".qua",
-                        ends.m.back() * qualitiesPerLetter );
+  qualityScores.m.open(baseName + ".qua", ends.m.back() * qualitiesPerLetter);
   qualityScoresPerLetter = qualitiesPerLetter;
 }
 

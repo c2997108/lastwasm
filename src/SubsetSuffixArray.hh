@@ -100,7 +100,8 @@ public:
   // step-th position are added: this step parameter may be useless.)
   // Positions starting with delimiters aren't added.
   // The positions aren't sorted.
-  void addMinimizerPositions(const uchar *text, size_t beg, size_t end,
+  void addMinimizerPositions(const uchar *seq,
+			     const uchar *beg, const uchar *end,
 			     size_t step, size_t minimizerWindow);
 
   // Store positions in [seqBeg, seqEnd) where certain "words" start.

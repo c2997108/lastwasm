@@ -42,25 +42,24 @@ static unsigned maxBucketDepth(const CyclicSubsetSeed &seed,
   }
 }
 
-void SubsetSuffixArray::addMinimizerPositions(const uchar *text,
-					      size_t beg, size_t end,
+void SubsetSuffixArray::addMinimizerPositions(const uchar *seq,
+					      const uchar *beg,
+					      const uchar *end,
 					      size_t step,
 					      size_t minimizerWindow) {
-  if (beg >= end) return;
-  assert(step > 0);
   const CyclicSubsetSeed &seed = seeds[0];
   SubsetMinimizerFinder f;
-  f.init(seed, text + beg, text + end);
+  f.init(seed, beg, end);
 
-  while (true) {
-    if (f.isMinimizer(seed, text + beg, text + end, minimizerWindow)) {
+  while (beg < end) {
+    if (f.isMinimizer(seed, beg, end, minimizerWindow)) {
       size_t s = suffixArray.v.size();
       suffixArray.v.resize(s + posParts);
       PosPart *a = &suffixArray.v[s];
-      posSet(a, beg);
+      posSet(a, beg - seq);
     }
-    if (end - beg <= step) break;  // avoid overflow
-    beg += step;
+    size_t d = end - beg;
+    beg += d < step ? d : step;
   }
 }
 

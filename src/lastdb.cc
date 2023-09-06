@@ -237,7 +237,9 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
       if (args.minimizerWindow > 1) {
 	LOG("gathering...");
 	for (size_t i = 0; i < numOfSequences; ++i) {
-	  myIndex.addMinimizerPositions(seq, multi.seqBeg(i), multi.seqEnd(i),
+	  const uchar *beg = seq + multi.seqBeg(i);
+	  const uchar *end = seq + multi.seqEnd(i);
+	  myIndex.addMinimizerPositions(seq, beg, end,
 					args.indexStep, args.minimizerWindow);
 	}
       } else {
@@ -245,22 +247,26 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 	size_t count = 0;
 	LOG("counting...");
 	for (size_t i = 0; i < numOfSequences; ++i) {
-	  size_t end = multi.seqEnd(i);
-	  for (size_t j = multi.seqBeg(i); ; j += args.indexStep) {
-	    count += (subsetMap[seq[j]] < CyclicSubsetSeed::DELIMITER);
-	    if (end - j <= args.indexStep) break;
+	  const uchar *beg = seq + multi.seqBeg(i);
+	  const uchar *end = seq + multi.seqEnd(i);
+	  while (beg < end) {
+	    count += (subsetMap[*beg] < CyclicSubsetSeed::DELIMITER);
+	    size_t d = end - beg;
+	    beg += std::min(args.indexStep, d);
 	  }
 	}
 	LOG("gathering...");
 	PosPart *positions = myIndex.resizedPositions(count);
 	for (size_t i = 0; i < numOfSequences; ++i) {
-	  size_t end = multi.seqEnd(i);
-	  for (size_t j = multi.seqBeg(i); ; j += args.indexStep) {
-	    if (subsetMap[seq[j]] < CyclicSubsetSeed::DELIMITER) {
-	      posSet(positions, j);
+	  const uchar *beg = seq + multi.seqBeg(i);
+	  const uchar *end = seq + multi.seqEnd(i);
+	  while (beg < end) {
+	    if (subsetMap[*beg] < CyclicSubsetSeed::DELIMITER) {
+	      posSet(positions, beg - seq);
 	      positions += posParts;
 	    }
-	    if (end - j <= args.indexStep) break;
+	    size_t d = end - beg;
+	    beg += std::min(args.indexStep, d);
 	  }
 	}
       }
@@ -336,13 +342,14 @@ static void dump1(const std::string &dbName, const uchar *decode,
   for (size_t i = 0; i < m.finishedSequences(); ++i) {
     std::cout << ">@"[isFastq] << m.seqName(i) << '\n';
     std::streambuf *buf = std::cout.rdbuf();
+    size_t b = m.seqBeg(i);
     size_t e = m.seqEnd(i);
-    for (size_t j = m.seqBeg(i); j < e; ++j) {
+    for (size_t j = b; j < e; ++j) {
       buf->sputc(decode[s[j]]);
     }
     if (isFastq) {
       std::cout << "\n+\n";
-      std::cout.write((char *)m.qualityReader() + m.seqBeg(i), m.seqLen(i));
+      std::cout.write((char *)m.qualityReader() + b, e - b);
     }
     std::cout << '\n';
   }
