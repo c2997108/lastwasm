@@ -332,7 +332,7 @@ static size_t equalRange3(const PosPart *sufArray, size_t &beg, size_t &end,
 
 // use past results to speed up long matches?
 // could & probably should return the match depth
-void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
+void SubsetSuffixArray::match(size_t &beg, size_t &end,
 			      const uchar *queryPtr, BigSeq text,
 			      unsigned seedNum, size_t maxHits,
 			      size_t minDepth, size_t maxDepth) const {
@@ -357,8 +357,8 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
     subsetMap = seed.nextMap( subsetMap );
   }
 
-  size_t beg = offGet(bucketPtr);
-  size_t end = offGet(bucketPtr + myBucketSteps[depth]);
+  beg = offGet(bucketPtr);
+  end = offGet(bucketPtr + myBucketSteps[depth]);
 
   while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
@@ -413,9 +413,6 @@ void SubsetSuffixArray::match(const PosPart *&begPtr, const PosPart *&endPtr,
     ++depth;
     subsetMap = seed.nextMap( subsetMap );
   }
-
-  begPtr = sufArray + beg * posParts;
-  endPtr = sufArray + end * posParts;
 }
 
 void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,

@@ -621,19 +621,19 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 		   const uchar *qryPtr, unsigned seedNum) {
   const bool isOverlap = (args.globality && args.outputType == 1);
 
-  const PosPart *beg;
-  const PosPart *end;
+  size_t beg;
+  size_t end;
   sa.match(beg, end, qryPtr, dis.a, seedNum,
 	   args.oneHitMultiplicity, args.minHitDepth, args.maxHitDepth);
-  counts.matchCount += posCount(beg, end);
+  counts.matchCount += end - beg;
 
   size_t qryPos = qryPtr - dis.b;  // coordinate in the query sequence
   size_t maxAlignments = args.maxGaplessAlignmentsPerQueryPosition;
 
-  for (/* noop */; beg < end; beg += posParts) {
+  for (/* noop */; beg < end; ++beg) {
     if (maxAlignments == 0) break;
 
-    size_t refPos = posGet(beg);  // coordinate in the reference sequence
+    size_t refPos = sa.getPosition(beg);  // position in the reference sequence
     size_t diagonal = qryPos - refPos;
     if (dt.isCovered(diagonal, qryPos)) continue;
     ++counts.gaplessExtensionCount;

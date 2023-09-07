@@ -94,6 +94,10 @@ public:
     suffixArray.v.resize(numOfPositions * posParts);
   }
 
+  size_t getPosition(size_t i) const {
+    return posGet(suffixArray.m.begin() + i * posParts);
+  }
+
   // Set the i-th entry of the suffix array to x
   void setPosition(size_t i, size_t x) {
     posSet(&suffixArray.v[i * posParts], x);
@@ -130,10 +134,10 @@ public:
   // position in the query, such that there are at most maxHits
   // matches, and the match-depth is at least minDepth, or the
   // match-depth is maxDepth.  Return the range of matching indices
-  // via begPtr and endPtr.
-  void match( const PosPart *&begPtr, const PosPart *&endPtr,
-              const uchar *queryPtr, BigSeq text, unsigned seedNum,
-              size_t maxHits, size_t minDepth, size_t maxDepth ) const;
+  // via beg and end.
+  void match(size_t &beg, size_t &end,
+	     const uchar *queryPtr, BigSeq text, unsigned seedNum,
+	     size_t maxHits, size_t minDepth, size_t maxDepth) const;
 
   // Count matches of all sizes (up to maxDepth), starting at the
   // given position in the query.
