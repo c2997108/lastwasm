@@ -188,7 +188,7 @@ static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
   while (d < depth) {
     uchar subset = subsetMap[*textPtr];
     if (subset == CyclicSubsetSeed::DELIMITER) {
-      return bucketIndex + steps[d];  // d > 0
+      return offParts * (bucketIndex + steps[d]);  // d > 0
     }
     ++textPtr;
     ++d;
@@ -196,7 +196,7 @@ static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
     subsetMap = seed.nextMap(subsetMap);
   }
 
-  return bucketIndex + offParts;
+  return offParts * (bucketIndex + 1);
 }
 
 static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
@@ -272,7 +272,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
       buckPtr = buckBeg + bucketPos(text, seed, steps, depth, sa - posParts);
       saBeg = saEnd;
     }
-    buckBeg += steps[0];
+    buckBeg += offParts * steps[0];
   }
 
   for (; buckPtr <= buckBeg; buckPtr += offParts) {
@@ -283,7 +283,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 static void makeBucketStepsForOneSeed(size_t *steps, unsigned depth,
 				      const CyclicSubsetSeed &seed,
 				      size_t wordLength) {
-  size_t step = offParts;
+  size_t step = 1;
   steps[depth] = step;
 
   while (depth > 0) {
@@ -291,8 +291,7 @@ static void makeBucketStepsForOneSeed(size_t *steps, unsigned depth,
     if (depth < wordLength) {
       step = step * seed.restrictedSubsetCount(depth);
     } else {
-      step =
-	step * seed.unrestrictedSubsetCount(depth) + (depth > 0) * offParts;
+      step = step * seed.unrestrictedSubsetCount(depth) + (depth > 0);
       // Add one for delimiters, except when depth==0
     }
     steps[depth] = step;

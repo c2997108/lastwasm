@@ -94,11 +94,12 @@ public:
     suffixArray.v.resize(numOfPositions * posParts);
   }
 
+  // Get the i-th item in the suffix array
   size_t getPosition(size_t i) const {
     return posGet(suffixArray.m.begin() + i * posParts);
   }
 
-  // Set the i-th entry of the suffix array to x
+  // Set the i-th item of the suffix array to x
   void setPosition(size_t i, size_t x) {
     posSet(&suffixArray.v[i * posParts], x);
   }
@@ -147,7 +148,7 @@ public:
 
 private:
   std::vector<CyclicSubsetSeed> seeds;
-  std::vector<const OffPart *> bucketEnds;
+  std::vector<size_t> bucketEnds;
   std::vector<const size_t *> bucketStepEnds;
 
   VectorOrMmap<PosPart> suffixArray;  // sorted indices
@@ -171,16 +172,16 @@ private:
   void makeBucketSteps(const unsigned *bucketDepths, size_t wordLength);
 
   size_t bucketsSize() const {
-    size_t n = offParts;
+    size_t n = 1;
     for (size_t i = 0; i < seeds.size(); ++i) {
       n += bucketStepEnds[i][0];
     }
-    return n;
+    return n * offParts;
   }
 
   void initBucketEnds() {
     bucketEnds.resize(seeds.size());
-    const OffPart *p = &buckets[0];
+    size_t p = 0;
     for (size_t i = 0; i < seeds.size(); ++i) {
       bucketEnds[i] = p;
       p += bucketStepEnds[i][0];

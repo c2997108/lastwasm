@@ -346,27 +346,28 @@ void SubsetSuffixArray::match(size_t &beg, size_t &end,
   // match using buckets:
   size_t bucketDepth = maxBucketPrefix(seedNum);
   size_t startDepth = std::min( bucketDepth, maxDepth );
-  const OffPart *bucketPtr = bucketEnds[seedNum];
+  size_t bucketIdx = bucketEnds[seedNum];
   const size_t *myBucketSteps = bucketStepEnds[seedNum];
 
   while( depth < startDepth ){
     uchar subset = subsetMap[ queryPtr[depth] ];
     if( subset == CyclicSubsetSeed::DELIMITER ) break;
     ++depth;
-    bucketPtr += subset * myBucketSteps[depth];
+    bucketIdx += subset * myBucketSteps[depth];
     subsetMap = seed.nextMap( subsetMap );
   }
 
-  beg = offGet(bucketPtr);
-  end = offGet(bucketPtr + myBucketSteps[depth]);
+  const OffPart *bucks = buckets.begin();
+  beg = offGet(bucks + offParts * bucketIdx);
+  end = offGet(bucks + offParts * (bucketIdx + myBucketSteps[depth]));
 
   while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
     const uchar* oldMap = seed.prevMap( subsetMap );
     uchar subset = oldMap[ queryPtr[depth-1] ];
-    bucketPtr -= subset * myBucketSteps[depth];
-    size_t oldBeg = offGet(bucketPtr);
-    size_t oldEnd = offGet(bucketPtr + myBucketSteps[depth-1]);
+    bucketIdx -= subset * myBucketSteps[depth];
+    size_t oldBeg = offGet(bucks + offParts * bucketIdx);
+    size_t oldEnd = offGet(bucks + offParts * (bucketIdx + myBucketSteps[depth-1]));
     if( oldEnd - oldBeg > maxHits ) break;
     subsetMap = oldMap;
     beg = oldBeg;
@@ -424,10 +425,11 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
 
   // match using buckets:
   size_t bucketDepth = maxBucketPrefix(seedNum);
-  const OffPart *bucketPtr = bucketEnds[seedNum];
+  size_t bucketIdx = bucketEnds[seedNum];
   const size_t *myBucketSteps = bucketStepEnds[seedNum];
-  size_t beg = offGet(bucketPtr);
-  size_t end = offGet(bucketPtr + myBucketSteps[depth]);
+  const OffPart *bucks = buckets.begin();
+  size_t beg = offGet(bucks + offParts * bucketIdx);
+  size_t end = offGet(bucks + offParts * (bucketIdx + myBucketSteps[depth]));
 
   while( depth < bucketDepth ){
     if( beg == end ) return;
@@ -438,9 +440,9 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
     if( subset == CyclicSubsetSeed::DELIMITER ) return;
     ++depth;
     size_t step = myBucketSteps[depth];
-    bucketPtr += subset * step;
-    beg = offGet(bucketPtr);
-    end = offGet(bucketPtr + step);
+    bucketIdx += subset * step;
+    beg = offGet(bucks + offParts * bucketIdx);
+    end = offGet(bucks + offParts * (bucketIdx + step));
     subsetMap = seed.nextMap( subsetMap );
   }
 
