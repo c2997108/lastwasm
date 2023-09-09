@@ -54,28 +54,21 @@ using namespace mcf;
 typedef PosPart OffPart;
 const int offParts = posParts;
 
-inline size_t posGet(const PosPart *p) {
+inline size_t posGet(const PosPart *items, size_t index) {
+  items += index * posParts;
   size_t x = 0;
   for (int i = 0; i < posParts; ++i) {
-    size_t y = p[i];  // must convert to size_t before shifting!
+    size_t y = items[i];  // must convert to size_t before shifting!
     x += y << (i * sizeof(PosPart) * CHAR_BIT);
   }
   return x;
 }
 
-inline size_t posGet(const PosPart *p, size_t i) {
-  return posGet(p + i * posParts);
-}
-
-inline void posSet(PosPart *p, size_t value) {
+inline void posSet(PosPart *items, size_t index, size_t value) {
+  items += index * posParts;
   for (int i = 0; i < posParts; ++i) {
-    p[i] = value >> (i * sizeof(PosPart) * CHAR_BIT);
+    items[i] = value >> (i * sizeof(PosPart) * CHAR_BIT);
   }
-}
-
-inline size_t posCount(const PosPart *beg, const PosPart *end) {
-  size_t d = end - beg;
-  return d / posParts;  // faster if the dividend is unsigned?
 }
 
 class SubsetSuffixArray {
@@ -87,7 +80,7 @@ public:
   typedef unsigned indexT;
 #endif
 
-  struct Range {PosPart *beg; PosPart *end; size_t depth;};
+  struct Range {size_t beg; size_t end; size_t depth;};
 
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
@@ -105,7 +98,7 @@ public:
 
   // Set the i-th item of the suffix array to x
   void setPosition(size_t i, size_t x) {
-    posSet(&suffixArray.v[i * posParts], x);
+    posSet(&suffixArray.v[0], i, x);
   }
 
   // Store positions in [seqBeg, seqEnd) where certain "words" start.
@@ -192,24 +185,24 @@ private:
     }
   }
 
-  void sort2( const uchar* text, const CyclicSubsetSeed& seed,
-	      PosPart *beg, const uchar* subsetMap );
+  void sort2(const uchar *text, const CyclicSubsetSeed &seed,
+	     size_t beg, const uchar *subsetMap);
 
   void radixSort1(std::vector<Range> &rangeStack,
 		  const uchar *text, const uchar *subsetMap,
-		  PosPart *beg, PosPart *end, size_t depth);
+		  size_t beg, size_t end, size_t depth);
   void radixSort2(std::vector<Range> &rangeStack,
 		  const uchar *text, const uchar *subsetMap,
-		  PosPart *beg, PosPart *end, size_t depth);
+		  size_t beg, size_t end, size_t depth);
   void radixSort3(std::vector<Range> &rangeStack,
 		  const uchar *text, const uchar *subsetMap,
-		  PosPart *beg, PosPart *end, size_t depth);
+		  size_t beg, size_t end, size_t depth);
   void radixSort4(std::vector<Range> &rangeStack,
 		  const uchar *text, const uchar *subsetMap,
-		  PosPart *beg, PosPart *end, size_t depth);
+		  size_t beg, size_t end, size_t depth);
   void radixSortN(std::vector<Range> &rangeStack,
 		  const uchar *text, const uchar *subsetMap,
-		  PosPart *beg, PosPart *end, size_t depth,
+		  size_t beg, size_t end, size_t depth,
 		  unsigned subsetCount, size_t *bucketSize);
 
   void sortRanges(std::vector<Range> *stacks, size_t *bucketSizes,
@@ -239,31 +232,25 @@ private:
     chibiTable.v[index] = (value < UCHAR_MAX) ? value : 0;
   }
 
-  void setChildForward(const PosPart *from, const PosPart *to) {
+  void setChildForward(size_t from, size_t to) {
     if (to == from) return;
-    const PosPart *origin = &suffixArray.v[0];
-    size_t i = posCount(origin, from);
-    /**/ if (!childTable.v.empty()) childTable.v[i] = posCount(origin, to);
-    else if (!kiddyTable.v.empty()) setKiddy(i, posCount(from, to));
-    else if (!chibiTable.v.empty()) setChibi(i, posCount(from, to));
+    /**/ if (!childTable.v.empty()) childTable.v[from] = to;
+    else if (!kiddyTable.v.empty()) setKiddy(from, to - from);
+    else if (!chibiTable.v.empty()) setChibi(from, to - from);
   }
 
-  void setChildReverse(const PosPart *from, const PosPart *to) {
+  void setChildReverse(size_t from, size_t to) {
     if (to == from) return;
-    const PosPart *origin = &suffixArray.v[0];
-    size_t i = posCount(origin, from) - 1;
-    /**/ if (!childTable.v.empty()) childTable.v[i] = posCount(origin, to);
-    else if (!kiddyTable.v.empty()) setKiddy(i, posCount(to, from));
-    else if (!chibiTable.v.empty()) setChibi(i, posCount(to, from));
+    /**/ if (!childTable.v.empty()) childTable.v[from - 1] = to;
+    else if (!kiddyTable.v.empty()) setKiddy(from - 1, from - to);
+    else if (!chibiTable.v.empty()) setChibi(from - 1, from - to);
   }
 
-  bool isChildDirectionForward(const PosPart *beg) const {
-    const PosPart *origin = &suffixArray.v[0];
-    size_t i = posCount(origin, beg);
+  bool isChildDirectionForward(size_t beg) const {
     return
-      !childTable.v.empty() ? childTable.v[i] == 0 :
-      !kiddyTable.v.empty() ? kiddyTable.v[i] == USHRT_MAX :
-      !chibiTable.v.empty() ? chibiTable.v[i] == UCHAR_MAX : true;
+      !childTable.v.empty() ? childTable.v[beg] == 0 :
+      !kiddyTable.v.empty() ? kiddyTable.v[beg] == USHRT_MAX :
+      !chibiTable.v.empty() ? chibiTable.v[beg] == UCHAR_MAX : true;
   }
 };
 
