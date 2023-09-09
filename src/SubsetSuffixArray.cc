@@ -121,7 +121,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
   size_t wordLength = maxRestrictedSpan(&seeds[0], seeds.size());
   makeBucketSteps(&bucketDepths[0], wordLength);
-  buckets.m.open(baseName + ".bck", bucketsSize());
+  buckets.m.open(baseName + ".bck", offParts * bucketsSize());
   initBucketEnds();
 
   try{
@@ -180,7 +180,7 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
 			const size_t *steps, unsigned depth,
 			const PosPart *sa, size_t saPos) {
-  const uchar *textPtr = text + posGet(sa + posParts * saPos);
+  const uchar *textPtr = text + posGet(sa, saPos);
 
   size_t bucketIndex = 0;
   const uchar *subsetMap = seed.firstMap();
@@ -250,7 +250,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   }
 
   makeBucketSteps(&bucketDepths[0], wordLength);
-  buckets.v.resize(bucketsSize());
+  buckets.v.resize(offParts * bucketsSize());
   initBucketEnds();
 
   const PosPart *sa = suffixArray.begin();

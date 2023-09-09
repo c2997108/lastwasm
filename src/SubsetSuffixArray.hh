@@ -63,6 +63,10 @@ inline size_t posGet(const PosPart *p) {
   return x;
 }
 
+inline size_t posGet(const PosPart *p, size_t i) {
+  return posGet(p + i * posParts);
+}
+
 inline void posSet(PosPart *p, size_t value) {
   for (int i = 0; i < posParts; ++i) {
     p[i] = value >> (i * sizeof(PosPart) * CHAR_BIT);
@@ -96,7 +100,7 @@ public:
 
   // Get the i-th item in the suffix array
   size_t getPosition(size_t i) const {
-    return posGet(suffixArray.m.begin() + i * posParts);
+    return posGet(suffixArray.m.begin(), i);
   }
 
   // Set the i-th item of the suffix array to x
@@ -176,7 +180,7 @@ private:
     for (size_t i = 0; i < seeds.size(); ++i) {
       n += bucketStepEnds[i][0];
     }
-    return n * offParts;
+    return n;
   }
 
   void initBucketEnds() {
