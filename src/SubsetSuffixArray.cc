@@ -179,8 +179,8 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 
 static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
 			const size_t *steps, unsigned depth,
-			const PosPart *textPosPtr) {
-  const uchar *textPtr = text + posGet(textPosPtr);
+			const PosPart *sa, size_t saPos) {
+  const uchar *textPtr = text + posGet(sa + posParts * saPos);
 
   size_t bucketIndex = 0;
   const uchar *subsetMap = seed.firstMap();
@@ -204,11 +204,10 @@ static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
 			    OffPart *buckets, size_t buckBeg, size_t buckIdx,
 			    const PosPart *sa, size_t saBeg, size_t saEnd) {
   for (size_t i = saBeg; i < saEnd; ++i) {
-    size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa);
+    size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, i);
     for (; buckIdx < b; ++buckIdx) {
       offSet(buckets + offParts * buckIdx, i);
     }
-    sa += posParts;
   }
 }
 
@@ -220,10 +219,9 @@ static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
   if (numOfThreads > 1) {
     size_t len = (saEnd - saBeg + numOfThreads - 1) / numOfThreads;
     size_t mid = saBeg + len;
-    const PosPart *m = sa + posParts * len;
-    size_t b = buckBeg + bucketPos(text, seed, steps, depth, m - posParts);
+    size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, mid - 1);
     std::thread t(runThreads, text, seedPtr, steps, depth, buckets, buckBeg,
-		  b, m, mid, saEnd, numOfThreads - 1);
+		  b, sa, mid, saEnd, numOfThreads - 1);
     makeSomeBuckets(text, seed, steps, depth, buckets, buckBeg,
 		    buckIdx, sa, saBeg, mid);
     t.join();
@@ -269,8 +267,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     if (saEnd > saBeg) {
       runThreads(text, &seed, steps, depth, bucks, buckBeg,
 		 buckIdx, sa, saBeg, saEnd, numOfThreads);
-      sa += posParts * (saEnd - saBeg);
-      buckIdx = buckBeg + bucketPos(text, seed, steps, depth, sa - posParts);
+      buckIdx = buckBeg + bucketPos(text, seed, steps, depth, sa, saEnd - 1);
       saBeg = saEnd;
     }
     buckBeg += steps[0];
