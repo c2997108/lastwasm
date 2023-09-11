@@ -168,20 +168,16 @@ private:
 
   void makeBucketSteps(const unsigned *bucketDepths, size_t wordLength);
 
-  size_t bucketsSize() const {
-    size_t n = 1;
-    for (size_t i = 0; i < seeds.size(); ++i) {
-      n += bucketStepEnds[i][0];
-    }
-    return n;
-  }
+  size_t bucketsSize() const { return bucketEnds.back() + 1; }
 
   void initBucketEnds() {
-    bucketEnds.resize(seeds.size());
-    size_t p = 0;
-    for (size_t i = 0; i < seeds.size(); ++i) {
-      bucketEnds[i] = p;
-      p += bucketStepEnds[i][0];
+    size_t numOfSeeds = seeds.size();
+    bucketEnds.resize(numOfSeeds + 1);
+    size_t i = 0;
+    size_t x = 0;
+    while (bucketEnds[i] = x, i < numOfSeeds) {
+      x += bucketStepEnds[i][0];
+      ++i;
     }
   }
 

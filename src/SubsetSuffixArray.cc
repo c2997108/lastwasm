@@ -122,8 +122,8 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
   size_t wordLength = maxRestrictedSpan(&seeds[0], seeds.size());
   makeBucketSteps(&bucketDepths[0], wordLength);
-  buckets.m.open(baseName + ".bck", offParts * bucketsSize());
   initBucketEnds();
+  buckets.m.open(baseName + ".bck", offParts * bucketsSize());
 
   try{
     childTable.m.open( baseName + ".chi", indexedPositions );
@@ -252,8 +252,8 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   }
 
   makeBucketSteps(&bucketDepths[0], wordLength);
-  buckets.v.resize(offParts * bucketsSize());
   initBucketEnds();
+  buckets.v.resize(offParts * bucketsSize());
 
   const PosPart *sa = suffixArray.begin();
   OffPart *bucks = &buckets.v[0];
