@@ -14,9 +14,10 @@ static void err(const std::string &s) {
   throw std::runtime_error(s);
 }
 
-static void offSet(OffPart *p, size_t value) {
+static void offSet(OffPart *items, size_t index, size_t value) {
+  items += index * offParts;
   for (int i = 0; i < offParts; ++i) {
-    p[i] = value >> (i * sizeof(OffPart) * CHAR_BIT);
+    items[i] = value >> (i * sizeof(OffPart) * CHAR_BIT);
   }
 }
 
@@ -139,14 +140,15 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
 				 bool isAppendPrj, size_t textLength ) const{
-  assert(textLength > size());
+  size_t indexedPositions = size();
+  assert(textLength > indexedPositions);
 
   std::string fileName = baseName + ".prj";
   std::ofstream f( fileName.c_str(),
 		   isAppendPrj ? std::ios::app : std::ios::out );
 
   f << "totallength=" << textLength << '\n';
-  f << "specialcharacters=" << textLength - size() << '\n';
+  f << "specialcharacters=" << textLength - indexedPositions << '\n';
 
   for (size_t s = 0; s < seeds.size(); ++s) {
     f << "prefixlength=" << maxBucketPrefix(s) << '\n';
@@ -206,7 +208,7 @@ static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
   for (size_t i = saBeg; i < saEnd; ++i) {
     size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, i);
     for (; buckIdx < b; ++buckIdx) {
-      offSet(buckets + offParts * buckIdx, i);
+      offSet(buckets, buckIdx, i);
     }
   }
 }
@@ -274,7 +276,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   }
 
   for (; buckIdx <= buckBeg; ++buckIdx) {
-    offSet(bucks + offParts * buckIdx, saBeg);
+    offSet(bucks, buckIdx, saBeg);
   }
 }
 

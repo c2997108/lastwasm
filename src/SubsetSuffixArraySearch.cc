@@ -5,10 +5,11 @@
 
 using namespace cbrc;
 
-static size_t offGet(const OffPart *p) {
+static size_t offGet(const OffPart *items, size_t index) {
+  items += index * offParts;
   size_t x = 0;
   for (int i = 0; i < offParts; ++i) {
-    size_t y = p[i];  // must convert to size_t before shifting!
+    size_t y = items[i];  // must convert to size_t before shifting!
     x += y << (i * sizeof(OffPart) * CHAR_BIT);
   }
   return x;
@@ -354,16 +355,16 @@ void SubsetSuffixArray::match(size_t &beg, size_t &end,
   }
 
   const OffPart *bucks = buckets.begin();
-  beg = offGet(bucks + offParts * bucketIdx);
-  end = offGet(bucks + offParts * (bucketIdx + myBucketSteps[depth]));
+  beg = offGet(bucks, bucketIdx);
+  end = offGet(bucks, bucketIdx + myBucketSteps[depth]);
 
   while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
     const uchar* oldMap = seed.prevMap( subsetMap );
     uchar subset = oldMap[ queryPtr[depth-1] ];
     bucketIdx -= subset * myBucketSteps[depth];
-    size_t oldBeg = offGet(bucks + offParts * bucketIdx);
-    size_t oldEnd = offGet(bucks + offParts * (bucketIdx + myBucketSteps[depth-1]));
+    size_t oldBeg = offGet(bucks, bucketIdx);
+    size_t oldEnd = offGet(bucks, bucketIdx + myBucketSteps[depth-1]);
     if( oldEnd - oldBeg > maxHits ) break;
     subsetMap = oldMap;
     beg = oldBeg;
@@ -424,8 +425,8 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
   size_t bucketIdx = bucketEnds[seedNum];
   const size_t *myBucketSteps = bucketStepEnds[seedNum];
   const OffPart *bucks = buckets.begin();
-  size_t beg = offGet(bucks + offParts * bucketIdx);
-  size_t end = offGet(bucks + offParts * (bucketIdx + myBucketSteps[depth]));
+  size_t beg = offGet(bucks, bucketIdx);
+  size_t end = offGet(bucks, bucketIdx + myBucketSteps[depth]);
 
   while( depth < bucketDepth ){
     if( beg == end ) return;
@@ -437,8 +438,8 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
     ++depth;
     size_t step = myBucketSteps[depth];
     bucketIdx += subset * step;
-    beg = offGet(bucks + offParts * bucketIdx);
-    end = offGet(bucks + offParts * (bucketIdx + step));
+    beg = offGet(bucks, bucketIdx);
+    end = offGet(bucks, bucketIdx + step);
     subsetMap = seed.nextMap( subsetMap );
   }
 
