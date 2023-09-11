@@ -140,7 +140,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
 				 bool isAppendPrj, size_t textLength ) const{
-  size_t indexedPositions = size();
+  size_t indexedPositions = offGet(buckets.begin(), bucketEnds.back());
   assert(textLength > indexedPositions);
 
   std::string fileName = baseName + ".prj";

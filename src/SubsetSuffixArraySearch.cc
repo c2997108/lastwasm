@@ -5,16 +5,6 @@
 
 using namespace cbrc;
 
-static size_t offGet(const OffPart *items, size_t index) {
-  items += index * offParts;
-  size_t x = 0;
-  for (int i = 0; i < offParts; ++i) {
-    size_t y = items[i];  // must convert to size_t before shifting!
-    x += y << (i * sizeof(OffPart) * CHAR_BIT);
-  }
-  return x;
-}
-
 static size_t lowerBound(const PosPart *sufArray, size_t beg, size_t end,
 			 const BigPtr &textBase, const uchar *subsetMap,
 			 uchar subset) {

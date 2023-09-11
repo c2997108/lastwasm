@@ -64,6 +64,16 @@ inline size_t posGet(const PosPart *items, size_t index) {
   return x;
 }
 
+inline size_t offGet(const OffPart *items, size_t index) {
+  items += index * offParts;
+  size_t x = 0;
+  for (int i = 0; i < offParts; ++i) {
+    size_t y = items[i];  // must convert to size_t before shifting!
+    x += y << (i * sizeof(OffPart) * CHAR_BIT);
+  }
+  return x;
+}
+
 inline void posSet(PosPart *items, size_t index, size_t value) {
   items += index * posParts;
   for (int i = 0; i < posParts; ++i) {
@@ -84,8 +94,6 @@ public:
 
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
-
-  size_t size() const { return suffixArray.size() / posParts; }
 
   void resizePositions(size_t numOfPositions) {
     suffixArray.v.resize(numOfPositions * posParts);
