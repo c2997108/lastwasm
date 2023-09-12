@@ -40,7 +40,6 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   if (outputType > 3 && !isFullScore) extras.fullScore = seed.score;
 
   if( outputType == 7 ){
-    assert( seed.size > 0 );  // makes things easier to understand
     const int numOfTransitions = frameSize ? 9 : 5;
     std::vector<double> &ec = extras.expectedCounts;
     ec.resize(scoreMatrixRowSize * scoreMatrixRowSize + numOfTransitions);
