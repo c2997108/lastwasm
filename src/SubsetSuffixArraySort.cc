@@ -53,21 +53,23 @@ static void insertionSort(const uchar *text, const CyclicSubsetSeed &seed,
   }
 }
 
-void SubsetSuffixArray::sort2(const uchar* text, const CyclicSubsetSeed &seed,
-			      size_t beg, const uchar* subsetMap) {
+void SubsetSuffixArray::sort2(const uchar *text, const CyclicSubsetSeed &seed,
+			      size_t beg, const uchar *subsetMap) {
   PosPart *a = &suffixArray.v[0];
   size_t mid = beg + 1;
 
-  const uchar *s = text + posGet(a, beg);
-  const uchar *t = text + posGet(a, mid);
-  while( true ){
-    uchar x = subsetMap[ *s ];
-    uchar y = subsetMap[ *t ];
-    if( x != y ){
+  size_t b = posGet(a, beg);
+  size_t m = posGet(a, mid);
+  const uchar *s = text + b;
+  const uchar *t = text + m;
+  while (true) {
+    uchar x = subsetMap[*s];
+    uchar y = subsetMap[*t];
+    if (x != y) {
       if (x > y) posSwap(a, beg, mid);
       break;
     }
-    if( x == CyclicSubsetSeed::DELIMITER ) return;
+    if (x == CyclicSubsetSeed::DELIMITER) return;
     ++s;
     ++t;
     subsetMap = seed.nextMap(subsetMap);
@@ -358,6 +360,13 @@ static size_t numOfThreadsForOneRange(size_t numOfThreads,
   return (x * sizeOfThisRange + sizeOfAllRanges) / sizeOfAllRanges;
 }
 
+static unsigned getSubsetCount(const CyclicSubsetSeed &seed,
+			       size_t depth, unsigned wordLength) {
+  return (depth < wordLength)
+    ? seed.restrictedSubsetCount(depth)  // xxx inefficient
+    : seed.unrestrictedSubsetCount(depth);
+}
+
 void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 				   size_t *bucketSizes,
 				   const uchar *text,
@@ -416,8 +425,8 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
     const size_t minLength = 1;
     if( interval <= maxUnsortedInterval && depth >= minLength ) continue;
 
-    const uchar* textBase = text + depth;
-    const uchar* subsetMap = seed.subsetMap(depth);
+    const uchar *textBase = text + depth;
+    const uchar *subsetMap = seed.subsetMap(depth);
 
     if( childTable.v.empty() && kiddyTable.v.empty() && chibiTable.v.empty() ){
       if( interval < 10 ){  // ???
@@ -432,17 +441,10 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
       }
     }
 
-    unsigned subsetCount;
-    if (depth < wordLength) {
-      subsetCount = seed.restrictedSubsetCount(depth);
-      // xxx inefficient
-    } else {
-      subsetCount = seed.unrestrictedSubsetCount(depth);
-    }
-
+    unsigned subsetCount = getSubsetCount(seed, depth, wordLength);
     ++depth;
 
-    switch( subsetCount ){
+    switch (subsetCount) {
     case 1:  radixSort1(myStack, textBase, subsetMap, beg, end, depth); break;
     case 2:  radixSort2(myStack, textBase, subsetMap, beg, end, depth); break;
     case 3:  radixSort3(myStack, textBase, subsetMap, beg, end, depth); break;
@@ -473,8 +475,8 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
     size_t end = cumulativeCounts[i];
     pushRange(stacks[0], beg, end, 0);
     setChildReverse(end, beg);
-    sortRanges(&stacks[0], &bucketSizes[0], text, wordLength, seeds[i],
-	       maxUnsortedInterval, numOfThreads);
+    sortRanges(&stacks[0], &bucketSizes[0], text,
+	       wordLength, seeds[i], maxUnsortedInterval, numOfThreads);
     beg = end;
   }
 }
