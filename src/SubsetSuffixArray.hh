@@ -190,6 +190,7 @@ private:
   }
 
   void sort2(const uchar *text, const CyclicSubsetSeed &seed,
+	     size_t *positions, size_t origin,
 	     size_t beg, const uchar *subsetMap);
 
   void radixSort1(std::vector<Range> &rangeStack,
@@ -208,9 +209,19 @@ private:
 		  const uchar *text, const uchar *subsetMap,
 		  size_t beg, size_t end, size_t depth,
 		  unsigned subsetCount, size_t *bucketSizes);
+  void twoArraySort(std::vector<Range> &rangeStack,
+		    const uchar *text, const uchar *subsetMap,
+		    size_t origin, size_t beg, size_t end, size_t depth,
+		    unsigned subsetCount, size_t cacheSize,
+		    size_t *positions, uchar *seqCache);
 
-  void sortRanges(std::vector<Range> *stacks, size_t *bucketSizes,
-		  const uchar *text,
+  void sortOutOfPlace(std::vector<Range> &stack, size_t cacheSize,
+		      size_t *intCache, uchar *seqCache, const uchar *text,
+		      unsigned wordLength, const CyclicSubsetSeed &seed,
+		      size_t maxUnsortedInterval, size_t origin);
+
+  void sortRanges(std::vector<Range> *stacks, size_t cacheSize,
+		  size_t *intCache, uchar *seqCache, const uchar *text,
 		  unsigned wordLength, const CyclicSubsetSeed &seed,
 		  size_t maxUnsortedInterval, size_t numOfThreads);
 
@@ -250,11 +261,12 @@ private:
     else if (!chibiTable.v.empty()) setChibi(from - 1, from - to);
   }
 
-  void setChildLink(bool isFwd, size_t beg, size_t end, size_t lo, size_t hi) {
+  void setChildLink(bool isFwd, size_t origin, size_t beg, size_t end,
+		    size_t lo, size_t hi) {
     if (isFwd) {
-      if (hi < end) setChildForward(lo, hi);
+      if (hi < end) setChildForward(origin + lo, origin + hi);
     } else {
-      if (lo > beg) setChildReverse(hi, lo);
+      if (lo > beg) setChildReverse(origin + hi, origin + lo);
     }
   }
 
