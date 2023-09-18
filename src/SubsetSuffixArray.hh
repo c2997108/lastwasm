@@ -207,7 +207,7 @@ private:
   void radixSortN(std::vector<Range> &rangeStack,
 		  const uchar *text, const uchar *subsetMap,
 		  size_t beg, size_t end, size_t depth,
-		  unsigned subsetCount, size_t *bucketSize);
+		  unsigned subsetCount, size_t *bucketSizes);
 
   void sortRanges(std::vector<Range> *stacks, size_t *bucketSizes,
 		  const uchar *text,
