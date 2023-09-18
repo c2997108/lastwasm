@@ -280,6 +280,7 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
 				   const uchar *text, const uchar *subsetMap,
 				   size_t beg, size_t end, size_t depth,
 				   unsigned subsetCount, size_t *bucketSizes) {
+  const bool isChildFwd = isChildDirectionForward(beg);
   PosPart *a = &suffixArray.v[0];
   size_t bucketEnds[numOfBuckets];
 
@@ -305,31 +306,15 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
     size_t newPos = oldPos + bucketSizes[i];
     bucketEnds[i] = newPos;
     pushRange(rangeStack, oldPos, newPos, depth);
+    setChildLink(isChildFwd, beg, end, oldPos, newPos);
     oldPos = newPos;
   }
   // don't sort within the delimiter bucket:
   bucketEnds[CyclicSubsetSeed::DELIMITER] = end;
-
-  if( isChildDirectionForward( beg ) ){
-    size_t pos = beg;
-    for( unsigned i = 0; i < subsetCount; ++i ){
-      size_t nextPos = bucketEnds[i];
-      if( nextPos == end ) break;
-      setChildForward( pos, nextPos );
-      pos = nextPos;
-    }
-  }else{
-    size_t pos = end;
-    for( unsigned i = subsetCount; i > 0; --i ){
-      size_t nextPos = bucketEnds[i - 1];
-      if( nextPos == beg ) break;
-      setChildReverse( pos, nextPos );
-      pos = nextPos;
-    }
-  }
+  setChildLink(isChildFwd, beg, end, oldPos, end);
 
   // permute items into the correct buckets:
-  for (size_t i = beg; i < end; /* noop */) {
+  for (size_t i = beg; i < oldPos; /* noop */) {
     size_t position = posGet(a, i);
     unsigned subset;  // unsigned is faster than uchar!
     while (1) {

@@ -250,6 +250,14 @@ private:
     else if (!chibiTable.v.empty()) setChibi(from - 1, from - to);
   }
 
+  void setChildLink(bool isFwd, size_t beg, size_t end, size_t lo, size_t hi) {
+    if (isFwd) {
+      if (hi < end) setChildForward(lo, hi);
+    } else {
+      if (lo > beg) setChildReverse(hi, lo);
+    }
+  }
+
   bool isChildDirectionForward(size_t beg) const {
     return
       !childTable.v.empty() ? childTable.v[beg] == 0 :
