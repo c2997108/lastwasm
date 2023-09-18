@@ -261,7 +261,7 @@ The aim of genome-genome alignment is discussed in `our paper`_.  Here
 is a slow-and-sensitive recipe::
 
   lastdb -P8 -uNEAR humdb human_no_alt_analysis_set.fa
-  last-train -P8 --revsym -E0.05 -C2 humdb chimp.fa > humchi.train
+  last-train -P8 --revsym -C2 humdb chimp.fa > humchi.train
   lastal -E0.05 -C2 --split-f=MAF+ -p humchi.train humdb chimp.fa > humchi1.maf
 
 ``--revsym`` makes the substitution rates the same on both strands.
