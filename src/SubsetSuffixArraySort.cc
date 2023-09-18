@@ -223,7 +223,7 @@ void SubsetSuffixArray::radixSort4(std::vector<Range> &rangeStack,
 
   do {
     const size_t x = posGet(a, end2);
-    switch( subsetMap[ text[x] ] ){
+    switch (subsetMap[text[x]]) {
     case 0:
       posCpy(a, end2++, end1);
       posCpy(a, end1++, end0);
@@ -300,18 +300,18 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
 
   // get bucket ends, and put buckets on the stack to sort within them later:
   // (could push biggest bucket first, to ensure logarithmic stack growth)
-  size_t pos = beg;
-  for( unsigned i = 0; i < subsetCount; ++i ){
-    size_t nextPos = pos + bucketSizes[i];
-    pushRange( rangeStack, pos, nextPos, depth );
-    pos = nextPos;
-    bucketEnds[i] = pos;
+  size_t oldPos = beg;
+  for (unsigned i = 0; i < subsetCount; ++i) {
+    size_t newPos = oldPos + bucketSizes[i];
+    bucketEnds[i] = newPos;
+    pushRange(rangeStack, oldPos, newPos, depth);
+    oldPos = newPos;
   }
   // don't sort within the delimiter bucket:
   bucketEnds[CyclicSubsetSeed::DELIMITER] = end;
 
   if( isChildDirectionForward( beg ) ){
-    pos = beg;
+    size_t pos = beg;
     for( unsigned i = 0; i < subsetCount; ++i ){
       size_t nextPos = bucketEnds[i];
       if( nextPos == end ) break;
@@ -319,7 +319,7 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
       pos = nextPos;
     }
   }else{
-    pos = end;
+    size_t pos = end;
     for( unsigned i = subsetCount; i > 0; --i ){
       size_t nextPos = bucketEnds[i - 1];
       if( nextPos == beg ) break;
