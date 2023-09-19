@@ -29,12 +29,12 @@ struct Aligners {
 struct AlignmentText {
   // This holds the final text representation of an alignment, along
   // with data for sorting it.
-  SegmentPair::indexT strandNum;
-  SegmentPair::indexT queryBeg;
-  SegmentPair::indexT queryEnd;
+  unsigned strandNum;
+  size_t queryBeg;
+  size_t queryEnd;
   double score;
-  SegmentPair::indexT alnSize;
-  SegmentPair::indexT matches;
+  unsigned alnSize;
+  unsigned matches;
   char *text;  // seems to be a bit faster than std::vector<char>
 
   AlignmentText() {}

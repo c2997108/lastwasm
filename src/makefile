@@ -29,17 +29,17 @@ SubsetSuffixArraySort.o lastdb.o
 alignObj0 = Alphabet.o Centroid.o CyclicSubsetSeed.o			\
 LambdaCalculator.o ScoreMatrix.o SubsetMinimizerFinder.o		\
 TantanMasker.o dna_words_finder.o fileMap.o tantan.o			\
-LastalArguments.o GappedXdropAligner.o GappedXdropAlignerDna.o		\
-GappedXdropAlignerPssm.o GappedXdropAligner2qual.o			\
-GappedXdropAligner3frame.o GappedXdropAlignerFrame.o			\
-mcf_alignment_path_adder.o mcf_frameshift_xdrop_aligner.o		\
-mcf_gap_costs.o GeneticCode.o GreedyXdropAligner.o LastEvaluer.o	\
-OneQualityScoreMatrix.o QualityPssmMaker.o TwoQualityScoreMatrix.o	\
-cbrc_linalg.o mcf_substitution_matrix_stats.o				\
+LastalArguments.o Alignment.o AlignmentPot.o GappedXdropAligner.o	\
+GappedXdropAlignerDna.o GappedXdropAlignerPssm.o			\
+GappedXdropAligner2qual.o GappedXdropAligner3frame.o			\
+GappedXdropAlignerFrame.o mcf_alignment_path_adder.o			\
+mcf_frameshift_xdrop_aligner.o mcf_gap_costs.o GeneticCode.o		\
+GreedyXdropAligner.o LastEvaluer.o OneQualityScoreMatrix.o		\
+QualityPssmMaker.o SegmentPair.o SegmentPairPot.o			\
+TwoQualityScoreMatrix.o cbrc_linalg.o mcf_substitution_matrix_stats.o	\
 split/cbrc_unsplit_alignment.o split/last_split_options.o $(alpObj)
 
-alignObj4 = Alignment.o AlignmentPot.o AlignmentWrite.o			\
-MultiSequence.o MultiSequenceQual.o SegmentPair.o SegmentPairPot.o	\
+alignObj4 = AlignmentWrite.o MultiSequence.o MultiSequenceQual.o	\
 SubsetSuffixArray.o SubsetSuffixArraySearch.o lastal.o			\
 split/cbrc_split_aligner.o split/mcf_last_splitter.o
 
@@ -227,28 +227,30 @@ LastalArguments.o LastalArguments.o5 LastalArguments.o8: LastalArguments.cc Last
  version.hh
 lastal.o lastal.o5 lastal.o8: lastal.cc last.hh Alphabet.hh mcf_big_seq.hh \
  CyclicSubsetSeed.hh MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh \
- Mmap.hh fileMap.hh stringify.hh SequenceFormat.hh SubsetSuffixArray.hh \
- dna_words_finder.hh qualityScoreUtil.hh LastalArguments.hh \
- split/last_split_options.hh QualityPssmMaker.hh OneQualityScoreMatrix.hh \
+ Mmap.hh fileMap.hh stringify.hh SequenceFormat.hh \
+ SubsetMinimizerFinder.hh SubsetSuffixArray.hh dna_words_finder.hh \
+ qualityScoreUtil.hh LastalArguments.hh split/last_split_options.hh \
+ QualityPssmMaker.hh OneQualityScoreMatrix.hh \
  mcf_substitution_matrix_stats.hh TwoQualityScoreMatrix.hh LastEvaluer.hh \
  mcf_frameshift_xdrop_aligner.hh mcf_gap_costs.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
- GeneticCode.hh SubsetMinimizerFinder.hh AlignmentPot.hh Alignment.hh \
- Centroid.hh GappedXdropAligner.hh mcf_contiguous_queue.hh \
- mcf_reverse_queue.hh mcf_simd.hh GreedyXdropAligner.hh SegmentPair.hh \
- SegmentPairPot.hh ScoreMatrix.hh TantanMasker.hh tantan.hh \
- DiagonalTable.hh gaplessXdrop.hh gaplessPssmXdrop.hh \
- gaplessTwoQualityXdrop.hh zio.hh mcf_zstream.hh threadUtil.hh \
- split/mcf_last_splitter.hh split/cbrc_split_aligner.hh \
- split/cbrc_unsplit_alignment.hh split/cbrc_int_exponentiator.hh \
- Alphabet.hh MultiSequence.hh split/last_split_options.hh version.hh
+ GeneticCode.hh AlignmentPot.hh Alignment.hh Centroid.hh \
+ GappedXdropAligner.hh mcf_contiguous_queue.hh mcf_reverse_queue.hh \
+ mcf_simd.hh GreedyXdropAligner.hh SegmentPair.hh SegmentPairPot.hh \
+ ScoreMatrix.hh TantanMasker.hh tantan.hh DiagonalTable.hh \
+ gaplessXdrop.hh gaplessPssmXdrop.hh gaplessTwoQualityXdrop.hh zio.hh \
+ mcf_zstream.hh threadUtil.hh split/mcf_last_splitter.hh \
+ split/cbrc_split_aligner.hh split/cbrc_unsplit_alignment.hh \
+ split/cbrc_int_exponentiator.hh Alphabet.hh MultiSequence.hh \
+ split/last_split_options.hh version.hh
 LastdbArguments.o LastdbArguments.o5 LastdbArguments.o8: LastdbArguments.cc LastdbArguments.hh \
  SequenceFormat.hh stringify.hh getoptUtil.hh version.hh
 lastdb.o lastdb.o5 lastdb.o8: lastdb.cc last.hh Alphabet.hh mcf_big_seq.hh \
  CyclicSubsetSeed.hh MultiSequence.hh ScoreMatrixRow.hh VectorOrMmap.hh \
- Mmap.hh fileMap.hh stringify.hh SequenceFormat.hh SubsetSuffixArray.hh \
- dna_words_finder.hh qualityScoreUtil.hh LastdbArguments.hh \
- TantanMasker.hh tantan.hh zio.hh mcf_zstream.hh threadUtil.hh version.hh
+ Mmap.hh fileMap.hh stringify.hh SequenceFormat.hh \
+ SubsetMinimizerFinder.hh SubsetSuffixArray.hh dna_words_finder.hh \
+ qualityScoreUtil.hh LastdbArguments.hh TantanMasker.hh tantan.hh zio.hh \
+ mcf_zstream.hh threadUtil.hh version.hh
 LastEvaluer.o LastEvaluer.o5 LastEvaluer.o8: LastEvaluer.cc LastEvaluer.hh ScoreMatrixRow.hh \
  mcf_frameshift_xdrop_aligner.hh mcf_gap_costs.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
@@ -284,7 +286,7 @@ SubsetMinimizerFinder.o SubsetMinimizerFinder.o5 SubsetMinimizerFinder.o8: Subse
  SubsetMinimizerFinder.hh CyclicSubsetSeed.hh
 SubsetSuffixArray.o SubsetSuffixArray.o5 SubsetSuffixArray.o8: SubsetSuffixArray.cc SubsetSuffixArray.hh \
  CyclicSubsetSeed.hh dna_words_finder.hh mcf_big_seq.hh VectorOrMmap.hh \
- Mmap.hh fileMap.hh stringify.hh SubsetMinimizerFinder.hh io.hh
+ Mmap.hh fileMap.hh stringify.hh io.hh
 SubsetSuffixArraySearch.o SubsetSuffixArraySearch.o5 SubsetSuffixArraySearch.o8: SubsetSuffixArraySearch.cc \
  SubsetSuffixArray.hh CyclicSubsetSeed.hh dna_words_finder.hh \
  mcf_big_seq.hh VectorOrMmap.hh Mmap.hh fileMap.hh stringify.hh

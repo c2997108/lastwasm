@@ -58,8 +58,8 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   if( score == -INF ) return;  // maybe unnecessary?
 
   // convert left-extension coordinates to sequence coordinates:
-  SegmentPair::indexT seedBeg1 = seed.beg1();
-  SegmentPair::indexT seedBeg2 = aaToDna( seed.beg2(), frameSize );
+  size_t seedBeg1 = seed.beg1();
+  size_t seedBeg2 = aaToDna(seed.beg2(), frameSize);
   for( IT(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
     i->start1 = seedBeg1 - i->start1 - i->size;
     // careful: i->start2 might be -1 (reverse frameshift)
@@ -78,8 +78,8 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   if( score == -INF ) return;  // maybe unnecessary?
 
   // convert right-extension coordinates to sequence coordinates:
-  SegmentPair::indexT seedEnd1 = seed.end1();
-  SegmentPair::indexT seedEnd2 = aaToDna( seed.end2(), frameSize );
+  size_t seedEnd1 = seed.end1();
+  size_t seedEnd2 = aaToDna(seed.end2(), frameSize);
   for( IT(SegmentPair) i = forwardBlocks.begin(); i < forwardBlocks.end();
        ++i ){
     i->start1 = seedEnd1 + i->start1;
