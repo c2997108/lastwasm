@@ -17,8 +17,6 @@ namespace cbrc {
 typedef MultiSequence::indexT indexT;
 
 const size_t posSize = sizeof(PosPart) * posParts;
-const size_t offSize = sizeof(OffPart) * offParts;
-
 const size_t posLimit = size_t(-1) >> ((sizeof(size_t) - posSize) * CHAR_BIT);
 
 inline void err(const char *s) { throw std::runtime_error(s); }

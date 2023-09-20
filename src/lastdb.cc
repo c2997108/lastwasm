@@ -305,20 +305,19 @@ static size_t maxLettersPerVolume(const LastdbArguments &args,
 				  const DnaWordsFinder &wordsFinder,
 				  size_t qualityCodesPerLetter,
 				  unsigned numOfSeeds) {
-  double b = args.minIndexedPositionsPerBucket;
-  double x = posSize + offSize / b;  // bytes per indexed position
-  if (wordsFinder.wordLength) {
-    x = x * wordsFinder.numOfMatchedWords / wordsFinder.wordLookup.size();
-  } else {
-    x *= numOfSeeds;
-    if (args.minimizerWindow > 1) {
-      x = x * 2 / (args.minimizerWindow + 1);
-    } else {
-      x /= args.indexStep;
-    }
-  }
-  double y = args.volumeSize / (1 + qualityCodesPerLetter + x);
-  if (y < posLimit) return y;
+  // sequence bytes per position
+  double s = 1.0 * args.bitsPerBase / CHAR_BIT + qualityCodesPerLetter;
+
+  // fraction of postions that are indexed:
+  double f = wordsFinder.wordLength
+    ? 1.0 * wordsFinder.numOfMatchedWords / wordsFinder.wordLookup.size()
+    : 2.0 * numOfSeeds / (args.minimizerWindow + 1) / args.indexStep;
+
+  double g = f * (1 + 1.0 / args.minIndexedPositionsPerBucket);
+
+  double n = args.volumeSize / (s + g * posSize);
+  if (n < posLimit) return n;
+
   return posLimit;
 }
 
