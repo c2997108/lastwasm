@@ -1339,8 +1339,8 @@ static void readPrjFile(const std::string& baseName,
 			std::string& alphabetLetters,
 			size_t& seqCount,
 			size_t& volumes,
-			int& bitsPerBase) {
-  size_t fileBitsPerInt = 32;
+			int& bitsPerBase,
+			int& bitsPerInt) {
   seqCount = volumes = -1;
 
   std::string fileName = baseName + ".prj";
@@ -1354,15 +1354,15 @@ static void readPrjFile(const std::string& baseName,
     if (word == "alphabet") iss >> alphabetLetters;
     if (word == "numofsequences") iss >> seqCount;
     if (word == "volumes") iss >> volumes;
-    if (word == "integersize") iss >> fileBitsPerInt;
+    if (word == "integersize") iss >> bitsPerInt;
     if (word == "symbolsize") iss >> bitsPerBase;
   }
 
   if (alphabetLetters != "ACGT") err("can't read file: " + fileName);
 
-  if (fileBitsPerInt != sizeof(MultiSequence::indexT) * CHAR_BIT) {
-    if (fileBitsPerInt == 32) err("please use last-split for " + baseName);
-    if (fileBitsPerInt == 64) err("please use last-split8 for " + baseName);
+  if (bitsPerInt != sizeof(MultiSequence::indexT) * CHAR_BIT) {
+    if (bitsPerInt == 32) err("please use last-split for " + baseName);
+    if (bitsPerInt == 64) err("please use last-split8 for " + baseName);
     err("weird integersize in " + fileName);
   }
 }
@@ -1389,14 +1389,16 @@ void SplitAlignerParams::readGenome(const std::string &baseName) {
   std::string alphabetLetters;
   size_t seqCount, volumes;
   int bitsPerBase = CHAR_BIT;
-  readPrjFile(baseName, alphabetLetters, seqCount, volumes, bitsPerBase);
+  int bitsPerInt = 32;
+  readPrjFile(baseName, alphabetLetters, seqCount, volumes, bitsPerBase,
+	      bitsPerInt);
 
   if (volumes + 1 > 0 && volumes > 1) {
     if (volumes > maxGenomeVolumes()) err("too many volumes: " + baseName);
     for (size_t i = 0; i < volumes; ++i) {
       std::string b = baseName + stringify(i);
       size_t c, v;
-      readPrjFile(b, alphabetLetters, c, v, bitsPerBase);
+      readPrjFile(b, alphabetLetters, c, v, bitsPerBase, bitsPerInt);
       readGenomeVolume(b, c, i, bitsPerBase);
     }
   } else {

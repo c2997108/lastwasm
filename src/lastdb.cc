@@ -356,7 +356,7 @@ static void dump(const std::string &dbName) {
   std::string alphabetLetters;
   unsigned volumes = -1;
   size_t seqCount = -1;
-  size_t bitsPerInt = 4 * CHAR_BIT;
+  int bitsPerInt = 0;
   int bitsPerBase = CHAR_BIT;
   sequenceFormat::Enum fmt = sequenceFormat::fasta;
   std::string line, word;
@@ -373,7 +373,7 @@ static void dump(const std::string &dbName) {
     if (word == "symbolsize") iss >> bitsPerBase;
   }
   if (alphabetLetters.empty()) ERR("can't read file: " + dbName + ".prj");
-  size_t b = bitsPerInt / CHAR_BIT;
+  int b = bitsPerInt / CHAR_BIT;
   if (posSize > 4 && b <= 4) ERR("please use lastdb for " + dbName);
   if (posSize <= 4 && b > 4) ERR("please use lastdb5 for " + dbName);
   Alphabet alph;

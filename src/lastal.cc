@@ -376,11 +376,11 @@ static void calculateScoreStatistics(const std::string& matrixName,
 void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
 		  size_t &minSeedLimit, bool &isKeepRefLowercase,
 		  int &refTantanSetting, int &refStrand, countT &numOfRefSeqs,
-		  countT &refLetters, countT &refMaxSeqLen, int &bitsPerBase) {
+		  countT &refLetters, countT &refMaxSeqLen, int &bitsPerBase,
+		  int &bitsPerInt) {
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   unsigned version = 0;
-  size_t fileBitsPerInt = 32;
   std::string alphabetLetters;
   std::string trigger = "#lastal";
 
@@ -406,7 +406,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     if( word == "minimizerwindow" ) iss >> refMinimizerWindow;
     if( word == "volumes" ) iss >> numOfVolumes;
     if( word == "numofindexes" ) iss >> numOfIndexes;
-    if( word == "integersize" ) iss >> fileBitsPerInt;
+    if( word == "integersize" ) iss >> bitsPerInt;
     if( word == "symbolsize" ) iss >> bitsPerBase;
   }
 
@@ -422,10 +422,10 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
   if( version < 294 && version > 0)
     ERR( "the lastdb files are old: please re-run lastdb" );
 
-  if (fileBitsPerInt != posSize * CHAR_BIT) {
-    if (fileBitsPerInt == 32) ERR("please use lastal for " + fileName);
-    if (fileBitsPerInt == 40) ERR("please use lastal5 for " + fileName);
-    if (fileBitsPerInt == 64) ERR("please use lastal8 for " + fileName);
+  if (bitsPerInt != posSize * CHAR_BIT) {
+    if (bitsPerInt == 32) ERR("please use lastal for " + fileName);
+    if (bitsPerInt == 40) ERR("please use lastal5 for " + fileName);
+    if (bitsPerInt == 64) ERR("please use lastal8 for " + fileName);
     ERR("weird integersize in " + fileName);
   }
 
@@ -1495,9 +1495,10 @@ void lastal( int argc, char** argv ){
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
   int bitsPerBase = CHAR_BIT;
+  int bitsPerInt = 32;
   readOuterPrj(args.lastdbName + ".prj", refMinimizerWindow, minSeedLimit,
-	       isKeepRefLowercase, refTantanSetting, refStrand,
-	       numOfRefSeqs, refLetters, refMaxSeqLen, bitsPerBase);
+	       isKeepRefLowercase, refTantanSetting, refStrand, numOfRefSeqs,
+	       refLetters, refMaxSeqLen, bitsPerBase, bitsPerInt);
   bool isDna = (alph.letters == alph.dna);
   bool isProtein = alph.isProtein();
 
