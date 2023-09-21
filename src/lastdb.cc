@@ -329,10 +329,11 @@ static bool isRoomToDuplicateTheLastSequence(const MultiSequence &multi,
 }
 
 static void dump1(const std::string &dbName, const uchar *decode,
-		  size_t seqCount, bool isFastq, int bitsPerBase) {
+		  size_t seqCount, bool isFastq, int bitsPerBase,
+		  int bitsPerInt) {
   if (seqCount + 1 == 0) ERR("can't read file: " + dbName + ".prj");
   MultiSequence m;
-  m.fromFiles(dbName, seqCount, isFastq, bitsPerBase == 4);
+  m.fromFiles(dbName, seqCount, isFastq, bitsPerBase == 4, bitsPerInt == 32);
   BigSeq s = m.seqPtr();
   for (size_t i = 0; i < m.finishedSequences(); ++i) {
     std::cout << ">@"[isFastq] << m.seqName(i) << '\n';
@@ -353,6 +354,7 @@ static void dump1(const std::string &dbName, const uchar *decode,
 static void dump(const std::string &dbName) {
   std::ios_base::sync_with_stdio(false);  // makes it much faster!
   std::string alphabetLetters;
+  int version = 0;
   unsigned volumes = -1;
   size_t seqCount = -1;
   int bitsPerInt = 0;
@@ -364,6 +366,7 @@ static void dump(const std::string &dbName) {
   while (getline(file, line)) {
     std::istringstream iss(line);
     getline(iss, word, '=');
+    if (word == "version") iss >> version;
     if (word == "alphabet") iss >> alphabetLetters;
     if (word == "numofsequences") iss >> seqCount;
     if (word == "sequenceformat") iss >> fmt;
@@ -372,6 +375,7 @@ static void dump(const std::string &dbName) {
     if (word == "symbolsize") iss >> bitsPerBase;
   }
   if (alphabetLetters.empty()) ERR("can't read file: " + dbName + ".prj");
+  if (bitsPerInt < 1 && version < 999) bitsPerInt = 32;
   int b = bitsPerInt / CHAR_BIT;
   if (posSize > 4 && b <= 4) ERR("please use lastdb for " + dbName);
   if (posSize <= 4 && b > 4) ERR("please use lastdb5 for " + dbName);
@@ -379,7 +383,7 @@ static void dump(const std::string &dbName) {
   alph.init(alphabetLetters, bitsPerBase == 4);
   bool isFastq = (fmt != sequenceFormat::fasta);
   if (volumes + 1 == 0) {
-    dump1(dbName, alph.decode, seqCount, isFastq, bitsPerBase);
+    dump1(dbName, alph.decode, seqCount, isFastq, bitsPerBase, bitsPerInt);
   } else {
     for (unsigned i = 0; i < volumes; ++i) {
       std::string volName = dbName + stringify(i);
@@ -391,7 +395,7 @@ static void dump(const std::string &dbName) {
 	getline(iss, word, '=');
 	if (word == "numofsequences") iss >> seqCount;
       }
-      dump1(volName, alph.decode, seqCount, isFastq, bitsPerBase);
+      dump1(volName, alph.decode, seqCount, isFastq, bitsPerBase, bitsPerInt);
     }
   }
 }

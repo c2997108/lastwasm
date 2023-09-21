@@ -44,7 +44,7 @@ class MultiSequence{
 
   // read seqCount finished sequences, and their names, from binary files
   void fromFiles(const std::string &baseName, size_t seqCount,
-		 size_t qualitiesPerLetter, bool is4bit);
+		 size_t qualitiesPerLetter, bool is4bit, bool isSmallCoords);
 
   // write all the finished sequences and their names to binary files
   void toFiles(const std::string &baseName, bool is4bit) const;

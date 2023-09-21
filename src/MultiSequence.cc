@@ -38,7 +38,8 @@ void MultiSequence::reinitForAppending(){
 }
 
 void MultiSequence::fromFiles(const std::string &baseName, size_t seqCount,
-			      size_t qualitiesPerLetter, bool is4bit) {
+			      size_t qualitiesPerLetter, bool is4bit,
+			      bool isSmallCoords) {
   ends.m.open( baseName + ".ssp", seqCount + 1 );
   seq.m.open(baseName + ".tis", (ends.m.back() + is4bit) / (is4bit + 1));
   theSeqPtr.beg = seq.m.begin();

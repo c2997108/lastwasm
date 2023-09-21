@@ -380,7 +380,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
 		  int &bitsPerInt) {
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
-  unsigned version = 0;
+  int version = 0;
   std::string alphabetLetters;
   std::string trigger = "#lastal";
 
@@ -421,6 +421,8 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
   if( !f ) ERR( "can't read file: " + fileName );
   if( version < 294 && version > 0)
     ERR( "the lastdb files are old: please re-run lastdb" );
+
+  if (bitsPerInt < 1 && version < 999) bitsPerInt = 32;
 
   if (bitsPerInt != posSize * CHAR_BIT) {
     if (bitsPerInt == 32) ERR("please use lastal for " + fileName);
@@ -1353,7 +1355,7 @@ void readIndex(const std::string &baseName, size_t seqCount, int bitsPerBase,
   LOG( "reading " << baseName << "..." );
   refSeqs.fromFiles(baseName, seqCount,
 		    referenceFormat != sequenceFormat::fasta,
-		    bitsPerBase == 4);
+		    bitsPerBase == 4, bitsPerInt == 32);
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     if( numOfIndexes > 1 ){
       suffixArrays[x].fromFiles(baseName + char('a' + x),
@@ -1497,7 +1499,7 @@ void lastal( int argc, char** argv ){
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
   int bitsPerBase = CHAR_BIT;
-  int bitsPerInt = 32;
+  int bitsPerInt = 0;
   readOuterPrj(args.lastdbName + ".prj", refMinimizerWindow, minSeedLimit,
 	       isKeepRefLowercase, refTantanSetting, refStrand, numOfRefSeqs,
 	       refLetters, refMaxSeqLen, bitsPerBase, bitsPerInt);

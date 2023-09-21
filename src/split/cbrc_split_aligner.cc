@@ -1341,6 +1341,7 @@ static void readPrjFile(const std::string& baseName,
 			size_t& volumes,
 			int& bitsPerBase,
 			int& bitsPerInt) {
+  int version = 0;
   seqCount = volumes = -1;
 
   std::string fileName = baseName + ".prj";
@@ -1351,6 +1352,7 @@ static void readPrjFile(const std::string& baseName,
   while (getline(f, line)) {
     std::istringstream iss(line);
     getline(iss, word, '=');
+    if (word == "version") iss >> version;
     if (word == "alphabet") iss >> alphabetLetters;
     if (word == "numofsequences") iss >> seqCount;
     if (word == "volumes") iss >> volumes;
@@ -1359,6 +1361,8 @@ static void readPrjFile(const std::string& baseName,
   }
 
   if (alphabetLetters != "ACGT") err("can't read file: " + fileName);
+
+  if (bitsPerInt < 1 && version < 999) bitsPerInt = 32;
 
   if (bitsPerInt != sizeof(MultiSequence::indexT) * CHAR_BIT) {
     if (bitsPerInt == 32) err("please use last-split for " + baseName);
@@ -1370,10 +1374,12 @@ static void readPrjFile(const std::string& baseName,
 void SplitAlignerParams::readGenomeVolume(const std::string &baseName,
 					  size_t seqCount,
 					  size_t volumeNumber,
-					  int bitsPerBase) {
+					  int bitsPerBase,
+					  int bitsPerInt) {
   if (seqCount + 1 == 0) err("can't read: " + baseName);
 
-  genome[volumeNumber].fromFiles(baseName, seqCount, 0, bitsPerBase == 4);
+  genome[volumeNumber].fromFiles(baseName, seqCount, 0, bitsPerBase == 4,
+				 bitsPerInt == 32);
 
   for (unsigned long long i = 0; i < seqCount; ++i) {
     char s = genome[volumeNumber].strand(i);
@@ -1389,7 +1395,7 @@ void SplitAlignerParams::readGenome(const std::string &baseName) {
   std::string alphabetLetters;
   size_t seqCount, volumes;
   int bitsPerBase = CHAR_BIT;
-  int bitsPerInt = 32;
+  int bitsPerInt = 0;
   readPrjFile(baseName, alphabetLetters, seqCount, volumes, bitsPerBase,
 	      bitsPerInt);
 
@@ -1399,10 +1405,10 @@ void SplitAlignerParams::readGenome(const std::string &baseName) {
       std::string b = baseName + stringify(i);
       size_t c, v;
       readPrjFile(b, alphabetLetters, c, v, bitsPerBase, bitsPerInt);
-      readGenomeVolume(b, c, i, bitsPerBase);
+      readGenomeVolume(b, c, i, bitsPerBase, bitsPerInt);
     }
   } else {
-    readGenomeVolume(baseName, seqCount, 0, bitsPerBase);
+    readGenomeVolume(baseName, seqCount, 0, bitsPerBase, bitsPerInt);
   }
 
   alphabet.init(alphabetLetters, bitsPerBase == 4);
