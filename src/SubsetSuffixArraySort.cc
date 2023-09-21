@@ -281,7 +281,7 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
 				   unsigned subsetCount, size_t *bucketSizes) {
   const bool isChildFwd = isChildDirectionForward(beg);
   PosPart *a = &suffixArray.v[0];
-  size_t bucketEnds[numOfBuckets];
+  size_t whereTo[numOfBuckets];
 
   // get bucket sizes (i.e. letter counts):
   // The intermediate oracle array makes it faster (see "Engineering
@@ -298,36 +298,34 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
     }
   }
 
-  // get bucket ends, and put buckets on the stack to sort within them later:
-  // (could push biggest bucket first, to ensure logarithmic stack growth)
-  size_t oldPos = beg;
+  size_t pos = beg;
   for (unsigned i = 0; i < subsetCount; ++i) {
-    size_t newPos = oldPos + bucketSizes[i];
-    bucketEnds[i] = newPos;
-    pushRange(rangeStack, oldPos, newPos, depth);
-    setChildLink(isChildFwd, 0, beg, end, oldPos, newPos);
-    oldPos = newPos;
+    pos += bucketSizes[i];
+    whereTo[i] = pos;
   }
-  // don't sort within the delimiter bucket:
-  bucketEnds[CyclicSubsetSeed::DELIMITER] = end;
-  setChildLink(isChildFwd, 0, beg, end, oldPos, end);
+  whereTo[CyclicSubsetSeed::DELIMITER] = end;
 
   // permute items into the correct buckets:
-  for (size_t i = beg; i < oldPos; /* noop */) {
+  for (size_t i = beg; i < pos; /* noop */) {
     size_t position = posGet(a, i);
     unsigned subset;  // unsigned is faster than uchar!
     while (1) {
       subset = subsetMap[text[position]];
-      size_t j = --bucketEnds[subset];
+      size_t j = --whereTo[subset];
       if (j <= i) break;
       size_t p = posGet(a, j);
       posSet(a, j, position);
       position = p;
     }
     posSet(a, i, position);
-    i += bucketSizes[subset];
+    size_t j = i + bucketSizes[subset];
     bucketSizes[subset] = 0;  // reset it so we can reuse it
+    pushRange(rangeStack, i, j, depth);
+    setChildLink(isChildFwd, 0, beg, end, i, j);
+    i = j;
   }
+
+  setChildLink(isChildFwd, 0, beg, end, pos, end);
 }
 
 void SubsetSuffixArray::twoArraySort(std::vector<Range> &rangeStack,
@@ -337,7 +335,7 @@ void SubsetSuffixArray::twoArraySort(std::vector<Range> &rangeStack,
 				     size_t cacheSize,
 				     size_t *positions, uchar *seqCache) {
   const bool isChildFwd = isChildDirectionForward(origin + beg);
-  size_t bucketEnds[numOfBuckets];
+  size_t whereTo[numOfBuckets];
   size_t *bucketSizes = positions + cacheSize;
   size_t *positions2 = bucketSizes + numOfBuckets;
 
@@ -352,17 +350,17 @@ void SubsetSuffixArray::twoArraySort(std::vector<Range> &rangeStack,
   for (unsigned i = 0; i < subsetCount; ++i) {
     size_t newPos = oldPos + bucketSizes[i];
     bucketSizes[i] = 0;  // reset it so we can reuse it
-    bucketEnds[i] = oldPos;
+    whereTo[i] = oldPos;
     pushRange(rangeStack, oldPos, newPos, depth);
     setChildLink(isChildFwd, origin, beg, end, oldPos, newPos);
     oldPos = newPos;
   }
   // don't sort within the delimiter bucket:
-  bucketEnds[CyclicSubsetSeed::DELIMITER] = oldPos;
+  whereTo[CyclicSubsetSeed::DELIMITER] = oldPos;
   setChildLink(isChildFwd, origin, beg, end, oldPos, end);
 
   for (size_t i = beg; i < end; ++i) {
-    positions2[bucketEnds[seqCache[i]]++] = positions[i];
+    positions2[whereTo[seqCache[i]]++] = positions[i];
   }
   memcpy(positions + beg, positions2 + beg, (end - beg) * sizeof(size_t));
 }

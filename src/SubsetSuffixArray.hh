@@ -174,7 +174,7 @@ private:
   size_t maxBucketPrefix(unsigned seedNum) const
   { return bucketStepEnds[seedNum + 1] - bucketStepEnds[seedNum] - 1; }
 
-  void makeBucketSteps(const unsigned *bucketDepths, size_t wordLength);
+  void makeAllBucketSteps(const unsigned *bucketDepths, size_t wordLength);
 
   size_t bucketsSize() const { return bucketEnds.back() + 1; }
 
