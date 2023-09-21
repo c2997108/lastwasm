@@ -129,7 +129,7 @@ public:
 		   size_t minPositionsPerBucket, unsigned bucketDepth,
 		   size_t numOfThreads);
 
-  void fromFiles(const std::string &baseName,
+  void fromFiles(const std::string &baseName, int bitsPerInt,
 		 bool isMaskLowercase, const uchar letterCode[],
 		 const std::string &mainSequenceAlphabet);
 

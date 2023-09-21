@@ -71,6 +71,7 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
 }
 
 void SubsetSuffixArray::fromFiles( const std::string& baseName,
+				   int bitsPerInt,
 				   bool isMaskLowercase,
 				   const uchar letterCode[],
 				   const std::string &mainSequenceAlphabet ){
@@ -118,11 +119,11 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   }
 
   size_t indexedPositions = textLength - unindexedPositions;
-  suffixArray.m.open(baseName + ".suf", indexedPositions * posParts);
-
   size_t wordLength = maxRestrictedSpan(&seeds[0], seeds.size());
   makeAllBucketSteps(&bucketDepths[0], wordLength);
   initBucketEnds();
+
+  suffixArray.m.open(baseName + ".suf", indexedPositions * posParts);
   buckets.m.open(baseName + ".bck", offParts * bucketsSize());
 
   try{
@@ -180,13 +181,13 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 }
 
 static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
-			const size_t *steps, unsigned depth,
+			const size_t *steps, int depth,
 			const PosPart *sa, size_t saPos) {
   const uchar *textPtr = text + posGet(sa, saPos);
 
   size_t bucketIndex = 0;
   const uchar *subsetMap = seed.firstMap();
-  unsigned d = 0;
+  int d = 0;
   while (d < depth) {
     uchar subset = subsetMap[*textPtr];
     if (subset == CyclicSubsetSeed::DELIMITER) {
@@ -202,7 +203,7 @@ static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
 }
 
 static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
-			    const size_t *steps, unsigned depth,
+			    const size_t *steps, int depth,
 			    OffPart *buckets, size_t buckBeg, size_t buckIdx,
 			    const PosPart *sa, size_t saBeg, size_t saEnd) {
   for (size_t i = saBeg; i < saEnd; ++i) {
@@ -214,7 +215,7 @@ static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
 }
 
 static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
-		       const size_t *steps, unsigned depth, OffPart *buckets,
+		       const size_t *steps, int depth, OffPart *buckets,
 		       size_t buckBeg, size_t buckIdx, const PosPart *sa,
 		       size_t saBeg, size_t saEnd, size_t numOfThreads) {
   const CyclicSubsetSeed &seed = *seedPtr;
@@ -263,7 +264,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 
   for (size_t s = 0; s < seeds.size(); ++s) {
     const CyclicSubsetSeed &seed = seeds[s];
-    unsigned depth = bucketDepths[s];
+    int depth = bucketDepths[s];
     const size_t *steps = bucketStepEnds[s];
     size_t saEnd = cumulativeCounts[s];
     if (saEnd > saBeg) {
