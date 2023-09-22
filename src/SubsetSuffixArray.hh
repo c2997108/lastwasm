@@ -81,6 +81,50 @@ inline void posSet(PosPart *items, size_t index, size_t value) {
   }
 }
 
+inline size_t maxBucketDepth(const CyclicSubsetSeed &seed, size_t startDepth,
+			     size_t maxBuckets, unsigned wordLength) {
+  unsigned long long numOfBuckets = (startDepth > 0);  // delimiter if depth>0
+  unsigned long long product = 1;
+  for (size_t d = startDepth; ; ++d) {
+    if (d < wordLength) {
+      product *= seed.restrictedSubsetCount(d);
+      numOfBuckets = product;
+    } else {
+      product *= seed.unrestrictedSubsetCount(d);
+      numOfBuckets += product;
+    }
+    if (numOfBuckets > maxBuckets) return d;
+  }
+}
+
+inline void makeBucketSteps(size_t *steps, const CyclicSubsetSeed &seed,
+			    size_t depthBeg, size_t depthEnd,
+			    size_t wordLength) {
+  size_t step = 1;
+  steps[depthEnd - depthBeg] = step;
+
+  while (depthEnd-- > depthBeg) {
+    step = (depthEnd < wordLength)
+      ? step * seed.restrictedSubsetCount(depthEnd)
+      : step * seed.unrestrictedSubsetCount(depthEnd) + (depthEnd > 0);
+    // add one for delimiters, except when depth==0
+    steps[depthEnd - depthBeg] = step;
+  }
+}
+
+inline size_t bucketValue(const CyclicSubsetSeed &seed, const uchar *subsetMap,
+			  const size_t *steps, const uchar *text, int depth) {
+  size_t val = 0;
+  for (int d = 0; d < depth; ) {
+    unsigned s = subsetMap[text[d]];
+    if (s == CyclicSubsetSeed::DELIMITER) return val + steps[d] - 1;
+    ++d;
+    val += s * steps[d];
+    subsetMap = seed.nextMap(subsetMap);
+  }
+  return val;
+}
+
 class SubsetSuffixArray {
 public:
 
@@ -209,6 +253,12 @@ private:
 		  const uchar *text, const uchar *subsetMap,
 		  size_t beg, size_t end, size_t depth,
 		  unsigned subsetCount, size_t *bucketSizes);
+
+  void deepSort(std::vector<Range> &rangeStack,
+		const uchar *text, unsigned wordLength,
+		const CyclicSubsetSeed &seed, const uchar *subsetMap,
+		size_t beg, size_t end, size_t depth, size_t *bucketSizes);
+
   void twoArraySort(std::vector<Range> &rangeStack,
 		    const uchar *text, const uchar *subsetMap,
 		    size_t origin, size_t beg, size_t end, size_t depth,

@@ -273,7 +273,7 @@ void SubsetSuffixArray::radixSort4(std::vector<Range> &rangeStack,
   }
 }
 
-const unsigned numOfBuckets = 256;
+const unsigned numOfBuckets = 2048;
 
 void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
 				   const uchar *text, const uchar *subsetMap,
@@ -328,6 +328,64 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
   setChildLink(isChildFwd, 0, beg, end, pos, end);
 }
 
+static bool isMore(const size_t *steps, int minDelimDepth, size_t value) {
+  int d = 0;
+  while (value) {
+    if (d >= minDelimDepth && value == steps[d] - 1) return false;
+    ++d;
+    value %= steps[d];
+  }
+  return true;
+}
+
+void SubsetSuffixArray::deepSort(std::vector<Range> &rangeStack,
+				 const uchar *text, unsigned wordLength,
+				 const CyclicSubsetSeed &seed,
+				 const uchar *subsetMap,
+				 size_t beg, size_t end, size_t depth,
+				 size_t *bucketSizes) {
+  PosPart *a = &suffixArray.v[0];
+  size_t whereTo[numOfBuckets];
+  size_t steps[64];
+  size_t depthEnd = maxBucketDepth(seed, depth, numOfBuckets, wordLength);
+  int depthInc = depthEnd - depth;
+
+  int minDelimDepth =
+    (depth < wordLength) ? wordLength - depth : (depth < 1) ? 1 : 0;
+
+  makeBucketSteps(steps, seed, depth, depthEnd, wordLength);
+
+  for (size_t i = beg; i < end; ++i) {
+    size_t position = posGet(a, i);
+    size_t v = bucketValue(seed, subsetMap, steps, text + position, depthInc);
+    ++bucketSizes[v];
+  }
+
+  size_t pos = beg;
+  for (size_t i = 0; i < steps[0]; ++i) {
+    pos += bucketSizes[i];
+    whereTo[i] = pos;
+  }
+
+  for (size_t i = beg; i < end; ) {
+    size_t position = posGet(a, i);
+    size_t v;
+    while (1) {
+      v = bucketValue(seed, subsetMap, steps, text + position, depthInc);
+      size_t j = --whereTo[v];
+      if (j <= i) break;
+      size_t p = posGet(a, j);
+      posSet(a, j, position);
+      position = p;
+    }
+    posSet(a, i, position);
+    size_t j = i + bucketSizes[v];
+    bucketSizes[v] = 0;  // reset it so we can reuse it
+    if (isMore(steps, minDelimDepth, v)) pushRange(rangeStack, i, j, depthEnd);
+    i = j;
+  }
+}
+
 void SubsetSuffixArray::twoArraySort(std::vector<Range> &rangeStack,
 				     const uchar *text, const uchar *subsetMap,
 				     size_t origin, size_t beg, size_t end,
@@ -356,6 +414,7 @@ void SubsetSuffixArray::twoArraySort(std::vector<Range> &rangeStack,
     oldPos = newPos;
   }
   // don't sort within the delimiter bucket:
+  bucketSizes[CyclicSubsetSeed::DELIMITER] = 0;
   whereTo[CyclicSubsetSeed::DELIMITER] = oldPos;
   setChildLink(isChildFwd, origin, beg, end, oldPos, end);
 
@@ -508,6 +567,13 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 
     const uchar *textBase = text + depth;
     const uchar *subsetMap = seed.subsetMap(depth);
+
+    if (childTable.v.empty() && kiddyTable.v.empty() && chibiTable.v.empty()) {
+      deepSort(myStack, textBase, wordLength, seed, subsetMap, beg, end, depth,
+	       intCache + cacheSize);
+      continue;
+    }
+
     unsigned subsetCount = getSubsetCount(seed, depth, wordLength);
     ++depth;
 
@@ -530,7 +596,7 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 				   size_t numOfThreads ){
   size_t numOfSeeds = seeds.size();
   size_t total = cumulativeCounts[numOfSeeds - 1];
-  size_t cacheSize = total / (16 * sizeof(size_t)) / numOfThreads;
+  size_t cacheSize = total / (32 * sizeof(size_t)) / numOfThreads;
 
   if (childTableType == 1) chibiTable.v.assign(total, -1);
   if (childTableType == 2) kiddyTable.v.assign(total, -1);
