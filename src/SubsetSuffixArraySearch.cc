@@ -10,7 +10,7 @@ static size_t lowerBound(const PosPart *sufArray, size_t beg, size_t end,
 			 uchar subset) {
   while (beg < end) {
     size_t mid = beg + (end - beg) / 2;
-    if (subsetMap[textBase[posGet(sufArray, mid)]] < subset) {
+    if (subsetMap[textBase[getItem(sufArray, mid)]] < subset) {
       beg = mid + 1;
     } else {
       end = mid;
@@ -24,7 +24,7 @@ static size_t upperBound(const PosPart *sufArray, size_t beg, size_t end,
 			 uchar subset) {
   while (beg < end) {
     size_t mid = beg + (end - beg) / 2;
-    if (subsetMap[textBase[posGet(sufArray, mid)]] <= subset) {
+    if (subsetMap[textBase[getItem(sufArray, mid)]] <= subset) {
       beg = mid + 1;
     } else {
       end = mid;
@@ -40,7 +40,7 @@ static void equalRange(const PosPart *sufArray, size_t &beg, size_t &end,
 		       uchar subset) {
   while (beg < end) {
     size_t mid = beg + (end - beg) / 2;
-    uchar s = subsetMap[textBase[posGet(sufArray, mid)]];
+    uchar s = subsetMap[textBase[getItem(sufArray, mid)]];
     if (s < subset) {
       beg = mid + 1;
     } else if (s > subset) {
@@ -75,9 +75,9 @@ static void equalRange(const PosPart *sufArray, size_t &beg, size_t &end,
 static void fastEqualRange(const PosPart *sufArray, size_t &beg, size_t &end,
 			   const BigPtr &textBase, const uchar *subsetMap,
 			   uchar subset) {
-  uchar b = subsetMap[textBase[posGet(sufArray, beg)]];
+  uchar b = subsetMap[textBase[getItem(sufArray, beg)]];
   if (subset < b) { end = beg; return; }
-  uchar e = subsetMap[textBase[posGet(sufArray, end - 1)]];
+  uchar e = subsetMap[textBase[getItem(sufArray, end - 1)]];
   if (subset > e) { beg = end; return; }
   if (b == e) return;
   equalRange(sufArray, beg, end, textBase, subsetMap, subset, b, e, 1, 1);
@@ -89,7 +89,7 @@ static size_t lowerBound2(const PosPart *sufArray, size_t beg, size_t end,
 			  const CyclicSubsetSeed &seed) {
   while (beg < end) {
     size_t mid = beg + (end - beg) / 2;
-    size_t offset = posGet(sufArray, mid);
+    size_t offset = getItem(sufArray, mid);
     size_t t = depth + offset;
     const uchar *q = queryBeg;
     const uchar *s = subsetMap;
@@ -121,7 +121,7 @@ static size_t upperBound2(const PosPart *sufArray, size_t beg, size_t end,
 			  const CyclicSubsetSeed &seed) {
   while (beg < end) {
     size_t mid = beg + (end - beg) / 2;
-    size_t offset = posGet(sufArray, mid);
+    size_t offset = getItem(sufArray, mid);
     size_t t = depth + offset;
     const uchar *q = queryBeg;
     const uchar *s = subsetMap;
@@ -162,7 +162,7 @@ static void equalRange2(const PosPart *sufArray, size_t &beg, size_t &end,
 
   while (beg < end) {
     size_t mid = beg + (end - beg) / 2;
-    size_t offset = posGet(sufArray, mid);
+    size_t offset = getItem(sufArray, mid);
     const uchar *q;
     size_t t;
     const uchar *s;
@@ -239,7 +239,7 @@ static size_t equalRange3(const PosPart *sufArray, size_t &beg, size_t &end,
 
   while (end - beg > maxHits * 2) {
     size_t mid = beg + (end - beg) / 2;
-    size_t offset = posGet(sufArray, mid);
+    size_t offset = getItem(sufArray, mid);
     tMid += offset;
     int iterations = 1023;  // xxx ???
     uchar tChar, qChar;
@@ -344,17 +344,17 @@ void SubsetSuffixArray::match(size_t &beg, size_t &end,
     subsetMap = seed.nextMap( subsetMap );
   }
 
-  const OffPart *bucks = buckets.begin();
-  beg = offGet(bucks, bucketIdx);
-  end = offGet(bucks, bucketIdx + myBucketSteps[depth]);
+  const OffPart *bckArray = buckets.begin();
+  beg = getItem(bckArray, bucketIdx);
+  end = getItem(bckArray, bucketIdx + myBucketSteps[depth]);
 
   while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again
     const uchar* oldMap = seed.prevMap( subsetMap );
     uchar subset = oldMap[ queryPtr[depth-1] ];
     bucketIdx -= subset * myBucketSteps[depth];
-    size_t oldBeg = offGet(bucks, bucketIdx);
-    size_t oldEnd = offGet(bucks, bucketIdx + myBucketSteps[depth-1]);
+    size_t oldBeg = getItem(bckArray, bucketIdx);
+    size_t oldEnd = getItem(bckArray, bucketIdx + myBucketSteps[depth-1]);
     if( oldEnd - oldBeg > maxHits ) break;
     subsetMap = oldMap;
     beg = oldBeg;
@@ -414,9 +414,9 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
   size_t bucketDepth = maxBucketPrefix(seedNum);
   size_t bucketIdx = bucketEnds[seedNum];
   const size_t *myBucketSteps = bucketStepEnds[seedNum];
-  const OffPart *bucks = buckets.begin();
-  size_t beg = offGet(bucks, bucketIdx);
-  size_t end = offGet(bucks, bucketIdx + myBucketSteps[depth]);
+  const OffPart *bckArray = buckets.begin();
+  size_t beg = getItem(bckArray, bucketIdx);
+  size_t end = getItem(bckArray, bucketIdx + myBucketSteps[depth]);
 
   while( depth < bucketDepth ){
     if( beg == end ) return;
@@ -428,8 +428,8 @@ void SubsetSuffixArray::countMatches(std::vector<unsigned long long> &counts,
     ++depth;
     size_t step = myBucketSteps[depth];
     bucketIdx += subset * step;
-    beg = offGet(bucks, bucketIdx);
-    end = offGet(bucks, bucketIdx + step);
+    beg = getItem(bckArray, bucketIdx);
+    end = getItem(bckArray, bucketIdx + step);
     subsetMap = seed.nextMap( subsetMap );
   }
 
@@ -470,11 +470,11 @@ void SubsetSuffixArray::childRange(size_t &beg, size_t &end,
   }
 
   if( childDirection == FORWARD ){
-    uchar e = subsetMap[textBase[posGet(sufArray, end - 1)]];
+    uchar e = subsetMap[textBase[getItem(sufArray, end - 1)]];
     if( subset > e ){ beg = end; return; }
     if( subset < e ) childDirection = REVERSE;  // flip it for next time
     while( 1 ){
-      uchar b = subsetMap[textBase[posGet(sufArray, beg)]];
+      uchar b = subsetMap[textBase[getItem(sufArray, beg)]];
       if( subset < b ) { end = beg; return; }
       if( b == e ) return;
       size_t mid = getChildForward( beg );
@@ -489,11 +489,11 @@ void SubsetSuffixArray::childRange(size_t &beg, size_t &end,
       if( b + 1 == e ) return;  // unnecessary, but may be faster
     }
   }else{
-    uchar b = subsetMap[textBase[posGet(sufArray, beg)]];
+    uchar b = subsetMap[textBase[getItem(sufArray, beg)]];
     if( subset < b ) { end = beg; return; }
     if( subset > b ) childDirection = FORWARD;  // flip it for next time
     while( 1 ){
-      uchar e = subsetMap[textBase[posGet(sufArray, end - 1)]];
+      uchar e = subsetMap[textBase[getItem(sufArray, end - 1)]];
       if( subset > e ){ beg = end; return; }
       if( b == e ) return;
       size_t mid = getChildReverse( end );

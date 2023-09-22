@@ -54,7 +54,7 @@ using namespace mcf;
 typedef PosPart OffPart;
 const int offParts = posParts;
 
-inline size_t posGet(const PosPart *items, size_t index) {
+inline size_t getItem(const PosPart *items, size_t index) {
   items += index * posParts;
   size_t x = 0;
   for (int i = 0; i < posParts; ++i) {
@@ -64,17 +64,7 @@ inline size_t posGet(const PosPart *items, size_t index) {
   return x;
 }
 
-inline size_t offGet(const OffPart *items, size_t index) {
-  items += index * offParts;
-  size_t x = 0;
-  for (int i = 0; i < offParts; ++i) {
-    size_t y = items[i];  // must convert to size_t before shifting!
-    x += y << (i * sizeof(OffPart) * CHAR_BIT);
-  }
-  return x;
-}
-
-inline void posSet(PosPart *items, size_t index, size_t value) {
+inline void setItem(PosPart *items, size_t index, size_t value) {
   items += index * posParts;
   for (int i = 0; i < posParts; ++i) {
     items[i] = value >> (i * sizeof(PosPart) * CHAR_BIT);
@@ -145,12 +135,12 @@ public:
 
   // Get the i-th item in the suffix array
   size_t getPosition(size_t i) const {
-    return posGet(suffixArray.m.begin(), i);
+    return getItem(suffixArray.m.begin(), i);
   }
 
   // Set the i-th item of the suffix array to x
   void setPosition(size_t i, size_t x) {
-    posSet(&suffixArray.v[0], i, x);
+    setItem(&suffixArray.v[0], i, x);
   }
 
   // Store positions in [seqBeg, seqEnd) where certain "words" start.
@@ -198,11 +188,11 @@ public:
 private:
   std::vector<CyclicSubsetSeed> seeds;
   std::vector<size_t> bucketEnds;
+  std::vector<size_t> bucketSteps;  // step size for each k-mer
   std::vector<const size_t *> bucketStepEnds;
 
   VectorOrMmap<PosPart> suffixArray;  // sorted indices
   VectorOrMmap<OffPart> buckets;
-  std::vector<size_t> bucketSteps;  // step size for each k-mer
 
   VectorOrMmap<indexT> childTable;
   VectorOrMmap<unsigned short> kiddyTable;  // smaller child table

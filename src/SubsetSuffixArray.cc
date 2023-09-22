@@ -14,13 +14,6 @@ static void err(const std::string &s) {
   throw std::runtime_error(s);
 }
 
-static void offSet(OffPart *items, size_t index, size_t value) {
-  items += index * offParts;
-  for (int i = 0; i < offParts; ++i) {
-    items[i] = value >> (i * sizeof(OffPart) * CHAR_BIT);
-  }
-}
-
 void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
 					 size_t *cumulativeCounts,
 					 const uchar *seqBeg,
@@ -120,7 +113,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
 				 bool isAppendPrj, size_t textLength ) const{
-  size_t indexedPositions = offGet(buckets.begin(), bucketEnds.back());
+  size_t indexedPositions = getItem(buckets.begin(), bucketEnds.back());
   assert(textLength > indexedPositions);
 
   std::string fileName = baseName + ".prj";
@@ -162,7 +155,7 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
 			const size_t *steps, int depth,
 			const PosPart *sa, size_t saPos) {
-  size_t position = posGet(sa, saPos);
+  size_t position = getItem(sa, saPos);
   return bucketValue(seed, seed.firstMap(), steps, text + position, depth) + 1;
 }
 
@@ -173,7 +166,7 @@ static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
   for (size_t i = saBeg; i < saEnd; ++i) {
     size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, i);
     for (; buckIdx < b; ++buckIdx) {
-      offSet(buckets, buckIdx, i);
+      setItem(buckets, buckIdx, i);
     }
   }
 }
@@ -241,7 +234,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   }
 
   for (; buckIdx <= buckBeg; ++buckIdx) {
-    offSet(bucks, buckIdx, saBeg);
+    setItem(bucks, buckIdx, saBeg);
   }
 }
 
