@@ -88,25 +88,31 @@ class MultiSequence{
       - ends.begin() - 1;
   }
 
+  size_t getEnd(size_t seqNum) const
+  { return ends[seqNum]; }
+
+  size_t getNameEnd(size_t seqNum) const
+  { return nameEnds[seqNum]; }
+
   size_t padBeg(size_t seqNum) const { return ends[seqNum] - padSize; }
-  size_t seqBeg(size_t seqNum) const { return ends[seqNum]; }
-  size_t seqEnd(size_t seqNum) const { return ends[seqNum+1] - padSize; }
+  size_t seqBeg(size_t seqNum) const { return getEnd(seqNum); }
+  size_t seqEnd(size_t seqNum) const { return getEnd(seqNum+1) - padSize; }
   size_t padEnd(size_t seqNum) const { return ends[seqNum+1]; }
   size_t seqLen(size_t seqNum) const { return seqEnd(seqNum)-seqBeg(seqNum); }
   size_t padLen(size_t seqNum) const { return padEnd(seqNum)-padBeg(seqNum); }
 
   std::string seqName(size_t seqNum) const {
     const char *n = names.begin();
-    size_t b = nameEnds[seqNum];
-    size_t e = nameEnds[seqNum + 1];
+    size_t b = getNameEnd(seqNum);
+    size_t e = getNameEnd(seqNum + 1);
     if (e > b && n[e-1] <= ' ') --e;
     return std::string(n + b, n + e);
   }
 
   char strand(size_t seqNum) const {
     const char *n = names.begin();
-    size_t b = nameEnds[seqNum];
-    size_t e = nameEnds[seqNum + 1];
+    size_t b = getNameEnd(seqNum);
+    size_t e = getNameEnd(seqNum + 1);
     return (e > b && n[e-1] == '\t') ? '-' : '+';
   }
 

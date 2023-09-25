@@ -265,18 +265,26 @@ private:
 		  unsigned wordLength, const CyclicSubsetSeed &seed,
 		  size_t maxUnsortedInterval, size_t numOfThreads);
 
+  size_t getChild(size_t i) const {
+    return childTable[i];
+  }
+
   size_t getChildForward(size_t from) const {
     return
-      !childTable.empty() ? childTable[from] :
+      !childTable.empty() ? getChild(from) :
       !kiddyTable.empty() ? from + kiddyTable[from] :
       !chibiTable.empty() ? from + chibiTable[from] : from;
   }
 
   size_t getChildReverse(size_t from) const {
     return
-      !childTable.empty() ? childTable[from - 1] :
+      !childTable.empty() ? getChild(from - 1) :
       !kiddyTable.empty() ? from - kiddyTable[from - 1] :
       !chibiTable.empty() ? from - chibiTable[from - 1] : from;
+  }
+
+  void setChild(size_t index, size_t value) {
+    childTable.v[index] = value;
   }
 
   void setKiddy(size_t index, size_t value) {
@@ -289,14 +297,14 @@ private:
 
   void setChildForward(size_t from, size_t to) {
     if (to == from) return;
-    /**/ if (!childTable.v.empty()) childTable.v[from] = to;
+    /**/ if (!childTable.v.empty()) setChild(from, to);
     else if (!kiddyTable.v.empty()) setKiddy(from, to - from);
     else if (!chibiTable.v.empty()) setChibi(from, to - from);
   }
 
   void setChildReverse(size_t from, size_t to) {
     if (to == from) return;
-    /**/ if (!childTable.v.empty()) childTable.v[from - 1] = to;
+    /**/ if (!childTable.v.empty()) setChild(from - 1, to);
     else if (!kiddyTable.v.empty()) setKiddy(from - 1, from - to);
     else if (!chibiTable.v.empty()) setChibi(from - 1, from - to);
   }

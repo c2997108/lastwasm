@@ -43,12 +43,12 @@ void MultiSequence::fromFiles(const std::string &baseName, size_t seqCount,
   ends.m.open(baseName + ".ssp", seqCount + 1);
   nameEnds.m.open(baseName + ".sds", seqCount + 1);
 
-  size_t seqLength = ends.m.back();
+  size_t seqLength = getEnd(seqCount);
   seq.m.open(baseName + ".tis", (seqLength + is4bit) / (is4bit + 1));
   theSeqPtr.beg = seq.m.begin();
   theSeqPtr.is4bit = is4bit;
-  names.m.open(baseName + ".des", nameEnds.m.back());
-  padSize = ends.m[0];
+  names.m.open(baseName + ".des", getNameEnd(seqCount));
+  padSize = getEnd(0);
 
   qualityScores.m.open(baseName + ".qua", seqLength * qualitiesPerLetter);
   qualityScoresPerLetter = qualitiesPerLetter;
