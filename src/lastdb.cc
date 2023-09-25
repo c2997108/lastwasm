@@ -335,7 +335,7 @@ static void dump1(const std::string &dbName, const uchar *decode,
   MultiSequence m;
   m.fromFiles(dbName, seqCount, isFastq, bitsPerBase == 4, bitsPerInt == 32);
   BigSeq s = m.seqPtr();
-  for (size_t i = 0; i < m.finishedSequences(); ++i) {
+  for (size_t i = 0; i < seqCount; ++i) {
     std::cout << ">@"[isFastq] << m.seqName(i) << '\n';
     std::streambuf *buf = std::cout.rdbuf();
     size_t b = m.seqBeg(i);
