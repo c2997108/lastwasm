@@ -717,19 +717,14 @@ def tryToMakeChildProgramsFindable():
     os.environ["PATH"] = d + os.pathsep + os.environ["PATH"]
 
 def readLastdbData(lastdbIndexName):
-    bitsPerInt = "32"
     with open(lastdbIndexName + ".prj") as f:
         for line in f:
             if line.startswith("alphabet="):
                 alphabet = line.split("=")[1].strip()
-            if line.startswith("integersize="):
-                bitsPerInt = line.split("=")[1].strip()
-    suffix = "" if bitsPerInt == "32" else str(int(bitsPerInt) // 8)
-    lastalProgName = "lastal" + suffix
-    return lastalProgName, alphabet
+    return alphabet
 
-def fixedLastalArgs(opts, lastalProgName, alphabet):
-    x = [lastalProgName, "-j7"]
+def fixedLastalArgs(opts, alphabet):
+    x = ["lastal", "-j7"]
     if opts.D: x.append("-D" + opts.D)
     if opts.E: x.append("-E" + opts.E)
     if opts.s: x.append("-s" + opts.s)
@@ -763,7 +758,7 @@ def versionFromLastal():
 
 def doTraining(opts, args):
     tryToMakeChildProgramsFindable()
-    lastalProgName, alphabet = readLastdbData(args[0])
+    alphabet = readLastdbData(args[0])
     lastalVersion = versionFromLastal()
 
     if (not opts.p and len(alphabet) < 20 and
@@ -788,7 +783,7 @@ def doTraining(opts, args):
         writeScoreMatrixFunc = writeScoreMatrix
         codonMatches = None
 
-        lastalArgs = fixedLastalArgs(opts, lastalProgName, alphabet)
+        lastalArgs = fixedLastalArgs(opts, alphabet)
         if opts.r: lastalArgs.append("-r" + opts.r)
         if opts.q: lastalArgs.append("-q" + opts.q)
         if opts.p: lastalArgs.append("-p" + opts.p)
@@ -846,7 +841,7 @@ def doTraining(opts, args):
             if parameters in oldParameters:
                 break
         oldParameters.append(parameters)
-        lastalArgs = fixedLastalArgs(opts, lastalProgName, alphabet)
+        lastalArgs = fixedLastalArgs(opts, alphabet)
         lastalArgs.append("-t{0:.6}".format(scale))
         lastalArgs.append("-p-")
         proc = process(lastalArgs + args, subprocess.PIPE)
