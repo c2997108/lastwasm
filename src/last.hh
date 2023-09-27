@@ -14,11 +14,6 @@
 
 namespace cbrc {
 
-typedef MultiSequence::indexT indexT;
-
-const size_t posSize = sizeof(PosPart) * posParts;
-const size_t posLimit = size_t(-1) >> ((sizeof(size_t) - posSize) * CHAR_BIT);
-
 inline void err(const char *s) { throw std::runtime_error(s); }
 
 inline void throwSeqTooBig() { err("encountered a sequence that's too long"); }
@@ -43,7 +38,7 @@ inline void encodeSequences(MultiSequence &m, sequenceFormat::Enum f,
 
 // Read the next sequence, adding it to the MultiSequence
 inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
-				    indexT maxSeqLen, sequenceFormat::Enum f,
+				    size_t maxSeqLen, sequenceFormat::Enum f,
 				    const Alphabet &a, bool isMaskLowercase) {
   if (f == sequenceFormat::fasta) {
     m.appendFromFasta(in, maxSeqLen);

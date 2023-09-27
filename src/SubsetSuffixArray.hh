@@ -32,6 +32,7 @@
 #include "CyclicSubsetSeed.hh"
 #include "dna_words_finder.hh"
 #include "mcf_big_seq.hh"
+#include "mcf_packed_array.hh"
 #include "VectorOrMmap.hh"
 
 #include <climits>
@@ -40,35 +41,23 @@ namespace cbrc {
 
 using namespace mcf;
 
-#if LAST_POS_BYTES == 8
-  typedef size_t PosPart;
-  const int posParts = 1;
-#elif LAST_POS_BYTES == 5
-  typedef unsigned char PosPart;
-  const int posParts = 5;
-#else
-  typedef unsigned PosPart;
-  const int posParts = 1;
-#endif
-
-typedef PosPart OffPart;
-const int offParts = posParts;
-
-inline size_t getItem(const PosPart *items, size_t index) {
-  items += index * posParts;
-  size_t x = 0;
-  for (int i = 0; i < posParts; ++i) {
-    size_t y = items[i];  // must convert to size_t before shifting!
-    x += y << (i * sizeof(PosPart) * CHAR_BIT);
-  }
-  return x;
+inline size_t numOfBytes(int bitsPerItem, size_t numOfItems) {
+  return numOfWordsNeededFor(bitsPerItem, numOfItems) * sizeof(size_t);
 }
 
-inline void setItem(PosPart *items, size_t index, size_t value) {
-  items += index * posParts;
-  for (int i = 0; i < posParts; ++i) {
-    items[i] = value >> (i * sizeof(PosPart) * CHAR_BIT);
+inline size_t getItem(ConstPackedArray a, size_t i) {
+  if ((a.bitsPerItem & 128) == 0) return a[i];
+  // Stuff below here is just for reading old lastdb databases:
+  if (a.bitsPerItem == 128 + 32) {
+    const unsigned *b = (const unsigned *)a.items;
+    return b[i];
   }
+  const unsigned char *c = (const unsigned char *)a.items;
+  return (size_t)c[i*5]
+    |    (size_t)c[i*5 + 1] << 8
+    |    (size_t)c[i*5 + 2] << 16
+    |    (size_t)c[i*5 + 3] << 24
+    |    (size_t)c[i*5 + 4] << 32;
 }
 
 inline size_t maxBucketDepth(const CyclicSubsetSeed &seed, size_t startDepth,
@@ -117,30 +106,27 @@ inline size_t bucketValue(const CyclicSubsetSeed &seed, const uchar *subsetMap,
 
 class SubsetSuffixArray {
 public:
-
-#if LAST_POS_BYTES > 4
-  typedef size_t indexT;
-#else
-  typedef unsigned indexT;
-#endif
-
   struct Range {size_t beg; size_t end; size_t depth;};
 
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
 
-  void resizePositions(size_t numOfPositions) {
-    suffixArray.v.resize(numOfPositions * posParts);
+  void resizePositions(size_t numOfPositions, size_t seqLength) {
+    sufArray.bitsPerItem = numOfBitsNeededFor(seqLength - 1);
+    bckArray.bitsPerItem = numOfBitsNeededFor(numOfPositions);
+    chiArray.bitsPerItem = numOfBitsNeededFor(numOfPositions - 1);
+    suffixArray.v.resize(numOfBytes(sufArray.bitsPerItem, numOfPositions));
+    sufArray.items = (const size_t *)suffixArray.begin();
   }
 
   // Get the i-th item in the suffix array
   size_t getPosition(size_t i) const {
-    return getItem(suffixArray.m.begin(), i);
+    return getItem(sufArray, i);
   }
 
   // Set the i-th item of the suffix array to x
   void setPosition(size_t i, size_t x) {
-    setItem(&suffixArray.v[0], i, x);
+    setBits(sufArray.bitsPerItem, (size_t *)&suffixArray.v[0], i, x);
   }
 
   // Store positions in [seqBeg, seqEnd) where certain "words" start.
@@ -191,12 +177,17 @@ private:
   std::vector<size_t> bucketSteps;  // step size for each k-mer
   std::vector<const size_t *> bucketStepEnds;
 
-  VectorOrMmap<PosPart> suffixArray;  // sorted indices
-  VectorOrMmap<OffPart> buckets;
+  // Use uchar instead of size_t just to support old lastdb databases:
+  VectorOrMmap<uchar> suffixArray;  // sorted positions
+  VectorOrMmap<uchar> buckets;
 
-  VectorOrMmap<indexT> childTable;
+  VectorOrMmap<uchar> childTable;
   VectorOrMmap<unsigned short> kiddyTable;  // smaller child table
   VectorOrMmap<unsigned char> chibiTable;  // even smaller child table
+
+  ConstPackedArray sufArray;
+  ConstPackedArray bckArray;
+  ConstPackedArray chiArray;
 
   enum ChildDirection { FORWARD, REVERSE, UNKNOWN };
 
@@ -266,7 +257,13 @@ private:
 		  size_t maxUnsortedInterval, size_t numOfThreads);
 
   size_t getChild(size_t i) const {
-    return childTable[i];
+    if ((chiArray.bitsPerItem & 128) == 0) return chiArray[i];
+    // Stuff below here is just for reading old lastdb databases:
+    if (chiArray.bitsPerItem == 128 + 32) {
+      const unsigned *b = (const unsigned *)chiArray.items;
+      return b[i];
+    }
+    return chiArray.items[i];
   }
 
   size_t getChildForward(size_t from) const {
@@ -284,7 +281,7 @@ private:
   }
 
   void setChild(size_t index, size_t value) {
-    childTable.v[index] = value;
+    setBits(chiArray.bitsPerItem, (size_t *)&childTable.v[0], index, value);
   }
 
   void setKiddy(size_t index, size_t value) {
@@ -320,7 +317,7 @@ private:
 
   bool isChildDirectionForward(size_t beg) const {
     return
-      !childTable.v.empty() ? childTable.v[beg] == 0 :
+      !childTable.v.empty() ? chiArray[beg] == 0 :
       !kiddyTable.v.empty() ? kiddyTable.v[beg] == USHRT_MAX :
       !chibiTable.v.empty() ? chibiTable.v[beg] == UCHAR_MAX : true;
   }

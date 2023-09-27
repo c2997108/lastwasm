@@ -129,11 +129,6 @@ Advanced Options
     use -w/-W/-d/-u), this means that mammalian chromosomes cannot
     be processed using much less than 2G (unless you use -w/-W/-d/-u).
 
-    There is a hard upper limit of about 4 billion sequence letters
-    per volume.  Together with the previous point, this means that
-    lastdb will refuse to process any single sequence longer than
-    about 4 billion.
-
 -Q NAME
     Specify how to read the sequences (the NAME is not case-sensitive)::
 
@@ -244,13 +239,6 @@ Advanced Options
 -V, --version
     Show version information, and exit.
 
-lastdb5
--------
-
-lastdb5 is identical to lastdb, except that it internally uses larger
-(5-byte) integers.  This means it can handle more than 4 billion
-sequence letters per volume, but it uses more memory.
-
 Memory and disk usage
 ---------------------
 
@@ -261,27 +249,25 @@ proteins).  The output files will include:
 * The sequences (N bytes).
 
 * An "index" consisting of:
-  positions (4M bytes), and "buckets" (<= M bytes).
+  positions (M log2[N] bits), and "buckets" (<= M log2[N] / B bits).
 
 * The sequence names (*usually* negligible).
 
 This is modified by several options.
 
-* -C1 adds M bytes to the index, -C2 adds 2M bytes, and -C3 adds 4M
-  bytes.
+* -C1 adds M bytes to the index, -C2 adds 2M bytes, and -C3 adds M log2[M]
+  bits.
 
 * -w STEP: makes the index STEP times smaller.
 
 * -W SIZE: makes the index about (SIZE+1)/2 times smaller.
-
-* lastdb5: makes the index 25% bigger.
 
 * -u, -m, -d: Multiple patterns multiply the index size.  For example,
   MAM8_ makes it 8 times bigger.
 
 * -u, -d: may reduce the index, e.g. RY32_ makes it 32 times smaller.
 
-* -s: does not change the total size, but splits it into volumes.
+* -s: splits it into volumes.
 
 * -S2: doubles the size of everything.
 

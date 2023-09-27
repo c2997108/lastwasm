@@ -23,13 +23,6 @@ typedef unsigned char uchar;
 
 class MultiSequence{
  public:
-
-#if LAST_POS_BYTES > 4
-  typedef size_t indexT;
-#else
-  typedef unsigned indexT;
-#endif
-
   // initialize with leftmost delimiter pad, ready for appending sequences
   void initForAppending(size_t padSizeIn, bool isAppendStopSymbol = false);
 
@@ -83,16 +76,19 @@ class MultiSequence{
   size_t unfinishedSize() const{ return seq.size(); }
 
   // which sequence is the coordinate in?
-  size_t whichSequence(indexT coordinate) const {
-    return std::upper_bound(ends.begin(), ends.end(), coordinate)
-      - ends.begin() - 1;
+  size_t whichSequence(size_t coordinate) const {
+    unsigned c = coordinate;
+    size_t r = ends.empty()
+      ? std::upper_bound(ends4.begin(), ends4.end(), c) - ends4.begin()
+      : std::upper_bound(ends.begin(), ends.end(), coordinate) - ends.begin();
+    return r - 1;
   }
 
   size_t getEnd(size_t seqNum) const
-  { return ends[seqNum]; }
+  { return ends.empty() ? ends4[seqNum] : ends[seqNum]; }
 
   size_t getNameEnd(size_t seqNum) const
-  { return nameEnds[seqNum]; }
+  { return nameEnds.empty() ? nameEnds4[seqNum] : nameEnds[seqNum]; }
 
   size_t padBeg(size_t seqNum) const { return ends[seqNum] - padSize; }
   size_t seqBeg(size_t seqNum) const { return getEnd(seqNum); }
@@ -161,10 +157,14 @@ class MultiSequence{
  private:
   size_t padSize;  // number of delimiter chars between sequences
   VectorOrMmap<uchar> seq;  // concatenated sequences
-  VectorOrMmap<indexT> ends;  // coordinates of ends of delimiter pads
+  VectorOrMmap<size_t> ends;  // coordinates of ends of delimiter pads
   VectorOrMmap<char> names;  // concatenated sequence names (to save memory)
-  VectorOrMmap<indexT> nameEnds;  // endpoints of the names
+  VectorOrMmap<size_t> nameEnds;  // endpoints of the names
   mcf::BigSeq theSeqPtr;
+
+  // these are just for reading files made by old versions of this code:
+  VectorOrMmap<unsigned> ends4;
+  VectorOrMmap<unsigned> nameEnds4;
 
   std::vector<int> pssm;  // position-specific scoring matrix
   std::vector<uchar> pssmColumnLetters;  // which input column is which letter

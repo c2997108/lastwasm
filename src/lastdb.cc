@@ -142,7 +142,6 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     else{
       f << "numofindexes=" << numOfIndexes << '\n';
     }
-    f << "integersize=" << (posSize * CHAR_BIT) << '\n';
     f << "symbolsize=" << args.bitsPerBase << '\n';
     writeLastalOptions( f, seedText );
   }
@@ -252,7 +251,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 	}
       }
       LOG("gathering...");
-      myIndex.resizePositions(count);
+      myIndex.resizePositions(count, textLength);
       count = 0;
       for (size_t i = 0; i < numOfSequences; ++i) {
 	const uchar *beg = seq + multi.seqBeg(i);
@@ -313,12 +312,19 @@ static size_t maxLettersPerVolume(const LastdbArguments &args,
     ? 1.0 * wordsFinder.numOfMatchedWords / wordsFinder.wordLookup.size()
     : 2.0 * numOfSeeds / (args.minimizerWindow + 1) / args.indexStep;
 
-  double g = f * (1 + 1.0 / args.minIndexedPositionsPerBucket);
+  // for n letters, bytes  =  n (s + f (1 + 1/b) bits[n]/8)
 
-  double n = args.volumeSize / (s + g * posSize);
-  if (n < posLimit) return n;
+  double g = f * (1 + 1.0 / args.minIndexedPositionsPerBucket) / CHAR_BIT;
 
-  return posLimit;
+  const size_t all = -1;
+  const int w = sizeof(size_t) * CHAR_BIT;
+
+  for (int b = 1; b <= w; ++b) {
+    double n = args.volumeSize / (s + g * b);
+    if (n <= (all >> (w - b))) return n;
+  }
+
+  return -1;
 }
 
 static bool isRoomToDuplicateTheLastSequence(const MultiSequence &multi,
@@ -376,9 +382,6 @@ static void dump(const std::string &dbName) {
   }
   if (alphabetLetters.empty()) ERR("can't read file: " + dbName + ".prj");
   if (bitsPerInt < 1 && version < 999) bitsPerInt = 32;
-  int b = bitsPerInt / CHAR_BIT;
-  if (posSize > 4 && b <= 4) ERR("please use lastdb for " + dbName);
-  if (posSize <= 4 && b > 4) ERR("please use lastdb5 for " + dbName);
   Alphabet alph;
   alph.init(alphabetLetters, bitsPerBase == 4);
   bool isFastq = (fmt != sequenceFormat::fasta);
@@ -440,7 +443,7 @@ void lastdb( int argc, char** argv ){
   countT sequenceCount = 0;
   std::vector<countT> letterCounts( alph.size );
   size_t maxLetters = 0;
-  size_t maxSeqLen = posLimit;
+  size_t maxSeqLen = -1;
   size_t maxSeqLenSeen = 0;
 
   char defaultInputName[] = "-";
@@ -494,7 +497,7 @@ void lastdb( int argc, char** argv ){
 		   maxSeqLenSeen, tantanMasker, numOfThreads, seedText,
 		   baseName);
 	multi.reinitForAppending();
-	maxSeqLen = posLimit;
+	maxSeqLen = -1;
       }
     }
   }

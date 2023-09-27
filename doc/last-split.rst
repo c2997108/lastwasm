@@ -303,13 +303,6 @@ Details
   You can combine both sources of error (roughly) by taking the
   maximum of the two error probabilities for each base.
 
-last-split5
------------
-
-last-split5 is almost identical to last-split.  The only difference is
-the ``-g`` option: last-split can only read the output of lastdb,
-whereas last-split5 can only read the output of lastdb5_.
-
 Limitations
 -----------
 
@@ -323,5 +316,4 @@ To do
 
 * An option to specify splice signals and their strengths.
 
-.. _lastdb5: doc/lastdb.rst
 .. _cookbook: doc/last-cookbook.rst

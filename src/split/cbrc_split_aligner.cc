@@ -1363,12 +1363,6 @@ static void readPrjFile(const std::string& baseName,
   if (alphabetLetters != "ACGT") err("can't read file: " + fileName);
 
   if (bitsPerInt < 1 && version < 999) bitsPerInt = 32;
-
-  if (bitsPerInt != sizeof(MultiSequence::indexT) * CHAR_BIT) {
-    if (bitsPerInt == 32) err("please use last-split for " + baseName);
-    if (bitsPerInt == 64) err("please use last-split8 for " + baseName);
-    err("weird integersize in " + fileName);
-  }
 }
 
 void SplitAlignerParams::readGenomeVolume(const std::string &baseName,

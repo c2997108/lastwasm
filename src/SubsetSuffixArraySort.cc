@@ -16,12 +16,6 @@
 
 using namespace cbrc;
 
-static void posCpy(PosPart *items, size_t dest, size_t src) {
-  for (int i = 0; i < posParts; ++i) {
-    items[posParts * dest + i] = items[posParts * src + i];
-  }
-}
-
 namespace{
   typedef SubsetSuffixArray::Range Range;
 }
@@ -84,19 +78,23 @@ void SubsetSuffixArray::sort2(const uchar *text, const CyclicSubsetSeed &seed,
 void SubsetSuffixArray::radixSort1(std::vector<Range> &rangeStack,
 				   const uchar *text, const uchar *subsetMap,
 				   size_t beg, size_t end, size_t depth) {
-  PosPart *a = &suffixArray.v[0];
+  size_t *a = (size_t *)&suffixArray.v[0];
+  const int bits = sufArray.bitsPerItem;
+
   size_t end0 = beg;  // end of '0's
   size_t begN = end;  // beginning of delimiters
 
   do {
-    const size_t x = getItem(a, end0);
+    const size_t x = getBits(bits, a, end0);
+    size_t y;
     switch (subsetMap[text[x]]) {
     case 0:
       end0++;
       break;
     default:  // the delimiter subset
-      posCpy(a, end0, --begN);
-      setItem(a, begN, x);
+      y = getBits(bits, a, --begN);
+      setBits(bits, a, begN, x);
+      setBits(bits, a, end0, y);
       break;
     }
   } while (end0 < begN);
@@ -117,24 +115,29 @@ void SubsetSuffixArray::radixSort1(std::vector<Range> &rangeStack,
 void SubsetSuffixArray::radixSort2(std::vector<Range> &rangeStack,
 				   const uchar *text, const uchar *subsetMap,
 				   size_t beg, size_t end, size_t depth) {
-  PosPart *a = &suffixArray.v[0];
+  size_t *a = (size_t *)&suffixArray.v[0];
+  const int bits = sufArray.bitsPerItem;
+
   size_t end0 = beg;  // end of '0's
   size_t end1 = beg;  // end of '1's
   size_t begN = end;  // beginning of delimiters
 
   do {
-    const size_t x = getItem(a, end1);
+    const size_t x = getBits(bits, a, end1);
+    size_t y;
     switch (subsetMap[text[x]]) {
       case 0:
-        posCpy(a, end1++, end0);
-        setItem(a, end0++, x);
+	y = getBits(bits, a, end0);
+	setBits(bits, a, end0++, x);
+	setBits(bits, a, end1++, y);
         break;
       case 1:
         end1++;
         break;
       default:  // the delimiter subset
-	posCpy(a, end1, --begN);
-	setItem(a, begN, x);
+	y = getBits(bits, a, --begN);
+	setBits(bits, a, begN, x);
+	setBits(bits, a, end1, y);
         break;
     }
   } while (end1 < begN);
@@ -160,30 +163,37 @@ void SubsetSuffixArray::radixSort2(std::vector<Range> &rangeStack,
 void SubsetSuffixArray::radixSort3(std::vector<Range> &rangeStack,
 				   const uchar *text, const uchar *subsetMap,
 				   size_t beg, size_t end, size_t depth) {
-  PosPart *a = &suffixArray.v[0];
+  size_t *a = (size_t *)&suffixArray.v[0];
+  const int bits = sufArray.bitsPerItem;
+
   size_t end0 = beg;  // end of '0's
   size_t end1 = beg;  // end of '1's
   size_t beg2 = end;  // beginning of '2's
   size_t begN = end;  // beginning of delimiters
 
   do {
-    const size_t x = getItem(a, end1);
+    const size_t x = getBits(bits, a, end1);
+    size_t y, z;
     switch (subsetMap[text[x]]) {
       case 0:
-        posCpy(a, end1++, end0);
-        setItem(a, end0++, x);
+	y = getBits(bits, a, end0);
+	setBits(bits, a, end0++, x);
+	setBits(bits, a, end1++, y);
         break;
       case 1:
 	end1++;
         break;
       case 2:
-        posCpy(a, end1, --beg2);
-        setItem(a, beg2, x);
+	y = getBits(bits, a, --beg2);
+	setBits(bits, a, beg2, x);
+	setBits(bits, a, end1, y);
         break;
       default:  // the delimiter subset
-        posCpy(a, end1, --beg2);
-        posCpy(a, beg2, --begN);
-        setItem(a, begN, x);
+	y = getBits(bits, a, --beg2);
+	z = getBits(bits, a, --begN);
+	setBits(bits, a, end1, y);
+	setBits(bits, a, beg2, z);
+	setBits(bits, a, begN, x);
         break;
     }
   } while (end1 < beg2);
@@ -213,7 +223,9 @@ void SubsetSuffixArray::radixSort3(std::vector<Range> &rangeStack,
 void SubsetSuffixArray::radixSort4(std::vector<Range> &rangeStack,
 				   const uchar *text, const uchar *subsetMap,
 				   size_t beg, size_t end, size_t depth) {
-  PosPart *a = &suffixArray.v[0];
+  size_t *a = (size_t *)&suffixArray.v[0];
+  const int bits = sufArray.bitsPerItem;
+
   size_t end0 = beg;  // end of '0's
   size_t end1 = beg;  // end of '1's
   size_t end2 = beg;  // end of '2's
@@ -221,28 +233,35 @@ void SubsetSuffixArray::radixSort4(std::vector<Range> &rangeStack,
   size_t begN = end;  // beginning of delimiters
 
   do {
-    const size_t x = getItem(a, end2);
+    const size_t x = getBits(bits, a, end2);
+    size_t y, z;
     switch (subsetMap[text[x]]) {
     case 0:
-      posCpy(a, end2++, end1);
-      posCpy(a, end1++, end0);
-      setItem(a, end0++, x);
+      y = getBits(bits, a, end1);
+      z = getBits(bits, a, end0);
+      setBits(bits, a, end2++, y);
+      setBits(bits, a, end1++, z);
+      setBits(bits, a, end0++, x);
       break;
     case 1:
-      posCpy(a, end2++, end1);
-      setItem(a, end1++, x);
+      y = getBits(bits, a, end1);
+      setBits(bits, a, end1++, x);
+      setBits(bits, a, end2++, y);
       break;
     case 2:
       end2++;
       break;
     case 3:
-      posCpy(a, end2, --beg3);
-      setItem(a, beg3, x);
+      y = getBits(bits, a, --beg3);
+      setBits(bits, a, beg3, x);
+      setBits(bits, a, end2, y);
       break;
     default:  // the delimiter subset
-      posCpy(a, end2, --beg3);
-      posCpy(a, beg3, --begN);
-      setItem(a, begN, x);
+      y = getBits(bits, a, --beg3);
+      z = getBits(bits, a, --begN);
+      setBits(bits, a, end2, y);
+      setBits(bits, a, beg3, z);
+      setBits(bits, a, begN, x);
       break;
     }
   } while (end2 < beg3);
@@ -280,7 +299,8 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
 				   size_t beg, size_t end, size_t depth,
 				   unsigned subsetCount, size_t *bucketSizes) {
   const bool isChildFwd = isChildDirectionForward(beg);
-  PosPart *a = &suffixArray.v[0];
+  size_t *a = (size_t *)&suffixArray.v[0];
+  const int bits = sufArray.bitsPerItem;
   size_t whereTo[numOfBuckets];
 
   // get bucket sizes (i.e. letter counts):
@@ -291,7 +311,7 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
     size_t iEnd = i + std::min(sizeof(oracle), size_t(end - i));
     uchar *j = oracle;
     while (i < iEnd) {
-      *j++ = subsetMap[text[getItem(a, i++)]];
+      *j++ = subsetMap[text[getBits(bits, a, i++)]];
     }
     for (uchar *k = oracle; k < j; ++k) {
       ++bucketSizes[*k];
@@ -307,17 +327,17 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
 
   // permute items into the correct buckets:
   for (size_t i = beg; i < pos; /* noop */) {
-    size_t position = getItem(a, i);
+    size_t position = getBits(bits, a, i);
     unsigned subset;  // unsigned is faster than uchar!
     while (1) {
       subset = subsetMap[text[position]];
       size_t j = --whereTo[subset];
       if (j <= i) break;
-      size_t p = getItem(a, j);
-      setItem(a, j, position);
+      size_t p = getBits(bits, a, j);
+      setBits(bits, a, j, position);
       position = p;
     }
-    setItem(a, i, position);
+    setBits(bits, a, i, position);
     size_t j = i + bucketSizes[subset];
     bucketSizes[subset] = 0;  // reset it so we can reuse it
     pushRange(rangeStack, i, j, depth);
@@ -344,7 +364,8 @@ void SubsetSuffixArray::deepSort(std::vector<Range> &rangeStack,
 				 const uchar *subsetMap,
 				 size_t beg, size_t end, size_t depth,
 				 size_t *bucketSizes) {
-  PosPart *a = &suffixArray.v[0];
+  size_t *a = (size_t *)&suffixArray.v[0];
+  const int bits = sufArray.bitsPerItem;
   size_t whereTo[numOfBuckets];
   size_t steps[64];
   size_t depthEnd = maxBucketDepth(seed, depth, numOfBuckets, wordLength);
@@ -356,7 +377,7 @@ void SubsetSuffixArray::deepSort(std::vector<Range> &rangeStack,
   makeBucketSteps(steps, seed, depth, depthEnd, wordLength);
 
   for (size_t i = beg; i < end; ++i) {
-    size_t position = getItem(a, i);
+    size_t position = getBits(bits, a, i);
     size_t v = bucketValue(seed, subsetMap, steps, text + position, depthInc);
     ++bucketSizes[v];
   }
@@ -368,17 +389,17 @@ void SubsetSuffixArray::deepSort(std::vector<Range> &rangeStack,
   }
 
   for (size_t i = beg; i < end; ) {
-    size_t position = getItem(a, i);
+    size_t position = getBits(bits, a, i);
     size_t v;
     while (1) {
       v = bucketValue(seed, subsetMap, steps, text + position, depthInc);
       size_t j = --whereTo[v];
       if (j <= i) break;
-      size_t p = getItem(a, j);
-      setItem(a, j, position);
+      size_t p = getBits(bits, a, j);
+      setBits(bits, a, j, position);
       position = p;
     }
-    setItem(a, i, position);
+    setBits(bits, a, i, position);
     size_t j = i + bucketSizes[v];
     bucketSizes[v] = 0;  // reset it so we can reuse it
     if (isMore(steps, minDelimDepth, v)) pushRange(rangeStack, i, j, depthEnd);
@@ -556,12 +577,12 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
     size_t interval = end - beg;
 
     if (interval <= cacheSize) {
-      PosPart *a = &suffixArray.v[0];
-      for (size_t i = beg; i < end; ++i) intCache[i - beg] = getItem(a, i);
+      size_t *a = (size_t *)&suffixArray.v[0];
+      unpackBits(sufArray.bitsPerItem, a, intCache, beg, end);
       pushRange(myStack, 0, interval, depth);
       sortOutOfPlace(myStack, cacheSize, intCache, seqCache, text,
 		     wordLength, seed, maxUnsortedInterval, beg);
-      for (size_t i = beg; i < end; ++i) setItem(a, i, intCache[i - beg]);
+      packBits(sufArray.bitsPerItem, a, intCache, beg, end);
       continue;
     }
 
@@ -600,7 +621,10 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 
   if (childTableType == 1) chibiTable.v.assign(total, -1);
   if (childTableType == 2) kiddyTable.v.assign(total, -1);
-  if (childTableType == 3) childTable.v.assign(total, 0);
+  if (childTableType == 3) {
+    childTable.v.assign(numOfBytes(chiArray.bitsPerItem, total), 0);
+    chiArray.items = (const size_t *)childTable.begin();
+  }
 
   std::vector< std::vector<Range> > stacks(numOfThreads);
   std::vector<size_t> intCache(numOfThreads * (cacheSize * 2 + numOfBuckets));

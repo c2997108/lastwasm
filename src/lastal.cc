@@ -423,14 +423,6 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     ERR( "the lastdb files are old: please re-run lastdb" );
 
   if (bitsPerInt < 1 && version < 999) bitsPerInt = 32;
-
-  if (bitsPerInt != posSize * CHAR_BIT) {
-    if (bitsPerInt == 32) ERR("please use lastal for " + fileName);
-    if (bitsPerInt == 40) ERR("please use lastal5 for " + fileName);
-    if (bitsPerInt == 64) ERR("please use lastal8 for " + fileName);
-    ERR("weird integersize in " + fileName);
-  }
-
   alph.init(alphabetLetters, bitsPerBase == 4);
 }
 
@@ -635,6 +627,7 @@ void alignGapless1(LastAligner &aligner, SegmentPairPot &gaplessAlns,
   for (/* noop */; beg < end; ++beg) {
     if (maxAlignments == 0) break;
 
+    // it might be faster to unpack all these refPos values at once:
     size_t refPos = sa.getPosition(beg);  // position in the reference sequence
     size_t diagonal = qryPos - refPos;
     if (dt.isCovered(diagonal, qryPos)) continue;
@@ -1623,7 +1616,7 @@ void lastal( int argc, char** argv ){
     openIfFile(querySequenceFile, *querySequenceFileNames);
     runThreads(aligners.size());
   } else {
-    indexT maxSeqLen = -1;
+    size_t maxSeqLen = -1;
     initSequences(qrySeqsGlobal, queryAlph, args.isTranslated(), false);
     for (char **i = querySequenceFileNames; *i; ++i) {
       mcf::izstream inFileStream;
@@ -1633,7 +1626,6 @@ void lastal( int argc, char** argv ){
 			    queryAlph, args.maskLowercase > 1)) {
 	if (qrySeqsGlobal.isFinished()) {
 	  maxSeqLen = args.batchSize;
-	  if (maxSeqLen < args.batchSize) maxSeqLen = -1;
 	} else {
 	  if (qrySeqsGlobal.finishedSequences() == 0) throwSeqTooBig();
 	  // this enables downstream parsers to read one batch at a time:

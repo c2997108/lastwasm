@@ -318,16 +318,6 @@ Aligning distantly-related genomes
 
 See https://github.com/mcfrith/last-genome-alignments
 
-Large reference sequences
--------------------------
-
-If the sequences that you give to lastdb exceed ~4 billion letters,
-consider using 5-byte LAST (lastdb5_ and lastal5_).  Ordinary (4-byte)
-LAST can't handle so much sequence at once, so lastdb_ splits it into
-"volumes", which may be inefficient.  5-byte LAST avoids voluming, but
-uses more memory.  So lastdb5_ works well with a memory-reducing
-option such as ``-uRY`` or ``-w``.
-
 Moar faster
 -----------
 
@@ -385,9 +375,7 @@ ambiguity estimates assume that the core is correctly aligned.  The
 core is indicated by "~" symbols, and it contains exact matches only.
 
 .. _last: README.rst
-.. _lastdb5:
 .. _lastdb: doc/lastdb.rst
-.. _lastal5:
 .. _lastal: doc/lastal.rst
 .. _dotplot: doc/last-dotplot.rst
 .. _last-pair-probs: doc/last-pair-probs.rst

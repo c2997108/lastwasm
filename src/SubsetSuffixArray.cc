@@ -24,7 +24,7 @@ void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
   for (size_t i = 0; i < numOfSeeds; ++i) {
     std::swap(cumulativeCounts[i], sumOfCounts);
   }
-  resizePositions(sumOfCounts);
+  resizePositions(sumOfCounts, seqEnd - seqBeg);
 
   unsigned hash = 0;
   const uchar *seqPos = finder.init(seqBeg, seqEnd, &hash);
@@ -94,12 +94,33 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   size_t wordLength = maxRestrictedSpan(&seeds[0], seeds.size());
   makeAllBucketSteps(&bucketDepths[0], wordLength);
   initBucketEnds();
+  size_t sufSize, bckSize, chiSize;
 
-  suffixArray.m.open(baseName + ".suf", indexedPositions * posParts);
-  buckets.m.open(baseName + ".bck", offParts * bucketsSize());
+  if (bitsPerInt) {  // we have an old lastdb database :-(
+    size_t chiBytes = bitsPerInt > 32 ? sizeof(size_t) : sizeof(unsigned);
+    sufArray.bitsPerItem = 128 | bitsPerInt;
+    bckArray.bitsPerItem = 128 | bitsPerInt;
+    chiArray.bitsPerItem = 128 | chiBytes * CHAR_BIT;
+    sufSize = bitsPerInt / CHAR_BIT * indexedPositions;
+    bckSize = bitsPerInt / CHAR_BIT * bucketsSize();
+    chiSize = chiBytes * indexedPositions;
+  } else {  // we have a new lastdb database :-)
+    sufArray.bitsPerItem = numOfBitsNeededFor(textLength - 1);
+    bckArray.bitsPerItem = numOfBitsNeededFor(indexedPositions);
+    chiArray.bitsPerItem = numOfBitsNeededFor(indexedPositions - 1);
+    sufSize = numOfBytes(sufArray.bitsPerItem, indexedPositions);
+    bckSize = numOfBytes(bckArray.bitsPerItem, bucketsSize());
+    chiSize = numOfBytes(chiArray.bitsPerItem, indexedPositions);
+  }
+
+  suffixArray.m.open(baseName + ".suf", sufSize);
+  sufArray.items = (const size_t *)suffixArray.m.begin();
+  buckets.m.open(baseName + ".bck", bckSize);
+  bckArray.items = (const size_t *)buckets.m.begin();
 
   try{
-    childTable.m.open( baseName + ".chi", indexedPositions );
+    childTable.m.open(baseName + ".chi", chiSize);
+    chiArray.items = (const size_t *)childTable.m.begin();
   }catch( std::runtime_error& ){
     try{
       kiddyTable.m.open( baseName + ".chi2", indexedPositions );
@@ -113,7 +134,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
 void SubsetSuffixArray::toFiles( const std::string& baseName,
 				 bool isAppendPrj, size_t textLength ) const{
-  size_t indexedPositions = getItem(buckets.begin(), bucketEnds.back());
+  size_t indexedPositions = bckArray[bucketEnds.back()];
   assert(textLength > indexedPositions);
 
   std::string fileName = baseName + ".prj";
@@ -154,26 +175,27 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
 
 static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
 			const size_t *steps, int depth,
-			const PosPart *sa, size_t saPos) {
-  size_t position = getItem(sa, saPos);
+			ConstPackedArray sa, size_t saPos) {
+  size_t position = sa[saPos];
   return bucketValue(seed, seed.firstMap(), steps, text + position, depth) + 1;
 }
 
 static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
 			    const size_t *steps, int depth,
-			    OffPart *buckets, size_t buckBeg, size_t buckIdx,
-			    const PosPart *sa, size_t saBeg, size_t saEnd) {
+			    PackedArray buckets,
+			    size_t buckBeg, size_t buckIdx,
+			    ConstPackedArray sa, size_t saBeg, size_t saEnd) {
   for (size_t i = saBeg; i < saEnd; ++i) {
     size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, i);
     for (; buckIdx < b; ++buckIdx) {
-      setItem(buckets, buckIdx, i);
+      buckets.set(buckIdx, i);
     }
   }
 }
 
 static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
-		       const size_t *steps, int depth, OffPart *buckets,
-		       size_t buckBeg, size_t buckIdx, const PosPart *sa,
+		       const size_t *steps, int depth, PackedArray buckets,
+		       size_t buckBeg, size_t buckIdx, ConstPackedArray sa,
 		       size_t saBeg, size_t saEnd, size_t numOfThreads) {
   const CyclicSubsetSeed &seed = *seedPtr;
   if (numOfThreads > 1) {
@@ -200,10 +222,12 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   std::vector<unsigned> bucketDepths(seeds.size(), bucketDepth);
   if (bucketDepth+1 == 0) {
     assert(minPositionsPerBucket > 0);
+    unsigned long long pMem = sufArray.bitsPerItem;
+    unsigned long long bMem = bckArray.bitsPerItem;
     size_t oldCount = 0;
     for (size_t s = 0; s < seeds.size(); ++s) {
       size_t newCount = cumulativeCounts[s];
-      size_t m = (newCount - oldCount) / minPositionsPerBucket;
+      size_t m = (newCount - oldCount) * pMem / (minPositionsPerBucket * bMem);
       bucketDepths[s] = maxBucketDepth(seeds[s], 0, m, wordLength);
       oldCount = newCount;
     }
@@ -211,10 +235,10 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 
   makeAllBucketSteps(&bucketDepths[0], wordLength);
   initBucketEnds();
-  buckets.v.resize(offParts * bucketsSize());
+  buckets.v.resize(numOfBytes(bckArray.bitsPerItem, bucketsSize()));
+  bckArray.items = (const size_t *)buckets.begin();
 
-  const PosPart *sa = suffixArray.begin();
-  OffPart *bucks = &buckets.v[0];
+  PackedArray bucks = {(size_t *)&buckets.v[0], bckArray.bitsPerItem};
   size_t buckBeg = 0;
   size_t buckIdx = 0;
   size_t saBeg = 0;
@@ -226,15 +250,15 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     size_t saEnd = cumulativeCounts[s];
     if (saEnd > saBeg) {
       runThreads(text, &seed, steps, depth, bucks, buckBeg,
-		 buckIdx, sa, saBeg, saEnd, numOfThreads);
-      buckIdx = buckBeg + bucketPos(text, seed, steps, depth, sa, saEnd - 1);
+		 buckIdx, sufArray, saBeg, saEnd, numOfThreads);
+      buckIdx = buckBeg + bucketPos(text, seed, steps, depth, sufArray, saEnd - 1);
       saBeg = saEnd;
     }
     buckBeg += steps[0];
   }
 
   for (; buckIdx <= buckBeg; ++buckIdx) {
-    setItem(bucks, buckIdx, saBeg);
+    bucks.set(buckIdx, saBeg);
   }
 }
 
