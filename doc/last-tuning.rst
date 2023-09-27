@@ -44,9 +44,8 @@ lastdb -u
 of positions, in both query and reference.  This **decreases memory
 and disk use**, and **increases speed** of lastdb and lastal, but
 **reduces sensitivity**.  ``-uRY8`` checks only ~1/8 of positions,
-``-uRY16`` checks only ~1/16 of positions, ``-uRY32`` checks only
-~1/32 of positions.  These ``-uRY`` options only apply to DNA, not
-protein.
+``-uRY16`` ~1/16, ``-uRY32`` ~1/32, ``-uRY64`` ~1/64.  These ``-uRY``
+options only apply to DNA, not protein.
 
 lastdb -W
 ---------

@@ -18,7 +18,7 @@ doc/last-matrices.rst: build/mat-doc.sh data/*.mat
 	./build/mat-doc.sh data/*.mat > $@
 
 doc/last-seeds.rst: build/seed-doc.sh data/*.seed
-	cd data && ../build/seed-doc.sh [!R]*d *4-9* *8-10* *-11* *-12* > ../$@
+	cd data && ../build/seed-doc.sh [!R]*d *4-9* *8-10* *-1[123]* > ../$@
 
 tag:
 	git tag -m "" `git rev-list HEAD | grep -c .`

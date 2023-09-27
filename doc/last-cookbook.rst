@@ -181,8 +181,8 @@ Aligning low-error long DNA reads to a genome
 We can do this the same way as for high-error reads, but perhaps
 accelerate more aggressively.  ``RY8`` reduces the run time and memory
 use even more than ``RY4``.  (This is because ``RY8`` uses ~1/8 of the
-seeds, i.e. initial matches, whereas ``RY4`` uses ~1/4).  ``RY16`` is
-faster still, and ``RY32`` is the fastest of these options.
+seeds, i.e. initial matches, whereas ``RY4`` uses ~1/4).  ``RY16``,
+``RY32``, and ``RY64`` are faster still.
 
 Also, lastal_ option ``-C2`` may reduce run time with little effect on
 accuracy.
