@@ -92,8 +92,7 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 
   size_t indexedPositions = textLength - unindexedPositions;
   size_t wordLength = maxRestrictedSpan(&seeds[0], seeds.size());
-  makeAllBucketSteps(&bucketDepths[0], wordLength);
-  initBucketEnds();
+  makeBucketStepsAndEnds(&bucketDepths[0], wordLength);
   size_t sufSize, bckSize, chiSize;
 
   if (bitsPerInt) {  // we have an old lastdb database :-(
@@ -233,8 +232,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     }
   }
 
-  makeAllBucketSteps(&bucketDepths[0], wordLength);
-  initBucketEnds();
+  makeBucketStepsAndEnds(&bucketDepths[0], wordLength);
   buckets.v.resize(numOfBytes(bckArray.bitsPerItem, bucketsSize()));
   bckArray.items = (const size_t *)buckets.begin();
 
@@ -262,8 +260,8 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   }
 }
 
-void SubsetSuffixArray::makeAllBucketSteps(const unsigned *bucketDepths,
-					   size_t wordLength) {
+void SubsetSuffixArray::makeBucketStepsAndEnds(const unsigned *bucketDepths,
+					       size_t wordLength) {
   size_t numOfSeeds = seeds.size();
   size_t numOfBucketSteps = numOfSeeds;
   for (size_t i = 0; i < numOfSeeds; ++i) {
@@ -271,12 +269,20 @@ void SubsetSuffixArray::makeAllBucketSteps(const unsigned *bucketDepths,
   }
   bucketSteps.resize(numOfBucketSteps);
   bucketStepEnds.resize(numOfSeeds + 1);
+  bucketEnds.resize(numOfSeeds + 1);
+
   size_t *steps = &bucketSteps[0];
+  size_t end = 0;
+
   for (size_t i = 0; i < numOfSeeds; ++i) {
     bucketStepEnds[i] = steps;
+    bucketEnds[i] = end;
     unsigned depth = bucketDepths[i];
     makeBucketSteps(steps, seeds[i], 0, depth, wordLength);
+    end += steps[0];
     steps += depth + 1;
   }
+
   bucketStepEnds[numOfSeeds] = steps;
+  bucketEnds[numOfSeeds] = end;
 }

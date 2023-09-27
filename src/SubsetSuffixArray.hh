@@ -199,20 +199,9 @@ private:
   size_t maxBucketPrefix(unsigned seedNum) const
   { return bucketStepEnds[seedNum + 1] - bucketStepEnds[seedNum] - 1; }
 
-  void makeAllBucketSteps(const unsigned *bucketDepths, size_t wordLength);
+  void makeBucketStepsAndEnds(const unsigned *bucketDepths, size_t wordLength);
 
   size_t bucketsSize() const { return bucketEnds.back() + 1; }
-
-  void initBucketEnds() {
-    size_t numOfSeeds = seeds.size();
-    bucketEnds.resize(numOfSeeds + 1);
-    size_t i = 0;
-    size_t x = 0;
-    while (bucketEnds[i] = x, i < numOfSeeds) {
-      x += bucketStepEnds[i][0];
-      ++i;
-    }
-  }
 
   void sort2(const uchar *text, const CyclicSubsetSeed &seed,
 	     size_t *positions, size_t origin,
