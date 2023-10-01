@@ -684,7 +684,9 @@ void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
   const uchar *qryBeg = querySeq + loopBeg;
   const uchar *qryEnd = querySeq + loopEnd;
 
-  if (wordsFinder.wordLength) {
+  const unsigned wordLen = wordsFinder.wordLength;
+
+  if (wordLen) {
     unsigned hash = 0;
     qryBeg = wordsFinder.init(qryBeg, qryEnd, &hash);
     while (qryBeg < qryEnd) {
@@ -694,8 +696,7 @@ void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
 	unsigned w = wordsFinder.next(&hash, c);
 	if (w != dnaWordsFinderNull) {
 	  alignGapless1(aligner, gaplessAlns, qrySeqs, qryData, dis, dt,
-			counts, suffixArrays[0],
-			qryBeg - wordsFinder.wordLength, w);
+			counts, suffixArrays[0], qryBeg - wordLen, w);
 	  if (counts.maxSignificantAlignments == 0) break;
 	}
       } else {
@@ -707,15 +708,16 @@ void alignGapless(LastAligner &aligner, SegmentPairPot &gaplessAlns,
     for (unsigned x = 0; x < numOfIndexes; ++x) {
       minFinders[x].init(suffixArrays[x].getSeeds()[0], qryBeg, qryEnd);
     }
-    for (size_t qryPos = loopBeg; qryPos < loopEnd; qryPos += args.queryStep) {
-      const uchar *qryPtr = querySeq + qryPos;
+    const size_t step = args.queryStep;
+    const size_t w = args.minimizerWindow;
+    for (size_t i = loopBeg; i < loopEnd; i += step) {
+      const uchar *qryPtr = querySeq + i;
       for (unsigned x = 0; x < numOfIndexes; ++x) {
-	const SubsetSuffixArray& sax = suffixArrays[x];
-	if (args.minimizerWindow > 1 &&
-	    !minFinders[x].isMinimizer(sax.getSeeds()[0], qryPtr, qryEnd,
-				       args.minimizerWindow)) continue;
-	alignGapless1(aligner, gaplessAlns, qrySeqs, qryData, dis, dt,
-		      counts, sax, qryPtr, 0);
+	if (w < 2 || minFinders[x].isMinimizer(suffixArrays[x].getSeeds()[0],
+					       qryPtr, qryEnd, w)) {
+	  alignGapless1(aligner, gaplessAlns, qrySeqs, qryData, dis, dt,
+			counts, suffixArrays[x], qryPtr, 0);
+	}
       }
       if (counts.maxSignificantAlignments == 0) break;
     }
