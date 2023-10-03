@@ -48,13 +48,11 @@ namespace cbrc{
 
     // start2 is the index of the first position to look at in the PSSM
 
-    double forward(const uchar *seq1, const uchar *seq2,
-		   size_t start2, bool isExtendFwd,
-		   const const_dbl_ptr *substitutionProbs,
+    double forward(BigPtr seq1, const uchar *seq2, size_t start2,
+		   bool isExtendFwd, const const_dbl_ptr *substitutionProbs,
 		   const GapCosts &gapCosts, int globality);
 
-    void backward(bool isExtendFwd,
-		  const const_dbl_ptr *substitutionProbs,
+    void backward(bool isExtendFwd, const const_dbl_ptr *substitutionProbs,
 		  const GapCosts &gapCosts, int globality);
 
     double dp(int outputType, double gamma) {
@@ -111,6 +109,8 @@ namespace cbrc{
 
     std::vector<double> letterProbsPerPosition;  // for uncertain sequences
 
+    std::vector<uchar> copyOfSeq1;
+
     typedef std::vector< double > dvec_t;
 
     dvec_t fM; // f^M(i,j)
@@ -132,7 +132,7 @@ namespace cbrc{
 
     double rescaledSumOfProbRatios;
 
-    const uchar *seq1ptr;
+    uchar *seq1ptr;
     const uchar *seq2ptr;
     const ExpMatrixRow *pssmPtr;
 

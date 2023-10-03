@@ -231,8 +231,7 @@ Advanced Options
     values are 4 or 8 (the default).  4 reduces the disk use and
     lastal_'s memory use, but not lastdb's memory use.  It converts
     letters other than ACGTRY to N.  4 can't be combined with ``-p``,
-    ``-q``, or ``-a``, and isn't currently supported by last-train_,
-    or lastal_ options ``-j`` > 3, ``-J1``, or ``-M``.
+    ``-q``, or ``-a``, or lastal_ option ``-M``.
 
 -v  Be verbose: write messages about what lastdb is doing.
 

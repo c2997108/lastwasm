@@ -15,7 +15,7 @@ db=/tmp/$(basename $0 .sh)
 trap 'rm -f $db*' EXIT
 
 {
-    lastdb -R10 $db ../examples/humanMito.fa
+    lastdb --bits=4 -R10 $db ../examples/humanMito.fa
     try "last-train -m1 $db < ../examples/mouseMito.fa"
     try last-train -m1 -C2 --revsym $db ../examples/mouseMito.fa
     try last-train -m1 -k16 --matsym --gapsym $db ../examples/mouseMito.fa

@@ -408,7 +408,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   if (outputType > 3 || isFullScore) {
     assert( !isGreedy );
     assert( !sm2qual );
-    double s = centroid.forward(seq1.beg + start1, s2, start2, isForward,
+    double s = centroid.forward(seq1 + start1, s2, start2, isForward,
 				probMat, gap, globality);
     if (isFullScore) {
       score += s / scale;

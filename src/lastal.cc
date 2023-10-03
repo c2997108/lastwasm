@@ -1557,8 +1557,6 @@ void lastal( int argc, char** argv ){
 
   if (bitsPerBase < CHAR_BIT) {
     if (args.isGreedy) err("can't use option -M with 4-bit lastdb");
-    if (args.outputType > 3) err("can't use option -j > 3 with 4-bit lastdb");
-    if (args.scoreType != 0) err("can't use option -J1 with 4-bit lastdb");
     if (isUseFastq(referenceFormat) && isUseFastq(args.inputFormat))
       err("can't do fastq-versus-fastq with 4-bit lastdb");
   }

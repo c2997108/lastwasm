@@ -5,16 +5,9 @@
 #include "GappedXdropAlignerInl.hh"
 
 #include <algorithm>
-#include <cmath> // for exp
 #include <cfloat>   // for DBL_MAX
 
 static const double DINF = DBL_MAX / 2;
-
-namespace{
-  double EXP ( double x ) {
-    return std::exp (x);
-  }
-}
 
 namespace cbrc{
 
@@ -31,7 +24,7 @@ namespace cbrc{
     else{  // slow general case
       for ( size_t i=0; i<qsize; ++i ) {
         for ( unsigned j=0; j<scoreMatrixRowSize; ++j ) {
-          pssmExp2[ i ][ j ] = EXP ( pssm[ i ][ j ] / T );
+          pssmExp2[i][j] = exp(pssm[i][j] / T);
         }
       }
     }
@@ -69,11 +62,10 @@ namespace cbrc{
     }
   }
 
-  double Centroid::forward(const uchar *seq1, const uchar *seq2,
+  double Centroid::forward(BigPtr seq1, const uchar *seq2,
 			   size_t start2, bool isExtendFwd,
 			   const const_dbl_ptr *substitutionProbs,
 			   const GapCosts &gapCosts, int globality) {
-    seq1ptr = seq1;
     seq2ptr = seq2;
     pssmPtr = pssmExp.empty() ? 0 : pssmExp2 + start2;
     const int seqIncrement = isExtendFwd ? 1 : -1;
@@ -84,6 +76,14 @@ namespace cbrc{
     const double insNext = gapCosts.insProbPieces[0].growProb;
 
     initForward();
+
+    size_t seqLength1 = xa.seq1start(numAntidiagonals - 1) + 1;
+    copyOfSeq1.resize(seqLength1);
+    seq1ptr = &copyOfSeq1[0];
+    if (!isExtendFwd) getNext(seq1);
+    for (uchar *s = seq1ptr; seqLength1--; ++s) {
+      *s = isExtendFwd ? getNext(seq1) : getPrev(seq1);
+    }
 
     size_t antidiagonal = 0;
     size_t seq1beg = 0;
@@ -124,7 +124,7 @@ namespace cbrc{
 	  fI0[i] = xSum * insInit + xI * insNext;
 	  fM0[i] = xSum * matchProb;
 	  sumOfProbRatios += xSum;
-	  s1 += seqIncrement;
+	  ++s1;
 	  s2 -= seqIncrement;
 	}
       } else {
@@ -138,7 +138,7 @@ namespace cbrc{
 	  fI0[i] = xSum * insInit + xI * insNext;
 	  fM0[i] = xSum * matchProb;
 	  sumOfProbRatios += xSum;
-	  s1 += seqIncrement;
+	  ++s1;
 	  p2 -= seqIncrement;
 	}
       }
@@ -162,7 +162,7 @@ namespace cbrc{
       const size_t newSeq1beg = xa.seq1start(antidiagonal);
       if (newSeq1beg > seq1beg) {
 	seq1beg = newSeq1beg;
-	seq1ptr += seqIncrement;
+	++seq1ptr;
 	++diagPos;
 	++horiPos;
       } else {
@@ -253,7 +253,7 @@ namespace cbrc{
 	  *mIout += fI0[i] * yI;
 
 	  mDout++; mIout--;
-	  s1 += seqIncrement;
+	  ++s1;
 	  s2 -= seqIncrement;
 	}
       } else {
@@ -276,7 +276,7 @@ namespace cbrc{
 	  *mIout += fI0[i] * yI;
 
 	  mDout++; mIout--;
-	  s1 += seqIncrement;
+	  ++s1;
 	  p2 -= seqIncrement;
 	}
       }
@@ -296,7 +296,7 @@ namespace cbrc{
       const size_t newSeq1beg = xa.seq1start(antidiagonal);
       if (newSeq1beg < seq1beg) {
 	seq1beg = newSeq1beg;
-	seq1ptr -= seqIncrement;
+	--seq1ptr;
       } else {
 	seq2ptr -= seqIncrement;
 	if (pssmPtr) pssmPtr -= seqIncrement;
@@ -549,7 +549,7 @@ namespace cbrc{
 	  alignedLetterPairCount += alignProb;
 	  dNextCount += fD1[i] * bD0[i];
 	  iNextCount += fI1[i] * bI0[i];
-	  s1 += seqIncrement;
+	  ++s1;
 	  s2 -= seqIncrement;
 	}
       } else {
@@ -562,7 +562,7 @@ namespace cbrc{
 	  alignedLetterPairCount += alignProb;
 	  dNextCount += fD1[i] * bD0[i];
 	  iNextCount += fI1[i] * bI0[i];
-	  s1 += seqIncrement;
+	  ++s1;
 	  lp2 -= alphabetSizeIncrement;
 	}
       }
@@ -585,7 +585,7 @@ namespace cbrc{
       const size_t newSeq1beg = xa.seq1start(antidiagonal);
       if (newSeq1beg > seq1beg) {
 	seq1beg = newSeq1beg;
-	seq1ptr += seqIncrement;
+	++seq1ptr;
 	++vertPos;
       } else {
 	seq2ptr += seqIncrement;
