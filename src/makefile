@@ -205,7 +205,8 @@ LastEvaluer.o: LastEvaluer.cc LastEvaluer.hh ScoreMatrixRow.hh \
  mcf_frameshift_xdrop_aligner.hh mcf_gap_costs.hh \
  alp/sls_alignment_evaluer.hpp alp/sls_pvalues.hpp alp/sls_basic.hpp \
  GeneticCode.hh mcf_alignment_path_adder.hh \
- alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp
+ alp/sls_falp_alignment_evaluer.hpp alp/sls_fsa1_pvalues.hpp \
+ LastEvaluerData.hh
 last-pair-probs.o: last-pair-probs.cc last-pair-probs.hh zio.hh \
  mcf_zstream.hh stringify.hh
 last-pair-probs-main.o: last-pair-probs-main.cc last-pair-probs.hh \

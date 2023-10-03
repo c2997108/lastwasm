@@ -117,7 +117,7 @@ Limitations
   in LAST's source code.  Parameters for other scoring schemes can be
   added on request.  (Or you can do it yourself: run lastal with
   option -v, so it prints the E-value parameters, then copy them into
-  LastEvaluer.cc.)
+  LastEvaluerData.hh.)
 
 * The E-values do not account for lastal option -c.  If you use this
   option, the E-values will be under-estimates.
