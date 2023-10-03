@@ -208,9 +208,9 @@ endProb        ω\ :sub:`D`, ω\ :sub:`I`
 When ``--codon`` is used, the gap probabilities correspond to Figure 2
 of DNA-versus-protein_:
 
-=============  ==========================
+=============  =========================
 last-train     DNA-versus-protein_
-=============  ==========================
+=============  =========================
 delOpenProb    α\ :sub:`D`
 insOpenProb    α\ :sub:`I`
 delExtendProb  β\ :sub:`D`
@@ -220,8 +220,8 @@ del-2          1 - ε\ :sub:`D`
 ins+1          1 - δ\ :sub:`I`
 ins+2          1 - ε\ :sub:`I`
 matchProb      Γ
-endProb        ω\ :sub:`i`, ∛ ω\ :sub:`D`
-=============  ==========================
+endProb        ω\ :sub:`i`, ∛ω\ :sub:`D`
+=============  =========================
 
 It assumes that ω\ :sub:`D` = ω\ :sub:`i`\ :sup:`3`, and gets the
 unique value that satisfies "balanced length probability"
