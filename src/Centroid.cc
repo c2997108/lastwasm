@@ -148,7 +148,7 @@ namespace cbrc{
 	if (substitutionProbs[0][*seq2ptr] <= 0) {
 	  sumOfEdgeProbRatios += fM2[0] + fD1[0] + fI1[0];
 	}
-	if (n > 0 && substitutionProbs[*(s1 - seqIncrement)][0] <= 0) {
+	if (n > 0 && substitutionProbs[*(s1 - 1)][0] <= 0) {
 	  sumOfEdgeProbRatios += fM2[n] + fD1[n] + fI1[n];
 	}
       }
