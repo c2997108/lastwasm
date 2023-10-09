@@ -41,7 +41,12 @@ struct Alphabet{
   bool isProtein() const{ return letters.find( protein ) == 0; }
 
   // add counts of "proper" letters to "counts" (counting lowercase too)
-  void count( const uchar* beg, const uchar* end, countT* counts ) const;
+  void count(const uchar *beg, const uchar *end, countT *counts) const {
+    for (const uchar *i = beg; i < end; ++i) {
+      unsigned u = numbersToUppercase[*i];
+      if (u < size) ++counts[u];
+    }
+  }
 
   size_t countNormalLetters(const uchar *beg, const uchar *end) const {
     size_t c = 0;

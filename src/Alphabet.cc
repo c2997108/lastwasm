@@ -21,14 +21,6 @@ const char* Alphabet::dna = "ACGT";
 const char* Alphabet::protein = "ACDEFGHIKLMNPQRSTVWY";
 const char* Alphabet::proteinWithStop = "ACDEFGHIKLMNPQRSTVWY*";
 
-void Alphabet::count( const uchar* beg, const uchar* end,
-                      countT* counts ) const{
-  for( /* noop */; beg < end; ++beg ){
-    unsigned uppercase = numbersToUppercase[ *beg ];
-    if( uppercase < size ) ++counts[ uppercase ];
-  }
-}
-
 void Alphabet::tr( uchar* beg, uchar* end, bool isKeepLowercase ) const{
   const uchar* x = isKeepLowercase ? encode : lettersToUppercase;
   for( /* noop */; beg < end; ++beg ){
