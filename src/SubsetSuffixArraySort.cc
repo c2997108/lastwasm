@@ -369,6 +369,7 @@ void SubsetSuffixArray::deepSort(std::vector<Range> &rangeStack,
   size_t whereTo[numOfBuckets];
   size_t steps[64];
   size_t depthEnd = maxBucketDepth(seed, depth, numOfBuckets, wordLength);
+  size_t newDepth = depthEnd + seeds.size() - 1;
   int depthInc = depthEnd - depth;
 
   int minDelimDepth =
@@ -402,7 +403,7 @@ void SubsetSuffixArray::deepSort(std::vector<Range> &rangeStack,
     setBits(bits, a, i, position);
     size_t j = i + bucketSizes[v];
     bucketSizes[v] = 0;  // reset it so we can reuse it
-    if (isMore(steps, minDelimDepth, v)) pushRange(rangeStack, i, j, depthEnd);
+    if (isMore(steps, minDelimDepth, v)) pushRange(rangeStack, i, j, newDepth);
     i = j;
   }
 }
@@ -523,9 +524,10 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 				   size_t cacheSize,
 				   size_t *intCache, uchar *seqCache,
 				   const uchar *text, unsigned wordLength,
-				   const CyclicSubsetSeed &seed,
+				   unsigned seedNum,
 				   size_t maxUnsortedInterval,
 				   size_t numOfThreads) {
+  const size_t numOfSeeds = seeds.size();
   std::vector<Range> &myStack = stacks[0];
 
   while( !myStack.empty() ){
@@ -558,11 +560,11 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 				 stacks + numOfThreads, cacheSize,
 				 intCache + numOfThreads * intCacheSize,
 				 seqCache + numOfThreads * cacheSize,
-				 text, wordLength, seed,
+				 text, wordLength, seedNum,
 				 maxUnsortedInterval, thisThreads);
       }
-      sortRanges(stacks, cacheSize, intCache, seqCache, text, wordLength, seed,
-		 maxUnsortedInterval, numOfThreads);
+      sortRanges(stacks, cacheSize, intCache, seqCache, text, wordLength,
+		 seedNum, maxUnsortedInterval, numOfThreads);
       for (size_t i = 0; i < numOfNewThreads; ++i) {
 	threads[i].join();
       }
@@ -574,6 +576,15 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
     size_t end = myStack.back().end;
     size_t depth = myStack.back().depth;
     myStack.pop_back();
+
+    if (depth < numOfSeeds) {
+      seedNum = depth;
+      depth = 0;
+    } else {
+      depth -= numOfSeeds - 1;
+    }
+
+    const CyclicSubsetSeed &seed = seeds[seedNum];
     size_t interval = end - beg;
 
     if (interval <= cacheSize) {
@@ -596,7 +607,7 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
     }
 
     unsigned subsetCount = getSubsetCount(seed, depth, wordLength);
-    ++depth;
+    depth += numOfSeeds;
 
     switch (subsetCount) {
     case 1:  radixSort1(myStack, textBase, subsetMap, beg, end, depth); break;
@@ -633,10 +644,11 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
   size_t beg = 0;
   for (size_t i = 0; i < numOfSeeds; ++i) {
     size_t end = cumulativeCounts[i];
-    pushRange(stacks[0], beg, end, 0);
+    pushRange(stacks[0], beg, end, i);
     setChildReverse(end, beg);
-    sortRanges(&stacks[0], cacheSize, &intCache[0], &seqCache[0], text,
-	       wordLength, seeds[i], maxUnsortedInterval, numOfThreads);
     beg = end;
   }
+
+  sortRanges(&stacks[0], cacheSize, &intCache[0], &seqCache[0], text,
+	     wordLength, 0, maxUnsortedInterval, numOfThreads);
 }

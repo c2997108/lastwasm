@@ -242,7 +242,7 @@ private:
 
   void sortRanges(std::vector<Range> *stacks, size_t cacheSize,
 		  size_t *intCache, uchar *seqCache, const uchar *text,
-		  unsigned wordLength, const CyclicSubsetSeed &seed,
+		  unsigned wordLength, unsigned seedNum,
 		  size_t maxUnsortedInterval, size_t numOfThreads);
 
   size_t getChild(size_t i) const {
