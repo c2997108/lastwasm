@@ -2,8 +2,7 @@
 # Author: Martin C. Frith 2008
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Read pair-wise alignments in MAF or LAST tabular format: write an
-# "Oxford grid", a.k.a. dotplot.
+# Read pair-wise alignments: write an "Oxford grid", a.k.a. dotplot.
 
 # TODO: Currently, pixels with zero aligned nt-pairs are white, and
 # pixels with one or more aligned nt-pairs are black.  This can look
@@ -43,6 +42,9 @@ def myOpen(fileName):  # faster than fileinput
 def groupByFirstItem(things):
     for k, v in itertools.groupby(things, itemgetter(0)):
         yield k, [i[1:] for i in v]
+
+def commaSeparatedInts(text):
+    return map(int, text.rstrip(",").split(","))
 
 def croppedBlocks(blocks, ranges1, ranges2):
     headBeg1, headBeg2, headSize = blocks[0]
@@ -106,7 +108,7 @@ def alignmentFromSegment(qrySeqName, qrySeqLen, segment):
     return refSeqName, refSeqLen, qrySeqName, qrySeqLen, [block]
 
 def alignmentInput(lines):
-    '''Get alignments and sequence lengths, from MAF or tabular format.'''
+    '''Read alignments and sequence lengths.'''
     mafCount = 0
     qrySeqName = ""
     segments = []
@@ -129,6 +131,19 @@ def alignmentInput(lines):
                 refSeqBeg = -refSeqBeg
             segments.append((refSeqName, refSeqBeg, qrySeqLen, size))
             qrySeqLen += size
+        elif len(w) > 20:  # PSL format
+            strand = w[8]
+            if len(strand) > 1:
+                raise RuntimeError("can't handle translated PSL format")
+            chr2, seqlen2 = w[ 9], int(w[10])
+            chr1, seqlen1 = w[13], int(w[14])
+            sizes = commaSeparatedInts(w[18])
+            beg2s = commaSeparatedInts(w[19])
+            beg1s = commaSeparatedInts(w[20])
+            if strand == "-":
+                beg2s = (i - seqlen2 for i in beg2s)
+            blocks = zip(beg1s, beg2s, sizes)
+            yield chr1, seqlen1, chr2, seqlen2, blocks
         elif line[0].isdigit():  # tabular format
             chr1, beg1, seqlen1 = w[1], int(w[2]), int(w[5])
             if w[4] == "-": beg1 -= seqlen1
@@ -180,7 +195,7 @@ def updateSeqs(coverDict, seqRanges, seqName, ranges, coveredRange):
             seqRanges.append(r)
 
 def readAlignments(fileName, opts):
-    '''Get alignments and sequence limits, from MAF or tabular format.'''
+    '''Read alignments and sequence limits.'''
     seqRequests1 = [seqRequestFromText(i) for i in opts.seq1]
     seqRequests2 = [seqRequestFromText(i) for i in opts.seq2]
 
@@ -596,9 +611,6 @@ def expandedSeqDict(seqDict):
                 return seqDict   # so give up completely
             newDict[base] = x
     return newDict
-
-def commaSeparatedInts(text):
-    return map(int, text.rstrip(",").split(","))
 
 def annotsFromBedOrAgp(opts, rangeDict, fields):
     seqName = fields[0]
@@ -1049,10 +1061,10 @@ def lastDotplot(opts, args):
 
 if __name__ == "__main__":
     usage = """%prog --help
-   or: %prog [options] maf-or-tab-alignments dotplot.png
-   or: %prog [options] maf-or-tab-alignments dotplot.gif
+   or: %prog [options] maf-or-psl-or-tab-alignments dotplot.png
+   or: %prog [options] maf-or-psl-or-tab-alignments dotplot.gif
    or: ..."""
-    description = "Draw a dotplot of pair-wise sequence alignments in MAF or tabular format."
+    description = "Draw a dotplot of pair-wise sequence alignments."
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-v", "--verbose", action="count",
                   help="show progress messages & data about the plot")

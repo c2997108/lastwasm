@@ -2,8 +2,8 @@ last-dotplot
 ============
 
 This script makes a dotplot, a.k.a. Oxford Grid, of pair-wise sequence
-alignments in MAF_ or LAST tabular format.  It requires the `Python
-Imaging Library`_ to be installed.  It can be used like this::
+alignments in MAF_, PSL_, or LAST tabular format.  It requires the
+`Python Imaging Library`_ to be installed.  It can be used like this::
 
   last-dotplot my-alignments my-plot.png
 
@@ -221,6 +221,7 @@ Colors can be specified in `various ways described here
 .. _Python Imaging Library: https://pillow.readthedocs.io/
 .. _MAF: https://genome.ucsc.edu/FAQ/FAQformat.html#format5
 .. _BED: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
+.. _PSL: https://genome.ucsc.edu/FAQ/FAQformat.html#format2
 .. _genePred: https://genome.ucsc.edu/FAQ/FAQformat.html#format9
 .. _RepeatMasker: http://www.repeatmasker.org/
 .. _AGP: https://www.ncbi.nlm.nih.gov/assembly/agp/
