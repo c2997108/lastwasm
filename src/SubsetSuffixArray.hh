@@ -111,11 +111,14 @@ public:
   std::vector<CyclicSubsetSeed> &getSeeds() { return seeds; }
   const std::vector<CyclicSubsetSeed> &getSeeds() const { return seeds; }
 
-  void resizePositions(size_t numOfPositions, size_t seqLength) {
+  void resizePositions(size_t numOfPositions, size_t seqLength,
+		       size_t numOfThreads) {
     sufArray.bitsPerItem = numOfBitsNeededFor(seqLength - 1);
     bckArray.bitsPerItem = numOfBitsNeededFor(numOfPositions);
     chiArray.bitsPerItem = numOfBitsNeededFor(numOfPositions - 1);
-    suffixArray.v.resize(numOfBytes(sufArray.bitsPerItem, numOfPositions));
+    int gapBetweenThreads = numOfItemsBetweenWrites(sufArray.bitsPerItem);
+    size_t n = numOfPositions + gapBetweenThreads * (numOfThreads - 1);
+    suffixArray.v.resize(numOfBytes(sufArray.bitsPerItem, n));
     sufArray.items = (const size_t *)suffixArray.begin();
   }
 
@@ -133,7 +136,8 @@ public:
   // The cumulative word counts must be provided.  (cumulativeCounts
   // is internally modified and restored to its original values).
   void setWordPositions(const DnaWordsFinder &finder, size_t *cumulativeCounts,
-			const uchar *seqBeg, const uchar *seqEnd);
+			const uchar *seqBeg, const uchar *seqEnd,
+			size_t numOfThreads);
 
   // Sort the suffix array (but don't make the buckets).
   void sortIndex(const uchar *text,

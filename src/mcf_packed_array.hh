@@ -28,6 +28,13 @@ inline size_t numOfWordsNeededFor(int bitsPerItem, size_t numOfItems) {
   return (numOfItems * bpi + w - bpi + w) / w;
 }
 
+// Minimum number of items between items A and B, so that it's safe to
+// write A and B at the same time
+inline int numOfItemsBetweenWrites(int bitsPerItem) {
+  const int w = sizeof(size_t) * CHAR_BIT;
+  return (2 * w - 1) / bitsPerItem;
+}
+
 // Get the i-th item
 inline size_t getBits(int bitsPerItem, const size_t *items, size_t i) {
   const int w = sizeof(size_t) * CHAR_BIT;

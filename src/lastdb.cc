@@ -229,7 +229,8 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
       std::partial_sum(wordCounts, wordCounts + seeds.size(), wordCounts);
       LOG("gathering...");
       seeds.swap(indexSeeds);
-      myIndex.setWordPositions(wordsFinder, wordCounts, seq, seqEnd);
+      myIndex.setWordPositions(wordsFinder, wordCounts, seq, seqEnd,
+			       numOfThreads);
     } else {
       indexSeeds.resize(1);
       seeds[x].swap(indexSeeds[0]);
@@ -251,7 +252,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 	}
       }
       LOG("gathering...");
-      myIndex.resizePositions(count, textLength);
+      myIndex.resizePositions(count, textLength, numOfThreads);
       count = 0;
       for (size_t i = 0; i < numOfSequences; ++i) {
 	const uchar *beg = seq + multi.seqBeg(i);

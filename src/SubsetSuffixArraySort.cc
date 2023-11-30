@@ -528,6 +528,8 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 				   size_t maxUnsortedInterval,
 				   size_t numOfThreads) {
   const size_t numOfSeeds = seeds.size();
+  size_t *a = (size_t *)&suffixArray.v[0];
+  const int bits = sufArray.bitsPerItem;
   std::vector<Range> &myStack = stacks[0];
 
   while( !myStack.empty() ){
@@ -537,37 +539,50 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
       size_t intCacheSize = cacheSize * 2 + numOfBuckets;
       size_t totalSize = rangeSizeSum(myStack);
       size_t numOfNewThreads = numOfChunks - 1;
-      std::vector<std::thread> threads(numOfNewThreads);
 
-      for (size_t i = 0; i < numOfNewThreads; ++i) {
-	size_t thisSize = nextRangeSize(myStack);
-	size_t t = numOfThreadsForOneRange(numOfThreads, thisSize, totalSize);
-	size_t maxThreads = numOfThreads - (numOfNewThreads - i);
-	size_t thisThreads = std::min(t, maxThreads);
-	numOfThreads -= thisThreads;
+      size_t thisSize = nextRangeSize(myStack);
+      size_t t = numOfThreadsForOneRange(numOfThreads, thisSize, totalSize);
+      size_t maxThreads = numOfThreads - numOfNewThreads;
+      size_t thisThreads = std::min(t, maxThreads);
+      numOfThreads -= thisThreads;
+      size_t pad = numOfItemsBetweenWrites(bits) * numOfThreads;
 
-	do {
-	  totalSize -= nextRangeSize(myStack);
-	  stacks[numOfThreads].push_back(myStack.back());
-	  myStack.pop_back();
-	  thisSize += nextRangeSize(myStack);
-	} while (myStack.size() > numOfThreads &&
-		 thisSize <= totalSize / numOfThreads);
-	// We want:
-	// max(r | sizeSum(r) <= (totalSize - sizeSum(r-1)) / newNumOfThreads)
+      do {
+	totalSize -= nextRangeSize(myStack);
+	myStack.back().beg += pad;
+	myStack.back().end += pad;
+	stacks[numOfThreads].push_back(myStack.back());
+	myStack.pop_back();
+	thisSize += nextRangeSize(myStack);
+      } while (myStack.size() > numOfThreads &&
+	       thisSize <= totalSize / numOfThreads);
+      // We want:
+      // max(r | sizeSum(r) <= (totalSize - sizeSum(r-1)) / newNumOfThreads)
 
-	threads[i] = std::thread(&SubsetSuffixArray::sortRanges, this,
-				 stacks + numOfThreads, cacheSize,
-				 intCache + numOfThreads * intCacheSize,
-				 seqCache + numOfThreads * cacheSize,
-				 text, wordLength, seedNum,
-				 maxUnsortedInterval, thisThreads);
+      size_t beg = stacks[numOfThreads].back().beg;
+      size_t end = stacks[numOfThreads].front().end;
+
+      for (size_t i = end; i-- > beg;) {
+	setBits(bits, a, i, getBits(bits, a, i - pad));
       }
+
+      std::thread myThread(&SubsetSuffixArray::sortRanges, this,
+			   stacks + numOfThreads, cacheSize,
+			   intCache + numOfThreads * intCacheSize,
+			   seqCache + numOfThreads * cacheSize,
+			   text, wordLength, seedNum,
+			   maxUnsortedInterval, thisThreads);
       sortRanges(stacks, cacheSize, intCache, seqCache, text, wordLength,
 		 seedNum, maxUnsortedInterval, numOfThreads);
-      for (size_t i = 0; i < numOfNewThreads; ++i) {
-	threads[i].join();
+      myThread.join();
+
+      for (size_t i = beg; i < end; ++i) {
+	setBits(bits, a, i - pad, getBits(bits, a, i));
       }
+
+      // unnecessary: aims to make all output bits unchanged by multi-threading
+      for (size_t i = end - pad; i < end; ++i) setBits(bits, a, i, 0);
+
       return;
     }
 #endif
@@ -588,12 +603,11 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
     size_t interval = end - beg;
 
     if (interval <= cacheSize) {
-      size_t *a = (size_t *)&suffixArray.v[0];
-      unpackBits(sufArray.bitsPerItem, a, intCache, beg, end);
+      unpackBits(bits, a, intCache, beg, end);
       pushRange(myStack, 0, interval, depth);
       sortOutOfPlace(myStack, cacheSize, intCache, seqCache, text,
 		     wordLength, seed, maxUnsortedInterval, beg);
-      packBits(sufArray.bitsPerItem, a, intCache, beg, end);
+      packBits(bits, a, intCache, beg, end);
       continue;
     }
 
@@ -629,6 +643,7 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
   size_t numOfSeeds = seeds.size();
   size_t total = cumulativeCounts[numOfSeeds - 1];
   size_t cacheSize = total / (32 * sizeof(size_t)) / numOfThreads;
+  // tie-breaking depends on cacheSize, so it depends on numOfThreads
 
   if (childTableType == 1) chibiTable.v.assign(total, -1);
   if (childTableType == 2) kiddyTable.v.assign(total, -1);

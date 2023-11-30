@@ -59,7 +59,10 @@ Main Options
 -P THREADS
     Make ``lastdb`` faster, with no effect on results, by running this
     many threads in parallel.  ``0`` means use as many threads as your
-    computer claims it can handle simultaneously.
+    computer claims it can handle simultaneously.  (Although there is
+    "no effect on results", the ``lastdb`` output may not remain
+    identical, because the arbitrary order of tied positions may
+    change.)
 
 Advanced Options
 ~~~~~~~~~~~~~~~~

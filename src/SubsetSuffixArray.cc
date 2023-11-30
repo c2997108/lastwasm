@@ -17,14 +17,15 @@ static void err(const std::string &s) {
 void SubsetSuffixArray::setWordPositions(const DnaWordsFinder &finder,
 					 size_t *cumulativeCounts,
 					 const uchar *seqBeg,
-					 const uchar *seqEnd) {
+					 const uchar *seqEnd,
+					 size_t numOfThreads) {
   size_t numOfSeeds = seeds.size();
   size_t wordLength = finder.wordLength;
   size_t sumOfCounts = 0;
   for (size_t i = 0; i < numOfSeeds; ++i) {
     std::swap(cumulativeCounts[i], sumOfCounts);
   }
-  resizePositions(sumOfCounts, seqEnd - seqBeg);
+  resizePositions(sumOfCounts, seqEnd - seqBeg, numOfThreads);
 
   unsigned hash = 0;
   const uchar *seqPos = finder.init(seqBeg, seqEnd, &hash);
@@ -155,8 +156,9 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   f.close();
   if (!f) err("can't write file: " + fileName);
 
-  memoryToBinaryFile( suffixArray.begin(), suffixArray.end(),
-		      baseName + ".suf" );
+  size_t sufSize = numOfBytes(sufArray.bitsPerItem, indexedPositions);
+  memoryToBinaryFile(suffixArray.begin(), suffixArray.begin() + sufSize,
+		     baseName + ".suf");
   memoryToBinaryFile( buckets.begin(), buckets.end(), baseName + ".bck" );
 
   fileName = baseName + ".chi";
