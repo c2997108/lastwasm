@@ -464,13 +464,17 @@ static size_t rangeSizeSum(const std::vector<Range> &ranges) {
 
 static size_t numOfThreadsForOneRange(size_t numOfThreads,
 				      size_t sizeOfThisRange,
-				      size_t sizeOfAllRanges) {
+				      size_t sizeOfAllRanges,
+				      size_t numOfNewThreads) {
   // We want:
   // min(t | sizeOfThisRange / t < sizeOfOtherRanges / (numOfThreads - (t+1)))
   // Or equivalently:
   // max(t | sizeOfThisRange / (t-1) >= sizeOfOtherRanges / (numOfThreads - t))
   double x = numOfThreads - 1;  // use double to avoid overflow
-  return (x * sizeOfThisRange + sizeOfAllRanges) / sizeOfAllRanges;
+  size_t t = (x * sizeOfThisRange + sizeOfAllRanges) / sizeOfAllRanges;
+
+  size_t maxThreads = numOfThreads - numOfNewThreads;
+  return std::min(t, maxThreads);
 }
 
 static unsigned getSubsetCount(const CyclicSubsetSeed &seed,
@@ -527,23 +531,18 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 				   unsigned seedNum,
 				   size_t maxUnsortedInterval,
 				   size_t numOfThreads) {
-  const size_t numOfSeeds = seeds.size();
+  std::vector<Range> &myStack = stacks[0];
   size_t *a = (size_t *)&suffixArray.v[0];
   const int bits = sufArray.bitsPerItem;
-  std::vector<Range> &myStack = stacks[0];
 
-  while( !myStack.empty() ){
+  while (!myStack.empty()) {
 #ifdef HAS_CXX_THREADS
     size_t numOfChunks = std::min(numOfThreads, myStack.size());
     if (numOfChunks > 1) {
-      size_t intCacheSize = cacheSize * 2 + numOfBuckets;
       size_t totalSize = rangeSizeSum(myStack);
-      size_t numOfNewThreads = numOfChunks - 1;
-
       size_t thisSize = nextRangeSize(myStack);
-      size_t t = numOfThreadsForOneRange(numOfThreads, thisSize, totalSize);
-      size_t maxThreads = numOfThreads - numOfNewThreads;
-      size_t thisThreads = std::min(t, maxThreads);
+      size_t thisThreads = numOfThreadsForOneRange(numOfThreads, thisSize,
+						   totalSize, numOfChunks - 1);
       numOfThreads -= thisThreads;
       size_t pad = numOfItemsBetweenWrites(bits) * numOfThreads;
 
@@ -566,6 +565,7 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 	setBits(bits, a, i, getBits(bits, a, i - pad));
       }
 
+      size_t intCacheSize = cacheSize * 2 + numOfBuckets;
       std::thread myThread(&SubsetSuffixArray::sortRanges, this,
 			   stacks + numOfThreads, cacheSize,
 			   intCache + numOfThreads * intCacheSize,
@@ -586,6 +586,8 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
       return;
     }
 #endif
+
+    size_t numOfSeeds = seeds.size();
 
     size_t beg = myStack.back().beg;
     size_t end = myStack.back().end;
