@@ -157,9 +157,11 @@ void SubsetSuffixArray::toFiles( const std::string& baseName,
   if (!f) err("can't write file: " + fileName);
 
   size_t sufSize = numOfBytes(sufArray.bitsPerItem, indexedPositions);
+  size_t bckSize = numOfBytes(bckArray.bitsPerItem, bucketsSize());
   memoryToBinaryFile(suffixArray.begin(), suffixArray.begin() + sufSize,
 		     baseName + ".suf");
-  memoryToBinaryFile( buckets.begin(), buckets.end(), baseName + ".bck" );
+  memoryToBinaryFile(buckets.begin(), buckets.begin() + bckSize,
+		     baseName + ".bck");
 
   fileName = baseName + ".chi";
   std::remove( fileName.c_str() );
@@ -181,17 +183,18 @@ static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
   return bucketValue(seed, seed.firstMap(), steps, text + position, depth) + 1;
 }
 
-static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
-			    const size_t *steps, int depth,
-			    PackedArray buckets,
-			    size_t buckBeg, size_t buckIdx,
-			    ConstPackedArray sa, size_t saBeg, size_t saEnd) {
+static size_t makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
+			      const size_t *steps, int depth,
+			      PackedArray buckets, size_t buckBeg,
+			      size_t buckIdx, ConstPackedArray sa,
+			      size_t saBeg, size_t saEnd) {
   for (size_t i = saBeg; i < saEnd; ++i) {
     size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, i);
     for (; buckIdx < b; ++buckIdx) {
       buckets.set(buckIdx, i);
     }
   }
+  return buckIdx;
 }
 
 static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
@@ -201,13 +204,18 @@ static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
   const CyclicSubsetSeed &seed = *seedPtr;
   if (numOfThreads > 1) {
     size_t len = (saEnd - saBeg + numOfThreads - 1) / numOfThreads;
-    size_t mid = saBeg + len;
-    size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, mid - 1);
+    size_t mid = saEnd - len;
+    --numOfThreads;
     std::thread t(runThreads, text, seedPtr, steps, depth, buckets, buckBeg,
-		  b, sa, mid, saEnd, numOfThreads - 1);
-    makeSomeBuckets(text, seed, steps, depth, buckets, buckBeg,
-		    buckIdx, sa, saBeg, mid);
+		  buckIdx, sa, saBeg, mid, numOfThreads);
+    size_t pad = numOfItemsBetweenWrites(buckets.bitsPerItem) * numOfThreads;
+    buckBeg += pad;
+    size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, mid - 1);
+    size_t e = makeSomeBuckets(text, seed, steps, depth, buckets, buckBeg,
+			       b, sa, mid, saEnd);
     t.join();
+    for (size_t i = b; i < e; ++i) buckets.set(i - pad, buckets[i]);
+    for (size_t i = e - pad; i < e; ++i) buckets.set(i, 0);
   } else {
     makeSomeBuckets(text, seed, steps, depth, buckets, buckBeg,
 		    buckIdx, sa, saBeg, saEnd);
@@ -235,7 +243,8 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   }
 
   makeBucketStepsAndEnds(&bucketDepths[0], wordLength);
-  buckets.v.resize(numOfBytes(bckArray.bitsPerItem, bucketsSize()));
+  buckets.v.resize(numOfBytesWithThreads(bckArray.bitsPerItem,
+					 bucketsSize(), numOfThreads));
   bckArray.items = (const size_t *)buckets.begin();
 
   PackedArray bucks = {(size_t *)&buckets.v[0], bckArray.bitsPerItem};

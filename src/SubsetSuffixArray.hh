@@ -45,6 +45,12 @@ inline size_t numOfBytes(int bitsPerItem, size_t numOfItems) {
   return numOfWordsNeededFor(bitsPerItem, numOfItems) * sizeof(size_t);
 }
 
+inline size_t numOfBytesWithThreads(int bitsPerItem, size_t numOfItems,
+				    size_t numOfThreads) {
+  size_t pad = numOfItemsBetweenWrites(bitsPerItem) * (numOfThreads - 1);
+  return numOfBytes(bitsPerItem, numOfItems + pad);
+}
+
 inline size_t getItem(ConstPackedArray a, size_t i) {
   if ((a.bitsPerItem & 128) == 0) return a[i];
   // Stuff below here is just for reading old lastdb databases:
@@ -116,9 +122,8 @@ public:
     sufArray.bitsPerItem = numOfBitsNeededFor(seqLength - 1);
     bckArray.bitsPerItem = numOfBitsNeededFor(numOfPositions);
     chiArray.bitsPerItem = numOfBitsNeededFor(numOfPositions - 1);
-    int gapBetweenThreads = numOfItemsBetweenWrites(sufArray.bitsPerItem);
-    size_t n = numOfPositions + gapBetweenThreads * (numOfThreads - 1);
-    suffixArray.v.resize(numOfBytes(sufArray.bitsPerItem, n));
+    suffixArray.v.resize(numOfBytesWithThreads(sufArray.bitsPerItem,
+					       numOfPositions, numOfThreads));
     sufArray.items = (const size_t *)suffixArray.begin();
   }
 
