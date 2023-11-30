@@ -262,17 +262,13 @@ is a slow-and-sensitive recipe::
 
   lastdb -P8 -uNEAR humdb human_no_alt_analysis_set.fa
   last-train -P8 --revsym -C2 humdb chimp.fa > humchi.train
-  lastal -E0.05 -C2 --split-f=MAF+ -p humchi.train humdb chimp.fa > humchi1.maf
+  lastal -D1e9 -C2 --split-f=MAF+ -p humchi.train humdb chimp.fa > humchi1.maf
 
 ``--revsym`` makes the substitution rates the same on both strands.
 For example, it makes A→G equal T→C (because A→G on one strand means
 T→C on the other strand).  This is usually appropriate for
 genome-genome comparison (but maybe not for mitochondria which have
 asymmetric "heavy" and "light" strands).
-
-``-E0.05`` means only get significant_ alignments that would be
-expected to occur by chance at a rate ≤ 0.05 times per pair of random
-sequences of length 1 billion each.
 
 ``--split-f=MAF+`` has the same effect as ``--split``, and also makes
 it show `per-base mismap probabilities`_: the probability that each

@@ -117,7 +117,7 @@ E-value options
     Maximum EG2 (`expected alignments per square giga
     <doc/last-evalues.rst>`_).  This option only affects the default
     value of ``-e``, so if you specify ``-e`` then ``-E`` has no
-    effect.
+    effect.  Careful: option ``-E`` applies to ``EG2=``, not to ``E=``!
 
 Score options
 ~~~~~~~~~~~~~

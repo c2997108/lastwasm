@@ -132,7 +132,7 @@ Cosmetic options:\n\
 E-value options (default settings):\n\
  -D  query letters per random alignment ("
     + stringify(queryLettersPerRandomAlignment) + ")\n\
- -E  maximum expected alignments per square giga (1e+18/D/refSize/numOfStrands)\n\
+ -E  max EG2: expected alignments per square giga (1e18/D/refSize/numOfStrands)\n\
 \n\
 Score options (default settings):\n\
  -r  match score   (2 if -M, else  6 if 1<=Q<=4, else 1 if DNA)\n\

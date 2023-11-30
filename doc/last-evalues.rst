@@ -39,11 +39,6 @@ most once per (say) thousand query letters, with option ``-D``::
 
   lastal -D1000 humdb fuguMito.fa > myalns.maf
 
-You can make lastal report alignments with EG2 ≤ (say) 10, with option
-``-E``::
-
-  lastal -E10 humdb fuguMito.fa > myalns.maf
-
 Advanced issues
 ---------------
 
@@ -94,6 +89,17 @@ Option -D sets the minimum alignment score, by this formula::
   K * exp(-lambda * score) * strands * D * length(n, score) * N / n  ≤  1,
 
 where ``length(n, score)`` is slightly less than ``n``.
+
+EG2 threshold
+~~~~~~~~~~~~~
+
+You can make lastal report alignments with EG2 ≤ (say) 10, with option ``-E``::
+
+  lastal -E10 humdb fuguMito.fa > myalns.maf
+
+Note that ``-E`` applies to ``EG2=``, not to ``E=``!  LAST has no way
+to set an ``E=`` threshold (because identical alignments can have
+different ``E=``).
 
 Bit score
 ~~~~~~~~~
