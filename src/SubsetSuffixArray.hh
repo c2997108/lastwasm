@@ -45,10 +45,8 @@ inline size_t numOfBytes(int bitsPerItem, size_t numOfItems) {
   return numOfWordsNeededFor(bitsPerItem, numOfItems) * sizeof(size_t);
 }
 
-inline size_t numOfBytesWithThreads(int bitsPerItem, size_t numOfItems,
-				    size_t numOfThreads) {
-  size_t pad = numOfItemsBetweenWrites(bitsPerItem) * (numOfThreads - 1);
-  return numOfBytes(bitsPerItem, numOfItems + pad);
+inline size_t totalItemsBetweenThreads(int bitsPerItem, size_t numOfThreads) {
+  return numOfItemsBetweenWrites(bitsPerItem) * (numOfThreads - 1);
 }
 
 inline size_t getItem(ConstPackedArray a, size_t i) {
@@ -122,8 +120,8 @@ public:
     sufArray.bitsPerItem = numOfBitsNeededFor(seqLength - 1);
     bckArray.bitsPerItem = numOfBitsNeededFor(numOfPositions);
     chiArray.bitsPerItem = numOfBitsNeededFor(numOfPositions - 1);
-    suffixArray.v.resize(numOfBytesWithThreads(sufArray.bitsPerItem,
-					       numOfPositions, numOfThreads));
+    size_t n = totalItemsBetweenThreads(sufArray.bitsPerItem, numOfThreads);
+    suffixArray.v.resize(numOfBytes(sufArray.bitsPerItem, numOfPositions + n));
     sufArray.items = (const size_t *)suffixArray.begin();
   }
 
@@ -252,7 +250,8 @@ private:
   void sortRanges(std::vector<Range> *stacks, size_t cacheSize,
 		  size_t *intCache, uchar *seqCache, const uchar *text,
 		  unsigned wordLength, unsigned seedNum,
-		  size_t maxUnsortedInterval, size_t numOfThreads);
+		  size_t maxUnsortedInterval, size_t numOfThreads,
+		  size_t endOfRanges);
 
   size_t getChild(size_t i) const {
     if ((chiArray.bitsPerItem & 128) == 0) return chiArray[i];

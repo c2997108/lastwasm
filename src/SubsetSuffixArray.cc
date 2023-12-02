@@ -203,7 +203,7 @@ static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
 		       size_t saBeg, size_t saEnd, size_t numOfThreads) {
   const CyclicSubsetSeed &seed = *seedPtr;
   if (numOfThreads > 1) {
-    size_t len = (saEnd - saBeg + numOfThreads - 1) / numOfThreads;
+    size_t len = (saEnd - saBeg) / numOfThreads;
     size_t mid = saEnd - len;
     --numOfThreads;
     std::thread t(runThreads, text, seedPtr, steps, depth, buckets, buckBeg,
@@ -243,8 +243,8 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
   }
 
   makeBucketStepsAndEnds(&bucketDepths[0], wordLength);
-  buckets.v.resize(numOfBytesWithThreads(bckArray.bitsPerItem,
-					 bucketsSize(), numOfThreads));
+  size_t pad = totalItemsBetweenThreads(bckArray.bitsPerItem, numOfThreads);
+  buckets.v.resize(numOfBytes(bckArray.bitsPerItem, bucketsSize() + pad));
   bckArray.items = (const size_t *)buckets.begin();
 
   PackedArray bucks = {(size_t *)&buckets.v[0], bckArray.bitsPerItem};

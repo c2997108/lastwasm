@@ -530,7 +530,7 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 				   const uchar *text, unsigned wordLength,
 				   unsigned seedNum,
 				   size_t maxUnsortedInterval,
-				   size_t numOfThreads) {
+				   size_t numOfThreads, size_t endOfRanges) {
   std::vector<Range> &myStack = stacks[0];
   size_t *a = (size_t *)&suffixArray.v[0];
   const int bits = sufArray.bitsPerItem;
@@ -559,7 +559,7 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
       // max(r | sizeSum(r) <= (totalSize - sizeSum(r-1)) / newNumOfThreads)
 
       size_t beg = stacks[numOfThreads].back().beg;
-      size_t end = stacks[numOfThreads].front().end;
+      size_t end = endOfRanges + pad;
 
       for (size_t i = end; i-- > beg;) {
 	setBits(bits, a, i, getBits(bits, a, i - pad));
@@ -571,9 +571,9 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
 			   intCache + numOfThreads * intCacheSize,
 			   seqCache + numOfThreads * cacheSize,
 			   text, wordLength, seedNum,
-			   maxUnsortedInterval, thisThreads);
+			   maxUnsortedInterval, thisThreads, end);
       sortRanges(stacks, cacheSize, intCache, seqCache, text, wordLength,
-		 seedNum, maxUnsortedInterval, numOfThreads);
+		 seedNum, maxUnsortedInterval, numOfThreads, beg - pad);
       myThread.join();
 
       for (size_t i = beg; i < end; ++i) {
@@ -642,6 +642,7 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
 				   size_t maxUnsortedInterval,
 				   int childTableType,
 				   size_t numOfThreads ){
+  if (childTableType) numOfThreads = 1;
   size_t numOfSeeds = seeds.size();
   size_t total = cumulativeCounts[numOfSeeds - 1];
   size_t cacheSize = total / (32 * sizeof(size_t)) / numOfThreads;
@@ -667,5 +668,5 @@ void SubsetSuffixArray::sortIndex( const uchar* text,
   }
 
   sortRanges(&stacks[0], cacheSize, &intCache[0], &seqCache[0], text,
-	     wordLength, 0, maxUnsortedInterval, numOfThreads);
+	     wordLength, 0, maxUnsortedInterval, numOfThreads, beg);
 }
