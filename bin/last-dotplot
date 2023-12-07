@@ -1095,10 +1095,10 @@ if __name__ == "__main__":
     op.add_option("--strands2", default="0", metavar="N", help=
                   "genome2 sequence orientation: 0=forward orientation, "
                   "1=alignment orientation (default=%default)")
-    op.add_option("--max-gap1", metavar="FRAC", default="0.5,2", help=
+    op.add_option("--max-gap1", metavar="FRAC", default="1,4", help=
                   "maximum unaligned (end,mid) gap in genome1: "
                   "fraction of aligned length (default=%default)")
-    op.add_option("--max-gap2", metavar="FRAC", default="0.5,2", help=
+    op.add_option("--max-gap2", metavar="FRAC", default="1,4", help=
                   "maximum unaligned (end,mid) gap in genome2: "
                   "fraction of aligned length (default=%default)")
     op.add_option("--pad", metavar="FRAC", type="float", default=0.04, help=
