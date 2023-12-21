@@ -93,28 +93,22 @@ def seqInput(fileNames):
         fileNames = ["-"]
     for name in fileNames:
         f = myOpen(name)
-        seqType = 0
         for line in f:
-            if seqType == 0:
-                if line[0] == ">":
-                    seqType = 1
-                    seq = []
-                elif line[0] == "@":
-                    seqType = 2
-                    lineType = 1
-            elif seqType == 1:  # fasta
-                if line[0] == ">":
-                    yield "".join(seq), ""
-                    seq = []
-                else:
-                    seq.append(line.rstrip())
-            elif seqType == 2:  # fastq
-                if lineType == 1:
-                    seq = line.rstrip()
-                elif lineType == 3:
-                    yield seq, line.rstrip()
-                lineType = (lineType + 1) % 4
-        if seqType == 1: yield "".join(seq), ""
+            if line[0] == ">":
+                seq = []
+                for i in f:
+                    if i[0] == ">":
+                        yield "".join(seq), ""
+                        seq = []
+                    else:
+                        seq.append(i.rstrip())
+                yield "".join(seq), ""
+            if line[0] == "@":
+                for i, x in enumerate(f):
+                    if i & 3 == 0:
+                        seq = x.rstrip()
+                    elif i & 3 == 2:
+                        yield seq, x.rstrip()
         f.close()
 
 def sumOfSequenceLengths(lines):
