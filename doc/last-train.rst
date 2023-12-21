@@ -9,7 +9,7 @@ it like this::
   lastdb mydb reference.fasta
   last-train mydb queries.fasta > my.train
 
-last-train can read .gz files, or from pipes::
+last-train can read ``.gz`` files, or from pipes::
 
   bzcat queries.fasta.bz2 | last-train mydb > my.train
 
@@ -34,6 +34,16 @@ How it works
 last-train prints a summary of each iteration, followed by the final
 score parameters in a format that can be read by `lastal's -p option
 <doc/lastal.rst>`_.
+
+Troubleshooting
+---------------
+
+If the query sequences rarely have segments similar to the reference
+sequences, you may need to use more chunks (option
+``--sample-number``), to include some such segments.
+
+You can see how much training data was used at each iteration by
+looking at ``aligned letter pairs`` and ``alignments`` in the output.
 
 Options
 -------
@@ -226,18 +236,6 @@ endProb        ω\ :sub:`i`, ∛ω\ :sub:`D`
 It assumes that ω\ :sub:`D` = ω\ :sub:`i`\ :sup:`3`, and gets the
 unique value that satisfies "balanced length probability"
 (DNA-versus-protein_).
-
-Bugs
-----
-
-* last-train assumes that gap lengths roughly follow a geometric
-  distribution.  If they do not (which is often the case), the results
-  may be poor.
-
-* last-train can fail for various reasons, e.g. if the sequences are
-  too dissimilar.  If it fails to find any alignments, you could try
-  increasing the sample number, or reducing the alignment
-  significance_ threshold with option ``-D``.
 
 .. _btz576: https://doi.org/10.1093/bioinformatics/btz576
 .. _DNA-versus-protein: https://doi.org/10.1109/TCBB.2022.3177855

@@ -117,6 +117,15 @@ def seqInput(fileNames):
         if seqType == 1: yield "".join(seq), ""
         f.close()
 
+def sumOfSequenceLengths(lines):
+    for line in lines:
+        if line[0] == ">":
+            return sum(len(i.rstrip()) for i in lines if i[0] != ">")
+        if line[0] == "@":
+            return sum(len(x.rstrip())
+                       for i, x in enumerate(lines) if i % 4 == 0)
+    return 0
+
 def isGoodChunk(chunk):
     for i in chunk:
         for j in i[3]:
@@ -761,6 +770,9 @@ def doTraining(opts, args):
     alphabet = readLastdbData(args[0])
     lastalVersion = versionFromLastal()
 
+    if not opts.D:
+        opts.D = str(sum(sumOfSequenceLengths(myOpen(i)) for i in args[1:]))
+
     if (not opts.p and len(alphabet) < 20 and
         (not opts.Q or opts.Q in ("0", "fastx", "keep"))):
         if not opts.r: opts.r = "5"
@@ -939,7 +951,7 @@ if __name__ == "__main__":
 
     og = optparse.OptionGroup(op, "Alignment options")
     og.add_option("-D", metavar="LENGTH", help="query letters per "
-                  "random alignment (default: 1e7 if --codon else 1e6)")
+                  "random alignment (default: total sample length)")
     og.add_option("-E", metavar="EG2",
                   help="maximum expected alignments per square giga")
     og.add_option("-s", metavar="STRAND", help="0=reverse, 1=forward, 2=both "
@@ -980,7 +992,6 @@ if __name__ == "__main__":
         if not opts.b: opts.b = "0.5"
         if not opts.A: opts.A = opts.a
         if not opts.B: opts.B = opts.b
-        if not opts.D: opts.D = "1e7"
         opts.S = None
 
     try: lastTrain(opts, args)
