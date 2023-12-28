@@ -438,3 +438,37 @@ And these patterns::
 It sets this lastal default:
 -m2 -r6 -q18 -a21 -b9
 
+RY128-12 (abbreviation: RY128)
+------------------------------
+
+This DNA seeding scheme reduces run time and memory use, by only
+seeking seeds at ~1/128 of positions in each sequence.  (It's a
+maximal set of non-overlapping words plus reverse-complements
+without self-reverse-complements.)
+It uses this seed alphabet::
+
+  R  A G
+  Y  C T
+
+And these patterns::
+
+  RRRRRRRYYRYY RRYRRYYYYYYY
+  RRRRRRYYYRYY RRYRRRYYYYYY
+  RRRRRYRYYRYY RRYRRYRYYYYY
+  RRRRRYYRYRYY RRYRYRRYYYYY
+  RRRRRYYYYRYY RRYRRRRYYYYY
+  RRRRYRYYYRYY RRYRRRYRYYYY
+  RRRRYYYRRYYY RRRYYRRRYYYY
+  RRRRYYYRYRYY RRYRYRRRYYYY
+  RRRYRRRYYRYY RRYRRYYYRYYY
+  RRRYRYRYYRYY RRYRRYRYRYYY
+  RRRYRYYRRYYY RRRYYRRYRYYY
+  RRRYRYYRYRYY RRYRYRRYRYYY
+  RRRYYRRYYRYY RRYRRYYRRYYY
+  RRRYYRYRYRYY RRYRYRYRRYYY
+  RRYRRRRYYRYY RRYRRYYYYRYY
+  RRYRRYYRYRYY RRYRYRRYYRYY
+
+It sets this lastal default:
+-m2 -r6 -q18 -a21 -b9
+
