@@ -12,9 +12,10 @@ namespace cbrc {
 void TantanMasker::init(bool isProtein,
 			bool isATrichDna,
 			bool isMaskWeakRepeats,
+			int maxRepeatUnitLength,
 			const std::string &alphabet,
 			const uchar *letterToIndex) {
-  maxRepeatOffset = 100;
+  maxRepeatOffset = maxRepeatUnitLength;
   repeatProb = 0.005;
 
   std::copy(probMatrix, probMatrix + scoreMatrixRowSize, probMatrixPointers);
@@ -34,7 +35,6 @@ G -5 -5  5 -5\n\
 T -5 -5 -5  2\n\
 ");
   } else if (isProtein) {
-    maxRepeatOffset = 50;
     alphabetSize = 20;
     matrixName = "BL62";
     s.fromString(ScoreMatrix::stringFromName(matrixName));

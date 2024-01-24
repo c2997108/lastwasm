@@ -375,9 +375,9 @@ static void calculateScoreStatistics(const std::string& matrixName,
 // Read the .prj file for the whole database
 void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
 		  size_t &minSeedLimit, bool &isKeepRefLowercase,
-		  int &refTantanSetting, int &refStrand, countT &numOfRefSeqs,
-		  countT &refLetters, countT &refMaxSeqLen, int &bitsPerBase,
-		  int &bitsPerInt) {
+		  int &refTantanSetting, int &maxRepeatUnit,
+		  int &refStrand, countT &numOfRefSeqs, countT &refLetters,
+		  countT &refMaxSeqLen, int &bitsPerBase, int &bitsPerInt) {
   std::ifstream f( fileName.c_str() );
   if( !f ) ERR( "can't open file: " + fileName );
   int version = 0;
@@ -401,6 +401,7 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     if( word == "maxunsortedinterval" ) iss >> minSeedLimit;
     if( word == "keeplowercase" ) iss >> isKeepRefLowercase;
     if( word == "tantansetting" ) iss >> refTantanSetting;
+    if( word == "maxrepeatunit" ) iss >> maxRepeatUnit;
     if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
     if( word == "sequenceformat" ) iss >> referenceFormat;
     if( word == "minimizerwindow" ) iss >> refMinimizerWindow;
@@ -1493,11 +1494,13 @@ void lastal( int argc, char** argv ){
   countT refMaxSeqLen = -1;
   bool isKeepRefLowercase = true;
   int refTantanSetting = 0;
+  int maxRepeatUnit = 0;
   int bitsPerBase = CHAR_BIT;
   int bitsPerInt = 0;
   readOuterPrj(args.lastdbName + ".prj", refMinimizerWindow, minSeedLimit,
-	       isKeepRefLowercase, refTantanSetting, refStrand, numOfRefSeqs,
-	       refLetters, refMaxSeqLen, bitsPerBase, bitsPerInt);
+	       isKeepRefLowercase, refTantanSetting, maxRepeatUnit, refStrand,
+	       numOfRefSeqs, refLetters, refMaxSeqLen, bitsPerBase,
+	       bitsPerInt);
   bool isDna = (alph.letters == alph.dna);
   bool isProtein = alph.isProtein();
 
@@ -1563,10 +1566,13 @@ void lastal( int argc, char** argv ){
 
   if (args.tantanSetting) {
     int t = args.tantanSetting;
+    int m = args.maxRepeatUnit;
     if (scoreMatrix.isCodonCols()) {
-      tantanMasker.init(0, t==2, t==3, queryAlph.letters, queryAlph.encode);
+      if (m < 0) m = 100;
+      tantanMasker.init(0, t==2, t==3, m, queryAlph.letters, queryAlph.encode);
     } else {
-      tantanMasker.init(isProtein, t==2, t==3, alph.letters, alph.encode);
+      if (m < 0) m = maxRepeatUnit ? maxRepeatUnit : isProtein ? 50 : 100;
+      tantanMasker.init(isProtein, t==2, t==3, m, alph.letters, alph.encode);
     }
   }
 

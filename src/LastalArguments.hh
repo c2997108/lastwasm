@@ -83,6 +83,7 @@ struct LastalArguments{
   int globality;  // type of alignment: local, semi-global, etc.
   bool isKeepLowercase;
   int tantanSetting;
+  int maxRepeatUnit;
   int maskLowercase;
   double maxEvalue;
   double queryLettersPerRandomAlignment;

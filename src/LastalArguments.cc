@@ -79,6 +79,7 @@ LastalArguments::LastalArguments() :
   globality(0),
   isKeepLowercase(true),  // depends on the option used with lastdb
   tantanSetting(-1),  // depends on the option used with lastdb
+  maxRepeatUnit(-1),
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
   maxEvalue(-1),
   queryLettersPerRandomAlignment(1e6),
@@ -130,7 +131,7 @@ Cosmetic options:\n\
   std::string help = usage + "\n\
 \n\
 E-value options (default settings):\n\
- -D  query letters per random alignment ("
+ -D  query letters per random alignment (default: "
     + stringify(queryLettersPerRandomAlignment) + ")\n\
  -E  max EG2: expected alignments per square giga (1e18/D/refSize/numOfStrands)\n\
 \n\
@@ -163,31 +164,32 @@ Initial-match options (default settings):\n\
  -W  use \"minimum\" positions in sliding windows of W consecutive positions\n\
 \n\
 Miscellaneous options (default settings):\n\
+ -P  number of parallel threads (default: "
+    + stringify(numOfThreads) + ")\n\
+ -K  omit alignments whose query range lies in >= K others with > score (off)\n\
+ -C  omit gapless alignments in >= C others with > score-per-length (off)\n\
  -s  strand: 0=reverse, 1=forward, 2=both (2 if DNA and not lastdb -S2, else 1)\n\
  -S  score matrix applies to forward strand of: 0=reference, 1=query ("
     + stringify(isQueryStrandMatrix) + ")\n\
- -K  omit alignments whose query range lies in >= K others with > score (off)\n\
- -C  omit gapless alignments in >= C others with > score-per-length (off)\n\
- -P  number of parallel threads ("
-    + stringify(numOfThreads) + ")\n\
  -i  query batch size (64M if multi-volume, else off)\n\
  -M  find minimum-difference alignments (faster but cruder)\n\
- -T  type of alignment: 0=local, 1=overlap ("
+ -T  type of alignment: 0=local, 1=overlap (default: "
     + stringify(globality) + ")\n\
  -n  maximum gapless alignments per query position (infinity if m=0, else m)\n\
  -N  stop after the first N alignments per query strand\n\
  -R  lowercase & simple-sequence options (the same as was used by lastdb)\n\
+ -U  maximum tandem repeat unit length (100 if --codon else same as lastdb)\n\
  -u  mask lowercase during extensions: 0=never, 1=gapless,\n\
      2=gapless+postmask, 3=always (2 if lastdb -c and Q!=pssm, else 0)\n\
  -w  suppress repeats inside exact matches, offset by <= this distance ("
     + stringify(maxRepeatDistance) + ")\n\
- -G  genetic code (" + geneticCodeFile + ")\n\
+ -G  genetic code (default: " + geneticCodeFile + ")\n\
  -t  'temperature' for calculating probabilities (1/lambda)\n\
- -g  'gamma' parameter for gamma-centroid and LAMA ("
+ -g  'gamma' parameter for gamma-centroid and LAMA (default: "
     + stringify(gamma) + ")\n\
  -j  output type: 0=match counts, 1=gapless, 2=redundant gapped, 3=gapped,\n\
                   4=column ambiguity estimates, 5=gamma-centroid, 6=LAMA,\n\
-                  7=expected counts ("
+                  7=expected counts (default: "
     + stringify(outputType) + ")\n\
  -J  score type: 0=ordinary, 1=full (1 for new-style frameshifts, else 0)\n\
  -Q  input format: fastx, keep, sanger, solexa, illumina, prb, pssm\n\
@@ -212,7 +214,7 @@ Split options:\n\
     "hVvf:"
     "r:q:p:X:a:b:A:B:c:F:x:y:z:d:e:"
     "D:E:"
-    "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:u:w:t:g:G:j:J:Q:";
+    "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:U:u:w:t:g:G:j:J:Q:";
 
   static struct option lOpts[] = {
     { "help",    no_argument,       0, 'h' },
@@ -376,6 +378,10 @@ Split options:\n\
       isKeepLowercase = optarg[0] - '0';
       tantanSetting = optarg[1] - '0';
       break;
+    case 'U':
+      unstringify(maxRepeatUnit, optarg);
+      if (maxRepeatUnit < 0) badopt(c, optarg);
+      break;
     case 'u':
       unstringify( maskLowercase, optarg );
       if( maskLowercase < 0 || maskLowercase > 3 ) badopt( c, optarg );
@@ -494,6 +500,10 @@ Split options:\n\
   if( gapPairCost > 0 && outputType > 3 )
     ERR( "can't combine option -c with option -j > 3" );
 
+  if (tantanSetting > 0 && maxRepeatUnit == 0) {
+    ERR("can't find repeats with maximum unit length 0");
+  }
+
   if( !optionsOnly ){
     if( optind >= argc )
       ERR( "please give me a database name and sequence file(s)\n\n" + usage );
@@ -587,6 +597,8 @@ void LastalArguments::setDefaultsFromAlphabet(bool isDna, bool isProtein,
   if( tantanSetting < 0 ){
     isKeepLowercase = isKeepRefLowercase;
     tantanSetting = (refTantanSetting < 3) ? refTantanSetting : 1;
+    if (maxRepeatUnit == 0) tantanSetting = 0;
+    if (maxRepeatUnit > 0 && refTantanSetting < 1) tantanSetting = 1;
   }
 
   if( maskLowercase < 0 ){

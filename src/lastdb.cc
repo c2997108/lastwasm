@@ -125,6 +125,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
     f << "keeplowercase=" << args.isKeepLowercase << '\n';
     if( args.tantanSetting ){
       f << "tantansetting=" << args.tantanSetting << '\n';
+      f << "maxrepeatunit=" << args.maxRepeatUnit << '\n';
     }
     f << "masklowercase=" << args.isCaseSensitive << '\n';
     if( isFastq ){
@@ -417,16 +418,18 @@ void lastdb( int argc, char** argv ){
     args.fromArgs( argc, argv );  // command line overrides seed file
   }
 
-  args.setDefaults();
+  Alphabet alph;
+  makeAlphabet(alph, args);
+
+  args.setDefaults(alph.isProtein());
 
   unsigned numOfThreads =
     decideNumberOfThreads(args.numOfThreads, args.programName, args.verbosity);
-  Alphabet alph;
-  makeAlphabet( alph, args );
   TantanMasker tantanMasker;
   if( args.tantanSetting )
     tantanMasker.init(alph.isProtein(), args.tantanSetting == 2,
-		      args.tantanSetting == 3, alph.letters, alph.encode);
+		      args.tantanSetting == 3, args.maxRepeatUnit,
+		      alph.letters, alph.encode);
   std::vector< CyclicSubsetSeed > seeds;
   makeSubsetSeeds( seeds, seedText, args, alph );
   if (args.bitsPerBase == 4) alph.set4bitAmbiguities();

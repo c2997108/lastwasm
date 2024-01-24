@@ -29,8 +29,16 @@ struct LastdbArguments{
   void resetCumulativeOptions()
   { seedPatterns.clear(); dnaSeedPatterns.clear(); verbosity = 0; }
 
-  void setDefaults() {
-    if (tantanSetting < 0) tantanSetting = isAddStops ? 3 : 1;
+  void setDefaults(bool isProteinish) {
+    if (tantanSetting < 0) {
+      tantanSetting = maxRepeatUnit ? (isAddStops ? 3 : 1) : 0;
+    }
+    if (maxRepeatUnit < 0) {
+      maxRepeatUnit = (tantanSetting == 2) ? 100
+	:             isProteinish         ?  50
+	:             isCaseSensitive      ? 400
+	:                                    100;
+    }
   }
 
   // options:
@@ -38,6 +46,7 @@ struct LastdbArguments{
   bool isAddStops;
   bool isKeepLowercase;
   int tantanSetting;
+  int maxRepeatUnit;
   bool isCaseSensitive;
   std::vector< std::string > seedPatterns;
   std::vector< std::string > dnaSeedPatterns;

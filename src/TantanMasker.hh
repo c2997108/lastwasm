@@ -34,12 +34,13 @@ public:
   void init(bool isProtein,
 	    bool isATrichDna,
 	    bool isMaskWeakRepeats,
+	    int maxRepeatUnitLength,
 	    const std::string &alphabet,
 	    const uchar *letterToIndex);
 
   void mask(uchar *seqBeg, uchar *seqEnd, const uchar *maskTable) const {
     tantan::maskSequences(seqBeg, seqEnd, maxRepeatOffset, probMatrixPointers,
-			  repeatProb, 0.05, 0.9, 0, 0, 0.5, maskTable );
+			  repeatProb, 0.05, 0.9, 0, 0, 0.5, maskTable);
   }
 
 private:
