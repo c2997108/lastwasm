@@ -6,7 +6,9 @@ maf-cut
   maf-cut chr7:1234000-1235000 alignments.maf
 
 This gets alignment parts within the range 1234000-1235000 of the
-sequence named "chr7".
+sequence named "chr7".  This is equivalent::
+
+  maf-cut "chr7 1234000 1235000" alignments.maf
 
 The ranges are zero-based.  For example, ``chr7:0-1000`` means the
 first 1000 bases of chr7.

@@ -196,9 +196,15 @@ def cutOneMaf(seqName, cutBeg, cutEnd, dataPerSeq, mafLines):
 
 def wantedRange(cutSpecification):
     seqName = None
-    if ":" in cutSpecification:
-        seqName, cutSpecification = cutSpecification.rsplit(":", 1)
-    beg, end = cutSpecification.rsplit("-", 1)
+    s = cutSpecification.split()
+    if len(s) == 3:
+        seqName, beg, end = s
+    elif len(s) == 2:
+        beg, end = s
+    else:
+        if ":" in cutSpecification:
+            seqName, cutSpecification = cutSpecification.rsplit(":", 1)
+        beg, end = cutSpecification.rsplit("-", 1)
     return seqName, int(beg), int(end)
 
 def mafCut(args):

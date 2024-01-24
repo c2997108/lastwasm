@@ -199,6 +199,10 @@ You can also specify a sequence range; for example this gets the first
 
   last-dotplot -1 chr9:0-1000 alns alns.png
 
+This is equivalent::
+
+  last-dotplot -1 "chr9 0 1000" alns alns.png
+
 Text font
 ---------
 

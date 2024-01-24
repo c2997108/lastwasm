@@ -166,6 +166,9 @@ def alignmentInput(lines):
         yield alignmentFromSegment(qrySeqName, qrySeqLen, i)
 
 def seqRequestFromText(text):
+    s = text.split()
+    if len(s) == 3:
+        return s[0], int(s[1]), int(s[2])
     if ":" in text:
         pattern, interval = text.rsplit(":", 1)
         if "-" in interval:
@@ -175,7 +178,7 @@ def seqRequestFromText(text):
 
 def rangesFromSeqName(seqRequests, name, seqLen):
     if seqRequests:
-        base = name.split(".")[-1]  # allow for names like hg19.chr7
+        base = name.split(".", 1)[-1]  # allow for names like hg19.chr7
         for pat, beg, end in seqRequests:
             if fnmatchcase(name, pat) or fnmatchcase(base, pat):
                 yield max(beg, 0), min(end, seqLen)
@@ -223,7 +226,7 @@ def readAlignments(fileName, opts):
 def nameAndRangesFromDict(cropDict, seqName):
     if seqName in cropDict:
         return seqName, cropDict[seqName]
-    n = seqName.split(".")[-1]
+    n = seqName.split(".", 1)[-1]
     if n in cropDict:
         return n, cropDict[n]
     return seqName, []
@@ -606,7 +609,7 @@ def expandedSeqDict(seqDict):
     newDict = seqDict.copy()
     for name, x in seqDict.items():
         if "." in name:
-            base = name.split(".")[-1]
+            base = name.split(".", 1)[-1]
             if base in newDict:  # an ambiguous case was found:
                 return seqDict   # so give up completely
             newDict[base] = x
