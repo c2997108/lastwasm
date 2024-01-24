@@ -116,7 +116,7 @@ Tips
 To omit alignments with mismap probability > ``10^-6`` (say), you can
 use the ``-m`` option (see below), or do this::
 
-  awk -F= '/^a/ {i = $3 <= 1e-6} i' out.maf > out2.maf
+  awk -F= '/^a/ {i = $3 <= 1e-6}; i' out.maf > out2.maf
 
 FAQ
 ---

@@ -443,7 +443,7 @@ RY128-12 (abbreviation: RY128)
 
 This DNA seeding scheme reduces run time and memory use, by only
 seeking seeds at ~1/128 of positions in each sequence.  (It's a
-maximal set of non-overlapping words plus reverse-complements
+maximum set of non-overlapping words plus reverse-complements
 without self-reverse-complements.)
 It uses this seed alphabet::
 

@@ -164,4 +164,4 @@ Repeat masking
 --------------
 
 This can make LAST **much faster**, produce **less output**, and
-reduce memory and disk usage.  Please see `<doc/last-repeats.rst>`_.
+reduce memory and disk usage.

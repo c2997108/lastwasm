@@ -67,6 +67,16 @@ Main Options
 Advanced Options
 ~~~~~~~~~~~~~~~~
 
+-q  Interpret the sequences as proteins, use a 21-letter alphabet
+    with ``*`` meaning STOP, and append ``*`` to each sequence.
+
+-S STRAND
+    Specify which strand of the input DNA sequences should be prepared
+    for alignment: 0 means reverse only, 1 means forward only, and 2
+    means both.  "2" uses more memory, but makes lastal faster,
+    because lastal then scans 1 instead of 2 strands of the other
+    sequences.
+
 -R DIGITS
     Specify lowercase usage, by two digits (e.g. ``-R01``), with the
     following meanings.
@@ -90,6 +100,15 @@ Advanced Options
     The default is ``-R01`` (unless ``-q`` is specified, in which case
     the default is ``-R03``).
 
+-U LENGTH
+    Maximum repeat unit length for simple repeats.  Higher values make
+    repeat-finding slower.  The default is 100 for DNA and 50 for
+    protein, which prevents non-homologous alignments.
+
+    For DNA, however, if you specify -c (and don't specify AT-rich
+    tantan), the default is 400.  This avoids hugely redundant
+    alignments of human centromeric repeats.
+
 -w STEP
     Allow initial matches to start only at every STEP-th position in
     each of the sequences given to lastdb (positions 0, STEP,
@@ -111,10 +130,17 @@ Advanced Options
     The fraction of positions that are "minimum" is roughly: 2 /
     (SIZE + 1).
 
--S STRAND
-    Specify which strand of the input sequences should be prepared
-    for alignment: 0 means reverse only, 1 means forward only, and 2
-    means both.
+-Q NAME
+    Specify how to read the sequences (the NAME is not case-sensitive)::
+
+      Default           fasta
+      "0", "fastx"      fasta or fastq: discard per-base quality data
+      "keep"            fasta or fastq: keep but ignore per-base quality data
+      "1", "sanger"     fastq-sanger
+      "2", "solexa"     fastq-solexa
+      "3", "illumina"   fastq-illumina
+
+    The fastq formats are described in `<doc/lastal.rst>`_.
 
 -s BYTES
     Limit memory usage, by splitting the output files into smaller
@@ -131,21 +157,6 @@ Advanced Options
     output files are several-fold bigger than the input (unless you
     use -w/-W/-d/-u), this means that mammalian chromosomes cannot
     be processed using much less than 2G (unless you use -w/-W/-d/-u).
-
--Q NAME
-    Specify how to read the sequences (the NAME is not case-sensitive)::
-
-      Default           fasta
-      "0", "fastx"      fasta or fastq: discard per-base quality data
-      "keep"            fasta or fastq: keep but ignore per-base quality data
-      "1", "sanger"     fastq-sanger
-      "2", "solexa"     fastq-solexa
-      "3", "illumina"   fastq-illumina
-
-    The fastq formats are described in `<doc/lastal.rst>`_.
-
--q  Interpret the sequences as proteins, use a 21-letter alphabet
-    with ``*`` meaning STOP, and append ``*`` to each sequence.
 
 -m PATTERN
     Specify a spaced seed pattern, for example "-m 110101".  In this

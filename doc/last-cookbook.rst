@@ -257,17 +257,26 @@ See last-split_ (and last-pair-probs_).
 Aligning human & chimp genomes
 ------------------------------
 
-The aim of genome-genome alignment is discussed in `our paper`_.  Here
-is a slow-and-sensitive recipe::
+The aim of genome-genome alignment is discussed in `our paper`_.  This
+recipe seems to work well::
 
-  lastdb -P8 -uNEAR humdb human_no_alt_analysis_set.fa
-  last-train -P8 --revsym -C2 humdb chimp.fa > humchi.train
-  lastal -D1e9 -C2 --split-f=MAF+ -p humchi.train humdb chimp.fa > humchi1.maf
+  lastdb -P8 -c -uRY128 humdb human.fa
+  last-train -P8 --revsym -C2 humdb chimp.fa > hc.train
+  lastal -P8 -D1e9 -C2 --split-f=MAF+ -p hc.train humdb chimp.fa > many-to-one.maf
+
+``-c`` prevents ``lastal`` using huge amounts of memory and time on
+many ways of aligning aligning centromeric repeats.
+
+``-uRY128`` makes it faster but less sensitive: it will miss tiny
+rearranged fragments.  To find such fragments, try ``-uRY4``.
+
+``lastal`` may need too much memory, especially if you use ``RY4``.
+You can make it use less memory by using fewer threads (``-P``).
 
 ``--revsym`` makes the substitution rates the same on both strands.
 For example, it makes A→G equal T→C (because A→G on one strand means
 T→C on the other strand).  This is usually appropriate for
-genome-genome comparison (but maybe not for mitochondria which have
+genome-genome comparison (but maybe not for mitochondria with
 asymmetric "heavy" and "light" strands).
 
 ``--split-f=MAF+`` has the same effect as ``--split``, and also makes
@@ -279,40 +288,37 @@ The result so far is asymmetric: each part of the chimp genome is
 aligned to at most one part of the human genome, but not vice-versa.
 We can get one-to-one alignments like this::
 
-  last-split -r -m1e-5 humchi1.maf | last-postmask > humchi2.maf
+  last-split -r -m1e-5 many-to-one.maf > one-to-one.maf
 
-Here, last-split_ gets parts of the humchi1 alignments.  The ``-r``
+Here, last-split_ gets parts of the many-to-one alignments.  The ``-r``
 reverses the roles of the genomes, so it finds a unique best alignment
-for each part of human.  It uses the humchi1 *per-base* mismap
-probabilities to get the humchi2 *per-alignment* mismap probabilities.
+for each part of human.  It uses the input *per-base* mismap
+probabilities to get the output *per-alignment* mismap probabilities.
 
 Here we've also discarded less-confident alignments: ``-m1e-5`` omits
-alignments with `mismap probability`_ > 10^-5, and last-postmask_
-discards alignments caused by simple sequence.
+alignments with `mismap probability`_ > 10^-5.
 
 Finally, we can make a dotplot_::
 
-  last-dotplot humchi2.maf humchi2.png
+  last-dotplot one-to-one.maf one-to-one.png
 
-**To go faster** with minor accuracy loss: replace ``-uNEAR`` with
-``-uRY32``.
+Aligning more distantly related genomes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To squeeze out the last 0.000...1% of accuracy: add ``-m50`` to the
-lastal_ options.
+Human versus old-world monkey: the human-chimp recipe seems good.
 
-Aligning human & mouse genomes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Human versus new-world monkey: ``RY128`` misses a bit more homology.
+It's still ok, but ``RY4`` is better.
 
-You can do this in the same way as human/chimp, except that ``-uNEAR``
-should be omitted.  To increase sensitivity, but also time and memory
-use, add lastdb seeding_ option ``-uMAM4`` or or ``-uMAM8``.  To
-increase them even more, add lastal_ option ``-m100`` (or as high as
-you can bear).
+For more distant genomes, ``RY128`` misses a lot of homology.  It's
+fine for whole-genome dotplots of e.g. human versus crocodile, but not
+human versus gar.  For finer sensitivity, run ``lastdb`` with default
+``-u``::
 
-Aligning distantly-related genomes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  lastdb -P8 -c mydb genome.fa
 
-See https://github.com/mcfrith/last-genome-alignments
+To make it even more sensitive (but slow and memory-consuming), use
+``-uMAM4``.  Yet more slow-and-sensitive is ``-uMAM8``.
 
 Moar faster
 -----------

@@ -162,7 +162,6 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 			      bool isAlreadySplit,
 			      const cbrc::UnsplitAlignment *beg,
 			      const cbrc::UnsplitAlignment *end) {
-  if (opts.verbose) std::cerr << beg->qname << "\t" << (end - beg);
   sa.layout(params, beg, end);
   if (opts.verbose) std::cerr << "\tcells=" << sa.cellsPerDpMatrix();
   size_t bytes = sa.memory(params, opts.direction == 2);
@@ -261,6 +260,8 @@ void LastSplitter::split(const LastSplitOptions &opts,
     ++mid;
     if (mid == end || strcmp(mid->qname, beg->qname) != 0 ||
 	(mid->qstart >= qendMax && !opts.isSplicedAlignment)) {
+      if (opts.verbose) std::cerr << beg->qname << '\t' << beg->qstart << '\t'
+				  << qendMax << '\t' << (mid - beg);
       doOneQuery(opts, params, isAlreadySplit, beg, mid);
       beg = mid;
       qendMax = 0;

@@ -131,7 +131,7 @@ trap 'rm -f $db*' EXIT
     try lastal -e5 -f0 $db ttttt.fa | grep -v '^#'
 
     # tantan masking on DNA
-    lastdb -cR01 $db galGal3-M-32.fa
+    lastdb -c -U66 $db galGal3-M-32.fa
     try lastal -e40 $db hg19-M.fa
 
     # hard-masking

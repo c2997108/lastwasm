@@ -1,11 +1,8 @@
 Detailed papers on LAST
 =======================
 
-LAST has many ingredients, some of which are described in these
-papers.  If you find an ingredient useful, please cite the
-corresponding paper.  Citation is important because it provides
-feedback on which research work was useful, and helps to justify the
-research to society.
+If you'd like to cite LAST, choose the most relevant paper(s).  If in
+doubt, the first one is ok.
 
 1. `Adaptive seeds tame genomic sequence comparison`__.  Kiełbasa SM,
    Wan R, Sato K, Horton P, Frith MC.  Genome Res. 2011 21(3):487-93.
@@ -139,6 +136,15 @@ research to society.
 
     Describes the ``lastdb -u RY`` sparsity options, for LAST version >= 1407.
 
+17. `A simple theory for finding related sequences by adding
+    probabilities of alternative alignments`__.  Frith MC
+
+    __ https://doi.org/10.1101/2023.09.26.559458
+
+    Describes the ``lastal -J1`` option for sensitive detection of
+    related sequence regions, considering alternative ways of aligning
+    the regions.
+
 External methods
 ----------------
 
@@ -161,11 +167,3 @@ listed only implementations that are directly used in LAST.
 
   Describes a correction that makes the E-values more accurate for
   short sequences.
-
-* `GNU Parallel - The Command-Line Power Tool`__.  Tange O.  ;login:
-  The USENIX Magazine. 2011:42-47.
-
-  __ https://www.usenix.org/publications/login/february-2011-volume-36-number-1/gnu-parallel-command-line-power-tool
-
-  It seems traditional not to cite this kind of ingredient, which is
-  unfortunate because the same reasons for citation apply.

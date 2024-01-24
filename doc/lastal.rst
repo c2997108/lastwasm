@@ -280,18 +280,19 @@ Initial-match options
 Miscellaneous options
 ~~~~~~~~~~~~~~~~~~~~~
 
--s STRAND
-    Specify which query strand should be used: 0 means reverse only,
-    1 means forward only, and 2 means both.
+-P THREADS
+    Divide the work between this number of threads running in
+    parallel.  0 means use as many threads as your computer claims it
+    can handle simultaneously.  Single query sequences are not divided
+    between threads, so you need multiple queries for this option to
+    take effect.  With multiple threads, the order of the output is
+    not fixed, but there are two guarantees:
 
--S NUMBER
-    Specify how to use the substitution score matrix for reverse
-    strands.  This matters only for unusual matrices that lack
-    strand symmetry (e.g. if the a:g score differs from the t:c
-    score).  "0" means that the matrix is used as-is for all
-    alignments.  "1" means that the matrix is used as-is for
-    alignments of query sequence forward strands, and the
-    complemented matrix is used for query sequence reverse strands.
+    * All the alignments for one query sequence will appear together,
+      and in a fixed order.
+    * If each query sequence has length <= 2000, then pairs of queries
+      stay together, e.g. the output for the 2nd query will be
+      immediately after the output for the 1st query.
 
 -K LIMIT
     Omit any alignment whose query range is contained in LIMIT or more
@@ -309,19 +310,18 @@ Miscellaneous options
     can reduce run time and output size (MC Frith & R Kawaguchi
     2015, Genome Biol 16:106).
 
--P THREADS
-    Divide the work between this number of threads running in
-    parallel.  0 means use as many threads as your computer claims it
-    can handle simultaneously.  Single query sequences are not divided
-    between threads, so you need multiple queries for this option to
-    take effect.  With multiple threads, the order of the output is
-    not fixed, but there are two guarantees:
+-s STRAND
+    Specify which query strand should be used: 0 means reverse only,
+    1 means forward only, and 2 means both.
 
-    * All the alignments for one query sequence will appear together,
-      and in a fixed order.
-    * If each query sequence has length <= 2000, then pairs of queries
-      stay together, e.g. the output for the 2nd query will be
-      immediately after the output for the 1st query.
+-S NUMBER
+    Specify how to use the substitution score matrix for reverse
+    strands.  This matters only for unusual matrices that lack
+    strand symmetry (e.g. if the a:g score differs from the t:c
+    score).  "0" means that the matrix is used as-is for all
+    alignments.  "1" means that the matrix is used as-is for
+    alignments of query sequence forward strands, and the
+    complemented matrix is used for query sequence reverse strands.
 
 -i BYTES
     Process the query sequences in batches, of at most this many
@@ -394,6 +394,9 @@ Miscellaneous options
     substitution matrix (e.g. from ``last-train --codon``), tantan
     is applied to the DNA before translation, else it is applied
     after translation.
+
+-U LENGTH
+    Maximum repeat unit length for simple repeats.
 
 -u NUMBER
     Specify treatment of lowercase letters when extending

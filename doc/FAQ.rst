@@ -71,12 +71,12 @@ LAST FAQ
     standard Unix tools.  For example, this will replace each FASTA
     name with a unique serial number::
 
-      awk '/>/ {$0 = ">" ++n} 1' queries.fasta | lastal myDb
+      awk '/>/ {$0 = ">" ++n}; 1' queries.fasta | lastal myDb
 
     This will do the same for FASTQ (assuming 4 lines per record,
     i.e. no line wrapping)::
 
-      awk 'NR % 4 == 1 {$0 = "@" ++n} 1' queries.fastq | lastal myDb
+      awk 'NR % 4 == 1 {$0 = "@" ++n}; 1' queries.fastq | lastal myDb
 
     Sometimes you can make LAST's output significantly smaller by
     shortening the names.
