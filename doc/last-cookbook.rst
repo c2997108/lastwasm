@@ -298,9 +298,9 @@ probabilities to get the output *per-alignment* mismap probabilities.
 Here we've also discarded less-confident alignments: ``-m1e-5`` omits
 alignments with `mismap probability`_ > 10^-5.
 
-Finally, we can make a dotplot_::
+Finally, we can make a dotplot_ (one-to-one.png)::
 
-  last-dotplot one-to-one.maf one-to-one.png
+  last-dotplot one-to-one.maf
 
 Aligning more distantly related genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

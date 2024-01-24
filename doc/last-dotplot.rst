@@ -5,11 +5,12 @@ This script makes a dotplot, a.k.a. Oxford Grid, of pair-wise sequence
 alignments in MAF_, PSL_, or LAST tabular format.  It requires the
 `Python Imaging Library`_ to be installed.  It can be used like this::
 
-  last-dotplot my-alignments my-plot.png
+  last-dotplot my-alignments.maf
 
-The output can be in any format supported by the Imaging Library::
+to make a file``my-alignments.png``.  You can specify an output file,
+in any format supported by the Imaging Library::
 
-  last-dotplot alns alns.gif
+  last-dotplot my-alignments.maf my-plot.gif
 
 It can read alignments from a pipe like this::
 
@@ -170,7 +171,7 @@ Choosing sequences
 For example, you can exclude sequences with names like
 "chrUn_random522" like this::
 
-  last-dotplot -1 'chr[!U]*' -2 'chr[!U]*' alns alns.png
+  last-dotplot -1 'chr[!U]*' -2 'chr[!U]*' alns.maf
 
 Option "-1" selects sequences from the 1st (horizontal) genome, and
 "-2" selects sequences from the 2nd (vertical) genome.  'chr[!U]*' is
@@ -192,16 +193,16 @@ compared to both the whole name and the part after the dot.
 You can specify more than one pattern, e.g. this gets sequences with
 names starting in "chr" followed by one or two characters::
 
-  last-dotplot -1 'chr?' -1 'chr??' alns alns.png
+  last-dotplot -1 'chr?' -1 'chr??' alns.maf
 
 You can also specify a sequence range; for example this gets the first
 1000 bases of chr9::
 
-  last-dotplot -1 chr9:0-1000 alns alns.png
+  last-dotplot -1 chr9:0-1000 alns.maf
 
 This is equivalent::
 
-  last-dotplot -1 "chr9 0 1000" alns alns.png
+  last-dotplot -1 "chr9 0 1000" alns.maf
 
 Text font
 ---------
@@ -209,12 +210,12 @@ Text font
 You can improve the font quality by increasing its size, e.g. to 20
 points::
 
-  last-dotplot -s20 my-alignments my-plot.png
+  last-dotplot -s20 alns.maf
 
 last-dotplot tries to find a nice font on your computer, but may fail
 and use an ugly font.  You can specify a font like this::
 
-  last-dotplot -f /usr/share/fonts/liberation/LiberationSans-Regular.ttf alns alns.png
+  last-dotplot -f /usr/share/fonts/liberation/LiberationSans-Regular.ttf alns.maf
 
 Colors
 ------

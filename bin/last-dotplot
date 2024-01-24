@@ -1060,13 +1060,15 @@ def lastDotplot(opts, args):
         box = lMargin, i - opts.border_pixels, rMarginBeg, i
         im.paste(opts.border_color, box)
 
-    im.save(args[1])
+    base = args[0]
+    if base.endswith((".maf", ".psl", ".tab", ".tsv", ".txt")):
+        base = base[:-4]
+    im.save(args[1] if len(args) > 1 else base + ".png")
 
 if __name__ == "__main__":
     usage = """%prog --help
-   or: %prog [options] maf-or-psl-or-tab-alignments dotplot.png
-   or: %prog [options] maf-or-psl-or-tab-alignments dotplot.gif
-   or: ..."""
+   or: %prog [options] maf-or-psl-or-tab-alignments
+   or: %prog [options] maf-or-psl-or-tab-alignments dotplot.png|gif|..."""
     description = "Draw a dotplot of pair-wise sequence alignments."
     op = optparse.OptionParser(usage=usage, description=description)
     op.add_option("-v", "--verbose", action="count",
@@ -1155,8 +1157,8 @@ if __name__ == "__main__":
     og.add_option("--unbridged-color", metavar="COLOR", default="orange",
                   help="color for unbridged gaps (default: %default)")
     op.add_option_group(og)
-    (opts, args) = op.parse_args()
-    if len(args) != 2: op.error("2 arguments needed")
+    opts, args = op.parse_args()
+    if len(args) not in (1, 2): op.error("1 or 2 arguments needed")
 
     opts.background_color = "white"
     opts.label_space = 5     # minimum number of pixels between axis labels
