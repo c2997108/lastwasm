@@ -113,11 +113,6 @@ Options:\n\
     }
   }
 
-  if (optind == argc && !opts.estdist && (!opts.isFraglen || !opts.isSdev)) {
-    std::cerr << help;
-    throw std::runtime_error("");
-  }
-
   if (!opts.isDisjoint) {
     opts.disjoint = opts.rna ? 0.02 : 0.01;
   }

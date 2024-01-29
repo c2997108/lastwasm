@@ -24,8 +24,8 @@ i.e. the probability that the alignment does not represent the genomic
 source of the read. By default, it discards alignments with mismap
 probability > 0.01.
 
-Simple usage
-------------
+Usage
+-----
 
 Suppose we have paired DNA reads in a file called "interleaved.fastq"
 (in fastq-sanger format), where the first two reads are paired, the
@@ -33,41 +33,37 @@ next two reads are paired, and so on.  We can align them to the human
 genome like this::
 
   lastdb -uNEAR hg human-genome.fasta
-  lastal -Q1 -D1000 -i1 hg interleaved.fastq > temp.maf
-  last-pair-probs temp.maf > out.maf
+  lastal -Q1 -D1000 -i1 hg interleaved.fastq | last-pair-probs > out.maf
 
 Suppose we have paired reads in two files, where the two first reads
 are paired, the two second reads are paired, and so on.  We can
 interleave them like this::
 
-  fastq-interleave x.fastq y.fastq | lastal -Q1 -D1000 -i1 hg > temp.maf
+  fastq-interleave x.fastq y.fastq | lastal -Q1 -D1000 -i1 hg | last-pair-probs > out.maf
 
 Reads from potentially-spliced RNA molecules
 --------------------------------------------
 
 Use the -r option::
 
-  last-pair-probs -r temp.maf > out.maf
+  ... | last-pair-probs -r > out.maf
 
 Without -r, it assumes the distances between paired reads follow a
 normal distribution.  With -r, it assumes the distances follow a
 skewed (log-normal) distribution, which is much more appropriate for
 spliced RNA.
 
-Efficient usage
----------------
+Two step usage
+--------------
 
-The preceding recipes make a potentially-huge temp file, and
-last-pair-probs reads it twice: first to estimate the distance
-distribution, and then to estimate alignment probabilities.  It is
-more efficient to estimate the distance distribution from a small
-sample of the data::
+To just estimate the distance distribution, use ``-e``::
 
   lastal -Q1 -D1000 -i1 hg sample.fastq | last-pair-probs -e
 
-Suppose this tells us that the mean distance is 250 and the standard
-deviation is 38.5.  We can use that to estimate the alignment
-probabilities::
+This will estimate the distribution from all the reads you give it
+(instead of the first 100000 pairs).  Suppose it tells us that the
+mean distance is 250 and the standard deviation is 38.5.  We can use
+that to estimate the alignment probabilities::
 
   lastal -Q1 -D1000 -i1 hg all.fastq | last-pair-probs -f250 -s38.5 > out.maf
 

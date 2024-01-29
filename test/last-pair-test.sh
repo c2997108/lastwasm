@@ -26,7 +26,7 @@ fastq-interleave bs1.fastq bs2.fastq | lastal -Q1 -e120 -i1 $tmp.x > $tmp.maf
     echo
     last-pair-probs -er $tmp.maf1 $tmp.maf2
     echo
-    last-pair-probs $tmp.maf
+    last-pair-probs < $tmp.maf
 
     last-pair-probs -m0.001 $tmp.tab1 $tmp.tab2
 

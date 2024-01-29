@@ -651,12 +651,13 @@ void lastPairProbs(LastPairProbsOptions& opts) {
   std::vector<const String *> batchEnds;
   std::vector<long> lengths;
 
-  if (!opts.isFraglen || !opts.isSdev) {
-    mcf::izstream inFile1, inFile2;
-    std::istream& in1 =
-      (n > 0) ? cbrc::openIn(inputs[0].c_str(), inFile1) : std::cin;
-    std::istream& in2 =
-      (n > 1) ? cbrc::openIn(inputs[1].c_str(), inFile2) : in1;
+  mcf::izstream inFile1, inFile2;
+  std::istream& in1 =
+    (n > 0) ? cbrc::openIn(inputs[0].c_str(), inFile1) : std::cin;
+  std::istream& in2 =
+    (n > 1) ? cbrc::openIn(inputs[1].c_str(), inFile2) : in1;
+
+  if (opts.estdist) {
     if (n < 2) skipOneBatchMarker(in1);
     while (1) {
       bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
@@ -664,27 +665,26 @@ void lastPairProbs(LastPairProbsOptions& opts) {
       if (!ok) break;
     }
     estimateFragmentLengthDistribution(lengths, opts);
-  }
-
-  if (!opts.estdist) {
-    mcf::izstream inFile1, inFile2;
-    std::istream& in1 =
-      (n > 0) ? cbrc::openIn(inputs[0].c_str(), inFile1) : std::cin;
-    std::istream& in2 =
-      (n > 1) ? cbrc::openIn(inputs[1].c_str(), inFile2) : in1;
+  } else {
     AlignmentParameters params1 = readHeaderOrDie(in1);
     AlignmentParameters params2 = (n > 1) ? readHeaderOrDie(in2) : params1;
     if (n < 2) skipOneBatchMarker(in1);
+    bool ok = readBatches(in1, in2, text, lines, batchEnds, 100000);
+
+    if (!opts.isFraglen || !opts.isSdev) {
+      readQueryPairs1pass(lengths, batchEnds, 1.0, 1.0, opts.circular);
+      estimateFragmentLengthDistribution(lengths, opts);
+    }
 
     calculateScorePieces(opts, params1, params2);
     std::cout << "# fraglen=" << opts.fraglen
               << " sdev=" << opts.sdev
               << " disjoint=" << opts.disjoint
               << " genome=" << params1.gGet() << "\n";
-    while (1) {
-      bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
+    readQueryPairs2pass(batchEnds, params1.tGet(), params2.tGet(), opts);
+    while (ok) {
+      ok = readBatches(in1, in2, text, lines, batchEnds, 1);
       readQueryPairs2pass(batchEnds, params1.tGet(), params2.tGet(), opts);
-      if (!ok) break;
     }
   }
 }
