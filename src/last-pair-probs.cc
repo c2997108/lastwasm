@@ -465,7 +465,8 @@ static Alignment parseTab(const String *linesBeg, const String *linesEnd,
 
 static bool readBatch(std::istream &input,
 		      std::vector<char> &text,
-		      std::vector<size_t> &lineStarts) {
+		      std::vector<size_t> &lineStarts,
+		      std::vector<size_t> &batchEndCoords) {
   std::string line;
   while (std::getline(input, line)) {
     const char *c = line.c_str();
@@ -473,6 +474,7 @@ static bool readBatch(std::istream &input,
     lineStarts.push_back(text.size());
     text.insert(text.end(), c, c + line.size() + 1);
   }
+  batchEndCoords.push_back(lineStarts.size());
   return !input.fail();
 }
 
@@ -481,19 +483,19 @@ static bool readBatches(std::istream &in1, std::istream &in2,
 			std::vector<String> &lines1,
 			std::vector<String> &lines2) {
   text.clear();
-  std::vector<size_t> lineStarts1;
-  std::vector<size_t> lineStarts2;
-  bool ok1 = readBatch(in1, text, lineStarts1);
-  bool ok2 = readBatch(in2, text, lineStarts2);
+  std::vector<size_t> lineStarts;
+  std::vector<size_t> batchEndCoords(1);
+  bool ok1 = readBatch(in1, text, lineStarts, batchEndCoords);
+  bool ok2 = readBatch(in2, text, lineStarts, batchEndCoords);
 
-  lines1.resize(lineStarts1.size());
+  lines1.resize(batchEndCoords[1]);
   for (size_t i = 0; i < lines1.size(); ++i) {
-    lines1[i] = &text[lineStarts1[i]];
+    lines1[i] = &text[lineStarts[i]];
   }
 
-  lines2.resize(lineStarts2.size());
+  lines2.resize(batchEndCoords[2] - batchEndCoords[1]);
   for (size_t i = 0; i < lines2.size(); ++i) {
-    lines2[i] = &text[lineStarts2[i]];
+    lines2[i] = &text[lineStarts[batchEndCoords[1] + i]];
   }
 
   return ok1 && ok2;
