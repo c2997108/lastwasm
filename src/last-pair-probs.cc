@@ -463,6 +463,19 @@ static Alignment parseTab(const String *linesBeg, const String *linesEnd,
 		   linesBeg, linesEnd, strand, scale, circularChroms);
 }
 
+static bool readBatch(std::istream &input,
+		      std::vector<char> &text,
+		      std::vector<size_t> &lineStarts) {
+  std::string line;
+  while (std::getline(input, line)) {
+    const char *c = line.c_str();
+    if (std::strncmp(c, "# batch ", 8) == 0) break;
+    lineStarts.push_back(text.size());
+    text.insert(text.end(), c, c + line.size() + 1);
+  }
+  return !input.fail();
+}
+
 static bool readBatch(std::istream& input,
 		      char strand, const double scale,
 		      const std::set<std::string>& circularChroms,
@@ -472,21 +485,17 @@ static bool readBatch(std::istream& input,
   text.clear();
   alns.clear();
   std::vector<size_t> lineStarts;
-  std::string line;
-  while (std::getline(input, line)) {
-    const char *c = line.c_str();
-    if (std::strncmp(c, "# batch ", 8) == 0) break;
-    lineStarts.push_back(text.size());
-    text.insert(text.end(), c, c + line.size() + 1);
-  }
+  bool ok = readBatch(input, text, lineStarts);
 
   size_t numOfLines = lineStarts.size();
   lines.resize(numOfLines);
+  for (size_t i = 0; i < numOfLines; ++i) {
+    lines[i] = &text[lineStarts[i]];
+  }
 
   size_t mafStart = 0;
   for (size_t i = 0; i < numOfLines; ++i) {
-    String *j = &lines[i];
-    *j = &text[lineStarts[i]];
+    const String *j = &lines[i];
     const char *c = *j;
     if (isDigit(*c))
       alns.push_back(parseTab(j, j + 1, strand, scale, circularChroms));
@@ -508,7 +517,7 @@ static bool readBatch(std::istream& input,
 
   stable_sort(alns.begin(), alns.end());
 
-  return !input.fail();
+  return ok;
 }
 
 static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in2,
