@@ -22,6 +22,17 @@ Options:
                         specifies that chromosome CHROM is circular (default:
                         chrM)
   -V, --version         show program's version number and exit
+
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean distance: 248
+# estimated standard deviation of distance: 40.7715
+
+# distance sample size: 35
+# distance quartiles: 222 248 277
+# estimated mean ln[distance]: 5.51343
+# estimated standard deviation of ln[distance]: 0.16408
+
 # distance sample size: 35
 # distance quartiles: 222 248 277
 # estimated mean distance: 248

@@ -378,20 +378,20 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
 		  int &refTantanSetting, int &maxRepeatUnit,
 		  int &refStrand, countT &numOfRefSeqs, countT &refLetters,
 		  countT &refMaxSeqLen, int &bitsPerBase, int &bitsPerInt) {
-  std::ifstream f( fileName.c_str() );
-  if( !f ) ERR( "can't open file: " + fileName );
+  std::ifstream f(fileName.c_str());
+  if (!f) ERR("can't open file: " + fileName);
   int version = 0;
   std::string alphabetLetters;
   std::string trigger = "#lastal";
 
   std::string line, word;
-  while( getline( f, line ) ){
-    if( line.compare( 0, trigger.size(), trigger ) == 0 ){
-      args.fromLine( line );
+  while (getline(f, line)) {
+    if (line.compare(0, trigger.size(), trigger) == 0) {
+      args.fromLine(line);
       continue;
     }
     std::istringstream iss(line);
-    getline( iss, word, '=' );
+    getline(iss, word, '=');
     if( word == "version" ) iss >> version;
     if( word == "alphabet" ) iss >> alphabetLetters;
     if( word == "strand" ) iss >> refStrand;
@@ -411,17 +411,18 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     if( word == "symbolsize" ) iss >> bitsPerBase;
   }
 
-  if( f.eof() && !f.bad() ) f.clear();
-  if( alphabetLetters.empty() || numOfRefSeqs+1 == 0 || refLetters+1 == 0 ||
+  if (f.eof() && !f.bad()) f.clear();
+  if (alphabetLetters.empty() || numOfRefSeqs+1 == 0 || refLetters+1 == 0 ||
       (refMaxSeqLen == 0 && refLetters != 0) ||
       isCaseSensitiveSeeds < 0 || numOfIndexes > maxNumOfIndexes ||
       referenceFormat == sequenceFormat::prb ||
-      referenceFormat == sequenceFormat::pssm ){
-    f.setstate( std::ios::failbit );
+      referenceFormat == sequenceFormat::pssm) {
+    f.setstate(std::ios::failbit);
   }
-  if( !f ) ERR( "can't read file: " + fileName );
-  if( version < 294 && version > 0)
-    ERR( "the lastdb files are old: please re-run lastdb" );
+  if (!f) ERR("can't read file: " + fileName);
+  if (version < 294 && version > 0) {
+    ERR("the lastdb files are old: please re-run lastdb");
+  }
 
   if (bitsPerInt < 1 && version < 999) bitsPerInt = 32;
   alph.init(alphabetLetters, bitsPerBase == 4);
@@ -1482,8 +1483,8 @@ void writeHeader(countT numOfRefSeqs, countT refLetters, std::ostream &out) {
   }
 }
 
-void lastal( int argc, char** argv ){
-  args.fromArgs( argc, argv );
+void lastal(int argc, char **argv) {
+  args.fromArgs(argc, argv);
   args.resetCumulativeOptions();  // because we will do fromArgs again
 
   int refStrand = 1;  // assume this value, if not specified
@@ -1501,10 +1502,9 @@ void lastal( int argc, char** argv ){
 	       isKeepRefLowercase, refTantanSetting, maxRepeatUnit, refStrand,
 	       numOfRefSeqs, refLetters, refMaxSeqLen, bitsPerBase,
 	       bitsPerInt);
-  bool isDna = (alph.letters == alph.dna);
-  bool isProtein = alph.isProtein();
-
-  args.fromArgs( argc, argv );  // command line overrides prj file
+  const bool isDna = (alph.letters == alph.dna);
+  const bool isProtein = alph.isProtein();
+  args.fromArgs(argc, argv);  // command line overrides prj file
 
   std::string matrixName = args.matrixName( isProtein );
   std::string matrixFile;
@@ -1519,15 +1519,15 @@ void lastal( int argc, char** argv ){
     }
   }
 
-  if( minSeedLimit > 1 ){
-    if( args.outputType == 0 )
-      ERR( "can't use option -j 0: need to re-run lastdb with i <= 1" );
-    if( minSeedLimit > args.oneHitMultiplicity )
-      ERR( "can't use option -m < " + stringify(minSeedLimit) +
-	   ": need to re-run lastdb with i <= " +
-	   stringify(args.oneHitMultiplicity) );
-    if( args.minHitDepth > 1 )
-      ERR( "can't use option -l > 1: need to re-run lastdb with i <= 1" );
+  if (minSeedLimit > 1) {
+    if (args.outputType == 0)
+      ERR("can't use option -j 0: need to re-run lastdb with i <= 1");
+    if (minSeedLimit > args.oneHitMultiplicity)
+      ERR("can't use option -m < " + stringify(minSeedLimit) +
+	  ": need to re-run lastdb with i <= " +
+	  stringify(args.oneHitMultiplicity));
+    if (args.minHitDepth > 1)
+      ERR("can't use option -l > 1: need to re-run lastdb with i <= 1");
   }
 
   aligners.resize( decideNumberOfThreads( args.numOfThreads,

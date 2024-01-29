@@ -1,6 +1,6 @@
 # This DNA seeding scheme reduces run time and memory use, by only
 # seeking seeds at ~1/128 of positions in each sequence.  (It's a
-# maximum set of non-overlapping words plus reverse-complements
+# maximum set of non-overlapping: words plus reverse-complements
 # without self-reverse-complements.)
 
 #abbreviation RY128

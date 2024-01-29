@@ -17,10 +17,16 @@ lastal -Q1 -e120 -i1 $tmp.x bs2.fastq > $tmp.maf2
 maf-convert tab $tmp.maf1 > $tmp.tab1
 maf-convert tab $tmp.maf2 > $tmp.tab2
 
+fastq-interleave bs1.fastq bs2.fastq | lastal -Q1 -e120 -i1 $tmp.x > $tmp.maf
+
 {
     last-pair-probs -h
-
-    last-pair-probs $tmp.maf1 $tmp.maf2
+    echo
+    last-pair-probs -e $tmp.maf
+    echo
+    last-pair-probs -er $tmp.maf1 $tmp.maf2
+    echo
+    last-pair-probs $tmp.maf
 
     last-pair-probs -m0.001 $tmp.tab1 $tmp.tab2
 

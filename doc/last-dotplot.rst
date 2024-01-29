@@ -7,7 +7,7 @@ alignments in MAF_, PSL_, or LAST tabular format.  It requires the
 
   last-dotplot my-alignments.maf
 
-to make a file``my-alignments.png``.  You can specify an output file,
+to make a file ``my-alignments.png``.  You can specify an output file,
 in any format supported by the Imaging Library::
 
   last-dotplot my-alignments.maf my-plot.gif

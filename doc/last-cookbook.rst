@@ -265,7 +265,7 @@ recipe seems to work well::
   lastal -P8 -D1e9 -C2 --split-f=MAF+ -p hc.train humdb chimp.fa > many-to-one.maf
 
 ``-c`` prevents ``lastal`` using huge amounts of memory and time on
-many ways of aligning aligning centromeric repeats.
+many ways of aligning centromeric repeats.
 
 ``-uRY128`` makes it faster but less sensitive: it will miss tiny
 rearranged fragments.  To find such fragments, try ``-uRY4``.
