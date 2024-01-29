@@ -644,9 +644,12 @@ void lastPairProbs(LastPairProbsOptions& opts) {
   const std::vector<std::string>& inputs = opts.inputFileNames;
   size_t n = inputs.size();
 
+  if (opts.estdist && opts.isFraglen && opts.isSdev) return;
+
   std::vector<char> text;
   std::vector<String> lines;
   std::vector<const String *> batchEnds;
+  std::vector<long> lengths;
 
   if (!opts.isFraglen || !opts.isSdev) {
     mcf::izstream inFile1, inFile2;
@@ -655,7 +658,6 @@ void lastPairProbs(LastPairProbsOptions& opts) {
     std::istream& in2 =
       (n > 1) ? cbrc::openIn(inputs[1].c_str(), inFile2) : in1;
     if (n < 2) skipOneBatchMarker(in1);
-    std::vector<long> lengths;
     while (1) {
       bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
       readQueryPairs1pass(lengths, batchEnds, 1.0, 1.0, opts.circular);
@@ -672,12 +674,13 @@ void lastPairProbs(LastPairProbsOptions& opts) {
       (n > 1) ? cbrc::openIn(inputs[1].c_str(), inFile2) : in1;
     AlignmentParameters params1 = readHeaderOrDie(in1);
     AlignmentParameters params2 = (n > 1) ? readHeaderOrDie(in2) : params1;
+    if (n < 2) skipOneBatchMarker(in1);
+
     calculateScorePieces(opts, params1, params2);
     std::cout << "# fraglen=" << opts.fraglen
               << " sdev=" << opts.sdev
               << " disjoint=" << opts.disjoint
               << " genome=" << params1.gGet() << "\n";
-    if (n < 2) skipOneBatchMarker(in1);
     while (1) {
       bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
       readQueryPairs2pass(batchEnds, params1.tGet(), params2.tGet(), opts);
