@@ -537,37 +537,27 @@ static void parseBatch(const String *linesBeg, const String *linesEnd,
   stable_sort(alns.begin(), alns.end());
 }
 
-static void readQueryPairs1pass(std::istream& in1, std::istream& in2,
-				std::vector<long> &lengths,
+static void readQueryPairs1pass(std::vector<long> &lengths,
+				const std::vector<const String *> &batchEnds,
 				double scale1, double scale2,
 				const std::set<std::string> &circularChroms) {
-  std::vector<char> text;
-  std::vector<String> lines;
-  std::vector<const String *> batchEnds;
   std::vector<Alignment> a1, a2;
-  while (1) {
-    bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
-    parseBatch(batchEnds[0], batchEnds[1], '+', scale1, circularChroms, a1);
-    parseBatch(batchEnds[1], batchEnds[2], '-', scale2, circularChroms, a2);
+  for (size_t i = 1; i < batchEnds.size(); i += 2) {
+    parseBatch(batchEnds[i-1], batchEnds[i], '+', scale1, circularChroms, a1);
+    parseBatch(batchEnds[i], batchEnds[i+1], '-', scale2, circularChroms, a2);
     unambiguousFragmentLengths(a1, a2, lengths);
-    if (!ok) break;
   }
 }
 
-static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
+static void readQueryPairs2pass(const std::vector<const String *> &batchEnds,
                                 double scale1, double scale2,
                                 const LastPairProbsOptions& opts) {
-  std::vector<char> text;
-  std::vector<String> lines;
-  std::vector<const String *> batchEnds;
   std::vector<Alignment> a1, a2;
-  while (1) {
-    bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
-    parseBatch(batchEnds[0], batchEnds[1], '+', scale1, opts.circular, a1);
-    parseBatch(batchEnds[1], batchEnds[2], '-', scale2, opts.circular, a2);
+  for (size_t i = 1; i < batchEnds.size(); i += 2) {
+    parseBatch(batchEnds[i-1], batchEnds[i], '+', scale1, opts.circular, a1);
+    parseBatch(batchEnds[i], batchEnds[i+1], '-', scale2, opts.circular, a2);
     printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
     printAlnsForOneRead(a2, a1, opts, opts.maxMissingScore2, "/2");
-    if (!ok) break;
   }
 }
 
@@ -654,6 +644,10 @@ void lastPairProbs(LastPairProbsOptions& opts) {
   const std::vector<std::string>& inputs = opts.inputFileNames;
   size_t n = inputs.size();
 
+  std::vector<char> text;
+  std::vector<String> lines;
+  std::vector<const String *> batchEnds;
+
   if (!opts.isFraglen || !opts.isSdev) {
     mcf::izstream inFile1, inFile2;
     std::istream& in1 =
@@ -662,7 +656,11 @@ void lastPairProbs(LastPairProbsOptions& opts) {
       (n > 1) ? cbrc::openIn(inputs[1].c_str(), inFile2) : in1;
     if (n < 2) skipOneBatchMarker(in1);
     std::vector<long> lengths;
-    readQueryPairs1pass(in1, in2, lengths, 1.0, 1.0, opts.circular);
+    while (1) {
+      bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
+      readQueryPairs1pass(lengths, batchEnds, 1.0, 1.0, opts.circular);
+      if (!ok) break;
+    }
     estimateFragmentLengthDistribution(lengths, opts);
   }
 
@@ -680,6 +678,10 @@ void lastPairProbs(LastPairProbsOptions& opts) {
               << " disjoint=" << opts.disjoint
               << " genome=" << params1.gGet() << "\n";
     if (n < 2) skipOneBatchMarker(in1);
-    readQueryPairs2pass(in1, in2, params1.tGet(), params2.tGet(), opts);
+    while (1) {
+      bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
+      readQueryPairs2pass(batchEnds, params1.tGet(), params2.tGet(), opts);
+      if (!ok) break;
+    }
   }
 }
