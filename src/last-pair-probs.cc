@@ -480,33 +480,33 @@ static bool readBatch(std::istream &input,
 
 static bool readBatches(std::istream &in1, std::istream &in2,
 			std::vector<char> &text,
-			std::vector<String> &lines1,
-			std::vector<String> &lines2) {
+			std::vector<String> &lines,
+			std::vector<const String *> &batchEnds) {
   text.clear();
   std::vector<size_t> lineStarts;
   std::vector<size_t> batchEndCoords(1);
   bool ok1 = readBatch(in1, text, lineStarts, batchEndCoords);
   bool ok2 = readBatch(in2, text, lineStarts, batchEndCoords);
 
-  lines1.resize(batchEndCoords[1]);
-  for (size_t i = 0; i < lines1.size(); ++i) {
-    lines1[i] = &text[lineStarts[i]];
+  lines.resize(lineStarts.size());
+  for (size_t i = 0; i < lines.size(); ++i) {
+    lines[i] = &text[lineStarts[i]];
   }
 
-  lines2.resize(batchEndCoords[2] - batchEndCoords[1]);
-  for (size_t i = 0; i < lines2.size(); ++i) {
-    lines2[i] = &text[lineStarts[batchEndCoords[1] + i]];
+  const String *linesBeg = lines.size() ? &lines[0] : 0;
+
+  batchEnds.resize(batchEndCoords.size());
+  for (size_t i = 0; i < batchEnds.size(); ++i) {
+    batchEnds[i] = linesBeg + batchEndCoords[i];
   }
 
   return ok1 && ok2;
 }
 
-static void parseBatch(const std::vector<String> &lines,
+static void parseBatch(const String *linesBeg, const String *linesEnd,
 		       char strand, const double scale,
 		       const std::set<std::string> &circularChroms,
 		       std::vector<Alignment> &alns) {
-  const String *linesBeg = lines.size() ? &lines[0] : 0;
-  const String *linesEnd = linesBeg + lines.size();
   alns.clear();
 
   for (const String *j = linesBeg; j < linesEnd; ++j) {
@@ -536,12 +536,13 @@ static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in
                                              const std::set<std::string>& circularChroms) {
   std::vector<long> lengths;
   std::vector<char> text;
-  std::vector<String> lines1, lines2;
+  std::vector<String> lines;
+  std::vector<const String *> batchEnds;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool ok = readBatches(in1, in2, text, lines1, lines2);
-    parseBatch(lines1, '+', scale1, circularChroms, a1);
-    parseBatch(lines2, '-', scale2, circularChroms, a2);
+    bool ok = readBatches(in1, in2, text, lines, batchEnds);
+    parseBatch(batchEnds[0], batchEnds[1], '+', scale1, circularChroms, a1);
+    parseBatch(batchEnds[1], batchEnds[2], '-', scale2, circularChroms, a2);
     unambiguousFragmentLengths(a1, a2, lengths);
     if (!ok) break;
   }
@@ -552,12 +553,13 @@ static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
                                 double scale1, double scale2,
                                 const LastPairProbsOptions& opts) {
   std::vector<char> text;
-  std::vector<String> lines1, lines2;
+  std::vector<String> lines;
+  std::vector<const String *> batchEnds;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool ok = readBatches(in1, in2, text, lines1, lines2);
-    parseBatch(lines1, '+', scale1, opts.circular, a1);
-    parseBatch(lines2, '-', scale2, opts.circular, a2);
+    bool ok = readBatches(in1, in2, text, lines, batchEnds);
+    parseBatch(batchEnds[0], batchEnds[1], '+', scale1, opts.circular, a1);
+    parseBatch(batchEnds[1], batchEnds[2], '-', scale2, opts.circular, a2);
     printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
     printAlnsForOneRead(a2, a1, opts, opts.maxMissingScore2, "/2");
     if (!ok) break;
