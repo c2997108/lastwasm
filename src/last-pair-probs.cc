@@ -493,24 +493,22 @@ static void parseBatch(const std::vector<String> &lines,
 		       char strand, const double scale,
 		       const std::set<std::string> &circularChroms,
 		       std::vector<Alignment> &alns) {
+  const String *linesBeg = lines.size() ? &lines[0] : 0;
+  const String *linesEnd = linesBeg + lines.size();
   alns.clear();
-  size_t numOfLines = lines.size();
 
-  size_t mafStart = 0;
-  for (size_t i = 0; i < numOfLines; ++i) {
-    const String *j = &lines[i];
+  for (const String *j = linesBeg; j < linesEnd; ++j) {
     const char *c = *j;
     if (isDigit(*c))
       alns.push_back(parseTab(j, j + 1, strand, scale, circularChroms));
     if (!std::isalpha(*c)) {
-      if (mafStart < i)
-	alns.push_back(parseMaf(&lines[mafStart], j,
-				strand, scale, circularChroms));
-      mafStart = i + 1;
+      if (linesBeg < j)
+	alns.push_back(parseMaf(linesBeg, j, strand, scale, circularChroms));
+      linesBeg = j + 1;
     }
   }
-  if (mafStart < numOfLines)
-    alns.push_back(parseMaf(&lines[mafStart], &lines[0] + numOfLines,
+  if (linesBeg < linesEnd)
+    alns.push_back(parseMaf(linesBeg, linesEnd,
 			    strand, scale, circularChroms));
 
   size_t numOfAlns = alns.size();
