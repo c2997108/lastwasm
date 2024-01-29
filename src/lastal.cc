@@ -372,12 +372,24 @@ static void calculateScoreStatistics(const std::string& matrixName,
   }
 }
 
+struct LastdbData {
+  countT numOfSeqs;
+  countT numOfLetters;
+  countT maxSeqLen;
+  size_t minSeedLimit;
+  size_t minimizerWindow;
+  bool isKeepLowercase;
+  int tantanSetting;
+  int maxRepeatUnit;
+  int strand;
+  int bitsPerBase;
+  int bitsPerInt;
+};
+
 // Read the .prj file for the whole database
-void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
-		  size_t &minSeedLimit, bool &isKeepRefLowercase,
-		  int &refTantanSetting, int &maxRepeatUnit,
-		  int &refStrand, countT &numOfRefSeqs, countT &refLetters,
-		  countT &refMaxSeqLen, int &bitsPerBase, int &bitsPerInt) {
+static LastdbData readOuterPrj(const std::string &fileName) {
+  countT z = -1;
+  LastdbData d = {z, z, z, 0, 1, true, 0, 0, 1, CHAR_BIT, 0};
   std::ifstream f(fileName.c_str());
   if (!f) ERR("can't open file: " + fileName);
   int version = 0;
@@ -392,28 +404,28 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     }
     std::istringstream iss(line);
     getline(iss, word, '=');
-    if( word == "version" ) iss >> version;
-    if( word == "alphabet" ) iss >> alphabetLetters;
-    if( word == "strand" ) iss >> refStrand;
-    if( word == "numofsequences" ) iss >> numOfRefSeqs;
-    if( word == "numofletters" ) iss >> refLetters;
-    if( word == "maxsequenceletters" ) iss >> refMaxSeqLen;
-    if( word == "maxunsortedinterval" ) iss >> minSeedLimit;
-    if( word == "keeplowercase" ) iss >> isKeepRefLowercase;
-    if( word == "tantansetting" ) iss >> refTantanSetting;
-    if( word == "maxrepeatunit" ) iss >> maxRepeatUnit;
-    if( word == "masklowercase" ) iss >> isCaseSensitiveSeeds;
-    if( word == "sequenceformat" ) iss >> referenceFormat;
-    if( word == "minimizerwindow" ) iss >> refMinimizerWindow;
-    if( word == "volumes" ) iss >> numOfVolumes;
-    if( word == "numofindexes" ) iss >> numOfIndexes;
-    if( word == "integersize" ) iss >> bitsPerInt;
-    if( word == "symbolsize" ) iss >> bitsPerBase;
+    if (word == "version") iss >> version;
+    if (word == "alphabet") iss >> alphabetLetters;
+    if (word == "strand") iss >> d.strand;
+    if (word == "numofsequences") iss >> d.numOfSeqs;
+    if (word == "numofletters") iss >> d.numOfLetters;
+    if (word == "maxsequenceletters") iss >> d.maxSeqLen;
+    if (word == "maxunsortedinterval") iss >> d.minSeedLimit;
+    if (word == "keeplowercase") iss >> d.isKeepLowercase;
+    if (word == "tantansetting") iss >> d.tantanSetting;
+    if (word == "maxrepeatunit") iss >> d.maxRepeatUnit;
+    if (word == "masklowercase") iss >> isCaseSensitiveSeeds;
+    if (word == "sequenceformat") iss >> referenceFormat;
+    if (word == "minimizerwindow") iss >> d.minimizerWindow;
+    if (word == "volumes") iss >> numOfVolumes;
+    if (word == "numofindexes") iss >> numOfIndexes;
+    if (word == "integersize") iss >> d.bitsPerInt;
+    if (word == "symbolsize") iss >> d.bitsPerBase;
   }
 
   if (f.eof() && !f.bad()) f.clear();
-  if (alphabetLetters.empty() || numOfRefSeqs+1 == 0 || refLetters+1 == 0 ||
-      (refMaxSeqLen == 0 && refLetters != 0) ||
+  if (alphabetLetters.empty() || d.numOfSeqs+1 == 0 || d.numOfLetters+1 == 0 ||
+      (d.maxSeqLen == 0 && d.numOfLetters != 0) ||
       isCaseSensitiveSeeds < 0 || numOfIndexes > maxNumOfIndexes ||
       referenceFormat == sequenceFormat::prb ||
       referenceFormat == sequenceFormat::pssm) {
@@ -424,8 +436,9 @@ void readOuterPrj(const std::string &fileName, size_t &refMinimizerWindow,
     ERR("the lastdb files are old: please re-run lastdb");
   }
 
-  if (bitsPerInt < 1 && version < 999) bitsPerInt = 32;
-  alph.init(alphabetLetters, bitsPerBase == 4);
+  if (d.bitsPerInt < 1 && version < 999) d.bitsPerInt = 32;
+  alph.init(alphabetLetters, d.bitsPerBase == 4);
+  return d;
 }
 
 // Read a per-volume .prj file, with info about a database volume
@@ -1486,22 +1499,7 @@ void writeHeader(countT numOfRefSeqs, countT refLetters, std::ostream &out) {
 void lastal(int argc, char **argv) {
   args.fromArgs(argc, argv);
   args.resetCumulativeOptions();  // because we will do fromArgs again
-
-  int refStrand = 1;  // assume this value, if not specified
-  size_t refMinimizerWindow = 1;  // assume this value, if not specified
-  size_t minSeedLimit = 0;
-  countT numOfRefSeqs = -1;
-  countT refLetters = -1;
-  countT refMaxSeqLen = -1;
-  bool isKeepRefLowercase = true;
-  int refTantanSetting = 0;
-  int maxRepeatUnit = 0;
-  int bitsPerBase = CHAR_BIT;
-  int bitsPerInt = 0;
-  readOuterPrj(args.lastdbName + ".prj", refMinimizerWindow, minSeedLimit,
-	       isKeepRefLowercase, refTantanSetting, maxRepeatUnit, refStrand,
-	       numOfRefSeqs, refLetters, refMaxSeqLen, bitsPerBase,
-	       bitsPerInt);
+  const LastdbData prj = readOuterPrj(args.lastdbName + ".prj");
   const bool isDna = (alph.letters == alph.dna);
   const bool isProtein = alph.isProtein();
   args.fromArgs(argc, argv);  // command line overrides prj file
@@ -1519,11 +1517,11 @@ void lastal(int argc, char **argv) {
     }
   }
 
-  if (minSeedLimit > 1) {
+  if (prj.minSeedLimit > 1) {
     if (args.outputType == 0)
       ERR("can't use option -j 0: need to re-run lastdb with i <= 1");
-    if (minSeedLimit > args.oneHitMultiplicity)
-      ERR("can't use option -m < " + stringify(minSeedLimit) +
+    if (prj.minSeedLimit > args.oneHitMultiplicity)
+      ERR("can't use option -m < " + stringify(prj.minSeedLimit) +
 	  ": need to re-run lastdb with i <= " +
 	  stringify(args.oneHitMultiplicity));
     if (args.minHitDepth > 1)
@@ -1533,10 +1531,10 @@ void lastal(int argc, char **argv) {
   aligners.resize( decideNumberOfThreads( args.numOfThreads,
 					  args.programName, args.verbosity ) );
   bool isMultiVolume = (numOfVolumes + 1 > 0 && numOfVolumes > 1);
-  args.setDefaultsFromAlphabet(isDna, isProtein, refStrand,
-			       isKeepRefLowercase, refTantanSetting,
+  args.setDefaultsFromAlphabet(isDna, isProtein, prj.strand,
+			       prj.isKeepLowercase, prj.tantanSetting,
 			       isCaseSensitiveSeeds, numOfVolumes + 1 > 0,
-			       refMinimizerWindow);
+			       prj.minimizerWindow);
   makeScoreMatrix(matrixName, matrixFile);
   gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
 		  args.insOpenCosts, args.insGrowCosts,
@@ -1558,7 +1556,7 @@ void lastal(int argc, char **argv) {
     queryAlph = alph;
   }
 
-  if (bitsPerBase < CHAR_BIT) {
+  if (prj.bitsPerBase < CHAR_BIT) {
     if (args.isGreedy) err("can't use option -M with 4-bit lastdb");
     if (isUseFastq(referenceFormat) && isUseFastq(args.inputFormat))
       err("can't do fastq-versus-fastq with 4-bit lastdb");
@@ -1571,13 +1569,14 @@ void lastal(int argc, char **argv) {
       if (m < 0) m = 100;
       tantanMasker.init(0, t==2, t==3, m, queryAlph.letters, queryAlph.encode);
     } else {
-      if (m < 0) m = maxRepeatUnit ? maxRepeatUnit : isProtein ? 50 : 100;
+      if (m < 0) m = prj.maxRepeatUnit ? prj.maxRepeatUnit
+		   : isProtein ? 50 : 100;
       tantanMasker.init(isProtein, t==2, t==3, m, alph.letters, alph.encode);
     }
   }
 
   if (args.outputType > 0) {
-    calculateScoreStatistics(matrixName, refLetters, refMaxSeqLen);
+    calculateScoreStatistics(matrixName, prj.numOfLetters, prj.maxSeqLen);
   }
 
   double minScore = -1;
@@ -1591,7 +1590,7 @@ void lastal(int argc, char **argv) {
   }
   args.setDefaultsFromMatrix(fwdMatrices.stats.lambda(), minScore, eg2);
 
-  minScoreGapless = calcMinScoreGapless(refLetters);
+  minScoreGapless = calcMinScoreGapless(prj.numOfLetters);
   if (!isMultiVolume) args.minScoreGapless = minScoreGapless;
   if (args.outputType > 0) makeQualityScorers();
 
@@ -1602,15 +1601,15 @@ void lastal(int argc, char **argv) {
 		       args.isQueryStrandMatrix,
 		       args.delOpenCosts[0], args.delGrowCosts[0],
 		       args.insOpenCosts[0], args.insGrowCosts[0],
-		       args.temperature, refLetters, args.inputFormat);
+		       args.temperature, prj.numOfLetters, args.inputFormat);
   }
 
   if (numOfVolumes + 1 == 0) {
-    readIndex(args.lastdbName, numOfRefSeqs, bitsPerBase, bitsPerInt);
+    readIndex(args.lastdbName, prj.numOfSeqs, prj.bitsPerBase, prj.bitsPerInt);
     numOfVolumes = 1;
   }
 
-  writeHeader(numOfRefSeqs, refLetters, std::cout);
+  writeHeader(prj.numOfSeqs, prj.numOfLetters, std::cout);
   countT queryBatchCount = 0;
 
   char defaultInputName[] = "-";
@@ -1636,7 +1635,7 @@ void lastal(int argc, char **argv) {
 	  if (qrySeqsGlobal.finishedSequences() == 0) throwSeqTooBig();
 	  // this enables downstream parsers to read one batch at a time:
 	  std::cout << "# batch " << queryBatchCount++ << "\n";
-	  scanAllVolumes(bitsPerBase, bitsPerInt);
+	  scanAllVolumes(prj.bitsPerBase, prj.bitsPerInt);
 	  qrySeqsGlobal.reinitForAppending();
 	  maxSeqLen = -1;
 	}
@@ -1644,7 +1643,7 @@ void lastal(int argc, char **argv) {
     }
     if (qrySeqsGlobal.finishedSequences() > 0) {
       std::cout << "# batch " << queryBatchCount << "\n";
-      scanAllVolumes(bitsPerBase, bitsPerInt);
+      scanAllVolumes(prj.bitsPerBase, prj.bitsPerInt);
     }
   }
 
