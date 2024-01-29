@@ -118,7 +118,6 @@ namespace {
   MultiSequence refSeqs;  // sequence that has been indexed by lastdb
   sequenceFormat::Enum referenceFormat = sequenceFormat::fasta;
   int minScoreGapless;
-  int isCaseSensitiveSeeds = -1;  // initialize it to an "error" value
   unsigned numOfVolumes = -1;
   unsigned numOfIndexes = 1;  // assume this value, if unspecified
 }
@@ -381,6 +380,7 @@ struct LastdbData {
   bool isKeepLowercase;
   int tantanSetting;
   int maxRepeatUnit;
+  int isCaseSensitive;
   int strand;
   int bitsPerBase;
   int bitsPerInt;
@@ -389,13 +389,14 @@ struct LastdbData {
 // Read the .prj file for the whole database
 static LastdbData readOuterPrj(const std::string &fileName) {
   countT z = -1;
-  LastdbData d = {z, z, z, 0, 1, true, 0, 0, 1, CHAR_BIT, 0};
-  std::ifstream f(fileName.c_str());
-  if (!f) ERR("can't open file: " + fileName);
+  LastdbData d = {z, z, z, 0, 1, true, 0, 0, -1, 1, CHAR_BIT, 0};
   int version = 0;
   std::string alphabetLetters;
-  std::string trigger = "#lastal";
 
+  std::ifstream f(fileName.c_str());
+  if (!f) ERR("can't open file: " + fileName);
+
+  std::string trigger = "#lastal";
   std::string line, word;
   while (getline(f, line)) {
     if (line.compare(0, trigger.size(), trigger) == 0) {
@@ -414,7 +415,7 @@ static LastdbData readOuterPrj(const std::string &fileName) {
     if (word == "keeplowercase") iss >> d.isKeepLowercase;
     if (word == "tantansetting") iss >> d.tantanSetting;
     if (word == "maxrepeatunit") iss >> d.maxRepeatUnit;
-    if (word == "masklowercase") iss >> isCaseSensitiveSeeds;
+    if (word == "masklowercase") iss >> d.isCaseSensitive;
     if (word == "sequenceformat") iss >> referenceFormat;
     if (word == "minimizerwindow") iss >> d.minimizerWindow;
     if (word == "volumes") iss >> numOfVolumes;
@@ -426,7 +427,7 @@ static LastdbData readOuterPrj(const std::string &fileName) {
   if (f.eof() && !f.bad()) f.clear();
   if (alphabetLetters.empty() || d.numOfSeqs+1 == 0 || d.numOfLetters+1 == 0 ||
       (d.maxSeqLen == 0 && d.numOfLetters != 0) ||
-      isCaseSensitiveSeeds < 0 || numOfIndexes > maxNumOfIndexes ||
+      d.isCaseSensitive < 0 || numOfIndexes > maxNumOfIndexes ||
       referenceFormat == sequenceFormat::prb ||
       referenceFormat == sequenceFormat::pssm) {
     f.setstate(std::ios::failbit);
@@ -1361,7 +1362,7 @@ static void runThreads(unsigned numOfThreads) {
 }
 
 void readIndex(const std::string &baseName, size_t seqCount, int bitsPerBase,
-	       int bitsPerInt) {
+	       int bitsPerInt, bool isCaseSensitive) {
   LOG( "reading " << baseName << "..." );
   refSeqs.fromFiles(baseName, seqCount,
 		    referenceFormat != sequenceFormat::fasta,
@@ -1369,10 +1370,10 @@ void readIndex(const std::string &baseName, size_t seqCount, int bitsPerBase,
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     if( numOfIndexes > 1 ){
       suffixArrays[x].fromFiles(baseName + char('a' + x),
-				bitsPerInt, isCaseSensitiveSeeds,
+				bitsPerInt, isCaseSensitive,
 				alph.encode, alph.letters);
     } else {
-      suffixArrays[x].fromFiles(baseName, bitsPerInt, isCaseSensitiveSeeds,
+      suffixArrays[x].fromFiles(baseName, bitsPerInt, isCaseSensitive,
 				alph.encode, alph.letters);
     }
   }
@@ -1380,7 +1381,7 @@ void readIndex(const std::string &baseName, size_t seqCount, int bitsPerBase,
   const std::vector<CyclicSubsetSeed> &seeds = suffixArrays[0].getSeeds();
   assert(!seeds.empty());  // xxx what if numOfIndexes==0 ?
   makeWordsFinder(wordsFinder, &seeds[0], seeds.size(), alph.encode,
-		  isCaseSensitiveSeeds);
+		  isCaseSensitive);
 
   if (scoreMatrix.isCodonCols()) {
     for (unsigned x = 0; x < numOfIndexes; ++x) {
@@ -1421,23 +1422,24 @@ int calcMinScoreGapless(double numLettersInReference) {
 }
 
 // Read one database volume
-void readVolume(unsigned volumeNumber, int bitsPerBase, int bitsPerInt) {
+void readVolume(unsigned volumeNumber, int bitsPerBase, int bitsPerInt,
+		bool isCaseSensitive) {
   std::string baseName = args.lastdbName + stringify(volumeNumber);
   size_t seqCount = -1;
   size_t seqLen = -1;
   readInnerPrj(baseName + ".prj", seqCount, seqLen);
   minScoreGapless = calcMinScoreGapless(seqLen);
-  readIndex(baseName, seqCount, bitsPerBase, bitsPerInt);
+  readIndex(baseName, seqCount, bitsPerBase, bitsPerInt, isCaseSensitive);
 }
 
 // Scan one batch of query sequences against all database volumes
-void scanAllVolumes(int bitsPerBase, int bitsPerInt) {
+void scanAllVolumes(int bitsPerBase, int bitsPerInt, bool isCaseSensitive) {
   encodeSequences(qrySeqsGlobal, args.inputFormat, queryAlph,
 		  args.isKeepLowercase, 0);
 
   for (unsigned i = 0; i < numOfVolumes; ++i) {
     if (refSeqs.unfinishedSize() == 0 || numOfVolumes > 1) {
-      readVolume(i, bitsPerBase, bitsPerInt);
+      readVolume(i, bitsPerBase, bitsPerInt, isCaseSensitive);
     }
     scanOneVolume(i, aligners.size());
   }
@@ -1533,7 +1535,7 @@ void lastal(int argc, char **argv) {
   bool isMultiVolume = (numOfVolumes + 1 > 0 && numOfVolumes > 1);
   args.setDefaultsFromAlphabet(isDna, isProtein, prj.strand,
 			       prj.isKeepLowercase, prj.tantanSetting,
-			       isCaseSensitiveSeeds, numOfVolumes + 1 > 0,
+			       prj.isCaseSensitive, numOfVolumes + 1 > 0,
 			       prj.minimizerWindow);
   makeScoreMatrix(matrixName, matrixFile);
   gapCosts.assign(args.delOpenCosts, args.delGrowCosts,
@@ -1605,7 +1607,8 @@ void lastal(int argc, char **argv) {
   }
 
   if (numOfVolumes + 1 == 0) {
-    readIndex(args.lastdbName, prj.numOfSeqs, prj.bitsPerBase, prj.bitsPerInt);
+    readIndex(args.lastdbName, prj.numOfSeqs, prj.bitsPerBase, prj.bitsPerInt,
+	      prj.isCaseSensitive);
     numOfVolumes = 1;
   }
 
@@ -1635,7 +1638,7 @@ void lastal(int argc, char **argv) {
 	  if (qrySeqsGlobal.finishedSequences() == 0) throwSeqTooBig();
 	  // this enables downstream parsers to read one batch at a time:
 	  std::cout << "# batch " << queryBatchCount++ << "\n";
-	  scanAllVolumes(prj.bitsPerBase, prj.bitsPerInt);
+	  scanAllVolumes(prj.bitsPerBase, prj.bitsPerInt, prj.isCaseSensitive);
 	  qrySeqsGlobal.reinitForAppending();
 	  maxSeqLen = -1;
 	}
@@ -1643,7 +1646,7 @@ void lastal(int argc, char **argv) {
     }
     if (qrySeqsGlobal.finishedSequences() > 0) {
       std::cout << "# batch " << queryBatchCount << "\n";
-      scanAllVolumes(prj.bitsPerBase, prj.bitsPerInt);
+      scanAllVolumes(prj.bitsPerBase, prj.bitsPerInt, prj.isCaseSensitive);
     }
   }
 
