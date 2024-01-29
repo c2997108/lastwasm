@@ -481,12 +481,18 @@ static bool readBatch(std::istream &input,
 static bool readBatches(std::istream &in1, std::istream &in2,
 			std::vector<char> &text,
 			std::vector<String> &lines,
-			std::vector<const String *> &batchEnds) {
+			std::vector<const String *> &batchEnds,
+			int numOfPairs) {
   text.clear();
   std::vector<size_t> lineStarts;
   std::vector<size_t> batchEndCoords(1);
-  bool ok1 = readBatch(in1, text, lineStarts, batchEndCoords);
-  bool ok2 = readBatch(in2, text, lineStarts, batchEndCoords);
+  bool ok1 = true;
+  bool ok2 = true;
+  for (int i = 0; i < numOfPairs; ++i) {
+    ok1 = readBatch(in1, text, lineStarts, batchEndCoords);
+    ok2 = readBatch(in2, text, lineStarts, batchEndCoords);
+    if (!ok1 || !ok2) break;
+  }
 
   lines.resize(lineStarts.size());
   for (size_t i = 0; i < lines.size(); ++i) {
@@ -531,22 +537,21 @@ static void parseBatch(const String *linesBeg, const String *linesEnd,
   stable_sort(alns.begin(), alns.end());
 }
 
-static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in2,
-                                             double scale1, double scale2,
-                                             const std::set<std::string>& circularChroms) {
-  std::vector<long> lengths;
+static void readQueryPairs1pass(std::istream& in1, std::istream& in2,
+				std::vector<long> &lengths,
+				double scale1, double scale2,
+				const std::set<std::string> &circularChroms) {
   std::vector<char> text;
   std::vector<String> lines;
   std::vector<const String *> batchEnds;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool ok = readBatches(in1, in2, text, lines, batchEnds);
+    bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
     parseBatch(batchEnds[0], batchEnds[1], '+', scale1, circularChroms, a1);
     parseBatch(batchEnds[1], batchEnds[2], '-', scale2, circularChroms, a2);
     unambiguousFragmentLengths(a1, a2, lengths);
     if (!ok) break;
   }
-  return lengths;
 }
 
 static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
@@ -557,7 +562,7 @@ static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
   std::vector<const String *> batchEnds;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool ok = readBatches(in1, in2, text, lines, batchEnds);
+    bool ok = readBatches(in1, in2, text, lines, batchEnds, 1);
     parseBatch(batchEnds[0], batchEnds[1], '+', scale1, opts.circular, a1);
     parseBatch(batchEnds[1], batchEnds[2], '-', scale2, opts.circular, a2);
     printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
@@ -656,8 +661,8 @@ void lastPairProbs(LastPairProbsOptions& opts) {
     std::istream& in2 =
       (n > 1) ? cbrc::openIn(inputs[1].c_str(), inFile2) : in1;
     if (n < 2) skipOneBatchMarker(in1);
-    std::vector<long> lengths = readQueryPairs1pass(in1, in2, 1.0, 1.0,
-						    opts.circular);
+    std::vector<long> lengths;
+    readQueryPairs1pass(in1, in2, lengths, 1.0, 1.0, opts.circular);
     estimateFragmentLengthDistribution(lengths, opts);
   }
 
