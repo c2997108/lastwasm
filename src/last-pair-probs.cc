@@ -489,15 +489,11 @@ static bool readBatch(std::istream &input,
   return ok;
 }
 
-static bool readBatch(std::istream& input,
-		      char strand, const double scale,
-		      const std::set<std::string>& circularChroms,
-		      std::vector<char>& text, std::vector<String>& lines,
-		      std::vector<Alignment>& alns) {
-  // Yields alignment data from MAF or tabular format.
+static void parseBatch(const std::vector<String> &lines,
+		       char strand, const double scale,
+		       const std::set<std::string> &circularChroms,
+		       std::vector<Alignment> &alns) {
   alns.clear();
-  bool ok = readBatch(input, text, lines);
-
   size_t numOfLines = lines.size();
 
   size_t mafStart = 0;
@@ -523,8 +519,6 @@ static bool readBatch(std::istream& input,
       err("found 2 queries in 1 batch: did you forget lastal -i1?");
 
   stable_sort(alns.begin(), alns.end());
-
-  return ok;
 }
 
 static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in2,
@@ -535,8 +529,10 @@ static std::vector<long> readQueryPairs1pass(std::istream& in1, std::istream& in
   std::vector<String> lines1, lines2;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool ok1 = readBatch(in1, '+', scale1, circularChroms, text1, lines1, a1);
-    bool ok2 = readBatch(in2, '-', scale2, circularChroms, text2, lines2, a2);
+    bool ok1 = readBatch(in1, text1, lines1);
+    parseBatch(lines1, '+', scale1, circularChroms, a1);
+    bool ok2 = readBatch(in2, text2, lines2);
+    parseBatch(lines2, '-', scale2, circularChroms, a2);
     unambiguousFragmentLengths(a1, a2, lengths);
     if (!ok1 || !ok2) break;
   }
@@ -550,8 +546,10 @@ static void readQueryPairs2pass(std::istream& in1, std::istream& in2,
   std::vector<String> lines1, lines2;
   std::vector<Alignment> a1, a2;
   while (1) {
-    bool ok1 = readBatch(in1, '+', scale1, opts.circular, text1, lines1, a1);
-    bool ok2 = readBatch(in2, '-', scale2, opts.circular, text2, lines2, a2);
+    bool ok1 = readBatch(in1, text1, lines1);
+    parseBatch(lines1, '+', scale1, opts.circular, a1);
+    bool ok2 = readBatch(in2, text2, lines2);
+    parseBatch(lines2, '-', scale2, opts.circular, a2);
     printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
     printAlnsForOneRead(a2, a1, opts, opts.maxMissingScore2, "/2");
     if (!ok1 || !ok2) break;
