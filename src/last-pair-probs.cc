@@ -476,22 +476,29 @@ static bool readBatch(std::istream &input,
   return !input.fail();
 }
 
+static bool readBatch(std::istream &input,
+		      std::vector<char> &text,
+		      std::vector<String> &lines) {
+  text.clear();
+  std::vector<size_t> lineStarts;
+  bool ok = readBatch(input, text, lineStarts);
+  lines.resize(lineStarts.size());
+  for (size_t i = 0; i < lines.size(); ++i) {
+    lines[i] = &text[lineStarts[i]];
+  }
+  return ok;
+}
+
 static bool readBatch(std::istream& input,
 		      char strand, const double scale,
 		      const std::set<std::string>& circularChroms,
 		      std::vector<char>& text, std::vector<String>& lines,
 		      std::vector<Alignment>& alns) {
   // Yields alignment data from MAF or tabular format.
-  text.clear();
   alns.clear();
-  std::vector<size_t> lineStarts;
-  bool ok = readBatch(input, text, lineStarts);
+  bool ok = readBatch(input, text, lines);
 
-  size_t numOfLines = lineStarts.size();
-  lines.resize(numOfLines);
-  for (size_t i = 0; i < numOfLines; ++i) {
-    lines[i] = &text[lineStarts[i]];
-  }
+  size_t numOfLines = lines.size();
 
   size_t mafStart = 0;
   for (size_t i = 0; i < numOfLines; ++i) {
