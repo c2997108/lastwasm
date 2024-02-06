@@ -2,6 +2,8 @@
 # similarities.  It is a good compromise for both protein-coding and
 # non protein-coding DNA (L Noé & G Kucherov, NAR 2005 33:W540-W543).
 
+#lastdb -U100
+
 1  A C G T
 0  ACGT
 T  AG CT

@@ -99,6 +99,9 @@ And these patterns::
   11TT010T01TT0001T
   11TT10T1T101TT
 
+It sets this lastdb default:
+-U100
+
 MAM8
 ----
 
@@ -122,6 +125,9 @@ And these patterns::
   111T101TT000T0T10T00T1T
   111100T011TTT00T0TT01T
   1T1T10T1101101
+
+It sets this lastdb default:
+-U100
 
 MURPHY10
 --------
@@ -189,6 +195,9 @@ It uses this seed alphabet::
 And this pattern::
 
   1T1001100101
+
+It sets this lastdb default:
+-U100
 
 RY4-9 (abbreviation: RY4)
 -------------------------

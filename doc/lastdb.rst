@@ -105,9 +105,14 @@ Advanced Options
     repeat-finding slower.  The default is 100 for DNA and 50 for
     protein, which prevents non-homologous alignments.
 
-    For DNA, however, if you specify -c (and don't specify AT-rich
-    tantan), the default is 400.  This avoids hugely redundant
-    alignments of human centromeric repeats.
+    For DNA, however, the default is 400 if you:
+
+    * specify ``-c`` AND
+    * don't specify AT-rich tantan AND
+    * choose a seeding scheme other than MAM4, MAM8, or the default (YASS).
+
+    This avoids hugely redundant alignments of human centromeric
+    repeats.
 
 -w STEP
     Allow initial matches to start only at every STEP-th position in
