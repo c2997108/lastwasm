@@ -46,6 +46,7 @@ maf2=bs100.maf
     head -n999 $maf1 | $r -r 'ID:1 PL:ILLUMINA SM:x' sam
     $r -d sam $maf1
     $r -j1e9 sam 90089.maf 102.maf
+    $r sam toprev.maf
     head -n999 $maf1 | $r -n tab
     head -n999 $maf1 | $r tab
     $r -n tab frameshift-new.maf

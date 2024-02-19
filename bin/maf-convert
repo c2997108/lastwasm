@@ -65,6 +65,14 @@ def myOpen(fileName):
 def maxlen(s):
     return max(map(len, s))
 
+complementLookup = bytearray(range(128))
+for x, y in zip("ACGTRYKMBDHVU",
+                "TGCAYRMKVHDBA"):
+    complementLookup[ord(x.upper())] = ord(y.upper())
+    complementLookup[ord(x.lower())] = ord(y.lower())
+def revcomp(seq):
+    return "".join(chr(complementLookup[ord(i)]) for i in reversed(seq))
+
 def pairOrDie(sLines, formatName):
     if len(sLines) != 2:
         e = "for %s, each alignment must have 2 sequences" % formatName
@@ -688,7 +696,8 @@ def cigarParts(alignmentColumns):
             yield str(size) + "X"
 
 def writeSam(readGroup, mafs):
-    seq = qual = cigar = score = evalue = ""
+    seq = qual = score = evalue = ""
+    cigar = []
     mismapProb = 2.0
     editDistance = 0
     for maf in mafs:
@@ -697,11 +706,8 @@ def writeSam(readGroup, mafs):
         seqNameA, seqLenA, strandA, letterSizeA, begA, endA, rowA = fieldsA
         seqNameB, seqLenB, strandB, letterSizeB, begB, endB, rowB = fieldsB
 
-        if letterSizeA > 1 or letterSizeB > 1:
-            raise Exception("this looks like translated DNA - can't convert to SAM format")
-
-        if strandA != "+":
-            raise Exception("for SAM, the 1st strand in each alignment must be +")
+        if letterSizeA * letterSizeB != 1:
+            raise RuntimeError("looks like DNA-to-protein alignment - can't convert to SAM format")
 
         isSplice = False
         for i in aLine.split():
@@ -716,15 +722,15 @@ def writeSam(readGroup, mafs):
 
         if seq:
             d = begA - oldEndA
-            cigar += str(d) + "DN"[isSplice]
+            cigar.append(str(d) + "DN"[isSplice])
             if not isSplice: editDistance += d
         else:
-            pos = str(begA + 1)  # convert to 1-based coordinate
-            if begB: cigar += str(begB) + "H"
+            pos = begA
+            if begB: cigar.append(str(begB) + "H")
         oldEndA = endA
 
         alignmentColumns = list(zip(rowA.upper(), rowB.upper()))
-        cigar += "".join(cigarParts(iter(alignmentColumns)))
+        cigar.extend(cigarParts(iter(alignmentColumns)))
         editDistance += sum(x != y for x, y in alignmentColumns)
         # no special treatment of ambiguous bases: might be a minor bug
 
@@ -737,7 +743,13 @@ def writeSam(readGroup, mafs):
                 qual += ''.join(j for i, j in z if i != "-")
 
     revBegB = seqLenB - endB
-    if revBegB: cigar += str(revBegB) + "H"
+    if revBegB: cigar.append(str(revBegB) + "H")
+
+    if strandA == "-":
+        seq = revcomp(seq)
+        qual = qual[::-1]
+        cigar = reversed(cigar)
+        pos = seqLenA - endA
 
     if mismapProb > 1:
         mapq = mapqMissing
@@ -752,24 +764,26 @@ def writeSam(readGroup, mafs):
     # I'm not sure whether to add 2 and/or 8 to flag.
     if seqNameB.endswith("/1"):
         seqNameB = seqNameB[:-2]
-        if strandB == "+": flag = "99"  # 1 + 2 + 32 + 64
-        else:              flag = "83"  # 1 + 2 + 16 + 64
+        if strandB == strandA: flag = "99"  # 1 + 2 + 32 + 64
+        else:                  flag = "83"  # 1 + 2 + 16 + 64
     elif seqNameB.endswith("/2"):
         seqNameB = seqNameB[:-2]
-        if strandB == "+": flag = "163"  # 1 + 2 + 32 + 128
-        else:              flag = "147"  # 1 + 2 + 16 + 128
+        if strandB == strandA: flag = "163"  # 1 + 2 + 32 + 128
+        else:                  flag = "147"  # 1 + 2 + 16 + 128
     else:
-        if strandB == "+": flag = "0"
-        else:              flag = "16"
+        if strandB == strandA: flag = "0"
+        else:                  flag = "16"
 
     if len(qual) < len(seq): qual = "*"
+    pos += 1  # convert to 1-based coordinate
+    cigar = "".join(cigar)
     out = [seqNameB, flag, seqNameA, pos, mapq, cigar, "*\t0\t0", seq, qual]
     out.append("NM:i:" + str(editDistance))
     if len(mafs) < 2:
         if score.isdigit(): out.append("AS:i:" + score)  # must be an integer
         if evalue: out.append("EV:Z:" + evalue)
     if readGroup: out.append(readGroup)
-    print("\t".join(out))
+    print(*out, sep="\t")
 
 def mafConvertToSam(opts, lines):
     readGroup = ""
