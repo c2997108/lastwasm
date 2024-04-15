@@ -271,7 +271,8 @@ void LastEvaluer::initFullScores(const const_dbl_ptr *substitutionProbs,
 				 const GapCosts &gapCosts, double scale,
 				 int numOfAlignments, int seqLength,
 				 int verbosity, bool isFrameshift) {
-  int seqLength1 = seqLength;
+  int border = isFrameshift ? 0 : seqLength / 4;
+  int seqLength1 = seqLength + border;
   int seqLength2 = seqLength1;
   int seqLength3 = seqLength2;
   if (isFrameshift) {
@@ -303,17 +304,19 @@ void LastEvaluer::initFullScores(const const_dbl_ptr *substitutionProbs,
       ? frameshiftScorer.maxSumOfProbRatios(seq1, seqLength1, seq2, seqLength3,
 					    substitutionProbs, gapCosts)
       : scorer.maxSum(seq1, seqLength1, seq2, seqLength3, substitutionProbs,
-		      del.openProb, del.growProb, ins.openProb, ins.growProb);
+		      del.openProb, del.growProb, ins.openProb, ins.growProb,
+		      border);
     probRatioSum += 1 / p;
     if (verbosity > 1) std::cerr << "simScore: " << (log(p) / scale) << "\n";
   }
 
   // max likelihood k  =  1 / (m * n * avg[exp(-lambda * score)])
-  double k = numOfAlignments / (seqLength1 * seqLength3 * probRatioSum);
+  int area = (seqLength1 - border) * (seqLength3 - border);
+  double k = numOfAlignments / (area * probRatioSum);
 
   if (verbosity > 1) {
     std::cerr << "lambda k m n: " << scale << " " << k << " "
-	      << seqLength1 << " " << seqLength3 << "\n";
+	      << (seqLength1 - border) << " " << (seqLength3 - border) << "\n";
   }
 
   Sls::AlignmentEvaluerParameters p = {scale, k, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

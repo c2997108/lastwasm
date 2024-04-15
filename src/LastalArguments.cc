@@ -631,7 +631,7 @@ void LastalArguments::setDefaultsFromAlphabet(bool isDna, bool isProtein,
     ERR("can't combine option -J0 with new-style frameshifts");
 
   if (gumbelSimSequenceLength == 0) {
-    gumbelSimSequenceLength = isTranslated() ? 200 : 500;
+    gumbelSimSequenceLength = isTranslated() ? 200 : 400;
     // xxx long enough to avoid edge effects ???
   }
 

@@ -22,11 +22,20 @@
 // through (i,j).  This is just like [Yao21] section 2.5, but for
 // model A in [Fri20].
 
+// The first "border" letters in both sequences are treated as a
+// border, like Figure 2 in [Alt01].  With no borders, an edge effect
+// reduces the score.  With 4 borders (but without "anchoring" like in
+// [Alt01]), an edge effect increases the score.  With 2 borders,
+// these edge effects somewhat cancel each other.
+
 // [Fri20]: "How sequence alignment scores correspond to probability
 // models", MC Frith 2020, Bioinformatics 36(2):408-415
 
 // [Yao21]: "Improved DNA-versus-protein homology search for protein
 // fossils", Y Yao & MC Frith
+
+// [Alt01]: "The estimation of statistical parameters for local
+// alignment score distributions", SF Altschul et al. NAR 29:351-361
 
 #ifndef MCF_ALIGNMENT_PATH_ADDER_HH
 #define MCF_ALIGNMENT_PATH_ADDER_HH
@@ -45,7 +54,8 @@ public:
 		const uchar *seq2, int len2,
 		const const_dbl_ptr *substitutionProbs,
 		double delInitProb, double delNextProb,
-		double insInitProb, double insNextProb);
+		double insInitProb, double insNextProb,
+		int border = 0);
 
 private:
   std::vector<double> dynamicProgrammingValues;
