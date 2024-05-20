@@ -48,6 +48,18 @@ aminoAcidCodes = {"ALA": "A",
                   "***": "*",
                   "XAA": "X"}
 
+ambiguousBases = {"R": "AG",
+                  "Y": "CT",
+                  "S": "CG",
+                  "W": "AT",
+                  "K": "GT",
+                  "M": "AC",
+                  "B": "CGT",
+                  "D": "AGT",
+                  "H": "ACT",
+                  "V": "ACG",
+                  "N": "ACGT"}
+
 def standardGeneticCode():
     aa = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
     b1 = "TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG"
@@ -970,6 +982,14 @@ def mafConvertToBlast(opts, lines):
     geneticCode = standardGeneticCode()
     aa2triplet = dict((j, i.title()) for i, j in aminoAcidCodes.items())
     codon2triplet = dict((i, aa2triplet[j]) for i, j in geneticCode.items())
+
+    for i in "ACGT":
+        for j in "ACGT":
+            for k, v in ambiguousBases.items():
+                a = set(geneticCode[i + j + x] for x in v)
+                if len(a) == 1: codon2triplet[i + j + k] = aa2triplet[min(a)]
+                a = set(geneticCode[x + i + j] for x in v)
+                if len(a) == 1: codon2triplet[k + i + j] = aa2triplet[min(a)]
 
     qryNum = 0 if opts.subject == 2 else 1
 

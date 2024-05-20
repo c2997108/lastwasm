@@ -21,6 +21,7 @@ maf2=bs100.maf
     tail -n8 frameshift-new.maf | maf-swap | $r blast
     tail -n8 frameshift-new.maf | $r -s2 blast
     $r -l159 blast herv30.maf
+    $r -l120 blast HERVS71A.maf  # test ambiguous N bases
     $r blasttab $maf2
     $r blasttab frameshift-new.maf
     $r -s2 blasttab frameshift-new.maf

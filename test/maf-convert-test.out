@@ -8060,6 +8060,166 @@ Query: 871  GAGAGAGGGGCTTACTCCTTTGATGGCAAGTGGGGACAGAAGGCTAGAGTACAGCAGCTGTTCTCTCG
                         |||   ::::::|||||||||||||||:::|||   |||:::      :::|||   ||||||||||||   :::   ||||||:::|||   |||      |||   ::::::   :::      ||||||   ||||||
 Sbjct: 148  ---SerSerAspTyrGlyTyrGluGlyLysTrpGlyGlnGlnAlaValValArgGlyAlaLeuSerGlyProTrpproargproasp---proproserleuglnleuglncysleucysAlaIleTrpArgThrCysLeuLeuArgGlyGln 196
 
+Query= HERVS71A
+         (8946 letters)
+
+>HERVS71_pol#LTR/ERV1
+          Length = 1200
+
+ Score = 2.46e+03 bits (7356.2), Expect = 0
+ Identities = 1069/1198 (89%), Gaps = 8/1198 (0%)
+ Strand = Plus / Plus
+
+            LeuGlyProArgGluProMetValThrAlaThrValGlyGlyGlnProValArgPheLeu   AspThrGlyAlaGluHisSerValLeuGlnThrProLeuGlySerValSerAsnLys
+Query: 3494 CTTGGCCCCCGGGAGCCCATGGTGACCGCCACAGTGGGGGGCCAGCCTGTACGCTTCCTAATNGACACCGGGGCGGAACACTCGGTACTGCAGACACCCTTGGGCAGTGTCTCTAATAAA 3613
+            |||||||||:::||||||||||||||||||||||||||||||||||||||||||||||||   |||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 6    LeuGlyProGlnGluProMetValThrAlaThrValGlyGlyGlnProValArgPheLeuValAspThrGlyAlaGluHisSerValLeuGlnThrProLeuGlySerValSerAsnLys 45
+
+            LysValAlaValGlnGlyAlaThrGlyAlaIleGlnGluTyrProValThrHisSerArgGluValSerLeuGlyGlnLysArgValThrHisSerPheLeuValValProGluCysPro
+Query: 3614 AAGGTGGCTGTACAAGGGGCTACTGGAGCTATTCAGGAATATCCTGTCACCCACTCACGAGAGGTGAGTTTGGGACAGAAAAGAGTAACCCACTCATTTCTCGTGGTCCCAGAGTGCCCC 3733
+            |||:::|||||||||||||||||||||||||||||||||||||||||||||||||||   ||||||   |||||||||||||||:::||||||||||||   ||||||||||||||||||
+Sbjct: 46   LysMetAlaValGlnGlyAlaThrGlyAlaIleGlnGluTyrProValThrHisSerXaaGluValXaaLeuGlyGlnLysArgAlaThrHisSerPheXaaValValProGluCysPro 85
+
+            PheProLeuLeuGlyArgAspLeuLeuHisLysLeuGlnAlaSerIleSerPheSerAlaGlnGlnAlaHisLeuThrLeuGlyAspThrThrProProThrAlaGlnLeuLeuLeuThr
+Query: 3734 TTTCCCCTCCTCGGACGAGACCTGCTCCATAAGCTACAGGCGTCTATCTCCTTCTCGGCCCAACAAGCTCACCTCACGTTAGGGGACACAACGCCCCCTACTGCCCAGCTCCTGCTAACC 3853
+            |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||   ||||||||||||||||||::::::|||:::   |||||||||||||||||||||
+Sbjct: 86   PheProLeuLeuGlyArgAspLeuLeuHisLysLeuGlnAlaSerIleSerPheSerAlaGlnXaaAlaHisLeuThrLeuGlyAsnAlaThrSerXaaThrAlaGlnLeuLeuLeuThr 125
+
+            ThrProLeuSerGluGluTyrLeuLeuValSerProSerGlnProLeuGluAsnLysThrAsnProLeuLeuLeu      AspLeuGlnThrLeuPheProArgValTrpAlaGluSer
+Query: 3854 ACCCCTCTGTCGGAGGAATATCTCTTAGTTTCACCCTCACAACCGCTGGAGAATAAAACTAATCCTCTCCTACTG------GATTTACAGACTCTCTTTCCTCGAGTCTGGGCCGAGTCA 3967
+            |||||||||||||||||||||||||||||||||||||||   :::   |||   ...||||||   |||||||||            |||||||||||||||||||||||||||||||||
+Sbjct: 126  ThrProLeuSerGluGluTyrLeuLeuValSerProSerXaaSerProGluXaaAsnThrAsnThrLeuLeuLeuXaaXaa------GlnThrLeuPheProArgValTrpAlaGluSer 163
+
+            AsnProProGlyLeuAlaLysHisHisProProValValValGluLeuLeuAlaThrAlaLeuProValGlnValLysGlnTyrProMetSerGlnArgAlaArgGluGlyIleAsnPro
+Query: 3968 AACCCCCCGGGACTGGCAAAGCACCATCCGCCAGTAGTTGTAGAACTCCTGGCCACCGCCCTGCCAGTCCAGGTAAAACAATATCCTATGAGTCAGCGGGCTAGAGAGGGAATCAATCCC 4087
+            ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||:::||||||||||||||||||||||||   ||||||:::|||||||||||||||||||||
+Sbjct: 164  AsnProProGlyLeuAlaLysHishisproproValValValGluLeuLeuAlaThrAlaIleProValGlnValLysGlnTyrProAlaSerGlnGlnAlaArgGluGlyIleAsnPro 203
+
+            HisIleGlnArgLeuLeuGlnAlaGlyIleLeuThrProCysGlnSerAlaTrpAsnThrProPheLeuProValGlnLysProGlyThrAsnAspTyrGlnProValGlnAspLeuArg
+Query: 4088 CATATTCAGCGACTGTTACAAGCTGGCATACTCACACCATGTCAGTCCGCCTGGAATACTCCATTTTTGCCGGTCCAGAAACCCGGAACAAATGATTACCAGCCTGTACAGGACTTGCGG 4207
+            |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||:::||||||||||||||||||
+Sbjct: 204  HisIleGlnArgLeuLeuGlnAlaGlyIleLeuThrProCysGlnSerAlaTrpAsnThrProPheLeuProValGlnLysProGlyThrAsnAspTyrArgProValGlnAspLeuArg 243
+
+            GluValAsnLysArgThrValThrValHisProThrValProAsnProTyrThrLeuLeuSerLeuLeuProProGluHisThrValTyrThrValLeuAspLeuLysAspAlaPhePhe
+Query: 4208 GAAGTTAACAAGCGGACAGTCACCGTCCATCCAACTGTCCCTAACCCTTATACTTTACTCAGCCTGCTCCCGCCAGAACATACAGTATACACTGTCCTTGACTTAAAGGATGCTTTCTTT 4327
+            |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||...||||||||||||||||||||||||||||||
+Sbjct: 244  GluValAsnLysArgThrValThrValHisProThrValProAsnProTyrThrLeuLeuSerLeuLeuProProGluHisThrValCysThrValLeuAspLeuLysAspAlaPhePhe 283
+
+            AlaIleProLeuAlaProLysSerGlnProIlePheAlaPheGluTrpThrAspProGlySerGlyAspThrThrGlnLeuThrTrpThrArgLeuProGlnGlyPheLysAsnSerPro
+Query: 4328 GCTATTCCTCTGGCCCCCAAAAGCCAACCTATCTTTGCTTTTGAATGGACAGATCCTGGCTCGGGAGACACCACCCAATTAACCTGGACTCGGTTACcccagggttttaaaaattccccc 4447
+            |||||||||||||||||||||||||||||||||||||||||||||||||||||||||   ||||||||||||||||||||||||||||||:::|||||||||||||||||||||||||||
+Sbjct: 284  AlaIleProLeuAlaProLysSerGlnProIlePheAlaPheGluTrpThrAspProArgSerGlyAspThrThrGlnLeuThrTrpThrGlnLeuProGlnGlyPheLysAsnSerPro 323
+
+            ThrLeuPheGlyGluAlaLeuGlnGlnAspLeuIleProPheArgAlaSerHisProAsnCysThrLeuLeuGlnTyrValAspAspLeuLeuLeuAlaThrGluThrThrAspSerCys
+Query: 4448 accctttttggggaaGCCCTCCAACAGGATCTTATACCATTCCGAGCCAGTCACCCTAACTGCACTCTTCTCCAGTACGTGGACGACCTTTTATTGGCTACTGAAACTACTGACAGCTGC 4567
+            |||||||||||||||||||||||||||||||||      ||||||||||||||||||||||||||||||||||||||||||||||||:::|||:::||||||||||||   |||:::|||
+Sbjct: 324  ThrLeuPheGlyGluAlaLeuGlnGlnAspLeuAsnThrPheArgAlaSerHisProAsnCysThrLeuLeuGlnTyrValAspAspIleLeuIleAlaThrGluThrMetAspGlyCys 363
+
+            LeuGlnHisThrArgAspLeuLeuTyrLeuLeuGlnGluLeuGlyTyrArgValSerAlaLysLysAlaGlnLeuCysLeuProArgValSerTyrLeuGlyTyrGluIleAsnLysGly
+Query: 4568 CTGCAACATACTAGGGACCTACTTTACCTCCTTCAGGAACTCGGGTATCGGGTCTCAGCCAAGAAGGCCCAGCTTTGTCTTCCCAGAGTTTCCTACCTAGGGTACGAGATAAACAAAGGA 4687
+            ||||||||||||||||||||||||||||||||||||||||||   |||   |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 364  LeuGlnHisThrArgAspLeuLeuTyrLeuLeuGlnGluLeuArgTyrGlyValSerAlaLysLysAlaGlnLeuCysLeuProArgValSerTyrLeuGlyTyrGluIleAsnLysGly 403
+
+            LysArgAlaLeuThrSerAlaArgLysGluAlaIleLeuArgIleProThrProThrThrLysArgGlnValArgGluPheLeuGlyAlaValGlyTyrCysArgLeuTrpIleLeuGly
+Query: 4688 AAAAGGGCACTCACCAGTGCTCGAAAGGAAGCCATCCTGCGAATCCCCACTCCCACCACCAAGAGACAGGTACGTGAATTCCTGGGGGCCGTGGGATACTGTCGCCTATGGATATTGGGG 4807
+            ||||||||||||||||||||||||||||||||||||   |||||||||||||||||||||||||||||||||||||||   |||||||||:::||||||||||||   |||||||||   
+Sbjct: 404  LysArgAlaLeuThrSerAlaArgLysGluAlaIleProArgIleProThrProThrThrLysArgGlnValArgGluXaaLeuGlyAlaMetGlyTyrCysArgXaaTrpIleLeuArg 443
+
+            PheAlaGluIleAlaLysProLeuTyrThrAlaThrGlyGlyAsnGlyProLeuValTrpThrAspThrGluGluGlnAlaPheGlnAsnLeuLysLysAlaLeuThrGluAlaProAla
+Query: 4808 TTCGCGGAAATCGCCAAGCCCCTGTACACCGCTACCGGAGGGAATGGCCCGCTAGTTTGGACTGACACAGAAGAACAGGCTTTTCAAAACCTGAAAAAGGCATTAACTGAGGCCCCTGCT 4927
+            ||||||||||||||||||||||||||||||||||||...|||||||||||||||:::||||||||||||||||||||||||||||||||||||||||||   ||||||   |||||||||
+Sbjct: 444  PheAlaGluIleAlaLysProLeuTyrThrAlaThrArgGlyAsnGlyProLeuIleTrpThrAspThrGluGluGlnAlaPheGlnAsnLeuLysLysXaaLeuThrXaaAlaProAla 483
+
+            LeuAlaLeuProAsnIleSerLysProPheHisLeuPheValHisGluSerGlnGlyValAlaLysGlyValLeuThrGlnThrLeuGlyProTrpArgArgProValAlaTyrLeuSer
+Query: 4928 CTAGCCCTCCCAAATATCTCAAAACCATTTCACCTTTTTGTTCATGAAAGCCAGGGAGTCGCTAAAGGGGTACTCACTCAGACTTTGGGGCCATGGCGACGCCCAGTGGCCTATTTGTCT 5047
+            |||||||||   ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 484  LeuAlaLeuXaaAsnIleSerLysProPheHisLeuPheValHisGluSerGlnGlyValAlaLysGlyValLeuThrGlnThrLeuGlyProTrpArgArgProValAlaTyrLeuSer 523
+
+            LysArgLeuAspProValAlaSerGlyTrpProSerCysLeuArgAlaValAlaAlaThrAlaSerLeuValGlnGluAlaAspLysLeuThrLeuGlyGlnAsnLeuThrLeuThrAla
+Query: 5048 AAGAGACTGGACcctgtggcctccgggtggccaagttgtctgcgagCCGTAGCGGCAACAGCAAGCCTGGTCCAGGAGGCTGATAAACTGACTCTGGGCCAGAATTTAACCCTTACGGCT 5167
+            |||||||||||||||||||||   ||||||||||||||||||||||||::::::||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 524  LysArgLeuAspProValAlaXaaGlyTrpProSerCysLeuArgAlaIleValAlaThrAlaSerLeuValGlnGluAlaAspLysLeuThrLeuGlyGlnAsnLeuThrLeuThrAla 563
+
+            ProHisAlaValGluThrLeuLeuArgSerAlaSerGlyLysTrpMetSerAsnAlaArgIleLeuGlnTyrGlnSerLeuLeuLeuAspGlnProArgLeuThrPheSerProThrArg
+Query: 5168 CCTCATGCCGTAGAGACTTTGCTACGAAGTGCTTCTGGCAAATGGATGTCGAATGCTCGCATCCTGCAGTATCAGAGTTTACTGTTAGATCAGCCTCGTTTAACTTTCTCTCCCACAAGG 5287
+            |||||||||||||||||||||||||||||||||   ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 564  ProHisAlaValGluThrLeuLeuArgSerAlaXaaGlyLysTrpMetSerAsnAlaArgIleLeuGlnTyrGlnSerLeuLeuLeuAspGlnProArgLeuThrPheSerProThrArg 603
+
+            CysLeuAsnProAlaThrLeuLeuProAspProAspLeuThrThrProValHisAspCysGlnGluLeuLeuGluThrThrGluThrGly      ArgProAspLeuGlnAspValPro
+Query: 5288 TGTTTAAATCCAGCTACCTTGCTCCCTGATCCAGACCTCACCACACCTGTCCATGACTGCCAGGAACTGTTAGAGACTACGGAAACTGGC------CGACCTGATCTCCAAGATGTGCCT 5401
+            |||||||||   |||   ||||||   |||||||||      ||||||||||||||||||||||||||||||||||||||||||||||||            ||||||||||||||||||
+Sbjct: 604  CysLeuAsnXaaAlaXaaLeuLeuXaaAspProAspSerXaaThrProValHisAspCysGlnGluLeuLeuGluThrThrGluThrGlyXaaXaa------AspLeuGlnAspValPro 641
+
+            LeuLysGluAlaAspAlaThrValPheThrAspGlySerSerPheLeuGluGlnGlyValArgLysAlaGlyAlaAlaValThrThrGluThrAspIleLeuTrpAlaGlnAlaLeuPro
+Query: 5402 CTAAAGGAGGCGGACGCCACCGTGTTTACAGACGGTAGCAGCTTCCTCGAACAGGGAGTACGAAAGGCTGGTGCGGCCGTTACTACGGAGACGGATATACTGTGGGCCCAGGCGCTGCCG 5521
+            ||||||...|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||:::||||||:::|||:::||||||
+Sbjct: 642  LeuLysLysAlaAspAlaThrValPheThrAspGlySerSerPheLeuGluGlnGlyValarglysalaglyalaalavalthrthrgluThrAspValLeuTrpSerGlnValLeuPro 681
+
+            AlaGlyThrSerAlaGlnArgAlaGluLeuValAlaLeuThrGlnAlaLeuArgTrpGlyLysAspLysArgIleAsnIleTyrThrAspSerArgTyrAlaPheAlaThrValHisVal
+Query: 5522 GCAGGTACCTCGGCACAGAGGGCTGAATTGGTCGCCCTCACTCAGGCTCTCCGATGGGGTAAGGACAAACGTATTAACATTTACACTGACAGCAGGTATGCTTTTGCTACTGTGCATGTA 5641
+            |||...||||||||||||:::|||||||||:::||||||||||||||||||||||||   ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 682  AlaSerThrSerAlaGlnLysAlaGluLeuIleAlaLeuThrGlnAlaLeuArgTrpXaaLysAspLysArgIleAsnIleTyrThrAspSerArgTyrAlaPheAlaThrValHisVal 721
+
+            HisGlyAlaIleTyrGlnGluArgGlyLeuLeuThrSerAlaGlyLysThrIleLysAsnLysGluGluIleLeuAlaLeuLeuGluAlaValTrpLeuProGlnGlnValAlaValIle
+Query: 5642 CACGGAGCCATCTATCAAGAGCGNGGGCTACTCACCTCAGCAGGAAAGACTATCAAAAACAAAGAAGAAATTTTGGCCCTGCTTGAAGCCGTTTGGCTCCCTCAGCAGGTGGCTGTAATT 5761
+            |||||||||||||||||||||   ||||||||||||||||||||||||:::|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 722  HisGlyAlaIleTyrGlnGluArgGlyLeuLeuThrSerAlaGlyLysIleIleLysAsnLysGluGluIleLeuAlaLeuLeuGluAlaValTrpLeuProGlnGlnValAlaValIle 761
+
+            HisCysLysGlyHisGlnArgGluAspThrAlaIleAlaArgGlyAsnGlnArgAlaAspSerAlaAlaArgGluAlaAlaArgLeuProValAlaProLeuThrLeuLeuProAlaVal
+Query: 5762 CACTGCAAAGGACATCAAAGAGAAGACACGGCCATTGCCCGTGGTAACCAaagagcagaCTCTGCAGCTCGAGAGGCAGCTCGGCTCCCGGTCGCGCCTTTGACCCTGCTGCCCGCNGTG 5881
+            ||||||||||||||||||:::|||:::||||||:::|||||||||||||||:::   |||||||||||||||||||||||||||   :::|||   |||   ...|||||||||   |||
+Sbjct: 762  HisCysLysGlyHisGlnLysGluAsnThrAlaValAlaArgglyasnglnlysxaaaspseralaAlaArgGluAlaAlaArgProSerValXaaProXaaAsnLeuLeuProAlaVal 801
+
+            SerPheProGlnProAspLeuProAspHisProGluTyrSerProGluGluGluLysGlnAlaSerAspLeuGlnAlaSerLysAsnGlnGluGlyTrpTrpIleLeuProAspSerArg
+Query: 5882 TCCTTTCCGCAACCTGACTTGCCAGACCACCCAGAATACTCCCCAGAGGAAGAAAAACAGGCTTCGGATCTTCAGGCCAGTAAAAATCAGGAAGGTTGGTGGATTCTTCCTGATTCCAGA 6001
+            |||||||||||||||||||||||||||:::|||   ||||||   ||||||||||||   ||||||||||||:::   :::|||||||||||||||||||||||||||||||||||||||
+Sbjct: 802  SerPheProGlnProAspLeuProAspAsnProAlaTyrSerAlaGluGluGluLysLeuAlaSerAspLeuArgXaaAsnLysAsnGlnGluGlyTrpTrpIleLeuProAspSerArg 841
+
+            IlePheMetProArgAlaLeuGlyGluThrLeuIleSerArgLeuHisSerThrThrHisLeuGlyGlyValLysLeuAlaGlnLeuLeuArgSerArgPheLysIleProHisLeuGln
+Query: 6002 ATCTTCATGCCCCGAGCCCTCGGGGAAACTTTAATCAGTCGTCTGCATTCTACCACCCATTTGGGAGGAGTAAAACTGGCCCAGCTTCTAAGGAGCCGTTTCAAGATCCCCCACCTTCAG 6121
+            ||||||:::||||||||||||||||||||||||:::|||:::|||||||||||||||||||||   |||:::|||||||||||||||||||||||||||||||||||||||:::   |||
+Sbjct: 842  IlePheIleProArgAlaLeuGlyGluThrLeuValSerHisLeuHisSerThrThrHisLeuXaaGlyAlaLysLeuAlaGlnLeuLeuArgSerArgPheLysIleProArgXaaGln 881
+
+            AspLeuAlaAsnGlnAlaAlaLeuArgCysThrAlaCysAlaGlnValAsnAlaLysGlnGlyProLysProSerProGlyHisArgLeuArgGlyAspSerProGlyGluArgTrpGlu
+Query: 6122 GACTTAGCTAACCAAGCAGCTCTCCGGTGTACGGCTTGTGCTCAGGTAAACGCCAAGCAAGGTCCTAAACCCAGCCCAGGCCACCGCCTCCGGGGAGACTCGCCAGGAGAAAGGTGGGAA 6241
+               |||::::::||||||||||||:::|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||:::||||||||||||:::||||||
+Sbjct: 882  SerLeuThrAspGlnAlaAlaLeuTrpCysThrAlaCysAlaGlnValAsnAlaLysGlnGlyProLysProSerProGlyHisArgLeuArgGlyAsnSerProGlyGluLysTrpGlu 921
+
+            IleAspPheThrGluIleLysProHisArgAlaGlyTyrLysTyrLeuLeuValLeuValAspThrPheSerGlyTrpThrGluAlaPheAlaThrLysAsnGluThrAlaThrThrVal
+Query: 6242 ATTGACTTTACAGAGATAAAACCACACCGGGCAGGGTATAAATACCTCCTGGTGCTAGTAGACACCTTTTCCGGATGGACTGAGGCATTTGCCACCAAAAACGAGACTGCCACCACGGTA 6361
+            |||||||||||||||:::|||||||||||||||...|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||...||||||
+Sbjct: 922  IleAspPheThrGluValLysProHisArgAlaGluTyrLysTyrLeuLeuValLeuValAspThrPheSerGlyTrpThrGluAlaPheAlaThrLysAsnGluThrAlaAsnThrVal 961
+
+            ValArgLeuLeuLeuAsnGluIleIleProArgHisGlyLeuProAlaAlaIleGlySerAspAsnGlyProAlaPheThrSerSerIleAlaGlnSerValSerLysAlaLeuAsnIle
+Query: 6362 GTTAGGCTTTTACTCAATGAAATCATCCCTCGACATGGGCTGCCTGCTGCCATAGGGTCTGATAATGGACCGGCCTTCACCTCGTCCATAGCTCAGTCGGTCAGTAAGGCATTAAACATT 6481
+            |||::::::||||||||||||||||||||||||:::|||||||||||||||||||||||||||||||||   ||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 962  ValLysPheLeuLeuAsnGluIleIleProArgTyrGlyLeuProAlaAlaIleGlySerAspAsnGlyXaaAlaPheThrSerSerIleAlaGlnSerValSerLysAlaLeuAsnIle 1001
+
+            GlnTrpLysLeuHisCysAlaTyrArgProGlnSerSerGlyGlnValGluArgMetAsnArgThrLeuLysSerThrLeuThrLysLeuIleLeuGluThrGlyGluAsnTrpValArg
+Query: 6482 CAATGGAAACTCCATTGTGCCTATCGACCCCAGAGCTCTGGACAGGTAGAACGCATGAACCGCACCCTAAAAAGTACTCTTACAAAATTAATCCTAGAGACCGGTGAGAATTGGGTAAGG 6601
+            ||||||||||||||||||||||||...||||||||||||||||||||||||   ||||||:::|||||||||:::||||||||||||||||||||||||||||||||||||||||||   
+Sbjct: 1002 GlnTrpLysLeuHisCysAlaTyrGlnProGlnSerSerGlyGlnValGluXaaMetAsnHisThrLeuLysAsnThrLeuThrLysLeuIleLeuGluThrGlyGluAsnTrpValXaa 1041
+
+            LeuLeuProLeuAlaLeuLeuArgValArgCysThrProTyrArgAlaGlyPheSerProPheGluIleMetTyrGlyArgAlaProProIleLeuProLysLeuArgAspThrHisLeu
+Query: 6602 CTCCTTCCTTTAGCCCTTCTTAGAGTAAGATGCACCCCTTACCGGGCTGGGTTTTCACCTTTTGAAATCATGTATGGGAGGGCTCCGCCTATCTTGCCTAAGCTAAGGGATACCCATTTA 6721
+            ||||||||||||||||||||||||||||||||||||||||||:::||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||:::|||:::||||||
+Sbjct: 1042 LeuLeuProLeuAlaLeuLeuArgValArgCysThrProTyrGlnAlaGlyPheSerProPheGluIleMetTyrGlyArgAlaProProIleLeuProLysLeuLysAspAlaHisLeu 1081
+
+            AlaGluIleSerGlnAlaAsnLeuLeuGlnTyrLeuGlnSerLeuGlnGlnValArgAspIleIleGlnProLeuValArgGlyAlaHisProAsnProValProAspGlnThrGlyPro
+Query: 6722 GCAGAAATCTCACAAGCTAATTTGTTACAGTACCTGCAGTCTCTCCAACAGGTACGAGACATCATCCAGCCACTTGTCCGGGGAGCNCATCCCAATCCAGTTCCTGACCAGACGGGGCCC 6841
+            ||||||||||||||||||||||||||||||||||||||||||||||||||||||...:::||||||   |||||||||||||||   ||||||:::|||||||||||||||:::||||||
+Sbjct: 1082 alagluileserglnalaasnleuleuglntyrleuglnserleuglnglnvalglngluileIleLeuProLeuValArgGlyAlaHisProSerProValProAspGlnMetGlyPro 1121
+
+            CysHisSerPheGlnProGlyAspLeuValTyrValLysLysPheGlnLysGluGlyLeuThrProAlaTrpLysGlyProHisThrValIleLeuThrThrProThrAlaLeuLysVal
+Query: 6842 TGCCACTCTTTCCAGCCGGGTGACCTGGTGTATGTTAAAAAGTTCCAGAAAGAAGGACTCACTCCTGCCTGGAAAGGACCTCATACTGTCATCCTCACCACGCCGACGGCTCTGAAGGTG 6961
+            ||||||||||||||||||||||||||||||:::|||||||||||||||:::|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+Sbjct: 1122 CysHisSerPheGlnProGlyAspLeuValPheValLysLysPheGlnArgGluGlyLeuThrProAlaTrpLysGlyProHisThrValIleLeuThrThrProThrAlaLeuLysVal 1161
+
+            AspGlyIleProAlaTrpIleHisHisSerArgIleLysLysAlaAsnLysAlaGlnGlnGluThrTrpValProLysProGlyProGlyProLeuLysLeuArgLeuSerArg
+Query: 6962 GACGGCATTCCTGCTTGGATTCATCACTCTCGCATCAAAAAGGCCAACAAAGCCCAGCAAGAAACATGGGTCCCCAAGCCTGGGCCAGGCCCCTTAAAACTGCGCCTAAGTCGA 7075
+            ||||||||||||||||||||||||||||||:::||||||||||||||||||||||||   ||||||||||||||||||||||||...   ||||||||||||:::|||||||||
+Sbjct: 1162 AspGlyIleProAlaTrpIleHisHisSerHisIleLysLysAlaAsnLysAlaGlnThrGluThrTrpValProLysProGlySerXaaProLeuLysLeuHisLeuSerArg 1199
+
 0	chrM	93.10	87	6	0	87	1	13914	14000
 1	chrM	85.06	87	13	0	1	87	1544	1630
 2	chrM	71.43	84	24	0	4	87	12301	12384

@@ -270,7 +270,7 @@ many ways of aligning centromeric repeats.
 ``-uRY128`` makes it faster but less sensitive: it will miss tiny
 rearranged fragments.  To find such fragments, try ``-uRY4``.
 
-``lastal`` may need too much memory, especially if you use ``RY4``.
+``lastal`` may need too much memory, especially if you don't use ``RY128``.
 You can make it use less memory by using fewer threads (``-P``).
 
 ``--revsym`` makes the substitution rates the same on both strands.
@@ -288,15 +288,12 @@ The result so far is asymmetric: each part of the chimp genome is
 aligned to at most one part of the human genome, but not vice-versa.
 We can get one-to-one alignments like this::
 
-  last-split -r -m1e-5 many-to-one.maf > one-to-one.maf
+  last-split -r many-to-one.maf > one-to-one.maf
 
 Here, last-split_ gets parts of the many-to-one alignments.  The ``-r``
 reverses the roles of the genomes, so it finds a unique best alignment
 for each part of human.  It uses the input *per-base* mismap
 probabilities to get the output *per-alignment* mismap probabilities.
-
-Here we've also discarded less-confident alignments: ``-m1e-5`` omits
-alignments with `mismap probability`_ > 10^-5.
 
 Finally, we can make a dotplot_ (one-to-one.png)::
 
