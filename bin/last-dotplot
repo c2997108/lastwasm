@@ -66,18 +66,17 @@ def croppedBlocks(blocks, ranges1, ranges2):
                 if b2 >= e2: continue
                 yield b2 - offset, b2, e2 - b2
 
-def tabBlocks(beg1, beg2, blocks):
+def tabBlocks(blocks, beg1, beg2, sizeMul, seq1mul, seq2mul):
     '''Get the gapless blocks of an alignment, from LAST tabular format.'''
-    for i in blocks.split(","):
-        if ":" in i:
-            x, y = i.split(":")
-            beg1 += int(x)
-            beg2 += int(y)
+    for i in blocks:
+        if len(i) > 1:
+            beg1 += i[0]
+            beg2 += i[1]
         else:
-            size = int(i)
-            yield beg1, beg2, size
-            beg1 += size
-            beg2 += size
+            size = i[0]
+            yield beg1 * seq1mul, beg2 * seq2mul, size * sizeMul
+            beg1 += size * seq2mul
+            beg2 += size * seq1mul
 
 def mafBlocks(beg1, beg2, seq1, seq2):
     '''Get the gapless blocks of an alignment, from MAF format.'''
@@ -107,24 +106,38 @@ def alignmentFromSegment(qrySeqName, qrySeqLen, segment):
     block = refSeqBeg, qrySeqBeg, size
     return refSeqName, refSeqLen, qrySeqName, qrySeqLen, [block]
 
-def dataFromPsl(strand, seqName, seqLen, blockBegs):
+def dataFromPsl(strand, seqName, seqLen, alnBeg, alnEnd, blockBegs, blockLens):
     seqLen = int(seqLen)
-    blockBegs = commaSeparatedInts(blockBegs)
-    if strand == "-":
-        blockBegs = (i - seqLen for i in blockBegs)
-    return seqName, seqLen, blockBegs
+    blockBegs = list(commaSeparatedInts(blockBegs))
+    if strand == "+":
+        end = int(alnEnd)
+    else:
+        end = -int(alnBeg)
+        blockBegs = [i - seqLen for i in blockBegs]
+    isTranslatedDna = blockBegs[-1] + blockLens[-1] < end
+    return seqName, seqLen, blockBegs, isTranslatedDna
 
-def dataFromTab(seqName, alnBeg, span, strand, seqLen):
+def dataFromTab(blockSum, seqName, alnBeg, span, strand, seqLen):
     alnBeg = int(alnBeg)
     seqLen = int(seqLen)
     if strand == "-": alnBeg -= seqLen
-    return seqName, seqLen, alnBeg
+    isTranslatedDna = blockSum < int(span)
+    return seqName, seqLen, alnBeg, isTranslatedDna
 
 def dataFromMaf(junk, seqName, alnBeg, span, strand, seqLen, alnSeq):
     alnBeg = int(alnBeg)
     seqLen = int(seqLen)
     if strand == "-": alnBeg -= seqLen
+    if int(span) < len(alnSeq) - alnSeq.count("-"):
+        alnBeg *= 3  # protein coordinate -> DNA coordinate
+        seqLen *= 3  # protein length -> DNA length
     return seqName, seqLen, alnBeg, alnSeq
+
+def aaToNtFactors(isTranslatedSeq1, isTranslatedSeq2):
+    if isTranslatedSeq1 and isTranslatedSeq2: return 3, 1, 1
+    if isTranslatedSeq1: return 3, 1, 3  # seq1 is DNA, seq2 is protein
+    if isTranslatedSeq2: return 3, 3, 1  # seq2 is DNA, seq1 is protein
+    return 1, 1, 1
 
 def alignmentInput(lines):
     '''Read alignments and sequence lengths.'''
@@ -154,16 +167,27 @@ def alignmentInput(lines):
             strand = w[8]
             strand2 = strand[0]
             strand1 = strand[1] if len(strand) > 1 else "+"
-            sizes = commaSeparatedInts(w[18])
-            chr1, seqlen1, beg1s = dataFromPsl(strand1, w[13], w[14], w[20])
-            chr2, seqlen2, beg2s = dataFromPsl(strand2, w[ 9], w[10], w[19])
+            sizes = list(commaSeparatedInts(w[18]))
+            d1 = dataFromPsl(strand1, w[13], w[14], w[15], w[16], w[20], sizes)
+            d2 = dataFromPsl(strand2, w[ 9], w[10], w[11], w[12], w[19], sizes)
+            chr1, seqlen1, beg1s, isTransDna1 = d1
+            chr2, seqlen2, beg2s, isTransDna2 = d2
+            sizeMul, seq1mul, seq2mul = aaToNtFactors(isTransDna1, isTransDna2)
+            sizes = [i * sizeMul for i in sizes]
+            beg1s = [i * seq1mul for i in beg1s]
+            beg2s = [i * seq2mul for i in beg2s]
             blocks = zip(beg1s, beg2s, sizes)
-            yield chr1, seqlen1, chr2, seqlen2, blocks
+            yield chr1, seqlen1 * seq1mul, chr2, seqlen2 * seq2mul, blocks
         elif line[0].isdigit():  # tabular format
-            chr1, seqlen1, beg1 = dataFromTab(*w[1:6])
-            chr2, seqlen2, beg2 = dataFromTab(*w[6:11])
-            blocks = tabBlocks(beg1, beg2, w[11])
-            yield chr1, seqlen1, chr2, seqlen2, blocks
+            blocks = w[11].split(",")
+            blocks = [[int(j) for j in i.split(":")] for i in blocks]
+            blockSum1 = sum(i[0] for i in blocks)
+            blockSum2 = sum(i[-1] for i in blocks)
+            chr1, seqlen1, beg1, isTransDna1 = dataFromTab(blockSum1, *w[1:6])
+            chr2, seqlen2, beg2, isTransDna2 = dataFromTab(blockSum2, *w[6:11])
+            sizeMul, seq1mul, seq2mul = aaToNtFactors(isTransDna1, isTransDna2)
+            blocks = tabBlocks(blocks, beg1, beg2, sizeMul, seq1mul, seq2mul)
+            yield chr1, seqlen1 * seq1mul, chr2, seqlen2 * seq2mul, blocks
         elif line[0] == "s":  # MAF format
             if mafCount == 0:
                 chr1, seqlen1, beg1, seq1 = dataFromMaf(*w)

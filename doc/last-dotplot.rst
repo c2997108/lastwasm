@@ -204,6 +204,12 @@ This is equivalent::
 
   last-dotplot -1 "chr9 0 1000" alns.maf
 
+DNA-versus-protein alignments
+-----------------------------
+
+last-dotplot interprets the protein sequence as a nucleotide sequence:
+it treats each amino acid as 3 bases.
+
 Text font
 ---------
 
