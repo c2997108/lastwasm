@@ -25,6 +25,8 @@ maf2=bs100.maf
     $r blasttab $maf2
     $r blasttab frameshift-new.maf
     $r -s2 blasttab frameshift-new.maf
+    maf-cut DF0000170.5:633-798 herv30.maf | $r blasttab  # gaps at edges
+    maf-cut DF0000170.5:633-798 herv30.maf | $r -s2 blasttab  # gaps at edges
     head -n999 $maf1 | $r chain
     $r gff 102.maf
     $r -J1e9 gff 102.maf

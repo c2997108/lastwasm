@@ -1017,18 +1017,18 @@ def codonMatchCounts(geneticCode, letterSizeA, letterSizeB, rowA, rowB):
     while i < loopEnd:
         if rowA[i] == "-":
             gaps += 1
-            if rowA[i+1] == "-" and rowA[i+2] == "-":
+            if i+2 < loopEnd and rowA[i+1] == "-" and rowA[i+2] == "-":
                 i += 3
             else:
-                if rowB[i-1] == "-":
+                if i > 0 and rowB[i-1] == "-":
                     dangles += 1
                 i += 1
         elif rowB[i] == "-":
             gaps += 1
-            if rowB[i+1] == "-" and rowB[i+2] == "-":
+            if i+2 < loopEnd and rowB[i+1] == "-" and rowB[i+2] == "-":
                 i += 3
             else:
-                if rowA[i-1] == "-":
+                if i > 0 and rowA[i-1] == "-":
                     dangles += 1
                 i += 1
         else:
