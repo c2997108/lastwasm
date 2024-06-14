@@ -88,7 +88,7 @@ def revcomp(seq):
 def pairOrDie(sLines, formatName):
     if len(sLines) != 2:
         e = "for %s, each alignment must have 2 sequences" % formatName
-        raise Exception(e)
+        raise RuntimeError(e)
     return sLines
 
 def isMatch(alignmentColumn):
@@ -291,7 +291,7 @@ def writeAxt(maf):
     aLine, sLines, qLines, pLines = maf
 
     if sLines[0][2] != "+":
-        raise Exception("for AXT, the 1st strand in each alignment must be +")
+        raise RuntimeError("for AXT, the 1st strand in each alignment must be +")
 
     # Convert to AXT's 1-based coordinates:
     ranges = [(i[0], str(i[4] + 1), str(i[5]), i[2]) for i in sLines]
@@ -608,7 +608,7 @@ def readGroupId(readGroupItems):
     for i in readGroupItems:
         if i.startswith("ID:"):
             return i[3:]
-    raise Exception("readgroup must include ID")
+    raise RuntimeError("readgroup must include ID")
 
 def readSequenceLengths(fileNames):
     """Read name & length of topmost sequence in each maf block."""
@@ -1281,7 +1281,7 @@ def mafConvertOneFile(opts, formatName, lines):
     elif isFormat(formatName, "tabular"):
         mafConvertToTab(opts, lines)
     else:
-        raise Exception("unknown format: " + formatName)
+        raise RuntimeError("unknown format: " + formatName)
 
 def mafConvert(opts, args):
     logging.basicConfig(format="%(filename)s: %(message)s")
@@ -1360,6 +1360,6 @@ if __name__ == "__main__":
         op.error("need file (not pipe) with option -d")
 
     try: mafConvert(opts, args)
-    except Exception as e:
+    except RuntimeError as e:
         prog = os.path.basename(sys.argv[0])
         sys.exit(prog + ": error: " + str(e))
