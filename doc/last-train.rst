@@ -65,6 +65,12 @@ Training options
        e.g. score(A→G) = score(G→A).
 --gapsym
        Force the insertion costs to equal the deletion costs.
+--fixmat=NAME
+       Fix the substitution probabilities to one of: ``BLOSUM45``,
+       ``BLOSUM50``, ``BLOSUM62``, ``BLOSUM80``, ``BLOSUM90``,
+       ``PAM30``, ``PAM70``, ``PAM250``.  (Note: this doesn't fix the
+       substitution scores, which depend also on the probability of
+       not having a gap.)
 --pid=PID
        Ignore similar segments with > PID% identity (matches /
        [matches + mismatches]).  This aims to optimize the parameters
