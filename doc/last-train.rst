@@ -96,10 +96,11 @@ Training options
 --codon
        Do training for DNA query sequences versus protein reference
        sequences.  These options will be ignored: ``--revsym
-       --matsym --gapsym --postmask -q -p -S``.  If ``--pid`` is used,
-       matches are defined by the genetic code, which is inferred from
-       the substitution rates.  When ``--codon`` is used, the "initial
-       parameter options" are initial probabilities, not scores/costs.
+       --matsym --gapsym --fixmat --postmask -q -p -S``.  If ``--pid``
+       is used, matches are defined by the genetic code, which is
+       inferred from the substitution rates.  When ``--codon`` is
+       used, the "initial parameter options" are initial
+       probabilities, not scores/costs.
 
 All options below this point are passed to lastal to do the
 alignments: they are described in more detail at `<doc/lastal.rst>`_.

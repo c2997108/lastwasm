@@ -285,13 +285,18 @@ def colinearMafInput(opts, lines):
 
 ##### Routines for converting to AXT format: #####
 
+def sLineFlipped(seqName, seqLen, strand, letterSize, beg, end, row):
+    strand = "+-"[strand == "+"]
+    row = revcomp(row)
+    return seqName, seqLen, strand, letterSize, seqLen - end, seqLen - beg, row
+
 axtCounter = count()
 
 def writeAxt(maf):
     aLine, sLines, qLines, pLines = maf
 
     if sLines[0][2] != "+":
-        raise RuntimeError("for AXT, the 1st strand in each alignment must be +")
+        sLines = [sLineFlipped(*i) for i in sLines]
 
     # Convert to AXT's 1-based coordinates:
     ranges = [(i[0], str(i[4] + 1), str(i[5]), i[2]) for i in sLines]

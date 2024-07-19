@@ -14,6 +14,7 @@ maf2=bs100.maf
 {
     $r -h
     head -n999 $maf1 | $r axt
+    maf-convert axt toprev.maf
     head -n999 $maf1 | $r blast
     head -n999 $maf1 | $r -l100 blast
     $r blast $maf2
