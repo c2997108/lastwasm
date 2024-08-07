@@ -13,6 +13,8 @@
 #include "ScoreMatrixRow.hh"
 #include "VectorOrMmap.hh"
 
+#include <string.h>
+
 #include <algorithm>  // upper_bound
 #include <string>
 #include <iosfwd>
@@ -135,6 +137,21 @@ class MultiSequence{
   void reverseComplementOneSequence(size_t seqNum, const uchar *complement);
 
   void duplicateOneSequence(size_t seqNum);
+
+  void fixPairedSequenceNames() {  // assumes there are 2 names
+    const char *n = &names.v[0];
+    size_t x = nameEnds[1];
+    size_t y = nameEnds[2];
+    if (y - x == x && memcmp(n, n + x, x) == 0) {  // if identical names
+      names.v.insert(names.v.end(), 4, '\n');
+      char *b = &names.v[0];
+      memmove(b + x + 1, b + x - 1, x);
+      memcpy(b + x - 1, "/1", 2);  // append "/1" to the 1st name
+      memcpy(b + y + 1, "/2", 2);  // append "/2" to the 2nd name
+      nameEnds.v[1] += 2;
+      nameEnds.v[2] += 4;
+    }
+  }
 
   void convertTo4bit() {
     uchar *s = &seq.v[0];

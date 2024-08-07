@@ -81,6 +81,7 @@ struct LastalArguments{
   bool isQueryStrandMatrix;
   bool isGreedy;
   int globality;  // type of alignment: local, semi-global, etc.
+  bool isPairedQuerySequences;
   bool isKeepLowercase;
   int tantanSetting;
   int maxRepeatUnit;

@@ -60,6 +60,12 @@ Cosmetic options
 
 -v  Be verbose: write messages about what lastal is doing.
 
+-2  Specify paired query sequences.  You can supply 2 files with
+    paired sequences, or 1 "interleaved" file with consecutive pairs.
+    The only effects are: output for paired sequences is consecutive,
+    and if a pair has identical names, /1 and /2 are appended to the
+    names.
+
 -f NAME
     Choose the output format.  The NAME is not case-sensitive.
 

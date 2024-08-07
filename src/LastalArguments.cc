@@ -77,6 +77,7 @@ LastalArguments::LastalArguments() :
   isQueryStrandMatrix(false),
   isGreedy(false),
   globality(0),
+  isPairedQuerySequences(false),
   isKeepLowercase(true),  // depends on the option used with lastdb
   tantanSetting(-1),  // depends on the option used with lastdb
   maxRepeatUnit(-1),
@@ -126,6 +127,7 @@ Cosmetic options:\n\
  -h, --help     show all options and their default settings, and exit\n\
  -V, --version  show version information, and exit\n\
  -v             be verbose: write messages about what lastal is doing\n\
+ -2             paired query sequences\n\
  -f             output format: TAB, MAF, BlastTab, BlastTab+ (default: MAF)";
 
   std::string help = usage + "\n\
@@ -211,7 +213,7 @@ Split options:\n\
 ";
 
   static const char sOpts[] =
-    "hVvf:"
+    "hVv2f:"
     "r:q:p:X:a:b:A:B:c:F:x:y:z:d:e:"
     "D:E:"
     "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:U:u:w:t:g:G:j:J:Q:";
@@ -249,6 +251,9 @@ Split options:\n\
       throw EXIT_SUCCESS;
     case 'v':
       ++verbosity;
+      break;
+    case '2':
+      isPairedQuerySequences = true;
       break;
     case 'f':
       outputFormat = parseOutputFormat( optarg );

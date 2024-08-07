@@ -97,6 +97,7 @@ namespace {
 
   char **querySequenceFileNames;
   mcf::izstream querySequenceFile;
+  mcf::izstream querySequenceFile2;  // for files with paired sequences
 
   LastalArguments args;
   Alphabet alph;
@@ -1276,7 +1277,31 @@ static void openIfFile(mcf::izstream &z, const char *fileName) {
   if (fileName && !isSingleDash(fileName)) openOrThrow(z, fileName);
 }
 
+static std::istream &getInput(mcf::izstream &f) {
+  return f.is_open() ? f : std::cin;
+}
+
+static bool readPairedSequences(MultiSequence &qrySeqs) {
+  const bool isMask = (args.maskLowercase > 1);
+  std::istream &in1 = getInput(querySequenceFile);
+  std::istream &in2 =
+    querySequenceFileNames[1] ? getInput(querySequenceFile2) : in1;
+  bool x = false;
+  bool y = false;
+  {
+    std::lock_guard<std::mutex> lockGuard(inputMutex);
+    if (appendSequence(qrySeqs, in1, -1, args.inputFormat, queryAlph, isMask))
+      x = true;
+    if (appendSequence(qrySeqs, in2, -1, args.inputFormat, queryAlph, isMask))
+      y = true;
+  }
+  if (x != y) err("unequal numbers of paired sequences");
+  if (x) qrySeqs.fixPairedSequenceNames();
+  return x;
+}
+
 static bool readSequenceData(MultiSequence &qrySeqs) {
+  if (args.isPairedQuerySequences) return readPairedSequences(qrySeqs);
   const size_t maxPairedSeqLen = 2000;  // xxx ???
   const bool isMask = (args.maskLowercase > 1);
   std::lock_guard<std::mutex> lockGuard(inputMutex);
@@ -1623,13 +1648,17 @@ void lastal(int argc, char **argv) {
 
   if (args.batchSize < 1) {
     openIfFile(querySequenceFile, *querySequenceFileNames);
+    if (args.isPairedQuerySequences && querySequenceFileNames[1]) {
+      if (querySequenceFileNames[2]) err("can't use >2 files with option -2");
+      openIfFile(querySequenceFile2, querySequenceFileNames[1]);
+    }
     runThreads(aligners.size());
   } else {
+    if (args.isPairedQuerySequences) err("can't use option -2 with batches");
     size_t maxSeqLen = -1;
     initSequences(qrySeqsGlobal, queryAlph, args.isTranslated(), false);
     for (char **i = querySequenceFileNames; *i; ++i) {
-      mcf::izstream inFileStream;
-      std::istream& in = openIn(*i, inFileStream);
+      std::istream& in = openIn(*i, querySequenceFile);
       LOG("reading " << *i << "...");
       while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
 			    queryAlph, args.maskLowercase > 1)) {
