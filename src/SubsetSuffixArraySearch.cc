@@ -346,6 +346,7 @@ void SubsetSuffixArray::match(size_t &beg, size_t &end,
 
   beg = getItem(bckArray, bucketIdx);
   end = getItem(bckArray, bucketIdx + myBucketSteps[depth]);
+  assert(beg <= end);  // can fail for corrupted bck file
 
   while( depth > minDepth && end - beg < maxHits ){
     // maybe we lengthened the match too far: try shortening it again

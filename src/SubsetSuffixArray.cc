@@ -183,42 +183,43 @@ static size_t bucketPos(const uchar *text, const CyclicSubsetSeed &seed,
   return bucketValue(seed, seed.firstMap(), steps, text + position, depth) + 1;
 }
 
-static size_t makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
-			      const size_t *steps, int depth,
-			      PackedArray buckets, size_t buckBeg,
-			      size_t buckIdx, ConstPackedArray sa,
-			      size_t saBeg, size_t saEnd) {
+static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
+			    const size_t *steps, int depth,
+			    PackedArray buckets, size_t buckBeg,
+			    size_t buckIdx, size_t maxIdx, ConstPackedArray sa,
+			    size_t saBeg, size_t saEnd) {
   for (size_t i = saBeg; i < saEnd; ++i) {
     size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, i);
+    b = std::min(b, maxIdx);  // for not-fully-sorted suffix array
     for (; buckIdx < b; ++buckIdx) {
       buckets.set(buckIdx, i);
     }
   }
-  return buckIdx;
 }
 
 static void runThreads(const uchar *text, const CyclicSubsetSeed *seedPtr,
-		       const size_t *steps, int depth, PackedArray buckets,
-		       size_t buckBeg, size_t buckIdx, ConstPackedArray sa,
+		       const size_t *steps, int depth,
+		       PackedArray buckets, size_t buckBeg,
+		       size_t buckIdx, size_t maxIdx, ConstPackedArray sa,
 		       size_t saBeg, size_t saEnd, size_t numOfThreads) {
   const CyclicSubsetSeed &seed = *seedPtr;
   if (numOfThreads > 1) {
     size_t len = (saEnd - saBeg) / numOfThreads;
     size_t mid = saEnd - len;
+    size_t midIdx = buckBeg + bucketPos(text, seed, steps, depth, sa, mid - 1);
+    midIdx = std::min(midIdx, maxIdx);  // for not-fully-sorted suffix array
     --numOfThreads;
     std::thread t(runThreads, text, seedPtr, steps, depth, buckets, buckBeg,
-		  buckIdx, sa, saBeg, mid, numOfThreads);
+		  buckIdx, midIdx, sa, saBeg, mid, numOfThreads);
     size_t pad = numOfItemsBetweenWrites(buckets.bitsPerItem) * numOfThreads;
-    buckBeg += pad;
-    size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, mid - 1);
-    size_t e = makeSomeBuckets(text, seed, steps, depth, buckets, buckBeg,
-			       b, sa, mid, saEnd);
+    makeSomeBuckets(text, seed, steps, depth, buckets, buckBeg+pad,
+		    midIdx+pad, maxIdx+pad, sa, mid, saEnd);
     t.join();
-    for (size_t i = b; i < e; ++i) buckets.set(i - pad, buckets[i]);
-    for (size_t i = e - pad; i < e; ++i) buckets.set(i, 0);
+    for (size_t i = midIdx; i < maxIdx; ++i) buckets.set(i, buckets[i+pad]);
+    for (size_t i = maxIdx; i < maxIdx+pad; ++i) buckets.set(i, 0);
   } else {
     makeSomeBuckets(text, seed, steps, depth, buckets, buckBeg,
-		    buckIdx, sa, saBeg, saEnd);
+		    buckIdx, maxIdx, sa, saBeg, saEnd);
   }
 }
 
@@ -258,9 +259,11 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
     const size_t *steps = bucketStepEnds[s];
     size_t saEnd = cumulativeCounts[s];
     if (saEnd > saBeg) {
+      size_t maxIdx =
+	buckBeg + bucketPos(text, seed, steps, depth, sufArray, saEnd - 1);
       runThreads(text, &seed, steps, depth, bucks, buckBeg,
-		 buckIdx, sufArray, saBeg, saEnd, numOfThreads);
-      buckIdx = buckBeg + bucketPos(text, seed, steps, depth, sufArray, saEnd - 1);
+		 buckIdx, maxIdx, sufArray, saBeg, saEnd, numOfThreads);
+      buckIdx = maxIdx;
       saBeg = saEnd;
     }
     buckBeg += steps[0];
