@@ -188,7 +188,7 @@ static void makeSomeBuckets(const uchar *text, const CyclicSubsetSeed &seed,
 			    PackedArray buckets, size_t buckBeg,
 			    size_t buckIdx, size_t maxIdx, ConstPackedArray sa,
 			    size_t saBeg, size_t saEnd) {
-  for (size_t i = saBeg; i < saEnd; ++i) {
+  for (size_t i = saBeg; buckIdx < maxIdx; ++i) {
     size_t b = buckBeg + bucketPos(text, seed, steps, depth, sa, i);
     b = std::min(b, maxIdx);  // for not-fully-sorted suffix array
     for (; buckIdx < b; ++buckIdx) {
