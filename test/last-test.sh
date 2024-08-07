@@ -196,6 +196,10 @@ trap 'rm -f $db*' EXIT
     try lastal -D1000 -fTAB -K2 $db galGal3-M-32.fa
     try lastal -D1000 -fTAB -K0 $db galGal3-M-32.fa
 
+    # strand asymmetry, 2 reference strands, and --split
+    lastdb -uBISF -S2 $db hg19-M.fa
+    try lastal -Q1 --split $db bs100.fastq
+
     # minimizers
     lastdb -W3 -R10 $db galGal3-M-32.fa
     try lastal -W19 -fTAB $db hg19-M.fa

@@ -2100,9 +2100,8 @@ if __name__ == "__main__":
                   help="maximum expected alignments per square giga")
     og.add_option("-s", metavar="STRAND", help="0=reverse, 1=forward, 2=both "
                   "(default: 2 if DNA and not lastdb -S2, else 1)")
-    og.add_option("-S", metavar="NUMBER", default="1", help=
-                  "score matrix applies to forward strand of: " +
-                  "0=reference, 1=query (default: %default)")
+    og.add_option("-S", metavar="NUMBER", default="1", help="use score matrix:"
+                  " 0=as-is, 1=on query forward strands (default: %default)")
     og.add_option("-C", metavar="COUNT", help=
                   "omit gapless alignments in COUNT others with > score-per-length")
     og.add_option("-T", metavar="NUMBER",

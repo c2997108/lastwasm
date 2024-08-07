@@ -778,7 +778,7 @@ void SplitAligner::calcBaseScores(const SplitAlignerParams &params,
 
   const UnsplitAlignment& a = alns[i];
   const size_t origin = matrixRowOrigins[i];
-  const bool isRev = !a.isForwardStrand();
+  const bool isRev = a.isFlipped();
 
   int *matBeg = &Smat[(origin + dpBeg(i)) * 2];
   int *alnBeg = &Smat[(origin + a.qstart) * 2];
