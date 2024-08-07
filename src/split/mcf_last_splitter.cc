@@ -74,19 +74,20 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
 				      bool isSenseStrand,
 				      double senseStrandLogOdds) {
   if (sd.score < opts.score) return;
+  int rnaStrand = opts.direction;
 
   std::vector<double> p;
-  if (opts.direction != 0) {
+  if (rnaStrand != 0) {
     p = sa.marginalProbs(qSliceBeg, alnNum, sd.alnBeg, sd.alnEnd);
   }
   std::vector<double> pRev;
-  if (opts.direction != 1) {
+  if (rnaStrand != 1) {
     sa.flipSpliceSignals(params);
     pRev = sa.marginalProbs(qSliceBeg, alnNum, sd.alnBeg, sd.alnEnd);
     sa.flipSpliceSignals(params);
   }
-  if (opts.direction == 0) p.swap(pRev);
-  if (opts.direction == 2) {
+  if (rnaStrand == 0) p.swap(pRev);
+  if (rnaStrand == 2) {
     double reverseProb = 1 / (1 + exp(senseStrandLogOdds));
     // the exp might overflow to inf, but that should be OK
     double forwardProb = 1 - reverseProb;
@@ -131,7 +132,7 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
     out += sprintf(out, "a score=%d", sd.score);
   }
   out += sprintf(out, " mismap=%.*g", mismapPrecision, mismap);
-  if (opts.direction == 2) out += printSense(out, senseStrandLogOdds);
+  if (rnaStrand == 2) out += printSense(out, senseStrandLogOdds);
   if (!opts.genome.empty() && !opts.no_split) {
     if (partNum > 0) {
       out = strcpy(out, isSenseStrand ? " acc=" : " don=") + 5;
@@ -162,16 +163,17 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 			      bool isAlreadySplit,
 			      const cbrc::UnsplitAlignment *beg,
 			      const cbrc::UnsplitAlignment *end) {
+  int rnaStrand = opts.direction;
   sa.layout(params, beg, end);
   if (opts.verbose) std::cerr << "\tcells=" << sa.cellsPerDpMatrix();
-  size_t bytes = sa.memory(params, opts.direction == 2);
+  size_t bytes = sa.memory(params, rnaStrand == 2);
   if (bytes > opts.bytes) {
     if (opts.verbose) std::cerr << "\n";
     std::cerr << "last-split: skipping sequence " << beg->qname
 	      << " (" << bytes << " bytes)\n";
     return;
   }
-  sa.initMatricesForOneQuery(params, opts.direction == 2);
+  sa.initMatricesForOneQuery(params, rnaStrand == 2);
 
   long viterbiScore = LONG_MIN;
   long viterbiScoreRev = LONG_MIN;
@@ -190,11 +192,11 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
       queryEnds[i] = beg[i].qend;
     }
   } else {
-    if (opts.direction != 0) {
+    if (rnaStrand != 0) {
       viterbiScore = sa.viterbi(params);
       if (opts.verbose) std::cerr << "\t" << viterbiScore;
     }
-    if (opts.direction != 1) {
+    if (rnaStrand != 1) {
       sa.flipSpliceSignals(params);
       viterbiScoreRev = sa.viterbi(params);
       sa.flipSpliceSignals(params);
@@ -221,10 +223,10 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 
   sa.exponentiateScores(params);
 
-  if (opts.direction != 0) {
+  if (rnaStrand != 0) {
     sa.forwardBackward(params);
   }
-  if (opts.direction != 1) {
+  if (rnaStrand != 1) {
     sa.flipSpliceSignals(params);
     sa.forwardBackward(params);
     sa.flipSpliceSignals(params);
@@ -233,7 +235,7 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   bool isSenseStrand = (viterbiScore >= viterbiScoreRev);
 
   double senseStrandLogOdds =
-    (opts.direction == 2) ? sa.spliceSignalStrandLogOdds() : 0;
+    (rnaStrand == 2) ? sa.spliceSignalStrandLogOdds() : 0;
 
   if (opts.verbose) std::cerr << "\n";
 

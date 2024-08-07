@@ -16,6 +16,11 @@ It can read alignments from a pipe like this::
 
   ... | last-dotplot - my-plot.png
 
+If a sequence has unaligned regions much bigger than the alignments,
+these unaligned regions will be cut out, and the cuts shown as
+horizontal or vertical lines.  You can control this with options
+``--max-gap1`` and ``--max-gap2``.
+
 Terminology
 -----------
 

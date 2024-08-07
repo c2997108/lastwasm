@@ -1194,20 +1194,21 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
     aligner.numOfSequences += 1;
   }
 
+  int qryStrand = args.strand;
   std::vector<AlignmentText> &textAlns = aligner.textAlns;
   size_t oldNumOfAlns = textAlns.size();
 
-  if (args.strand == 2 && !isFirstVolume)
+  if (qryStrand == 2 && !isFirstVolume)
     qrySeqs.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
-  if (args.strand != 0)
+  if (qryStrand != 0)
     translateAndScan(aligner, qrySeqs, qryData, chunkQryNum, finalCullingLimit,
 		     fwdMatrices);
 
-  if (args.strand == 2 || (args.strand == 0 && isFirstVolume))
+  if (qryStrand == 2 || (qryStrand == 0 && isFirstVolume))
     qrySeqs.reverseComplementOneSequence(qryNum, queryAlph.complement);
 
-  if (args.strand != 1)
+  if (qryStrand != 1)
     translateAndScan(aligner, qrySeqs, qryData, chunkQryNum, finalCullingLimit,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 
