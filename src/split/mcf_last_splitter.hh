@@ -62,7 +62,8 @@ private:
 			  unsigned numOfParts, unsigned partNum,
 			  const SliceData &sd, unsigned alnNum,
 			  unsigned qSliceBeg, unsigned qSliceEnd,
-			  bool isSenseStrand, double senseStrandLogOdds);
+			  int rnaStrand, bool isSenseStrand,
+			  double senseStrandLogOdds);
 };
 
 }

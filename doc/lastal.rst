@@ -621,7 +621,8 @@ Split options
 --split-d, --split-c, --split-t, --split-M, --split-S
     These are equivalent to last-split_ options ``-d``, ``-c``,
     ``-t``, ``-M``, and ``-S``.  They imply ``--splice``, so you don't
-    need to also specify ``--splice``.
+    need to also specify ``--splice``.  ``--split-d=FR`` or ``RF``
+    implies ``-2`` (paired query sequences).
 
 Parallel processes and memory sharing
 -------------------------------------

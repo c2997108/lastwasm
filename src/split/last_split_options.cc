@@ -5,6 +5,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include <string.h>
 
 #include <iostream>
 
@@ -94,8 +95,9 @@ void LastSplitOptions::print() const {
 	    << " m=" << mismap
 	    << " s=" << score;
   if (isSplicedAlignment) {
-    std::cout << " d=" << direction
-	      << " c=" << cis
+    std::cout << " d=";
+    printStrand(direction);
+    std::cout << " c=" << cis
 	      << " t=" << trans
 	      << " M=" << mean
 	      << " S=" << sdev;
@@ -112,4 +114,18 @@ char LastSplitOptions::parseOutputFormat(const char *text) {
   if (s == "maf")  return 'm';
   if (s == "maf+") return 'M';
   return 0;
+}
+
+int LastSplitOptions::parseStrand(const char *text) {
+  if (strcmp(text, "0") == 0 || strcmp(text, "R") == 0) return 0;
+  if (strcmp(text, "1") == 0 || strcmp(text, "F") == 0) return 1;
+  if (strcmp(text, "2") == 0) return 2;
+  if (strcmp(text, "FR") == 0) return 3;
+  if (strcmp(text, "RF") == 0) return 4;
+  return -1;
+}
+
+void LastSplitOptions::printStrand(int num) {
+  const char *s[] = {"0", "1", "2", "FR", "RF"};
+  std::cout << s[num];
 }

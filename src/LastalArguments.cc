@@ -434,7 +434,9 @@ Split options:\n\
       break;
     case 128 + 'd':
       splitOpts.isSplicedAlignment = true;
-      unstringify(splitOpts.direction, optarg);
+      splitOpts.direction = LastSplitOptions::parseStrand(optarg);
+      if (splitOpts.direction < 0) badopt(lOpts[lOptsIndex].name, optarg);
+      if (splitOpts.direction > 2) isPairedQuerySequences = true;
       break;
     case 128 + 'c':
       splitOpts.isSplicedAlignment = true;

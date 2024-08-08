@@ -198,10 +198,15 @@ Options
        database.
 
 -d, --direction=D
-       Do spliced alignment, and set the strandedness of the
-       queries: 0=antisense, 1=sense, 2=unknown/mixed.  This
-       determines whether forward and/or reverse-complement splice
-       signals are used.
+       Do spliced alignment, and set the strandedness of the queries.
+       This determines whether forward and/or reverse-complement
+       splice signals are used::
+
+           0 or R   reverse/antisense
+           1 or F   forward/sense
+           2        unknown/mixed
+           FR       forward if the query name ends in /1, reverse if /2
+           RF       reverse if the query name ends in /1, forward if /2
 
        If you use ``-d2``, the output will have an extra ``sense``
        field, indicating the log-odds that the query is

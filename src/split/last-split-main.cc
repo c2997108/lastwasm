@@ -83,7 +83,8 @@ Options:\n\
       break;
     case 'd':
       opts.isSplicedAlignment = true;
-      cbrc::unstringify(opts.direction, optarg);
+      opts.direction = LastSplitOptions::parseStrand(optarg);
+      if (opts.direction < 0) throw std::runtime_error("bad direction option");
       break;
     case 'c':
       opts.isSplicedAlignment = true;

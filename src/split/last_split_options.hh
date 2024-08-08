@@ -46,6 +46,8 @@ struct LastSplitOptions {
   void print() const;
 
   static char parseOutputFormat(const char *text);
+  static int parseStrand(const char *text);
+  static void printStrand(int num);
 };
 
 #endif

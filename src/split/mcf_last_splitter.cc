@@ -29,6 +29,15 @@ static bool less(const cbrc::UnsplitAlignment& a,
   return a.linesBeg < b.linesBeg;  // stabilizes the sort
 }
 
+static int whichPairedSequence(const char *name) {
+  size_t s = strlen(name);
+  if (s > 1 && name[s-2] == '/') {
+    if (name[s-1] == '1') return 1;
+    if (name[s-1] == '2') return 2;
+  }
+  throw std::runtime_error("query sequence name should end in /1 or /2");
+}
+
 static int printSense(char *out, double senseStrandLogOdds) {
   double b = senseStrandLogOdds / log(2.0);
   if (b < 0.1 && b > -0.1) b = 0;
@@ -71,10 +80,9 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
 				      unsigned numOfParts, unsigned partNum,
 				      const SliceData &sd, unsigned alnNum,
 				      unsigned qSliceBeg, unsigned qSliceEnd,
-				      bool isSenseStrand,
+				      int rnaStrand, bool isSenseStrand,
 				      double senseStrandLogOdds) {
   if (sd.score < opts.score) return;
-  int rnaStrand = opts.direction;
 
   std::vector<double> p;
   if (rnaStrand != 0) {
@@ -164,6 +172,9 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 			      const cbrc::UnsplitAlignment *beg,
 			      const cbrc::UnsplitAlignment *end) {
   int rnaStrand = opts.direction;
+  if (rnaStrand == 3) rnaStrand = 2 - whichPairedSequence(beg->qname);
+  if (rnaStrand == 4) rnaStrand = whichPairedSequence(beg->qname) - 1;
+
   sa.layout(params, beg, end);
   if (opts.verbose) std::cerr << "\tcells=" << sa.cellsPerDpMatrix();
   size_t bytes = sa.memory(params, rnaStrand == 2);
@@ -243,7 +254,7 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
     unsigned i = alnNums[k];
     doOneAlignmentPart(opts, params, isAlreadySplit, beg[i], numOfParts, k,
 		       slices[k], i, queryBegs[k], queryEnds[k],
-		       isSenseStrand, senseStrandLogOdds);
+		       rnaStrand, isSenseStrand, senseStrandLogOdds);
   }
 }
 

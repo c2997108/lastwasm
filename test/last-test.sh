@@ -203,6 +203,7 @@ trap 'rm -f $db*' EXIT
     # lastal -2
     lastdb -uNEAR $db hg19-M.fa
     try "sed s:/2:: bs2.fastq | lastal -2 -Q1 -fTAB $db bs100.fastq -"
+    try lastal -Q1 --split-d=RF $db bs1.fastq bs2.fastq
 
     # minimizers
     lastdb -W3 -R10 $db galGal3-M-32.fa
