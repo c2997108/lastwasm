@@ -1,84 +1,65 @@
 Aligning bisulfite-converted DNA reads to a genome
 ==================================================
 
-The easy way
-------------
-
-Use Bisulfighter_, which wraps LAST.
-
-The hard way
-------------
-
 Bisulfite is used to detect methylated cytosines.  It converts
 unmethylated Cs to Ts, but it leaves methylated Cs intact.  If we then
 sequence the DNA and align it to a reference genome, we can infer
 cytosine methylation.
 
-To align the DNA accurately, we should take the C->T conversion into
-account.  Here is how to do it with LAST.
+We developed a recipe_ for this in 2011, used in Bisulfighter_.  Since
+then, computer memories have gotten bigger, allowing simpler recipes.
 
-Let's assume we have bisulfite-converted DNA reads in a file called
-"reads.fastq" (in fastq-sanger format), and the genome is in
-"mygenome.fa" (in fasta format).  We will also assume that all the
-reads are from the converted strand, and not its reverse-complement
-(i.e. they have C->T conversions and not G->A conversions).
+Suppose we have bisulfite-converted DNA reads in a file "reads.fastq",
+and the genome in "mygenome.fa".  Assume all the reads are from
+converted DNA strands, not reverse strands (so they have C→T
+conversions and not G→A conversions).  We can align the reads like this::
 
-First, we need to run lastdb twice, for forward-strand and
-reverse-strand alignments::
+   lastdb -P8 -uBISF -S2 mydb mygenome.fa
+   last-train -P8 -S0 -Q1 mydb reads.fastq > my.train
+   lastal -P8 --split -p my.train mydb reads.fastq > out.maf
 
-  lastdb -uBISF my_f mygenome.fa
-  lastdb -uBISR my_r mygenome.fa
+* ``-uBISF`` selects a `seeding scheme`_ that tolerates c:t mismatches.
 
-Then, there are several steps:
+* ``-S2`` uses both strands of the genome.  (So we can use just the
+  forward strands of the reads).
 
-1. Convert all Cs in the reads to Ts.  (Debatable: this slightly
-   degrades LAST's ability to align the reads, but it avoids a bias,
-   due to unconverted DNA being easier to align than converted DNA.)
+* ``-S0`` makes no difference here, but matters for reverse-strand reads.
 
-2. Align the reads, one strand at a time.
+If the DNA reads are from the reverse of converted strands (so they
+have G→A conversions), add ``-s0`` to the ``last-train`` options.
 
-3. Merge the alignments, and find a unique best alignment for each
-   part of each read.
+Paired DNA reads
+----------------
 
-4. Undo the conversion from step 1.
+Suppose we have paired reads in 2 files: ``reads1.fastq`` from
+converted strands, and ``reads2.fastq`` from the reverse of converted
+strands.  We can align the reads like this::
 
-The last-bisulfite script (in the examples directory) carries out
-steps 1-4.  Its usage is::
+   lastdb -P8 -uBISF -S2 mydb mygenome.fa
+   last-train -P8 -S0 -Q1 mydb reads1.fastq > my.train
+   lastal -P8 --split -p my.train -sFR mydb reads1.fastq reads2.fastq > out.maf
 
-  last-bisulfite.sh my_f my_r reads.fastq > results.maf
+* ``-sFR`` makes it use forward strands of reads1 and reverse strands
+  of reads2.
 
-You can parallelize it like this::
 
-  parallel-fastq "last-bisulfite.sh my_f my_r" < reads.fastq > results.maf
+Avoiding bias
+-------------
 
-Tips
-~~~~
+There is a potential bias: unconverted Cs are easier to align
+unambiguously.  We can avoid this bias by converting all Cs in the
+reads to Ts::
 
-* To go faster, try gapless alignment (add -j1 to the lastal options).
-  Often, this is only minusculely less accurate than gapped alignment.
+   perl -pe 'y/Cca-z/ttA-Z/ if $. % 4 == 2' reads.fastq |
 
-* The .tis files created by lastdb (e.g. my_f.tis, my_r.tis) are
-  identical.  So you can shave a few GB by linking them::
+   lastal -P8 --split -p my.train mydb |
 
-    ln -f my_f.tis my_r.tis
+   perl -F'(\s+)' -ane '$F[12] =~ y/ta/CG/ if /^s/ and $s++ % 2; print @F' > out.maf
 
-Paired-end DNA reads
-~~~~~~~~~~~~~~~~~~~~
+The first line converts C to lowercase t, and all other letters to
+uppercase.  The last line un-converts lowercase letters in the DNA reads.
 
-You can align paired-end reads by combining the preceding recipe with
-the one in `<doc/last-pair-probs.rst>`_.  This gets a bit complicated,
-so we provide a last-bisulfite-paired script in the examples
-directory.  Typical usage::
-
-  lastdb -uBISF my_f mygenome.fa
-  lastdb -uBISR my_r mygenome.fa
-
-  last-bisulfite-paired.sh my_f my_r reads1.fastq reads2.fastq > results.maf
-
-This assumes that reads1.fastq are all from the converted strand
-(i.e. they have C->T conversions) and reads2.fastq are all from the
-reverse-complement (i.e. they have G->A conversions).  It requires GNU
-parallel to be installed.  You are encouraged to customize this
-script.
-
+.. _recipe: https://doi.org/10.1093/nar/gks275
 .. _Bisulfighter: https://github.com/yutaka-saito/Bisulfighter
+.. _cookbook: doc/last-cookbook.rst
+.. _seeding scheme: doc/last-seeds.rst

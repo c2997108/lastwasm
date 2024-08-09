@@ -3,7 +3,7 @@
 # Asai, NAR 2012 40:e100).
 
 #lastdb -w2
-#lastal -pBISF
+#lastal -R10 -pBISF
 
 1  CT A G
 0  ACGT

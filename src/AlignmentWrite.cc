@@ -208,7 +208,7 @@ static char* writeTags( const LastEvaluer& evaluer, double queryLength,
 
 AlignmentText Alignment::writeTab(const MultiSequence& seq1,
 				  const MultiSequence& seq2,
-				  size_t seqNum2, bool isTranslated,
+				  size_t seqNum2, int translationType,
 				  const LastEvaluer& evaluer,
 				  const AlignmentExtras& extras) const {
   size_t alnBeg1 = beg1();
@@ -218,7 +218,7 @@ AlignmentText Alignment::writeTab(const MultiSequence& seq1,
   size_t seqLen1 = seq1.seqLen(seqNum1);
 
   size_t size2 = seq2.padLen(seqNum2);
-  size_t frameSize2 = isTranslated ? (size2 / 3) : 0;
+  size_t frameSize2 = translationType ? (size2 / 3) : 0;
   size_t alnBeg2 = aaToDna( beg2(), frameSize2 );
   size_t alnEnd2 = aaToDna( end2(), frameSize2 );
   size_t seqStart2 = seq2.seqBeg(seqNum2) - seq2.padBeg(seqNum2);

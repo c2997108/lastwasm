@@ -149,7 +149,7 @@ struct Alignment{
 	       double gamma, int outputType );
 
   AlignmentText writeTab(const MultiSequence& seq1, const MultiSequence& seq2,
-			 size_t seqNum2, bool isTranslated,
+			 size_t seqNum2, int translationType,
 			 const LastEvaluer& evaluer,
 			 const AlignmentExtras& extras) const;
 
