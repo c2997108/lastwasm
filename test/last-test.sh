@@ -199,6 +199,7 @@ trap 'rm -f $db*' EXIT
     # strand asymmetry, 2 reference strands, and --split
     lastdb -uBISF -S2 $db hg19-M.fa
     try lastal -Q1 --split $db bs100.fastq
+    try lastal -Q0 --split -sFR $db bs1.fastq bs2.fastq
 
     # lastal -2
     lastdb -uNEAR $db hg19-M.fa

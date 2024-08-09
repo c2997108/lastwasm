@@ -2128,6 +2128,8 @@ if __name__ == "__main__":
         opts.sample_number = 20000 if opts.codon else 500
     if not opts.sample_number and (len(args) < 2 or "-" in args):
         op.error("sorry, can't use stdin when --sample-number=0")
+    if opts.s and len(opts.s) > 1 and opts.sample_number:
+        op.error("option -s: unsupported value")
     if opts.codon:
         if not opts.scale: opts.scale = 3
         if not opts.r: opts.r = "0.4"

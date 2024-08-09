@@ -343,8 +343,9 @@ Split options:\n\
       break;
 
     case 's':
-      unstringify( strand, optarg );
-      if( strand < 0 || strand > 2 ) badopt( c, optarg );
+      strand = LastSplitOptions::parseStrand(optarg);
+      if (strand < 0) badopt(c, optarg);
+      if (strand > 2) isPairedQuerySequences = true;
       break;
     case 'S':
       unstringify( isQueryStrandMatrix, optarg );
@@ -733,7 +734,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << '#';
   stream << " R=" << isKeepLowercase << tantanSetting;
   stream << " u=" << maskLowercase;
-  stream << " s=" << strand;
+  stream << " s=";
+  LastSplitOptions::printStrand(strand);
   stream << " S=" << isQueryStrandMatrix;
   stream << " M=" << isGreedy;
   stream << " T=" << globality;

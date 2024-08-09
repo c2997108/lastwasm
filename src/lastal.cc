@@ -1196,6 +1196,9 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
   }
 
   int qryStrand = args.strand;
+  if (qryStrand == 3) qryStrand = 1 - qryNum;
+  if (qryStrand == 4) qryStrand = qryNum;
+
   std::vector<AlignmentText> &textAlns = aligner.textAlns;
   size_t oldNumOfAlns = textAlns.size();
 

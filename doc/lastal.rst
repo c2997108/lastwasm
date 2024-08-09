@@ -317,8 +317,16 @@ Miscellaneous options
     2015, Genome Biol 16:106).
 
 -s STRAND
-    Specify which query strand should be used: 0 means reverse only,
-    1 means forward only, and 2 means both.
+    Specify which query strand should be used::
+
+        0 or R   reverse only
+        1 or F   forward only
+        2        both
+
+    These imply option ``-2`` (paired query sequences)::
+
+        FR       forward for the 1st query in a pair, reverse for the 2nd
+        RF       reverse for the 1st query in a pair, forward for the 2nd
 
 -S NUMBER
     Specify how to use the substitution score matrix for reverse
