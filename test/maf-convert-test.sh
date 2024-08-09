@@ -24,7 +24,7 @@ maf2=bs100.maf
     $r -l159 blast herv30.maf
     $r -l120 blast HERVS71A.maf  # test ambiguous N bases
     $r blasttab $maf2
-    $r blasttab frameshift-new.maf
+    $r blasttab+ frameshift-new.maf
     $r -s2 blasttab frameshift-new.maf
     maf-cut DF0000170.5:633-798 herv30.maf | $r blasttab  # gaps at edges
     maf-cut DF0000170.5:633-798 herv30.maf | $r -s2 blasttab  # gaps at edges

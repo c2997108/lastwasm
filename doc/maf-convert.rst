@@ -2,8 +2,9 @@ maf-convert
 ===========
 
 This script reads alignments in maf_ format, and writes them in
-another format.  It can write them in these formats: axt_, bed_, blast,
-blasttab, chain_, gff, html, psl_, sam, tab.  You can use it like this::
+another format.  It can write them in these formats: axt_, bed_,
+blast, blasttab, blasttab+, chain_, gff, html, psl_, sam, tab.  You
+can use it like this::
 
   maf-convert psl my-alignments.maf > my-alignments.psl
 

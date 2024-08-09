@@ -1004,14 +1004,14 @@ def mafConvertToBlast(opts, lines):
         sLines = maf[1]
         oldQueryName = sLines[qryNum][0]
 
-def btabDataFromMafFields(fields):
+def btabData(fields):
     seqName, seqLen, strand, letterSize, beg, end, row = fields
     if strand == "+":
         beg += 1
     else:
         beg = seqLen - beg
         end = seqLen - end + 1
-    return seqName, letterSize, str(beg), str(end), row.upper()
+    return seqName, seqLen, letterSize, str(beg), str(end), row.upper()
 
 def codonMatchCounts(geneticCode, letterSizeA, letterSizeB, rowA, rowB):
     codeA = geneticCode if letterSizeA else aminoAcidCodes
@@ -1045,13 +1045,13 @@ def codonMatchCounts(geneticCode, letterSizeA, letterSizeB, rowA, rowB):
             i = j
     return matches, mismatches, gaps, dangles
 
-def writeBlastTab(opts, geneticCode, maf):
+def writeBlastTab(opts, formatName, geneticCode, maf):
     aLine, sLines, qLines, pLines = maf
     fieldsA, fieldsB = pairOrDie(sLines, "BlastTab")
     if opts.subject == 2:
         fieldsA, fieldsB = fieldsB, fieldsA
-    seqNameA, letterSizeA, begA, endA, rowA = btabDataFromMafFields(fieldsA)
-    seqNameB, letterSizeB, begB, endB, rowB = btabDataFromMafFields(fieldsB)
+    seqNameA, seqLenA, letterSizeA, begA, endA, rowA = btabData(fieldsA)
+    seqNameB, seqLenB, letterSizeB, begB, endB, rowB = btabData(fieldsB)
     gapOpens = gapRunCount(rowA) + gapRunCount(rowB)
 
     if letterSizeA * letterSizeB < 1:
@@ -1076,13 +1076,15 @@ def writeBlastTab(opts, geneticCode, maf):
         if score and opts.bitScoreA is not None and opts.bitScoreB is not None:
             bitScore = opts.bitScoreA * float(score) - opts.bitScoreB
             out.append("%.3g" % bitScore)
+            if formatName == "blasttab+":
+                out += [seqLenB, seqLenA, score]
 
     print(*out, sep="\t")
 
-def mafConvertToBlastTab(opts, lines):
+def mafConvertToBlastTab(opts, formatName, lines):
     geneticCode = standardGeneticCode()
     for maf in mafInput(opts, lines):
-        writeBlastTab(opts, geneticCode, maf)
+        writeBlastTab(opts, formatName, geneticCode, maf)
 
 ##### Routines for converting to GFF format: #####
 
@@ -1271,8 +1273,8 @@ def mafConvertOneFile(opts, formatName, lines):
         mafConvertToBed(opts, lines)
     elif isFormat(formatName, "blast"):
         mafConvertToBlast(opts, lines)
-    elif isFormat(formatName, "blasttab"):
-        mafConvertToBlastTab(opts, lines)
+    elif isFormat(formatName, "blasttab+"):
+        mafConvertToBlastTab(opts, formatName, lines)
     elif isFormat(formatName, "chain"):
         mafConvertToChain(opts, lines)
     elif isFormat(formatName, "gff"):
@@ -1329,6 +1331,7 @@ if __name__ == "__main__":
   %prog bed mafFile(s)
   %prog blast mafFile(s)
   %prog blasttab mafFile(s)
+  %prog blasttab+ mafFile(s)
   %prog chain mafFile(s)
   %prog gff mafFile(s)
   %prog html mafFile(s)
