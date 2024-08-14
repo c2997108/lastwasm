@@ -1618,7 +1618,8 @@ void lastal(int argc, char **argv) {
   double minScore = -1;
   double eg2 = -1;
   if (evaluer.isGood()) {
-    minScore = (args.maxEvalue > 0) ? evaluer.minScore(args.maxEvalue, 1e18)
+    minScore = (args.expectedPerSquareGiga > 0)
+      ? evaluer.minScore(args.expectedPerSquareGiga, 1e18)
       : evaluer.minScore(args.queryLettersPerRandomAlignment);
     if (args.scoreType == 0 || args.outputType < 2)
       minScore = ceil(std::max(1.0, minScore));

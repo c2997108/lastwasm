@@ -80,10 +80,10 @@ public:
 		      double numOfStrands) {  // 1 or 2
     if (databaseMaxSeqLength > 0) {
       databaseSeqLen = databaseMaxSeqLength;
-      databaseSeqNum = databaseLength / databaseMaxSeqLength * numOfStrands;
+      areaMultiplier = databaseLength / databaseMaxSeqLength * numOfStrands;
     } else {
-      this->databaseSeqLen = 1;  // ALP doesn't like 0
-      this->databaseSeqNum = 0;
+      databaseSeqLen = 1;  // ALP doesn't like 0
+      areaMultiplier = 0;
     }
   }
 
@@ -95,7 +95,7 @@ public:
 
   // Don't call this in the "bad" state or before calling setSearchSpace:
   double area(double score, double queryLength) const
-  { return databaseSeqNum * evaluer.area(score, queryLength, databaseSeqLen); }
+  { return areaMultiplier * evaluer.area(score, queryLength, databaseSeqLen); }
 
   // Don't call this in the "bad" state:
   double bitScore(double score) const { return evaluer.bitScore(score); }
@@ -117,7 +117,7 @@ public:
 private:
   Sls::AlignmentEvaluer evaluer;
   double databaseSeqLen;
-  double databaseSeqNum;
+  double areaMultiplier;
 };
 
 }

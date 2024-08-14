@@ -41,7 +41,7 @@ struct LastalArguments{
 			       bool isCaseSensitiveSeeds, bool isVolumes,
 			       size_t refMinimizerWindow);
   void setDefaultsFromMatrix(double lambda, double minScore,
-			     double maxEvalueDefault);
+			     double perSquareGigaDefault);
 
   // write the parameter settings, starting each line with "#":
   void writeCommented( std::ostream& stream ) const;
@@ -86,7 +86,7 @@ struct LastalArguments{
   int tantanSetting;
   int maxRepeatUnit;
   int maskLowercase;
-  double maxEvalue;
+  double expectedPerSquareGiga;
   double queryLettersPerRandomAlignment;
   double minScoreGapped;
   int minScoreGapless;

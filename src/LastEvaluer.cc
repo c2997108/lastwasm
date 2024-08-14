@@ -333,7 +333,7 @@ double LastEvaluer::minScore(double evalue, double area) const {
 double LastEvaluer::minScore(double queryLettersPerRandomAlignment) const {
   double huge = 1e9;
   const Sls::ALP_set_of_parameters &p = evaluer.parameters();
-  double x = queryLettersPerRandomAlignment * databaseSeqNum;
+  double x = queryLettersPerRandomAlignment * areaMultiplier;
   double beg = 0;
   double len = log(x * databaseSeqLen * p.K) / p.lambda;
 

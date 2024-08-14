@@ -82,7 +82,7 @@ LastalArguments::LastalArguments() :
   tantanSetting(-1),  // depends on the option used with lastdb
   maxRepeatUnit(-1),
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
-  maxEvalue(-1),
+  expectedPerSquareGiga(-1),
   queryLettersPerRandomAlignment(1e6),
   minScoreGapped(-1),  // depends on the alphabet
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
@@ -321,8 +321,8 @@ Split options:\n\
       if( queryLettersPerRandomAlignment <= 0 ) badopt( c, optarg );
       break;
     case 'E':
-      unstringify( maxEvalue, optarg );
-      if( maxEvalue <= 0 ) badopt( c, optarg );
+      unstringify(expectedPerSquareGiga, optarg);
+      if (expectedPerSquareGiga <= 0) badopt(c, optarg);
       break;
 
     case 'm':
@@ -659,8 +659,8 @@ static int percent(int val, int percentage) {
 }
 
 void LastalArguments::setDefaultsFromMatrix(double lambda, double minScore,
-					    double maxEvalueDefault) {
-  if (maxEvalue < 0) maxEvalue = maxEvalueDefault;
+					    double perSquareGigaDefault) {
+  if (expectedPerSquareGiga < 0) expectedPerSquareGiga = perSquareGigaDefault;
   if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
   if( minScoreGapped < 0 ){
     if( outputType > 0 && minScore < 0 )
@@ -727,8 +727,8 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " y=" << maxDropGapless;
   stream << " z=" << maxDropFinal;
   stream << " D=" << queryLettersPerRandomAlignment;
-  if (maxEvalue >= 0)
-    stream << " E=" << maxEvalue;
+  if (expectedPerSquareGiga >= 0)
+    stream << " E=" << expectedPerSquareGiga;
   stream << '\n';
 
   stream << '#';
