@@ -1606,6 +1606,11 @@ void lastal(int argc, char **argv) {
     }
   }
 
+  char defaultInputName[] = "-";
+  char* defaultInput[] = { defaultInputName, 0 };
+  char** inputBegin = argv + args.inputStart;
+  querySequenceFileNames = *inputBegin ? inputBegin : defaultInput;
+
   if (args.outputType > 0) {
     calculateScoreStatistics(matrixName, prj.numOfLetters, prj.maxSeqLen);
   }
@@ -1643,11 +1648,6 @@ void lastal(int argc, char **argv) {
 
   writeHeader(prj.numOfSeqs, prj.numOfLetters, std::cout);
   countT queryBatchCount = 0;
-
-  char defaultInputName[] = "-";
-  char* defaultInput[] = { defaultInputName, 0 };
-  char** inputBegin = argv + args.inputStart;
-  querySequenceFileNames = *inputBegin ? inputBegin : defaultInput;
 
   if (args.batchSize < 1) {
     openIfFile(querySequenceFile, *querySequenceFileNames);

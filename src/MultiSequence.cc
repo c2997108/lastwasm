@@ -6,7 +6,7 @@
 #include <cassert>
 #include <streambuf>
 
-using namespace cbrc;
+namespace cbrc {
 
 void MultiSequence::initForAppending(size_t padSizeIn,
 				     bool isAppendStopSymbol) {
@@ -118,25 +118,13 @@ MultiSequence::appendFromFasta(std::istream &stream, size_t maxSeqLen) {
   return stream;
 }
 
-static void reverseComplementPssm(int *beg, int *end,
-				  const uchar *complement) {
-  while (beg < end) {
-    end -= scoreMatrixRowSize;
-    for (unsigned i = 0; i < scoreMatrixRowSize; ++i) {
-      unsigned j = complement[i];
-      if (beg < end || i < j) std::swap(beg[i], end[j]);
-    }
-    beg += scoreMatrixRowSize;
-  }
-}
-
 void MultiSequence::reverseComplementOneSequence(size_t seqNum,
 						 const uchar *complement) {
   size_t b = seqBeg(seqNum);
   size_t e = seqEnd(seqNum);
-
   uchar *s = seqWriter();
   std::reverse(s + b, s + e);
+
   for (size_t i = b; i < e; ++i) {
     s[i] = complement[s[i]];
   }
@@ -146,8 +134,15 @@ void MultiSequence::reverseComplementOneSequence(size_t seqNum,
 
   if (!pssm.empty()) {
     int *p = &pssm[0];
-    reverseComplementPssm(p + b * scoreMatrixRowSize,
-			  p + e * scoreMatrixRowSize, complement);
+    while (b < e) {
+      --e;
+      for (unsigned i = 0; i < scoreMatrixRowSize; ++i) {
+	unsigned j = complement[i];
+	if (b < e || i < j) std::swap(p[b * scoreMatrixRowSize + i],
+				      p[e * scoreMatrixRowSize + j]);
+      }
+      ++b;
+    }
   }
 
   char &strandChar = names.v[nameEnds.v[seqNum + 1] - 1];
@@ -175,4 +170,6 @@ void MultiSequence::duplicateOneSequence(size_t seqNum) {
   }
 
   assert(pssm.empty());  // implement this if & when needed
+}
+
 }

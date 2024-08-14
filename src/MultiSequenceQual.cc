@@ -9,7 +9,7 @@
 
 #define ERR(x) throw std::runtime_error(x)
 
-using namespace cbrc;
+namespace cbrc {
 
 std::istream&
 MultiSequence::appendFromFastx(std::istream &stream, size_t maxSeqLen,
@@ -216,4 +216,6 @@ MultiSequence::appendFromPssm(std::istream &stream, size_t maxSeqLen,
   if( !stream.bad() ) stream.clear();
 
   return stream;
+}
+
 }
