@@ -328,8 +328,7 @@ void makeQualityScorers(){
 }
 
 // Calculate statistical parameters for the alignment scoring scheme
-static void calculateScoreStatistics(const std::string& matrixName,
-				     countT refLetters, countT refMaxSeqLen) {
+static void calculateScoreStatistics(const std::string &matrixName) {
   const mcf::SubstitutionMatrixStats &stats = fwdMatrices.stats;
   if (stats.isBad()) return;
   const char *canonicalMatrixName = ScoreMatrix::canonicalName( matrixName );
@@ -364,8 +363,6 @@ static void calculateScoreStatistics(const std::string& matrixName,
 		   fsCost, geneticCode,
 		   args.geneticCodeFile.c_str(), args.verbosity);
     }
-    countT m = std::min(refMaxSeqLen, refLetters);
-    evaluer.setSearchSpace(refLetters, m, args.numOfStrands());
     if( args.verbosity > 0 ) evaluer.writeParameters( std::cerr );
   }catch( const Sls::error& e ){
     LOG( "can't get E-value parameters for this scoring scheme" );
@@ -1612,13 +1609,13 @@ void lastal(int argc, char **argv) {
   char** inputBegin = argv + args.inputStart;
   querySequenceFileNames = *inputBegin ? inputBegin : defaultInput;
 
-  if (args.outputType > 0) {
-    calculateScoreStatistics(matrixName, prj.numOfLetters, prj.maxSeqLen);
-  }
+  if (args.outputType > 0) calculateScoreStatistics(matrixName);
 
   double minScore = -1;
   double eg2 = -1;
   if (evaluer.isGood()) {
+    countT m = std::min(prj.maxSeqLen, prj.numOfLetters);
+    evaluer.setSearchSpace(prj.numOfLetters, m, args.numOfStrands());
     minScore = (args.expectedPerSquareGiga > 0)
       ? evaluer.minScore(args.expectedPerSquareGiga, 1e18)
       : evaluer.minScore(args.queryLettersPerRandomAlignment);
