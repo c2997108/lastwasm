@@ -78,6 +78,7 @@ struct LastalArguments{
   int outputType;
   int scoreType;
   int strand;
+  bool isReverseQuerySequences;
   bool isQueryStrandMatrix;
   bool isGreedy;
   int globality;  // type of alignment: local, semi-global, etc.

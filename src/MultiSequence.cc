@@ -124,29 +124,29 @@ void MultiSequence::reverseComplementOneSequence(size_t seqNum,
   size_t e = seqEnd(seqNum);
   uchar *s = seqWriter();
   std::reverse(s + b, s + e);
-
-  for (size_t i = b; i < e; ++i) {
-    s[i] = complement[s[i]];
-  }
-
   reverse(qualityScores.v.begin() + b * qualsPerLetter(),
 	  qualityScores.v.begin() + e * qualsPerLetter());
+
+  if (complement) {
+    for (size_t i = b; i < e; ++i) {
+      s[i] = complement[s[i]];
+    }
+    char &strandChar = names.v[nameEnds.v[seqNum + 1] - 1];
+    strandChar = "\n\t"[strandChar == '\n'];
+  }
 
   if (!pssm.empty()) {
     int *p = &pssm[0];
     while (b < e) {
       --e;
       for (unsigned i = 0; i < scoreMatrixRowSize; ++i) {
-	unsigned j = complement[i];
+	unsigned j = complement ? complement[i] : i;
 	if (b < e || i < j) std::swap(p[b * scoreMatrixRowSize + i],
 				      p[e * scoreMatrixRowSize + j]);
       }
       ++b;
     }
   }
-
-  char &strandChar = names.v[nameEnds.v[seqNum + 1] - 1];
-  strandChar = "\n\t"[strandChar == '\n'];
 }
 
 void MultiSequence::duplicateOneSequence(size_t seqNum) {

@@ -319,14 +319,18 @@ Miscellaneous options
 -s STRAND
     Specify which query strand should be used::
 
-        0 or R   reverse only
-        1 or F   forward only
+        0 or R   reverse strand only (reverse-complemented sequence)
+        1 or F   forward strand only
         2        both
 
     These imply option ``-2`` (paired query sequences)::
 
         FR       forward for the 1st query in a pair, reverse for the 2nd
         RF       reverse for the 1st query in a pair, forward for the 2nd
+
+--reverse
+    Before analyzing each query sequence, reverse (but don't
+    complement) it.  This may be useful as a negative control.
 
 -S NUMBER
     Specify how to use the substitution score matrix for reverse

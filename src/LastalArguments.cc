@@ -74,6 +74,7 @@ LastalArguments::LastalArguments() :
   outputType(3),
   scoreType(-1),
   strand(-1),  // depends on the alphabet
+  isReverseQuerySequences(false),
   isQueryStrandMatrix(false),
   isGreedy(false),
   globality(0),
@@ -171,6 +172,7 @@ Miscellaneous options (default settings):\n\
  -K  omit alignments whose query range lies in >= K others with > score (off)\n\
  -C  omit gapless alignments in >= C others with > score-per-length (off)\n\
  -s  strand: 0=reverse, 1=forward, 2=both (2 if DNA and not lastdb -S2, else 1)\n\
+ --reverse  reverse the query sequences\n\
  -S  use score matrix: 0=as-is, 1=on query forward strands ("
     + stringify(isQueryStrandMatrix) + ")\n\
  -i  query batch size (64M if multi-volume, else off)\n\
@@ -221,6 +223,7 @@ Split options:\n\
   static struct option lOpts[] = {
     { "help",    no_argument,       0, 'h' },
     { "version", no_argument,       0, 'V' },
+    { "reverse", no_argument,          0, 'R' - 'A' },
     { "gumbel-len", required_argument, 0, 'L' - 'A' },
     { "gumbel-num", required_argument, 0, 'N' - 'A' },
     { "split",   no_argument,       0, 128 + 0 },
@@ -418,6 +421,9 @@ Split options:\n\
       unstringify( inputFormat, optarg );
       break;
 
+    case 'R' - 'A':
+      isReverseQuerySequences = true;
+      break;
     case 'L' - 'A':
       unstringify(gumbelSimSequenceLength, optarg);
       if (gumbelSimSequenceLength <= 0) badopt(lOpts[lOptsIndex].name, optarg);

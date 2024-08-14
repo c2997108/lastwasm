@@ -527,6 +527,57 @@ TEST lastal -s0 -f0 -e18 /tmp/last-test galGal3-M-32.fa
 18	chrM	31	34	+	16775	chrM	16710	34	-	16775	34	EG2=9.1e+08	E=0.27
 # Query sequences=2 normal letters=17803
 
+TEST lastal --reverse /tmp/last-test galGal3-M-32.fa
+#
+# a=7 b=1 A=7 B=1 e=22 d=13 x=21 y=9 z=21 D=1e+06 E=1.13155e+07
+# R=10 u=2 s=2 S=0 M=0 T=0 m=10 l=1 n=10 k=1 w=1000 t=0.910239 j=3 Q=0
+# /tmp/last-test
+# Reference sequences=2 normal letters=17803
+# lambda=1.09602 K=0.335388
+#
+#     A   C   G   T   M   S   K   W   R   Y   B   D   H   V
+# A   1  -1  -1  -1   0  -1  -1   0   0  -1  -1   0   0   0
+# C  -1   1  -1  -1   0   0  -1  -1  -1   0   0  -1   0   0
+# G  -1  -1   1  -1  -1   0   0  -1   0  -1   0   0  -1   0
+# T  -1  -1  -1   1  -1  -1   0   0  -1   0   0   0   0  -1
+# M   0   0  -1  -1   0   0  -1   0   0   0   0   0   0   0
+# S  -1   0   0  -1   0   0   0  -1   0   0   0   0   0   0
+# K  -1  -1   0   0  -1   0   0   0   0   0   0   0   0   0
+# W   0  -1  -1   0   0  -1   0   0   0   0   0   0   0   0
+# R   0  -1   0  -1   0   0   0   0   0  -1   0   0   0   0
+# Y  -1   0  -1   0   0   0   0   0  -1   0   0   0   0   0
+# B  -1   0   0   0   0   0   0   0   0   0   0   0   0   0
+# D   0  -1   0   0   0   0   0   0   0   0   0   0   0   0
+# H   0   0  -1   0   0   0   0   0   0   0   0   0   0   0
+# V   0   0   0  -1   0   0   0   0   0   0   0   0   0   0
+#
+# Coordinates are 0-based.  For - strand matches, coordinates
+# in the reverse complement of the 2nd sequence are used.
+#
+# name start alnSize strand seqSize alignment
+#
+a score=28 EG2=1.6e+04 E=9.4e-06
+s chrM 16261 128 + 16775 CCCAGCCACCAAAAACAACCCAACCCCACATGAATAAAACACCGCAACTCCACTAAAATCCAACCGAGCAAAAGACACACCCCCGCCATCAACAGTAACCACCCCCACCTTTCAAAAATCAACGAGCC
+s chrM   386 128 + 16775 CCGAGCAACTAAAAACTTTCCACCCCCACCAATGACAACTACCGCCCCCACACAGAAAACGAGCCAACCTAAAATCACCTCAACGCCACAAAATAAGTACACCCCAACCCAACAAAAACCACCGACCC
+
+a score=26 EG2=1.4e+05 E=8.4e-05
+s chrM 16501 42 + 16775 AACAAAAACCACCAACATCCCCCCTAAATACACCAAAAATAA
+s chrM   232 42 + 16775 AATAAAAACCACATAAATCCCCCCTACAACCACCAAAAACAA
+
+a score=24 EG2=1.3e+06 E=0.00075
+s chrM  1659 28 + 16775 TCCACCTAAACCCAACCCAAATCCATCT
+s chrM 15088 28 + 16775 TCTACCTAAACCCAACCCAAATCCACCT
+
+a score=23 EG2=3.8e+06 E=0.0022
+s chrM 14659 35 + 16775 CCCCCTAACTCACCGAATTAGCCCCTCAATCCTCC
+s chrM  2081 35 + 16775 CCTCCTAACTCCCCGATTAAGCCACTCAATCCCCC
+
+a score=34 EG2=22 E=7.5e-10
+s chr32  13 46 + 1028 ACCTAATCCTAAACCTAAGGCCTTCCGGAATCCTAAACCTAAGCCA
+s chr32 969 46 + 1028 ACCGAATCCAAATCCTAAGGCCTTCCGGAATCCAAATCCTAATCCA
+
+# Query sequences=2 normal letters=17803
+
 TEST lastal -s0 -f0 -p asymmetric.mat -e2000 /tmp/last-test galGal3-M-32.fa
 #
 # a=500 b=50 A=500 B=50 e=2000 d=1265 x=1999 y=992 z=1999 D=1e+06 E=5.62802e+07

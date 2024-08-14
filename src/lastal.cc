@@ -1193,6 +1193,7 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
       queryAlph.countNormalLetters(qryData.seqPadBeg + qryData.seqBeg,
 				   qryData.seqPadBeg + qryData.seqEnd);
     aligner.numOfSequences += 1;
+    if (args.isReverseQuerySequences) qrySeqs.reverseOneSequence(qryNum);
   }
 
   int qryStrand = args.strand;

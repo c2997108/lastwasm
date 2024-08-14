@@ -51,6 +51,7 @@ trap 'rm -f $db*' EXIT
     # subset seed file, soft-masking
     lastdb -c -R10 -u ../data/YASS.seed $db $dnaSeq
     try lastal -s0 -f0 -e18 $db $dnaSeq
+    try lastal --reverse $db $dnaSeq
 
     # asymmetric scoring matrix
     try lastal -s0 -f0 -p asymmetric.mat -e2000 $db $dnaSeq

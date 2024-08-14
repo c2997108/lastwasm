@@ -136,6 +136,9 @@ class MultiSequence{
 
   void reverseComplementOneSequence(size_t seqNum, const uchar *complement);
 
+  void reverseOneSequence(size_t seqNum)
+  { reverseComplementOneSequence(seqNum, 0); }
+
   void duplicateOneSequence(size_t seqNum);
 
   void fixPairedSequenceNames() {  // assumes there are 2 names
