@@ -335,13 +335,13 @@ double LastEvaluer::minScore(double queryLettersPerRandomAlignment) const {
   const Sls::ALP_set_of_parameters &p = evaluer.parameters();
   double x = queryLettersPerRandomAlignment * areaMultiplier;
   double beg = 0;
-  double len = log(x * databaseSeqLen * p.K) / p.lambda;
+  double len = log(x * databaseMaxSeqLen * p.K) / p.lambda;
 
   while (1) {
     len /= 2;
     double mid = beg + len;
     if (mid <= beg) return mid;
-    if (evaluer.evalue(mid, huge, databaseSeqLen) >= huge / x)
+    if (evaluer.evalue(mid, huge, databaseMaxSeqLen) >= huge / x)
       beg = mid;
   }
 }

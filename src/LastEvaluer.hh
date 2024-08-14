@@ -75,14 +75,14 @@ public:
 		      int numOfAlignments, int seqLength, int verbosity,
 		      bool isFrameshift = false);
 
-  void setSearchSpace(double databaseLength,  // number of database letters
-		      double databaseMaxSeqLength,  // length of longest seq
+  void setSearchSpace(double databaseTotSeqLength,
+		      double databaseMaxSeqLength,
 		      double numOfStrands) {  // 1 or 2
     if (databaseMaxSeqLength > 0) {
-      databaseSeqLen = databaseMaxSeqLength;
-      areaMultiplier = databaseLength / databaseMaxSeqLength * numOfStrands;
+      databaseMaxSeqLen = databaseMaxSeqLength;
+      areaMultiplier = databaseTotSeqLength / databaseMaxSeqLen * numOfStrands;
     } else {
-      databaseSeqLen = 1;  // ALP doesn't like 0
+      databaseMaxSeqLen = 1;  // ALP doesn't like 0
       areaMultiplier = 0;
     }
   }
@@ -94,8 +94,9 @@ public:
   { return evaluer.evaluePerArea(score); }
 
   // Don't call this in the "bad" state or before calling setSearchSpace:
-  double area(double score, double queryLength) const
-  { return areaMultiplier * evaluer.area(score, queryLength, databaseSeqLen); }
+  double area(double score, double queryLength) const {
+    return areaMultiplier * evaluer.area(score, queryLength, databaseMaxSeqLen);
+  }
 
   // Don't call this in the "bad" state:
   double bitScore(double score) const { return evaluer.bitScore(score); }
@@ -116,7 +117,7 @@ public:
 
 private:
   Sls::AlignmentEvaluer evaluer;
-  double databaseSeqLen;
+  double databaseMaxSeqLen;
   double areaMultiplier;
 };
 
