@@ -1661,7 +1661,8 @@ void lastal(int argc, char **argv) {
     size_t maxSeqLen = -1;
     initSequences(qrySeqsGlobal, queryAlph, args.isTranslated(), false);
     for (char **i = querySequenceFileNames; *i; ++i) {
-      std::istream& in = openIn(*i, querySequenceFile);
+      mcf::izstream inFileStream;
+      std::istream& in = openIn(*i, inFileStream);
       LOG("reading " << *i << "...");
       while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
 			    queryAlph, args.maskLowercase > 1)) {

@@ -57,7 +57,7 @@ It sets this lastdb default:
 -w2
 
 It sets this lastal default:
--pBISF
+-R10 -pBISF
 
 BISR
 ----
@@ -78,7 +78,7 @@ It sets this lastdb default:
 -w2
 
 It sets this lastal default:
--pBISR
+-R10 -pBISR
 
 MAM4
 ----

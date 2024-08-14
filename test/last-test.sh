@@ -32,10 +32,10 @@ trap 'rm -f $db*' EXIT
     lastdb -c -m110 -C3 -R10 $db $dnaSeq
     try lastal -fMAF -u1 -j5 -p ../data/HOXD70.mat -z3400 -e2500 $db $dnaSeq
 
-    # multiple volumes & query batches
+    # multiple volumes & query batches & multiple query files
     lastdb --bits=4 -m1 -s1 -C2 -R10 $db $dnaSeq
     lastdb -D $db
-    try lastal -fTAB -i1 -w0 -e40 $db $dnaSeq
+    try lastal -fTAB -i1 -w0 -e40 $db $dnaSeq /dev/null
 
     # match-counting, with multiple query batches
     try lastal -j0 -i1 -s0 $db $dnaSeq
