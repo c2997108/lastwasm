@@ -2,12 +2,22 @@
 
 #include "MultiSequence.hh"
 #include "stringify.hh"
+
+#include <stdio.h>  // EOF
+
 #include <algorithm>  // max_element
 #include <cctype>  // toupper
 #include <limits>  // numeric_limits
 #include <streambuf>
 
 #define ERR(x) throw std::runtime_error(x)
+
+static void skipLine(std::streambuf *b) {
+  int c;
+  do {
+    c = b->sbumpc();
+  } while (c != EOF && c != '\n');
+}
 
 namespace cbrc {
 
@@ -50,7 +60,7 @@ MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
   std::streambuf *buf = stream.rdbuf();
   int c = buf->sgetc();
 
-  while (c != std::streambuf::traits_type::eof()) {
+  while (c != EOF) {
     if (c > ' ') {
       if (c == '+' || seq.v.size() >= maxSeqLen) break;
       seq.v.push_back(c);
@@ -59,13 +69,11 @@ MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
   }
 
   if (isRoomToAppendPad(maxSeqLen)) {
-    do {
-      c = buf->sbumpc();
-    } while (c != std::streambuf::traits_type::eof() && c != '\n');
+    skipLine(buf);
 
     for (size_t i = seq.v.size() - ends.v.back(); i > 0; ) {
       c = buf->sbumpc();
-      if (c == std::streambuf::traits_type::eof()) ERR("bad FASTQ data");
+      if (c == EOF) ERR("bad FASTQ data");
       if (c > ' ') {
 	if (isKeepQualityData) {
 	  if (c > 126) ERR("non-printable-ASCII in FASTQ quality data");
