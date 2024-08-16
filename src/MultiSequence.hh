@@ -240,6 +240,10 @@ class MultiSequence{
   }
 };
 
+// read sequence lengths from FASTA or FASTQ format: update totLen and maxLen
+void readSequenceLengths(std::istream &in, unsigned long long &totLen,
+			 unsigned long long &maxLen);
+
 // Divide the sequences into a given number of roughly-equally-sized
 // chunks, and return the first sequence in the Nth chunk.
 inline size_t firstSequenceInChunk(const MultiSequence &m,

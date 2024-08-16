@@ -12,6 +12,13 @@
 
 #define ERR(x) throw std::runtime_error(x)
 
+static int getSymbol(std::streambuf *b) {
+  while (1) {
+    int c = b->sbumpc();
+    if (c == EOF || c > ' ') return c;
+  }
+}
+
 static void skipLine(std::streambuf *b) {
   int c;
   do {
@@ -20,6 +27,31 @@ static void skipLine(std::streambuf *b) {
 }
 
 namespace cbrc {
+
+void readSequenceLengths(std::istream &in, unsigned long long &totLen,
+			 unsigned long long &maxLen) {
+  std::streambuf *buf = in.rdbuf();
+  int c;
+  while ((c = getSymbol(buf)) != EOF) {
+    if (c != '>' && c != '@') ERR("bad sequence data: missing '>' or '@'");
+    int delimiter = (c == '>') ? '>' : '+';
+    skipLine(buf);
+    unsigned long long len = 0;
+    for (c = buf->sgetc(); c != EOF && c != delimiter; c = buf->snextc()) {
+      if (c > ' ') ++len;
+    }
+    totLen += len;
+    maxLen = std::max(maxLen, len);
+    if (delimiter == '+') {
+      skipLine(buf);
+      while (len) {
+	c = buf->sbumpc();
+	if (c == EOF) ERR("bad FASTQ data");
+	if (c > ' ') --len;
+      }
+    }
+  }
+}
 
 std::istream&
 MultiSequence::appendFromFastx(std::istream &stream, size_t maxSeqLen,
