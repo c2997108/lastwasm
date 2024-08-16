@@ -87,6 +87,7 @@ struct LastalArguments{
   int tantanSetting;
   int maxRepeatUnit;
   int maskLowercase;
+  double expectedAlignments;
   double expectedPerSquareGiga;
   double queryLettersPerRandomAlignment;
   double minScoreGapped;

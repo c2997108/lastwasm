@@ -1274,6 +1274,16 @@ static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
   }
 }
 
+static void readAllSequenceLengths(char **fileNames,
+				   countT &totLen, countT &maxLen) {
+  for (char **i = fileNames; *i; ++i) {
+    if (isSingleDash(*i)) err("need real files to read query sequences twice");
+    mcf::izstream f;
+    openOrThrow(f, *i);
+    readSequenceLengths(f, totLen, maxLen);
+  }
+}
+
 static void openIfFile(mcf::izstream &z, const char *fileName) {
   if (fileName && !isSingleDash(fileName)) openOrThrow(z, fileName);
 }
@@ -1614,8 +1624,16 @@ void lastal(int argc, char **argv) {
   double minScore = -1;
   double eg2 = -1;
   if (evaluer.isGood()) {
+    countT totQryLen = 0;
+    countT maxQryLen = 0;
+    if (args.expectedAlignments > 0) {
+      readAllSequenceLengths(querySequenceFileNames, totQryLen, maxQryLen);
+    }
+    // xxx inconsistency: the query lengths include ambiguous letters
+    // (like N in DNA), but the reference lengths don't
     countT m = std::min(prj.maxSeqLen, prj.numOfLetters);
-    evaluer.setSearchSpace(prj.numOfLetters, m, args.numOfStrands());
+    evaluer.setSearchSpace(prj.numOfLetters, m, totQryLen, maxQryLen,
+			   args.numOfStrands());
     minScore = (args.expectedPerSquareGiga > 0)
       ? evaluer.minScore(args.expectedPerSquareGiga, 1e18)
       : evaluer.minScore(args.queryLettersPerRandomAlignment);

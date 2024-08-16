@@ -56,11 +56,11 @@ public:
 	    const char *geneticCodeName,
 	    int verbosity);
 
-  // The next 2 routines set up for sum-of-paths local alignment scores.
-  // initFrameshift implements section 2.6 of "Improved
+  // initFullScores sets up for sum-of-paths local alignment scores.
+  // isFrameshift=true implements section 2.6 of "Improved
   // DNA-versus-protein homology search for protein fossils", Y Yao &
   // MC Frith.  (It doesn't check whether Equation 3 is satisfied.)
-  // initFullScores does the equivalent for "model A" in "How sequence
+  // isFrameshift=false does the equivalent for "model A" in "How sequence
   // alignment scores correspond to probability models", MC Frith
   // 2020, Bioinformatics 36(2):408-415.
 
@@ -77,6 +77,8 @@ public:
 
   void setSearchSpace(double databaseTotSeqLength,
 		      double databaseMaxSeqLength,
+		      double queryTotSeqLength,
+		      double queryMaxSeqLength,
 		      double numOfStrands) {  // 1 or 2
     if (databaseMaxSeqLength > 0) {
       databaseMaxSeqLen = databaseMaxSeqLength;
@@ -84,6 +86,10 @@ public:
     } else {
       databaseMaxSeqLen = 1;  // ALP doesn't like 0
       areaMultiplier = 0;
+    }
+    queryMaxSeqLen = queryMaxSeqLength;
+    if (queryMaxSeqLength > 0) {
+      areaMultiplier *= queryTotSeqLength / queryMaxSeqLen;
     }
   }
 
@@ -95,7 +101,8 @@ public:
 
   // Don't call this in the "bad" state or before calling setSearchSpace:
   double area(double score, double queryLength) const {
-    return areaMultiplier * evaluer.area(score, queryLength, databaseMaxSeqLen);
+    double q = (queryMaxSeqLen > 0) ? queryMaxSeqLen : queryLength;
+    return areaMultiplier * evaluer.area(score, q, databaseMaxSeqLen);
   }
 
   // Don't call this in the "bad" state:
@@ -118,6 +125,7 @@ public:
 private:
   Sls::AlignmentEvaluer evaluer;
   double databaseMaxSeqLen;
+  double queryMaxSeqLen;
   double areaMultiplier;
 };
 

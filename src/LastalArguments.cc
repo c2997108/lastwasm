@@ -83,6 +83,7 @@ LastalArguments::LastalArguments() :
   tantanSetting(-1),  // depends on the option used with lastdb
   maxRepeatUnit(-1),
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
+  expectedAlignments(0),
   expectedPerSquareGiga(-1),
   queryLettersPerRandomAlignment(1e6),
   minScoreGapped(-1),  // depends on the alphabet
