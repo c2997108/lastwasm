@@ -84,7 +84,7 @@ LastalArguments::LastalArguments() :
   maxRepeatUnit(-1),
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
   expectedAlignments(0),
-  expectedPerSquareGiga(-1),
+  expectedPerSquareGiga(0),
   queryLettersPerRandomAlignment(1e6),
   minScoreGapped(-1),  // depends on the alphabet
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
@@ -667,7 +667,7 @@ static int percent(int val, int percentage) {
 
 void LastalArguments::setDefaultsFromMatrix(double lambda, double minScore,
 					    double perSquareGigaDefault) {
-  if (expectedPerSquareGiga < 0) expectedPerSquareGiga = perSquareGigaDefault;
+  if (expectedPerSquareGiga <= 0) expectedPerSquareGiga = perSquareGigaDefault;
   if( outputType < 2 && minScoreGapped < 0 ) minScoreGapped = minScoreGapless;
   if( minScoreGapped < 0 ){
     if( outputType > 0 && minScore < 0 )
