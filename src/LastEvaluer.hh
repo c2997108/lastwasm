@@ -87,6 +87,7 @@ public:
       databaseMaxSeqLen = 1;  // ALP doesn't like 0
       areaMultiplier = 0;
     }
+    databaseLenMultiplier = areaMultiplier;
     queryMaxSeqLen = queryMaxSeqLength;
     if (queryMaxSeqLength > 0) {
       areaMultiplier *= queryTotSeqLength / queryMaxSeqLen;
@@ -111,10 +112,23 @@ public:
   // Returns max(0, score with E-value == "evalue").
   // Don't call this in the "bad" state.
   double minScore(double evalue, double area) const;
+  double minScore(double evalue, double seqLength1, double seqLength2) const;
 
   // Returns max(0, score with E-value == 1 per this many query letters).
   // Don't call this in the "bad" state or before calling setSearchSpace.
-  double minScore(double queryLettersPerRandomAlignment) const;
+  double minScore(double queryLettersPerRandomAlignment) const {
+    if (databaseLenMultiplier <= 0) return 0;
+    double qryLen = 1e9;
+    double evalue = qryLen / queryLettersPerRandomAlignment;
+    return minScore(evalue / databaseLenMultiplier, databaseMaxSeqLen, qryLen);
+  }
+
+  // Returns max(0, score with all-sequences E-value == "evalue").
+  // Don't call this in the "bad" state or before calling setSearchSpace.
+  double allSeqsMinScore(double evalue) const {
+    if (areaMultiplier <= 0) return 0;
+    return minScore(evalue/areaMultiplier, databaseMaxSeqLen, queryMaxSeqLen);
+  }
 
   // Writes some parameters preceded by "#".  Does nothing in the "bad" state.
   void writeCommented(std::ostream& out) const;
@@ -125,6 +139,7 @@ public:
 private:
   Sls::AlignmentEvaluer evaluer;
   double databaseMaxSeqLen;
+  double databaseLenMultiplier;
   double queryMaxSeqLen;
   double areaMultiplier;
 };

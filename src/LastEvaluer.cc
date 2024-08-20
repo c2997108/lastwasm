@@ -330,19 +330,19 @@ double LastEvaluer::minScore(double evalue, double area) const {
   return std::max(0.0, s);
 }
 
-double LastEvaluer::minScore(double queryLettersPerRandomAlignment) const {
-  double huge = 1e9;
+double LastEvaluer::minScore(double evalue,
+			     double seqLength1, double seqLength2) const {
+  if (seqLength1 <= 0 || seqLength2 <= 0) return 0;
   const Sls::ALP_set_of_parameters &p = evaluer.parameters();
-  double x = queryLettersPerRandomAlignment * areaMultiplier;
   double beg = 0;
-  double len = log(x * databaseMaxSeqLen * p.K) / p.lambda;
+  // do log of evalue separately, to reduce the risk of overflow:
+  double len = (log(seqLength1 * seqLength2 * p.K) - log(evalue)) / p.lambda;
 
   while (1) {
     len /= 2;
     double mid = beg + len;
-    if (mid <= beg) return mid;
-    if (evaluer.evalue(mid, huge, databaseMaxSeqLen) >= huge / x)
-      beg = mid;
+    if (mid <= beg) return beg;
+    if (evaluer.evalue(mid, seqLength2, seqLength1) >= evalue) beg = mid;
   }
 }
 
