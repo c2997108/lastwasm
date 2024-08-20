@@ -16,6 +16,8 @@
 
 #define ERR(x) throw std::runtime_error(x)
 
+const double default_D = 1e6;
+
 static void badopt( char opt, const char* arg ){
   ERR( std::string("bad option value: -") + opt + ' ' + arg );
 }
@@ -85,7 +87,7 @@ LastalArguments::LastalArguments() :
   maskLowercase(-1),  // depends on the lowercase option used with lastdb
   expectedAlignments(0),
   expectedPerSquareGiga(0),
-  queryLettersPerRandomAlignment(1e6),
+  queryLettersPerRandomAlignment(0),
   minScoreGapped(-1),  // depends on the alphabet
   minScoreGapless(-1),  // depends on minScoreGapped and the outputType
   matchScore(-1),  // depends on the alphabet
@@ -136,8 +138,9 @@ Cosmetic options:\n\
 \n\
 E-value options (default settings):\n\
  -D  query letters per random alignment (default: "
-    + stringify(queryLettersPerRandomAlignment) + ")\n\
- -E  max EG2: expected alignments per square giga (1e18/D/refSize/numOfStrands)\n\
+    + stringify(default_D) + ")\n\
+ -H  expected total number of random alignments for all the sequences\n\
+ -E  max EG2: expected number of random alignments per square giga\n\
 \n\
 Score options (default settings):\n\
  -r  match score   (2 if -M, else  6 if 1<=Q<=4, else 1 if DNA)\n\
@@ -218,7 +221,7 @@ Split options:\n\
   static const char sOpts[] =
     "hVv2f:"
     "r:q:p:X:a:b:A:B:c:F:x:y:z:d:e:"
-    "D:E:"
+    "D:E:H:"
     "s:S:MT:m:l:L:n:N:C:K:k:W:i:P:R:U:u:w:t:g:G:j:J:Q:";
 
   static struct option lOpts[] = {
@@ -327,6 +330,10 @@ Split options:\n\
     case 'E':
       unstringify(expectedPerSquareGiga, optarg);
       if (expectedPerSquareGiga <= 0) badopt(c, optarg);
+      break;
+    case 'H':
+      unstringify(expectedAlignments, optarg);
+      if (expectedAlignments <= 0) badopt(c, optarg);
       break;
 
     case 'm':
@@ -568,6 +575,11 @@ void LastalArguments::setDefaultsFromAlphabet(bool isDna, bool isProtein,
 					      size_t refMinimizerWindow) {
   if (strand < 0) strand = 1 + ((isDna || isTranslated()) && refStrand < 2);
 
+  if (expectedAlignments <= 0 && expectedPerSquareGiga <= 0 &&
+      queryLettersPerRandomAlignment <= 0) {
+    queryLettersPerRandomAlignment = default_D;
+  }
+
   if( isGreedy ){
     if( matchScore     < 0 ) matchScore     =   2;
     if( mismatchCost   < 0 ) mismatchCost   =   3;
@@ -733,7 +745,10 @@ void LastalArguments::writeCommented( std::ostream& stream ) const{
   stream << " x=" << maxDropGapped;
   stream << " y=" << maxDropGapless;
   stream << " z=" << maxDropFinal;
-  stream << " D=" << queryLettersPerRandomAlignment;
+  if (expectedAlignments > 0)
+    stream << " H=" << expectedAlignments;
+  if (queryLettersPerRandomAlignment > 0)
+    stream << " D=" << queryLettersPerRandomAlignment;
   if (expectedPerSquareGiga >= 0)
     stream << " E=" << expectedPerSquareGiga;
   stream << '\n';

@@ -119,7 +119,24 @@ E-value options
     LENGTH query letters.  This option only affects the default value
     of ``-E``, so if you specify ``-E`` then ``-D`` has no effect.
 
--E THRESHOLD
+-H EXPECT
+    Report alignments that are expected by chance at most this many
+    times, in all the sequences.  This option requires reading the
+    queries twice (to get their lengths before finding alignments), so
+    it doesn't allow piped-in queries.
+
+    This option **changes the meaning of ``E=``** in the results!  In
+    this example::
+
+      score=85 E=5.9
+
+    ``E`` is the expected number of alignments with score ≥ 85,
+    between sequences of shuffled letters, with the same lengths as
+
+    * All the reference sequences, and all the query sequences (with ``-H``)
+    * All the reference sequences, and that one query sequence (without ``-H``)
+
+-E EXPECT
     Maximum EG2 (`expected alignments per square giga
     <doc/last-evalues.rst>`_).  This option only affects the default
     value of ``-e``, so if you specify ``-e`` then ``-E`` has no
