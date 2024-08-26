@@ -360,7 +360,6 @@ static void dump1(const std::string &dbName, const uchar *decode,
 }
 
 static void dump(const std::string &dbName) {
-  std::ios_base::sync_with_stdio(false);  // makes it much faster!
   std::string alphabetLetters;
   int version = 0;
   unsigned volumes = -1;
@@ -406,6 +405,7 @@ static void dump(const std::string &dbName) {
 }
 
 void lastdb( int argc, char** argv ){
+  std::ios_base::sync_with_stdio(false);  // makes it much faster!
   LastdbArguments args;
   args.fromArgs( argc, argv );
   if (args.isDump) return dump(args.lastdbName);
