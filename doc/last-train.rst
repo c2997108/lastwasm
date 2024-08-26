@@ -45,6 +45,12 @@ sequences, you may need to use more chunks (option
 You can see how much training data was used at each iteration by
 looking at ``aligned letter pairs`` and ``alignments`` in the output.
 
+The ``--codon`` option needs much training data, to learn 64×21
+substitution rates.  If there are few truly-related segments, it can
+wrongly learn high substitution probabilities for unrelated sequences
+next to those segments.  In the worst case, these unrelated sequences
+are highly repeated.
+
 Options
 -------
 

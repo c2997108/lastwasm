@@ -98,11 +98,11 @@ void writeLastalOptions( std::ostream& out, const std::string& seedText ){
 
 void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const Alphabet& alph, countT sequenceCount,
-		   size_t maxSeqLen, const std::vector<countT>& letterCounts,
+		   size_t maxSeqLen, const countT *letterCounts,
 		   bool isFastq, unsigned volumes, unsigned numOfIndexes,
 		   const std::string& seedText ){
-  countT letterTotal = std::accumulate( letterCounts.begin(),
-                                        letterCounts.end(), countT(0) );
+  countT letterTotal = std::accumulate(letterCounts,
+				       letterCounts + alph.size, countT(0));
 
   std::ofstream f( fileName.c_str() );
   f << "version=" <<
@@ -114,7 +114,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
   f << "numofletters=" << letterTotal << '\n';
   f << "maxsequenceletters=" << maxSeqLen << '\n';
   f << "letterfreqs=";
-  for( unsigned i = 0; i < letterCounts.size(); ++i ){
+  for (unsigned i = 0; i < alph.size; ++i) {
     if( i > 0 ) f << ' ';
     f << letterCounts[i];
   }
@@ -215,13 +215,14 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
   }
 
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
-		maxSeqLen, letterCounts,
+		maxSeqLen, &letterCounts[0],
 		multi.qualsPerLetter(), -1, numOfIndexes, seedText );
+
+  size_t wordCounts[dnaWordsFinderNull + 1] = {0};
 
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     SubsetSuffixArray myIndex;
     std::vector<CyclicSubsetSeed> &indexSeeds = myIndex.getSeeds();
-    size_t wordCounts[dnaWordsFinderNull + 1] = {0};
 
     if (wordsFinder.wordLength) {
       const uchar *seqEnd = seq + textLength;
@@ -519,7 +520,7 @@ void lastdb( int argc, char** argv ){
   }
 
   writePrjFile( args.lastdbName + ".prj", args, alph, sequenceCount,
-		maxSeqLenSeen, letterCounts, multi.qualsPerLetter(),
+		maxSeqLenSeen, &letterCounts[0], multi.qualsPerLetter(),
 		volumeNumber, seeds.size(), seedText );
 }
 

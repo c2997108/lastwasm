@@ -240,14 +240,17 @@ genomes).  To find shorter alignments, add lastal_ option ``-D100``
 query letters (the default is once per million.)  This makes the
 minimum alignment length about 20 bases for a human-size genome.
 
-Aligning paired-end Illumina DNA reads to a genome
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Aligning paired DNA reads to a genome
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use last-split-pe_, or the older last-pair-probs_.  The
-difference is that ``last-split-pe`` allows different parts of one
-read (i.e. one "end") to align to different parts of the genome, like
-``--split``.  (Or you could align the reads individually, ignoring the
-pair relationships.)
+Suppose we have paired reads in 2 files, ``reads1.fastq`` and
+``reads2.fastq``.  The simplest thing is::
+
+   lastal -P8 -2 --split -p reads.train mydb reads1.fastq reads2.fastq > out.maf
+
+``-2`` organizes the results for paired reads next to each other.  It
+doesn't use the pairing to inform the alignments: to do that, try
+last-split-pe_ (or the older last-pair-probs_).
 
 Aligning potentially-spliced Illumina reads to a genome
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
