@@ -152,32 +152,47 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 }
 
 static void preprocessSomeSeqs(MultiSequence &multi,
+			       countT *letterCounts, size_t *maxSeqLen,
+			       const LastdbArguments &args,
 			       const Alphabet &alph,
 			       const TantanMasker &masker,
 			       size_t numOfChunks, size_t chunkNum) {
+  bool isMask = args.tantanSetting && !args.isCountsOnly;
   size_t beg = firstSequenceInChunk(multi, numOfChunks, chunkNum);
   size_t end = firstSequenceInChunk(multi, numOfChunks, chunkNum + 1);
+  size_t letterTotal = 0;
 
   for (size_t i = beg; i < end; ++i) {
     uchar *b = multi.seqWriter() + multi.seqBeg(i);
     uchar *e = multi.seqWriter() + multi.seqEnd(i);
-    masker.mask(b, e, alph.numbersToLowercase);
+    alph.count(b, e, letterCounts);
+    countT zero = 0;
+    size_t t = std::accumulate(letterCounts, letterCounts + alph.size, zero);
+    *maxSeqLen = std::max(*maxSeqLen, t - letterTotal);
+    letterTotal = t;
+    if (isMask) masker.mask(b, e, alph.numbersToLowercase);
   }
 }
 
 static void preprocessSeqs(MultiSequence *multi,
-			   const Alphabet *alph,
+			   countT *letterCounts, size_t *maxSeqLen,
+			   const LastdbArguments *args, const Alphabet *alph,
 			   const TantanMasker *masker,
 			   size_t numOfChunks, size_t chunkNum) {
   if (chunkNum + 1 < numOfChunks) {
 #ifdef HAS_CXX_THREADS
-    std::thread t(preprocessSeqs, multi, alph, masker,
-		  numOfChunks, chunkNum+1);
-    preprocessSomeSeqs(*multi, *alph, *masker, numOfChunks, chunkNum);
+    int z = alph->size;
+    std::thread t(preprocessSeqs, multi, letterCounts+z, maxSeqLen+1,
+		  args, alph, masker, numOfChunks, chunkNum+1);
+    preprocessSomeSeqs(*multi, letterCounts, maxSeqLen, *args,
+		       *alph, *masker, numOfChunks, chunkNum);
     t.join();
+    for (int i = 0; i < z; ++i) letterCounts[i] += letterCounts[z + i];
+    maxSeqLen[0] = std::max(maxSeqLen[0], maxSeqLen[1]);
 #endif
   } else {
-    preprocessSomeSeqs(*multi, *alph, *masker, numOfChunks, chunkNum);
+    preprocessSomeSeqs(*multi, letterCounts, maxSeqLen, *args,
+		       *alph, *masker, numOfChunks, chunkNum);
   }
 }
 
@@ -193,31 +208,23 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
   size_t textLength = multi.seqBeg(numOfSequences);
   const uchar* seq = multi.seqReader();
 
-  std::vector<countT> letterCounts(alph.size);
-  size_t maxSeqLen = 0;
-  size_t letterTotal = 0;
-  for (size_t i = 0; i < numOfSequences; ++i) {
-    alph.count(seq + multi.seqBeg(i), seq + multi.seqEnd(i), &letterCounts[0]);
-    size_t t = accumulate(letterCounts.begin(), letterCounts.end(), countT(0));
-    maxSeqLen = std::max(maxSeqLen, t - letterTotal);
-    letterTotal = t;
-  }
+  std::vector<countT> letterCounts(alph.size * numOfThreads);
+  std::vector<size_t> maxSeqLen(numOfThreads);
+
+  LOG("preprocessing...");
+  preprocessSeqs(&multi, &letterCounts[0], &maxSeqLen[0],
+		 &args, &alph, &masker, numOfThreads, 0);
 
   for (unsigned c = 0; c < alph.size; ++c) {
     letterCountsSeen[c] += letterCounts[c];
   }
-  maxSeqLenSeen = std::max(maxSeqLenSeen, maxSeqLen);
+  maxSeqLenSeen = std::max(maxSeqLenSeen, maxSeqLen[0]);
 
   if (args.isCountsOnly) return;
 
-  if( args.tantanSetting ){
-    LOG( "masking..." );
-    preprocessSeqs(&multi, &alph, &masker, numOfThreads, 0);
-  }
-
-  writePrjFile( baseName + ".prj", args, alph, numOfSequences,
-		maxSeqLen, &letterCounts[0],
-		multi.qualsPerLetter(), -1, numOfIndexes, seedText );
+  writePrjFile(baseName + ".prj", args, alph, numOfSequences,
+	       maxSeqLen[0], &letterCounts[0],
+	       multi.qualsPerLetter(), -1, numOfIndexes, seedText);
 
   size_t wordCounts[dnaWordsFinderNull + 1] = {0};
 
