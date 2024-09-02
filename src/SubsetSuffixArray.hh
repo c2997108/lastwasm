@@ -145,8 +145,8 @@ public:
   // Sort the suffix array (but don't make the buckets).
   void sortIndex(const uchar *text,
 		 unsigned wordLength, const size_t *cumulativeCounts,
-		 size_t maxUnsortedInterval, int childTableType,
-		 size_t numOfThreads);
+		 size_t maxUnsortedRange,
+		 int childTableType, size_t numOfThreads);
 
   // Make the buckets.  If bucketDepth+1 == 0, then the bucket depth
   // is: the maximum possible such that (memory use of buckets) <=
@@ -245,13 +245,13 @@ private:
   void sortOutOfPlace(std::vector<Range> &stack, size_t cacheSize,
 		      size_t *intCache, uchar *seqCache, const uchar *text,
 		      const CyclicSubsetSeed &seed,
-		      size_t maxUnsortedInterval, size_t origin);
+		      size_t maxUnsortedRange, size_t origin);
 
   void sortRanges(std::vector<Range> *stacks, size_t cacheSize,
 		  size_t *intCache, uchar *seqCache, const uchar *text,
 		  unsigned wordLength, unsigned seedNum,
-		  size_t maxUnsortedInterval, size_t numOfThreads,
-		  size_t endOfRanges);
+		  size_t maxUnsortedRange,
+		  size_t numOfThreads, size_t endOfRanges);
 
   size_t getChild(size_t i) const {
     if ((chiArray.bitsPerItem & 128) == 0) return chiArray[i];
