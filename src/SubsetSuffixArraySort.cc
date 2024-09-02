@@ -301,7 +301,7 @@ void SubsetSuffixArray::radixSortN(std::vector<Range> &rangeStack,
   const bool isChildFwd = isChildDirectionForward(beg);
   size_t *a = (size_t *)&suffixArray.v[0];
   const int bits = sufArray.bitsPerItem;
-  size_t whereTo[numOfBuckets];
+  size_t whereTo[256];
 
   // get bucket sizes (i.e. letter counts):
   // The intermediate oracle array makes it faster (see "Engineering
@@ -409,16 +409,17 @@ void SubsetSuffixArray::deepSort(std::vector<Range> &rangeStack,
 }
 
 void SubsetSuffixArray::twoArraySort(std::vector<Range> &rangeStack,
+				     const CyclicSubsetSeed &seed,
 				     const uchar *text, const uchar *subsetMap,
 				     size_t origin, size_t beg, size_t end,
-				     size_t depth, unsigned subsetCount,
-				     size_t cacheSize,
+				     size_t depth, size_t cacheSize,
 				     size_t *positions, uchar *seqCache) {
   const bool isChildFwd = isChildDirectionForward(origin + beg);
-  size_t whereTo[numOfBuckets];
+  size_t whereTo[256];
   size_t *bucketSizes = positions + cacheSize;
   size_t *positions2 = bucketSizes + numOfBuckets;
 
+ restart:
   for (size_t i = beg; i < end; ++i) {
     seqCache[i] = subsetMap[text[positions[i]]];
   }  // this loop fission seems to make it much faster
@@ -428,10 +429,16 @@ void SubsetSuffixArray::twoArraySort(std::vector<Range> &rangeStack,
 
   ++depth;
 
+  size_t endPos = end - bucketSizes[CyclicSubsetSeed::DELIMITER];
   size_t oldPos = beg;
-  for (unsigned i = 0; i < subsetCount; ++i) {
+  for (int i = 0; oldPos < endPos; ++i) {
     size_t bs = bucketSizes[i];
     bucketSizes[i] = 0;  // reset it so we can reuse it
+    if (bs == end - beg) {  // unnecessary, aims for speed
+      ++text;
+      subsetMap = seed.nextMap(subsetMap);
+      goto restart;
+    }
     size_t newPos = oldPos + bs;
     whereTo[i] = oldPos;
     pushRange(rangeStack, oldPos, newPos, depth);
@@ -490,7 +497,7 @@ static unsigned getSubsetCount(const CyclicSubsetSeed &seed,
 void SubsetSuffixArray::sortOutOfPlace(std::vector<Range> &stack,
 				       size_t cacheSize,
 				       size_t *intCache, uchar *seqCache,
-				       const uchar *text, unsigned wordLength,
+				       const uchar *text,
 				       const CyclicSubsetSeed &seed,
 				       size_t maxUnsortedInterval,
 				       size_t origin) {
@@ -521,9 +528,8 @@ void SubsetSuffixArray::sortOutOfPlace(std::vector<Range> &stack,
       }
     }
 
-    unsigned subsetCount = getSubsetCount(seed, depth, wordLength);
-    twoArraySort(stack, textBase, subsetMap, origin, beg, end,
-		 depth, subsetCount, cacheSize, intCache, seqCache);
+    twoArraySort(stack, seed, textBase, subsetMap, origin, beg, end,
+		 depth, cacheSize, intCache, seqCache);
   }
 }
 
@@ -611,7 +617,7 @@ void SubsetSuffixArray::sortRanges(std::vector<Range> *stacks,
       unpackBits(bits, a, intCache, beg, end);
       pushRange(myStack, 0, interval, depth);
       sortOutOfPlace(myStack, cacheSize, intCache, seqCache, text,
-		     wordLength, seed, maxUnsortedInterval, beg);
+		     seed, maxUnsortedInterval, beg);
       packBits(bits, a, intCache, beg, end);
       continue;
     }

@@ -237,14 +237,14 @@ private:
 		size_t beg, size_t end, size_t depth, size_t *bucketSizes);
 
   void twoArraySort(std::vector<Range> &rangeStack,
+		    const CyclicSubsetSeed &seed,
 		    const uchar *text, const uchar *subsetMap,
 		    size_t origin, size_t beg, size_t end, size_t depth,
-		    unsigned subsetCount, size_t cacheSize,
-		    size_t *positions, uchar *seqCache);
+		    size_t cacheSize, size_t *positions, uchar *seqCache);
 
   void sortOutOfPlace(std::vector<Range> &stack, size_t cacheSize,
 		      size_t *intCache, uchar *seqCache, const uchar *text,
-		      unsigned wordLength, const CyclicSubsetSeed &seed,
+		      const CyclicSubsetSeed &seed,
 		      size_t maxUnsortedInterval, size_t origin);
 
   void sortRanges(std::vector<Range> *stacks, size_t cacheSize,
