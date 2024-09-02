@@ -151,13 +151,15 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
   if( !f ) ERR( "can't write file: " + fileName );
 }
 
-static void preprocessSomeSeqs(MultiSequence &multi,
-			       countT *letterCounts, size_t *maxSeqLen,
+static void preprocessSomeSeqs(MultiSequence &multi, countT *letterCounts,
+			       size_t *maxSeqLen, size_t *wordCounts,
 			       const LastdbArguments &args,
 			       const Alphabet &alph,
 			       const TantanMasker &masker,
+			       const DnaWordsFinder &wordsFinder,
 			       size_t numOfChunks, size_t chunkNum) {
   bool isMask = args.tantanSetting && !args.isCountsOnly;
+  bool isWord = wordsFinder.wordLength && !args.isCountsOnly;
   size_t beg = firstSequenceInChunk(multi, numOfChunks, chunkNum);
   size_t end = firstSequenceInChunk(multi, numOfChunks, chunkNum + 1);
   size_t letterTotal = 0;
@@ -171,28 +173,33 @@ static void preprocessSomeSeqs(MultiSequence &multi,
     *maxSeqLen = std::max(*maxSeqLen, t - letterTotal);
     letterTotal = t;
     if (isMask) masker.mask(b, e, alph.numbersToLowercase);
+    if (isWord) wordsFinder.count(b, e, wordCounts);
   }
 }
 
-static void preprocessSeqs(MultiSequence *multi,
-			   countT *letterCounts, size_t *maxSeqLen,
+static void preprocessSeqs(MultiSequence *multi, countT *letterCounts,
+			   size_t *maxSeqLen, size_t *wordCounts,
 			   const LastdbArguments *args, const Alphabet *alph,
 			   const TantanMasker *masker,
+			   const DnaWordsFinder *wordsFinder,
 			   size_t numOfChunks, size_t chunkNum) {
   if (chunkNum + 1 < numOfChunks) {
 #ifdef HAS_CXX_THREADS
     int z = alph->size;
-    std::thread t(preprocessSeqs, multi, letterCounts+z, maxSeqLen+1,
-		  args, alph, masker, numOfChunks, chunkNum+1);
-    preprocessSomeSeqs(*multi, letterCounts, maxSeqLen, *args,
-		       *alph, *masker, numOfChunks, chunkNum);
+    int w = dnaWordsFinderNull + 1;
+    std::thread t(preprocessSeqs,
+		  multi, letterCounts+z, maxSeqLen+1, wordCounts+w,
+		  args, alph, masker, wordsFinder, numOfChunks, chunkNum+1);
+    preprocessSomeSeqs(*multi, letterCounts, maxSeqLen, wordCounts, *args,
+		       *alph, *masker, *wordsFinder, numOfChunks, chunkNum);
     t.join();
+    for (int i = 0; i < w; ++i) wordCounts[i] += wordCounts[w + i];
     for (int i = 0; i < z; ++i) letterCounts[i] += letterCounts[z + i];
     maxSeqLen[0] = std::max(maxSeqLen[0], maxSeqLen[1]);
 #endif
   } else {
-    preprocessSomeSeqs(*multi, letterCounts, maxSeqLen, *args,
-		       *alph, *masker, numOfChunks, chunkNum);
+    preprocessSomeSeqs(*multi, letterCounts, maxSeqLen, wordCounts, *args,
+		       *alph, *masker, *wordsFinder, numOfChunks, chunkNum);
   }
 }
 
@@ -209,11 +216,13 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
   const uchar* seq = multi.seqReader();
 
   std::vector<countT> letterCounts(alph.size * numOfThreads);
-  std::vector<size_t> maxSeqLen(numOfThreads);
+  std::vector<size_t> sizeVector((dnaWordsFinderNull + 2) * numOfThreads);
+  size_t *maxSeqLen = &sizeVector[0];
+  size_t *wordCounts = maxSeqLen + numOfThreads;
 
   LOG("preprocessing...");
-  preprocessSeqs(&multi, &letterCounts[0], &maxSeqLen[0],
-		 &args, &alph, &masker, numOfThreads, 0);
+  preprocessSeqs(&multi, &letterCounts[0], maxSeqLen, wordCounts,
+		 &args, &alph, &masker, &wordsFinder, numOfThreads, 0);
 
   for (unsigned c = 0; c < alph.size; ++c) {
     letterCountsSeen[c] += letterCounts[c];
@@ -226,16 +235,12 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 	       maxSeqLen[0], &letterCounts[0],
 	       multi.qualsPerLetter(), -1, numOfIndexes, seedText);
 
-  size_t wordCounts[dnaWordsFinderNull + 1] = {0};
-
   for( unsigned x = 0; x < numOfIndexes; ++x ){
     SubsetSuffixArray myIndex;
     std::vector<CyclicSubsetSeed> &indexSeeds = myIndex.getSeeds();
 
     if (wordsFinder.wordLength) {
       const uchar *seqEnd = seq + textLength;
-      LOG("counting...");
-      wordsFinder.count(seq, seqEnd, wordCounts);
       std::partial_sum(wordCounts, wordCounts + seeds.size(), wordCounts);
       LOG("gathering...");
       seeds.swap(indexSeeds);
