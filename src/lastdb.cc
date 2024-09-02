@@ -163,21 +163,20 @@ static void preprocessSomeSeqs(MultiSequence *multi,
     masker->mask(w + multi->seqBeg(i), w + multi->seqEnd(i), maskTable);
 }
 
-static void preprocessSeqs(MultiSequence &multi,
-			   const TantanMasker &masker,
+static void preprocessSeqs(MultiSequence *multi,
+			   const TantanMasker *masker,
 			   const uchar *maskTable,
-			   size_t numOfChunks) {
+			   size_t numOfChunks, size_t chunkNum) {
+  if (chunkNum + 1 < numOfChunks) {
 #ifdef HAS_CXX_THREADS
-  std::vector<std::thread> threads(numOfChunks - 1);
-  for (size_t i = 1; i < numOfChunks; ++i)
-    threads[i - 1] = std::thread(preprocessSomeSeqs,
-				 &multi, &masker, maskTable, numOfChunks, i);
+    std::thread t(preprocessSeqs, multi, masker, maskTable,
+		  numOfChunks, chunkNum+1);
+    preprocessSomeSeqs(multi, masker, maskTable, numOfChunks, chunkNum);
+    t.join();
 #endif
-  preprocessSomeSeqs(&multi, &masker, maskTable, numOfChunks, 0);
-#ifdef HAS_CXX_THREADS
-  for (size_t i = 1; i < numOfChunks; ++i)
-    threads[i - 1].join();
-#endif
+  } else {
+    preprocessSomeSeqs(multi, masker, maskTable, numOfChunks, chunkNum);
+  }
 }
 
 // Make one database volume, from one batch of sequences
@@ -211,7 +210,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 
   if( args.tantanSetting ){
     LOG( "masking..." );
-    preprocessSeqs( multi, masker, alph.numbersToLowercase, numOfThreads );
+    preprocessSeqs(&multi, &masker, alph.numbersToLowercase, numOfThreads, 0);
   }
 
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,

@@ -90,8 +90,8 @@ Advanced Options
 
     0. Do not check for simple repeats.
     1. Convert simple repeats (e.g. ``cacacacacacacacac``) to
-       lowercase.  This uses tantan_, which reliably prevents
-       non-homologous alignments, unlike other repeat finders.
+       lowercase.  This uses tantan_, which prevents non-homologous
+       alignments.
     2. Convert simple DNA repeats to lowercase, with tantan tuned
        for ~80% AT-rich genomes.
     3. Convert simple repeats, including weaker simple repeats, to
@@ -101,9 +101,10 @@ Advanced Options
     the default is ``-R03``).
 
 -U LENGTH
-    Maximum repeat unit length for simple repeats.  Higher values make
-    repeat-finding slower.  The default is 100 for DNA and 50 for
-    protein, which prevents non-homologous alignments.
+    Maximum length of the repeating unit, for tandem repeats found by
+    tantan.  Higher values make repeat-finding slower.  The default is
+    100 for DNA and 50 for protein, which prevents non-homologous
+    alignments.
 
     For DNA, however, the default is 400 if you:
 
