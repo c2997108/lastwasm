@@ -426,10 +426,13 @@ void SubsetSuffixArray::twoArraySort(std::vector<Range> &rangeStack,
     ++bucketSizes[seqCache[i]];
   }
 
+  ++depth;
+
   size_t oldPos = beg;
   for (unsigned i = 0; i < subsetCount; ++i) {
-    size_t newPos = oldPos + bucketSizes[i];
+    size_t bs = bucketSizes[i];
     bucketSizes[i] = 0;  // reset it so we can reuse it
+    size_t newPos = oldPos + bs;
     whereTo[i] = oldPos;
     pushRange(rangeStack, oldPos, newPos, depth);
     setChildLink(isChildFwd, origin, beg, end, oldPos, newPos);
@@ -520,7 +523,7 @@ void SubsetSuffixArray::sortOutOfPlace(std::vector<Range> &stack,
 
     unsigned subsetCount = getSubsetCount(seed, depth, wordLength);
     twoArraySort(stack, textBase, subsetMap, origin, beg, end,
-		 depth + 1, subsetCount, cacheSize, intCache, seqCache);
+		 depth, subsetCount, cacheSize, intCache, seqCache);
   }
 }
 
