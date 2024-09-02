@@ -152,33 +152,32 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 }
 
 static void preprocessSomeSeqs(MultiSequence &multi,
+			       const Alphabet &alph,
 			       const TantanMasker &masker,
-			       const uchar *maskTable,
-			       size_t numOfChunks,
-			       size_t chunkNum) {
+			       size_t numOfChunks, size_t chunkNum) {
   size_t beg = firstSequenceInChunk(multi, numOfChunks, chunkNum);
   size_t end = firstSequenceInChunk(multi, numOfChunks, chunkNum + 1);
 
   for (size_t i = beg; i < end; ++i) {
     uchar *b = multi.seqWriter() + multi.seqBeg(i);
     uchar *e = multi.seqWriter() + multi.seqEnd(i);
-    masker.mask(b, e, maskTable);
+    masker.mask(b, e, alph.numbersToLowercase);
   }
 }
 
 static void preprocessSeqs(MultiSequence *multi,
+			   const Alphabet *alph,
 			   const TantanMasker *masker,
-			   const uchar *maskTable,
 			   size_t numOfChunks, size_t chunkNum) {
   if (chunkNum + 1 < numOfChunks) {
 #ifdef HAS_CXX_THREADS
-    std::thread t(preprocessSeqs, multi, masker, maskTable,
+    std::thread t(preprocessSeqs, multi, alph, masker,
 		  numOfChunks, chunkNum+1);
-    preprocessSomeSeqs(*multi, *masker, maskTable, numOfChunks, chunkNum);
+    preprocessSomeSeqs(*multi, *alph, *masker, numOfChunks, chunkNum);
     t.join();
 #endif
   } else {
-    preprocessSomeSeqs(*multi, *masker, maskTable, numOfChunks, chunkNum);
+    preprocessSomeSeqs(*multi, *alph, *masker, numOfChunks, chunkNum);
   }
 }
 
@@ -213,7 +212,7 @@ void makeVolume(std::vector<CyclicSubsetSeed>& seeds,
 
   if( args.tantanSetting ){
     LOG( "masking..." );
-    preprocessSeqs(&multi, &masker, alph.numbersToLowercase, numOfThreads, 0);
+    preprocessSeqs(&multi, &alph, &masker, numOfThreads, 0);
   }
 
   writePrjFile( baseName + ".prj", args, alph, numOfSequences,
