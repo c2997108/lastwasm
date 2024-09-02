@@ -118,7 +118,6 @@ public:
   void resizePositions(size_t numOfPositions, size_t seqLength,
 		       size_t numOfThreads) {
     sufArray.bitsPerItem = numOfBitsNeededFor(seqLength - 1);
-    bckArray.bitsPerItem = numOfBitsNeededFor(numOfPositions);
     chiArray.bitsPerItem = numOfBitsNeededFor(numOfPositions - 1);
     size_t n = totalItemsBetweenThreads(sufArray.bitsPerItem, numOfThreads);
     suffixArray.v.resize(numOfBytes(sufArray.bitsPerItem, numOfPositions + n));

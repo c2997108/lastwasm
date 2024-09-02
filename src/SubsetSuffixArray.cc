@@ -229,6 +229,7 @@ void SubsetSuffixArray::makeBuckets(const uchar *text,
 				    size_t minPositionsPerBucket,
 				    unsigned bucketDepth,
 				    size_t numOfThreads) {
+  bckArray.bitsPerItem = numOfBitsNeededFor(cumulativeCounts[seeds.size()-1]);
   std::vector<unsigned> bucketDepths(seeds.size(), bucketDepth);
   if (bucketDepth+1 == 0) {
     assert(minPositionsPerBucket > 0);
