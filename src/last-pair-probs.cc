@@ -483,15 +483,17 @@ static bool readBatches(std::istream &in1, std::istream &in2,
 			std::vector<String> &lines,
 			std::vector<const String *> &batchEnds,
 			int numOfPairs) {
-  text.clear();
   std::vector<size_t> lineStarts;
   std::vector<size_t> batchEndCoords(1);
-  bool ok1 = true;
-  bool ok2 = true;
+
+  text.clear();
+
+  bool ok = true;
   for (int i = 0; i < numOfPairs; ++i) {
-    ok1 = readBatch(in1, text, lineStarts, batchEndCoords);
-    ok2 = readBatch(in2, text, lineStarts, batchEndCoords);
-    if (!ok1 || !ok2) break;
+    bool ok1 = readBatch(in1, text, lineStarts, batchEndCoords);
+    bool ok2 = readBatch(in2, text, lineStarts, batchEndCoords);
+    ok = ok1 && ok2;
+    if (!ok) break;
   }
 
   lines.resize(lineStarts.size());
@@ -506,7 +508,7 @@ static bool readBatches(std::istream &in1, std::istream &in2,
     batchEnds[i] = linesBeg + batchEndCoords[i];
   }
 
-  return ok1 && ok2;
+  return ok;
 }
 
 static void parseBatch(const String *linesBeg, const String *linesEnd,
@@ -542,7 +544,7 @@ static void readQueryPairs1pass(std::vector<long> &lengths,
 				double scale1, double scale2,
 				const std::set<std::string> &circularChroms) {
   std::vector<Alignment> a1, a2;
-  for (size_t i = 1; i < batchEnds.size(); i += 2) {
+  for (size_t i = 1; i+1 < batchEnds.size(); i += 2) {
     parseBatch(batchEnds[i-1], batchEnds[i], '+', scale1, circularChroms, a1);
     parseBatch(batchEnds[i], batchEnds[i+1], '-', scale2, circularChroms, a2);
     unambiguousFragmentLengths(a1, a2, lengths);
@@ -553,7 +555,7 @@ static void readQueryPairs2pass(const std::vector<const String *> &batchEnds,
                                 double scale1, double scale2,
                                 const LastPairProbsOptions& opts) {
   std::vector<Alignment> a1, a2;
-  for (size_t i = 1; i < batchEnds.size(); i += 2) {
+  for (size_t i = 1; i+1 < batchEnds.size(); i += 2) {
     parseBatch(batchEnds[i-1], batchEnds[i], '+', scale1, opts.circular, a1);
     parseBatch(batchEnds[i], batchEnds[i+1], '-', scale2, opts.circular, a2);
     printAlnsForOneRead(a1, a2, opts, opts.maxMissingScore1, "/1");
