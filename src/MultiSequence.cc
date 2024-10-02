@@ -155,7 +155,7 @@ void MultiSequence::duplicateOneSequence(size_t seqNum) {
   for (size_t i = nameBeg; i < nameEnd; ++i) {
     names.v.push_back(names.v[i]);
   }
-  finishName();
+  nameEnds.v.push_back(names.v.size());
 
   size_t b = seqBeg(seqNum);
   size_t e = padEnd(seqNum);

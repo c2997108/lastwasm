@@ -206,17 +206,10 @@ class MultiSequence{
   // read the letters above PSSM columns, so we know which column is which
   std::istream& readPssmHeader( std::istream& stream );
 
-  void finishName() {  // finish adding a sequence name: store its end coord
-    nameEnds.v.push_back(names.v.size());
-    if (nameEnds.v.back() < names.v.size()) {
-      throw std::runtime_error("the sequence names are too long");
-    }
-  }
-
   void addName(const std::string &name) {  // add a new sequence name
     names.v.insert(names.v.end(), name.begin(), name.end());
     names.v.push_back('\n');
-    finishName();
+    nameEnds.v.push_back(names.v.size());
   }
 
   void appendQualPad() {  // add delimiter to the end of the quality scores

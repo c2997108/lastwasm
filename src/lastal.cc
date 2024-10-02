@@ -1293,7 +1293,7 @@ static std::istream &getInput(mcf::izstream &f) {
 }
 
 static bool readPairedSequences(MultiSequence &qrySeqs) {
-  const bool isMask = (args.maskLowercase > 1);
+  const bool m = (args.maskLowercase > 1);
   std::istream &in1 = getInput(querySequenceFile);
   std::istream &in2 =
     querySequenceFileNames[1] ? getInput(querySequenceFile2) : in1;
@@ -1301,9 +1301,9 @@ static bool readPairedSequences(MultiSequence &qrySeqs) {
   bool y = false;
   {
     std::lock_guard<std::mutex> lockGuard(inputMutex);
-    if (appendSequence(qrySeqs, in1, -1, args.inputFormat, queryAlph, isMask))
+    if (appendSequence(qrySeqs, in1, -1, args.inputFormat, queryAlph, m))
       x = true;
-    if (appendSequence(qrySeqs, in2, -1, args.inputFormat, queryAlph, isMask))
+    if (appendSequence(qrySeqs, in2, -1, args.inputFormat, queryAlph, m))
       y = true;
   }
   if (x != y) err("unequal numbers of paired sequences");
@@ -1314,15 +1314,15 @@ static bool readPairedSequences(MultiSequence &qrySeqs) {
 static bool readSequenceData(MultiSequence &qrySeqs) {
   if (args.isPairedQuerySequences) return readPairedSequences(qrySeqs);
   const size_t maxPairedSeqLen = 2000;  // xxx ???
-  const bool isMask = (args.maskLowercase > 1);
+  const bool m = (args.maskLowercase > 1);
   std::lock_guard<std::mutex> lockGuard(inputMutex);
 
   while (*querySequenceFileNames) {
     bool isFile = !isSingleDash(*querySequenceFileNames);
     std::istream &in = isFile ? querySequenceFile : std::cin;
-    if (appendSequence(qrySeqs, in, -1, args.inputFormat, queryAlph, isMask)) {
+    if (appendSequence(qrySeqs, in, -1, args.inputFormat, queryAlph, m)) {
       if (qrySeqs.isFinished() && qrySeqs.seqLen(0) <= maxPairedSeqLen) {
-	appendSequence(qrySeqs, in, -1, args.inputFormat, queryAlph, isMask);
+	appendSequence(qrySeqs, in, -1, args.inputFormat, queryAlph, m);
       }
       return true;
     }
