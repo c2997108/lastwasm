@@ -100,7 +100,7 @@ MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
     c = buf->snextc();
   }
 
-  if (isRoomToAppendPad(maxSeqLen)) {
+  if (isRoomToFinish(maxSeqLen)) {
     skipLine(buf);
 
     for (size_t i = seq.v.size() - ends.v.back(); i > 0; ) {
@@ -115,7 +115,7 @@ MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
       }
     }
 
-    finish();
+    finishTheLastSequence();
     appendQualPad();
   }
 
@@ -159,8 +159,8 @@ MultiSequence::appendFromPrb(std::istream &stream, size_t maxSeqLen,
     }
   }
 
-  if (isRoomToAppendPad(maxSeqLen)) {
-    finish();
+  if (isRoomToFinish(maxSeqLen)) {
+    finishTheLastSequence();
     appendQualPad();
   }
 
@@ -248,8 +248,8 @@ MultiSequence::appendFromPssm(std::istream &stream, size_t maxSeqLen,
     stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
   }
 
-  if (isRoomToAppendPad(maxSeqLen)) {
-    finish();
+  if (isRoomToFinish(maxSeqLen)) {
+    finishTheLastSequence();
     appendPssmPad();
   }
 

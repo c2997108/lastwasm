@@ -222,12 +222,11 @@ class MultiSequence{
     pssm.insert(pssm.end(), padSize * scoreMatrixRowSize, -INF);
   }
 
-  bool isRoomToAppendPad(size_t maxSeqLen) const {
+  bool isRoomToFinish(size_t maxSeqLen) const {
     return seq.v.size() <= maxSeqLen && padSize <= maxSeqLen - seq.v.size();
   }
 
-  // finish the last sequence: add final pad and end coordinate
-  void finish() {
+  void finishTheLastSequence() {
     seq.v.insert(seq.v.end(), padSize, ' ');
     ends.v.push_back(seq.v.size());
   }
