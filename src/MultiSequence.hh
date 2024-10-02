@@ -223,10 +223,16 @@ class MultiSequence{
   }
 
   bool isRoomToFinish(size_t maxSeqLen) const {
-    return seq.v.size() <= maxSeqLen && padSize <= maxSeqLen - seq.v.size();
+    size_t s = seq.v.size();
+    return s <= maxSeqLen
+      && padSize + isAppendingStopSymbol <= maxSeqLen - s;
   }
 
   void finishTheLastSequence() {
+    if (isAppendingStopSymbol) {
+      seq.v.push_back('*');
+      qualityScores.v.insert(qualityScores.v.end(), qualsPerLetter(), 126);
+    }
     seq.v.insert(seq.v.end(), padSize, ' ');
     ends.v.push_back(seq.v.size());
   }

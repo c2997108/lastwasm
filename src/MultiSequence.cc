@@ -109,11 +109,7 @@ MultiSequence::appendFromFasta(std::istream &stream, size_t maxSeqLen) {
     c = buf->snextc();
   }
 
-  if (seq.v.size() <= maxSeqLen &&
-      padSize + isAppendingStopSymbol <= maxSeqLen - seq.v.size()) {
-    if (isAppendingStopSymbol) seq.v.push_back('*');
-    finishTheLastSequence();
-  }
+  if (isRoomToFinish(maxSeqLen)) finishTheLastSequence();
 
   return stream;
 }
