@@ -113,7 +113,14 @@ class MultiSequence{
     const char *n = names.begin();
     size_t b = getNameEnd(seqNum);
     size_t e = getNameEnd(seqNum + 1);
-    return (e > b && n[e-1] == '\t') ? '-' : '+';
+    return (e > b && n[e-1] & 1) ? '-' : '+';
+  }
+
+  bool isCircular(size_t seqNum) const {
+    const char *n = names.begin();
+    size_t b = getNameEnd(seqNum);
+    size_t e = getNameEnd(seqNum + 1);
+    return e > b && n[e-1] > '\n';
   }
 
   // get a pointer to the start of the sequence data
@@ -148,7 +155,7 @@ class MultiSequence{
     size_t x = nameEnds[1];
     size_t y = nameEnds[2];
     if (y - x == x && memcmp(n, n + x, x) == 0) {  // if identical names
-      names.v.insert(names.v.end(), 4, '\n');
+      names.v.insert(names.v.end(), 4, n[y - 1]);
       char *b = &names.v[0];
       memmove(b + x + 1, b + x - 1, x);
       memcpy(b + x - 1, "/1", 2);  // append "/1" to the 1st name
@@ -242,6 +249,7 @@ class MultiSequence{
     copy_n(qualityScores.v.begin() + beg * qualsPerLetter(),
 	   len * qualsPerLetter(),
 	   qualityScores.v.begin() + end * qualsPerLetter());
+    names.v.back() = '\f';
   }
 
   void finishTheLastSequence(bool isCirc) {

@@ -129,7 +129,7 @@ void MultiSequence::reverseComplementOneSequence(size_t seqNum,
       s[i] = complement[s[i]];
     }
     char &strandChar = names.v[nameEnds.v[seqNum + 1] - 1];
-    strandChar = "\n\t"[strandChar == '\n'];
+    strandChar = ((strandChar - 1) ^ 1) + 1;
   }
 
   if (!pssm.empty()) {
