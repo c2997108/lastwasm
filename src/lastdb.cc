@@ -103,6 +103,7 @@ void writePrjFile( const std::string& fileName, const LastdbArguments& args,
 		   const std::string& seedText ){
   countT letterTotal = std::accumulate(letterCounts,
 				       letterCounts + alph.size, countT(0));
+  if (args.isCircular) maxSeqLen = 1e9;  // suppress E-value edge correction
 
   std::ofstream f( fileName.c_str() );
   f << "version=" <<
@@ -167,7 +168,8 @@ static void preprocessSomeSeqs(MultiSequence &multi, countT *letterCounts,
   for (size_t i = beg; i < end; ++i) {
     uchar *b = multi.seqWriter() + multi.seqBeg(i);
     uchar *e = multi.seqWriter() + multi.seqEnd(i);
-    alph.count(b, e, letterCounts);
+    size_t s = multi.seqLen(i) >> args.isCircular;
+    alph.count(b, b + s, letterCounts);
     countT zero = 0;
     size_t t = std::accumulate(letterCounts, letterCounts + alph.size, zero);
     *maxSeqLen = std::max(*maxSeqLen, t - letterTotal);
@@ -474,7 +476,7 @@ void lastdb( int argc, char** argv ){
     LOG( "reading " << *i << "..." );
 
     while (appendSequence(multi, in, maxSeqLen, args.inputFormat,
-			  0, alph, 0)) {
+			  args.isCircular, alph, 0)) {
       if (multi.isFinished()) {
 	encodeSequences(multi, args.inputFormat, alph, args.isKeepLowercase,
 			multi.finishedSequences() - 1);

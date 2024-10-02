@@ -253,6 +253,12 @@ Advanced Options
     letters other than ACGTRY to N.  4 can't be combined with ``-p``,
     ``-q``, or ``-a``, or lastal_ option ``-M``.
 
+--circular
+    The sequences given to lastdb are circular.  lastdb handles this
+    by appending a copy of each sequence to itself.  Then, lastal
+    suppresses redundant alignments, and calculates E-values_ for
+    circular (non-self-appended) sequences.
+
 -v  Be verbose: write messages about what lastdb is doing.
 
 -V, --version
@@ -300,6 +306,7 @@ sequences, e.g. two almost-identical genomes.  It usually processes
 several GB per hour, but if it becomes much slower, try option "-i
 10", which is likely to solve the problem.
 
+.. _E-values: doc/last-evalues.rst
 .. _lastal: doc/lastal.rst
 .. _last-train: doc/last-train.rst
 .. _RY32:

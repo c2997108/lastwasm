@@ -23,6 +23,7 @@ using namespace cbrc;
 LastdbArguments::LastdbArguments() :
   isProtein(false),
   isAddStops(false),
+  isCircular(false),
   isKeepLowercase(false),
   tantanSetting(-1),  // the default depends on other parameters
   maxRepeatUnit(-1),  // the default depends on other parameters
@@ -87,6 +88,7 @@ Advanced Options (default settings):\n\
  -D  print all sequences in lastdb files\n\
  --bits=N  use this many bits per base for DNA sequence (default: "
     + stringify(bitsPerBase) + ")\n\
+ --circular  these sequences are circular\n\
  -v  be verbose: write messages about what lastdb is doing\n\
  -V, --version  show version information, and exit\n\
 ";
@@ -97,6 +99,7 @@ Advanced Options (default settings):\n\
     { "help",    no_argument, 0, 'h' },
     { "version", no_argument, 0, 'V' },
     { "bits",    required_argument, 0, 128 },
+    { "circular", no_argument, 0, 'C' - 'A' },
     { 0, 0, 0, 0 }
   };
 
@@ -188,6 +191,9 @@ Advanced Options (default settings):\n\
       unstringify( inputFormat, optarg );
       if (inputFormat == sequenceFormat::prb ||
 	  inputFormat == sequenceFormat::pssm) badopt(c, optarg);
+      break;
+    case 'C' - 'A':
+      isCircular = true;
       break;
     case 128:
       unstringify(bitsPerBase, optarg);

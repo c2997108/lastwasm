@@ -435,6 +435,7 @@ static LastdbData readOuterPrj(const std::string &fileName) {
     ERR("the lastdb files are old: please re-run lastdb");
   }
 
+  if (d.maxSeqLen+1 == 0) d.maxSeqLen = d.numOfLetters;
   if (d.bitsPerInt < 1 && version < 999) d.bitsPerInt = 32;
   alph.init(alphabetLetters, d.bitsPerBase == 4);
   return d;
@@ -1679,9 +1680,8 @@ void lastal(int argc, char **argv) {
     }
     // xxx inconsistency: the query lengths include ambiguous letters
     // (like N in DNA), but the reference lengths don't
-    countT m = std::min(prj.maxSeqLen, prj.numOfLetters);
-    evaluer.setSearchSpace(prj.numOfLetters, m, totQryLen, maxQryLen,
-			   args.numOfStrands());
+    evaluer.setSearchSpace(prj.numOfLetters, prj.maxSeqLen,
+			   totQryLen, maxQryLen, args.numOfStrands());
     minScore = (args.expectedPerSquareGiga > 0)
       ? evaluer.minScore(args.expectedPerSquareGiga, 1e18)
       : (args.queryLettersPerRandomAlignment > 0)

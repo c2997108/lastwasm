@@ -44,6 +44,7 @@ struct LastdbArguments{
   // options:
   bool isProtein;
   bool isAddStops;
+  bool isCircular;
   bool isKeepLowercase;
   int tantanSetting;
   int maxRepeatUnit;
