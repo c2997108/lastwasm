@@ -55,7 +55,7 @@ void readSequenceLengths(std::istream &in, unsigned long long &totLen,
 
 std::istream&
 MultiSequence::appendFromFastx(std::istream &stream, size_t maxSeqLen,
-			       bool isKeepQualityData) {
+			       bool isCirc, bool isKeepQualityData) {
   if (names.empty()) {
     isReadingFastq = false;
     char c = '>';
@@ -70,13 +70,13 @@ MultiSequence::appendFromFastx(std::istream &stream, size_t maxSeqLen,
   }
 
   return isReadingFastq ?
-    appendFromFastq(stream, maxSeqLen, isKeepQualityData) :
-    appendFromFasta(stream, maxSeqLen);
+    appendFromFastq(stream, maxSeqLen, isCirc, isKeepQualityData) :
+    appendFromFasta(stream, maxSeqLen, isCirc);
 }
 
 std::istream&
 MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
-			       bool isKeepQualityData) {
+			       bool isCirc, bool isKeepQualityData) {
   // initForAppending:
   qualityScoresPerLetter = isKeepQualityData;
   if( qualityScores.v.empty() ) appendQualPad();
@@ -100,7 +100,7 @@ MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
     c = buf->snextc();
   }
 
-  if (isRoomToFinish(maxSeqLen)) {
+  if (isRoomToFinish(maxSeqLen, isCirc)) {
     skipLine(buf);
 
     for (size_t i = seq.v.size() - ends.v.back(); i > 0; ) {
@@ -115,7 +115,7 @@ MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
       }
     }
 
-    finishTheLastSequence();
+    finishTheLastSequence(isCirc);
     appendQualPad();
   }
 
@@ -124,6 +124,7 @@ MultiSequence::appendFromFastq(std::istream &stream, size_t maxSeqLen,
 
 std::istream&
 MultiSequence::appendFromPrb(std::istream &stream, size_t maxSeqLen,
+			     bool isCirc,
 			     unsigned alphSize, const uchar decode[]) {
   // initForAppending:
   qualityScoresPerLetter = alphSize;
@@ -159,8 +160,8 @@ MultiSequence::appendFromPrb(std::istream &stream, size_t maxSeqLen,
     }
   }
 
-  if (isRoomToFinish(maxSeqLen)) {
-    finishTheLastSequence();
+  if (isRoomToFinish(maxSeqLen, isCirc)) {
+    finishTheLastSequence(isCirc);
     appendQualPad();
   }
 
@@ -203,7 +204,7 @@ std::istream& MultiSequence::readPssmHeader( std::istream& stream ){
 
 std::istream&
 MultiSequence::appendFromPssm(std::istream &stream, size_t maxSeqLen,
-			      const uchar *lettersToNumbers,
+			      bool isCirc, const uchar *lettersToNumbers,
 			      bool isMaskLowercase) {
   // initForAppending:
   if( pssm.empty() ) appendPssmPad();
@@ -248,8 +249,8 @@ MultiSequence::appendFromPssm(std::istream &stream, size_t maxSeqLen,
     stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
   }
 
-  if (isRoomToFinish(maxSeqLen)) {
-    finishTheLastSequence();
+  if (isRoomToFinish(maxSeqLen, isCirc)) {
+    finishTheLastSequence(isCirc);
     appendPssmPad();
   }
 

@@ -47,25 +47,27 @@ class MultiSequence{
   // Append a sequence with delimiters.  Don't let the total size of
   // the concatenated sequences plus pads exceed maxSeqLen: thus it
   // may not finish reading the sequence.
-  std::istream &appendFromFasta(std::istream &stream, size_t maxSeqLen);
+  std::istream &appendFromFasta(std::istream &stream, size_t maxSeqLen,
+				bool isCirc);
 
   // As above, but read FASTQ format.
   std::istream &appendFromFastq(std::istream &stream, size_t maxSeqLen,
-				bool isKeepQualityData);
+				bool isCirc, bool isKeepQualityData);
 
   // As above, but read either FASTA or FASTQ format.  The first
   // sequence may have either format, but subsequent sequences must
   // have the same format.
   std::istream &appendFromFastx(std::istream &stream, size_t maxSeqLen,
-				bool isKeepQualityData);
+				bool isCirc, bool isKeepQualityData);
 
   // As above, but read quality scores too.
   std::istream &appendFromPrb(std::istream &stream, size_t maxSeqLen,
+			      bool isCirc,
 			      unsigned alphSize, const uchar decode[]);
 
   // As above, but read a PSSM too, in PSI-BLAST ASCII format.
   std::istream &appendFromPssm(std::istream &stream, size_t maxSeqLen,
-			       const uchar *lettersToNumbers,
+			       bool isCirc, const uchar *lettersToNumbers,
 			       bool isMaskLowercase);
 
   // did we finish reading the last sequence?
@@ -222,17 +224,32 @@ class MultiSequence{
     pssm.insert(pssm.end(), padSize * scoreMatrixRowSize, -INF);
   }
 
-  bool isRoomToFinish(size_t maxSeqLen) const {
+  bool isRoomToFinish(size_t maxSeqLen, bool isCirc) const {
     size_t s = seq.v.size();
+    size_t t = s + isAppendingStopSymbol;
     return s <= maxSeqLen
-      && padSize + isAppendingStopSymbol <= maxSeqLen - s;
+      && padSize + isAppendingStopSymbol <= maxSeqLen - s
+      && isCirc * (t - ends.v.back()) <= maxSeqLen - t - padSize;
   }
 
-  void finishTheLastSequence() {
+  void doubleTheLastSequence() {
+    size_t beg = ends.v.back();
+    size_t end = seq.v.size();
+    size_t len = end - beg;
+    seq.v.resize(end + len);
+    copy_n(seq.v.begin() + beg, len, seq.v.begin() + end);
+    qualityScores.v.resize((end + len) * qualsPerLetter());
+    copy_n(qualityScores.v.begin() + beg * qualsPerLetter(),
+	   len * qualsPerLetter(),
+	   qualityScores.v.begin() + end * qualsPerLetter());
+  }
+
+  void finishTheLastSequence(bool isCirc) {
     if (isAppendingStopSymbol) {
       seq.v.push_back('*');
       qualityScores.v.insert(qualityScores.v.end(), qualsPerLetter(), 126);
     }
+    if (isCirc) doubleTheLastSequence();
     seq.v.insert(seq.v.end(), padSize, ' ');
     ends.v.push_back(seq.v.size());
   }

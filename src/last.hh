@@ -39,19 +39,20 @@ inline void encodeSequences(MultiSequence &m, sequenceFormat::Enum f,
 // Read the next sequence, adding it to the MultiSequence
 inline std::istream &appendSequence(MultiSequence &m, std::istream &in,
 				    size_t maxSeqLen, sequenceFormat::Enum f,
+				    bool isCircular,
 				    const Alphabet &a, bool isMaskLowercase) {
   if (f == sequenceFormat::fasta) {
-    m.appendFromFasta(in, maxSeqLen);
+    m.appendFromFasta(in, maxSeqLen, isCircular);
   } else if (f == sequenceFormat::fastx) {
-    m.appendFromFastx(in, maxSeqLen, false);
+    m.appendFromFastx(in, maxSeqLen, isCircular, false);
   } else if (f == sequenceFormat::fastxKeep) {
-    m.appendFromFastx(in, maxSeqLen, true);
+    m.appendFromFastx(in, maxSeqLen, isCircular, true);
   } else if (f == sequenceFormat::prb) {
-    m.appendFromPrb(in, maxSeqLen, a.size, a.decode);
+    m.appendFromPrb(in, maxSeqLen, isCircular, a.size, a.decode);
   } else if (f == sequenceFormat::pssm) {
-    m.appendFromPssm(in, maxSeqLen, a.encode, isMaskLowercase);
+    m.appendFromPssm(in, maxSeqLen, isCircular, a.encode, isMaskLowercase);
   } else {
-    m.appendFromFastq(in, maxSeqLen, true);
+    m.appendFromFastq(in, maxSeqLen, isCircular, true);
   }
 
   return in;

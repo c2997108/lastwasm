@@ -1301,9 +1301,9 @@ static bool readPairedSequences(MultiSequence &qrySeqs) {
   bool y = false;
   {
     std::lock_guard<std::mutex> lockGuard(inputMutex);
-    if (appendSequence(qrySeqs, in1, -1, args.inputFormat, queryAlph, m))
+    if (appendSequence(qrySeqs, in1, -1, args.inputFormat, 0, queryAlph, m))
       x = true;
-    if (appendSequence(qrySeqs, in2, -1, args.inputFormat, queryAlph, m))
+    if (appendSequence(qrySeqs, in2, -1, args.inputFormat, 0, queryAlph, m))
       y = true;
   }
   if (x != y) err("unequal numbers of paired sequences");
@@ -1320,9 +1320,9 @@ static bool readSequenceData(MultiSequence &qrySeqs) {
   while (*querySequenceFileNames) {
     bool isFile = !isSingleDash(*querySequenceFileNames);
     std::istream &in = isFile ? querySequenceFile : std::cin;
-    if (appendSequence(qrySeqs, in, -1, args.inputFormat, queryAlph, m)) {
+    if (appendSequence(qrySeqs, in, -1, args.inputFormat, 0, queryAlph, m)) {
       if (qrySeqs.isFinished() && qrySeqs.seqLen(0) <= maxPairedSeqLen) {
-	appendSequence(qrySeqs, in, -1, args.inputFormat, queryAlph, m);
+	appendSequence(qrySeqs, in, -1, args.inputFormat, 0, queryAlph, m);
       }
       return true;
     }
@@ -1684,7 +1684,7 @@ void lastal(int argc, char **argv) {
       std::istream& in = openIn(*i, inFileStream);
       LOG("reading " << *i << "...");
       while (appendSequence(qrySeqsGlobal, in, maxSeqLen, args.inputFormat,
-			    queryAlph, args.maskLowercase > 1)) {
+			    0, queryAlph, args.maskLowercase > 1)) {
 	if (qrySeqsGlobal.isFinished()) {
 	  maxSeqLen = args.batchSize;
 	} else {

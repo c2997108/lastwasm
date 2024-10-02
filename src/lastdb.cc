@@ -473,7 +473,8 @@ void lastdb( int argc, char** argv ){
     std::istream& in = openIn( *i, inFileStream );
     LOG( "reading " << *i << "..." );
 
-    while (appendSequence(multi, in, maxSeqLen, args.inputFormat, alph, 0)) {
+    while (appendSequence(multi, in, maxSeqLen, args.inputFormat,
+			  0, alph, 0)) {
       if (multi.isFinished()) {
 	encodeSequences(multi, args.inputFormat, alph, args.isKeepLowercase,
 			multi.finishedSequences() - 1);

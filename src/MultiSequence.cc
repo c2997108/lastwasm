@@ -88,7 +88,8 @@ void MultiSequence::readFastxName(std::istream& stream) {
 }
 
 std::istream&
-MultiSequence::appendFromFasta(std::istream &stream, size_t maxSeqLen) {
+MultiSequence::appendFromFasta(std::istream &stream, size_t maxSeqLen,
+			       bool isCirc) {
   if( isFinished() ){
     char c = '>';
     stream >> c;
@@ -109,7 +110,7 @@ MultiSequence::appendFromFasta(std::istream &stream, size_t maxSeqLen) {
     c = buf->snextc();
   }
 
-  if (isRoomToFinish(maxSeqLen)) finishTheLastSequence();
+  if (isRoomToFinish(maxSeqLen, isCirc)) finishTheLastSequence(isCirc);
 
   return stream;
 }
