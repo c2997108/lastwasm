@@ -268,6 +268,9 @@ trap 'rm -f $db*' EXIT
     lastdb --bits=4 -S2 -s1 -m1 $db galGal3-M-32.fa
     lastal -s0 -fTAB -p hufu.train $db hg19-M.fa
     lastal -fTAB -p hufu.train $db hg19-M.fa
+
+    lastdb --circular -c $db hg19-M.fa
+    lastal -D1e6 -fTAB $db galGal3-M-32.fa
 } 2>&1 |
 grep -v version | diff -u last-test.out -
 
