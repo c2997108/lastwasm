@@ -881,6 +881,53 @@ static void eraseWeakAlignments(AlignmentPot &gappedAlns,
   erase_if(gappedAlns.items, AlignmentPot::isMarked);
 }
 
+static size_t circBeg1(const Alignment &a) {  // aln start coord in sequence 1
+  size_t n = refSeqs.whichSequence(a.beg1());
+  size_t s = refSeqs.seqLen(n) / 2;
+  return a.beg1() - s * (a.beg1() >= refSeqs.seqBeg(n) + s);
+}
+
+static size_t circEnd1(const Alignment &a) {  // aln end coord in sequence 1
+  size_t n = refSeqs.whichSequence(a.end1());
+  size_t s = refSeqs.seqLen(n) / 2;
+  return a.end1() - s * (a.end1() > refSeqs.seqBeg(n) + s);
+}
+
+static bool lessBegCircular(const Alignment &x, const Alignment &y) {
+  if (x.beg2() != y.beg2()) return x.beg2() < y.beg2();
+  size_t xb1 = circBeg1(x);
+  size_t yb1 = circBeg1(y);
+  if (xb1 != yb1) return xb1 < yb1;
+  if (x.score != y.score) return x.score > y.score;
+  return x.beg1() < y.beg1();
+}
+
+static bool lessEndCircular(const Alignment &x, const Alignment &y) {
+  if (x.end2() != y.end2()) return x.end2() < y.end2();
+  size_t xe1 = circEnd1(x);
+  size_t ye1 = circEnd1(y);
+  if (xe1 != ye1) return xe1 < ye1;
+  if (x.score != y.score) return x.score > y.score;
+  return x.end1() < y.end1();
+}
+
+static void omitCircularSeqRedundancy(std::vector<Alignment> &a) {
+  size_t s = a.size();
+  sort(a.begin(), a.end(), lessBegCircular);
+  for (size_t i = 1; i < s; ++i) {
+    if (a[i].beg2() == a[i-1].beg2() && circBeg1(a[i]) == circBeg1(a[i-1])) {
+      AlignmentPot::mark(a[i]);  // 2 alns have same start coords in both seqs
+    }
+  }
+  sort(a.begin(), a.end(), lessEndCircular);
+  for (size_t i = 1; i < s; ++i) {
+    if (a[i].end2() == a[i-1].end2() && circEnd1(a[i]) == circEnd1(a[i-1])) {
+      AlignmentPot::mark(a[i]);  // 2 alns have same end coords in both seqs
+    }
+  }
+  erase_if(a, AlignmentPot::isMarked);
+}
+
 static bool lessForCulling(const AlignmentText &x, const AlignmentText &y) {
   if (x.strandNum != y.strandNum) return x.strandNum < y.strandNum;
   if (x.queryBeg  != y.queryBeg ) return x.queryBeg  < y.queryBeg;
@@ -1046,6 +1093,7 @@ void scan(LastAligner &aligner, const MultiSequence &qrySeqs,
 
   if( args.outputType > 2 ){  // we want non-redundant alignments
     gappedAlns.eraseSuboptimal();
+    if (refSeqs.isCircular(0)) omitCircularSeqRedundancy(gappedAlns.items);
     LOG2( "nonredundant gapped alignments=" << gappedAlns.size() );
   }
 
