@@ -1,4 +1,5 @@
-// Copyright 2010 Martin C. Frith
+// Author: Martin C. Frith 2010
+// SPDX-License-Identifier: MPL-2.0
 
 #include "tantan.hh"
 #include "mcf_simd.hh"

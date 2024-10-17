@@ -1,4 +1,5 @@
-// Copyright 2010 Martin C. Frith
+// Author: Martin C. Frith 2010
+// SPDX-License-Identifier: MPL-2.0
 
 // These are routines for masking simple regions (low-complexity and
 // short-period tandem repeats) in biological sequences.  To

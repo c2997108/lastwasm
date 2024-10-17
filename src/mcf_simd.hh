@@ -1,5 +1,5 @@
 // Author: Martin C. Frith 2019
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 
 #ifndef MCF_SIMD_HH
 #define MCF_SIMD_HH
