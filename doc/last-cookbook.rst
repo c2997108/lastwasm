@@ -320,6 +320,9 @@ human versus gar.  For finer sensitivity, run ``lastdb`` with default
 To make it even more sensitive (but slow and memory-consuming), use
 ``-uMAM4``.  Yet more slow-and-sensitive is ``-uMAM8``.
 
+It may be useful to run maf-linked_ on the one-to-one alignments, to
+exclude non-homologous insertions of homologous transposons.
+
 Moar faster
 -----------
 
@@ -387,6 +390,7 @@ core is indicated by "~" symbols, and it contains exact matches only.
 .. _last-split: doc/last-split.rst
 .. _last-train: doc/last-train.rst
 .. _maf-convert: doc/maf-convert.rst
+.. _maf-linked: doc/maf-linked.rst
 .. _scoring scheme: doc/last-matrices.rst
 .. _seeding scheme:
 .. _seeding: doc/last-seeds.rst
