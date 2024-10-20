@@ -116,8 +116,7 @@ E-value options
 
 -D LENGTH
     Report alignments that are expected by chance at most once per
-    LENGTH query letters.  This option only affects the default value
-    of ``-E``, so if you specify ``-E`` then ``-D`` has no effect.
+    LENGTH query letters.
 
 -H EXPECT
     Report alignments that are expected by chance at most this many
@@ -125,7 +124,7 @@ E-value options
     queries twice (to get their lengths before finding alignments), so
     it doesn't allow piped-in queries.
 
-    This option **changes the meaning of ``E=``** in the results!  In
+    This option **changes the meaning of** ``E=`` in the results!  In
     this example::
 
       score=85 E=5.9
@@ -137,10 +136,8 @@ E-value options
     * All the reference sequences, and that one query sequence (without ``-H``)
 
 -E EXPECT
-    Maximum EG2 (`expected alignments per square giga
-    <doc/last-evalues.rst>`_).  This option only affects the default
-    value of ``-e``, so if you specify ``-e`` then ``-E`` has no
-    effect.  Careful: option ``-E`` applies to ``EG2=``, not to ``E=``!
+    Maximum EG2_ (expected alignments per square giga).  Experience
+    suggests that ``-D`` and ``-H`` are more convenient than ``-E``.
 
 Score options
 ~~~~~~~~~~~~~
@@ -267,7 +264,7 @@ Score options
 -e SCORE
     Minimum alignment score.  (If you do gapless alignment with
     option -j1, then -d and -e mean the same thing.  If you set
-    both, -e will prevail.)
+    both, -e will prevail.)  This option overrides the E-value options.
 
 Initial-match options
 ~~~~~~~~~~~~~~~~~~~~~
@@ -690,6 +687,7 @@ computer for each volume.
 .. _lastdb: doc/lastdb.rst
 .. _last-train: doc/last-train.rst
 .. _last-split: doc/last-split.rst
+.. _EG2:
 .. _E-values: doc/last-evalues.rst
 .. _tantan: https://gitlab.com/mcfrith/tantan
 .. _gentle masking: https://doi.org/10.1371/journal.pone.0028819

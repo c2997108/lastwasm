@@ -37,11 +37,10 @@ Each alignment looks like this (MAF_ format)::
   s fuguMito  11840 73 + 16447 CAGCTTTTGAAGGATAATAGCTAATCCGTTGGTCTTAGGAACCAA...
 
 
-The score is a measure of how significant the similarity is.  EG2 and
-E are explained at last-evalues_.  Lines starting with "s" contain:
-the sequence name, the start coordinate of the alignment, the number
-of bases spanned by the alignment, the strand, the sequence length,
-and the aligned bases.
+Score, EG2, and E are explained at last-evalues_.  Lines starting with
+"s" contain: the sequence name, the start coordinate of the alignment,
+the number of bases spanned by the alignment, the strand, the sequence
+length, and the aligned bases.
 
 The start coordinates are zero-based.  This means that, if the
 alignment begins right at the start of a sequence, the coordinate is
