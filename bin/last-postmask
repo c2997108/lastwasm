@@ -1,6 +1,5 @@
-#! /usr/bin/env python
-
-# Copyright 2014 Martin C. Frith
+#! /usr/bin/env python3
+# Author: Martin C. Frith 2014
 
 # Read MAF-format alignments, and write those that have a segment with
 # score >= threshold, with gentle masking of lowercase letters.  There
