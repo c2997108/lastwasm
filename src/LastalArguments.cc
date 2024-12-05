@@ -560,12 +560,6 @@ void LastalArguments::fromString( const std::string& s ){
       fromLine( line );
 }
 
-const char* LastalArguments::matrixName( bool isProtein ) const{
-  if( matrixFile.empty() && matchScore < 0 && mismatchCost < 0 && isProtein )
-    return isTranslated() ? "BL80" : "BL62";
-  return matrixFile.c_str();
-}
-
 void LastalArguments::setDefaultsFromAlphabet(bool isDna, bool isProtein,
 					      int refStrand,
 					      bool isKeepRefLowercase,
@@ -594,20 +588,20 @@ void LastalArguments::setDefaultsFromAlphabet(bool isDna, bool isProtein,
   }
   else if( isProtein ){
     // default match & mismatch scores: Blosum62 matrix
-    if( matchScore < 0 && mismatchCost >= 0 ) matchScore   = 1;  // idiot-proof
-    if( mismatchCost < 0 && matchScore >= 0 ) mismatchCost = 1;  // idiot-proof
+    if (matchScore < 0 && mismatchCost >= 0) matchScore   = 1;  // idiot-proof
+    if (mismatchCost < 0 && matchScore >= 0) mismatchCost = 1;  // idiot-proof
     if (delOpenCosts.empty()) delOpenCosts.assign(1, 11);
     if (delGrowCosts.empty()) delGrowCosts.assign(1,  2);
   }
   else if( !isUseQuality( inputFormat ) ){
-    if( matchScore     < 0 ) matchScore     =   1;
-    if( mismatchCost   < 0 ) mismatchCost   =   1;
+    if (matchScore     < 0) matchScore     =   1;
+    if (mismatchCost   < 0) mismatchCost   =   1;
     if (delOpenCosts.empty()) delOpenCosts.assign(1, 7);
     if (delGrowCosts.empty()) delGrowCosts.assign(1, 1);
   }
   else{  // sequence quality scores will be used:
-    if( matchScore     < 0 ) matchScore     =   6;
-    if( mismatchCost   < 0 ) mismatchCost   =  18;
+    if (matchScore     < 0) matchScore     =   6;
+    if (mismatchCost   < 0) mismatchCost   =  18;
     if (delOpenCosts.empty()) delOpenCosts.assign(1, 21);
     if (delGrowCosts.empty()) delGrowCosts.assign(1,  9);
     // With this scoring scheme for DNA, gapless lambda ~= ln(10)/10,

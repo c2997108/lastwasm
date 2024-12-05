@@ -32,9 +32,6 @@ struct LastalArguments{
 
   void resetCumulativeOptions() { verbosity = 0; }
 
-  // get the name of the substitution score matrix:
-  const char* matrixName( bool isProtein ) const;
-
   // set default option values that depend on input files:
   void setDefaultsFromAlphabet(bool isDna, bool isProtein, int refStrand,
 			       bool isKeepRefLowercase, int refTantanSetting,
@@ -53,6 +50,14 @@ struct LastalArguments{
   bool isFrameshift() const {
     return
       isTranslated() && (frameshiftCosts.size() > 1 || frameshiftCosts[0] > 0);
+  }
+
+  // get the name of the substitution score matrix:
+  const char *matrixName(bool isProtein) const {
+    if (matrixFile.empty() && matchScore < 0 && mismatchCost < 0) {
+      if (isProtein) return isTranslated() ? "BL80" : "BL62";
+    }
+    return matrixFile.c_str();
   }
 
   bool isSumOfPaths() const {
