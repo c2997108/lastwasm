@@ -156,6 +156,28 @@ It uses this matrix::
 It sets these default lastal parameter values:
 -a400 -b30
 
+HUMSUM
+------
+
+HUMSUM (HUMan oposSUM SUbstitution Matrix) is suitable for comparing
+distantly-related mammal DNA sequences, and is often reasonable for
+other kinds of animal.  It was made by comparing human and opossum
+genomes with ``last-train --revsym --matsym --gapsym``.
+
+- Substitution percent identity: 71.8266
+- % A C G T: 29.0 21.0 21.0 29.0
+
+It uses this matrix::
+
+      A   C   G   T
+  A   4  -6  -2  -7
+  C  -6   5  -6  -2
+  G  -2  -6   5  -6
+  T  -7  -2  -6   4
+
+It sets these default lastal parameter values:
+-a24 -b1 -t4.3815
+
 MIQS
 ----
 
