@@ -260,8 +260,8 @@ void makeScoreMatrix( const std::string& matrixName,
   }
 }
 
-void makeQualityScorers(SubstitutionMatrices &m, bool isCheck) {
-  bool isMatchMismatch = (args.matrixFile.empty() && args.matchScore > 0);
+static void makeQualityScorers(SubstitutionMatrices &m,
+			       bool isMatchMismatch, bool isCheck) {
   bool isPhred1 = isPhred( referenceFormat );
   int offset1 = qualityOffset( referenceFormat );
   bool isPhred2 = isPhred( args.inputFormat );
@@ -313,7 +313,7 @@ void makeQualityScorers(SubstitutionMatrices &m, bool isCheck) {
   }
 }
 
-void makeQualityScorers(){
+static void makeQualityScorers(bool isMatchMismatch) {
   if( args.isGreedy ) return;
 
   if( args.isTranslated() )
@@ -321,9 +321,9 @@ void makeQualityScorers(){
       return warn( args.programName,
 		   "quality data not used for DNA-versus-protein alignment" );
 
-  makeQualityScorers(fwdMatrices, true);
+  makeQualityScorers(fwdMatrices, isMatchMismatch, true);
   if (args.isQueryStrandMatrix && args.strand != 1) {
-    makeQualityScorers(revMatrices, false);
+    makeQualityScorers(revMatrices, isMatchMismatch, false);
   }
 }
 
@@ -1696,7 +1696,7 @@ void lastal(int argc, char **argv) {
 
   minScoreGapless = calcMinScoreGapless(prj.numOfLetters);
   if (!isMultiVolume) args.minScoreGapless = minScoreGapless;
-  if (args.outputType > 0) makeQualityScorers();
+  if (args.outputType > 0) makeQualityScorers(matrixName.empty());
 
   if (args.isSplit) {
     setLastSplitParams(splitParams, args.splitOpts, scoreMatrix.cells,

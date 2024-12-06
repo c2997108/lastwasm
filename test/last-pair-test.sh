@@ -9,7 +9,7 @@ PATH=../bin:$PATH
 tmp=${TMPDIR-/tmp}/$$
 trap 'rm -f $tmp.*' EXIT
 
-lastdb -m1111110 $tmp.x hg19-M.fa
+lastdb -uNEAR $tmp.x hg19-M.fa
 
 lastal -Q1 -e120 -i1 $tmp.x bs1.fastq > $tmp.maf1
 lastal -Q1 -e120 -i1 $tmp.x bs2.fastq > $tmp.maf2

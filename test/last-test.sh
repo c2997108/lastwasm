@@ -57,7 +57,7 @@ trap 'rm -f $db*' EXIT
     try lastal -s0 -f0 -p asymmetric.mat -e2000 $db $dnaSeq
 
     # FASTQ-Illumina quality scores
-    lastdb -m1111110 -R10 $db $dnaSeq
+    lastdb -uNEAR -R10 $db $dnaSeq
     try lastal -Q3 -e110 $db illumina100.txt
 
     # PRB-format quality data
@@ -107,7 +107,7 @@ trap 'rm -f $db*' EXIT
     try lastal -s0 -e18 -j7 $db $dnaSeq
 
     # overlap alignment, hitting edge of ref seq, fastq
-    head -n21 $dnaSeq | cut -c-35 | lastdb -m1111110 $db
+    head -n21 $dnaSeq | cut -c-35 | lastdb -uNEAR $db
     try lastal -T1 -Q1 -e60 -a9 -f0 $db $fastq
 
     # named multi-seed, sparse query seeding
