@@ -199,7 +199,7 @@ calculateSubstitutionScoreMatrixStatistics(const std::string &matrixName) {
 // Set up a scoring matrix, based on the user options
 void makeScoreMatrix( const std::string& matrixName,
 		      const std::string& matrixFile ){
-  if( !matrixName.empty() && !args.isGreedy ){
+  if (!matrixName.empty()) {
     scoreMatrix.fromString( matrixFile );
     if (scoreMatrix.isCodonRows())
       err("unsupported score matrix");
@@ -1604,6 +1604,7 @@ void lastal(int argc, char **argv) {
       ERR("option -Q is inconsistent with the matrix file");
     }
   }
+  if (args.isGreedy) matrixName.clear();
 
   if (prj.minSeedLimit > 1) {
     if (args.outputType == 0)

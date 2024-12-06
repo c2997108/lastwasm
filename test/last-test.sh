@@ -189,6 +189,8 @@ trap 'rm -f $db*' EXIT
     # DNA-versus-protein alignment without frameshifts
     try lastal -j4 -pBL62 -b1 -F0 -D1e3 $db galGal3-M-32.fa
 
+    try lastal -M $db Q5GS15.fa  # greedy protein-protein (YAGNI)
+
     # strand asymmetry
     lastdb $db hg19-M.fa
     try lastal -S1 -pBISF -Q1 -e120 -f0 -j4 $db bs100.fastq

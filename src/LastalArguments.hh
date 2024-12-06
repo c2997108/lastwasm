@@ -54,7 +54,8 @@ struct LastalArguments{
 
   // get the name of the substitution score matrix:
   const char *matrixName(bool isProtein) const {
-    if (matrixFile.empty() && matchScore < 0 && mismatchCost < 0) {
+    if (matrixFile.empty() && matchScore < 0 && mismatchCost < 0
+	&& !isGreedy) {
       if (isProtein) return isTranslated() ? "BL80" : "BL62";
     }
     return matrixFile.c_str();
