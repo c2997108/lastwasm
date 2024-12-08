@@ -14,13 +14,13 @@ PATH=$PATH:../bin
 lastdb -c humanMito humanMito.fa
 
 # Align the mouse sequence to the human sequence:
-lastal -e25 -j4 humanMito mouseMito.fa | last-split | maf-sort > hm.maf
+lastal -pHUMSUM -j4 --split humanMito mouseMito.fa | maf-sort > hm.maf
 
 # Align the chicken sequence to the human sequence:
-lastal -e25 -j4 humanMito chickenMito.fa | last-split | maf-sort > hc.maf
+lastal -pHUMSUM -j4 --split humanMito chickenMito.fa | maf-sort > hc.maf
 
 # Align the fugu sequence to the human sequence:
-lastal -e25 -j4 humanMito fuguMito.fa | last-split | maf-sort > hf.maf
+lastal -pHUMSUM -j4 --split humanMito fuguMito.fa | maf-sort > hf.maf
 
 # Join the pairwise alignments into a multiple alignment:
 maf-join hm.maf hc.maf hf.maf
