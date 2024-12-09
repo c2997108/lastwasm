@@ -143,13 +143,14 @@ E-value options (default settings):\n\
  -E  max EG2: expected number of random alignments per square giga\n\
 \n\
 Score options (default settings):\n\
- -r  match score   (2 if -M, else  6 if 1<=Q<=4, else 1 if DNA)\n\
- -q  mismatch cost (3 if -M, else 18 if 1<=Q<=4, else 1 if DNA)\n\
- -p  match/mismatch score matrix (protein-protein: BL62, DNA-protein: BL80)\n\
+ -r  match score   (2 if -M, else 1)\n\
+ -q  mismatch cost (3 if -M, else 1)\n\
+ -p  match/mismatch score matrix (DNA-DNA: HUMSUM, protein-protein: BLOSUM62,\n\
+                                  DNA-protein: BLOSUM80)\n\
  -X  N/X is ambiguous in: 0=neither sequence, 1=reference, 2=query, 3=both ("
     + stringify(ambiguousLetterOpt) + ")\n\
- -a  gap existence cost (DNA: 7, protein: 11, 1<=Q<=4: 21)\n\
- -b  gap extension cost (DNA: 1, protein:  2, 1<=Q<=4:  9)\n\
+ -a  gap existence cost (24 if HUMSUM, else 11 if protein reference, else 7)\n\
+ -b  gap extension cost ( 1 if HUMSUM, else  2 if protein reference, else 1)\n\
  -A  insertion existence cost (a)\n\
  -B  insertion extension cost (b)\n\
  -c  unaligned residue pair cost (off)\n\
@@ -585,31 +586,11 @@ void LastalArguments::setDefaultsFromAlphabet(bool isDna, bool isProtein,
     if (isFrameshift()) frameshiftCosts.assign(1, 0);
     if( matchScore % 2 )
       ERR( "with option -M, the match score (option -r) must be even" );
-  }
-  else if( isProtein ){
-    // default match & mismatch scores: Blosum62 matrix
-    if (matchScore < 0 && mismatchCost >= 0) matchScore   = 1;  // idiot-proof
-    if (mismatchCost < 0 && matchScore >= 0) mismatchCost = 1;  // idiot-proof
-    if (delOpenCosts.empty()) delOpenCosts.assign(1, 11);
-    if (delGrowCosts.empty()) delGrowCosts.assign(1,  2);
-  }
-  else if( !isUseQuality( inputFormat ) ){
-    if (matchScore     < 0) matchScore     =   1;
-    if (mismatchCost   < 0) mismatchCost   =   1;
-    if (delOpenCosts.empty()) delOpenCosts.assign(1, 7);
-    if (delGrowCosts.empty()) delGrowCosts.assign(1, 1);
-  }
-  else{  // sequence quality scores will be used:
-    if (matchScore     < 0) matchScore     =   6;
-    if (mismatchCost   < 0) mismatchCost   =  18;
-    if (delOpenCosts.empty()) delOpenCosts.assign(1, 21);
-    if (delGrowCosts.empty()) delGrowCosts.assign(1,  9);
-    // With this scoring scheme for DNA, gapless lambda ~= ln(10)/10,
-    // so these scores should be comparable to PHRED scores.
-    // Furthermore, since mismatchCost/matchScore = 3, the target
-    // distribution of paired bases ~= 99% identity.  Because the
-    // quality scores are unlikely to be perfect, it may be best to
-    // use a lower target %identity than we otherwise would.
+  } else {
+    if (matchScore   < 0) matchScore   = 1;
+    if (mismatchCost < 0) mismatchCost = 1;
+    if (delOpenCosts.empty()) delOpenCosts.assign(1, isProtein ? 11 : 7);
+    if (delGrowCosts.empty()) delGrowCosts.assign(1, isProtein ?  2 : 1);
   }
 
   if (insOpenCosts.empty()) insOpenCosts = delOpenCosts;

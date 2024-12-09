@@ -1592,7 +1592,7 @@ void lastal(int argc, char **argv) {
   const bool isProtein = alph.isProtein();
   args.fromArgs(argc, argv);  // command line overrides prj file
 
-  std::string matrixName = args.matrixName( isProtein );
+  std::string matrixName = args.matrixName(isDna, isProtein);
   std::string matrixFile;
   if( !matrixName.empty() ){
     matrixFile = ScoreMatrix::stringFromName( matrixName );

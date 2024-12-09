@@ -1915,13 +1915,6 @@ def doTraining(opts, args):
         if not queryLength: raise RuntimeError("zero query sequence length")
         opts.D = str(queryLength)
 
-    if (not opts.p and len(alphabet) < 20 and
-        (not opts.Q or opts.Q in ("0", "fastx", "keep"))):
-        if not opts.r: opts.r = "5"
-        if not opts.q: opts.q = "5"
-        if not opts.a: opts.a = "15"
-        if not opts.b: opts.b = "3"
-
     print("# lastal version:", lastalVersion)
     print("# maximum percent identity:", opts.pid)
 
@@ -2077,16 +2070,11 @@ if __name__ == "__main__":
     op.add_option_group(og)
 
     og = optparse.OptionGroup(op, "Initial parameter options")
-    og.add_option("-r", metavar="SCORE", help=
-                  "match score   (default:  6 if Q>=1, else 5 if DNA)")
-    og.add_option("-q", metavar="COST", help=
-                  "mismatch cost (default: 18 if Q>=1, else 5 if DNA)")
-    og.add_option("-p", metavar="NAME", help=
-                  "match/mismatch score matrix (default: BL62 if protein)")
-    og.add_option("-a", metavar="COST", help="gap existence cost "
-                  "(default: 15 if DNA, 11 if protein, 21 if Q>=1)")
-    og.add_option("-b", metavar="COST", help="gap extension cost "
-                  "(default:  3 if DNA,  2 if protein,  9 if Q>=1)")
+    og.add_option("-r", metavar="SCORE", help="match score")
+    og.add_option("-q", metavar="COST", help="mismatch cost")
+    og.add_option("-p", metavar="NAME", help="match/mismatch score matrix")
+    og.add_option("-a", metavar="COST", help="gap existence cost")
+    og.add_option("-b", metavar="COST", help="gap extension cost")
     og.add_option("-A", metavar="COST", help="insertion existence cost")
     og.add_option("-B", metavar="COST", help="insertion extension cost")
     og.add_option("-F", metavar="LIST", help="frameshift probabilities: "
