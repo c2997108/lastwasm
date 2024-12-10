@@ -5,7 +5,7 @@
 
 #abbreviation RY32
 
-#lastal -m2 -r6 -q18 -a21 -b9
+#lastal -m2
 
 R  A G
 Y  C T
