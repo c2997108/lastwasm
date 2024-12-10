@@ -247,7 +247,7 @@ And these patterns::
   YYYYYRYYR YYYYYRYYY YYYYYYRYR YYYYYYYRR
 
 It sets this lastal default:
--m2 -r6 -q18 -a21 -b9
+-m2
 
 RY8-10 (abbreviation: RY8)
 --------------------------
@@ -297,7 +297,7 @@ And these patterns::
   YYRYYYYRYY YYYYYYYRRR YYYYYYYRRY YYYYYYYYRY
 
 It sets this lastal default:
--m2 -r6 -q18 -a21 -b9
+-m2
 
 RY16-11 (abbreviation: RY16)
 ----------------------------
@@ -347,7 +347,7 @@ And these patterns::
   YYYYYRYRYRR YYYYYYRYYRR YYYYYYYRYRR YYYYYYYYYRR
 
 It sets this lastal default:
--m2 -r6 -q18 -a21 -b9
+-m2
 
 RY32-12 (abbreviation: RY32)
 ----------------------------
@@ -397,7 +397,7 @@ And these patterns::
   YRYYRRRRRYYY YRYYRRRYRYYY YRYYRYRYRYYY YRYYRYYRRYYY
 
 It sets this lastal default:
--m2 -r6 -q18 -a21 -b9
+-m2
 
 RY64-13 (abbreviation: RY64)
 ----------------------------
@@ -445,7 +445,7 @@ And these patterns::
   RYYRYYRRYRYYY RYYRYYRYRRYYY RYYRYYRYRYYYY RYYRYYRYYRYYY
 
 It sets this lastal default:
--m2 -r6 -q18 -a21 -b9
+-m2
 
 RY128-12 (abbreviation: RY128)
 ------------------------------
@@ -479,5 +479,5 @@ And these patterns::
   RRYRRYYRYRYY RRYRYRRYYRYY
 
 It sets this lastal default:
--m2 -r6 -q18 -a21 -b9
+-m2
 
