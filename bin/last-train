@@ -1545,7 +1545,7 @@ def scoreImbalance(scale, matScores, delCosts, insCosts):
 def balancedScale(imbalanceFunc, nearScale, args):
     # Find a scale, near nearScale, with balanced length probability
     sys.stdout.flush()
-    bump = 1.00001
+    bump = 1.0001
     rootFinders = rootOfDecreasingFunction, rootOfIncreasingFunction
     value = imbalanceFunc(nearScale, *args)
     if abs(value) <= 0:
