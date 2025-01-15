@@ -303,8 +303,8 @@ Limitations
 
 lastdb can become catastrophically slow for highly redundant
 sequences, e.g. two almost-identical genomes.  It usually processes
-several GB per hour, but if it becomes much slower, try option "-i
-10", which is likely to solve the problem.
+several GB per hour (per thread), but if it becomes much slower, try
+option "-i 10", which is likely to solve the problem.
 
 .. _E-values: doc/last-evalues.rst
 .. _lastal: doc/lastal.rst

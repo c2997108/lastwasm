@@ -703,7 +703,8 @@ def annotsFromGff(opts, line, seqName):
         geneName = fields[8]
         if ";" in geneName or "=" in geneName:
             parts = geneName.rstrip(";").split(";")
-            attrs = dict(re.split('[= ]', i.strip(), 1) for i in parts)
+            attrs = dict(re.split('[= ]', i.strip(), maxsplit=1)
+                         for i in parts)
             if "gene" in attrs:
                 geneName = attrs["gene"]  # seems good for NCBI gff
             elif "Name" in attrs:

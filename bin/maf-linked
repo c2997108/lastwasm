@@ -5,7 +5,16 @@
 from __future__ import print_function
 
 import argparse
+import gzip
 import signal
+import sys
+
+def openFile(fileName):
+    if fileName == "-":
+        return sys.stdin
+    if fileName.endswith(".gz"):
+        return gzip.open(fileName, "rt")
+    return open(fileName)
 
 def alignmentInput(lines):
     ranges = []
@@ -96,7 +105,7 @@ def sortKey1(aln):
     return ranges[1]
 
 def main(args):
-    alns = sorted(alignmentInput(args.infile), key=sortKey1)
+    alns = sorted(alignmentInput(openFile(args.infile)), key=sortKey1)
     alns = sorted(aln + (rank, []) for rank, aln in enumerate(alns))
     for i, x in enumerate(alns):
         linkOneAln(args, alns, i)
@@ -117,6 +126,6 @@ if __name__ == "__main__":
                     metavar="D", help="maximum distance")
     ap.add_argument("-t", "--tween", type=float, default=5, metavar="T",
                     help="maximum number of alignments in between")
-    ap.add_argument("infile", type=argparse.FileType("r"))
+    ap.add_argument("infile", help="file of sequence alignments in MAF format")
     args = ap.parse_args()
     main(args)
