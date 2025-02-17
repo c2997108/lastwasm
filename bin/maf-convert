@@ -679,6 +679,11 @@ def mismapProbabilityFromText(probString):
         raise ValueError("bad probability: " + probString)
     return p
 
+def smallParts(size, symbol):
+    maxSize = 268435455
+    q, r = divmod(size, maxSize)
+    return (str(maxSize) + symbol) * q + (str(r) + symbol) * (r > 0)
+
 def cigarParts(alignmentColumns):
     # (doesn't handle translated alignments)
     # uses "read-ahead" technique, aiming to be as fast as possible:
@@ -743,7 +748,7 @@ def writeSam(readGroup, mafs):
             if not isSplice: editDistance += d
         else:
             pos = begA
-            if begB: cigar.append(str(begB) + "H")
+            cigar.append(smallParts(begB, "H"))
         oldEndA = endA
 
         alignmentColumns = list(zip(rowA.upper(), rowB.upper()))
@@ -759,8 +764,7 @@ def writeSam(readGroup, mafs):
                 z = zip(rowB, qFields[2])
                 qual += ''.join(j for i, j in z if i != "-")
 
-    revBegB = seqLenB - endB
-    if revBegB: cigar.append(str(revBegB) + "H")
+    cigar.append(smallParts(seqLenB - endB, "H"))
 
     if strandA == "-":
         seq = revcomp(seq)
