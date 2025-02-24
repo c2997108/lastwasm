@@ -292,6 +292,7 @@ rm f.* r.*
 ./last-train-test.sh
 ./maf-convert-test.sh
 ./maf-cut-test.sh
+./maf-linked-test.sh
 ./maf-swap-test.sh
 
 # Test: lastdb, lastal, last-split, maf-sort, maf-join

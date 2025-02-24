@@ -107,7 +107,7 @@ def sortKey1(aln):
 def main(args):
     alns = sorted(alignmentInput(openFile(args.infile)), key=sortKey1)
     alns = sorted(aln + (rank, []) for rank, aln in enumerate(alns))
-    for i, x in enumerate(alns):
+    for i in range(len(alns)):
         linkOneAln(args, alns, i)
     for c in connectedComponents(alns):
         if len(c) >= args.count:
