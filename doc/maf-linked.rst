@@ -18,7 +18,8 @@ alignments between non-homologous insertions of homologous transposons
 It considers two alignments to be "linked" if, in both sequences, they
 are separated by at most D base-pairs and by at most T other
 alignments.  It keeps groups of at least C alignments that are linked
-directly or indirectly.
+directly or indirectly.  It also keeps groups of < C alignments if
+they cover half (or more) of either sequence.
 
 Options
 -------

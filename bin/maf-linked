@@ -29,11 +29,12 @@ def alignmentInput(lines):
                 seqName = fields[1]
                 beg = int(fields[2])
                 span = int(fields[3])
+                seqLen = int(fields[5])
                 end = beg + span
                 if fields[4] == "-":
-                    end = int(fields[5]) - beg
+                    end = seqLen - beg
                     beg = end - span
-                r = seqName, beg, end
+                r = seqName, seqLen, beg, end
                 ranges.append(r)
         else:
             if alnLines:
@@ -43,10 +44,18 @@ def alignmentInput(lines):
     if alnLines:
         yield ranges, alnLines
 
+def isCoveringMuchSequence(alns, nums):
+    n = nums[0]
+    for s in range(2):
+        seqLen = alns[n][0][s][1]
+        coverage = sum(alns[i][0][s][3] - alns[i][0][s][2] for i in nums)
+        if coverage * 2 >= seqLen: return True
+    return False
+
 def isNearInAllSeqs(iRanges, jRanges, maxDistance):
     for i, j in zip(iRanges, jRanges):
-        iSeq, iBeg, iEnd = i
-        jSeq, jBeg, jEnd = j
+        iSeq, iLen, iBeg, iEnd = i
+        jSeq, jLen, jBeg, jEnd = j
         if iSeq != jSeq:
             return False
         if jBeg > iEnd + maxDistance or iBeg > jEnd + maxDistance:
@@ -59,13 +68,13 @@ def linkOneAln(args, alns, i):
     jIndexEnd = min(i + maxRankDifference + 1, len(alns))
 
     iRanges, iLines, iRank, iLinks = alns[i]
-    iSeq, iBeg, iEnd = iRanges[0]
+    iSeq, iLen, iBeg, iEnd = iRanges[0]
 
     j = i
     while j > jIndexBeg:
         j -= 1
         jRanges, jLines, jRank, jLinks = alns[j]
-        jSeq, jBeg, jEnd = jRanges[0]
+        jSeq, jLen, jBeg, jEnd = jRanges[0]
         if jSeq < iSeq or jEnd + args.distance < iBeg:
             break
         if isNearInAllSeqs(iRanges, jRanges, args.distance):
@@ -75,7 +84,7 @@ def linkOneAln(args, alns, i):
     j = i + 1
     while j < jIndexEnd:
         jRanges, jLines, jRank, jLinks = alns[j]
-        jSeq, jBeg, jEnd = jRanges[0]
+        jSeq, jLen, jBeg, jEnd = jRanges[0]
         if iSeq < jSeq or iEnd + args.distance < jBeg:
             break
         if isNearInAllSeqs(iRanges, jRanges, args.distance):
@@ -110,7 +119,7 @@ def main(args):
     for i in range(len(alns)):
         linkOneAln(args, alns, i)
     for c in connectedComponents(alns):
-        if len(c) >= args.count:
+        if len(c) >= args.count or isCoveringMuchSequence(alns, c):
             for i in c:
                 ranges, lines, rank, links = alns[i]
                 print(*lines, sep="")
