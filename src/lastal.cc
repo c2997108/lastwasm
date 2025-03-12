@@ -1048,33 +1048,36 @@ void scan(LastAligner &aligner, const MultiSequence &qrySeqs,
   makeQualityPssm(qryData, matrices, maskMode > 0);
 
   Dispatcher dis0(Phase::gapless, qryData, matrices);
-  SegmentPairPot gaplessAlns;
-  alignGapless(aligner, gaplessAlns, qrySeqs, qryData, dis0);
-  if( args.outputType == 1 ) return;  // we just want gapless alignments
-  if( gaplessAlns.size() == 0 ) return;
-
-  if (maskMode == 1 || (maskMode == 2 && args.scoreType == 0))
-    unmaskLowercase(qryData, matrices);
-
   size_t qryLen = qryData.padLen;
   AlignmentPot gappedAlns;
   Centroid &centroid = aligner.engines.centroid;
 
-  if (args.scoreType != 0 && dis0.p) {
-    const OneQualityExpMatrix &m =
-      (maskMode < 2) ? matrices.oneQualExp : matrices.oneQualExpMasked;
-    centroid.setPssm(dis0.p, qryLen, args.temperature, m, dis0.b, dis0.j);
-  }
+  {
+    SegmentPairPot gaplessAlns;
+    alignGapless(aligner, gaplessAlns, qrySeqs, qryData, dis0);
+    if (args.outputType == 1) return;  // we just want gapless alignments
+    if (gaplessAlns.size() == 0) return;
 
-  if (args.maxDropFinal != args.maxDropGapped) {
+    if (maskMode == 1 || (maskMode == 2 && args.scoreType == 0))
+      unmaskLowercase(qryData, matrices);
+
+    if (args.scoreType != 0 && dis0.p) {
+      const OneQualityExpMatrix &m =
+	(maskMode < 2) ? matrices.oneQualExp : matrices.oneQualExpMasked;
+      centroid.setPssm(dis0.p, qryLen, args.temperature, m, dis0.b, dis0.j);
+    }
+
+    if (args.maxDropFinal != args.maxDropGapped) {
+      alignGapped(aligner, gappedAlns, gaplessAlns, qryData, matrices,
+		  Phase::pregapped);
+      erase_if(gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood);
+    }
+
     alignGapped(aligner, gappedAlns, gaplessAlns, qryData, matrices,
-		Phase::pregapped);
-    erase_if( gaplessAlns.items, SegmentPairPot::isNotMarkedAsGood );
+		Phase::gapped);
   }
 
-  alignGapped(aligner, gappedAlns, gaplessAlns, qryData, matrices,
-	      Phase::gapped);
-  if( gappedAlns.size() == 0 ) return;
+  if (gappedAlns.size() == 0) return;
 
   Dispatcher dis3(Phase::postgapped, qryData, matrices);
 
