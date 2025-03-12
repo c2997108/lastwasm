@@ -24,16 +24,16 @@ struct AlignmentPot{
   // highest-scoring alignment
   void eraseSuboptimal();
 
-  // sort the alignments in descending order of score
-  void sort() { std::sort( items.begin(), items.end(), moreScore ); }
+  // sort the alignments in ascending order of score
+  void sort() { std::sort(items.begin(), items.end(), lessScore); }
 
   // data:
   std::vector<Alignment> items;
 
-  static bool moreScore( const Alignment& x, const Alignment& y ){
+  static bool lessScore(const Alignment &x, const Alignment &y) {
     // Try to break ties, so that alignments come in a consistent
     // order.  This makes it easier to compare different results.
-    return x.score != y.score ? x.score > y.score : lessBeg( x, y );
+    return x.score != y.score ? x.score < y.score : !lessBeg(x, y);
   }
 
   static bool lessBeg( const Alignment& x, const Alignment& y ){

@@ -845,10 +845,10 @@ static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 // Print the gapped alignments, after optionally calculating match
 // probabilities and re-aligning using the gamma-centroid algorithm
 void alignFinish(LastAligner &aligner, const MultiSequence &qrySeqs,
-		 const SeqData &qryData, const AlignmentPot &gappedAlns,
+		 const SeqData &qryData, std::vector<Alignment> &alignments,
 		 const SubstitutionMatrices &matrices, const Dispatcher &dis) {
-  for( size_t i = 0; i < gappedAlns.size(); ++i ){
-    const Alignment& aln = gappedAlns.items[i];
+  while (!alignments.empty()) {
+    const Alignment &aln = alignments.back();
     AlignmentExtras extras;
     if (args.scoreType != 0) extras.fullScore = -1;  // score is fullScore
     if( args.outputType < 4 ){
@@ -867,6 +867,7 @@ void alignFinish(LastAligner &aligner, const MultiSequence &qrySeqs,
 	probAln.score = aln.score;
       writeAlignment(aligner, qrySeqs, qryData, probAln, extras);
     }
+    alignments.pop_back();
   }
 }
 
@@ -1115,7 +1116,7 @@ void scan(LastAligner &aligner, const MultiSequence &qrySeqs,
   }
 
   if (!isCollatedAlignments()) gappedAlns.sort();  // sort by score
-  alignFinish(aligner, qrySeqs, qryData, gappedAlns, matrices, dis3);
+  alignFinish(aligner, qrySeqs, qryData, gappedAlns.items, matrices, dis3);
 }
 
 static void tantanMaskOneQuery(const SeqData &qryData) {
