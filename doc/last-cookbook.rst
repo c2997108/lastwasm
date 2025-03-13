@@ -260,11 +260,11 @@ Aligning human & chimp genomes
 ------------------------------
 
 The aim of genome-genome alignment is discussed in `our paper`_.  This
-recipe seems to work well::
+recipe gets one-to-one alignments::
 
   lastdb -P8 -c -uRY128 humdb human.fa
   last-train -P8 --revsym -C2 humdb chimp.fa > hc.train
-  lastal -P8 -D1e9 -C2 --split-f=MAF+ -p hc.train humdb chimp.fa > many-to-one.maf
+  lastal -P8 -D1e9 -C2 --split-f=MAF+ -p hc.train humdb chimp.fa | last-split -r | maf-linked - > out.maf
 
 ``-c`` prevents ``lastal`` using huge amounts of memory and time on
 many ways of aligning centromeric repeats.
@@ -281,25 +281,25 @@ T→C on the other strand).  This is usually appropriate for
 genome-genome comparison (but maybe not for mitochondria with
 asymmetric "heavy" and "light" strands).
 
-``--split-f=MAF+`` has the same effect as ``--split``, and also makes
-it show `per-base mismap probabilities`_: the probability that each
-query (chimp) base should be aligned to a different part of the
-reference (human).
+``--split-f=MAF+`` has the same effect as ``--split`` (get a unique
+best alignment for each part of chimp), and gets `per-base mismap
+probabilities`_: the probability that each chimp base should be
+aligned to a different part of human.
 
-The result so far is asymmetric: each part of the chimp genome is
-aligned to at most one part of the human genome, but not vice-versa.
-We can get one-to-one alignments like this::
+``last-split -r`` cuts these alignments down to a unique best
+alignment for each part of human.  It uses the *per-base* mismap
+probabilities to get the final *per-alignment* mismap probabilities.
+(If you won't use the mismap probabilities, you can replace
+``--split-f=MAF+`` with ``--split``.)
 
-  last-split -r many-to-one.maf > one-to-one.maf
+maf-linked_ removes isolated alignments, that are not "linked" to
+other alignments (i.e. nearby in both genomes).  This removes
+alignments between non-homologous insertions of homologous transposons
+(Frith2022_).
 
-Here, last-split_ gets parts of the many-to-one alignments.  The ``-r``
-reverses the roles of the genomes, so it finds a unique best alignment
-for each part of human.  It uses the input *per-base* mismap
-probabilities to get the output *per-alignment* mismap probabilities.
+Finally, we can make a dotplot_ (out.png)::
 
-Finally, we can make a dotplot_ (one-to-one.png)::
-
-  last-dotplot one-to-one.maf
+  last-dotplot out.maf
 
 Aligning more distantly related genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -318,9 +318,6 @@ human versus gar.  For finer sensitivity, run ``lastdb`` with default
 
 To make it even more sensitive (but slow and memory-consuming), use
 ``-uMAM4``.  Yet more slow-and-sensitive is ``-uMAM8``.
-
-It may be useful to run maf-linked_ on the one-to-one alignments, to
-exclude non-homologous insertions of homologous transposons.
 
 Moar faster
 -----------
@@ -403,4 +400,5 @@ core is indicated by "~" symbols, and it contains exact matches only.
 .. _mask repeats: https://github.com/mcfrith/last-rna/blob/master/last-long-reads.md
 .. _MAF: http://genome.ucsc.edu/FAQ/FAQformat.html#format5
 .. _ASCII: https://en.wikipedia.org/wiki/ASCII
+.. _Frith2022: https://doi.org/10.1093/molbev/msac068
 .. _our paper: https://doi.org/10.1186/s13059-015-0670-9
