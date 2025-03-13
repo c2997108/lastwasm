@@ -587,8 +587,8 @@ struct Dispatcher{
 };
 
 static bool isCollatedAlignments() {
-  return args.outputFormat == 'b' || args.outputFormat == 'B' ||
-    args.cullingLimitForFinalAlignments + 1 || numOfVolumes > 1;
+  return args.outputFormat == 'b' || args.outputFormat == 'B' || args.isSplit
+    || args.cullingLimitForFinalAlignments + 1 || numOfVolumes > 1;
 }
 
 static void writeAlignment(LastAligner &aligner, const MultiSequence &qrySeqs,
@@ -599,7 +599,7 @@ static void writeAlignment(LastAligner &aligner, const MultiSequence &qrySeqs,
 			      alph, queryAlph,
 			      translationType, geneticCode.getCodonToAmino(),
 			      evaluer, args.outputFormat, extras);
-  if (isCollatedAlignments() || aligners.size() > 1 || args.isSplit) {
+  if (isCollatedAlignments() || aligners.size() > 1) {
     aligner.textAlns.push_back(a);
   } else {
     std::cout << a.text;
@@ -1268,10 +1268,10 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 
   if (numOfVolumes < 2) {
+    splitAlignments(aligner.splitter, textAlns, qrySeqs.qualsPerLetter());
     if (isCollatedAlignments()) {
       sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     }
-    splitAlignments(aligner.splitter, textAlns, qrySeqs.qualsPerLetter());
   }
 }
 
@@ -1294,9 +1294,9 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   if (isMultiVolume && volume + 1 == numOfVolumes) {
     std::vector<AlignmentText> &textAlns = aligner.textAlns;
     cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
-    sort(textAlns.begin(), textAlns.end());
     splitAlignments(aligner.splitter, textAlns,
 		    qrySeqsGlobal.qualsPerLetter());
+    sort(textAlns.begin(), textAlns.end());
   }
   return beg;
 }
