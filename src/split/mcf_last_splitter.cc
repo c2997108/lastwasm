@@ -111,31 +111,34 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
   double mismap = 1.0 - *std::max_element(probs, probs + alnLen);
   mismap = std::max(mismap, 1e-10);
   if (mismap > opts.mismap) return;
-  int mismapPrecision = 3;
+
+  bool isSplitProbs = (isAlreadySplit && a.linesEnd[-1][0] == 'p');
+  bool isAlignProbs = (a.linesEnd[-1-isAlreadySplit][0] == 'p');
+  int format = opts.format ? opts.format : "mM"[isAlignProbs];
+  int mismapPrecision = 3 - isSplitProbs;
+
+  bool isCopyFirstLine = (opts.no_split && a.linesBeg[0][0] == 'a');
+  size_t firstLineSize = a.linesBeg[1] - a.linesBeg[0] - 1;
+  size_t aLineSpace = firstLineSize * isCopyFirstLine + 128;
 
   std::vector<char> slice;
   size_t lineLen = cbrc::mafSlice(slice, a, sd.alnBeg, sd.alnEnd, probs);
   const char *sliceBeg = &slice[0];
   const char *sliceEnd = sliceBeg + slice.size();
-  const char *pLine = sliceEnd - lineLen;
-  const char *secondLastLine = pLine - lineLen;
 
-  if (isAlreadySplit && secondLastLine[0] == 'p') {
-    size_t backToSeq = sd.alnEnd - sd.alnBeg + 1;
-    mismap = cbrc::pLinesToErrorProb(pLine - backToSeq, sliceEnd - backToSeq);
+  if (isSplitProbs) {
+    size_t off = sd.alnEnd - sd.alnBeg + 1;
+    mismap = cbrc::pLinesToErrorProb(sliceEnd - lineLen - off, sliceEnd - off);
     if (mismap > opts.mismap) return;
-    mismapPrecision = 2;
   }
 
-  bool isLastalProbs = (*(secondLastLine - isAlreadySplit * lineLen) == 'p');
-  if (opts.format == 'm' || (opts.format == 0 && !isLastalProbs)) {
+  if (format == 'm') {
     while (*(sliceEnd - lineLen) == 'p') sliceEnd -= lineLen;
   }
 
-  size_t firstLineSize = a.linesBeg[1] - a.linesBeg[0] - 1;
-  std::vector<char> aLine(firstLineSize + 128);
+  std::vector<char> aLine(aLineSpace);
   char *out = &aLine[0];
-  if (opts.no_split && a.linesBeg[0][0] == 'a') {
+  if (isCopyFirstLine) {
     memcpy(out, a.linesBeg[0], firstLineSize);
     out += firstLineSize;
   } else {
