@@ -728,10 +728,9 @@ void SplitAligner::backwardSplice(const SplitAlignerParams &params) {
     }
 }
 
-std::vector<double>
-SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
-			    unsigned alnBeg, unsigned alnEnd) const {
-  std::vector<double> output;
+void SplitAligner::marginalProbs(double *output,
+				 unsigned queryBeg, unsigned alnNum,
+				 unsigned alnBeg, unsigned alnEnd) const {
   const char *qalign = alns[alnNum].qalign;
   size_t ij = matrixRowOrigins[alnNum] + queryBeg;
   size_t rescalesOffset = matrixRowOrigins[alnNum] + minBeg;
@@ -747,9 +746,8 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
       if (value != value) value = 0;
       ++ij;
     }
-    output.push_back(value);
+    output[pos - alnBeg] = value;
   }
-  return output;
 }
 
 // The next routine represents affine gap scores in a cunning way.

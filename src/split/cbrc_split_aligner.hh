@@ -196,8 +196,8 @@ public:
     }
 
     // Returns one probability per column, for a segment of an alignment
-    std::vector<double> marginalProbs(unsigned queryBeg, unsigned alnNum,
-				      unsigned alnBeg, unsigned alnEnd) const;
+    void marginalProbs(double *output, unsigned queryBeg, unsigned alnNum,
+		       unsigned alnBeg, unsigned alnEnd) const;
 
     // Toggles between forward and reverse-complement splice signals
     void flipSpliceSignals(const SplitAlignerParams &params);

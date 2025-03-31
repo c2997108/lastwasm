@@ -84,34 +84,37 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
 				      double senseStrandLogOdds) {
   if (sd.score < opts.score) return;
 
-  std::vector<double> p;
+  std::vector<double> columnProbabilities;
+  size_t alnLen = sd.alnEnd - sd.alnBeg;
+  columnProbabilities.resize(alnLen * (rnaStrand/2 + 1));
+  double *probs = columnProbabilities.data();
+  double *probsRev = probs + alnLen * rnaStrand/2;
+
   if (rnaStrand != 0) {
-    p = sa.marginalProbs(ap.queryBeg, ap.alnNum, sd.alnBeg, sd.alnEnd);
+    sa.marginalProbs(probs, ap.queryBeg, ap.alnNum, sd.alnBeg, sd.alnEnd);
   }
-  std::vector<double> pRev;
   if (rnaStrand != 1) {
     sa.flipSpliceSignals(params);
-    pRev = sa.marginalProbs(ap.queryBeg, ap.alnNum, sd.alnBeg, sd.alnEnd);
+    sa.marginalProbs(probsRev, ap.queryBeg, ap.alnNum, sd.alnBeg, sd.alnEnd);
     sa.flipSpliceSignals(params);
   }
-  if (rnaStrand == 0) p.swap(pRev);
   if (rnaStrand == 2) {
     double reverseProb = 1 / (1 + exp(senseStrandLogOdds));
     // the exp might overflow to inf, but that should be OK
     double forwardProb = 1 - reverseProb;
-    for (unsigned i = 0; i < p.size(); ++i) {
-      p[i] = forwardProb * p[i] + reverseProb * pRev[i];
+    for (size_t i = 0; i < alnLen; ++i) {
+      probs[i] = forwardProb * probs[i] + reverseProb * probsRev[i];
     }
   }
 
-  assert(!p.empty());
-  double mismap = 1.0 - *std::max_element(p.begin(), p.end());
+  assert(alnLen > 0);
+  double mismap = 1.0 - *std::max_element(probs, probs + alnLen);
   mismap = std::max(mismap, 1e-10);
   if (mismap > opts.mismap) return;
   int mismapPrecision = 3;
 
   std::vector<char> slice;
-  size_t lineLen = cbrc::mafSlice(slice, a, sd.alnBeg, sd.alnEnd, &p[0]);
+  size_t lineLen = cbrc::mafSlice(slice, a, sd.alnBeg, sd.alnEnd, probs);
   const char *sliceBeg = &slice[0];
   const char *sliceEnd = sliceBeg + slice.size();
   const char *pLine = sliceEnd - lineLen;
