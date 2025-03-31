@@ -25,28 +25,22 @@ namespace cbrc {
 
 static int myMax(const int *b, int s) { return *std::max_element(b, b + s); }
 
-// Orders candidate alignments by increasing DP start coordinate.
-// Breaks ties by decreasing DP end coordinate.
-struct DpBegLess {
-  DpBegLess(const unsigned *b, const unsigned *e) : dpBegs(b), dpEnds(e) {}
+struct BegLess {  // Order by increasing begin value, then decreasing end value
+  BegLess(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
   bool operator()(unsigned a, unsigned b) const {
-    return
-      dpBegs[a] != dpBegs[b] ? dpBegs[a] < dpBegs[b] : dpEnds[a] > dpEnds[b];
+    return begs[a] != begs[b] ? begs[a] < begs[b] : ends[a] > ends[b];
   }
-  const unsigned *dpBegs;
-  const unsigned *dpEnds;
+  const unsigned *begs;
+  const unsigned *ends;
 };
 
-// Orders candidate alignments by decreasing DP end coordinate.
-// Breaks ties by increasing DP start coordinate.
-struct DpEndLess {
-  DpEndLess(const unsigned *b, const unsigned *e) : dpBegs(b), dpEnds(e) {}
+struct EndLess {  // Order by decreasing end value, then increasing begin value
+  EndLess(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
   bool operator()(unsigned a, unsigned b) const {
-    return
-      dpEnds[a] != dpEnds[b] ? dpEnds[a] > dpEnds[b] : dpBegs[a] < dpBegs[b];
+    return ends[a] != ends[b] ? ends[a] > ends[b] : begs[a] < begs[b];
   }
-  const unsigned *dpBegs;
-  const unsigned *dpEnds;
+  const unsigned *begs;
+  const unsigned *ends;
 };
 
 // Orders candidate alignments by increasing DP start coordinate.
@@ -334,7 +328,7 @@ long SplitAligner::viterbiSplit(const SplitAlignerParams &params) {
   unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
   std::stable_sort(sortedAlnPtr, sortedAlnEnd,
-		   DpBegLess(&dpBegs[0], &dpEnds[0]));
+		   BegLess(&dpBegs[0], &dpEnds[0]));
 
   long maxScore = 0;
 
@@ -347,7 +341,7 @@ long SplitAligner::viterbiSplit(const SplitAlignerParams &params) {
       ++sortedAlnPtr;
     }
     mergeInto(inplayAlnBeg, inplayAlnEnd, sortedAlnBeg, sortedAlnPtr,
-	      DpEndLess(&dpBegs[0], &dpEnds[0]));
+	      EndLess(&dpBegs[0], &dpEnds[0]));
     inplayAlnEnd += sortedAlnPtr - sortedAlnBeg;
 
     cell(Vvec, j) = maxScore;
@@ -570,7 +564,7 @@ void SplitAligner::forwardSplit(const SplitAlignerParams &params) {
   unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
   std::stable_sort(sortedAlnPtr, sortedAlnEnd,
-		   DpBegLess(&dpBegs[0], &dpEnds[0]));
+		   BegLess(&dpBegs[0], &dpEnds[0]));
 
   double sumOfProbs = 1;
   double rescale = 1;
@@ -584,7 +578,7 @@ void SplitAligner::forwardSplit(const SplitAlignerParams &params) {
       ++sortedAlnPtr;
     }
     mergeInto(inplayAlnBeg, inplayAlnEnd, sortedAlnBeg, sortedAlnPtr,
-	      DpEndLess(&dpBegs[0], &dpEnds[0]));
+	      EndLess(&dpBegs[0], &dpEnds[0]));
     inplayAlnEnd += sortedAlnPtr - sortedAlnBeg;
 
     cell(rescales, j) = rescale;
@@ -660,7 +654,7 @@ void SplitAligner::backwardSplit(const SplitAlignerParams &params) {
   unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
   std::stable_sort(sortedAlnPtr, sortedAlnEnd,
-		   DpEndLess(&dpBegs[0], &dpEnds[0]));
+		   EndLess(&dpBegs[0], &dpEnds[0]));
 
   double sumOfProbs = 1;
 
@@ -673,7 +667,7 @@ void SplitAligner::backwardSplit(const SplitAlignerParams &params) {
       ++sortedAlnPtr;
     }
     mergeInto(inplayAlnBeg, inplayAlnEnd, sortedAlnBeg, sortedAlnPtr,
-	      DpBegLess(&dpBegs[0], &dpEnds[0]));
+	      BegLess(&dpBegs[0], &dpEnds[0]));
     inplayAlnEnd += sortedAlnPtr - sortedAlnBeg;
 
     double rescale = cell(rescales, j);
@@ -739,21 +733,22 @@ std::vector<double>
 SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 			    unsigned alnBeg, unsigned alnEnd) const {
   std::vector<double> output;
-  unsigned i = alnNum;
+  const char *qalign = alns[alnNum].qalign;
   unsigned j = queryBeg;
+
   for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
-    size_t ij = matrixRowOrigins[i] + j;
+    size_t ij = matrixRowOrigins[alnNum] + j;
+    double value;
     if (Bmat[ij] > DBL_MAX) {  // can happen for spliced alignment
-      output.push_back(0);
-    } else if (alns[i].qalign[pos] == '-') {
-      double value = Fmat[ij] * Bmat[ij] * Sexp[ij*2] * cell(rescales, j);
-      output.push_back(value);
+      value = 0;
+    } else if (qalign[pos] == '-') {
+      value = Fmat[ij] * Bmat[ij] * Sexp[ij*2] * cell(rescales, j);
     } else {
-      double value = Fmat[ij + 1] * Bmat[ij] / Sexp[ij*2+1];
-      if (value != value) value = 0.0;
-      output.push_back(value);
+      value = Fmat[ij + 1] * Bmat[ij] / Sexp[ij*2+1];
+      if (value != value) value = 0;
       j++;
     }
+    output.push_back(value);
   }
   return output;
 }

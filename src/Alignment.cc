@@ -60,11 +60,14 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   // convert left-extension coordinates to sequence coordinates:
   size_t seedBeg1 = seed.beg1();
   size_t seedBeg2 = aaToDna(seed.beg2(), frameSize);
-  for( IT(SegmentPair) i = blocks.begin(); i < blocks.end(); ++i ){
-    i->start1 = seedBeg1 - i->start1 - i->size;
-    // careful: i->start2 might be -1 (reverse frameshift)
-    i->start2 = dnaToAa( seedBeg2 - i->start2, frameSize ) - i->size;
+  for (size_t i = 0; i < blocks.size(); ++i) {
+    size_t s = blocks[i].size;
+    blocks[i].start1 = seedBeg1 - blocks[i].start1 - s;
+    // careful: start2 might be -1 (reverse frameshift)
+    blocks[i].start2 = dnaToAa(seedBeg2 - blocks[i].start2, frameSize) - s;
   }
+
+  bool isMergeSeedRev = !blocks.empty() && isNext(blocks.back(), seed);
 
   // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
@@ -83,29 +86,26 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   for( IT(SegmentPair) i = forwardBlocks.begin(); i < forwardBlocks.end();
        ++i ){
     i->start1 = seedEnd1 + i->start1;
-    // careful: i->start2 might be -1 (reverse frameshift)
+    // careful: start2 might be -1 (reverse frameshift)
     i->start2 = dnaToAa( seedEnd2 + i->start2, frameSize );
   }
 
-  bool isMergeSeedReverse = !blocks.empty() && isNext( blocks.back(), seed );
-  bool isMergeSeedForward =
+  bool isMergeSeedFwd =
     !forwardBlocks.empty() && isNext( seed, forwardBlocks.back() );
 
-  if( seed.size == 0 && !isMergeSeedReverse && !isMergeSeedForward ){
+  if (seed.size == 0 && !isMergeSeedRev && !isMergeSeedFwd) {
     // unusual, weird case: give up
     score = -INF;
     return;
   }
 
-  // splice together the two extensions and the seed (a bit messy):
-
   blocks.reserve( blocks.size() + forwardBlocks.size() +
-		  1 - isMergeSeedReverse - isMergeSeedForward );
+		  1 - isMergeSeedRev - isMergeSeedFwd );
 
-  if( isMergeSeedReverse ) blocks.back().size += seed.size;
-  else                     blocks.push_back(seed);
+  if (isMergeSeedRev) blocks.back().size += seed.size;
+  else                blocks.push_back(seed);
 
-  if( isMergeSeedForward ){
+  if (isMergeSeedFwd) {
     blocks.back().size += forwardBlocks.back().size;
     forwardBlocks.pop_back();
   }
