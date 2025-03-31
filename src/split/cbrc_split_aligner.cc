@@ -734,19 +734,19 @@ SplitAligner::marginalProbs(unsigned queryBeg, unsigned alnNum,
 			    unsigned alnBeg, unsigned alnEnd) const {
   std::vector<double> output;
   const char *qalign = alns[alnNum].qalign;
-  unsigned j = queryBeg;
+  size_t ij = matrixRowOrigins[alnNum] + queryBeg;
+  size_t rescalesOffset = matrixRowOrigins[alnNum] + minBeg;
 
   for (unsigned pos = alnBeg; pos < alnEnd; ++pos) {
-    size_t ij = matrixRowOrigins[alnNum] + j;
     double value;
     if (Bmat[ij] > DBL_MAX) {  // can happen for spliced alignment
       value = 0;
     } else if (qalign[pos] == '-') {
-      value = Fmat[ij] * Bmat[ij] * Sexp[ij*2] * cell(rescales, j);
+      value = Fmat[ij] * Bmat[ij] * Sexp[ij*2] * rescales[ij - rescalesOffset];
     } else {
       value = Fmat[ij + 1] * Bmat[ij] / Sexp[ij*2+1];
       if (value != value) value = 0;
-      j++;
+      ++ij;
     }
     output.push_back(value);
   }

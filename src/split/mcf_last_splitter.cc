@@ -129,13 +129,12 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
     while (*(sliceEnd - lineLen) == 'p') sliceEnd -= lineLen;
   }
 
-  const char *aLineOld = a.linesBeg[0];
-  size_t aLineOldSize = a.linesBeg[1] - a.linesBeg[0] - 1;
-  std::vector<char> aLine(aLineOldSize + 128);
+  size_t firstLineSize = a.linesBeg[1] - a.linesBeg[0] - 1;
+  std::vector<char> aLine(firstLineSize + 128);
   char *out = &aLine[0];
-  if (opts.no_split && aLineOld[0] == 'a') {
-    memcpy(out, aLineOld, aLineOldSize);
-    out += aLineOldSize;
+  if (opts.no_split && a.linesBeg[0][0] == 'a') {
+    memcpy(out, a.linesBeg[0], firstLineSize);
+    out += firstLineSize;
   } else {
     out += sprintf(out, "a score=%d", sd.score);
   }

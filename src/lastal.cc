@@ -1194,9 +1194,9 @@ static void splitAlignments(LastSplitter &splitter,
     3 + isQryQual + (args.outputType > 3) + (args.outputType > 6);
 
   splitter.reserve(textAlns.size());
-  std::vector<char *> linePtrs((linesPerMaf + 1) * textAlns.size());
+  std::vector<char *> lines((linesPerMaf + 1) * textAlns.size());
 
-  char **beg = linePtrs.empty() ? 0 : &linePtrs[0];
+  char **beg = lines.data();
   for (size_t i = 0; i < textAlns.size(); ++i) {
     char **end = beg;
     char *text = textAlns[i].text;

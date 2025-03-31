@@ -217,13 +217,13 @@ bool Alignment::hasGoodSegment(BigSeq seq1, const uchar *seq2,
 }
 
 static void getColumnCodes(const Centroid& centroid, std::vector<char>& codes,
-			   const std::vector<SegmentPair>& chunks,
+			   const SegmentPair *chunks, size_t chunkCount,
 			   bool isForward) {
-  for (size_t i = 0; i < chunks.size(); ++i) {
+  for (size_t i = 0; i < chunkCount; ++i) {
     const SegmentPair& x = chunks[i];
     centroid.getMatchAmbiguities(codes, x.end1(), x.end2(), x.size);
     size_t j = i + 1;
-    bool isNext = (j < chunks.size());
+    bool isNext = (j < chunkCount);
     size_t end1 = isNext ? chunks[j].end1() : 0;
     size_t end2 = isNext ? chunks[j].end2() : 0;
     // ASSUMPTION: if there is an insertion adjacent to a deletion,
@@ -240,15 +240,15 @@ static void getColumnCodes(const Centroid& centroid, std::vector<char>& codes,
 
 static void getColumnCodes(const FrameshiftXdropAligner &fxa,
 			   std::vector<char> &codes,
-			   const std::vector<SegmentPair> &chunks) {
-  for (size_t i = 0; i < chunks.size(); ++i) {
+			   const SegmentPair *chunks, size_t chunkCount) {
+  for (size_t i = 0; i < chunkCount; ++i) {
     const SegmentPair &x = chunks[i];
     for (size_t k = x.size; k-- > 0;) {
       double p = fxa.matchProb(x.beg1() + k, x.beg2() + k * 3);
       codes.push_back(asciiProbability(p));
     }
     size_t j = i + 1;
-    bool isNext = (j < chunks.size());
+    bool isNext = (j < chunkCount);
     size_t end1 = isNext ? chunks[j].end1() : 0;
     size_t end2 = isNext ? chunks[j].beg2() + chunks[j].size * 3 : 0;
     size_t n1 = x.beg1() - end1;
@@ -316,7 +316,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       score += s / scale;
       if (outputType < 4) return;
       fxa.backward(isForward, probMat, gap);
-      getColumnCodes(fxa, columnCodes, chunks);
+      getColumnCodes(fxa, columnCodes, chunks.data(), chunks.size());
       if (outputType == 7) fxa.count(isForward, gap, subsCounts, tranCounts);
     } else {
       assert(!isFullScore);
@@ -424,7 +424,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
 	chunks.push_back(SegmentPair(beg1, beg2, length));
       }
     }
-    getColumnCodes(centroid, columnCodes, chunks, isForward);
+    getColumnCodes(centroid, columnCodes, chunks.data(), chunks.size(),
+		   isForward);
     if (outputType == 7) {
       centroid.addExpectedCounts(start2, isForward, probMat, gap, alph.size,
 				 subsCounts, tranCounts);
