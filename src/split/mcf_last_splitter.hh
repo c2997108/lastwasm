@@ -60,8 +60,7 @@ private:
 			  const cbrc::SplitAlignerParams &params,
 			  bool isAlreadySplit, const cbrc::UnsplitAlignment &a,
 			  unsigned numOfParts, unsigned partNum,
-			  const SliceData &sd, unsigned alnNum,
-			  unsigned qSliceBeg, unsigned qSliceEnd,
+			  const SliceData &sd, cbrc::AlignmentPart ap,
 			  int rnaStrand, bool isSenseStrand,
 			  double senseStrandLogOdds);
 };

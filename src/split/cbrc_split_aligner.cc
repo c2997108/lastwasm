@@ -418,9 +418,7 @@ unsigned SplitAligner::findEndScore(long score) const {
 
 void SplitAligner::traceBack(const SplitAlignerParams &params,
 			     long viterbiScore,
-			     std::vector<unsigned>& alnNums,
-			     std::vector<unsigned>& queryBegs,
-			     std::vector<unsigned>& queryEnds) const {
+			     std::vector<AlignmentPart> &alnParts) const {
   const bool isGenome = params.isGenome();
   unsigned i, j;
   if (params.isSpliced()) {
@@ -436,15 +434,15 @@ void SplitAligner::traceBack(const SplitAlignerParams &params,
     assert(i < numAlns);
   }
 
-  alnNums.push_back(i);
-  queryEnds.push_back(j);
+  unsigned queryEnd = j;
 
   for (;;) {
     --j;
     size_t ij = matrixRowOrigins[i] + j;
     long score = Vmat[ij + 1] - Smat[ij*2+1];
     if (params.isSpliced() && alns[i].qstart == j && score == 0) {
-      queryBegs.push_back(j);
+      AlignmentPart ap = {i, j, queryEnd};
+      alnParts.push_back(ap);
       return;
     }
 
@@ -460,19 +458,20 @@ void SplitAligner::traceBack(const SplitAlignerParams &params,
     long s = score - spliceEndScore(isGenome, ij);
     long t = s - params.restartScore;
     if (t == cell(Vvec, j)) {
-      queryBegs.push_back(j);
+      AlignmentPart ap = {i, j, queryEnd};
+      alnParts.push_back(ap);
       if (t == 0) return;
       while (t == cell(Vvec, j-1)) --j;
       i = findScore(isGenome, j, t);
     } else {
       if (isStay) continue;
-      queryBegs.push_back(j);
+      AlignmentPart ap = {i, j, queryEnd};
+      alnParts.push_back(ap);
       unsigned k = findScore(isGenome, j, s - params.jumpScore);
       i = (k < numAlns) ? k : findSpliceScore(params, i, j, score);
     }
     assert(i < numAlns);
-    alnNums.push_back(i);
-    queryEnds.push_back(j);
+    queryEnd = j;
   }
 }
 

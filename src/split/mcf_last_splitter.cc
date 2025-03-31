@@ -49,28 +49,28 @@ static int printSense(char *out, double senseStrandLogOdds) {
 
 namespace mcf {
 
-static void doOneSlice(SliceData &sd, unsigned &qSliceBeg, unsigned &qSliceEnd,
+static void doOneSlice(SliceData &sd, cbrc::AlignmentPart &ap,
 		       const cbrc::SplitAligner &sa,
-		       const cbrc::UnsplitAlignment &a, unsigned alnNum) {
+		       const cbrc::UnsplitAlignment &a) {
   sd.score = -1;
 
-  if (qSliceBeg >= a.qend || qSliceEnd <= a.qstart) {
+  if (ap.queryBeg >= a.qend || ap.queryEnd <= a.qstart) {
     return;  // this can happen for spliced alignment!
   }
 
-  unsigned qSliceBegOld = qSliceBeg;
-  unsigned qSliceEndOld = qSliceEnd;
-  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, qSliceBeg, sd.alnBeg);
-  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   qSliceEnd, sd.alnEnd);
+  unsigned qSliceBegOld = ap.queryBeg;
+  unsigned qSliceEndOld = ap.queryEnd;
+  cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, ap.queryBeg, sd.alnBeg);
+  cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   ap.queryEnd, sd.alnEnd);
 
-  if (qSliceBeg >= qSliceEnd) {
+  if (ap.queryBeg >= ap.queryEnd) {
     return;  // I think this can happen for spliced alignment
   }
 
   sd.score =
-    sa.segmentScore(alnNum, qSliceBegOld, qSliceEndOld) -
-    sa.segmentScore(alnNum, qSliceBegOld, qSliceBeg) -
-    sa.segmentScore(alnNum, qSliceEnd, qSliceEndOld);
+    sa.segmentScore(ap.alnNum, qSliceBegOld, qSliceEndOld) -
+    sa.segmentScore(ap.alnNum, qSliceBegOld, ap.queryBeg) -
+    sa.segmentScore(ap.alnNum, ap.queryEnd, qSliceEndOld);
 }
 
 void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
@@ -78,20 +78,20 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
 				      bool isAlreadySplit,
 				      const cbrc::UnsplitAlignment &a,
 				      unsigned numOfParts, unsigned partNum,
-				      const SliceData &sd, unsigned alnNum,
-				      unsigned qSliceBeg, unsigned qSliceEnd,
+				      const SliceData &sd,
+				      cbrc::AlignmentPart ap,
 				      int rnaStrand, bool isSenseStrand,
 				      double senseStrandLogOdds) {
   if (sd.score < opts.score) return;
 
   std::vector<double> p;
   if (rnaStrand != 0) {
-    p = sa.marginalProbs(qSliceBeg, alnNum, sd.alnBeg, sd.alnEnd);
+    p = sa.marginalProbs(ap.queryBeg, ap.alnNum, sd.alnBeg, sd.alnEnd);
   }
   std::vector<double> pRev;
   if (rnaStrand != 1) {
     sa.flipSpliceSignals(params);
-    pRev = sa.marginalProbs(qSliceBeg, alnNum, sd.alnBeg, sd.alnEnd);
+    pRev = sa.marginalProbs(ap.queryBeg, ap.alnNum, sd.alnBeg, sd.alnEnd);
     sa.flipSpliceSignals(params);
   }
   if (rnaStrand == 0) p.swap(pRev);
@@ -143,12 +143,12 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
   if (!opts.genome.empty() && !opts.no_split) {
     if (partNum > 0) {
       out = strcpy(out, isSenseStrand ? " acc=" : " don=") + 5;
-      sa.spliceEndSignal(out, params, alnNum, qSliceBeg, isSenseStrand);
+      sa.spliceEndSignal(out, params, ap.alnNum, ap.queryBeg, isSenseStrand);
       out += 2;
     }
     if (partNum + 1 < numOfParts) {
       out = strcpy(out, isSenseStrand ? " don=" : " acc=") + 5;
-      sa.spliceBegSignal(out, params, alnNum, qSliceEnd, isSenseStrand);
+      sa.spliceBegSignal(out, params, ap.alnNum, ap.queryEnd, isSenseStrand);
       out += 2;
     }
   }
@@ -187,19 +187,15 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 
   long viterbiScore = LONG_MIN;
   long viterbiScoreRev = LONG_MIN;
-  std::vector<unsigned> alnNums;
-  std::vector<unsigned> queryBegs;
-  std::vector<unsigned> queryEnds;
+  std::vector<cbrc::AlignmentPart> alignmentParts;
 
   if (opts.no_split) {
     unsigned numOfParts = end - beg;
-    alnNums.resize(numOfParts);
-    queryBegs.resize(numOfParts);
-    queryEnds.resize(numOfParts);
+    alignmentParts.resize(numOfParts);
     for (unsigned i = 0; i < numOfParts; ++i) {
-      alnNums[i] = i;
-      queryBegs[i] = beg[i].qstart;
-      queryEnds[i] = beg[i].qend;
+      alignmentParts[i].alnNum = i;
+      alignmentParts[i].queryBeg = beg[i].qstart;
+      alignmentParts[i].queryEnd = beg[i].qend;
     }
   } else {
     if (rnaStrand != 0) {
@@ -213,22 +209,20 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
       if (opts.verbose) std::cerr << "\t" << viterbiScoreRev;
     }
     if (viterbiScore >= viterbiScoreRev) {
-      sa.traceBack(params, viterbiScore, alnNums, queryBegs, queryEnds);
+      sa.traceBack(params, viterbiScore, alignmentParts);
     } else {
       sa.flipSpliceSignals(params);
-      sa.traceBack(params, viterbiScoreRev, alnNums, queryBegs, queryEnds);
+      sa.traceBack(params, viterbiScoreRev, alignmentParts);
       sa.flipSpliceSignals(params);
     }
-    std::reverse(alnNums.begin(), alnNums.end());
-    std::reverse(queryBegs.begin(), queryBegs.end());
-    std::reverse(queryEnds.begin(), queryEnds.end());
+    std::reverse(alignmentParts.begin(), alignmentParts.end());
   }
 
-  unsigned numOfParts = alnNums.size();
+  unsigned numOfParts = alignmentParts.size();
   slices.resize(numOfParts);
   for (unsigned k = 0; k < numOfParts; ++k) {
-    unsigned i = alnNums[k];
-    doOneSlice(slices[k], queryBegs[k], queryEnds[k], sa, beg[i], i);
+    unsigned i = alignmentParts[k].alnNum;
+    doOneSlice(slices[k], alignmentParts[k], sa, beg[i]);
   }
 
   sa.exponentiateScores(params);
@@ -250,9 +244,9 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   if (opts.verbose) std::cerr << "\n";
 
   for (unsigned k = 0; k < numOfParts; ++k) {
-    unsigned i = alnNums[k];
+    unsigned i = alignmentParts[k].alnNum;
     doOneAlignmentPart(opts, params, isAlreadySplit, beg[i], numOfParts, k,
-		       slices[k], i, queryBegs[k], queryEnds[k],
+		       slices[k], alignmentParts[k],
 		       rnaStrand, isSenseStrand, senseStrandLogOdds);
   }
 }

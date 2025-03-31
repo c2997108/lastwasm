@@ -21,6 +21,12 @@
 
 namespace cbrc {
 
+struct AlignmentPart {
+  unsigned alnNum;
+  unsigned queryBeg;
+  unsigned queryEnd;
+};
+
 struct SplitAlignerParams {
   static int scoreFromProb(double prob, double scale) {
     return floor(scale * log(prob) + 0.5);
@@ -162,9 +168,7 @@ public:
     // 3. The chunk's end coordinate in the query sequence
     // It gets the chunks in reverse order, from query end to query start.
     void traceBack(const SplitAlignerParams &params, long viterbiScore,
-		   std::vector<unsigned>& alnNums,
-		   std::vector<unsigned>& queryBegs,
-		   std::vector<unsigned>& queryEnds) const;
+		   std::vector<AlignmentPart> &alnParts) const;
 
     // Calculates the alignment score for a segment of an alignment
     int segmentScore(unsigned alnNum,
