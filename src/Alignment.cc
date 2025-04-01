@@ -50,7 +50,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
-  extend( blocks, columnAmbiguityCodes, aligners, isGreedy, isFullScore,
+  extend( blocks, aligners, isGreedy, isFullScore,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -74,10 +74,11 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
     columnAmbiguityCodes.insert(columnAmbiguityCodes.end(), seed.size, 126);
   }
 
+  size_t codesMid = columnAmbiguityCodes.size();
+
   // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
-  std::vector<char> forwardAmbiguities;
-  extend( forwardBlocks, forwardAmbiguities, aligners, isGreedy, isFullScore,
+  extend( forwardBlocks, aligners, isGreedy, isFullScore,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -117,10 +118,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
 
   size_t middle = blocks.size();
   blocks.insert( blocks.end(), forwardBlocks.rbegin(), forwardBlocks.rend() );
-
-  columnAmbiguityCodes.insert( columnAmbiguityCodes.end(),
-                               forwardAmbiguities.rbegin(),
-                               forwardAmbiguities.rend() );
+  reverse(columnAmbiguityCodes.begin() + codesMid, columnAmbiguityCodes.end());
 
   for (size_t i = middle; i < blocks.size(); ++i)
     blocks[i - 1].score = blocks[i].score;
@@ -260,7 +258,6 @@ static void getColumnCodes(const FrameshiftXdropAligner &fxa,
 }
 
 void Alignment::extend( std::vector< SegmentPair >& chunks,
-			std::vector< char >& columnCodes,
 			Aligners &aligners, bool isGreedy, bool isFullScore,
 			BigSeq seq1, const uchar* seq2,
 			size_t start1, size_t start2,
@@ -278,6 +275,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   Centroid &centroid = aligners.centroid;
   GappedXdropAligner& aligner = centroid.aligner();
   GreedyXdropAligner &greedyAligner = aligners.greedyAligner;
+  std::vector<char> &columnCodes = extras.columnAmbiguityCodes;
 
   double *subsCounts[scoreMatrixRowSize];
   double *tranCounts;
