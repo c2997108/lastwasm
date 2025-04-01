@@ -34,10 +34,30 @@ struct BegLess {  // Order by increasing begin value, then decreasing end value
   const unsigned *ends;
 };
 
+struct BegLessStable {
+  BegLessStable(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
+  bool operator()(unsigned a, unsigned b) const {
+    return begs[a] != begs[b] ? begs[a] < begs[b]
+      :    ends[a] != ends[b] ? ends[a] > ends[b] : a < b;
+  }
+  const unsigned *begs;
+  const unsigned *ends;
+};
+
 struct EndLess {  // Order by decreasing end value, then increasing begin value
   EndLess(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
   bool operator()(unsigned a, unsigned b) const {
     return ends[a] != ends[b] ? ends[a] > ends[b] : begs[a] < begs[b];
+  }
+  const unsigned *begs;
+  const unsigned *ends;
+};
+
+struct EndLessStable {
+  EndLessStable(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
+  bool operator()(unsigned a, unsigned b) const {
+    return ends[a] != ends[b] ? ends[a] > ends[b]
+      :    begs[a] != begs[b] ? begs[a] < begs[b] : a < b;
   }
   const unsigned *begs;
   const unsigned *ends;
@@ -324,11 +344,8 @@ long SplitAligner::viterbiSplit(const SplitAlignerParams &params) {
   const int restartScore = params.restartScore;
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
-  unsigned *sortedAlnPtr = &sortedAlnIndices[0];
-  unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
-
-  std::stable_sort(sortedAlnPtr, sortedAlnEnd,
-		   BegLess(&dpBegs[0], &dpEnds[0]));
+  const unsigned *sortedAlnPtr = &sortedAlnIndices[0];
+  const unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
   long maxScore = 0;
 
@@ -366,9 +383,6 @@ long SplitAligner::viterbiSplice(const SplitAlignerParams &params) {
     unsigned sortedAlnPos = 0;
     unsigned oldNumInplay = 0;
     unsigned newNumInplay = 0;
-
-    stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
-		QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
 
     long maxScore = 0;
     long scoreFromJump = restartScore;
@@ -559,11 +573,8 @@ void SplitAligner::forwardSplit(const SplitAlignerParams &params) {
   const double restartProb = params.restartProb;
   unsigned *inplayAlnBeg = &newInplayAlnIndices[0];
   unsigned *inplayAlnEnd = inplayAlnBeg;
-  unsigned *sortedAlnPtr = &sortedAlnIndices[0];
-  unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
-
-  std::stable_sort(sortedAlnPtr, sortedAlnEnd,
-		   BegLess(&dpBegs[0], &dpEnds[0]));
+  const unsigned *sortedAlnPtr = &sortedAlnIndices[0];
+  const unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
   double sumOfProbs = 1;
   double rescale = 1;
@@ -652,8 +663,7 @@ void SplitAligner::backwardSplit(const SplitAlignerParams &params) {
   unsigned *sortedAlnPtr = &sortedAlnIndices[0];
   unsigned *sortedAlnEnd = sortedAlnPtr + numAlns;
 
-  std::stable_sort(sortedAlnPtr, sortedAlnEnd,
-		   EndLess(&dpBegs[0], &dpEnds[0]));
+  std::sort(sortedAlnPtr, sortedAlnEnd, EndLessStable(&dpBegs[0], &dpEnds[0]));
 
   double sumOfProbs = 1;
 
@@ -1085,6 +1095,14 @@ void SplitAligner::layout(const SplitAlignerParams &params,
     }
 
     initDpBounds(params);
+
+    if (params.isSpliced()) {
+      stable_sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
+		  QbegLess(&dpBegs[0], &rnameAndStrandIds[0], &rBegs[0]));
+    } else {
+      sort(sortedAlnIndices.begin(), sortedAlnIndices.end(),
+	   BegLessStable(&dpBegs[0], &dpEnds[0]));
+    }
 }
 
 size_t SplitAligner::memory(const SplitAlignerParams &params,
