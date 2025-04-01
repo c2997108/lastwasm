@@ -140,6 +140,8 @@ public:
     void layout(const SplitAlignerParams &params,
 		const UnsplitAlignment *beg, const UnsplitAlignment *end);
 
+    size_t maxQueryEnd() const { return maxEnd; }
+
     // The number of cells in each dynamic programming matrix
     size_t cellsPerDpMatrix() const
     { return matrixRowOrigins[numAlns-1] + dpEnd(numAlns-1) + 1; }

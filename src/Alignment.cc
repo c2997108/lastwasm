@@ -36,8 +36,10 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
                            const uchar* qual1, const uchar* qual2,
 			   const Alphabet& alph, AlignmentExtras& extras,
 			   double gamma, int outputType ){
+  std::vector<char> &columnAmbiguityCodes = extras.columnAmbiguityCodes;
   if (probMatrix) score = seed.score;  // else keep the old score
   if (outputType > 3 && !isFullScore) extras.fullScore = seed.score;
+  blocks.clear();
 
   if( outputType == 7 ){
     const int numOfTransitions = frameSize ? 9 : 5;
@@ -47,8 +49,6 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
-  blocks.clear();
-  std::vector<char>& columnAmbiguityCodes = extras.columnAmbiguityCodes;
   extend( blocks, columnAmbiguityCodes, aligners, isGreedy, isFullScore,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
@@ -68,6 +68,10 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   }
 
   bool isMergeSeedRev = !blocks.empty() && isNext(blocks.back(), seed);
+
+  if (outputType > 3) {  // set the un-ambiguity of the core to a max value:
+    columnAmbiguityCodes.insert(columnAmbiguityCodes.end(), seed.size, 126);
+  }
 
   // extend a gapped alignment in the right/forward direction from the seed:
   std::vector<SegmentPair> forwardBlocks;
@@ -110,18 +114,15 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
     forwardBlocks.pop_back();
   }
 
-  size_t oldSize = blocks.size();
+  size_t middle = blocks.size();
   blocks.insert( blocks.end(), forwardBlocks.rbegin(), forwardBlocks.rend() );
-  for (size_t i = oldSize; i < blocks.size(); ++i)
-    blocks[i - 1].score = blocks[i].score;
-
-  if( outputType > 3 ){  // set the un-ambiguity of the core to a max value:
-    columnAmbiguityCodes.insert( columnAmbiguityCodes.end(), seed.size, 126 );
-  }
 
   columnAmbiguityCodes.insert( columnAmbiguityCodes.end(),
                                forwardAmbiguities.rbegin(),
                                forwardAmbiguities.rend() );
+
+  for (size_t i = middle; i < blocks.size(); ++i)
+    blocks[i - 1].score = blocks[i].score;
 }
 
 // cost of the gap between x and y

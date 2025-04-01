@@ -190,12 +190,15 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 			      bool isAlreadySplit,
 			      const cbrc::UnsplitAlignment *beg,
 			      const cbrc::UnsplitAlignment *end) {
+  assert(beg < end);
   int rnaStrand = opts.direction;
   if (rnaStrand == 3) rnaStrand = 2 - whichPairedSequence(beg->qname);
   if (rnaStrand == 4) rnaStrand = whichPairedSequence(beg->qname) - 1;
 
   sa.layout(params, beg, end);
-  if (opts.verbose) std::cerr << "\tcells=" << sa.cellsPerDpMatrix();
+  if (opts.verbose) std::cerr << beg->qname << '\t' << beg->qstart << '\t'
+			      << sa.maxQueryEnd() << '\t' << (end - beg)
+			      << "\tcells=" << sa.cellsPerDpMatrix();
   size_t bytes = sa.memory(params, rnaStrand == 2);
   if (bytes > opts.bytes) {
     if (opts.verbose) std::cerr << "\n";
@@ -286,8 +289,6 @@ void LastSplitter::split(const LastSplitOptions &opts,
     ++mid;
     if (mid == end || strcmp(mid->qname, beg->qname) != 0 ||
 	(mid->qstart >= qendMax && !opts.isSplicedAlignment)) {
-      if (opts.verbose) std::cerr << beg->qname << '\t' << beg->qstart << '\t'
-				  << qendMax << '\t' << (mid - beg);
       doOneQuery(opts, params, isAlreadySplit, beg, mid);
       beg = mid;
       qendMax = 0;
