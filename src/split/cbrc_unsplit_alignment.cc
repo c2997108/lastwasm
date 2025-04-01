@@ -13,6 +13,11 @@
 #include <stdexcept>
 #include <string>
 
+struct IntText {
+  char text[32];
+  int length;
+};
+
 static void err(const std::string& s) {
   throw std::runtime_error(s);
 }
@@ -27,6 +32,16 @@ static bool isSpace(char c) {
 
 static bool isDigit(char c) {
   return c >= '0' && c <= '9';
+}
+
+static void writeSize(IntText &it, size_t x) {
+  char *end = it.text + sizeof it.text;
+  char *beg = end;
+  do {
+    --beg;
+    *beg = '0' + x % 10;
+  } while (x /= 10);
+  it.length = end - beg;
 }
 
 namespace cbrc {
@@ -253,8 +268,11 @@ static void sprintRight(char*& dest, const char*& src, int width) {
 }
 
 static void sprintReplaceRight(char *&dest, const char *&oldIn,
-			       const char *newIn, int width) {
-  sprintRight(dest, newIn, width);
+			       const IntText &it, int width) {
+  memset(dest, ' ', width - it.length);
+  dest += width;
+  memcpy(dest - it.length, it.text + sizeof it.text - it.length, it.length);
+  *dest++ = ' ';
   oldIn = skipWord(oldIn);
 }
 
@@ -268,8 +286,8 @@ static char asciiFromProb(double probRight) {
 
 size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
 		unsigned alnBeg, unsigned alnEnd, const double *probs) {
-  char begTexts[2][32];
-  char lenTexts[2][32];
+  IntText begTexts[2];
+  IntText lenTexts[2];
   int w[6] = {0};
   unsigned numOfLines = !!probs;
 
@@ -292,11 +310,14 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
       unsigned endPos = seqPosFromAlnPos(alnEnd, c);
       unsigned newBeg = aln.isFlipped() ? beg + len - endPos : beg + begPos;
       unsigned newLen = endPos - begPos;
-      w[2] = std::max(w[2], sprintf(begTexts[j], "%u", newBeg));
-      w[3] = std::max(w[3], sprintf(lenTexts[j], "%u", newLen));
+      writeSize(begTexts[j], newBeg);
+      writeSize(lenTexts[j], newLen);
       ++j;
     }
   }
+
+  w[2] = std::max(begTexts[0].length, begTexts[1].length);
+  w[3] = std::max(lenTexts[0].length, lenTexts[1].length);
 
   unsigned alnLen = alnEnd - alnBeg;
   size_t lineLength = w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + alnLen + 7;

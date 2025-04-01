@@ -12,6 +12,11 @@
 #include <algorithm>
 #include <stdexcept>
 
+static char *copyString(char *out, const char *s, size_t sizeOf) {
+  memcpy(out, s, sizeOf - 1);
+  return out + sizeOf - 1;
+}
+
 // Defines an ordering, for sorting.
 static bool less(const cbrc::UnsplitAlignment& a,
 		 const cbrc::UnsplitAlignment& b) {
@@ -38,13 +43,15 @@ static int whichPairedSequence(const char *name) {
   throw std::runtime_error("query sequence name should end in /1 or /2");
 }
 
-static int printSense(char *out, double senseStrandLogOdds) {
+static char *printSense(char *out, double senseStrandLogOdds) {
   double b = senseStrandLogOdds / log(2.0);
   if (b < 0.1 && b > -0.1) b = 0;
   else if (b > 10) b = floor(b + 0.5);
   else if (b < -10) b = ceil(b - 0.5);
+  static const char tagString[] = " sense=";
+  out = copyString(out, tagString, sizeof tagString);
   int precision = (b < 10 && b > -10) ? 2 : 3;
-  return sprintf(out, " sense=%.*g", precision, b);
+  return out + sprintf(out, "%.*g", precision, b);
 }
 
 namespace mcf {
@@ -143,10 +150,14 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
     memcpy(out, a.linesBeg[0], firstLineSize);
     out += firstLineSize;
   } else {
-    out += sprintf(out, "a score=%d", sd.score);
+    static const char sString[] = "a score=";
+    out = copyString(out, sString, sizeof sString);
+    out += sprintf(out, "%d", sd.score);
   }
-  out += sprintf(out, " mismap=%.*g", mismapPrecision, mismap);
-  if (rnaStrand == 2) out += printSense(out, senseStrandLogOdds);
+  static const char mString[] = " mismap=";
+  out = copyString(out, mString, sizeof mString);
+  out += sprintf(out, "%.*g", mismapPrecision, mismap);
+  if (rnaStrand == 2) out = printSense(out, senseStrandLogOdds);
   if (!opts.genome.empty() && !opts.no_split) {
     if (partNum > 0) {
       out = strcpy(out, isSenseStrand ? " acc=" : " don=") + 5;

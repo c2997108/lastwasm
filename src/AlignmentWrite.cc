@@ -37,6 +37,11 @@ const char aminoTriplets[] =
   "***" "***"
   "Xaa" "xaa";
 
+static char *copyString(char *out, const char *s, size_t sizeOf) {
+  memcpy(out, s, sizeOf - 1);
+  return out + sizeOf - 1;
+}
+
 // This writes a "size_t" integer into a char buffer ending at "end".
 // It writes backwards from the end, because that's easier & faster.
 static char *writeSize(char *end, size_t x) {
@@ -194,13 +199,19 @@ static char* writeTags( const LastEvaluer& evaluer, double queryLength,
     double epa = evaluer.evaluePerArea( score );
     double area = evaluer.area( score, queryLength );
     *out++ = separator;
-    out += std::sprintf( out, "EG2=%.2g", 1e18 * epa );
+    static const char aString[] = "EG2=";
+    out = copyString(out, aString, sizeof aString);
+    out += std::sprintf(out, "%.2g", 1e18 * epa);
     *out++ = separator;
-    out += std::sprintf( out, "E=%.2g", area * epa );
+    static const char eString[] = "E=";
+    out = copyString(out, eString, sizeof eString);
+    out += std::sprintf(out, "%.2g", area * epa);
   }
   if( fullScore > 0 ){
     *out++ = separator;
-    out += std::sprintf( out, "fullScore=%.3g", fullScore );
+    static const char fString[] = "fullScore=";
+    out = copyString(out, fString, sizeof fString);
+    out += std::sprintf(out, "%.3g", fullScore);
   }
   *out++ = '\n';
   return out;
@@ -275,7 +286,8 @@ static void putRight(Writer &w, const IntText &t, size_t width) {
 // Write an "a" line
 static char *writeMafLineA(char *out, double score, const LastEvaluer& evaluer,
 			   double queryLength, double fullScore) {
-  out += std::sprintf(out, "a score=");
+  static const char s[] = "a score=";
+  out = copyString(out, s, sizeof s);
   out += std::sprintf(out, scoreFormat(fullScore >= 0), score);
   return writeTags(evaluer, queryLength, score, fullScore, ' ', out);
 }
@@ -329,12 +341,14 @@ static void writeMafLineC(std::vector<char> &cLine,
       if (x != i) c += counts[x * scoreMatrixRowSize + j];
       if (y != j) c += counts[i * scoreMatrixRowSize + y];
       if (x != i && y != j) c += counts[x * scoreMatrixRowSize + y];
-      e += std::sprintf(e, " %.3g", c);
+      *e++ = ' ';
+      e += std::sprintf(e, "%.3g", c);
     }
   }
 
   for (size_t i = 0; i < numOfTransitions; ++i) {
-    e += std::sprintf(e, " %.3g", counts[numOfSubstitutions + i]);
+    *e++ = ' ';
+    e += std::sprintf(e, "%.3g", counts[numOfSubstitutions + i]);
   }
 
   *e++ = '\n';
