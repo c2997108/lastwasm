@@ -127,24 +127,27 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
   bool isCopyFirstLine = (opts.no_split && a.linesBeg[0][0] == 'a');
   size_t firstLineSize = a.linesBeg[1] - a.linesBeg[0] - 1;
   size_t aLineSpace = firstLineSize * isCopyFirstLine + 128;
+  size_t outputSize = outputText.size();
+  outputText.resize(outputSize + aLineSpace);
+  size_t lineLen = cbrc::mafSlice(outputText, a, sd.alnBeg, sd.alnEnd, probs);
 
-  std::vector<char> slice;
-  size_t lineLen = cbrc::mafSlice(slice, a, sd.alnBeg, sd.alnEnd, probs);
-  const char *sliceBeg = &slice[0];
-  const char *sliceEnd = sliceBeg + slice.size();
+  char *out = &outputText[outputSize];
+  const char *sliceBeg = out + aLineSpace;
+  const char *sliceEnd = &outputText[0] + outputText.size();
 
   if (isSplitProbs) {
     size_t off = sd.alnEnd - sd.alnBeg + 1;
     mismap = cbrc::pLinesToErrorProb(sliceEnd - lineLen - off, sliceEnd - off);
-    if (mismap > opts.mismap) return;
+    if (mismap > opts.mismap) {
+      outputText.resize(outputSize);
+      return;
+    }
   }
 
   if (format == 'm') {
     while (*(sliceEnd - lineLen) == 'p') sliceEnd -= lineLen;
   }
 
-  std::vector<char> aLine(aLineSpace);
-  char *out = &aLine[0];
   if (isCopyFirstLine) {
     memcpy(out, a.linesBeg[0], firstLineSize);
     out += firstLineSize;
@@ -171,8 +174,8 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
   }
   *out++ = '\n';
 
-  outputText.insert(outputText.end(), &aLine[0], out);
-  outputText.insert(outputText.end(), sliceBeg, sliceEnd);
+  memmove(out, sliceBeg, sliceEnd - sliceBeg);
+  outputText.resize(out + (sliceEnd - sliceBeg) - &outputText[0]);
 
   if (opts.no_split && a.linesEnd[-1][0] == 'c') {
     outputText.insert(outputText.end(), a.linesEnd[-1], a.linesEnd[0]);
