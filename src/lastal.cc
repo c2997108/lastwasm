@@ -785,6 +785,7 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 
   LOG2( "redone gapless alignments=" << gaplessAlns.size() );
 
+  Alignment aln;
   AlignmentExtras extras;  // not used
 
   for( size_t i = 0; i < gaplessAlns.size(); ++i ){
@@ -792,7 +793,6 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 
     if( SegmentPairPot::isMarked(sp) ) continue;
 
-    Alignment aln;
     aln.seed = sp;
 
     shrinkToLongestIdenticalRun( aln.seed, dis );
@@ -848,6 +848,7 @@ static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 void alignFinish(LastAligner &aligner, const MultiSequence &qrySeqs,
 		 const SeqData &qryData, std::vector<Alignment> &alignments,
 		 const SubstitutionMatrices &matrices, const Dispatcher &dis) {
+  Alignment probAln;
   AlignmentExtras extras;
   if (args.scoreType != 0) extras.fullScore = -1;  // score is fullScore
 
@@ -856,7 +857,6 @@ void alignFinish(LastAligner &aligner, const MultiSequence &qrySeqs,
     if( args.outputType < 4 ){
       writeAlignment(aligner, qrySeqs, qryData, aln, extras);
     } else {  // calculate match probabilities:
-      Alignment probAln;
       probAln.seed = aln.seed;
       probAln.makeXdrop(aligner.engines, args.isGreedy, args.scoreType,
 			dis.a, dis.b, args.globality,

@@ -7,9 +7,6 @@
 
 #include <assert.h>
 
-// make C++ tolerable:
-#define IT(type) std::vector<type>::iterator
-
 using namespace cbrc;
 
 static void addSeedCounts(BigPtr seq1, const uchar *seq2, size_t size,
@@ -50,7 +47,7 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   }
 
   // extend a gapped alignment in the left/reverse direction from the seed:
-  extend( blocks, aligners, isGreedy, isFullScore,
+  extend( aligners, isGreedy, isFullScore,
 	  seq1, seq2, seed.beg1(), seed.beg2(), false, globality,
 	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -69,16 +66,21 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   }
 
   bool isMergeSeedRev = !blocks.empty() && isNext(blocks.back(), seed);
+  if (isMergeSeedRev) {
+    blocks.back().size += seed.size;
+  } else {
+    blocks.push_back(seed);
+  }
 
   if (outputType > 3) {  // set the un-ambiguity of the core to a max value:
     columnAmbiguityCodes.insert(columnAmbiguityCodes.end(), seed.size, 126);
   }
 
+  size_t middle = blocks.size();
   size_t codesMid = columnAmbiguityCodes.size();
 
   // extend a gapped alignment in the right/forward direction from the seed:
-  std::vector<SegmentPair> forwardBlocks;
-  extend( forwardBlocks, aligners, isGreedy, isFullScore,
+  extend( aligners, isGreedy, isFullScore,
 	  seq1, seq2, seed.end1(), seed.end2(), true, globality,
 	  scoreMatrix, smMax, smMin, probMatrix, scale, maxDrop, gap,
 	  frameSize, pssm2, sm2qual, qual1, qual2, alph,
@@ -89,15 +91,13 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   // convert right-extension coordinates to sequence coordinates:
   size_t seedEnd1 = seed.end1();
   size_t seedEnd2 = aaToDna(seed.end2(), frameSize);
-  for( IT(SegmentPair) i = forwardBlocks.begin(); i < forwardBlocks.end();
-       ++i ){
-    i->start1 = seedEnd1 + i->start1;
+  for (size_t i = middle; i < blocks.size(); ++i) {
+    blocks[i].start1 = seedEnd1 + blocks[i].start1;
     // careful: start2 might be -1 (reverse frameshift)
-    i->start2 = dnaToAa( seedEnd2 + i->start2, frameSize );
+    blocks[i].start2 = dnaToAa(seedEnd2 + blocks[i].start2, frameSize);
   }
 
-  bool isMergeSeedFwd =
-    !forwardBlocks.empty() && isNext( seed, forwardBlocks.back() );
+  bool isMergeSeedFwd = blocks.size() > middle && isNext(seed, blocks.back());
 
   if (seed.size == 0 && !isMergeSeedRev && !isMergeSeedFwd) {
     // unusual, weird case: give up
@@ -105,19 +105,12 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
     return;
   }
 
-  blocks.reserve( blocks.size() + forwardBlocks.size() +
-		  1 - isMergeSeedRev - isMergeSeedFwd );
-
-  if (isMergeSeedRev) blocks.back().size += seed.size;
-  else                blocks.push_back(seed);
-
   if (isMergeSeedFwd) {
-    blocks.back().size += forwardBlocks.back().size;
-    forwardBlocks.pop_back();
+    blocks[middle - 1].size += blocks.back().size;
+    blocks.pop_back();
   }
 
-  size_t middle = blocks.size();
-  blocks.insert( blocks.end(), forwardBlocks.rbegin(), forwardBlocks.rend() );
+  reverse(blocks.begin() + middle, blocks.end());
   reverse(columnAmbiguityCodes.begin() + codesMid, columnAmbiguityCodes.end());
 
   for (size_t i = middle; i < blocks.size(); ++i)
@@ -257,8 +250,7 @@ static void getColumnCodes(const FrameshiftXdropAligner &fxa,
   }
 }
 
-void Alignment::extend( std::vector< SegmentPair >& chunks,
-			Aligners &aligners, bool isGreedy, bool isFullScore,
+void Alignment::extend( Aligners &aligners, bool isGreedy, bool isFullScore,
 			BigSeq seq1, const uchar* seq2,
 			size_t start1, size_t start2,
 			bool isForward, int globality,
@@ -276,6 +268,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
   GappedXdropAligner& aligner = centroid.aligner();
   GreedyXdropAligner &greedyAligner = aligners.greedyAligner;
   std::vector<char> &columnCodes = extras.columnAmbiguityCodes;
+  size_t blocksBeg = blocks.size();
 
   double *subsCounts[scoreMatrixRowSize];
   double *tranCounts;
@@ -306,7 +299,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       const uchar *f2 = seq2 + dnaToAa(frame2, frameSize);
       aligner.alignFrame(s1, s2, f1, f2, isForward, sm, gap, maxDrop);
       while (aligner.getNextChunkFrame(end1, end2, size, gapCost, gap))
-	chunks.push_back(SegmentPair(end1 - size, end2 - size * 3, size,
+	blocks.push_back(SegmentPair(end1 - size, end2 - size * 3, size,
 				     gapCost));
       if (!probMat) return;
       FrameshiftXdropAligner &fxa = aligners.frameshiftAligner;
@@ -316,7 +309,8 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       score += s / scale;
       if (outputType < 4) return;
       fxa.backward(isForward, probMat, gap);
-      getColumnCodes(fxa, columnCodes, chunks.data(), chunks.size());
+      getColumnCodes(fxa, columnCodes, blocks.data() + blocksBeg,
+		     blocks.size() - blocksBeg);
       if (outputType == 7) fxa.count(isForward, gap, subsCounts, tranCounts);
     } else {
       assert(!isFullScore);
@@ -330,7 +324,7 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       while (aligner.getNextChunk3(end1, end2, size,
 				   del.openCost, del.growCost, gap.pairCost,
 				   gap.frameshiftCost))
-	chunks.push_back(SegmentPair(end1 - size, end2 - size * 3, size));
+	blocks.push_back(SegmentPair(end1 - size, end2 - size * 3, size));
     }
 
     return;
@@ -384,21 +378,21 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
     size_t end1, end2, size;
     if( isGreedy ){
       while( greedyAligner.getNextChunk( end1, end2, size ) )
-	chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
+	blocks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
     }
 #if defined __SSE4_1__ || defined __ARM_NEON
     else if (isSimdMatrix && !pssm2 && !sm2qual) {
       while (aligner.getNextChunkDna(end1, end2, size,
 				     del.openCost, del.growCost,
 				     ins.openCost, ins.growCost))
-	chunks.push_back(SegmentPair(end1 - size, end2 - size, size));
+	blocks.push_back(SegmentPair(end1 - size, end2 - size, size));
     }
 #endif
     else {
       while( aligner.getNextChunk( end1, end2, size,
 				   del.openCost, del.growCost,
 				   ins.openCost, ins.growCost, gap.pairCost ) )
-	chunks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
+	blocks.push_back( SegmentPair( end1 - size, end2 - size, size ) );
     }
   }
 
@@ -421,11 +415,11 @@ void Alignment::extend( std::vector< SegmentPair >& chunks,
       centroid.dp(outputType, gamma);
       size_t beg1, beg2, length;
       while (centroid.traceback(beg1, beg2, length, outputType, gamma)) {
-	chunks.push_back(SegmentPair(beg1, beg2, length));
+	blocks.push_back(SegmentPair(beg1, beg2, length));
       }
     }
-    getColumnCodes(centroid, columnCodes, chunks.data(), chunks.size(),
-		   isForward);
+    getColumnCodes(centroid, columnCodes, blocks.data() + blocksBeg,
+		   blocks.size() - blocksBeg, isForward);
     if (outputType == 7) {
       centroid.addExpectedCounts(start2, isForward, probMat, gap, alph.size,
 				 subsCounts, tranCounts);

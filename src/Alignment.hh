@@ -134,8 +134,7 @@ struct Alignment{
   size_t end1() const{ return blocks.back().end1(); }
   size_t end2() const{ return blocks.back().end2(); }
 
-  void extend( std::vector< SegmentPair >& chunks,
-	       Aligners &aligners, bool isGreedy, bool isFullScore,
+  void extend( Aligners &aligners, bool isGreedy, bool isFullScore,
 	       BigSeq seq1, const uchar* seq2, size_t start1, size_t start2,
 	       bool isForward, int globality,
 	       const ScoreMatrixRow* sm, int smMax, int smMin,
