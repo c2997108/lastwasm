@@ -40,11 +40,12 @@ struct AlignmentText {
   AlignmentText() {}
 
   AlignmentText(size_t queryNumIn, size_t queryBegIn, size_t queryEndIn,
-		char strandIn, double scoreIn,
+		size_t queryLengthIn, char strandIn, double scoreIn,
 		size_t alnSizeIn, size_t matchesIn, char *textIn) :
     strandNum(queryNumIn * 2 + (strandIn == '-')),
-    queryBeg(queryBegIn), queryEnd(queryEndIn), score(scoreIn),
-    alnSize(alnSizeIn), matches(matchesIn), text(textIn) {}
+    queryBeg(strandIn == '-' ? queryLengthIn - queryEndIn : queryBegIn),
+    queryEnd(strandIn == '-' ? queryLengthIn - queryBegIn : queryEndIn),
+    score(scoreIn), alnSize(alnSizeIn), matches(matchesIn), text(textIn) {}
 
   size_t queryNum() const { return strandNum / 2; }
 
