@@ -271,7 +271,7 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
   char begTexts[2][32];
   char lenTexts[2][32];
   int w[6] = {0};
-  unsigned numOfLines = 1;  // for an extra "p" line at the end
+  unsigned numOfLines = !!probs;
 
   int j = 0;
   for (char **i = aln.linesBeg; i < aln.linesEnd; ++i) {
@@ -340,12 +340,14 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
     }
   }
 
-  const char *in = "p";
-  sprintLeft(out, in, w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + 5);
-  std::transform(probs, probs + alnLen, out, asciiFromProb);
-  if (aln.isFlipped()) std::reverse(out, out + alnLen);
-  out += alnLen;
-  *out++ = '\n';
+  if (probs) {
+    const char *in = "p";
+    sprintLeft(out, in, w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + 5);
+    std::transform(probs, probs + alnLen, out, asciiFromProb);
+    if (aln.isFlipped()) std::reverse(out, out + alnLen);
+    out += alnLen;
+    *out++ = '\n';
+  }
 
   return lineLength;
 }

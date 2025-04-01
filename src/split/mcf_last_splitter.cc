@@ -116,6 +116,7 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
   bool isAlignProbs = (a.linesEnd[-1-isAlreadySplit][0] == 'p');
   int format = opts.format ? opts.format : "mM"[isAlignProbs];
   int mismapPrecision = 3 - isSplitProbs;
+  if (format == 'm' && !isSplitProbs) probs = 0;
 
   bool isCopyFirstLine = (opts.no_split && a.linesBeg[0][0] == 'a');
   size_t firstLineSize = a.linesBeg[1] - a.linesBeg[0] - 1;
