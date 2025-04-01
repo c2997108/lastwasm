@@ -40,11 +40,12 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
   if (probMatrix) score = seed.score;  // else keep the old score
   if (outputType > 3 && !isFullScore) extras.fullScore = seed.score;
   blocks.clear();
+  columnAmbiguityCodes.clear();
 
   if( outputType == 7 ){
     const int numOfTransitions = frameSize ? 9 : 5;
     std::vector<double> &ec = extras.expectedCounts;
-    ec.resize(scoreMatrixRowSize * scoreMatrixRowSize + numOfTransitions);
+    ec.assign(scoreMatrixRowSize * scoreMatrixRowSize + numOfTransitions, 0.0);
     addSeedCounts(seq1 + seed.beg1(), seq2 + seed.beg2(), seed.size, &ec[0]);
   }
 
