@@ -91,7 +91,6 @@ void LastSplitter::doOneAlignmentPart(const LastSplitOptions &opts,
 				      double senseStrandLogOdds) {
   if (sd.score < opts.score) return;
 
-  std::vector<double> columnProbabilities;
   size_t alnLen = sd.alnEnd - sd.alnBeg;
   columnProbabilities.resize(alnLen * (rnaStrand/2 + 1));
   double *probs = columnProbabilities.data();
@@ -205,7 +204,6 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
 
   long viterbiScore = LONG_MIN;
   long viterbiScoreRev = LONG_MIN;
-  std::vector<cbrc::AlignmentPart> alignmentParts;
 
   if (opts.no_split) {
     unsigned numOfParts = end - beg;
@@ -226,6 +224,7 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
       sa.flipSpliceSignals(params);
       if (opts.verbose) std::cerr << "\t" << viterbiScoreRev;
     }
+    alignmentParts.clear();
     if (viterbiScore >= viterbiScoreRev) {
       sa.traceBack(params, viterbiScore, alignmentParts);
     } else {

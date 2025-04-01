@@ -48,7 +48,9 @@ public:
 private:
   cbrc::SplitAligner sa;
   std::vector<cbrc::UnsplitAlignment> mafs;
+  std::vector<cbrc::AlignmentPart> alignmentParts;
   std::vector<SliceData> slices;
+  std::vector<double> columnProbabilities;
   std::vector<char> outputText;
 
   void doOneQuery(const LastSplitOptions &opts,
