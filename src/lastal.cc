@@ -788,14 +788,11 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
   Alignment aln;
   AlignmentExtras extras;  // not used
 
-  for( size_t i = 0; i < gaplessAlns.size(); ++i ){
-    SegmentPair& sp = gaplessAlns.get(i);
-
-    if( SegmentPairPot::isMarked(sp) ) continue;
-
+  for (size_t i = 0; i < gaplessAlns.size(); ++i) {
+    SegmentPair &sp = gaplessAlns.get(i);
+    if (SegmentPairPot::isMarked(sp)) continue;
     aln.seed = sp;
-
-    shrinkToLongestIdenticalRun( aln.seed, dis );
+    shrinkToLongestIdenticalRun(aln.seed, dis);
 
     // do gapped extension from each end of the seed:
     aln.makeXdrop(aligner.engines, args.isGreedy, args.scoreType,
@@ -805,7 +802,7 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 		  qryData.frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
     ++gappedExtensionCount;
 
-    if( aln.score < args.minScoreGapped ) continue;
+    if (aln.score < args.minScoreGapped) continue;
 
     if (args.scoreType == 0 &&
 	!aln.isOptimal(dis.a, dis.b, args.globality, dis.m, dis.d, gapCosts,
@@ -815,18 +812,18 @@ void alignGapped(LastAligner &aligner, AlignmentPot &gappedAlns,
       continue;
     }
 
-    gaplessAlns.markAllOverlaps( aln.blocks );
-    gaplessAlns.markTandemRepeats( aln.seed, args.maxRepeatDistance );
+    gaplessAlns.markAllOverlaps(aln.blocks);
+    gaplessAlns.markTandemRepeats(aln.seed, args.maxRepeatDistance);
 
     if (phase == Phase::gapped) gappedAlns.add(aln);
     else SegmentPairPot::markAsGood(sp);
 
     ++gappedAlignmentCount;
-    if( gappedAlignmentCount >= args.maxAlignmentsPerQueryStrand ) break;
+    if (gappedAlignmentCount >= args.maxAlignmentsPerQueryStrand) break;
   }
 
-  LOG2( "gapped extensions=" << gappedExtensionCount );
-  LOG2( "gapped alignments=" << gappedAlignmentCount );
+  LOG2("gapped extensions=" << gappedExtensionCount);
+  LOG2("gapped alignments=" << gappedAlignmentCount);
 }
 
 // Redo gapped extensions, but keep the old alignment scores
@@ -1004,10 +1001,12 @@ static void printAlignments(const std::vector<AlignmentText> &textAlns) {
   }
 }
 
+static void freeAlignmentTexts(AlignmentText *textAlns, size_t textAlnCount) {
+  for (size_t i = 0; i < textAlnCount; ++i) delete[] textAlns[i].text;
+}
+
 static void clearAlignments(std::vector<AlignmentText> &textAlns) {
-  for (size_t i = 0; i < textAlns.size(); ++i) {
-    delete[] textAlns[i].text;
-  }
+  freeAlignmentTexts(textAlns.data(), textAlns.size());
   textAlns.clear();
 }
 
@@ -1195,11 +1194,12 @@ static void splitAlignments(LastSplitter &splitter,
   unsigned linesPerMaf =
     3 + isQryQual + (args.outputType > 3) + (args.outputType > 6);
 
-  splitter.reserve(textAlns.size());
-  std::vector<char *> lines((linesPerMaf + 1) * textAlns.size());
+  size_t textAlnCount = textAlns.size();
+  splitter.reserve(textAlnCount);
+  std::vector<char *> lines((linesPerMaf + 1) * textAlnCount);
 
   char **beg = lines.data();
-  for (size_t i = 0; i < textAlns.size(); ++i) {
+  for (size_t i = 0; i < textAlnCount; ++i) {
     char **end = beg;
     char *text = textAlns[i].text;
     for (unsigned j = 0; j < linesPerMaf; ++j) {
