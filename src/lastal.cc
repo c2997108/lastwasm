@@ -53,6 +53,7 @@ struct LastAligner {  // data that changes between queries
   LastSplitter splitter;
   std::vector<int> qualityPssm;
   std::vector<AlignmentText> textAlns;
+  std::vector<char *> alignmentTextLines;
   std::vector< std::vector<countT> > matchCounts;  // used if outputType == 0
   countT numOfNormalLetters;
   countT numOfSequences;
@@ -1186,19 +1187,16 @@ void translateAndScan(LastAligner &aligner, MultiSequence &qrySeqs,
   }
 }
 
-static void splitAlignments(LastSplitter &splitter,
-			    std::vector<AlignmentText> &textAlns,
-			    bool isQryQual) {
-  if (!args.isSplit) return;
-
+static void setupSplitAlignments(LastAligner &aligner, AlignmentText *textAlns,
+				 size_t textAlnCount, bool isQryQual) {
   unsigned linesPerMaf =
     3 + isQryQual + (args.outputType > 3) + (args.outputType > 6);
 
-  size_t textAlnCount = textAlns.size();
+  LastSplitter &splitter = aligner.splitter;
   splitter.reserve(textAlnCount);
-  std::vector<char *> lines((linesPerMaf + 1) * textAlnCount);
+  aligner.alignmentTextLines.resize((linesPerMaf + 1) * textAlnCount);
 
-  char **beg = lines.data();
+  char **beg = aligner.alignmentTextLines.data();
   for (size_t i = 0; i < textAlnCount; ++i) {
     char **end = beg;
     char *text = textAlns[i].text;
@@ -1211,8 +1209,12 @@ static void splitAlignments(LastSplitter &splitter,
     splitter.addMaf(beg, end, false);
     beg = end + 1;
   }
+}
 
-  splitter.split(args.splitOpts, splitParams, false);
+static void splitAlignments(LastAligner &aligner, bool isQryQual) {
+  std::vector<AlignmentText> &textAlns = aligner.textAlns;
+  setupSplitAlignments(aligner, textAlns.data(), textAlns.size(), isQryQual);
+  aligner.splitter.split(args.splitOpts, splitParams, false);
   clearAlignments(textAlns);
 }
 
@@ -1270,7 +1272,7 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 
   if (numOfVolumes < 2) {
-    splitAlignments(aligner.splitter, textAlns, qrySeqs.qualsPerLetter());
+    if (args.isSplit) splitAlignments(aligner, qrySeqs.qualsPerLetter());
     if (isCollatedAlignments()) {
       sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     }
@@ -1296,8 +1298,7 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   if (isMultiVolume && volume + 1 == numOfVolumes) {
     std::vector<AlignmentText> &textAlns = aligner.textAlns;
     cullFinalAlignments(textAlns, 0, args.cullingLimitForFinalAlignments);
-    splitAlignments(aligner.splitter, textAlns,
-		    qrySeqsGlobal.qualsPerLetter());
+    if (args.isSplit) splitAlignments(aligner, qrySeqsGlobal.qualsPerLetter());
     sort(textAlns.begin(), textAlns.end());
   }
   return beg;
