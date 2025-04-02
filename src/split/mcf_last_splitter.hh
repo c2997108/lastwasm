@@ -38,6 +38,9 @@ public:
   void split(const LastSplitOptions &opts,
 	     const cbrc::SplitAlignerParams &params, bool isAlreadySplit);
 
+  void splitOneQuery(const LastSplitOptions &opts,
+		     const cbrc::SplitAlignerParams &params);
+
   bool isOutputEmpty() const { return outputText.empty(); }
 
   void printOutput() const

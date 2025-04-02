@@ -1187,6 +1187,10 @@ void translateAndScan(LastAligner &aligner, MultiSequence &qrySeqs,
   }
 }
 
+static bool lessForSplitting(const AlignmentText &x, const AlignmentText &y) {
+  return x.queryBeg < y.queryBeg;  // assumes we have just 1 query sequence
+}
+
 static void setupSplitAlignments(LastAligner &aligner, AlignmentText *textAlns,
 				 size_t textAlnCount, bool isQryQual) {
   unsigned linesPerMaf =
@@ -1216,6 +1220,29 @@ static void splitAlignments(LastAligner &aligner, bool isQryQual) {
   setupSplitAlignments(aligner, textAlns.data(), textAlns.size(), isQryQual);
   aligner.splitter.split(args.splitOpts, splitParams, false);
   clearAlignments(textAlns);
+}
+
+static void splitOneQuery(LastAligner &aligner, bool isQryQual) {
+  AlignmentText *textAlns = aligner.textAlns.data();
+  size_t textAlnCount = aligner.textAlns.size();
+
+  std::sort(textAlns, textAlns + textAlnCount, lessForSplitting);
+
+  size_t i = 0;
+  size_t j = 0;
+  size_t maxEnd = args.splitOpts.isSplicedAlignment ? -1 : 0;
+  while (j < textAlnCount) {
+    maxEnd = std::max(maxEnd, textAlns[j].queryEnd);
+    ++j;
+    if (j == textAlnCount || textAlns[j].queryBeg >= maxEnd) {
+      setupSplitAlignments(aligner, textAlns + i, j - i, isQryQual);
+      aligner.splitter.splitOneQuery(args.splitOpts, splitParams);
+      freeAlignmentTexts(textAlns + i, j - i);
+      i = j;
+    }
+  }
+
+  aligner.textAlns.clear();
 }
 
 static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
@@ -1272,7 +1299,7 @@ static void alignOneQuery(LastAligner &aligner, MultiSequence &qrySeqs,
 		     args.isQueryStrandMatrix ? revMatrices : fwdMatrices);
 
   if (numOfVolumes < 2) {
-    if (args.isSplit) splitAlignments(aligner, qrySeqs.qualsPerLetter());
+    if (args.isSplit) splitOneQuery(aligner, qrySeqs.qualsPerLetter());
     if (isCollatedAlignments()) {
       sort(textAlns.begin() + oldNumOfAlns, textAlns.end());
     }

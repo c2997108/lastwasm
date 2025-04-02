@@ -18,10 +18,8 @@ static char *copyString(char *out, const char *s, size_t sizeOf) {
 }
 
 // Defines an ordering, for sorting.
-static bool less(const cbrc::UnsplitAlignment& a,
-		 const cbrc::UnsplitAlignment& b) {
-  int qnameCmp = strcmp(a.qname, b.qname);
-  if (qnameCmp  != 0        ) return qnameCmp  < 0;
+static bool lessForOneQuery(const cbrc::UnsplitAlignment& a,
+			    const cbrc::UnsplitAlignment& b) {
   if (a.qstart  != b.qstart ) return a.qstart  < b.qstart;
   if (a.qend    != b.qend   ) return a.qend    < b.qend;
   if (a.qstrand != b.qstrand) return a.qstrand < b.qstrand;
@@ -32,6 +30,12 @@ static bool less(const cbrc::UnsplitAlignment& a,
   int rnameCmp = strcmp(a.rname, b.rname);
   if (rnameCmp  != 0        ) return rnameCmp  < 0;
   return a.linesBeg < b.linesBeg;  // stabilizes the sort
+}
+
+static bool less(const cbrc::UnsplitAlignment& a,
+		 const cbrc::UnsplitAlignment& b) {
+  int qnameCmp = strcmp(a.qname, b.qname);
+  return qnameCmp ? qnameCmp < 0 : lessForOneQuery(a, b);
 }
 
 static int whichPairedSequence(const char *name) {
@@ -274,12 +278,19 @@ void LastSplitter::doOneQuery(const LastSplitOptions &opts,
   }
 }
 
+void LastSplitter::splitOneQuery(const LastSplitOptions &opts,
+				 const cbrc::SplitAlignerParams &params) {
+  sort(mafs.begin(), mafs.end(), lessForOneQuery);
+  doOneQuery(opts, params, false, mafs.data(), mafs.data() + mafs.size());
+  mafs.clear();
+}
+
 void LastSplitter::split(const LastSplitOptions &opts,
 			 const cbrc::SplitAlignerParams &params,
 			 bool isAlreadySplit) {
   sort(mafs.begin(), mafs.end(), less);
 
-  const cbrc::UnsplitAlignment *beg = mafs.empty() ? 0 : &mafs[0];
+  const cbrc::UnsplitAlignment *beg = mafs.data();
   const cbrc::UnsplitAlignment *end = beg + mafs.size();
   const cbrc::UnsplitAlignment *mid = beg;
   size_t qendMax = 0;
