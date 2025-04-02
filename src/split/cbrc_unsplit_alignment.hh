@@ -43,10 +43,10 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
 		size_t alnBeg, size_t alnEnd, const double *probs);
 
 void mafSliceBeg(const char* rAln, const char* qAln,
-		 size_t qBeg, unsigned& qSliceBeg, unsigned& alnBeg);
+		 size_t qBeg, size_t& qSliceBeg, unsigned& alnBeg);
 
 void mafSliceEnd(const char* rAln, const char* qAln,
-		 size_t qEnd, unsigned& qSliceEnd, unsigned& alnEnd);
+		 size_t qEnd, size_t& qSliceEnd, unsigned& alnEnd);
 
 double pLinesToErrorProb(const char *line1, const char *line2);
 

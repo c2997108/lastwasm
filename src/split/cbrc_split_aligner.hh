@@ -23,8 +23,8 @@ namespace cbrc {
 
 struct AlignmentPart {
   unsigned alnNum;
-  unsigned queryBeg;
-  unsigned queryEnd;
+  size_t queryBeg;
+  size_t queryEnd;
 };
 
 struct SplitAlignerParams {
@@ -173,8 +173,7 @@ public:
 		   std::vector<AlignmentPart> &alnParts) const;
 
     // Calculates the alignment score for a segment of an alignment
-    int segmentScore(unsigned alnNum,
-		     unsigned queryBeg, unsigned queryEnd) const;
+    int segmentScore(unsigned alnNum, size_t queryBeg, size_t queryEnd) const;
 
     void exponentiateScores(const SplitAlignerParams &params) {
       size_t s = cellsPerDpMatrix() * 2;
@@ -198,7 +197,7 @@ public:
     }
 
     // Returns one probability per column, for a segment of an alignment
-    void marginalProbs(double *output, unsigned queryBeg, unsigned alnNum,
+    void marginalProbs(double *output, size_t queryBeg, unsigned alnNum,
 		       unsigned alnBeg, unsigned alnEnd) const;
 
     // Toggles between forward and reverse-complement splice signals

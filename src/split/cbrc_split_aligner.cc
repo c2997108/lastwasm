@@ -434,7 +434,8 @@ void SplitAligner::traceBack(const SplitAlignerParams &params,
 			     long viterbiScore,
 			     std::vector<AlignmentPart> &alnParts) const {
   const bool isGenome = params.isGenome();
-  unsigned i, j;
+  unsigned i;
+  size_t j;
   if (params.isSpliced()) {
     i = findEndScore(viterbiScore);
     assert(i < numAlns);
@@ -448,7 +449,7 @@ void SplitAligner::traceBack(const SplitAlignerParams &params,
     assert(i < numAlns);
   }
 
-  unsigned queryEnd = j;
+  size_t queryEnd = j;
 
   for (;;) {
     --j;
@@ -490,10 +491,10 @@ void SplitAligner::traceBack(const SplitAlignerParams &params,
 }
 
 int SplitAligner::segmentScore(unsigned alnNum,
-			       unsigned queryBeg, unsigned queryEnd) const {
+			       size_t queryBeg, size_t queryEnd) const {
   int score = 0;
   unsigned i = alnNum;
-  for (unsigned j = queryBeg; j < queryEnd; ++j) {
+  for (size_t j = queryBeg; j < queryEnd; ++j) {
     size_t ij = matrixRowOrigins[i] + j;
     score += Smat[ij*2+1];
     if (j > queryBeg) score += Smat[ij*2];
@@ -739,7 +740,7 @@ void SplitAligner::backwardSplice(const SplitAlignerParams &params) {
 }
 
 void SplitAligner::marginalProbs(double *output,
-				 unsigned queryBeg, unsigned alnNum,
+				 size_t queryBeg, unsigned alnNum,
 				 unsigned alnBeg, unsigned alnEnd) const {
   const char *qalign = alns[alnNum].qalign;
   size_t ij = matrixRowOrigins[alnNum] + queryBeg;
@@ -1175,7 +1176,7 @@ double SplitAligner::spliceSignalStrandLogOdds() const {
   // XXX if Bmat overflowed to inf, then I think this is unreliable
   assert(rescales.size() == rescalesRev.size());
   double logOdds = 0;
-  for (unsigned j = 0; j < rescales.size(); ++j) {
+  for (size_t j = 0; j < rescales.size(); ++j) {
     logOdds += std::log(rescalesRev[j] / rescales[j]);
   }
   return logOdds;

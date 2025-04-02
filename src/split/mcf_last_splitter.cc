@@ -69,8 +69,8 @@ static void doOneSlice(SliceData &sd, cbrc::AlignmentPart &ap,
     return;  // this can happen for spliced alignment!
   }
 
-  unsigned qSliceBegOld = ap.queryBeg;
-  unsigned qSliceEndOld = ap.queryEnd;
+  size_t qSliceBegOld = ap.queryBeg;
+  size_t qSliceEndOld = ap.queryEnd;
   cbrc::mafSliceBeg(a.ralign, a.qalign, a.qstart, ap.queryBeg, sd.alnBeg);
   cbrc::mafSliceEnd(a.ralign, a.qalign, a.qend,   ap.queryEnd, sd.alnEnd);
 

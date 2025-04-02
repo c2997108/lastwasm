@@ -197,7 +197,7 @@ static size_t seqPosFromAlnPos(size_t alnPos, const char *aln) {
   return alnPos - std::count(aln, aln + alnPos, '-');
 }
 
-static unsigned nthBasePrefix(const char* sequenceWithGapsBeg, unsigned n) {
+static unsigned nthBasePrefix(const char* sequenceWithGapsBeg, size_t n) {
   for (unsigned i = 0; /* noop */; ++i)
     if (sequenceWithGapsBeg[i] != '-') {
       if (n > 0) --n;
@@ -205,7 +205,7 @@ static unsigned nthBasePrefix(const char* sequenceWithGapsBeg, unsigned n) {
     }
 }
 
-static unsigned nthBaseSuffix(const char *sequenceWithGapsEnd, unsigned n) {
+static unsigned nthBaseSuffix(const char *sequenceWithGapsEnd, size_t n) {
   for (unsigned i = 0; /* noop */; ++i)
     if (*(sequenceWithGapsEnd - 1 - i) != '-') {
       if (n > 0) --n;
@@ -214,7 +214,7 @@ static unsigned nthBaseSuffix(const char *sequenceWithGapsEnd, unsigned n) {
 }
 
 void mafSliceBeg(const char* rAln, const char* qAln,
-		 size_t qBeg, unsigned& qSliceBeg, unsigned& alnBeg) {
+		 size_t qBeg, size_t& qSliceBeg, unsigned& alnBeg) {
   if (qSliceBeg < qBeg) {
     qSliceBeg = qBeg;
     alnBeg = 0;
@@ -227,8 +227,8 @@ void mafSliceBeg(const char* rAln, const char* qAln,
 }
 
 void mafSliceEnd(const char* rAln, const char* qAln,
-		 size_t qEnd, unsigned& qSliceEnd, unsigned& alnEnd) {
-  unsigned alnLength = strlen(qAln);
+		 size_t qEnd, size_t& qSliceEnd, unsigned& alnEnd) {
+  size_t alnLength = strlen(qAln);
   if (qSliceEnd > qEnd) {
     qSliceEnd = qEnd;
     alnEnd = alnLength;
