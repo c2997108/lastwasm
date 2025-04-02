@@ -287,6 +287,7 @@ static void putRight(Writer &w, const IntText &t, size_t width) {
 // Write an "a" line
 static char *writeMafLineA(char *out, double score, const LastEvaluer& evaluer,
 			   double queryLength, double fullScore) {
+  if (fullScore < -1) return out;  // no "a" line at all
   static const char s[] = "a score=";
   out = copyString(out, s, sizeof s);
   out += std::sprintf(out, scoreFormat(fullScore >= 0), score);

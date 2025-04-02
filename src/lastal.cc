@@ -849,6 +849,7 @@ void alignFinish(LastAligner &aligner, const MultiSequence &qrySeqs,
   Alignment probAln;
   AlignmentExtras extras;
   if (args.scoreType != 0) extras.fullScore = -1;  // score is fullScore
+  if (args.isSplit && !args.splitOpts.no_split) extras.fullScore = -2;
 
   while (!alignments.empty()) {
     const Alignment &aln = alignments.back();
