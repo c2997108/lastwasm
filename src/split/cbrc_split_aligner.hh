@@ -212,7 +212,7 @@ public:
     // Gets the 2 genome bases immediately downstream of queryPos in
     // alnNum, and writes them into the buffer pointed to by "out"
     void spliceBegSignal(char *out, const SplitAlignerParams &params,
-			 unsigned alnNum, unsigned queryPos,
+			 unsigned alnNum, size_t queryPos,
 			 bool isSenseStrand) const {
       const UnsplitAlignment &a = alns[alnNum];
       params.spliceBegSignal(out, a.rname, a.isForwardStrand(), isSenseStrand,
@@ -222,7 +222,7 @@ public:
     // Gets the 2 genome bases immediately upstream of queryPos in
     // alnNum, and writes them into the buffer pointed to by "out"
     void spliceEndSignal(char *out, const SplitAlignerParams &params,
-			 unsigned alnNum, unsigned queryPos,
+			 unsigned alnNum, size_t queryPos,
 			 bool isSenseStrand) const {
       const UnsplitAlignment &a = alns[alnNum];
       params.spliceEndSignal(out, a.rname, a.isForwardStrand(), isSenseStrand,
@@ -232,8 +232,8 @@ public:
 private:
     unsigned numAlns;  // the number of candidate alignments (for 1 query)
     const UnsplitAlignment *alns;  // the candidates
-    unsigned minBeg;  // the minimum query start coordinate of any candidate
-    unsigned maxEnd;  // the maximum query end coordinate of any candidate
+    size_t minBeg;  // the minimum query start coordinate of any candidate
+    size_t maxEnd;  // the maximum query end coordinate of any candidate
     std::vector<unsigned> dpBegs;  // dynamic programming begin coords
     std::vector<unsigned> dpEnds;  // dynamic programming end coords
     std::vector<size_t> matrixRowOrigins;  // layout of ragged matrices
@@ -301,11 +301,11 @@ private:
 
     void updateInplayAlnIndicesF(unsigned& sortedAlnPos,
 				 unsigned& oldNumInplay,
-				 unsigned& newNumInplay, unsigned j);
+				 unsigned& newNumInplay, size_t j);
 
     void updateInplayAlnIndicesB(unsigned& sortedAlnPos,
 				 unsigned& oldNumInplay,
-				 unsigned& newNumInplay, unsigned j);
+				 unsigned& newNumInplay, size_t j);
 
     long viterbiSplit(const SplitAlignerParams &params);
     long viterbiSplice(const SplitAlignerParams &params);
@@ -319,7 +319,7 @@ private:
     unsigned findSpliceScore(const SplitAlignerParams &params,
 			     unsigned i, unsigned j, long score) const;
     long scoreFromSplice(const SplitAlignerParams &params,
-			 unsigned i, unsigned j, unsigned oldNumInplay,
+			 unsigned i, size_t j, unsigned oldNumInplay,
 			 unsigned& oldInplayPos) const;
     long endScore() const;
     unsigned findEndScore(long score) const;
@@ -329,24 +329,24 @@ private:
     unsigned dpEnd(unsigned i) const { return dpEnds[i]; }
 
     template<typename T> T&
-    cell(std::vector<T>& v, unsigned j) const
+    cell(std::vector<T>& v, size_t j) const
     { return v[j - minBeg]; }
 
     template<typename T> const T&
-    cell(const std::vector<T>& v, unsigned j) const
+    cell(const std::vector<T>& v, size_t j) const
     { return v[j - minBeg]; }
 
     // cell j in row i of a ragged matrix
     template<typename T> T&
-    cell(std::vector<T>& v, unsigned i, unsigned j) const
+    cell(std::vector<T>& v, unsigned i, size_t j) const
     { return v[matrixRowOrigins[i] + j]; }
 
     // cell j in row i of a ragged matrix
     template<typename T> const T&
-    cell(const std::vector<T>& v, unsigned i, unsigned j) const
+    cell(const std::vector<T>& v, unsigned i, size_t j) const
     { return v[matrixRowOrigins[i] + j]; }
 
-    long cell(const long *v, unsigned i, unsigned j) const
+    long cell(const long *v, unsigned i, size_t j) const
     { return v[matrixRowOrigins[i] + j]; }
 
     template<typename T>
@@ -363,11 +363,11 @@ private:
     }
 
     double probFromSpliceF(const SplitAlignerParams &params,
-			   unsigned i, unsigned j, unsigned oldNumInplay,
+			   unsigned i, size_t j, unsigned oldNumInplay,
 			   unsigned& oldInplayPos) const;
 
     double probFromSpliceB(const SplitAlignerParams &params,
-			   unsigned i, unsigned j, unsigned oldNumInplay,
+			   unsigned i, size_t j, unsigned oldNumInplay,
 			   unsigned& oldInplayPos) const;
 
     void calcBaseScores(const SplitAlignerParams &params, unsigned i);

@@ -46,16 +46,17 @@ static void writeSize(IntText &it, size_t x) {
 
 namespace cbrc {
     
-static const char *readUint(const char *c, unsigned &x) {
+static const char *readSize(const char *c, size_t &x) {
   if (!c) return 0;
+  size_t maxVal = -1;
 
   // faster than std::strtoul
   while (isSpace(*c)) ++c;
   if (!isDigit(*c)) return 0;
-  unsigned z = *c++ - '0';
+  size_t z = *c++ - '0';
   while (isDigit(*c)) {
-    if (z > UINT_MAX / 10) return 0;
-    unsigned digit = *c++ - '0';
+    if (z > maxVal / 10) return 0;
+    size_t digit = *c++ - '0';
     z = z * 10 + digit;
     if (z < digit) return 0;
   }
@@ -115,15 +116,15 @@ static void reverseComplement(char *beg, char *end) {
 }
 
 static void parseSeqLine(char *line, char *lineEnd, const char *&seqName,
-			 unsigned &start, unsigned &span, char &strand,
-			 unsigned &seqLen, char *&aln, char *&alnEnd) {
+			 size_t &start, size_t &span, char &strand,
+			 size_t &seqLen, char *&aln, char *&alnEnd) {
   seqName = skipSpace(skipWord(line));
   const char *nameEnd = skipWord(seqName);
   const char *s = nameEnd;
-  s = readUint(s, start);
-  s = readUint(s, span);
+  s = readSize(s, start);
+  s = readSize(s, span);
   s = readChar(s, strand);
-  s = readUint(s, seqLen);
+  s = readSize(s, seqLen);
   s = skipSpace(s);
   if (!s || s >= lineEnd) err(std::string("bad MAF line: ") + line);
   aln = line + (s - line);
@@ -144,8 +145,8 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   const unsigned rankOfRefSeq = isTopSeqQuery + 1;
 
   char refStrand, qryStrand;
-  unsigned refSpan, qrySpan;
-  unsigned refSeqLen, qrySeqLen;
+  size_t refSpan, qrySpan;
+  size_t refSeqLen, qrySeqLen;
   char *refAln;
   char *refAlnEnd;
   char *qryAln;
@@ -192,7 +193,7 @@ void UnsplitAlignment::init(bool isTopSeqQuery) {
   qQual = qual;
 }
 
-static unsigned seqPosFromAlnPos(unsigned alnPos, const char *aln) {
+static size_t seqPosFromAlnPos(size_t alnPos, const char *aln) {
   return alnPos - std::count(aln, aln + alnPos, '-');
 }
 
@@ -213,7 +214,7 @@ static unsigned nthBaseSuffix(const char *sequenceWithGapsEnd, unsigned n) {
 }
 
 void mafSliceBeg(const char* rAln, const char* qAln,
-		 unsigned qBeg, unsigned& qSliceBeg, unsigned& alnBeg) {
+		 size_t qBeg, unsigned& qSliceBeg, unsigned& alnBeg) {
   if (qSliceBeg < qBeg) {
     qSliceBeg = qBeg;
     alnBeg = 0;
@@ -226,7 +227,7 @@ void mafSliceBeg(const char* rAln, const char* qAln,
 }
 
 void mafSliceEnd(const char* rAln, const char* qAln,
-		 unsigned qEnd, unsigned& qSliceEnd, unsigned& alnEnd) {
+		 size_t qEnd, unsigned& qSliceEnd, unsigned& alnEnd) {
   unsigned alnLength = strlen(qAln);
   if (qSliceEnd > qEnd) {
     qSliceEnd = qEnd;
@@ -285,7 +286,7 @@ static char asciiFromProb(double probRight) {
 }
 
 size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
-		unsigned alnBeg, unsigned alnEnd, const double *probs) {
+		size_t alnBeg, size_t alnEnd, const double *probs) {
   IntText begTexts[2];
   IntText lenTexts[2];
   int w[6] = {0};
@@ -296,20 +297,20 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
     const char *c = i[0];
     numOfLines += (*c == 's' || *c == 'q' || *c == 'p');
     if (*c == 's') {
-      unsigned beg = 0;
-      unsigned len = 0;
+      size_t beg = 0;
+      size_t len = 0;
       c = updateFieldWidth(c, w[0]);
       c = updateFieldWidth(c, w[1]);
       ++c;  // skip over the string terminator
-      c = readUint(c, beg);
-      c = readUint(c, len);
+      c = readSize(c, beg);
+      c = readSize(c, len);
       c = updateFieldWidth(c, w[4]);
       c = updateFieldWidth(c, w[5]);
       c = skipSpace(c);
-      unsigned begPos = seqPosFromAlnPos(alnBeg, c);
-      unsigned endPos = seqPosFromAlnPos(alnEnd, c);
-      unsigned newBeg = aln.isFlipped() ? beg + len - endPos : beg + begPos;
-      unsigned newLen = endPos - begPos;
+      size_t begPos = seqPosFromAlnPos(alnBeg, c);
+      size_t endPos = seqPosFromAlnPos(alnEnd, c);
+      size_t newBeg = aln.isFlipped() ? beg + len - endPos : beg + begPos;
+      size_t newLen = endPos - begPos;
       writeSize(begTexts[j], newBeg);
       writeSize(lenTexts[j], newLen);
       ++j;
@@ -319,7 +320,7 @@ size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
   w[2] = std::max(begTexts[0].length, begTexts[1].length);
   w[3] = std::max(lenTexts[0].length, lenTexts[1].length);
 
-  unsigned alnLen = alnEnd - alnBeg;
+  size_t alnLen = alnEnd - alnBeg;
   size_t lineLength = w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + alnLen + 7;
   size_t outputSize = outputText.size();
   outputText.insert(outputText.end(), numOfLines * lineLength, 0);

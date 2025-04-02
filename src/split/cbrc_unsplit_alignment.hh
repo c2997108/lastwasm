@@ -19,11 +19,11 @@ public:
     char **linesBeg;
     char **linesEnd;
     const char *qname;
-    unsigned qstart;
-    unsigned qend;
+    size_t qstart;
+    size_t qend;
     char qstrand;
-    unsigned rstart;
-    unsigned rend;
+    size_t rstart;
+    size_t rend;
     const char *rname;
     const char *ralign;
     const char *qalign;
@@ -40,13 +40,13 @@ public:
 // Appends an extra "p" line for "probs".
 // Returns the line length (including a newline).
 size_t mafSlice(std::vector<char> &outputText, const UnsplitAlignment &aln,
-		unsigned alnBeg, unsigned alnEnd, const double *probs);
+		size_t alnBeg, size_t alnEnd, const double *probs);
 
 void mafSliceBeg(const char* rAln, const char* qAln,
-		 unsigned qBeg, unsigned& qSliceBeg, unsigned& alnBeg);
+		 size_t qBeg, unsigned& qSliceBeg, unsigned& alnBeg);
 
 void mafSliceEnd(const char* rAln, const char* qAln,
-		 unsigned qEnd, unsigned& qSliceEnd, unsigned& alnEnd);
+		 size_t qEnd, unsigned& qSliceEnd, unsigned& alnEnd);
 
 double pLinesToErrorProb(const char *line1, const char *line2);
 

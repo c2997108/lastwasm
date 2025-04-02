@@ -239,7 +239,7 @@ unsigned SplitAligner::findSpliceScore(const SplitAlignerParams &params,
 }
 
 long SplitAligner::scoreFromSplice(const SplitAlignerParams &params,
-				   unsigned i, unsigned j,
+				   unsigned i, size_t j,
 				   unsigned oldNumInplay,
 				   unsigned& oldInplayPos) const {
   const unsigned maxSpliceDist = params.maxSpliceDist;
@@ -275,7 +275,7 @@ long SplitAligner::scoreFromSplice(const SplitAlignerParams &params,
 void SplitAligner::updateInplayAlnIndicesF(unsigned& sortedAlnPos,
 					   unsigned& oldNumInplay,
                                            unsigned& newNumInplay,
-                                           unsigned j) {  // query coordinate
+                                           size_t j) {  // query coordinate
   oldInplayAlnIndices.swap(newInplayAlnIndices);
   oldNumInplay = newNumInplay;
 
@@ -309,7 +309,7 @@ void SplitAligner::updateInplayAlnIndicesF(unsigned& sortedAlnPos,
 void SplitAligner::updateInplayAlnIndicesB(unsigned& sortedAlnPos,
 					   unsigned& oldNumInplay,
                                            unsigned& newNumInplay,
-                                           unsigned j) {  // query coordinate
+                                           size_t j) {  // query coordinate
   oldInplayAlnIndices.swap(newInplayAlnIndices);
   oldNumInplay = newNumInplay;
 
@@ -349,7 +349,7 @@ long SplitAligner::viterbiSplit(const SplitAlignerParams &params) {
 
   long maxScore = 0;
 
-  for (unsigned j = minBeg; j < maxEnd; j++) {
+  for (size_t j = minBeg; j < maxEnd; j++) {
     while (inplayAlnEnd > inplayAlnBeg && dpEnd(inplayAlnEnd[-1]) == j) {
       --inplayAlnEnd;  // it is no longer "in play"
     }
@@ -387,7 +387,7 @@ long SplitAligner::viterbiSplice(const SplitAlignerParams &params) {
     long maxScore = 0;
     long scoreFromJump = restartScore;
 
-    for (unsigned j = minBeg; j < maxEnd; j++) {
+    for (size_t j = minBeg; j < maxEnd; j++) {
 	updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
 	cell(Vvec, j) = maxScore;
@@ -502,7 +502,7 @@ int SplitAligner::segmentScore(unsigned alnNum,
 }
 
 double SplitAligner::probFromSpliceF(const SplitAlignerParams &params,
-				     unsigned i, unsigned j,
+				     unsigned i, size_t j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
   const unsigned maxSpliceDist = params.maxSpliceDist;
@@ -536,7 +536,7 @@ double SplitAligner::probFromSpliceF(const SplitAlignerParams &params,
 }
 
 double SplitAligner::probFromSpliceB(const SplitAlignerParams &params,
-				     unsigned i, unsigned j,
+				     unsigned i, size_t j,
 				     unsigned oldNumInplay,
 				     unsigned& oldInplayPos) const {
   const unsigned maxSpliceDist = params.maxSpliceDist;
@@ -579,7 +579,7 @@ void SplitAligner::forwardSplit(const SplitAlignerParams &params) {
   double sumOfProbs = 1;
   double rescale = 1;
 
-  for (unsigned j = minBeg; j < maxEnd; j++) {
+  for (size_t j = minBeg; j < maxEnd; j++) {
     while (inplayAlnEnd > inplayAlnBeg && dpEnd(inplayAlnEnd[-1]) == j) {
       --inplayAlnEnd;  // it is no longer "in play"
     }
@@ -624,7 +624,7 @@ void SplitAligner::forwardSplice(const SplitAlignerParams &params) {
     double zF = 0.0;  // sum of probabilities from the forward algorithm
     double rescale = 1;
 
-    for (unsigned j = minBeg; j < maxEnd; j++) {
+    for (size_t j = minBeg; j < maxEnd; j++) {
 	updateInplayAlnIndicesF(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
 	cell(rescales, j) = rescale;
@@ -667,7 +667,7 @@ void SplitAligner::backwardSplit(const SplitAlignerParams &params) {
 
   double sumOfProbs = 1;
 
-  for (unsigned j = maxEnd; j > minBeg; j--) {
+  for (size_t j = maxEnd; j > minBeg; j--) {
     while (inplayAlnEnd > inplayAlnBeg && dpBeg(inplayAlnEnd[-1]) == j) {
       --inplayAlnEnd;  // it is no longer "in play"
     }
@@ -706,7 +706,7 @@ void SplitAligner::backwardSplice(const SplitAlignerParams &params) {
     double endprob = 1.0;
     //double zB = 0.0;  // sum of probabilities from the backward algorithm
 
-    for (unsigned j = maxEnd; j > minBeg; j--) {
+    for (size_t j = maxEnd; j > minBeg; j--) {
 	updateInplayAlnIndicesB(sortedAlnPos, oldNumInplay, newNumInplay, j);
 	unsigned oldInplayPos = 0;
 	double rescale = cell(rescales, j);
@@ -847,7 +847,7 @@ void SplitAligner::initRbegsAndEnds() {
 
 void SplitAligner::initSpliceCoords(unsigned i) {
   const UnsplitAlignment& a = alns[i];
-  unsigned j = dpBeg(i);
+  size_t j = dpBeg(i);
   unsigned k = a.rstart;
 
   cell(spliceBegCoords, i, j) = k;
