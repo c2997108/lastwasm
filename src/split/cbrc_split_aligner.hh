@@ -234,8 +234,8 @@ private:
     const UnsplitAlignment *alns;  // the candidates
     size_t minBeg;  // the minimum query start coordinate of any candidate
     size_t maxEnd;  // the maximum query end coordinate of any candidate
-    std::vector<unsigned> dpBegs;  // dynamic programming begin coords
-    std::vector<unsigned> dpEnds;  // dynamic programming end coords
+    std::vector<size_t> dpBegs;  // dynamic programming begin coords
+    std::vector<size_t> dpEnds;  // dynamic programming end coords
     std::vector<size_t> matrixRowOrigins;  // layout of ragged matrices
 
     size_t maxCellsPerMatrix;
@@ -315,9 +315,9 @@ private:
     void forwardSplice(const SplitAlignerParams &params);
     void backwardSplice(const SplitAlignerParams &params);
 
-    unsigned findScore(bool isGenome, unsigned j, long score) const;
+    unsigned findScore(bool isGenome, size_t j, long score) const;
     unsigned findSpliceScore(const SplitAlignerParams &params,
-			     unsigned i, unsigned j, long score) const;
+			     unsigned i, size_t j, long score) const;
     long scoreFromSplice(const SplitAlignerParams &params,
 			 unsigned i, size_t j, unsigned oldNumInplay,
 			 unsigned& oldInplayPos) const;
@@ -325,8 +325,8 @@ private:
     unsigned findEndScore(long score) const;
 
     // "dp" means "dynamic programming":
-    unsigned dpBeg(unsigned i) const { return dpBegs[i]; }
-    unsigned dpEnd(unsigned i) const { return dpEnds[i]; }
+    size_t dpBeg(unsigned i) const { return dpBegs[i]; }
+    size_t dpEnd(unsigned i) const { return dpEnds[i]; }
 
     template<typename T> T&
     cell(std::vector<T>& v, size_t j) const

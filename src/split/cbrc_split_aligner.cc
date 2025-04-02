@@ -26,48 +26,48 @@ namespace cbrc {
 static int myMax(const int *b, int s) { return *std::max_element(b, b + s); }
 
 struct BegLess {  // Order by increasing begin value, then decreasing end value
-  BegLess(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
+  BegLess(const size_t *b, const size_t *e) : begs(b), ends(e) {}
   bool operator()(unsigned a, unsigned b) const {
     return begs[a] != begs[b] ? begs[a] < begs[b] : ends[a] > ends[b];
   }
-  const unsigned *begs;
-  const unsigned *ends;
+  const size_t *begs;
+  const size_t *ends;
 };
 
 struct BegLessStable {
-  BegLessStable(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
+  BegLessStable(const size_t *b, const size_t *e) : begs(b), ends(e) {}
   bool operator()(unsigned a, unsigned b) const {
     return begs[a] != begs[b] ? begs[a] < begs[b]
       :    ends[a] != ends[b] ? ends[a] > ends[b] : a < b;
   }
-  const unsigned *begs;
-  const unsigned *ends;
+  const size_t *begs;
+  const size_t *ends;
 };
 
 struct EndLess {  // Order by decreasing end value, then increasing begin value
-  EndLess(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
+  EndLess(const size_t *b, const size_t *e) : begs(b), ends(e) {}
   bool operator()(unsigned a, unsigned b) const {
     return ends[a] != ends[b] ? ends[a] > ends[b] : begs[a] < begs[b];
   }
-  const unsigned *begs;
-  const unsigned *ends;
+  const size_t *begs;
+  const size_t *ends;
 };
 
 struct EndLessStable {
-  EndLessStable(const unsigned *b, const unsigned *e) : begs(b), ends(e) {}
+  EndLessStable(const size_t *b, const size_t *e) : begs(b), ends(e) {}
   bool operator()(unsigned a, unsigned b) const {
     return ends[a] != ends[b] ? ends[a] > ends[b]
       :    begs[a] != begs[b] ? begs[a] < begs[b] : a < b;
   }
-  const unsigned *begs;
-  const unsigned *ends;
+  const size_t *begs;
+  const size_t *ends;
 };
 
 // Orders candidate alignments by increasing DP start coordinate.
 // Breaks ties by chromosome & strand, then by increasing genomic
 // start coordinate.
 struct QbegLess {
-  QbegLess(const unsigned *b, const unsigned *r, const unsigned *rb)
+  QbegLess(const size_t *b, const unsigned *r, const unsigned *rb)
     : dpBegs(b), rnameAndStrandIds(r), rBegs(rb) {}
 
   bool operator()(unsigned a, unsigned b) const {
@@ -78,7 +78,7 @@ struct QbegLess {
       : rBegs[a] < rBegs[b];
   }
 
-  const unsigned *dpBegs;
+  const size_t *dpBegs;
   const unsigned *rnameAndStrandIds;
   const unsigned *rBegs;
 };
@@ -87,7 +87,7 @@ struct QbegLess {
 // Breaks ties by chromosome & strand, then by decreasing genomic end
 // coordinate.
 struct QendLess {
-  QendLess(const unsigned *e, const unsigned *r, const unsigned *re)
+  QendLess(const size_t *e, const unsigned *r, const unsigned *re)
     : dpEnds(e), rnameAndStrandIds(r), rEnds(re) {}
 
   bool operator()(unsigned a, unsigned b) const {
@@ -98,7 +98,7 @@ struct QendLess {
       : rEnds[a] > rEnds[b];
   }
 
-  const unsigned *dpEnds;
+  const size_t *dpEnds;
   const unsigned *rnameAndStrandIds;
   const unsigned *rEnds;
 };
@@ -207,7 +207,7 @@ static unsigned spliceEndSignalRev(mcf::BigSeq seq, size_t pos,
   return 15 - (n1 * 4 + n2);  // reverse-complement
 }
 
-unsigned SplitAligner::findScore(bool isGenome, unsigned j, long score) const {
+unsigned SplitAligner::findScore(bool isGenome, size_t j, long score) const {
   for (unsigned i = 0; i < numAlns; ++i) {
     if (dpBeg(i) >= j || dpEnd(i) < j) continue;
     size_t ij = matrixRowOrigins[i] + j;
@@ -217,7 +217,7 @@ unsigned SplitAligner::findScore(bool isGenome, unsigned j, long score) const {
 }
 
 unsigned SplitAligner::findSpliceScore(const SplitAlignerParams &params,
-				       unsigned i, unsigned j,
+				       unsigned i, size_t j,
 				       long score) const {
     assert(params.splicePrior > 0.0);
     const bool isGenome = params.isGenome();
@@ -899,15 +899,15 @@ void SplitAligner::initSpliceSignals(const SplitAlignerParams &params,
   const unsigned *endCoords = &spliceEndCoords[rowBeg];
   unsigned char *begSignals = &spliceBegSignals[rowBeg];
   unsigned char *endSignals = &spliceEndSignals[rowBeg];
-  unsigned dpLen = dpEnd(i) - dpBeg(i);
+  size_t dpLen = dpEnd(i) - dpBeg(i);
 
   if (a.isForwardStrand()) {
-    for (unsigned j = 0; j <= dpLen; ++j) {
+    for (size_t j = 0; j <= dpLen; ++j) {
       begSignals[j] = spliceBegSignalFwd(seq, seqBeg+begCoords[j], toUnmasked);
       endSignals[j] = spliceEndSignalFwd(seq, seqBeg+endCoords[j], toUnmasked);
     }
   } else {
-    for (unsigned j = 0; j <= dpLen; ++j) {
+    for (size_t j = 0; j <= dpLen; ++j) {
       begSignals[j] = spliceBegSignalRev(seq, seqEnd-begCoords[j], toUnmasked);
       endSignals[j] = spliceEndSignalRev(seq, seqEnd-endCoords[j], toUnmasked);
     }
