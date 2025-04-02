@@ -2,8 +2,6 @@
 # uses about half as much memory.  [From Frith & Noé 2014 NAR 42:e59
 # Table S11, row 12.]
 
-#lastdb -U100
-
 1  A C G T
 0  ACGT
 T  AG CT

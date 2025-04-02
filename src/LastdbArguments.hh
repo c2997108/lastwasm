@@ -34,10 +34,7 @@ struct LastdbArguments{
       tantanSetting = maxRepeatUnit ? (isAddStops ? 3 : 1) : 0;
     }
     if (maxRepeatUnit < 0) {
-      maxRepeatUnit = (tantanSetting == 2) ? 100
-	:             isProteinish         ?  50
-	:             isCaseSensitive      ? 400
-	:                                    100;
+      maxRepeatUnit = (isProteinish && tantanSetting != 2) ? 50 : 100;
     }
   }
 

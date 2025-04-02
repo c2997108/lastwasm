@@ -3,8 +3,6 @@
 # mammal genomes).  [From Frith & Noé 2014 NAR 42:e59 Table S12, row
 # 15.]
 
-#lastdb -U100
-
 1  A C G T
 0  ACGT
 T  AG CT

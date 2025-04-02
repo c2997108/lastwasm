@@ -262,12 +262,13 @@ Aligning human & chimp genomes
 The aim of genome-genome alignment is discussed in `our paper`_.  This
 recipe gets one-to-one alignments::
 
-  lastdb -P8 -c -uRY128 humdb human.fa
+  lastdb -P8 -c -U400 -uRY128 humdb human.fa
   last-train -P8 --revsym -C2 humdb chimp.fa > hc.train
   lastal -P8 -D1e9 -C2 --split-f=MAF+ -p hc.train humdb chimp.fa | last-split -r | maf-linked - > out.maf
 
-``-c`` prevents ``lastal`` using huge amounts of memory and time on
-many ways of aligning centromeric repeats.
+``-c -U400`` suppresses tandem repeats with repeat-unit length ≤ 400.
+(The default is 100).  This prevents ``lastal`` using huge amounts of
+memory and time on many ways of aligning centromeric repeats.
 
 ``-uRY128`` makes it faster but less sensitive: it will miss tiny
 rearranged fragments.  To find such fragments, try ``-uRY4``.
@@ -304,20 +305,32 @@ Finally, we can make a dotplot_ (out.png)::
 Aligning more distantly related genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Human versus old-world monkey: the human-chimp recipe seems good.
+Human versus old-world monkey (~7% base-pair substitutions): the
+human-chimp recipe without ``-U400`` seems good.  (But if you use
+``-uRY4``, ``-U400`` may reduce the memory usage.)
 
-Human versus new-world monkey: ``RY128`` misses a bit more homology.
-It's still ok, but ``RY4`` is better.
+Human versus new-world monkey (~12% base-pair substitutions):
+``RY128`` misses ~10% of related base-pairs.  ``RY4`` is more
+sensitive.  No need for ``-U400``.
 
-For more distant genomes, ``RY128`` misses a lot of homology.  It's
-fine for whole-genome dotplots of e.g. human versus crocodile, but not
-human versus gar.  For finer sensitivity, run ``lastdb`` with default
-``-u``::
+Human versus prosimian (~20% base-pair substitutions): ``RY4`` misses
+~15% of related base-pairs.  For finer sensitivity, run ``lastdb``
+with default ``-u``::
 
-  lastdb -P8 -c mydb genome.fa
+  lastdb -P8 -c humdb human.fa
+  last-train -P8 --revsym -C2 humdb lemur.fa > hl.train
+  lastal -P8 -m2 -D1e9 -C2 --split-f=MAF+ -p hl.train humdb lemur.fa | last-split -r | maf-linked - > out.maf
 
-To make it even more sensitive (but slow and memory-consuming), use
-``-uMAM4``.  Yet more slow-and-sensitive is ``-uMAM8``.
+``-m2`` halves the time and memory use, and slightly reduces sensitivity.
+
+This recipe is okay for more distantly-related genomes too.  For
+higher sensitivity, omit ``-m2``.  To make it even more sensitive (but
+slow and memory-consuming), add ``lastdb`` option ``-uMAM4``.  Yet
+more slow-and-sensitive is ``-uMAM8``.
+
+For whole genome dotplots, high sensitivity is not necessary.
+``RY128`` is fine for e.g. human versus crocodile, though not for
+human versus fish.
 
 Moar faster
 -----------
