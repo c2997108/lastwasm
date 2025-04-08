@@ -9,6 +9,7 @@
 from __future__ import division, print_function
 
 import gzip
+import itertools
 import math
 import optparse
 import os
@@ -1582,6 +1583,11 @@ def scoresAndScale(originalScale, matParams, delRatios, insRatios):
               "increasing the scale")
         originalScale *= 1.1
 
+def isAlmostSame(oldScores, newScores, slop):
+    old = itertools.chain(oldScores[0], oldScores[1], *oldScores[2])
+    new = itertools.chain(newScores[0], newScores[1], *newScores[2])
+    return all(abs(i - j) <= slop for i, j in zip(old, new))
+
 ### Routines for codons & frameshifts:
 
 def initialCodonSubstitutionProbs(matchProb):
@@ -1985,7 +1991,8 @@ def doTraining(opts, args):
             if any(isCloseEnough(i, parameters) for i in oldParameters):
                 break
         else:
-            if parameters in oldParameters:
+            slop = max(len(oldParameters) - 20, 0)  # stop it running forever
+            if any(isAlmostSame(i, parameters, slop) for i in oldParameters):
                 break
         oldParameters.append(parameters)
         lastalArgs = fixedLastalArgs(opts, alphabet)
