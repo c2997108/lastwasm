@@ -1,0 +1,72 @@
+#! /bin/sh
+# Author: Martin C. Frith 2025
+
+progName=$(basename $0)
+
+help="Usage: $progName substitution-matrix-file [output.pdf]
+
+Draw an image of a substitution matrix, for example, last-train
+output.  If the matrix is codons versus amino acids, the standard
+genetic code is shown by dots."
+
+if test $# -lt 1 || test $# -gt 2
+then echo "$help" && exit 1
+fi
+
+if test "$1" = --help || test "$1" = -h
+then echo "$help" && exit 0
+fi
+
+matrixFile=$1
+pdf=${2-$matrixFile.pdf}
+
+geneticCode="\
+FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG
+TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG
+TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG"
+
+tmp=plot-score-matrix.$$
+
+awk '/^ *[a-zA-Z*]/' "$matrixFile" | sed 's/ [^ ][^ ]*//65' > $tmp.m
+
+lineCount=$(wc -l < $tmp.m)
+
+columnCount=$(head -n1 $tmp.m | wc -w)
+
+for i in $(seq 64)
+do echo "$geneticCode" | cut -c$i | paste -s -
+done |
+    sort -k2 | awk '{print $1, NR}' | sort > $tmp.x
+
+awk 'NR > 1 {print $1, '"$lineCount"' - NR + 1}' $tmp.m | sort |
+    join -o1.2,2.2 $tmp.x - > $tmp.g
+
+las=$(head -n1 $tmp.m | awk '{print (length($1) > 1) ? 2 : 1}')
+
+{
+    cat <<EOF
+colors <- "Heat 2"
+#colors <- "PinkYl"
+#colors <- "OrYel"
+margin <- 1.8
+m <- as.matrix(read.table("$tmp.m", check.names=FALSE))
+m <- m[nrow(m):1,]
+x <- 1:ncol(m)
+y <- 1:nrow(m)
+width <- min(7, 1 + 0.14 * ncol(m))
+pdf("$pdf", width=width, height=width*nrow(m)/ncol(m), pointsize=8)
+par(mar=c(0, margin * ncol(m) / nrow(m), margin, 0))
+par(mgp=c(3, 0.25, 0))
+par(las=$las)
+image(x, y, t(m), col=hcl.colors(12, colors), axes=FALSE, xlab="", ylab="")
+axis(2, y, rownames(m), FALSE, family="mono")
+axis(3, x, colnames(m), FALSE, family="mono")
+EOF
+
+test $columnCount = 64 && cat <<EOF
+points(read.table("$tmp.g"), pch=16)
+EOF
+} | R --vanilla -s
+
+rm $tmp.?
