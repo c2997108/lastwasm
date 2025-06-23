@@ -1658,7 +1658,7 @@ def bestAminoPerCodon(matProbs, rowProbs):
     for column in zip(*matProbs):
         z = zip(column, rowProbs)
         m = min((-x[0] / x[1], i) for i, x in enumerate(z))
-        yield m[1]
+        yield m[1]  # xxx stop codons wrong for initialCodonSubstitutionProbs
 
 def freqText(probability):
     p = 100 * probability
@@ -1851,12 +1851,19 @@ def writeGapCosts(opts, delCosts, insCosts, isLastFormat, outFile):
             print("# frameshiftCosts del-1,del-2,ins+1,ins+2:",
                   frameshiftCosts, file=outFile)
 
-def probsFromFile(opts, lastalArgs, maxGapGrowProb, codonMatches, lines):
+def readProbs(opts, trial, lastalArgs, maxGapGrowProb, codonMatches, lines):
     print("#", *lastalArgs)
     print()
     sys.stdout.flush()
+
     # For the 1st iteration, use a % identity cutoff closer to 100:
-    pid = opts.pid if lastalArgs[-1] == "-p-" else opts.pid * 0.8 + 20
+    if trial < 0:
+        pid = opts.pid * 0.8 + 20
+    elif trial < 1 and opts.codon:
+        pid = 100
+    else:
+        pid = opts.pid
+
     matCounts, gapCounts = countsFromLastOutput(opts, pid, codonMatches, lines)
     if opts.codon:
         gapProbs = frameshiftProbsFromCounts(gapCounts, opts)
@@ -1966,10 +1973,10 @@ def doTraining(opts, args):
     if opts.codon:
         matProbs, gapProbs = initialCodonProbs(opts)
     else:
-        matProbs, gapProbs = probsFromFile(opts, lastalArgs, maxGapGrowProb,
-                                           codonMatches, proc.stdout)
+        matProbs, gapProbs = readProbs(opts, -1, lastalArgs, maxGapGrowProb,
+                                       codonMatches, proc.stdout)
 
-    while True:
+    for trial in itertools.count():
         matchRatio, delRatios, insRatios = gapRatiosFunc(*gapProbs)
         rowProbs = [sum(i) for i in matProbs]
         colProbs = [sum(i) for i in zip(*matProbs)]
@@ -2004,8 +2011,8 @@ def doTraining(opts, args):
         proc.stdin.close()
         if opts.postmask and not opts.codon:
             proc = process(["last-postmask"], proc.stdout)
-        matProbs, gapProbs = probsFromFile(opts, lastalArgs, maxGapGrowProb,
-                                           codonMatches, proc.stdout)
+        matProbs, gapProbs = readProbs(opts, trial, lastalArgs, maxGapGrowProb,
+                                       codonMatches, proc.stdout)
 
     ss = scoresAndScaleFunc(outerScale, matParams, delRatios, insRatios)
     matScores, delCosts, insCosts, scale, rowFreqs, colFreqs = ss
