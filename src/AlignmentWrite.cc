@@ -589,6 +589,7 @@ size_t Alignment::numColumns(size_t frameSize, bool isCodon) const {
       const SegmentPair& x = blocks[i - 1];
 
       // length of unaligned chunk of top sequence (gaps in bottom sequence):
+      assert(x.end1() <= y.beg1());
       num += (y.beg1() - x.end1()) * aaLen;
 
       // length of unaligned chunk of bottom sequence (gaps in top sequence):

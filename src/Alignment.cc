@@ -99,12 +99,6 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
 
   bool isMergeSeedFwd = blocks.size() > middle && isNext(seed, blocks.back());
 
-  if (seed.size == 0 && !isMergeSeedRev && !isMergeSeedFwd) {
-    // unusual, weird case: give up
-    score = -INF;
-    return;
-  }
-
   if (isMergeSeedFwd) {
     blocks[middle - 1].size += blocks.back().size;
     blocks.pop_back();
@@ -115,6 +109,12 @@ void Alignment::makeXdrop( Aligners &aligners, bool isGreedy, bool isFullScore,
 
   for (size_t i = middle; i < blocks.size(); ++i)
     blocks[i - 1].score = blocks[i].score;
+
+  if (seed.size == 0 && !isMergeSeedRev && !isMergeSeedFwd) {
+    // unusual, weird case: give up
+    score = -INF;
+    blocks[0].score = -1;
+  }
 }
 
 // cost of the gap between x and y

@@ -839,6 +839,7 @@ static void alignPostgapped(LastAligner &aligner, AlignmentPot &gappedAlns,
 		  0, 0, gapCosts, dis.d,
 		  frameSize, dis.p, dis.t, dis.i, dis.j, alph, extras);
   }
+  erase_if(gappedAlns.items, AlignmentPot::isMarked);
 }
 
 // Print the gapped alignments, after optionally calculating match
