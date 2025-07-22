@@ -65,6 +65,11 @@ up your computer to find them automatically.  Some possible ways:
 You might have to log out and back in before your computer recognizes
 the new programs.
 
+WebAssembly
+-----------
+See doc/webassembly.rst for instructions on building LAST tools for WebAssembly.
+
+
 Further info
 ------------
 
