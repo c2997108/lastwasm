@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LAST (WASM) 相同性検索</title>
+    <style>
+      body { font-family: system-ui, -apple-system, sans-serif; margin: 20px; }
+      fieldset { margin-bottom: 16px; }
+      label { display: block; margin: 8px 0 4px; }
+      input[type="text"] { width: 100%; padding: 6px 8px; }
+      button { padding: 8px 12px; }
+      .row { display: flex; gap: 12px; }
+      .col { flex: 1; min-width: 260px; }
+      pre { background: #111; color: #ddd; padding: 12px; overflow: auto; max-height: 320px; }
+      .small { color: #666; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>LAST (WASM) 相同性検索 <span id="appVer" class="small" style="font-weight:normal"></span></h1>
+    <p class="small">手順: 1) 対象FASTA(データベース) と クエリFASTA を選択 2) 実行。ローカル実行のためデータはサーバーに送信されません。</p>
+
+    <div class="row">
+      <fieldset class="col">
+        <legend>入力</legend>
+        <label>対象FASTA (lastdb 用):</label>
+        <input type="file" id="refFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
+        <label>クエリFASTA (lastal 用):</label>
+        <input type="file" id="qryFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
+        <label>データベース名 (basename):</label>
+        <input type="text" id="dbName" value="refdb" />
+        <label>lastdb 追加オプション (任意):</label>
+        <input type="text" id="lastdbArgs" placeholder="例: -uNEAR -R01" />
+        <label>lastal 追加オプション (任意):</label>
+        <input type="text" id="lastalArgs" placeholder="例: -m100 -E0.01" />
+        <div style="margin-top: 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <label style="display:inline-flex; gap:6px; align-items:center;">
+            <input type="checkbox" id="safeMode" checked />
+            <span>安全モード（軽量設定）</span>
+          </label>
+          <button id="runBtn">実行</button>
+          <button id="runDbBtn" title="lastdbのみを実行し、生成物を確認">lastdbのみ実行</button>
+          <span id="status" class="small"></span>
+        </div>
+      </fieldset>
+
+      <fieldset class="col">
+        <legend>ログ (lastdb)</legend>
+        <pre id="log"></pre>
+      </fieldset>
+    </div>
+
+    <fieldset>
+      <legend>結果 (lastal 出力)</legend>
+      <pre id="out"></pre>
+    </fieldset>
+
+    <fieldset>
+      <legend>結果 (TAB 形式)</legend>
+      <pre id="tab"></pre>
+    </fieldset>
+
+    <fieldset>
+      <legend>Dot Plot</legend>
+      <div class="small">x=reference座標, y=query座標（逆相補は負傾斜）</div>
+      <canvas id="dotplot" width="640" height="420" style="border:1px solid #ccc; max-width:100%;"></canvas>
+      <div id="dotTip" style="position:fixed; display:none; background:#222; color:#fff; padding:4px 6px; border-radius:4px; font-size:12px; pointer-events:none; z-index:1000; opacity:0.9;"></div>
+    </fieldset>
+
+    <script type="module" src="./main.js?v=20250823-3"></script>
+  </body>
+  </html>

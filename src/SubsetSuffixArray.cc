@@ -118,17 +118,27 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
   buckets.m.open(baseName + ".bck", bckSize);
   bckArray.items = (const size_t *)buckets.m.begin();
 
-  try{
-    childTable.m.open(baseName + ".chi", chiSize);
-    chiArray.items = (const size_t *)childTable.m.begin();
-  }catch( std::runtime_error& ){
-    try{
-      kiddyTable.m.open( baseName + ".chi2", indexedPositions );
-    }catch( std::runtime_error& ){
-      try{
-	chibiTable.m.open( baseName + ".chi1", indexedPositions );
-      }catch( std::runtime_error& ){}
-    }
+  // Prefer smaller child tables first (chi1 -> chi2 -> chi) to avoid
+  // unnecessary failures in environments where one format may be absent.
+  bool opened = false;
+  try {
+    chibiTable.m.open(baseName + ".chi1", indexedPositions);
+    opened = true;
+  } catch (std::runtime_error &) {}
+
+  if (!opened) {
+    try {
+      kiddyTable.m.open(baseName + ".chi2", indexedPositions);
+      opened = true;
+    } catch (std::runtime_error &) {}
+  }
+
+  if (!opened) {
+    try {
+      childTable.m.open(baseName + ".chi", chiSize);
+      chiArray.items = (const size_t *)childTable.m.begin();
+      opened = true;
+    } catch (std::runtime_error &) {}
   }
 }
 

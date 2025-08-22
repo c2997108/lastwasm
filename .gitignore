@@ -10,3 +10,5 @@ bin/last-pair-probs
 bin/last-split
 bin/lastal
 bin/lastdb
+
+node_modules
