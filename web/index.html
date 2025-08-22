@@ -62,11 +62,11 @@
 
     <fieldset>
       <legend>Dot Plot</legend>
-      <div class="small">x=reference座標, y=query座標（逆相補は負傾斜）</div>
-      <canvas id="dotplot" width="640" height="420" style="border:1px solid #ccc; max-width:100%;"></canvas>
-      <div id="dotTip" style="position:fixed; display:none; background:#222; color:#fff; padding:4px 6px; border-radius:4px; font-size:12px; pointer-events:none; z-index:1000; opacity:0.9;"></div>
+      <div class="small">Plotly描画（Forward=青, Reverse=赤）。ホイールでズーム、ドラッグでパン。</div>
+      <div id="dotplot" style="width:100%; max-width:960px; height:520px;"></div>
     </fieldset>
 
-    <script type="module" src="./main.js?v=20250823-3"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script type="module" src="./main.js?v=20250823-4"></script>
   </body>
   </html>

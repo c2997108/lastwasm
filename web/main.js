@@ -9,24 +9,7 @@ const outEl = $('#out');
 const tabEl = $('#tab');
 const SAFE_DB_ARGS = ['--bits=4','-R00','-uNEAR','-w1','-W1','-S1','-C1','-v'];
 
-// Dot-plot interactive state
-const DOT = {
-  canvas: null,
-  ctx: null,
-  margin: { l: 50, r: 10, t: 10, b: 30 },
-  segments: [],
-  refOrders: [],
-  qryOrders: [],
-  refOffsets: new Map(),
-  qryOffsets: new Map(),
-  refLenByName: new Map(),
-  qryLenByName: new Map(),
-  maxX: 0,
-  maxY: 0,
-  view: { x0: 0, x1: 1, y0: 0, y1: 1 },
-  dragging: false,
-  lastMouse: { x: 0, y: 0 },
-};
+// Plotly-based dotplot
 
 function setStatus(msg) {
   statusEl.textContent = msg;
@@ -44,17 +27,11 @@ function tick() {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
-function parseTabAndDraw(tabText) {
-  const canvas = document.getElementById('dotplot');
-  if (!canvas || !tabText) return;
-  if (!DOT.canvas) {
-    DOT.canvas = canvas;
-    DOT.ctx = canvas.getContext('2d');
-    attachDotplotEvents();
-  }
-  DOT.ctx.clearRect(0, 0, canvas.width, canvas.height);
+function parseTabAndPlotly(tabText) {
+  const plotDiv = document.getElementById('dotplot');
+  if (!plotDiv || !tabText) return;
 
-  // Parse TAB lines and collect alignment segments
+  // Parse TAB lines and collect alignment segments and contig lengths
   const segments = [];
   const refOrders = [];
   const qryOrders = [];
@@ -125,24 +102,75 @@ function parseTabAndDraw(tabText) {
   const qryOffsets = new Map();
   let acc = 0;
   for (const n of refOrders) { refOffsets.set(n, acc); acc += refLenByName.get(n) || 0; }
-  const maxX = acc;
+  const maxX = Math.max(acc, 1);
   acc = 0;
   for (const n of qryOrders) { qryOffsets.set(n, acc); acc += qryLenByName.get(n) || 0; }
-  const maxY = acc;
+  const maxY = Math.max(acc, 1);
 
-  // Save to DOT state and reset view
-  DOT.segments = segments;
-  DOT.refOrders = refOrders;
-  DOT.qryOrders = qryOrders;
-  DOT.refOffsets = refOffsets;
-  DOT.qryOffsets = qryOffsets;
-  DOT.refLenByName = refLenByName;
-  DOT.qryLenByName = qryLenByName;
-  DOT.maxX = Math.max(maxX, 1);
-  DOT.maxY = Math.max(maxY, 1);
-  DOT.view = { x0: 0, x1: DOT.maxX, y0: 0, y1: DOT.maxY };
+  // Build Plotly traces (forward=blue, reverse=red)
+  const hoverT = 'Ref: %{customdata.refName}:%{customdata.refStart}-%{customdata.refEnd}' +
+                 '<br>Qry: %{customdata.qryName}:%{customdata.qryStart}-%{customdata.qryEnd}' +
+                 '<br>Len: %{customdata.len} bp<extra></extra>';
+  const fwd = { x: [], y: [], customdata: [], mode: 'lines+markers', type: 'scattergl', name: 'Forward', line: { color: 'blue', width: 1.5 }, marker: { size: 6, opacity: 0 }, hovertemplate: hoverT };
+  const rev = { x: [], y: [], customdata: [], mode: 'lines+markers', type: 'scattergl', name: 'Reverse', line: { color: 'red', width: 1.5 }, marker: { size: 6, opacity: 0 }, hovertemplate: hoverT };
 
-  drawDotplot();
+  for (const s of segments) {
+    const roff = refOffsets.get(s.refName) || 0;
+    const qoff = qryOffsets.get(s.qryName) || 0;
+    const x1 = roff + s.x;
+    const y1 = qoff + s.y;
+    const x2 = roff + s.x + s.len;
+    const y2 = qoff + s.y + s.len;
+    const sameStrand = (s.refStrand === s.qryStrand);
+    const T = sameStrand ? fwd : rev;
+    const cdStart = { refName: s.refName, refStart: s.x, refEnd: s.x + s.len, qryName: s.qryName, qryStart: s.y, qryEnd: s.y + s.len, len: s.len };
+    const cdEnd = cdStart; // same info ok for both endpoints
+    T.x.push(x1, x2, null);
+    T.y.push(y1, y2, null);
+    T.customdata.push(cdStart, cdEnd, null);
+  }
+
+  // Shapes for contig boundaries (dashed grid)
+  const shapes = [];
+  for (let i = 1; i < refOrders.length; i++) {
+    const off = refOffsets.get(refOrders[i]) || 0;
+    shapes.push({ type: 'line', x0: off, x1: off, y0: 0, y1: maxY, line: { color: 'rgba(0,0,0,0.2)', width: 1, dash: 'dot' } });
+  }
+  for (let i = 1; i < qryOrders.length; i++) {
+    const off = qryOffsets.get(qryOrders[i]) || 0;
+    shapes.push({ type: 'line', x0: 0, x1: maxX, y0: off, y1: off, line: { color: 'rgba(0,0,0,0.2)', width: 1, dash: 'dot' } });
+  }
+
+  // Annotations for contig names
+  const annotations = [];
+  for (const n of refOrders) {
+    const off = refOffsets.get(n) || 0;
+    const len = refLenByName.get(n) || 0;
+    const mid = off + len / 2;
+    annotations.push({ x: mid, y: 1, xref: 'x', yref: 'paper', yanchor: 'bottom', yshift: 5, text: n, showarrow: false, font: { size: 10 }, textangle: -45 });
+  }
+  for (const n of qryOrders) {
+    const off = qryOffsets.get(n) || 0;
+    const len = qryLenByName.get(n) || 0;
+    const mid = off + len / 2;
+    annotations.push({ x: 0, y: mid, xref: 'paper', yref: 'y', xanchor: 'right', xshift: -5, text: n, showarrow: false, font: { size: 10 } });
+  }
+
+  const layout = {
+    xaxis: { title: 'Reference', range: [0, maxX], zeroline: false, showgrid: true },
+    yaxis: { title: 'Query', range: [0, maxY], scaleanchor: 'x', scaleratio: 1, zeroline: false, showgrid: true },
+    shapes,
+    annotations,
+    showlegend: true,
+    dragmode: 'pan',
+    hovermode: 'closest',
+    margin: { l: 60, r: 10, t: 10, b: 40 }
+  };
+
+  const config = { responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d','lasso2d'] };
+  // Render
+  // eslint-disable-next-line no-undef
+  Plotly.newPlot(plotDiv, [fwd, rev], layout, config);
 }
 
 function worldToScreenX(x) {
@@ -225,8 +253,9 @@ function drawDotplot() {
     ctx.fillText(String(Math.round(yv)), l - 4, Y + 4);
   }
 
-  // Sequence boundary grid lines (stronger)
+  // Sequence boundary grid lines (stronger, dashed)
   ctx.strokeStyle = '#eee';
+  ctx.setLineDash([4, 3]);
   for (let i = 1; i < DOT.refOrders.length; i++) {
     const off = DOT.refOffsets.get(DOT.refOrders[i]) || 0;
     const X = worldToScreenX(off);
@@ -237,6 +266,7 @@ function drawDotplot() {
     const Y = worldToScreenY(off);
     ctx.beginPath(); ctx.moveTo(l, Y); ctx.lineTo(l + plotW, Y); ctx.stroke();
   }
+  ctx.setLineDash([]);
 
   // Labels per sequence (centered)
   ctx.fillStyle = '#555';
@@ -259,8 +289,7 @@ function drawDotplot() {
   ctx.restore();
 
   // Draw segments
-  ctx.strokeStyle = '#2e7dd1';
-  ctx.globalAlpha = 0.8;
+  ctx.globalAlpha = 0.9;
   for (const s of DOT.segments) {
     const roff = DOT.refOffsets.get(s.refName) || 0;
     const qoff = DOT.qryOffsets.get(s.qryName) || 0;
@@ -271,6 +300,10 @@ function drawDotplot() {
     // Skip if completely outside view
     if ((x1 < DOT.margin.l && x2 < DOT.margin.l) || (x1 > W - DOT.margin.r && x2 > W - DOT.margin.r)) continue;
     if ((y1 < DOT.margin.t && y2 < DOT.margin.t) || (y1 > H - DOT.margin.b && y2 > H - DOT.margin.b)) continue;
+    // Color by orientation: forward=blue, reverse=red
+    const sameStrand = (s.refStrand === s.qryStrand);
+    ctx.strokeStyle = sameStrand ? '#2e7dd1' : '#d12e2e';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
@@ -480,7 +513,7 @@ async function run() {
   }
 
   // Render dot plot from TAB text
-  if (tabEl) parseTabAndDraw(tabEl.textContent);
+  if (tabEl) parseTabAndPlotly(tabEl.textContent);
 
   setStatus('完了');
 }
