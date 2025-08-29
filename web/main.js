@@ -42,9 +42,9 @@ function parseTabAndPlotly(tabText) {
     if (!line || line.startsWith('$') || line.startsWith('[')) continue;
     const cols = line.split(/\s+/);
     if (cols.length < 12) continue;
-    // Expected minimal columns:
-    // 0:score 1:refName 2:refStart 3:refLen 4:refStrand 5:refTotalLen
-    // 6:qryName 7:qryStart 8:qryLen 9:qryStrand 10:qryTotalLen 11:blocks
+    // Expected columns (1-based LAST -f TAB):
+    // 1:score 2:refName 3:refStart 4:refLen 5:refStrand 6:refTotalLen
+    // 7:qryName 8:qryStart 9:qryLen 10:qryStrand 11:qryTotalLen 12:blocks
     const refName = cols[1];
     const refStart = parseInt(cols[2], 10);
     const refLen = parseInt(cols[3], 10);
@@ -65,34 +65,8 @@ function parseTabAndPlotly(tabText) {
       qryLenByName.set(qryName, qryTotal);
       qryOrders.push(qryName);
     }
-
-    let rx = refStart;
-    let qy = qryStart;
-    // Parse blocks: e.g., "17,2:0,4" meaning block(17), gap(2:0), block(4)
-    const items = blocksSpec.split(',');
-    let expectSize = true;
-    for (const it of items) {
-      if (expectSize) {
-        const sz = parseInt(it, 10);
-        if (Number.isFinite(sz) && sz > 0) {
-          segments.push({ refName, qryName, x: rx, y: qy, len: sz, refTotal, qryTotal, refStrand, qryStrand });
-          rx += sz; qy += sz;
-        }
-        expectSize = false;
-      } else {
-        // gap like "a:b"
-        const m = it.match(/^(\d+):(\d+)$/);
-        if (m) {
-          rx += parseInt(m[1], 10);
-          qy += parseInt(m[2], 10);
-        }
-        expectSize = true;
-      }
-    }
-    // Fallback if no blocks: draw whole alignment span
-    if (!blocksSpec || blocksSpec.indexOf(',') === -1) {
-      segments.push({ refName, qryName, x: refStart, y: qryStart, len: Math.min(refLen, qryLen), refTotal, qryTotal, refStrand, qryStrand });
-    }
+    // Store one segment per TAB line; plotting handles +/- orientation directly
+    segments.push({ refName, qryName, refStart, refLen, qryStart, qryLen, refTotal, qryTotal, refStrand, qryStrand });
   }
 
   if (segments.length === 0) return;
@@ -117,17 +91,16 @@ function parseTabAndPlotly(tabText) {
   for (const s of segments) {
     const roff = refOffsets.get(s.refName) || 0;
     const qoff = qryOffsets.get(s.qryName) || 0;
-    const x1 = roff + s.x;
-    const y1 = qoff + s.y;
-    const x2 = roff + s.x + s.len;
-    const y2 = qoff + s.y + s.len;
-    const sameStrand = (s.refStrand === s.qryStrand);
-    const T = sameStrand ? fwd : rev;
-    const cdStart = { refName: s.refName, refStart: s.x, refEnd: s.x + s.len, qryName: s.qryName, qryStart: s.y, qryEnd: s.y + s.len, len: s.len };
-    const cdEnd = cdStart; // same info ok for both endpoints
+    const isRev = (s.qryStrand === '-');
+    const x1 = roff + s.refStart;
+    const x2 = roff + s.refStart + s.refLen;
+    const y1 = qoff + (isRev ? (s.qryTotal - s.qryStart) : s.qryStart);
+    const y2 = qoff + (isRev ? (s.qryTotal - s.qryStart - s.qryLen) : (s.qryStart + s.qryLen));
+    const T = isRev ? rev : fwd;
+    const cd = { refName: s.refName, refStart: s.refStart, refEnd: s.refStart + s.refLen, qryName: s.qryName, qryStart: isRev ? (s.qryTotal - s.qryStart) : s.qryStart, qryEnd: isRev ? (s.qryTotal - s.qryStart - s.qryLen) : (s.qryStart + s.qryLen), len: Math.min(s.refLen, s.qryLen) };
     T.x.push(x1, x2, null);
     T.y.push(y1, y2, null);
-    T.customdata.push(cdStart, cdEnd, null);
+    T.customdata.push(cd, cd, null);
   }
 
   // Shapes for contig boundaries (dashed grid)
@@ -293,16 +266,16 @@ function drawDotplot() {
   for (const s of DOT.segments) {
     const roff = DOT.refOffsets.get(s.refName) || 0;
     const qoff = DOT.qryOffsets.get(s.qryName) || 0;
-    const x1 = worldToScreenX(roff + s.x);
-    const y1 = worldToScreenY(qoff + s.y);
-    const x2 = worldToScreenX(roff + s.x + s.len);
-    const y2 = worldToScreenY(qoff + s.y + s.len);
+    const isRev = (s.qryStrand === '-');
+    const x1 = worldToScreenX(roff + s.refStart);
+    const x2 = worldToScreenX(roff + s.refStart + s.refLen);
+    const y1 = worldToScreenY(qoff + (isRev ? (s.qryTotal - s.qryStart) : s.qryStart));
+    const y2 = worldToScreenY(qoff + (isRev ? (s.qryTotal - s.qryStart - s.qryLen) : (s.qryStart + s.qryLen)));
     // Skip if completely outside view
     if ((x1 < DOT.margin.l && x2 < DOT.margin.l) || (x1 > W - DOT.margin.r && x2 > W - DOT.margin.r)) continue;
     if ((y1 < DOT.margin.t && y2 < DOT.margin.t) || (y1 > H - DOT.margin.b && y2 > H - DOT.margin.b)) continue;
     // Color by orientation: forward=blue, reverse=red
-    const sameStrand = (s.refStrand === s.qryStrand);
-    ctx.strokeStyle = sameStrand ? '#2e7dd1' : '#d12e2e';
+    ctx.strokeStyle = isRev ? '#d12e2e' : '#2e7dd1';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(x1, y1);
