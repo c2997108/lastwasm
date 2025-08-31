@@ -5,6 +5,9 @@
 #include <cassert>
 #include <cstdio>  // remove
 #include <sstream>
+#ifdef __EMSCRIPTEN__
+#include <iostream>
+#endif
 
 #include <thread>
 
@@ -48,6 +51,12 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
 				   bool isMaskLowercase,
 				   const uchar letterCode[],
 				   const std::string &mainSequenceAlphabet ){
+  #ifdef __EMSCRIPTEN__
+  std::cerr << "lastal.js: SSA.fromFiles baseName=" << baseName
+            << " bitsPerInt=" << bitsPerInt
+            << " isMaskLowercase=" << isMaskLowercase
+            << "\n";
+  #endif
   size_t textLength = 0;  // 0 never occurs in a valid file
   size_t unindexedPositions = 0;  // 0 never occurs in a valid file
   unsigned version = 0;
@@ -86,6 +95,11 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
       !seeds.back().span() || !f.eof()) {
     err("can't read file: " + fileName);
   }
+  #ifdef __EMSCRIPTEN__
+  std::cerr << "lastal.js: SSA prj ok textLength=" << textLength
+            << " unindexedPositions=" << unindexedPositions
+            << " seeds=" << seeds.size() << "\n";
+  #endif
 
   if (bucketDepths[0] == 0 && version < 1087) {
     err("the lastdb files are too old: please re-run lastdb");
@@ -113,10 +127,37 @@ void SubsetSuffixArray::fromFiles( const std::string& baseName,
     chiSize = numOfBytes(chiArray.bitsPerItem, indexedPositions);
   }
 
+  #ifdef __EMSCRIPTEN__
+  try {
+  #endif
+    suffixArray.m.open(baseName + ".suf", sufSize);
+    sufArray.items = (const size_t *)suffixArray.m.begin();
+  #ifdef __EMSCRIPTEN__
+  } catch (const std::exception &e) {
+    std::cerr << "lastal.js: SubsetSuffixArray failed opening .suf for base '"
+              << baseName << "' size=" << sufSize << ": " << e.what() << "\n";
+    throw;
+  }
+  try {
+    buckets.m.open(baseName + ".bck", bckSize);
+    bckArray.items = (const size_t *)buckets.m.begin();
+  } catch (const std::exception &e) {
+    std::cerr << "lastal.js: SubsetSuffixArray failed opening .bck for base '"
+              << baseName << "' size=" << bckSize << ": " << e.what() << "\n";
+    throw;
+  }
+  #else
+  #ifdef __EMSCRIPTEN__
+  std::cerr << "lastal.js: SSA sizes sufSize=" << sufSize << " bckSize=" << bckSize << "\n";
+  #endif
   suffixArray.m.open(baseName + ".suf", sufSize);
   sufArray.items = (const size_t *)suffixArray.m.begin();
   buckets.m.open(baseName + ".bck", bckSize);
   bckArray.items = (const size_t *)buckets.m.begin();
+  #ifdef __EMSCRIPTEN__
+  std::cerr << "lastal.js: SSA opened .suf/.bck for base='" << baseName << "'\n";
+  #endif
+  #endif
 
   // Prefer smaller child tables first (chi1 -> chi2 -> chi) to avoid
   // unnecessary failures in environments where one format may be absent.

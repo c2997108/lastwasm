@@ -96,3 +96,41 @@ LAST is brought to you by:
 .. _GSFS: https://www.k.u-tokyo.ac.jp/index.html.en
 .. _University of Tokyo: https://www.u-tokyo.ac.jp/en/
 .. _AIST-Waseda University CBBD-OIL: https://unit.aist.go.jp/cbbd-oil/en/
+
+WASM/Node (experimental)
+------------------------
+
+This repository contains experimental WebAssembly builds for Node.js and Web.
+
+- Build for Node:
+
+  * ``npm run build:node`` (builds ``node/lastdb.js`` + ``.wasm``)
+  * ``npm run build:node:al`` (builds ``node/lastal.js`` + ``.wasm``)
+
+- CLI wrappers (installed via ``npm i`` or using ``npx``):
+
+  * ``lastdb-wasm -v -C1 /tmp/mydb test/huma.fa``
+  * ``lastal-wasm -v /tmp/mydb test/ttttt.fa > out.maf``
+
+Notes:
+
+- ``lastdb`` for Node uses ``-sNODERAWFS=1`` and reads/writes directly to the host filesystem.
+- 並列化: Emscripten pthreads を用いた並列化（``-P N``）に対応しています。
+  デフォルトでは安定性のため ``-P`` を 1 に丸めますが、環境変数
+  ``LASTDB_ALLOW_THREADS=1`` を付与すればそのまま使用できます。
+  例: ``LASTDB_ALLOW_THREADS=1 lastdb-wasm -v -P 2 -C1 /tmp/mydb test/huma.fa``
+- ``lastal`` wrapper copies the database and query files into an in-memory FS and writes results to stdout.
+
+WASM/Web (experimental, threads)
+--------------------------------
+
+- ビルド: ``npm run build:web`` （``web/lastdb.js(.wasm)`` と ``web/lastal.js(.wasm)`` を生成）
+- 起動: ルート直下で HTTP サーバーを起動して ``index.html`` を開く。
+
+  例: ``python3 -m http.server 8000`` を実行し、ブラウザで ``http://localhost:8000/index.html`` へアクセス。
+
+- 並列化（-P N）:
+
+  - 本リポジトリは ``coi-serviceworker.js`` を同梱し、初回アクセス時に Service Worker を登録して COOP/COEP を付与、再読み込み後に ``SharedArrayBuffer`` を有効化します。
+  - これによりブラウザでも pthreads による並列化が可能になります。UI の引数欄に ``-P 2`` などを指定してください。
+  - もし cross-origin isolation が無効な状態では、UI 側で ``-P 1`` に自動変更し警告を表示します。

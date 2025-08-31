@@ -12,9 +12,15 @@
 // this code will not work on all platforms, e.g. windows.  Hopefully,
 // it's easy to rewrite this code for those platforms.
 
+#ifndef __EMSCRIPTEN__
 #include <fcntl.h>  // open
 #include <unistd.h>  // close
 #include <sys/mman.h>  // mmap, munmap
+#else
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#endif
 
 static void err( const std::string& s ) {
   throw std::runtime_error( s + ": " + std::strerror(errno) );
@@ -41,7 +47,7 @@ namespace cbrc{
 
 void* openFileMap( const std::string& fileName, size_t bytes ){
   if( bytes == 0 ) return 0;
-
+#ifndef __EMSCRIPTEN__
   int f = open( fileName.c_str(), O_RDONLY );
   if( f < 0 ) err( "can't open file " + fileName );
 
@@ -54,12 +60,32 @@ void* openFileMap( const std::string& fileName, size_t bytes ){
   primeMemory( m, bytes );
 
   return m;
+#else
+  std::cerr << "lastal.js: fileMap open '" << fileName << "' bytes=" << bytes << "\n";
+  FILE* f = std::fopen(fileName.c_str(), "rb");
+  if (!f) err("can't open file " + fileName);
+  void* m = std::malloc(bytes);
+  if (!m) { std::fclose(f); throw std::runtime_error("out of memory mapping " + fileName); }
+  size_t n = std::fread(m, 1, bytes, f);
+  std::fclose(f);
+  if (n != bytes) {
+    std::free(m);
+    throw std::runtime_error(std::string("short read: ") + fileName +
+                             " got=" + stringify(n) + " expected=" + stringify(bytes));
+  }
+  std::cerr << "lastal.js: fileMap mapped '" << fileName << "' ok\n";
+  return m;
+#endif
 }
 
 void closeFileMap( void* begin, size_t bytes ){
   if( bytes == 0 ) return;
+#ifndef __EMSCRIPTEN__
   int e = munmap( begin, bytes );
   if( e < 0 ) err( "failed to \"munmap\" " + stringify(bytes) + " bytes" );
+#else
+  std::free(begin);
+#endif
 }
 
 }  // end namespace

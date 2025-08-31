@@ -4,6 +4,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LAST (WASM) 相同性検索</title>
+    <script>
+      // Register COI service worker to enable WebAssembly threads (SharedArrayBuffer)
+      if (location.protocol !== 'file:' && 'serviceWorker' in navigator && !crossOriginIsolated) {
+        // Register at root scope so it controls the top-level document
+        navigator.serviceWorker.register('./coi-serviceworker.js').then((reg) => {
+          if (!navigator.serviceWorker.controller) {
+            const sw = reg.installing || reg.waiting || reg.active;
+            if (sw) {
+              sw.addEventListener('statechange', (e) => {
+                if (e.target.state === 'activated') location.reload();
+              });
+            }
+          }
+        }).catch(() => {});
+      }
+    </script>
     <style>
       body { font-family: system-ui, -apple-system, sans-serif; margin: 20px; }
       fieldset { margin-bottom: 16px; }
@@ -66,8 +82,7 @@
       <div id="dotplot" style="width:100%; max-width:960px; height:520px;"></div>
     </fieldset>
 
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script type="module" src="./web/main.js?v=20250823-4"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" crossorigin="anonymous"></script>
+    <script type="module" src="./web/main.js?v=20250830-threads"></script>
   </body>
   </html>
-

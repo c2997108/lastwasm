@@ -43,6 +43,15 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 // it with a specific name.
 var ENVIRONMENT_IS_PTHREAD = ENVIRONMENT_IS_WORKER && self.name?.startsWith("em-pthread");
 
+if (ENVIRONMENT_IS_NODE) {
+  var worker_threads = require("worker_threads");
+  global.Worker = worker_threads.Worker;
+  ENVIRONMENT_IS_WORKER = !worker_threads.isMainThread;
+  // Under node we set `workerData` to `em-pthread` to signal that the worker
+  // is hosting a pthread.
+  ENVIRONMENT_IS_PTHREAD = ENVIRONMENT_IS_WORKER && worker_threads["workerData"] == "em-pthread";
+}
+
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
 var arguments_ = [];
@@ -53,7 +62,14 @@ var quit_ = (status, toThrow) => {
   throw toThrow;
 };
 
-var _scriptName = import.meta.url;
+var _scriptName;
+
+if (typeof __filename != "undefined") {
+  // Node
+  _scriptName = __filename;
+} else if (ENVIRONMENT_IS_WORKER) {
+  _scriptName = self.location.href;
+}
 
 // `/` should be present at the end if `scriptDirectory` is not empty
 var scriptDirectory = "";
@@ -68,14 +84,43 @@ function locateFile(path) {
 // Hooks that are implemented differently in different runtime environments.
 var readAsync, readBinary;
 
-// Note that this includes Node.js workers when relevant (pthreads is enabled).
+if (ENVIRONMENT_IS_NODE) {
+  // These modules will usually be used on Node.js. Load them eagerly to avoid
+  // the complexity of lazy-loading.
+  var fs = require("fs");
+  scriptDirectory = __dirname + "/";
+  // include: node_shell_read.js
+  readBinary = filename => {
+    // We need to re-wrap `file://` strings to URLs.
+    filename = isFileURI(filename) ? new URL(filename) : filename;
+    var ret = fs.readFileSync(filename);
+    return ret;
+  };
+  readAsync = async (filename, binary = true) => {
+    // See the comment in the `readBinary` function.
+    filename = isFileURI(filename) ? new URL(filename) : filename;
+    var ret = fs.readFileSync(filename, binary ? undefined : "utf8");
+    return ret;
+  };
+  // end include: node_shell_read.js
+  if (process.argv.length > 1) {
+    thisProgram = process.argv[1].replace(/\\/g, "/");
+  }
+  arguments_ = process.argv.slice(2);
+  quit_ = (status, toThrow) => {
+    process.exitCode = status;
+    throw toThrow;
+  };
+} else // Note that this includes Node.js workers when relevant (pthreads is enabled).
 // Node.js workers are detected as a combination of ENVIRONMENT_IS_WORKER and
 // ENVIRONMENT_IS_NODE.
 if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
   try {
     scriptDirectory = new URL(".", _scriptName).href;
   } catch {}
-  {
+  // Differentiate the Web Worker from the Node Worker case, as reading must
+  // be done differently.
+  if (!ENVIRONMENT_IS_NODE) {
     // include: web_or_worker_shell_read.js
     if (ENVIRONMENT_IS_WORKER) {
       readBinary = url => {
@@ -98,9 +143,26 @@ if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
   }
 } else {}
 
-var out = console.log.bind(console);
+// Set up the out() and err() hooks, which are how we can print to stdout or
+// stderr, respectively.
+// Normally just binding console.log/console.error here works fine, but
+// under node (with workers) we see missing/out-of-order messages so route
+// directly to stdout and stderr.
+// See https://github.com/emscripten-core/emscripten/issues/14804
+var defaultPrint = console.log.bind(console);
 
-var err = console.error.bind(console);
+var defaultPrintErr = console.error.bind(console);
+
+if (ENVIRONMENT_IS_NODE) {
+  var utils = require("util");
+  var stringify = a => typeof a == "object" ? utils.inspect(a) : a;
+  defaultPrint = (...args) => fs.writeSync(1, args.map(stringify).join(" ") + "\n");
+  defaultPrintErr = (...args) => fs.writeSync(2, args.map(stringify).join(" ") + "\n");
+}
+
+var out = defaultPrint;
+
+var err = defaultPrintErr;
 
 // end include: shell.js
 // include: preamble.js
@@ -155,6 +217,7 @@ var EXITSTATUS;
 // end include: runtime_exceptions.js
 // include: runtime_debug.js
 // end include: runtime_debug.js
+// include: growableHeap.js
 // Support for growable heap + pthreads, where the buffer may change, so JS views
 // must be updated.
 function growMemViews() {
@@ -164,9 +227,22 @@ function growMemViews() {
   }
 }
 
+// end include: growableHeap.js
 var readyPromiseResolve, readyPromiseReject;
 
 var wasmModuleReceived;
+
+if (ENVIRONMENT_IS_NODE && (ENVIRONMENT_IS_PTHREAD)) {
+  // Create as web-worker-like an environment as we can.
+  var parentPort = worker_threads["parentPort"];
+  parentPort.on("message", msg => global.onmessage?.({
+    data: msg
+  }));
+  Object.assign(globalThis, {
+    self: global,
+    postMessage: msg => parentPort["postMessage"](msg)
+  });
+}
 
 // include: runtime_pthread.js
 // Pthread Web Worker handling code.
@@ -283,6 +359,8 @@ var /** not-@type {!BigInt64Array} */ HEAP64, /* BigUint64Array type is not corr
 
 var runtimeInitialized = false;
 
+var runtimeExited = false;
+
 function updateMemoryViews() {
   var b = wasmMemory.buffer;
   HEAP8 = new Int8Array(b);
@@ -308,7 +386,7 @@ function initMemory() {
   if (Module["wasmMemory"]) {
     wasmMemory = Module["wasmMemory"];
   } else {
-    var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 134217728;
+    var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 268435456;
     /** @suppress {checkTypes} */ wasmMemory = new WebAssembly.Memory({
       "initial": INITIAL_MEMORY / 65536,
       // In theory we should not need to emit the maximum if we want "unlimited"
@@ -351,6 +429,21 @@ function initRuntime() {
 }
 
 function preMain() {}
+
+function exitRuntime() {
+  if ((ENVIRONMENT_IS_PTHREAD)) {
+    return;
+  }
+  // PThreads reuse the runtime from the main thread.
+  ___funcs_on_exit();
+  // Native atexit() functions
+  // Begin ATEXITS hooks
+  FS.quit();
+  TTY.shutdown();
+  // End ATEXITS hooks
+  PThread.terminateAllThreads();
+  runtimeExited = true;
+}
 
 function postRun() {
   if ((ENVIRONMENT_IS_PTHREAD)) {
@@ -427,11 +520,7 @@ function removeRunDependency(id) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-  if (Module["locateFile"]) {
-    return locateFile("lastal.wasm");
-  }
-  // Use bundler-friendly `new URL(..., import.meta.url)` pattern; works in browsers too.
-  return new URL("lastal.wasm", import.meta.url).href;
+  return locateFile("lastal.wasm");
 }
 
 function getBinarySync(file) {
@@ -469,7 +558,7 @@ async function instantiateArrayBuffer(binaryFile, imports) {
 }
 
 async function instantiateAsync(binary, binaryFile, imports) {
-  if (!binary) {
+  if (!binary && typeof WebAssembly.instantiateStreaming == "function" && !ENVIRONMENT_IS_NODE) {
     try {
       var response = fetch(binaryFile, {
         credentials: "same-origin"
@@ -601,6 +690,13 @@ var spawnThread = threadParams => {
     arg: threadParams.arg,
     pthread_ptr: threadParams.pthread_ptr
   };
+  if (ENVIRONMENT_IS_NODE) {
+    // Mark worker as weakly referenced once we start executing a pthread,
+    // so that its existence does not prevent Node.js from exiting.  This
+    // has no effect if the worker is already weakly referenced (e.g. if
+    // this worker was previously idle/unused).
+    worker.unref();
+  }
   // Ask the worker to start executing its pthread entry point function.
   worker.postMessage(msg, threadParams.transferList);
   return 0;
@@ -680,6 +776,9 @@ function exitOnMainThread(returnCode) {
     // because it runs a main loop, but that doesn't affect the main thread.
     exitOnMainThread(status);
     throw "unwind";
+  }
+  if (!keepRuntimeAlive()) {
+    exitRuntime();
   }
   _proc_exit(status);
 };
@@ -767,10 +866,7 @@ var PThread = {
       } else if (cmd === "spawnThread") {
         spawnThread(d);
       } else if (cmd === "cleanupThread") {
-        // cleanupThread needs to be run via callUserCallback since it calls
-        // back into user code to free thread data. Without this it's possible
-        // the unwind or ExitStatus exception could escape here.
-        callUserCallback(() => cleanupThread(d.thread));
+        cleanupThread(d.thread);
       } else if (cmd === "loaded") {
         worker.loaded = true;
         onFinishedLoading(worker);
@@ -792,6 +888,12 @@ var PThread = {
       err(`${message} ${e.filename}:${e.lineno}: ${e.message}`);
       throw e;
     };
+    if (ENVIRONMENT_IS_NODE) {
+      worker.on("message", data => worker.onmessage({
+        data
+      }));
+      worker.on("error", e => worker.onerror(e));
+    }
     // When running on a pthread, none of the incoming parameters on the module
     // object are present. Proxy known handlers back to the main thread if specified.
     var handlers = [];
@@ -814,25 +916,19 @@ var PThread = {
   },
   allocateUnusedWorker() {
     var worker;
-    // If we're using module output, use bundler-friendly pattern.
+    var pthreadMainJs = _scriptName;
+    // We can't use makeModuleReceiveWithVar here since we want to also
+    // call URL.createObjectURL on the mainScriptUrlOrBlob.
     if (Module["mainScriptUrlOrBlob"]) {
-      var pthreadMainJs = Module["mainScriptUrlOrBlob"];
+      pthreadMainJs = Module["mainScriptUrlOrBlob"];
       if (typeof pthreadMainJs != "string") {
         pthreadMainJs = URL.createObjectURL(pthreadMainJs);
       }
-      worker = new Worker(pthreadMainJs, {
-        "type": "module",
-        // This is the way that we signal to the Web Worker that it is hosting
-        // a pthread.
-        "name": "em-pthread"
-      });
-    } else // We need to generate the URL with import.meta.url as the base URL of the JS file
-    // instead of just using new URL(import.meta.url) because bundler's only recognize
-    // the first case in their bundling step. The latter ends up producing an invalid
-    // URL to import from the server (e.g., for webpack the file:// path).
-    // See https://github.com/webpack/webpack/issues/12638
-    worker = new Worker(new URL("lastal", import.meta.url), {
-      "type": "module",
+    }
+    worker = new Worker(pthreadMainJs, {
+      // This is the way that we signal to the node worker that it is hosting
+      // a pthread.
+      "workerData": "em-pthread",
       // This is the way that we signal to the Web Worker that it is hosting
       // a pthread.
       "name": "em-pthread"
@@ -943,7 +1039,7 @@ var invokeEntryPoint = (ptr, arg) => {
   finish(result);
 };
 
-var noExitRuntime = true;
+var noExitRuntime = false;
 
 var registerTLSInit = tlsInitFunc => PThread.tlsInitFunctions.push(tlsInitFunc);
 
@@ -1020,6 +1116,8 @@ var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
     return UTF8Decoder.decode(heapOrArray.buffer instanceof ArrayBuffer ? heapOrArray.subarray(idx, endPtr) : heapOrArray.slice(idx, endPtr));
   }
   var str = "";
+  // If building with TextDecoder, we have already computed the string length
+  // above, so test loop end condition against that
   while (idx < endPtr) {
     // For UTF8 byte structure, see:
     // http://en.wikipedia.org/wiki/UTF-8#Description
@@ -1328,7 +1426,16 @@ var PATH = {
   join2: (l, r) => PATH.normalize(l + "/" + r)
 };
 
-var initRandomFill = () => view => view.set(crypto.getRandomValues(new Uint8Array(view.byteLength)));
+var initRandomFill = () => {
+  // This block is not needed on v19+ since crypto.getRandomValues is builtin
+  if (ENVIRONMENT_IS_NODE) {
+    var nodeCrypto = require("crypto");
+    return view => nodeCrypto.randomFillSync(view);
+  }
+  // like with most Web APIs, we can't use Web Crypto API directly on shared memory,
+  // so we need to create an intermediate buffer and copy it to the destination
+  return view => view.set(crypto.getRandomValues(new Uint8Array(view.byteLength)));
+};
 
 var randomFill = view => {
   // Lazily init on the first invocation.
@@ -1464,12 +1571,28 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 var FS_stdin_getChar = () => {
   if (!FS_stdin_getChar_buffer.length) {
     var result = null;
-    if (typeof window != "undefined" && typeof window.prompt == "function") {
-      // Browser.
-      result = window.prompt("Input: ");
-      // returns null on cancel
-      if (result !== null) {
-        result += "\n";
+    if (ENVIRONMENT_IS_NODE) {
+      // we will read data by chunks of BUFSIZE
+      var BUFSIZE = 256;
+      var buf = Buffer.alloc(BUFSIZE);
+      var bytesRead = 0;
+      // For some reason we must suppress a closure warning here, even though
+      // fd definitely exists on process.stdin, and is even the proper way to
+      // get the fd of stdin,
+      // https://github.com/nodejs/help/issues/2136#issuecomment-523649904
+      // This started to happen after moving this logic out of library_tty.js,
+      // so it is related to the surrounding code in some unclear manner.
+      /** @suppress {missingProperties} */ var fd = process.stdin.fd;
+      try {
+        bytesRead = fs.readSync(fd, buf, 0, BUFSIZE);
+      } catch (e) {
+        // Cross-platform differences: on Windows, reading EOF throws an
+        // exception, but on other OSes, reading EOF returns 0. Uniformize
+        // behavior by treating the EOF exception to return 0.
+        if (e.toString().includes("EOF")) bytesRead = 0; else throw e;
+      }
+      if (bytesRead > 0) {
+        result = buf.slice(0, bytesRead).toString("utf-8");
       }
     } else {}
     if (!result) {
@@ -1940,6 +2063,62 @@ var MEMFS = {
   }
 };
 
+var asyncLoad = async url => {
+  var arrayBuffer = await readAsync(url);
+  return new Uint8Array(arrayBuffer);
+};
+
+var FS_createDataFile = (...args) => FS.createDataFile(...args);
+
+var getUniqueRunDependency = id => id;
+
+var preloadPlugins = [];
+
+var FS_handledByPreloadPlugin = (byteArray, fullname, finish, onerror) => {
+  // Ensure plugins are ready.
+  if (typeof Browser != "undefined") Browser.init();
+  var handled = false;
+  preloadPlugins.forEach(plugin => {
+    if (handled) return;
+    if (plugin["canHandle"](fullname)) {
+      plugin["handle"](byteArray, fullname, finish, onerror);
+      handled = true;
+    }
+  });
+  return handled;
+};
+
+var FS_createPreloadedFile = (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
+  // TODO we should allow people to just pass in a complete filename instead
+  // of parent and name being that we just join them anyways
+  var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
+  var dep = getUniqueRunDependency(`cp ${fullname}`);
+  // might have several active requests for the same fullname
+  function processData(byteArray) {
+    function finish(byteArray) {
+      preFinish?.();
+      if (!dontCreateFile) {
+        FS_createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
+      }
+      onload?.();
+      removeRunDependency(dep);
+    }
+    if (FS_handledByPreloadPlugin(byteArray, fullname, finish, () => {
+      onerror?.();
+      removeRunDependency(dep);
+    })) {
+      return;
+    }
+    finish(byteArray);
+  }
+  addRunDependency(dep);
+  if (typeof url == "string") {
+    asyncLoad(url).then(processData, onerror);
+  } else {
+    processData(url);
+  }
+};
+
 var FS_modeStringToFlags = str => {
   var flagModes = {
     "r": 0,
@@ -1961,56 +2140,6 @@ var FS_getMode = (canRead, canWrite) => {
   if (canRead) mode |= 292 | 73;
   if (canWrite) mode |= 146;
   return mode;
-};
-
-var asyncLoad = async url => {
-  var arrayBuffer = await readAsync(url);
-  return new Uint8Array(arrayBuffer);
-};
-
-var FS_createDataFile = (...args) => FS.createDataFile(...args);
-
-var getUniqueRunDependency = id => id;
-
-var preloadPlugins = [];
-
-var FS_handledByPreloadPlugin = async (byteArray, fullname) => {
-  // Ensure plugins are ready.
-  if (typeof Browser != "undefined") Browser.init();
-  for (var plugin of preloadPlugins) {
-    if (plugin["canHandle"](fullname)) {
-      return plugin["handle"](byteArray, fullname);
-    }
-  }
-  // In no plugin handled this file then return the original/unmodified
-  // byteArray.
-  return byteArray;
-};
-
-var FS_preloadFile = async (parent, name, url, canRead, canWrite, dontCreateFile, canOwn, preFinish) => {
-  // TODO we should allow people to just pass in a complete filename instead
-  // of parent and name being that we just join them anyways
-  var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
-  var dep = getUniqueRunDependency(`cp ${fullname}`);
-  // might have several active requests for the same fullname
-  addRunDependency(dep);
-  try {
-    var byteArray = url;
-    if (typeof url == "string") {
-      byteArray = await asyncLoad(url);
-    }
-    byteArray = await FS_handledByPreloadPlugin(byteArray, fullname);
-    preFinish?.();
-    if (!dontCreateFile) {
-      FS_createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
-    }
-  } finally {
-    removeRunDependency(dep);
-  }
-};
-
-var FS_createPreloadedFile = (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
-  FS_preloadFile(parent, name, url, canRead, canWrite, dontCreateFile, canOwn, preFinish).then(onload).catch(onerror);
 };
 
 var FS = {
@@ -3301,6 +3430,7 @@ var FS = {
   quit() {
     FS.initialized = false;
     // force-flush all streams, so we get musl std streams printed out
+    _fflush(0);
     // close all of our streams
     for (var stream of FS.streams) {
       if (stream) {
@@ -3659,12 +3789,12 @@ var SYSCALLS = {
     return dir + "/" + path;
   },
   writeStat(buf, stat) {
-    (growMemViews(), HEAPU32)[((buf) >> 2)] = stat.dev;
-    (growMemViews(), HEAPU32)[(((buf) + (4)) >> 2)] = stat.mode;
+    (growMemViews(), HEAP32)[((buf) >> 2)] = stat.dev;
+    (growMemViews(), HEAP32)[(((buf) + (4)) >> 2)] = stat.mode;
     (growMemViews(), HEAPU32)[(((buf) + (8)) >> 2)] = stat.nlink;
-    (growMemViews(), HEAPU32)[(((buf) + (12)) >> 2)] = stat.uid;
-    (growMemViews(), HEAPU32)[(((buf) + (16)) >> 2)] = stat.gid;
-    (growMemViews(), HEAPU32)[(((buf) + (20)) >> 2)] = stat.rdev;
+    (growMemViews(), HEAP32)[(((buf) + (12)) >> 2)] = stat.uid;
+    (growMemViews(), HEAP32)[(((buf) + (16)) >> 2)] = stat.gid;
+    (growMemViews(), HEAP32)[(((buf) + (20)) >> 2)] = stat.rdev;
     (growMemViews(), HEAP64)[(((buf) + (24)) >> 3)] = BigInt(stat.size);
     (growMemViews(), HEAP32)[(((buf) + (32)) >> 2)] = 4096;
     (growMemViews(), HEAP32)[(((buf) + (36)) >> 2)] = stat.blocks;
@@ -3681,17 +3811,17 @@ var SYSCALLS = {
     return 0;
   },
   writeStatFs(buf, stats) {
-    (growMemViews(), HEAPU32)[(((buf) + (4)) >> 2)] = stats.bsize;
-    (growMemViews(), HEAPU32)[(((buf) + (60)) >> 2)] = stats.bsize;
-    (growMemViews(), HEAP64)[(((buf) + (8)) >> 3)] = BigInt(stats.blocks);
-    (growMemViews(), HEAP64)[(((buf) + (16)) >> 3)] = BigInt(stats.bfree);
-    (growMemViews(), HEAP64)[(((buf) + (24)) >> 3)] = BigInt(stats.bavail);
-    (growMemViews(), HEAP64)[(((buf) + (32)) >> 3)] = BigInt(stats.files);
-    (growMemViews(), HEAP64)[(((buf) + (40)) >> 3)] = BigInt(stats.ffree);
-    (growMemViews(), HEAPU32)[(((buf) + (48)) >> 2)] = stats.fsid;
-    (growMemViews(), HEAPU32)[(((buf) + (64)) >> 2)] = stats.flags;
+    (growMemViews(), HEAP32)[(((buf) + (4)) >> 2)] = stats.bsize;
+    (growMemViews(), HEAP32)[(((buf) + (40)) >> 2)] = stats.bsize;
+    (growMemViews(), HEAP32)[(((buf) + (8)) >> 2)] = stats.blocks;
+    (growMemViews(), HEAP32)[(((buf) + (12)) >> 2)] = stats.bfree;
+    (growMemViews(), HEAP32)[(((buf) + (16)) >> 2)] = stats.bavail;
+    (growMemViews(), HEAP32)[(((buf) + (20)) >> 2)] = stats.files;
+    (growMemViews(), HEAP32)[(((buf) + (24)) >> 2)] = stats.ffree;
+    (growMemViews(), HEAP32)[(((buf) + (28)) >> 2)] = stats.fsid;
+    (growMemViews(), HEAP32)[(((buf) + (44)) >> 2)] = stats.flags;
     // ST_NOSUID
-    (growMemViews(), HEAPU32)[(((buf) + (56)) >> 2)] = stats.namelen;
+    (growMemViews(), HEAP32)[(((buf) + (36)) >> 2)] = stats.namelen;
   },
   doMsync(addr, stream, len, flags, offset) {
     if (!FS.isFile(stream.node.mode)) {
@@ -3934,6 +4064,9 @@ var handleException = e => {
 };
 
 var maybeExit = () => {
+  if (runtimeExited) {
+    return;
+  }
   if (!keepRuntimeAlive()) {
     try {
       if (ENVIRONMENT_IS_PTHREAD) __emscripten_thread_exit(EXITSTATUS); else _exit(EXITSTATUS);
@@ -3944,7 +4077,7 @@ var maybeExit = () => {
 };
 
 var callUserCallback = func => {
-  if (ABORT) {
+  if (runtimeExited || ABORT) {
     return;
   }
   try {
@@ -4040,7 +4173,16 @@ var __emscripten_thread_cleanup = thread => {
   });
 };
 
-var __emscripten_thread_set_strongref = thread => {};
+var __emscripten_thread_set_strongref = thread => {
+  // Called when a thread needs to be strongly referenced.
+  // Currently only used for:
+  // - keeping the "main" thread alive in PROXY_TO_PTHREAD mode;
+  // - crashed threads that needs to propagate the uncaught exception
+  //   back to the main thread.
+  if (ENVIRONMENT_IS_NODE) {
+    PThread.pthreads[thread].ref();
+  }
+};
 
 var stringToUTF8 = (str, outPtr, maxBytesToWrite) => stringToUTF8Array(str, (growMemViews(), 
 HEAPU8), outPtr, maxBytesToWrite);
@@ -4140,7 +4282,7 @@ var getHeapMax = () => // Stay one Wasm page short of 4GB: while e.g. Chrome is 
 
 var _emscripten_get_heap_max = () => getHeapMax();
 
-var _emscripten_num_logical_cores = () => navigator["hardwareConcurrency"];
+var _emscripten_num_logical_cores = () => ENVIRONMENT_IS_NODE ? require("os").cpus().length : navigator["hardwareConcurrency"];
 
 var alignMemory = (size, alignment) => Math.ceil(size / alignment) * alignment;
 
@@ -4375,8 +4517,6 @@ PThread.init();
 
 FS.createPreloadedFile = FS_createPreloadedFile;
 
-FS.preloadFile = FS_preloadFile;
-
 FS.staticInit();
 
 // End JS library code
@@ -4405,7 +4545,7 @@ Module["removeRunDependency"] = removeRunDependency;
 
 Module["callMain"] = callMain;
 
-Module["FS_preloadFile"] = FS_preloadFile;
+Module["FS_createPreloadedFile"] = FS_createPreloadedFile;
 
 Module["FS_unlink"] = FS_unlink;
 
@@ -4430,14 +4570,16 @@ Module["FS_createLazyFile"] = FS_createLazyFile;
 var proxiedFunctionTable = [ _proc_exit, exitOnMainThread, pthreadCreateProxied, ___syscall_fcntl64, ___syscall_ioctl, ___syscall_openat, _environ_get, _environ_sizes_get, _fd_close, _fd_read, _fd_seek, _fd_write ];
 
 // Imports from the Wasm binary.
-var _main, __emscripten_tls_init, _pthread_self, __emscripten_thread_init, __emscripten_thread_crashed, __emscripten_run_js_on_main_thread, __emscripten_thread_free_data, __emscripten_thread_exit, __emscripten_check_mailbox, _setThrew, __emscripten_tempret_set, _emscripten_stack_set_limits, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, ___cxa_decrement_exception_refcount, ___cxa_increment_exception_refcount, ___cxa_free_exception, ___cxa_can_catch, ___cxa_get_exception_ptr;
+var _main, __emscripten_tls_init, _pthread_self, ___funcs_on_exit, __emscripten_thread_init, __emscripten_thread_crashed, _fflush, __emscripten_run_js_on_main_thread, __emscripten_thread_free_data, __emscripten_thread_exit, __emscripten_check_mailbox, _setThrew, __emscripten_tempret_set, _emscripten_stack_set_limits, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, ___cxa_decrement_exception_refcount, ___cxa_increment_exception_refcount, ___cxa_free_exception, ___cxa_can_catch, ___cxa_get_exception_ptr;
 
 function assignWasmExports(wasmExports) {
   Module["_main"] = _main = wasmExports["__main_argc_argv"];
   __emscripten_tls_init = wasmExports["_emscripten_tls_init"];
   _pthread_self = wasmExports["pthread_self"];
+  ___funcs_on_exit = wasmExports["__funcs_on_exit"];
   __emscripten_thread_init = wasmExports["_emscripten_thread_init"];
   __emscripten_thread_crashed = wasmExports["_emscripten_thread_crashed"];
+  _fflush = wasmExports["fflush"];
   __emscripten_run_js_on_main_thread = wasmExports["_emscripten_run_js_on_main_thread"];
   __emscripten_thread_free_data = wasmExports["_emscripten_thread_free_data"];
   __emscripten_thread_exit = wasmExports["_emscripten_thread_exit"];
@@ -4838,7 +4980,7 @@ function run(args = arguments_) {
     preMain();
     readyPromiseResolve?.(Module);
     Module["onRuntimeInitialized"]?.();
-    var noInitialRun = Module["noInitialRun"] || false;
+    var noInitialRun = Module["noInitialRun"] || true;
     if (!noInitialRun) callMain(args);
     postRun();
   }
@@ -4887,13 +5029,22 @@ if (runtimeInitialized) {
 }
 
 // Export using a UMD style export, or ES6 exports if selected
-export default Module;
+if (typeof exports === 'object' && typeof module === 'object') {
+  module.exports = Module;
+  // This default export looks redundant, but it allows TS to import this
+  // commonjs style module.
+  module.exports.default = Module;
+} else if (typeof define === 'function' && define['amd'])
+  define([], () => Module);
 
 // Create code for detecting if we are running in a pthread.
 // Normally this detection is done when the module is itself run but
 // when running in MODULARIZE mode we need use this to know if we should
 // run the module constructor on startup (true only for pthreads).
 var isPthread = globalThis.self?.name?.startsWith('em-pthread');
+// In order to support both web and node we also need to detect node here.
+var isNode = typeof process == 'object' && process.versions?.node && process.type != 'renderer';
+if (isNode) isPthread = require('worker_threads').workerData === 'em-pthread'
 
 isPthread && Module();
 

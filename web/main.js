@@ -2,12 +2,33 @@
 // Requires: lastdb.js/.wasm and lastal.js/.wasm built via build_wasm.sh
 
 const $ = (sel) => document.querySelector(sel);
-const APP_VER = '20250823-3';
+const APP_VER = '20250830-threads';
 const statusEl = $('#status');
 const logEl = $('#log');
 const outEl = $('#out');
 const tabEl = $('#tab');
 const SAFE_DB_ARGS = ['--bits=4','-R00','-uNEAR','-w1','-W1','-S1','-C1','-v'];
+
+function hasSharedMemorySupport() {
+  return (typeof SharedArrayBuffer !== 'undefined') && (typeof crossOriginIsolated !== 'undefined') && crossOriginIsolated;
+}
+
+function extractThreads(args) {
+  let threads = 1;
+  const rest = [];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a === '-P' && i + 1 < args.length && /^\d+$/.test(args[i + 1])) {
+      threads = Math.max(1, parseInt(args[i + 1], 10));
+    	  i++;
+      continue;
+    }
+    const m = a.match(/^-(?:P)(\d+)$/);
+    if (m) { threads = Math.max(1, parseInt(m[1], 10)); continue; }
+    rest.push(a);
+  }
+  return { threads, restArgs: rest };
+}
 
 // Plotly-based dotplot
 
@@ -402,10 +423,14 @@ async function run() {
   // Dynamically import the Emscripten ES-module factories
   let lastdbFactory, lastalFactory;
   try {
+    const lastdbUrl = new URL(`./lastdb.js?v=${APP_VER}`, import.meta.url);
+    const lastalUrl = new URL(`./lastal.js?v=${APP_VER}`, import.meta.url);
     [lastdbFactory, lastalFactory] = await Promise.all([
-      import(`./lastdb.js?v=${APP_VER}`).then(m => m.default || m),
-      import(`./lastal.js?v=${APP_VER}`).then(m => m.default || m),
+      import(lastdbUrl.href).then(m => m.default || m),
+      import(lastalUrl.href).then(m => m.default || m),
     ]);
+    run._lastdbUrl = lastdbUrl;
+    run._lastalUrl = lastalUrl;
   } catch (e) {
     setStatus('エラー');
     append(logEl, 'モジュール読み込みエラー: ' + (e?.message || e));
@@ -414,10 +439,20 @@ async function run() {
 
   // lastdb: build database
   setStatus('lastdb 実行中...');
+  const safe = $('#safeMode')?.checked;
+  const dbArgsRaw = safe ? SAFE_DB_ARGS.slice() : splitArgs($('#lastdbArgs').value);
+  let { threads: dbThreads, restArgs: dbArgs } = extractThreads(dbArgsRaw);
+  if (!hasSharedMemorySupport() && dbThreads > 1) {
+    append(logEl, '[WARN] Webで並列化するには COOP/COEP による cross-origin isolation が必要です。');
+    append(logEl, '       サービスワーカー(coi-serviceworker.js)有効化後に自動再読み込みされます。');
+    dbThreads = 1;
+  }
   const lastdbModule = await lastdbFactory({
-    noInitialRun: true, // prevent auto main() run on module load
+    noInitialRun: true,
     print: (line) => append(logEl, line),
     printErr: (line) => append(logEl, '[ERR] ' + line),
+    mainScriptUrlOrBlob: run._lastdbUrl,
+    pthreadPoolSize: dbThreads > 1 ? dbThreads : 0,
   });
 
   const dbFS = lastdbModule.FS;
@@ -425,10 +460,7 @@ async function run() {
   dbFS.chdir('/work');
   dbFS.writeFile('ref.fa', refText);
 
-  const safe = $('#safeMode')?.checked;
-  const dbArgs = safe ? SAFE_DB_ARGS.slice() : splitArgs($('#lastdbArgs').value);
-  // Enforce single-thread: use 1 thread in browser builds
-  const lastdbArgv = ['-P', '1', ...dbArgs, dbName, 'ref.fa'];
+  const lastdbArgv = ['-P', String(dbThreads), ...dbArgs, dbName, 'ref.fa'];
   append(logEl, '$ lastdb ' + lastdbArgv.map(a => /\s/.test(a)? ('"'+a+'"'):a).join(' '));
   await tick();
   try {
@@ -451,14 +483,41 @@ async function run() {
 
   // lastal: run alignment (TAB only)
   setStatus('lastal 実行中...');
-  const alArgs = splitArgs($('#lastalArgs').value);
+  let alArgs = splitArgs($('#lastalArgs').value);
   if (tabEl) {
+    let { threads: alThreads, restArgs: alArgsNorm } = extractThreads(alArgs);
+    if (!hasSharedMemorySupport() && alThreads > 1) {
+      append(tabEl, '[WARN] SharedArrayBuffer未利用のため -P 1 に強制します。');
+      alThreads = 1;
+    }
     const lastalModule2 = await lastalFactory({
       noInitialRun: true,
       print: (line) => append(tabEl, line),
       printErr: (line) => append(tabEl, '[ERR] ' + line),
+      mainScriptUrlOrBlob: run._lastalUrl,
+      pthreadPoolSize: alThreads > 1 ? alThreads : 0,
     });
     const alFS2 = lastalModule2.FS;
+    // Detect if this build/runtime supports shared memory (threads)
+    const hasSAB = (typeof SharedArrayBuffer !== 'undefined');
+    const hasSharedMemory = hasSAB && lastalModule2.wasmMemory && (lastalModule2.wasmMemory.buffer instanceof SharedArrayBuffer);
+    // If -P is requested but shared memory is unavailable, coerce to -P 1 to avoid abort
+    const idxP = alArgs.findIndex(a => a === '-P' || /^-P\d+$/.test(a));
+    if (!hasSharedMemory) {
+      if (idxP >= 0) {
+        if (alArgs[idxP] === '-P') {
+          // If next token exists and is a number, replace it
+          if (typeof alArgs[idxP + 1] !== 'undefined') alArgs[idxP + 1] = '1';
+        } else {
+          alArgs[idxP] = '-P1';
+        }
+      } else {
+        // Ensure single-thread by default
+        alArgs = ['-P', '1', ...alArgs];
+      }
+      append(tabEl, '[WARN] 環境/ビルドが単一スレッドのため -P 1 に強制します。');
+      append(tabEl, '       マルチスレッド利用には COOP/COEP 有効化と pthreads 対応ビルドが必要です。');
+    }
     if (!alFS2.analyzePath('/work').exists) alFS2.mkdir('/work');
     alFS2.chdir('/work');
     // copy DB files into FS
@@ -469,7 +528,8 @@ async function run() {
     // write query
     alFS2.writeFile('query.fa', qryText);
 
-    const lastalTabArgv = ['-P', '1', '-f', 'TAB', ...alArgs, dbName, 'query.fa'];
+    // Default to TAB output, normalized -P
+    const lastalTabArgv = ['-f', 'TAB', '-P', String(alThreads), ...alArgsNorm, dbName, 'query.fa'];
     append(tabEl, '$ lastal ' + lastalTabArgv.map(a => /\s/.test(a)? ('"'+a+'"'):a).join(' '));
     await tick();
     try {

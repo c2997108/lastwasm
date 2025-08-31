@@ -5,6 +5,9 @@
 #include <sstream>
 #include <cassert>
 #include <streambuf>
+#ifdef __EMSCRIPTEN__
+#include <iostream>
+#endif
 
 namespace cbrc {
 
@@ -38,25 +41,79 @@ void MultiSequence::reinitForAppending(){
 }
 
 void MultiSequence::fromFiles(const std::string &baseName, size_t seqCount,
-			      size_t qualitiesPerLetter, bool is4bit,
-			      bool isSmallCoords) {
-  if (isSmallCoords) {
-    ends4.m.open(baseName + ".ssp", seqCount + 1);
-    nameEnds4.m.open(baseName + ".sds", seqCount + 1);
-  } else {
-    ends.m.open(baseName + ".ssp", seqCount + 1);
-    nameEnds.m.open(baseName + ".sds", seqCount + 1);
+				      size_t qualitiesPerLetter, bool is4bit,
+				      bool isSmallCoords) {
+  #ifdef __EMSCRIPTEN__
+  std::cerr << "lastal.js: MultiSequence.fromFiles baseName=" << baseName
+            << " seqCount=" << seqCount
+            << " is4bit=" << is4bit
+            << " isSmallCoords=" << isSmallCoords
+            << "\n";
+  try {
+  #endif
+    if (isSmallCoords) {
+      ends4.m.open(baseName + ".ssp", seqCount + 1);
+      nameEnds4.m.open(baseName + ".sds", seqCount + 1);
+    } else {
+      ends.m.open(baseName + ".ssp", seqCount + 1);
+      nameEnds.m.open(baseName + ".sds", seqCount + 1);
+    }
+  #ifdef __EMSCRIPTEN__
+  } catch (const std::exception &e) {
+    std::cerr << "lastal.js: MultiSequence fromFiles failed opening index headers for base '"
+              << baseName << "' seqCount=" << seqCount
+              << ": " << e.what() << "\n";
+    throw;
   }
+  #endif
 
   size_t seqLength = getEnd(seqCount);
-  seq.m.open(baseName + ".tis", (seqLength + is4bit) / (is4bit + 1));
+  #ifdef __EMSCRIPTEN__
+  std::cerr << "lastal.js: MultiSequence seqLength=" << seqLength
+            << " padSize?=" << getEnd(0) << "\n";
+  try {
+  #endif
+    seq.m.open(baseName + ".tis", (seqLength + is4bit) / (is4bit + 1));
+  #ifdef __EMSCRIPTEN__
+  } catch (const std::exception &e) {
+    std::cerr << "lastal.js: MultiSequence failed opening .tis for base '"
+              << baseName << "' size=" << ((seqLength + is4bit) / (is4bit + 1))
+              << ": " << e.what() << "\n";
+    throw;
+  }
+  #endif
   theSeqPtr.beg = seq.m.begin();
   theSeqPtr.is4bit = is4bit;
-  names.m.open(baseName + ".des", getNameEnd(seqCount));
+  #ifdef __EMSCRIPTEN__
+  try {
+  #endif
+    names.m.open(baseName + ".des", getNameEnd(seqCount));
+  #ifdef __EMSCRIPTEN__
+  } catch (const std::exception &e) {
+    std::cerr << "lastal.js: MultiSequence failed opening .des for base '"
+              << baseName << "' size=" << getNameEnd(seqCount)
+              << ": " << e.what() << "\n";
+    throw;
+  }
+  #endif
   padSize = getEnd(0);
 
-  qualityScores.m.open(baseName + ".qua", seqLength * qualitiesPerLetter);
+  #ifdef __EMSCRIPTEN__
+  try {
+  #endif
+    qualityScores.m.open(baseName + ".qua", seqLength * qualitiesPerLetter);
+  #ifdef __EMSCRIPTEN__
+  } catch (const std::exception &e) {
+    std::cerr << "lastal.js: MultiSequence failed opening .qua for base '"
+              << baseName << "' size=" << (seqLength * qualitiesPerLetter)
+              << ": " << e.what() << "\n";
+    throw;
+  }
+  #endif
   qualityScoresPerLetter = qualitiesPerLetter;
+  #ifdef __EMSCRIPTEN__
+  std::cerr << "lastal.js: MultiSequence opened files for base='" << baseName << "'\n";
+  #endif
 }
 
 void MultiSequence::toFiles(const std::string &baseName, bool is4bit) const {

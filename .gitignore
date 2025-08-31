@@ -12,3 +12,6 @@ bin/lastal
 bin/lastdb
 
 node_modules
+
+.emscripten
+.emscripten_cache/

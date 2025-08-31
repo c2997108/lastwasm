@@ -19,7 +19,7 @@ This generates `web/lastdb.js/.wasm` and `web/lastal.js/.wasm`.
 
 ## Run
 
-Serve the `web/` directory with a local HTTP server (modules + WASM need HTTP):
+Serve the `web/` directory with a local HTTP server (modules + WASM need HTTP). To enable multi-threading (for `-P > 1`), the page must be cross-origin isolated (COOP/COEP). This repo includes a service worker that sets those headers:
 
 ```bash
 cd web
@@ -36,7 +36,8 @@ All files run in the browser’s memory (no upload). `lastdb` output files are c
 
 ## Notes
 
-- Threads are disabled (`-P 0`) for browser compatibility.
+- Multi-threading: The build enables WebAssembly pthreads. Browsers require `SharedArrayBuffer`, which in turn requires cross-origin isolation (COOP/COEP). The included `coi-serviceworker.js` registers automatically and will reload the page once active; after that `lastal` can use `-P N` (N > 1).
+- If opened via `file://` or a server that blocks service workers, threads won’t be available; use `-P 1`.
 - zlib is enabled via Emscripten ports (`-sUSE_ZLIB=1`).
 - Large datasets may run out of memory in the browser; try smaller inputs.
 

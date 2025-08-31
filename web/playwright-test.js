@@ -21,7 +21,8 @@ async function waitForServer(url, timeoutMs = 15000) {
 }
 
 async function main() {
-  const webDir = path.resolve(__dirname);
+  // Serve the repository root so index.html and the root SW are available
+  const webDir = path.resolve(__dirname, '..');
   // Start a simple static server on an ephemeral port (no conflicts)
   const http = require('http');
   const fs = require('fs');
@@ -56,8 +57,8 @@ async function main() {
   await page.goto(url, { waitUntil: 'domcontentloaded' });
 
   // Fill inputs
-  const ref = path.join(webDir, 'samples', 'sample_ref.fasta');
-  const qry = path.join(webDir, 'samples', 'sample_qry.fasta');
+  const ref = path.join(webDir, 'web', 'samples', 'sample_ref.fasta');
+  const qry = path.join(webDir, 'web', 'samples', 'sample_qry.fasta');
   await page.setInputFiles('#refFasta', ref);
   await page.setInputFiles('#qryFasta', qry);
 

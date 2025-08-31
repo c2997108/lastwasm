@@ -43,6 +43,15 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 // it with a specific name.
 var ENVIRONMENT_IS_PTHREAD = ENVIRONMENT_IS_WORKER && self.name?.startsWith("em-pthread");
 
+if (ENVIRONMENT_IS_NODE) {
+  var worker_threads = require("worker_threads");
+  global.Worker = worker_threads.Worker;
+  ENVIRONMENT_IS_WORKER = !worker_threads.isMainThread;
+  // Under node we set `workerData` to `em-pthread` to signal that the worker
+  // is hosting a pthread.
+  ENVIRONMENT_IS_PTHREAD = ENVIRONMENT_IS_WORKER && worker_threads["workerData"] == "em-pthread";
+}
+
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
 var arguments_ = [];
@@ -53,7 +62,14 @@ var quit_ = (status, toThrow) => {
   throw toThrow;
 };
 
-var _scriptName = import.meta.url;
+var _scriptName;
+
+if (typeof __filename != "undefined") {
+  // Node
+  _scriptName = __filename;
+} else if (ENVIRONMENT_IS_WORKER) {
+  _scriptName = self.location.href;
+}
 
 // `/` should be present at the end if `scriptDirectory` is not empty
 var scriptDirectory = "";
@@ -68,14 +84,43 @@ function locateFile(path) {
 // Hooks that are implemented differently in different runtime environments.
 var readAsync, readBinary;
 
-// Note that this includes Node.js workers when relevant (pthreads is enabled).
+if (ENVIRONMENT_IS_NODE) {
+  // These modules will usually be used on Node.js. Load them eagerly to avoid
+  // the complexity of lazy-loading.
+  var fs = require("fs");
+  scriptDirectory = __dirname + "/";
+  // include: node_shell_read.js
+  readBinary = filename => {
+    // We need to re-wrap `file://` strings to URLs.
+    filename = isFileURI(filename) ? new URL(filename) : filename;
+    var ret = fs.readFileSync(filename);
+    return ret;
+  };
+  readAsync = async (filename, binary = true) => {
+    // See the comment in the `readBinary` function.
+    filename = isFileURI(filename) ? new URL(filename) : filename;
+    var ret = fs.readFileSync(filename, binary ? undefined : "utf8");
+    return ret;
+  };
+  // end include: node_shell_read.js
+  if (process.argv.length > 1) {
+    thisProgram = process.argv[1].replace(/\\/g, "/");
+  }
+  arguments_ = process.argv.slice(2);
+  quit_ = (status, toThrow) => {
+    process.exitCode = status;
+    throw toThrow;
+  };
+} else // Note that this includes Node.js workers when relevant (pthreads is enabled).
 // Node.js workers are detected as a combination of ENVIRONMENT_IS_WORKER and
 // ENVIRONMENT_IS_NODE.
 if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
   try {
     scriptDirectory = new URL(".", _scriptName).href;
   } catch {}
-  {
+  // Differentiate the Web Worker from the Node Worker case, as reading must
+  // be done differently.
+  if (!ENVIRONMENT_IS_NODE) {
     // include: web_or_worker_shell_read.js
     if (ENVIRONMENT_IS_WORKER) {
       readBinary = url => {
@@ -98,9 +143,26 @@ if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
   }
 } else {}
 
-var out = console.log.bind(console);
+// Set up the out() and err() hooks, which are how we can print to stdout or
+// stderr, respectively.
+// Normally just binding console.log/console.error here works fine, but
+// under node (with workers) we see missing/out-of-order messages so route
+// directly to stdout and stderr.
+// See https://github.com/emscripten-core/emscripten/issues/14804
+var defaultPrint = console.log.bind(console);
 
-var err = console.error.bind(console);
+var defaultPrintErr = console.error.bind(console);
+
+if (ENVIRONMENT_IS_NODE) {
+  var utils = require("util");
+  var stringify = a => typeof a == "object" ? utils.inspect(a) : a;
+  defaultPrint = (...args) => fs.writeSync(1, args.map(stringify).join(" ") + "\n");
+  defaultPrintErr = (...args) => fs.writeSync(2, args.map(stringify).join(" ") + "\n");
+}
+
+var out = defaultPrint;
+
+var err = defaultPrintErr;
 
 // end include: shell.js
 // include: preamble.js
@@ -155,6 +217,7 @@ var EXITSTATUS;
 // end include: runtime_exceptions.js
 // include: runtime_debug.js
 // end include: runtime_debug.js
+// include: growableHeap.js
 // Support for growable heap + pthreads, where the buffer may change, so JS views
 // must be updated.
 function growMemViews() {
@@ -164,9 +227,22 @@ function growMemViews() {
   }
 }
 
+// end include: growableHeap.js
 var readyPromiseResolve, readyPromiseReject;
 
 var wasmModuleReceived;
+
+if (ENVIRONMENT_IS_NODE && (ENVIRONMENT_IS_PTHREAD)) {
+  // Create as web-worker-like an environment as we can.
+  var parentPort = worker_threads["parentPort"];
+  parentPort.on("message", msg => global.onmessage?.({
+    data: msg
+  }));
+  Object.assign(globalThis, {
+    self: global,
+    postMessage: msg => parentPort["postMessage"](msg)
+  });
+}
 
 // include: runtime_pthread.js
 // Pthread Web Worker handling code.
@@ -283,6 +359,8 @@ var /** not-@type {!BigInt64Array} */ HEAP64, /* BigUint64Array type is not corr
 
 var runtimeInitialized = false;
 
+var runtimeExited = false;
+
 function updateMemoryViews() {
   var b = wasmMemory.buffer;
   HEAP8 = new Int8Array(b);
@@ -351,6 +429,21 @@ function initRuntime() {
 }
 
 function preMain() {}
+
+function exitRuntime() {
+  if ((ENVIRONMENT_IS_PTHREAD)) {
+    return;
+  }
+  // PThreads reuse the runtime from the main thread.
+  ___funcs_on_exit();
+  // Native atexit() functions
+  // Begin ATEXITS hooks
+  FS.quit();
+  TTY.shutdown();
+  // End ATEXITS hooks
+  PThread.terminateAllThreads();
+  runtimeExited = true;
+}
 
 function postRun() {
   if ((ENVIRONMENT_IS_PTHREAD)) {
@@ -427,11 +520,7 @@ function removeRunDependency(id) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-  if (Module["locateFile"]) {
-    return locateFile("lastal.wasm");
-  }
-  // Use bundler-friendly `new URL(..., import.meta.url)` pattern; works in browsers too.
-  return new URL("lastal.wasm", import.meta.url).href;
+  return locateFile("lastdb.wasm");
 }
 
 function getBinarySync(file) {
@@ -469,7 +558,7 @@ async function instantiateArrayBuffer(binaryFile, imports) {
 }
 
 async function instantiateAsync(binary, binaryFile, imports) {
-  if (!binary) {
+  if (!binary && typeof WebAssembly.instantiateStreaming == "function" && !ENVIRONMENT_IS_NODE) {
     try {
       var response = fetch(binaryFile, {
         credentials: "same-origin"
@@ -601,6 +690,13 @@ var spawnThread = threadParams => {
     arg: threadParams.arg,
     pthread_ptr: threadParams.pthread_ptr
   };
+  if (ENVIRONMENT_IS_NODE) {
+    // Mark worker as weakly referenced once we start executing a pthread,
+    // so that its existence does not prevent Node.js from exiting.  This
+    // has no effect if the worker is already weakly referenced (e.g. if
+    // this worker was previously idle/unused).
+    worker.unref();
+  }
   // Ask the worker to start executing its pthread entry point function.
   worker.postMessage(msg, threadParams.transferList);
   return 0;
@@ -680,6 +776,9 @@ function exitOnMainThread(returnCode) {
     // because it runs a main loop, but that doesn't affect the main thread.
     exitOnMainThread(status);
     throw "unwind";
+  }
+  if (!keepRuntimeAlive()) {
+    exitRuntime();
   }
   _proc_exit(status);
 };
@@ -767,10 +866,7 @@ var PThread = {
       } else if (cmd === "spawnThread") {
         spawnThread(d);
       } else if (cmd === "cleanupThread") {
-        // cleanupThread needs to be run via callUserCallback since it calls
-        // back into user code to free thread data. Without this it's possible
-        // the unwind or ExitStatus exception could escape here.
-        callUserCallback(() => cleanupThread(d.thread));
+        cleanupThread(d.thread);
       } else if (cmd === "loaded") {
         worker.loaded = true;
         onFinishedLoading(worker);
@@ -792,6 +888,12 @@ var PThread = {
       err(`${message} ${e.filename}:${e.lineno}: ${e.message}`);
       throw e;
     };
+    if (ENVIRONMENT_IS_NODE) {
+      worker.on("message", data => worker.onmessage({
+        data
+      }));
+      worker.on("error", e => worker.onerror(e));
+    }
     // When running on a pthread, none of the incoming parameters on the module
     // object are present. Proxy known handlers back to the main thread if specified.
     var handlers = [];
@@ -814,25 +916,19 @@ var PThread = {
   },
   allocateUnusedWorker() {
     var worker;
-    // If we're using module output, use bundler-friendly pattern.
+    var pthreadMainJs = _scriptName;
+    // We can't use makeModuleReceiveWithVar here since we want to also
+    // call URL.createObjectURL on the mainScriptUrlOrBlob.
     if (Module["mainScriptUrlOrBlob"]) {
-      var pthreadMainJs = Module["mainScriptUrlOrBlob"];
+      pthreadMainJs = Module["mainScriptUrlOrBlob"];
       if (typeof pthreadMainJs != "string") {
         pthreadMainJs = URL.createObjectURL(pthreadMainJs);
       }
-      worker = new Worker(pthreadMainJs, {
-        "type": "module",
-        // This is the way that we signal to the Web Worker that it is hosting
-        // a pthread.
-        "name": "em-pthread"
-      });
-    } else // We need to generate the URL with import.meta.url as the base URL of the JS file
-    // instead of just using new URL(import.meta.url) because bundler's only recognize
-    // the first case in their bundling step. The latter ends up producing an invalid
-    // URL to import from the server (e.g., for webpack the file:// path).
-    // See https://github.com/webpack/webpack/issues/12638
-    worker = new Worker(new URL("lastal", import.meta.url), {
-      "type": "module",
+    }
+    worker = new Worker(pthreadMainJs, {
+      // This is the way that we signal to the node worker that it is hosting
+      // a pthread.
+      "workerData": "em-pthread",
       // This is the way that we signal to the Web Worker that it is hosting
       // a pthread.
       "name": "em-pthread"
@@ -943,7 +1039,7 @@ var invokeEntryPoint = (ptr, arg) => {
   finish(result);
 };
 
-var noExitRuntime = true;
+var noExitRuntime = false;
 
 var registerTLSInit = tlsInitFunc => PThread.tlsInitFunctions.push(tlsInitFunc);
 
@@ -1020,6 +1116,8 @@ var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
     return UTF8Decoder.decode(heapOrArray.buffer instanceof ArrayBuffer ? heapOrArray.subarray(idx, endPtr) : heapOrArray.slice(idx, endPtr));
   }
   var str = "";
+  // If building with TextDecoder, we have already computed the string length
+  // above, so test loop end condition against that
   while (idx < endPtr) {
     // For UTF8 byte structure, see:
     // http://en.wikipedia.org/wiki/UTF-8#Description
@@ -1270,122 +1368,39 @@ var ___resumeException = ptr => {
 
 var syscallGetVarargP = syscallGetVarargI;
 
+var nodePath = require("path");
+
 var PATH = {
-  isAbs: path => path.charAt(0) === "/",
-  splitPath: filename => {
-    var splitPathRe = /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-    return splitPathRe.exec(filename).slice(1);
-  },
-  normalizeArray: (parts, allowAboveRoot) => {
-    // if the path tries to go above the root, `up` ends up > 0
-    var up = 0;
-    for (var i = parts.length - 1; i >= 0; i--) {
-      var last = parts[i];
-      if (last === ".") {
-        parts.splice(i, 1);
-      } else if (last === "..") {
-        parts.splice(i, 1);
-        up++;
-      } else if (up) {
-        parts.splice(i, 1);
-        up--;
-      }
-    }
-    // if the path is allowed to go above the root, restore leading ..s
-    if (allowAboveRoot) {
-      for (;up; up--) {
-        parts.unshift("..");
-      }
-    }
-    return parts;
-  },
-  normalize: path => {
-    var isAbsolute = PATH.isAbs(path), trailingSlash = path.slice(-1) === "/";
-    // Normalize the path
-    path = PATH.normalizeArray(path.split("/").filter(p => !!p), !isAbsolute).join("/");
-    if (!path && !isAbsolute) {
-      path = ".";
-    }
-    if (path && trailingSlash) {
-      path += "/";
-    }
-    return (isAbsolute ? "/" : "") + path;
-  },
-  dirname: path => {
-    var result = PATH.splitPath(path), root = result[0], dir = result[1];
-    if (!root && !dir) {
-      // No dirname whatsoever
-      return ".";
-    }
-    if (dir) {
-      // It has a dirname, strip trailing slash
-      dir = dir.slice(0, -1);
-    }
-    return root + dir;
-  },
-  basename: path => path && path.match(/([^\/]+|\/)\/*$/)[1],
-  join: (...paths) => PATH.normalize(paths.join("/")),
-  join2: (l, r) => PATH.normalize(l + "/" + r)
+  isAbs: nodePath.isAbsolute,
+  normalize: nodePath.normalize,
+  dirname: nodePath.dirname,
+  basename: nodePath.basename,
+  join: nodePath.join,
+  join2: nodePath.join
 };
 
-var initRandomFill = () => view => view.set(crypto.getRandomValues(new Uint8Array(view.byteLength)));
+var initRandomFill = () => {
+  // This block is not needed on v19+ since crypto.getRandomValues is builtin
+  if (ENVIRONMENT_IS_NODE) {
+    var nodeCrypto = require("crypto");
+    return view => nodeCrypto.randomFillSync(view);
+  }
+  // like with most Web APIs, we can't use Web Crypto API directly on shared memory,
+  // so we need to create an intermediate buffer and copy it to the destination
+  return view => view.set(crypto.getRandomValues(new Uint8Array(view.byteLength)));
+};
 
 var randomFill = view => {
   // Lazily init on the first invocation.
   (randomFill = initRandomFill())(view);
 };
 
-var PATH_FS = {
-  resolve: (...args) => {
-    var resolvedPath = "", resolvedAbsolute = false;
-    for (var i = args.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-      var path = (i >= 0) ? args[i] : FS.cwd();
-      // Skip empty and invalid entries
-      if (typeof path != "string") {
-        throw new TypeError("Arguments to path.resolve must be strings");
-      } else if (!path) {
-        return "";
-      }
-      resolvedPath = path + "/" + resolvedPath;
-      resolvedAbsolute = PATH.isAbs(path);
-    }
-    // At this point the path should be resolved to a full absolute path, but
-    // handle relative paths to be safe (might happen when process.cwd() fails)
-    resolvedPath = PATH.normalizeArray(resolvedPath.split("/").filter(p => !!p), !resolvedAbsolute).join("/");
-    return ((resolvedAbsolute ? "/" : "") + resolvedPath) || ".";
+/** @type{{resolve: function(...*)}} */ var PATH_FS = {
+  resolve: (...paths) => {
+    paths.unshift(FS.cwd());
+    return nodePath.posix.resolve(...paths);
   },
-  relative: (from, to) => {
-    from = PATH_FS.resolve(from).slice(1);
-    to = PATH_FS.resolve(to).slice(1);
-    function trim(arr) {
-      var start = 0;
-      for (;start < arr.length; start++) {
-        if (arr[start] !== "") break;
-      }
-      var end = arr.length - 1;
-      for (;end >= 0; end--) {
-        if (arr[end] !== "") break;
-      }
-      if (start > end) return [];
-      return arr.slice(start, end - start + 1);
-    }
-    var fromParts = trim(from.split("/"));
-    var toParts = trim(to.split("/"));
-    var length = Math.min(fromParts.length, toParts.length);
-    var samePartsLength = length;
-    for (var i = 0; i < length; i++) {
-      if (fromParts[i] !== toParts[i]) {
-        samePartsLength = i;
-        break;
-      }
-    }
-    var outputParts = [];
-    for (var i = samePartsLength; i < fromParts.length; i++) {
-      outputParts.push("..");
-    }
-    outputParts = outputParts.concat(toParts.slice(samePartsLength));
-    return outputParts.join("/");
-  }
+  relative: (from, to) => nodePath.posix.relative(from || FS.cwd(), to || FS.cwd())
 };
 
 var FS_stdin_getChar_buffer = [];
@@ -1464,12 +1479,28 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 var FS_stdin_getChar = () => {
   if (!FS_stdin_getChar_buffer.length) {
     var result = null;
-    if (typeof window != "undefined" && typeof window.prompt == "function") {
-      // Browser.
-      result = window.prompt("Input: ");
-      // returns null on cancel
-      if (result !== null) {
-        result += "\n";
+    if (ENVIRONMENT_IS_NODE) {
+      // we will read data by chunks of BUFSIZE
+      var BUFSIZE = 256;
+      var buf = Buffer.alloc(BUFSIZE);
+      var bytesRead = 0;
+      // For some reason we must suppress a closure warning here, even though
+      // fd definitely exists on process.stdin, and is even the proper way to
+      // get the fd of stdin,
+      // https://github.com/nodejs/help/issues/2136#issuecomment-523649904
+      // This started to happen after moving this logic out of library_tty.js,
+      // so it is related to the surrounding code in some unclear manner.
+      /** @suppress {missingProperties} */ var fd = process.stdin.fd;
+      try {
+        bytesRead = fs.readSync(fd, buf, 0, BUFSIZE);
+      } catch (e) {
+        // Cross-platform differences: on Windows, reading EOF throws an
+        // exception, but on other OSes, reading EOF returns 0. Uniformize
+        // behavior by treating the EOF exception to return 0.
+        if (e.toString().includes("EOF")) bytesRead = 0; else throw e;
+      }
+      if (bytesRead > 0) {
+        result = buf.slice(0, bytesRead).toString("utf-8");
       }
     } else {}
     if (!result) {
@@ -1940,6 +1971,62 @@ var MEMFS = {
   }
 };
 
+var asyncLoad = async url => {
+  var arrayBuffer = await readAsync(url);
+  return new Uint8Array(arrayBuffer);
+};
+
+var FS_createDataFile = (...args) => FS.createDataFile(...args);
+
+var getUniqueRunDependency = id => id;
+
+var preloadPlugins = [];
+
+var FS_handledByPreloadPlugin = (byteArray, fullname, finish, onerror) => {
+  // Ensure plugins are ready.
+  if (typeof Browser != "undefined") Browser.init();
+  var handled = false;
+  preloadPlugins.forEach(plugin => {
+    if (handled) return;
+    if (plugin["canHandle"](fullname)) {
+      plugin["handle"](byteArray, fullname, finish, onerror);
+      handled = true;
+    }
+  });
+  return handled;
+};
+
+var FS_createPreloadedFile = (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
+  // TODO we should allow people to just pass in a complete filename instead
+  // of parent and name being that we just join them anyways
+  var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
+  var dep = getUniqueRunDependency(`cp ${fullname}`);
+  // might have several active requests for the same fullname
+  function processData(byteArray) {
+    function finish(byteArray) {
+      preFinish?.();
+      if (!dontCreateFile) {
+        FS_createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
+      }
+      onload?.();
+      removeRunDependency(dep);
+    }
+    if (FS_handledByPreloadPlugin(byteArray, fullname, finish, () => {
+      onerror?.();
+      removeRunDependency(dep);
+    })) {
+      return;
+    }
+    finish(byteArray);
+  }
+  addRunDependency(dep);
+  if (typeof url == "string") {
+    asyncLoad(url).then(processData, onerror);
+  } else {
+    processData(url);
+  }
+};
+
 var FS_modeStringToFlags = str => {
   var flagModes = {
     "r": 0,
@@ -1963,54 +2050,681 @@ var FS_getMode = (canRead, canWrite) => {
   return mode;
 };
 
-var asyncLoad = async url => {
-  var arrayBuffer = await readAsync(url);
-  return new Uint8Array(arrayBuffer);
+var ERRNO_CODES = {
+  "EPERM": 63,
+  "ENOENT": 44,
+  "ESRCH": 71,
+  "EINTR": 27,
+  "EIO": 29,
+  "ENXIO": 60,
+  "E2BIG": 1,
+  "ENOEXEC": 45,
+  "EBADF": 8,
+  "ECHILD": 12,
+  "EAGAIN": 6,
+  "EWOULDBLOCK": 6,
+  "ENOMEM": 48,
+  "EACCES": 2,
+  "EFAULT": 21,
+  "ENOTBLK": 105,
+  "EBUSY": 10,
+  "EEXIST": 20,
+  "EXDEV": 75,
+  "ENODEV": 43,
+  "ENOTDIR": 54,
+  "EISDIR": 31,
+  "EINVAL": 28,
+  "ENFILE": 41,
+  "EMFILE": 33,
+  "ENOTTY": 59,
+  "ETXTBSY": 74,
+  "EFBIG": 22,
+  "ENOSPC": 51,
+  "ESPIPE": 70,
+  "EROFS": 69,
+  "EMLINK": 34,
+  "EPIPE": 64,
+  "EDOM": 18,
+  "ERANGE": 68,
+  "ENOMSG": 49,
+  "EIDRM": 24,
+  "ECHRNG": 106,
+  "EL2NSYNC": 156,
+  "EL3HLT": 107,
+  "EL3RST": 108,
+  "ELNRNG": 109,
+  "EUNATCH": 110,
+  "ENOCSI": 111,
+  "EL2HLT": 112,
+  "EDEADLK": 16,
+  "ENOLCK": 46,
+  "EBADE": 113,
+  "EBADR": 114,
+  "EXFULL": 115,
+  "ENOANO": 104,
+  "EBADRQC": 103,
+  "EBADSLT": 102,
+  "EDEADLOCK": 16,
+  "EBFONT": 101,
+  "ENOSTR": 100,
+  "ENODATA": 116,
+  "ETIME": 117,
+  "ENOSR": 118,
+  "ENONET": 119,
+  "ENOPKG": 120,
+  "EREMOTE": 121,
+  "ENOLINK": 47,
+  "EADV": 122,
+  "ESRMNT": 123,
+  "ECOMM": 124,
+  "EPROTO": 65,
+  "EMULTIHOP": 36,
+  "EDOTDOT": 125,
+  "EBADMSG": 9,
+  "ENOTUNIQ": 126,
+  "EBADFD": 127,
+  "EREMCHG": 128,
+  "ELIBACC": 129,
+  "ELIBBAD": 130,
+  "ELIBSCN": 131,
+  "ELIBMAX": 132,
+  "ELIBEXEC": 133,
+  "ENOSYS": 52,
+  "ENOTEMPTY": 55,
+  "ENAMETOOLONG": 37,
+  "ELOOP": 32,
+  "EOPNOTSUPP": 138,
+  "EPFNOSUPPORT": 139,
+  "ECONNRESET": 15,
+  "ENOBUFS": 42,
+  "EAFNOSUPPORT": 5,
+  "EPROTOTYPE": 67,
+  "ENOTSOCK": 57,
+  "ENOPROTOOPT": 50,
+  "ESHUTDOWN": 140,
+  "ECONNREFUSED": 14,
+  "EADDRINUSE": 3,
+  "ECONNABORTED": 13,
+  "ENETUNREACH": 40,
+  "ENETDOWN": 38,
+  "ETIMEDOUT": 73,
+  "EHOSTDOWN": 142,
+  "EHOSTUNREACH": 23,
+  "EINPROGRESS": 26,
+  "EALREADY": 7,
+  "EDESTADDRREQ": 17,
+  "EMSGSIZE": 35,
+  "EPROTONOSUPPORT": 66,
+  "ESOCKTNOSUPPORT": 137,
+  "EADDRNOTAVAIL": 4,
+  "ENETRESET": 39,
+  "EISCONN": 30,
+  "ENOTCONN": 53,
+  "ETOOMANYREFS": 141,
+  "EUSERS": 136,
+  "EDQUOT": 19,
+  "ESTALE": 72,
+  "ENOTSUP": 138,
+  "ENOMEDIUM": 148,
+  "EILSEQ": 25,
+  "EOVERFLOW": 61,
+  "ECANCELED": 11,
+  "ENOTRECOVERABLE": 56,
+  "EOWNERDEAD": 62,
+  "ESTRPIPE": 135
 };
 
-var FS_createDataFile = (...args) => FS.createDataFile(...args);
-
-var getUniqueRunDependency = id => id;
-
-var preloadPlugins = [];
-
-var FS_handledByPreloadPlugin = async (byteArray, fullname) => {
-  // Ensure plugins are ready.
-  if (typeof Browser != "undefined") Browser.init();
-  for (var plugin of preloadPlugins) {
-    if (plugin["canHandle"](fullname)) {
-      return plugin["handle"](byteArray, fullname);
+var NODEFS = {
+  isWindows: false,
+  staticInit() {
+    NODEFS.isWindows = !!process.platform.match(/^win/);
+    var flags = process.binding("constants")["fs"];
+    NODEFS.flagsForNodeMap = {
+      1024: flags["O_APPEND"],
+      64: flags["O_CREAT"],
+      128: flags["O_EXCL"],
+      256: flags["O_NOCTTY"],
+      0: flags["O_RDONLY"],
+      2: flags["O_RDWR"],
+      4096: flags["O_SYNC"],
+      512: flags["O_TRUNC"],
+      1: flags["O_WRONLY"],
+      131072: flags["O_NOFOLLOW"]
+    };
+  },
+  convertNodeCode(e) {
+    var code = e.code;
+    return ERRNO_CODES[code];
+  },
+  tryFSOperation(f) {
+    try {
+      return f();
+    } catch (e) {
+      if (!e.code) throw e;
+      // node under windows can return code 'UNKNOWN' here:
+      // https://github.com/emscripten-core/emscripten/issues/15468
+      if (e.code === "UNKNOWN") throw new FS.ErrnoError(28);
+      throw new FS.ErrnoError(NODEFS.convertNodeCode(e));
+    }
+  },
+  mount(mount) {
+    return NODEFS.createNode(null, "/", NODEFS.getMode(mount.opts.root), 0);
+  },
+  createNode(parent, name, mode, dev) {
+    if (!FS.isDir(mode) && !FS.isFile(mode) && !FS.isLink(mode)) {
+      throw new FS.ErrnoError(28);
+    }
+    var node = FS.createNode(parent, name, mode);
+    node.node_ops = NODEFS.node_ops;
+    node.stream_ops = NODEFS.stream_ops;
+    return node;
+  },
+  getMode(path) {
+    return NODEFS.tryFSOperation(() => {
+      var mode = fs.lstatSync(path).mode;
+      if (NODEFS.isWindows) {
+        // Windows does not report the 'x' permission bit, so propagate read
+        // bits to execute bits.
+        mode |= (mode & 292) >> 2;
+      }
+      return mode;
+    });
+  },
+  realPath(node) {
+    var parts = [];
+    while (node.parent !== node) {
+      parts.push(node.name);
+      node = node.parent;
+    }
+    parts.push(node.mount.opts.root);
+    parts.reverse();
+    return PATH.join(...parts);
+  },
+  flagsForNode(flags) {
+    flags &= ~2097152;
+    // Ignore this flag from musl, otherwise node.js fails to open the file.
+    flags &= ~2048;
+    // Ignore this flag from musl, otherwise node.js fails to open the file.
+    flags &= ~32768;
+    // Ignore this flag from musl, otherwise node.js fails to open the file.
+    flags &= ~524288;
+    // Some applications may pass it; it makes no sense for a single process.
+    flags &= ~65536;
+    // Node.js doesn't need this passed in, it errors.
+    var newFlags = 0;
+    for (var k in NODEFS.flagsForNodeMap) {
+      if (flags & k) {
+        newFlags |= NODEFS.flagsForNodeMap[k];
+        flags ^= k;
+      }
+    }
+    if (flags) {
+      throw new FS.ErrnoError(28);
+    }
+    return newFlags;
+  },
+  getattr(func, node) {
+    var stat = NODEFS.tryFSOperation(func);
+    if (NODEFS.isWindows) {
+      // node.js v0.10.20 doesn't report blksize and blocks on Windows. Fake
+      // them with default blksize of 4096.
+      // See http://support.microsoft.com/kb/140365
+      if (!stat.blksize) {
+        stat.blksize = 4096;
+      }
+      if (!stat.blocks) {
+        stat.blocks = (stat.size + stat.blksize - 1) / stat.blksize | 0;
+      }
+      // Windows does not report the 'x' permission bit, so propagate read
+      // bits to execute bits.
+      stat.mode |= (stat.mode & 292) >> 2;
+    }
+    return {
+      dev: stat.dev,
+      ino: node.id,
+      mode: stat.mode,
+      nlink: stat.nlink,
+      uid: stat.uid,
+      gid: stat.gid,
+      rdev: stat.rdev,
+      size: stat.size,
+      atime: stat.atime,
+      mtime: stat.mtime,
+      ctime: stat.ctime,
+      blksize: stat.blksize,
+      blocks: stat.blocks
+    };
+  },
+  setattr(arg, node, attr, chmod, utimes, truncate, stat) {
+    NODEFS.tryFSOperation(() => {
+      if (attr.mode !== undefined) {
+        var mode = attr.mode;
+        if (NODEFS.isWindows) {
+          // Windows only supports S_IREAD / S_IWRITE (S_IRUSR / S_IWUSR)
+          // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/chmod-wchmod
+          mode &= 384;
+        }
+        chmod(arg, mode);
+        // update the common node structure mode as well
+        node.mode = attr.mode;
+      }
+      if (typeof (attr.atime ?? attr.mtime) === "number") {
+        // Unfortunately, we have to stat the current value if we don't want
+        // to change it. On top of that, since the times don't round trip
+        // this will only keep the value nearly unchanged not exactly
+        // unchanged. See:
+        // https://github.com/nodejs/node/issues/56492
+        var atime = new Date(attr.atime ?? stat(arg).atime);
+        var mtime = new Date(attr.mtime ?? stat(arg).mtime);
+        utimes(arg, atime, mtime);
+      }
+      if (attr.size !== undefined) {
+        truncate(arg, attr.size);
+      }
+    });
+  },
+  node_ops: {
+    getattr(node) {
+      var path = NODEFS.realPath(node);
+      return NODEFS.getattr(() => fs.lstatSync(path), node);
+    },
+    setattr(node, attr) {
+      var path = NODEFS.realPath(node);
+      if (attr.mode != null && attr.dontFollow) {
+        throw new FS.ErrnoError(52);
+      }
+      NODEFS.setattr(path, node, attr, fs.chmodSync, fs.utimesSync, fs.truncateSync, fs.lstatSync);
+    },
+    lookup(parent, name) {
+      var path = PATH.join2(NODEFS.realPath(parent), name);
+      var mode = NODEFS.getMode(path);
+      return NODEFS.createNode(parent, name, mode);
+    },
+    mknod(parent, name, mode, dev) {
+      var node = NODEFS.createNode(parent, name, mode, dev);
+      // create the backing node for this in the fs root as well
+      var path = NODEFS.realPath(node);
+      NODEFS.tryFSOperation(() => {
+        if (FS.isDir(node.mode)) {
+          fs.mkdirSync(path, node.mode);
+        } else {
+          fs.writeFileSync(path, "", {
+            mode: node.mode
+          });
+        }
+      });
+      return node;
+    },
+    rename(oldNode, newDir, newName) {
+      var oldPath = NODEFS.realPath(oldNode);
+      var newPath = PATH.join2(NODEFS.realPath(newDir), newName);
+      try {
+        FS.unlink(newPath);
+      } catch (e) {}
+      NODEFS.tryFSOperation(() => fs.renameSync(oldPath, newPath));
+      oldNode.name = newName;
+    },
+    unlink(parent, name) {
+      var path = PATH.join2(NODEFS.realPath(parent), name);
+      NODEFS.tryFSOperation(() => fs.unlinkSync(path));
+    },
+    rmdir(parent, name) {
+      var path = PATH.join2(NODEFS.realPath(parent), name);
+      NODEFS.tryFSOperation(() => fs.rmdirSync(path));
+    },
+    readdir(node) {
+      var path = NODEFS.realPath(node);
+      return NODEFS.tryFSOperation(() => fs.readdirSync(path));
+    },
+    symlink(parent, newName, oldPath) {
+      var newPath = PATH.join2(NODEFS.realPath(parent), newName);
+      NODEFS.tryFSOperation(() => fs.symlinkSync(oldPath, newPath));
+    },
+    readlink(node) {
+      var path = NODEFS.realPath(node);
+      return NODEFS.tryFSOperation(() => fs.readlinkSync(path));
+    },
+    statfs(path) {
+      var stats = NODEFS.tryFSOperation(() => fs.statfsSync(path));
+      // Node.js doesn't provide frsize (fragment size). Set it to bsize (block size)
+      // as they're often the same in many file systems. May not be accurate for all.
+      stats.frsize = stats.bsize;
+      return stats;
+    }
+  },
+  stream_ops: {
+    getattr(stream) {
+      return NODEFS.getattr(() => fs.fstatSync(stream.nfd), stream.node);
+    },
+    setattr(stream, attr) {
+      NODEFS.setattr(stream.nfd, stream.node, attr, fs.fchmodSync, fs.futimesSync, fs.ftruncateSync, fs.fstatSync);
+    },
+    open(stream) {
+      var path = NODEFS.realPath(stream.node);
+      NODEFS.tryFSOperation(() => {
+        stream.shared.refcount = 1;
+        stream.nfd = fs.openSync(path, NODEFS.flagsForNode(stream.flags));
+      });
+    },
+    close(stream) {
+      NODEFS.tryFSOperation(() => {
+        if (stream.nfd && --stream.shared.refcount === 0) {
+          fs.closeSync(stream.nfd);
+        }
+      });
+    },
+    dup(stream) {
+      stream.shared.refcount++;
+    },
+    read(stream, buffer, offset, length, position) {
+      return NODEFS.tryFSOperation(() => fs.readSync(stream.nfd, new Int8Array(buffer.buffer, offset, length), 0, length, position));
+    },
+    write(stream, buffer, offset, length, position) {
+      return NODEFS.tryFSOperation(() => fs.writeSync(stream.nfd, new Int8Array(buffer.buffer, offset, length), 0, length, position));
+    },
+    llseek(stream, offset, whence) {
+      var position = offset;
+      if (whence === 1) {
+        position += stream.position;
+      } else if (whence === 2) {
+        if (FS.isFile(stream.node.mode)) {
+          NODEFS.tryFSOperation(() => {
+            var stat = fs.fstatSync(stream.nfd);
+            position += stat.size;
+          });
+        }
+      }
+      if (position < 0) {
+        throw new FS.ErrnoError(28);
+      }
+      return position;
+    },
+    mmap(stream, length, position, prot, flags) {
+      if (!FS.isFile(stream.node.mode)) {
+        throw new FS.ErrnoError(43);
+      }
+      var ptr = mmapAlloc(length);
+      NODEFS.stream_ops.read(stream, (growMemViews(), HEAP8), ptr, length, position);
+      return {
+        ptr,
+        allocated: true
+      };
+    },
+    msync(stream, buffer, offset, length, mmapFlags) {
+      NODEFS.stream_ops.write(stream, buffer, 0, length, offset, false);
+      // should we check if bytesWritten and length are the same?
+      return 0;
     }
   }
-  // In no plugin handled this file then return the original/unmodified
-  // byteArray.
-  return byteArray;
 };
 
-var FS_preloadFile = async (parent, name, url, canRead, canWrite, dontCreateFile, canOwn, preFinish) => {
-  // TODO we should allow people to just pass in a complete filename instead
-  // of parent and name being that we just join them anyways
-  var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
-  var dep = getUniqueRunDependency(`cp ${fullname}`);
-  // might have several active requests for the same fullname
-  addRunDependency(dep);
-  try {
-    var byteArray = url;
-    if (typeof url == "string") {
-      byteArray = await asyncLoad(url);
+var NODERAWFS = {
+  lookup(parent, name) {
+    return FS.lookupPath(`${parent.path}/${name}`).node;
+  },
+  lookupPath(path, opts = {}) {
+    if (opts.parent) {
+      path = PATH.dirname(path);
     }
-    byteArray = await FS_handledByPreloadPlugin(byteArray, fullname);
-    preFinish?.();
-    if (!dontCreateFile) {
-      FS_createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
+    var st = fs.lstatSync(path);
+    var mode = NODEFS.getMode(path);
+    return {
+      path,
+      node: {
+        id: st.ino,
+        mode,
+        node_ops: NODERAWFS,
+        path
+      }
+    };
+  },
+  createStandardStreams() {
+    // FIXME: tty is set to true to appease isatty(), the underlying ioctl syscalls still needs to be implemented, see issue #22264.
+    FS.createStream({
+      nfd: 0,
+      position: 0,
+      path: "/dev/stdin",
+      flags: 0,
+      tty: true,
+      seekable: false
+    }, 0);
+    var paths = [ , "/dev/stdout", "/dev/stderr" ];
+    for (var i = 1; i < 3; i++) {
+      FS.createStream({
+        nfd: i,
+        position: 0,
+        path: paths[i],
+        flags: 577,
+        tty: true,
+        seekable: false
+      }, i);
     }
-  } finally {
-    removeRunDependency(dep);
+  },
+  cwd() {
+    return process.cwd();
+  },
+  chdir(...args) {
+    process.chdir(...args);
+  },
+  mknod(path, mode) {
+    if (FS.isDir(path)) {
+      fs.mkdirSync(path, mode);
+    } else {
+      fs.writeFileSync(path, "", {
+        mode
+      });
+    }
+  },
+  mkdir(...args) {
+    fs.mkdirSync(...args);
+  },
+  symlink(...args) {
+    fs.symlinkSync(...args);
+  },
+  rename(...args) {
+    fs.renameSync(...args);
+  },
+  rmdir(...args) {
+    fs.rmdirSync(...args);
+  },
+  readdir(...args) {
+    return [ ".", ".." ].concat(fs.readdirSync(...args));
+  },
+  unlink(...args) {
+    fs.unlinkSync(...args);
+  },
+  readlink(...args) {
+    return fs.readlinkSync(...args);
+  },
+  stat(path, dontFollow) {
+    var stat = dontFollow ? fs.lstatSync(path) : fs.statSync(path);
+    if (NODEFS.isWindows) {
+      // Windows does not report the 'x' permission bit, so propagate read
+      // bits to execute bits.
+      stat.mode |= (stat.mode & 292) >> 2;
+    }
+    return stat;
+  },
+  fstat(fd) {
+    var stream = FS.getStreamChecked(fd);
+    return fs.fstatSync(stream.nfd);
+  },
+  statfsStream(stream) {
+    return fs.statfsSync(stream.path);
+  },
+  statfsNode(node) {
+    return fs.statfsSync(node.path);
+  },
+  chmod(path, mode, dontFollow) {
+    mode &= 4095;
+    if (NODEFS.isWindows) {
+      // Windows only supports S_IREAD / S_IWRITE (S_IRUSR / S_IWUSR)
+      // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/chmod-wchmod
+      mode &= 384;
+    }
+    if (dontFollow && fs.lstatSync(path).isSymbolicLink()) {
+      // Node (and indeed linux) does not support chmod on symlinks
+      // https://nodejs.org/api/fs.html#fslchmodsyncpath-mode
+      throw new FS.ErrnoError(138);
+    }
+    fs.chmodSync(path, mode);
+  },
+  fchmod(fd, mode) {
+    var stream = FS.getStreamChecked(fd);
+    fs.fchmodSync(stream.nfd, mode);
+  },
+  chown(...args) {
+    fs.chownSync(...args);
+  },
+  fchown(fd, owner, group) {
+    var stream = FS.getStreamChecked(fd);
+    fs.fchownSync(stream.nfd, owner, group);
+  },
+  truncate(path, len) {
+    // See https://github.com/nodejs/node/issues/35632
+    if (len < 0) {
+      throw new FS.ErrnoError(28);
+    }
+    return fs.truncateSync(path, len);
+  },
+  ftruncate(fd, len) {
+    // See https://github.com/nodejs/node/issues/35632
+    if (len < 0) {
+      throw new FS.ErrnoError(28);
+    }
+    var stream = FS.getStreamChecked(fd);
+    fs.ftruncateSync(stream.nfd, len);
+  },
+  utime(path, atime, mtime) {
+    // null here for atime or mtime means UTIME_OMIT was passed.  Since node
+    // doesn't support this concept we need to first find the existing
+    // timestamps in order to preserve them.
+    if ((atime === null) || (mtime === null)) {
+      var st = fs.statSync(path);
+      atime ||= st.atimeMs;
+      mtime ||= st.mtimeMs;
+    }
+    fs.utimesSync(path, atime / 1e3, mtime / 1e3);
+  },
+  open(path, flags, mode) {
+    if (typeof flags == "string") {
+      flags = FS_modeStringToFlags(flags);
+    }
+    var pathTruncated = path.split("/").map(s => s.slice(0, 255)).join("/");
+    var nfd = fs.openSync(pathTruncated, NODEFS.flagsForNode(flags), mode);
+    var st = fs.fstatSync(nfd);
+    if (flags & 65536 && !st.isDirectory()) {
+      fs.closeSync(nfd);
+      throw new FS.ErrnoError(ERRNO_CODES.ENOTDIR);
+    }
+    var newMode = NODEFS.getMode(pathTruncated);
+    var node = {
+      id: st.ino,
+      mode: newMode,
+      node_ops: NODERAWFS,
+      path
+    };
+    return FS.createStream({
+      nfd,
+      position: 0,
+      path,
+      flags,
+      node,
+      seekable: true
+    });
+  },
+  createStream(stream, fd) {
+    // Call the original FS.createStream
+    var rtn = VFS.createStream(stream, fd);
+    if (typeof rtn.shared.refcnt == "undefined") {
+      rtn.shared.refcnt = 1;
+    } else {
+      rtn.shared.refcnt++;
+    }
+    return rtn;
+  },
+  close(stream) {
+    VFS.closeStream(stream.fd);
+    if (!stream.stream_ops && --stream.shared.refcnt <= 0) {
+      // This stream is created by our Node.js filesystem, close the
+      // native file descriptor when its reference count drops to 0.
+      fs.closeSync(stream.nfd);
+    }
+  },
+  llseek(stream, offset, whence) {
+    if (stream.stream_ops) {
+      // this stream is created by in-memory filesystem
+      return VFS.llseek(stream, offset, whence);
+    }
+    var position = offset;
+    if (whence === 1) {
+      position += stream.position;
+    } else if (whence === 2) {
+      position += fs.fstatSync(stream.nfd).size;
+    } else if (whence !== 0) {
+      throw new FS.ErrnoError(28);
+    }
+    if (position < 0) {
+      throw new FS.ErrnoError(28);
+    }
+    stream.position = position;
+    return position;
+  },
+  read(stream, buffer, offset, length, position) {
+    if (stream.stream_ops) {
+      // this stream is created by in-memory filesystem
+      return VFS.read(stream, buffer, offset, length, position);
+    }
+    var seeking = typeof position != "undefined";
+    if (!seeking && stream.seekable) position = stream.position;
+    var bytesRead = fs.readSync(stream.nfd, new Int8Array(buffer.buffer, offset, length), 0, length, position);
+    // update position marker when non-seeking
+    if (!seeking) stream.position += bytesRead;
+    return bytesRead;
+  },
+  write(stream, buffer, offset, length, position) {
+    if (stream.stream_ops) {
+      // this stream is created by in-memory filesystem
+      return VFS.write(stream, buffer, offset, length, position);
+    }
+    if (stream.flags & +"1024") {
+      // seek to the end before writing in append mode
+      FS.llseek(stream, 0, +"2");
+    }
+    var seeking = typeof position != "undefined";
+    if (!seeking && stream.seekable) position = stream.position;
+    var bytesWritten = fs.writeSync(stream.nfd, new Int8Array(buffer.buffer, offset, length), 0, length, position);
+    // update position marker when non-seeking
+    if (!seeking) stream.position += bytesWritten;
+    return bytesWritten;
+  },
+  mmap(stream, length, position, prot, flags) {
+    if (!length) {
+      throw new FS.ErrnoError(28);
+    }
+    if (stream.stream_ops) {
+      // this stream is created by in-memory filesystem
+      return VFS.mmap(stream, length, position, prot, flags);
+    }
+    var ptr = mmapAlloc(length);
+    FS.read(stream, (growMemViews(), HEAP8), ptr, length, position);
+    return {
+      ptr,
+      allocated: true
+    };
+  },
+  msync(stream, buffer, offset, length, mmapFlags) {
+    if (stream.stream_ops) {
+      // this stream is created by in-memory filesystem
+      return VFS.msync(stream, buffer, offset, length, mmapFlags);
+    }
+    FS.write(stream, buffer, 0, length, offset);
+    // should we check if bytesWritten and length are the same?
+    return 0;
+  },
+  ioctl() {
+    throw new FS.ErrnoError(59);
   }
-};
-
-var FS_createPreloadedFile = (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
-  FS_preloadFile(parent, name, url, canRead, canWrite, dontCreateFile, canOwn, preFinish).then(onload).catch(onerror);
 };
 
 var FS = {
@@ -3287,7 +4001,8 @@ var FS = {
     FS.createDefaultDevices();
     FS.createSpecialDirectories();
     FS.filesystems = {
-      "MEMFS": MEMFS
+      "MEMFS": MEMFS,
+      "NODEFS": NODEFS
     };
   },
   init(input, output, error) {
@@ -3301,6 +4016,7 @@ var FS = {
   quit() {
     FS.initialized = false;
     // force-flush all streams, so we get musl std streams printed out
+    _fflush(0);
     // close all of our streams
     for (var stream of FS.streams) {
       if (stream) {
@@ -3659,12 +4375,12 @@ var SYSCALLS = {
     return dir + "/" + path;
   },
   writeStat(buf, stat) {
-    (growMemViews(), HEAPU32)[((buf) >> 2)] = stat.dev;
-    (growMemViews(), HEAPU32)[(((buf) + (4)) >> 2)] = stat.mode;
+    (growMemViews(), HEAP32)[((buf) >> 2)] = stat.dev;
+    (growMemViews(), HEAP32)[(((buf) + (4)) >> 2)] = stat.mode;
     (growMemViews(), HEAPU32)[(((buf) + (8)) >> 2)] = stat.nlink;
-    (growMemViews(), HEAPU32)[(((buf) + (12)) >> 2)] = stat.uid;
-    (growMemViews(), HEAPU32)[(((buf) + (16)) >> 2)] = stat.gid;
-    (growMemViews(), HEAPU32)[(((buf) + (20)) >> 2)] = stat.rdev;
+    (growMemViews(), HEAP32)[(((buf) + (12)) >> 2)] = stat.uid;
+    (growMemViews(), HEAP32)[(((buf) + (16)) >> 2)] = stat.gid;
+    (growMemViews(), HEAP32)[(((buf) + (20)) >> 2)] = stat.rdev;
     (growMemViews(), HEAP64)[(((buf) + (24)) >> 3)] = BigInt(stat.size);
     (growMemViews(), HEAP32)[(((buf) + (32)) >> 2)] = 4096;
     (growMemViews(), HEAP32)[(((buf) + (36)) >> 2)] = stat.blocks;
@@ -3681,17 +4397,17 @@ var SYSCALLS = {
     return 0;
   },
   writeStatFs(buf, stats) {
-    (growMemViews(), HEAPU32)[(((buf) + (4)) >> 2)] = stats.bsize;
-    (growMemViews(), HEAPU32)[(((buf) + (60)) >> 2)] = stats.bsize;
-    (growMemViews(), HEAP64)[(((buf) + (8)) >> 3)] = BigInt(stats.blocks);
-    (growMemViews(), HEAP64)[(((buf) + (16)) >> 3)] = BigInt(stats.bfree);
-    (growMemViews(), HEAP64)[(((buf) + (24)) >> 3)] = BigInt(stats.bavail);
-    (growMemViews(), HEAP64)[(((buf) + (32)) >> 3)] = BigInt(stats.files);
-    (growMemViews(), HEAP64)[(((buf) + (40)) >> 3)] = BigInt(stats.ffree);
-    (growMemViews(), HEAPU32)[(((buf) + (48)) >> 2)] = stats.fsid;
-    (growMemViews(), HEAPU32)[(((buf) + (64)) >> 2)] = stats.flags;
+    (growMemViews(), HEAP32)[(((buf) + (4)) >> 2)] = stats.bsize;
+    (growMemViews(), HEAP32)[(((buf) + (40)) >> 2)] = stats.bsize;
+    (growMemViews(), HEAP32)[(((buf) + (8)) >> 2)] = stats.blocks;
+    (growMemViews(), HEAP32)[(((buf) + (12)) >> 2)] = stats.bfree;
+    (growMemViews(), HEAP32)[(((buf) + (16)) >> 2)] = stats.bavail;
+    (growMemViews(), HEAP32)[(((buf) + (20)) >> 2)] = stats.files;
+    (growMemViews(), HEAP32)[(((buf) + (24)) >> 2)] = stats.ffree;
+    (growMemViews(), HEAP32)[(((buf) + (28)) >> 2)] = stats.fsid;
+    (growMemViews(), HEAP32)[(((buf) + (44)) >> 2)] = stats.flags;
     // ST_NOSUID
-    (growMemViews(), HEAPU32)[(((buf) + (56)) >> 2)] = stats.namelen;
+    (growMemViews(), HEAP32)[(((buf) + (36)) >> 2)] = stats.namelen;
   },
   doMsync(addr, stream, len, flags, offset) {
     if (!FS.isFile(stream.node.mode)) {
@@ -3911,6 +4627,37 @@ function ___syscall_openat(dirfd, path, flags, varargs) {
   }
 }
 
+function ___syscall_rmdir(path) {
+  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(6, 0, 1, path);
+  try {
+    path = SYSCALLS.getStr(path);
+    FS.rmdir(path);
+    return 0;
+  } catch (e) {
+    if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
+    return -e.errno;
+  }
+}
+
+function ___syscall_unlinkat(dirfd, path, flags) {
+  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(7, 0, 1, dirfd, path, flags);
+  try {
+    path = SYSCALLS.getStr(path);
+    path = SYSCALLS.calculateAt(dirfd, path);
+    if (!flags) {
+      FS.unlink(path);
+    } else if (flags === 512) {
+      FS.rmdir(path);
+    } else {
+      return -28;
+    }
+    return 0;
+  } catch (e) {
+    if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
+    return -e.errno;
+  }
+}
+
 var __abort_js = () => abort("");
 
 var __emscripten_init_main_thread_js = tb => {
@@ -3934,6 +4681,9 @@ var handleException = e => {
 };
 
 var maybeExit = () => {
+  if (runtimeExited) {
+    return;
+  }
   if (!keepRuntimeAlive()) {
     try {
       if (ENVIRONMENT_IS_PTHREAD) __emscripten_thread_exit(EXITSTATUS); else _exit(EXITSTATUS);
@@ -3944,7 +4694,7 @@ var maybeExit = () => {
 };
 
 var callUserCallback = func => {
-  if (ABORT) {
+  if (runtimeExited || ABORT) {
     return;
   }
   try {
@@ -4040,7 +4790,16 @@ var __emscripten_thread_cleanup = thread => {
   });
 };
 
-var __emscripten_thread_set_strongref = thread => {};
+var __emscripten_thread_set_strongref = thread => {
+  // Called when a thread needs to be strongly referenced.
+  // Currently only used for:
+  // - keeping the "main" thread alive in PROXY_TO_PTHREAD mode;
+  // - crashed threads that needs to propagate the uncaught exception
+  //   back to the main thread.
+  if (ENVIRONMENT_IS_NODE) {
+    PThread.pthreads[thread].ref();
+  }
+};
 
 var stringToUTF8 = (str, outPtr, maxBytesToWrite) => stringToUTF8Array(str, (growMemViews(), 
 HEAPU8), outPtr, maxBytesToWrite);
@@ -4140,7 +4899,7 @@ var getHeapMax = () => // Stay one Wasm page short of 4GB: while e.g. Chrome is 
 
 var _emscripten_get_heap_max = () => getHeapMax();
 
-var _emscripten_num_logical_cores = () => navigator["hardwareConcurrency"];
+var _emscripten_num_logical_cores = () => ENVIRONMENT_IS_NODE ? require("os").cpus().length : navigator["hardwareConcurrency"];
 
 var alignMemory = (size, alignment) => Math.ceil(size / alignment) * alignment;
 
@@ -4239,7 +4998,7 @@ var getEnvStrings = () => {
 };
 
 function _environ_get(__environ, environ_buf) {
-  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(6, 0, 1, __environ, environ_buf);
+  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(8, 0, 1, __environ, environ_buf);
   var bufSize = 0;
   var envp = 0;
   for (var string of getEnvStrings()) {
@@ -4252,7 +5011,7 @@ function _environ_get(__environ, environ_buf) {
 }
 
 function _environ_sizes_get(penviron_count, penviron_buf_size) {
-  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(7, 0, 1, penviron_count, penviron_buf_size);
+  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(9, 0, 1, penviron_count, penviron_buf_size);
   var strings = getEnvStrings();
   (growMemViews(), HEAPU32)[((penviron_count) >> 2)] = strings.length;
   var bufSize = 0;
@@ -4264,7 +5023,7 @@ function _environ_sizes_get(penviron_count, penviron_buf_size) {
 }
 
 function _fd_close(fd) {
-  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(8, 0, 1, fd);
+  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(10, 0, 1, fd);
   try {
     var stream = SYSCALLS.getStreamFromFD(fd);
     FS.close(stream);
@@ -4294,7 +5053,7 @@ function _fd_close(fd) {
 };
 
 function _fd_read(fd, iov, iovcnt, pnum) {
-  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(9, 0, 1, fd, iov, iovcnt, pnum);
+  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(11, 0, 1, fd, iov, iovcnt, pnum);
   try {
     var stream = SYSCALLS.getStreamFromFD(fd);
     var num = doReadv(stream, iov, iovcnt);
@@ -4307,7 +5066,7 @@ function _fd_read(fd, iov, iovcnt, pnum) {
 }
 
 function _fd_seek(fd, offset, whence, newOffset) {
-  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(10, 0, 1, fd, offset, whence, newOffset);
+  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(12, 0, 1, fd, offset, whence, newOffset);
   offset = bigintToI53Checked(offset);
   try {
     if (isNaN(offset)) return 61;
@@ -4344,7 +5103,7 @@ function _fd_seek(fd, offset, whence, newOffset) {
 };
 
 function _fd_write(fd, iov, iovcnt, pnum) {
-  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(11, 0, 1, fd, iov, iovcnt, pnum);
+  if (ENVIRONMENT_IS_PTHREAD) return proxyToMainThread(13, 0, 1, fd, iov, iovcnt, pnum);
   try {
     var stream = SYSCALLS.getStreamFromFD(fd);
     var num = doWritev(stream, iov, iovcnt);
@@ -4375,9 +5134,39 @@ PThread.init();
 
 FS.createPreloadedFile = FS_createPreloadedFile;
 
-FS.preloadFile = FS_preloadFile;
-
 FS.staticInit();
+
+if (ENVIRONMENT_IS_NODE) {
+  NODEFS.staticInit();
+}
+
+if (!ENVIRONMENT_IS_NODE) {
+  throw new Error("NODERAWFS is currently only supported on Node.js environment.");
+}
+
+var _wrapNodeError = function(func) {
+  return function(...args) {
+    try {
+      return func(...args);
+    } catch (e) {
+      if (e.code) {
+        throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+      }
+      throw e;
+    }
+  };
+};
+
+// Use this to reference our in-memory filesystem
+/** @suppress {partialAlias} */ var VFS = {
+  ...FS
+};
+
+// Wrap the whole in-memory filesystem API with
+// our Node.js based functions
+for (var _key in NODERAWFS) {
+  FS[_key] = _wrapNodeError(NODERAWFS[_key]);
+}
 
 // End JS library code
 // include: postlibrary.js
@@ -4405,7 +5194,7 @@ Module["removeRunDependency"] = removeRunDependency;
 
 Module["callMain"] = callMain;
 
-Module["FS_preloadFile"] = FS_preloadFile;
+Module["FS_createPreloadedFile"] = FS_createPreloadedFile;
 
 Module["FS_unlink"] = FS_unlink;
 
@@ -4427,17 +5216,19 @@ Module["FS_createLazyFile"] = FS_createLazyFile;
 // either synchronously or asynchronously from other threads in postMessage()d
 // or internally queued events. This way a pthread in a Worker can synchronously
 // access e.g. the DOM on the main thread.
-var proxiedFunctionTable = [ _proc_exit, exitOnMainThread, pthreadCreateProxied, ___syscall_fcntl64, ___syscall_ioctl, ___syscall_openat, _environ_get, _environ_sizes_get, _fd_close, _fd_read, _fd_seek, _fd_write ];
+var proxiedFunctionTable = [ _proc_exit, exitOnMainThread, pthreadCreateProxied, ___syscall_fcntl64, ___syscall_ioctl, ___syscall_openat, ___syscall_rmdir, ___syscall_unlinkat, _environ_get, _environ_sizes_get, _fd_close, _fd_read, _fd_seek, _fd_write ];
 
 // Imports from the Wasm binary.
-var _main, __emscripten_tls_init, _pthread_self, __emscripten_thread_init, __emscripten_thread_crashed, __emscripten_run_js_on_main_thread, __emscripten_thread_free_data, __emscripten_thread_exit, __emscripten_check_mailbox, _setThrew, __emscripten_tempret_set, _emscripten_stack_set_limits, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, ___cxa_decrement_exception_refcount, ___cxa_increment_exception_refcount, ___cxa_free_exception, ___cxa_can_catch, ___cxa_get_exception_ptr;
+var _main, __emscripten_tls_init, _pthread_self, ___funcs_on_exit, __emscripten_thread_init, __emscripten_thread_crashed, _fflush, __emscripten_run_js_on_main_thread, __emscripten_thread_free_data, __emscripten_thread_exit, __emscripten_check_mailbox, _setThrew, __emscripten_tempret_set, _emscripten_stack_set_limits, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, ___cxa_decrement_exception_refcount, ___cxa_increment_exception_refcount, ___cxa_free_exception, ___cxa_can_catch, ___cxa_get_exception_ptr;
 
 function assignWasmExports(wasmExports) {
   Module["_main"] = _main = wasmExports["__main_argc_argv"];
   __emscripten_tls_init = wasmExports["_emscripten_tls_init"];
   _pthread_self = wasmExports["pthread_self"];
+  ___funcs_on_exit = wasmExports["__funcs_on_exit"];
   __emscripten_thread_init = wasmExports["_emscripten_thread_init"];
   __emscripten_thread_crashed = wasmExports["_emscripten_thread_crashed"];
+  _fflush = wasmExports["fflush"];
   __emscripten_run_js_on_main_thread = wasmExports["_emscripten_run_js_on_main_thread"];
   __emscripten_thread_free_data = wasmExports["_emscripten_thread_free_data"];
   __emscripten_thread_exit = wasmExports["_emscripten_thread_exit"];
@@ -4472,6 +5263,8 @@ function assignWasmImports() {
     /** @export */ __syscall_fcntl64: ___syscall_fcntl64,
     /** @export */ __syscall_ioctl: ___syscall_ioctl,
     /** @export */ __syscall_openat: ___syscall_openat,
+    /** @export */ __syscall_rmdir: ___syscall_rmdir,
+    /** @export */ __syscall_unlinkat: ___syscall_unlinkat,
     /** @export */ _abort_js: __abort_js,
     /** @export */ _emscripten_init_main_thread_js: __emscripten_init_main_thread_js,
     /** @export */ _emscripten_notify_mailbox_postmessage: __emscripten_notify_mailbox_postmessage,
@@ -4482,7 +5275,6 @@ function assignWasmImports() {
     /** @export */ _tzset_js: __tzset_js,
     /** @export */ clock_time_get: _clock_time_get,
     /** @export */ emscripten_check_blocking_allowed: _emscripten_check_blocking_allowed,
-    /** @export */ emscripten_date_now: _emscripten_date_now,
     /** @export */ emscripten_exit_with_live_runtime: _emscripten_exit_with_live_runtime,
     /** @export */ emscripten_get_heap_max: _emscripten_get_heap_max,
     /** @export */ emscripten_get_now: _emscripten_get_now,
@@ -4838,7 +5630,7 @@ function run(args = arguments_) {
     preMain();
     readyPromiseResolve?.(Module);
     Module["onRuntimeInitialized"]?.();
-    var noInitialRun = Module["noInitialRun"] || false;
+    var noInitialRun = Module["noInitialRun"] || true;
     if (!noInitialRun) callMain(args);
     postRun();
   }
@@ -4887,13 +5679,22 @@ if (runtimeInitialized) {
 }
 
 // Export using a UMD style export, or ES6 exports if selected
-export default Module;
+if (typeof exports === 'object' && typeof module === 'object') {
+  module.exports = Module;
+  // This default export looks redundant, but it allows TS to import this
+  // commonjs style module.
+  module.exports.default = Module;
+} else if (typeof define === 'function' && define['amd'])
+  define([], () => Module);
 
 // Create code for detecting if we are running in a pthread.
 // Normally this detection is done when the module is itself run but
 // when running in MODULARIZE mode we need use this to know if we should
 // run the module constructor on startup (true only for pthreads).
 var isPthread = globalThis.self?.name?.startsWith('em-pthread');
+// In order to support both web and node we also need to detect node here.
+var isNode = typeof process == 'object' && process.versions?.node && process.type != 'renderer';
+if (isNode) isPthread = require('worker_threads').workerData === 'em-pthread'
 
 isPthread && Module();
 
