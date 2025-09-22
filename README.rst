@@ -1,6 +1,8 @@
 LAST: find & align related regions of sequences
 ===============================================
 
+[Dotplot with LAST on Browser](https://c2997108.github.io/lastwasm/)
+
 LAST is designed for moderately large data (e.g. genomes, DNA reads,
 proteomes).  It's especially good at:
 
