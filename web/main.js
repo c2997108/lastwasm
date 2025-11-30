@@ -36,7 +36,7 @@ function setStatus(msg) {
   statusEl.textContent = msg;
 }
 function append(el, line) {
-  el.textContent += (line.endsWith('\n') ? line : line + '\n');
+  if (el) el.textContent += (line.endsWith('\n') ? line : line + '\n');
 }
 function splitArgs(str) {
   // naive whitespace split; good enough for simple flags
@@ -60,7 +60,7 @@ function parseTabAndPlotly(tabText) {
   const qryLenByName = new Map();
   const lines = tabText.split(/\n+/).map(s => s.trim()).filter(Boolean);
   for (const line of lines) {
-    if (!line || line.startsWith('$') || line.startsWith('[')) continue;
+    if (!line || line.startsWith('$') || line.startsWith('[') || line.startsWith('#')) continue;
     const cols = line.split(/\s+/);
     if (cols.length < 12) continue;
     // Expected columns (1-based LAST -f TAB):
@@ -113,10 +113,22 @@ function parseTabAndPlotly(tabText) {
     const roff = refOffsets.get(s.refName) || 0;
     const qoff = qryOffsets.get(s.qryName) || 0;
     const isRev = (s.qryStrand === '-');
-    const x1 = roff + s.refStart + 1;
-    const x2 = roff + s.refStart + s.refLen;
-    const y1 = qoff + (isRev ? (s.qryTotal - s.qryStart) : (s.qryStart + 1));
-    const y2 = qoff + (isRev ? (s.qryTotal - s.qryStart - s.qryLen + 1) : (s.qryStart + s.qryLen));
+    let x1 = roff + s.refStart + 1;
+    let x2 = roff + s.refStart + s.refLen;
+    let y1 = qoff + (isRev ? (s.qryTotal - s.qryStart) : (s.qryStart + 1));
+    let y2 = qoff + (isRev ? (s.qryTotal - s.qryStart - s.qryLen + 1) : (s.qryStart + s.qryLen));
+
+    // Clamp to valid range [1, Total] (plus offset) to avoid negative coordinates
+    const rMin = roff + 1;
+    const rMax = roff + s.refTotal;
+    x1 = Math.max(rMin, Math.min(rMax, x1));
+    x2 = Math.max(rMin, Math.min(rMax, x2));
+
+    const qMin = qoff + 1;
+    const qMax = qoff + s.qryTotal;
+    y1 = Math.max(qMin, Math.min(qMax, y1));
+    y2 = Math.max(qMin, Math.min(qMax, y2));
+
     const T = isRev ? rev : fwd;
     const cd = { refName: s.refName, refStart: s.refStart + 1, refEnd: s.refStart + s.refLen, qryName: s.qryName, qryStart: isRev ? (s.qryTotal - s.qryStart) : (s.qryStart + 1), qryEnd: isRev ? (s.qryTotal - s.qryStart - s.qryLen + 1) : (s.qryStart + s.qryLen), len: Math.min(s.refLen, s.qryLen) };
     T.x.push(x1, x2, null);
@@ -404,8 +416,8 @@ async function readFileInput(fileInput) {
 }
 
 async function run() {
-  logEl.textContent = '';
-  outEl.textContent = '';
+  if (logEl) logEl.textContent = '';
+  if (outEl) outEl.textContent = '';
   if (tabEl) tabEl.textContent = '';
   setStatus('準備中...');
   const verEl = document.getElementById('appVer');
@@ -558,72 +570,7 @@ $('#runBtn').addEventListener('click', () => {
   });
 });
 
-// lastdb only runner
-async function runDbOnly() {
-  logEl.textContent = '';
-  outEl.textContent = '';
-  setStatus('lastdb準備中...');
 
-  const refText = await readFileInput($('#refFasta'));
-  const dbName = 'refdb';
-  if (!refText) {
-    setStatus('対象FASTAを選択してください');
-    return;
-  }
-
-  let lastdbFactory;
-  try {
-    lastdbFactory = await import(`./lastdb.js?v=${APP_VER}`).then(m => m.default || m);
-  } catch (e) {
-    setStatus('エラー');
-    append(logEl, 'モジュール読み込みエラー: ' + (e?.message || e));
-    return;
-  }
-
-  const lastdbModule = await lastdbFactory({
-    noInitialRun: true, // prevent auto main() run on module load
-    print: (line) => append(logEl, line),
-    printErr: (line) => append(logEl, '[ERR] ' + line),
-  });
-  const dbFS = lastdbModule.FS;
-  if (!dbFS.analyzePath('/work').exists) dbFS.mkdir('/work');
-  dbFS.chdir('/work');
-  dbFS.writeFile('ref.fa', refText);
-
-  const safe = $('#safeMode')?.checked;
-  const dbArgs = safe ? SAFE_DB_ARGS.slice() : splitArgs($('#lastdbArgs').value);
-  const lastdbArgv = ['-v', '-P', '1', ...dbArgs, dbName, 'ref.fa'];
-  append(logEl, '$ lastdb ' + lastdbArgv.map(a => /\s/.test(a) ? ('"' + a + '"') : a).join(' '));
-  await tick();
-  try {
-    lastdbModule.callMain(lastdbArgv);
-  } catch (e) {
-    const status = (typeof e?.status === 'number') ? e.status : undefined;
-    if (!(e?.name === 'ExitStatus' && status === 0)) {
-      append(logEl, `lastdb 実行エラー: ${e?.message || e}`);
-      if (typeof status === 'number') append(logEl, `exit code: ${status}`);
-      setStatus('エラー');
-      return;
-    }
-  }
-
-  const list = dbFS.readdir('.')
-    .filter(n => n !== '.' && n !== '..')
-    .map(n => `${n} (${dbFS.isDir(dbFS.lookupPath(n).node.mode) ? 'dir' : 'file'})`);
-  append(logEl, '現在のディレクトリ: /work');
-  append(logEl, '一覧: ' + (list.join(', ') || '(なし)'));
-  const entries = dbFS.readdir('.')
-    .filter(n => n !== '.' && n !== '..' && (n === dbName || n.startsWith(dbName + '.')));
-  append(logEl, '生成ファイル: ' + (entries.join(', ') || '(なし)'));
-  setStatus('lastdb完了');
-}
-
-$('#runDbBtn').addEventListener('click', () => {
-  runDbOnly().catch(err => {
-    setStatus('エラー');
-    append(logEl, String(err?.stack || err));
-  });
-});
 
 // Toggle: disable manual args in safe mode
 const safeCb = document.getElementById('safeMode');

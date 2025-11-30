@@ -77,9 +77,9 @@
   <div class="row">
     <fieldset class="col">
       <legend>入力</legend>
-      <label>対象FASTA (lastdb 用):</label>
+      <label>対象FASTA (lastdb 用, X軸):</label>
       <input type="file" id="refFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
-      <label>クエリFASTA (lastal 用):</label>
+      <label>クエリFASTA (lastal 用, Y軸):</label>
       <input type="file" id="qryFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
 
       <label>lastdb 追加オプション (任意):</label>
@@ -92,21 +92,15 @@
           <span>安全モード（軽量設定）</span>
         </label>
         <button id="runBtn">実行</button>
-        <button id="runDbBtn" title="lastdbのみを実行し、生成物を確認">lastdbのみ実行</button>
+
         <span id="status" class="small"></span>
       </div>
     </fieldset>
 
-    <fieldset class="col">
-      <legend>ログ (lastdb)</legend>
-      <pre id="log"></pre>
-    </fieldset>
+
   </div>
 
-  <fieldset>
-    <legend>結果 (lastal 出力)</legend>
-    <pre id="out"></pre>
-  </fieldset>
+
 
   <fieldset>
     <legend>結果 (TAB 形式)</legend>
