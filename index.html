@@ -1,88 +1,126 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LAST (WASM) 相同性検索</title>
-    <script>
-      // Register COI service worker to enable WebAssembly threads (SharedArrayBuffer)
-      if (location.protocol !== 'file:' && 'serviceWorker' in navigator && !crossOriginIsolated) {
-        // Register at root scope so it controls the top-level document
-        navigator.serviceWorker.register('./coi-serviceworker.js').then((reg) => {
-          if (!navigator.serviceWorker.controller) {
-            const sw = reg.installing || reg.waiting || reg.active;
-            if (sw) {
-              sw.addEventListener('statechange', (e) => {
-                if (e.target.state === 'activated') location.reload();
-              });
-            }
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LAST (WASM) 相同性検索</title>
+  <script>
+    // Register COI service worker to enable WebAssembly threads (SharedArrayBuffer)
+    if (location.protocol !== 'file:' && 'serviceWorker' in navigator && !crossOriginIsolated) {
+      // Register at root scope so it controls the top-level document
+      navigator.serviceWorker.register('./coi-serviceworker.js').then((reg) => {
+        if (!navigator.serviceWorker.controller) {
+          const sw = reg.installing || reg.waiting || reg.active;
+          if (sw) {
+            sw.addEventListener('statechange', (e) => {
+              if (e.target.state === 'activated') location.reload();
+            });
           }
-        }).catch(() => {});
-      }
-    </script>
-    <style>
-      body { font-family: system-ui, -apple-system, sans-serif; margin: 20px; }
-      fieldset { margin-bottom: 16px; }
-      label { display: block; margin: 8px 0 4px; }
-      input[type="text"] { width: 100%; padding: 6px 8px; }
-      button { padding: 8px 12px; }
-      .row { display: flex; gap: 12px; }
-      .col { flex: 1; min-width: 260px; }
-      pre { background: #111; color: #ddd; padding: 12px; overflow: auto; max-height: 320px; }
-      .small { color: #666; font-size: 12px; }
-    </style>
-  </head>
-  <body>
-    <h1>LAST (WASM) 相同性検索 <span id="appVer" class="small" style="font-weight:normal"></span></h1>
-    <p class="small">手順: 1) 対象FASTA(データベース) と クエリFASTA を選択 2) 実行。ローカル実行のためデータはサーバーに送信されません。</p>
+        }
+      }).catch(() => { });
+    }
+  </script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 20px;
+    }
 
-    <div class="row">
-      <fieldset class="col">
-        <legend>入力</legend>
-        <label>対象FASTA (lastdb 用):</label>
-        <input type="file" id="refFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
-        <label>クエリFASTA (lastal 用):</label>
-        <input type="file" id="qryFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
-        <label>データベース名 (basename):</label>
-        <input type="text" id="dbName" value="refdb" />
-        <label>lastdb 追加オプション (任意):</label>
-        <input type="text" id="lastdbArgs" placeholder="例: -uNEAR -R01" />
-        <label>lastal 追加オプション (任意):</label>
-        <input type="text" id="lastalArgs" placeholder="例: -m100 -E0.01" />
-        <div style="margin-top: 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <label style="display:inline-flex; gap:6px; align-items:center;">
-            <input type="checkbox" id="safeMode" checked />
-            <span>安全モード（軽量設定）</span>
-          </label>
-          <button id="runBtn">実行</button>
-          <button id="runDbBtn" title="lastdbのみを実行し、生成物を確認">lastdbのみ実行</button>
-          <span id="status" class="small"></span>
-        </div>
-      </fieldset>
+    fieldset {
+      margin-bottom: 16px;
+    }
 
-      <fieldset class="col">
-        <legend>ログ (lastdb)</legend>
-        <pre id="log"></pre>
-      </fieldset>
-    </div>
+    label {
+      display: block;
+      margin: 8px 0 4px;
+    }
 
-    <fieldset>
-      <legend>結果 (lastal 出力)</legend>
-      <pre id="out"></pre>
+    input[type="text"] {
+      width: 100%;
+      padding: 6px 8px;
+    }
+
+    button {
+      padding: 8px 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .col {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    pre {
+      background: #111;
+      color: #ddd;
+      padding: 12px;
+      overflow: auto;
+      max-height: 320px;
+    }
+
+    .small {
+      color: #666;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>LAST (WASM) 相同性検索 <span id="appVer" class="small" style="font-weight:normal"></span></h1>
+  <p class="small">手順: 1) 対象FASTA(データベース) と クエリFASTA を選択 2) 実行。ローカル実行のためデータはサーバーに送信されません。</p>
+
+  <div class="row">
+    <fieldset class="col">
+      <legend>入力</legend>
+      <label>対象FASTA (lastdb 用):</label>
+      <input type="file" id="refFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
+      <label>クエリFASTA (lastal 用):</label>
+      <input type="file" id="qryFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
+
+      <label>lastdb 追加オプション (任意):</label>
+      <input type="text" id="lastdbArgs" placeholder="例: -uNEAR -R01" />
+      <label>lastal 追加オプション (任意):</label>
+      <input type="text" id="lastalArgs" value="-m1000" placeholder="例: -m100 -E0.01" />
+      <div style="margin-top: 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <label style="display:inline-flex; gap:6px; align-items:center;">
+          <input type="checkbox" id="safeMode" checked />
+          <span>安全モード（軽量設定）</span>
+        </label>
+        <button id="runBtn">実行</button>
+        <button id="runDbBtn" title="lastdbのみを実行し、生成物を確認">lastdbのみ実行</button>
+        <span id="status" class="small"></span>
+      </div>
     </fieldset>
 
-    <fieldset>
-      <legend>結果 (TAB 形式)</legend>
-      <pre id="tab"></pre>
+    <fieldset class="col">
+      <legend>ログ (lastdb)</legend>
+      <pre id="log"></pre>
     </fieldset>
+  </div>
 
-    <fieldset>
-      <legend>Dot Plot</legend>
-      <div class="small">Plotly描画（Forward=青, Reverse=赤）。ホイールでズーム、ドラッグでパン。</div>
-      <div id="dotplot" style="width:100%; max-width:960px; height:520px;"></div>
-    </fieldset>
+  <fieldset>
+    <legend>結果 (lastal 出力)</legend>
+    <pre id="out"></pre>
+  </fieldset>
 
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" crossorigin="anonymous"></script>
-    <script type="module" src="./web/main.js?v=20250830-threads"></script>
-  </body>
-  </html>
+  <fieldset>
+    <legend>結果 (TAB 形式)</legend>
+    <pre id="tab"></pre>
+  </fieldset>
+
+  <fieldset>
+    <legend>Dot Plot</legend>
+    <div class="small">Plotly描画（Forward=青, Reverse=赤）。ホイールでズーム、ドラッグでパン。</div>
+    <div id="dotplot" style="width:100%; max-width:960px; height:520px;"></div>
+  </fieldset>
+
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" crossorigin="anonymous"></script>
+  <script type="module" src="./web/main.js?v=20250830-threads"></script>
+</body>
+
+</html>

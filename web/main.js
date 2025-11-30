@@ -7,7 +7,7 @@ const statusEl = $('#status');
 const logEl = $('#log');
 const outEl = $('#out');
 const tabEl = $('#tab');
-const SAFE_DB_ARGS = ['--bits=4','-R00','-uNEAR','-w1','-W1','-S1','-C1','-v'];
+const SAFE_DB_ARGS = ['--bits=4', '-R00', '-uNEAR', '-w1', '-W1', '-S1', '-C1', '-v'];
 
 function hasSharedMemorySupport() {
   return (typeof SharedArrayBuffer !== 'undefined') && (typeof crossOriginIsolated !== 'undefined') && crossOriginIsolated;
@@ -20,7 +20,7 @@ function extractThreads(args) {
     const a = args[i];
     if (a === '-P' && i + 1 < args.length && /^\d+$/.test(args[i + 1])) {
       threads = Math.max(1, parseInt(args[i + 1], 10));
-    	  i++;
+      i++;
       continue;
     }
     const m = a.match(/^-(?:P)(\d+)$/);
@@ -104,8 +104,8 @@ function parseTabAndPlotly(tabText) {
 
   // Build Plotly traces (forward=blue, reverse=red)
   const hoverT = 'Ref: %{customdata.refName}:%{customdata.refStart}-%{customdata.refEnd}' +
-                 '<br>Qry: %{customdata.qryName}:%{customdata.qryStart}-%{customdata.qryEnd}' +
-                 '<br>Len: %{customdata.len} bp<extra></extra>';
+    '<br>Qry: %{customdata.qryName}:%{customdata.qryStart}-%{customdata.qryEnd}' +
+    '<br>Len: %{customdata.len} bp<extra></extra>';
   const fwd = { x: [], y: [], customdata: [], mode: 'lines+markers', type: 'scattergl', name: 'Forward', line: { color: 'blue', width: 1.5 }, marker: { size: 6, opacity: 0 }, hovertemplate: hoverT };
   const rev = { x: [], y: [], customdata: [], mode: 'lines+markers', type: 'scattergl', name: 'Reverse', line: { color: 'red', width: 1.5 }, marker: { size: 6, opacity: 0 }, hovertemplate: hoverT };
 
@@ -113,12 +113,12 @@ function parseTabAndPlotly(tabText) {
     const roff = refOffsets.get(s.refName) || 0;
     const qoff = qryOffsets.get(s.qryName) || 0;
     const isRev = (s.qryStrand === '-');
-    const x1 = roff + s.refStart;
+    const x1 = roff + s.refStart + 1;
     const x2 = roff + s.refStart + s.refLen;
-    const y1 = qoff + (isRev ? (s.qryTotal - s.qryStart) : s.qryStart);
-    const y2 = qoff + (isRev ? (s.qryTotal - s.qryStart - s.qryLen) : (s.qryStart + s.qryLen));
+    const y1 = qoff + (isRev ? (s.qryTotal - s.qryStart) : (s.qryStart + 1));
+    const y2 = qoff + (isRev ? (s.qryTotal - s.qryStart - s.qryLen + 1) : (s.qryStart + s.qryLen));
     const T = isRev ? rev : fwd;
-    const cd = { refName: s.refName, refStart: s.refStart, refEnd: s.refStart + s.refLen, qryName: s.qryName, qryStart: isRev ? (s.qryTotal - s.qryStart) : s.qryStart, qryEnd: isRev ? (s.qryTotal - s.qryStart - s.qryLen) : (s.qryStart + s.qryLen), len: Math.min(s.refLen, s.qryLen) };
+    const cd = { refName: s.refName, refStart: s.refStart + 1, refEnd: s.refStart + s.refLen, qryName: s.qryName, qryStart: isRev ? (s.qryTotal - s.qryStart) : (s.qryStart + 1), qryEnd: isRev ? (s.qryTotal - s.qryStart - s.qryLen + 1) : (s.qryStart + s.qryLen), len: Math.min(s.refLen, s.qryLen) };
     T.x.push(x1, x2, null);
     T.y.push(y1, y2, null);
     T.customdata.push(cd, cd, null);
@@ -161,7 +161,7 @@ function parseTabAndPlotly(tabText) {
     margin: { l: 60, r: 10, t: 10, b: 40 }
   };
 
-  const config = { responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d','lasso2d'] };
+  const config = { responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d'] };
   // Render
   // eslint-disable-next-line no-undef
   Plotly.newPlot(plotDiv, [fwd, rev], layout, config);
@@ -413,7 +413,7 @@ async function run() {
 
   const refText = await readFileInput($('#refFasta'));
   const qryText = await readFileInput($('#qryFasta'));
-  const dbName = ($('#dbName').value || 'refdb').trim();
+  const dbName = 'refdb';
 
   if (!refText || !qryText) {
     setStatus('対象/クエリのFASTAを選択してください');
@@ -461,7 +461,7 @@ async function run() {
   dbFS.writeFile('ref.fa', refText);
 
   const lastdbArgv = ['-P', String(dbThreads), ...dbArgs, dbName, 'ref.fa'];
-  append(logEl, '$ lastdb ' + lastdbArgv.map(a => /\s/.test(a)? ('"'+a+'"'):a).join(' '));
+  append(logEl, '$ lastdb ' + lastdbArgv.map(a => /\s/.test(a) ? ('"' + a + '"') : a).join(' '));
   await tick();
   try {
     lastdbModule.callMain(lastdbArgv);
@@ -530,7 +530,7 @@ async function run() {
 
     // Default to TAB output, normalized -P
     const lastalTabArgv = ['-f', 'TAB', '-P', String(alThreads), ...alArgsNorm, dbName, 'query.fa'];
-    append(tabEl, '$ lastal ' + lastalTabArgv.map(a => /\s/.test(a)? ('"'+a+'"'):a).join(' '));
+    append(tabEl, '$ lastal ' + lastalTabArgv.map(a => /\s/.test(a) ? ('"' + a + '"') : a).join(' '));
     await tick();
     try {
       lastalModule2.callMain(lastalTabArgv);
@@ -565,7 +565,7 @@ async function runDbOnly() {
   setStatus('lastdb準備中...');
 
   const refText = await readFileInput($('#refFasta'));
-  const dbName = ($('#dbName').value || 'refdb').trim();
+  const dbName = 'refdb';
   if (!refText) {
     setStatus('対象FASTAを選択してください');
     return;
@@ -593,7 +593,7 @@ async function runDbOnly() {
   const safe = $('#safeMode')?.checked;
   const dbArgs = safe ? SAFE_DB_ARGS.slice() : splitArgs($('#lastdbArgs').value);
   const lastdbArgv = ['-v', '-P', '1', ...dbArgs, dbName, 'ref.fa'];
-  append(logEl, '$ lastdb ' + lastdbArgv.map(a => /\s/.test(a)? ('"'+a+'"'):a).join(' '));
+  append(logEl, '$ lastdb ' + lastdbArgv.map(a => /\s/.test(a) ? ('"' + a + '"') : a).join(' '));
   await tick();
   try {
     lastdbModule.callMain(lastdbArgv);

@@ -95,7 +95,7 @@ ScoreMatrixData.hh: ../data/*.mat
 	../build/mat-inc.sh ../data/*.mat > $@
 
 VERSION1 = git describe --dirty
-VERSION2 = echo '$Format:%d$ ' | sed -e 's/.*tag: *//' -e 's/[,) ].*//'
+VERSION2 = echo ' (HEAD -> main) ' | sed -e 's/.*tag: *//' -e 's/[,) ].*//'
 
 VERSION = \"`test -e ../.git && $(VERSION1) || $(VERSION2)`\"
 
