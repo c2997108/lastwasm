@@ -1,4 +1,4 @@
-Dotplot with LAST on Browser (https://c2997108.github.io/lastwasm/)
+Dotplot with LAST-JS on Browser (https://c2997108.github.io/lastwasm/)
 
 LAST: find & align related regions of sequences
 ===============================================
@@ -99,10 +99,58 @@ LAST is brought to you by:
 .. _University of Tokyo: https://www.u-tokyo.ac.jp/en/
 .. _AIST-Waseda University CBBD-OIL: https://unit.aist.go.jp/cbbd-oil/en/
 
-WASM/Node (experimental)
-------------------------
+JavaScript/Web
+--------------
 
-This repository contains experimental WebAssembly builds for Node.js and Web.
+The browser UI in ``index.html`` runs the same LAST algorithm as the WASM build
+without special-casing input files.  ``web/lastdb.asm.js`` and
+``web/lastal.asm.js`` are generated from the Emscripten LAST WASM build with
+Binaryen ``wasm2js`` and are loaded by the browser glue in ``web/lastdb.js`` and
+``web/lastal.js``.  The browser builds the database once, then parallelizes
+``lastal`` by splitting query FASTA records across Web Workers.  When
+cross-origin isolation is active those search workers run the WASM runtime;
+otherwise they use the asm.js runtime generated from the same LAST build.
+
+Open the page through a local HTTP server.  Direct ``file://`` browsing is not
+supported because browsers block ES module loading from local files.  The
+included ``coi-serviceworker.js`` enables COOP/COEP on static hosts so browsers
+can use the faster shared-memory WASM runtime; the page may reload once after
+the service worker is installed.
+
+- Run locally:
+
+  * ``python -m http.server 8000``
+  * Open ``http://localhost:8000/``
+
+- Browser implementation files:
+
+  * ``web/main.js``: UI and Plotly rendering
+  * ``web/jslast.js``: high-level runner that calls compiled ``lastdb`` and
+    dispatches compiled ``lastal`` search jobs
+  * ``web/jslast-runner-worker.js``: background runner so indexing/search does
+    not block browser UI updates
+  * ``web/lastal-worker.js``: Web Worker entry point for parallel search
+  * ``web/lastdb.js`` / ``web/lastal.js``: Emscripten browser glue patched to
+    load asm.js or WASM at runtime
+  * ``web/lastdb.asm.js`` / ``web/lastal.asm.js``: Binaryen ``wasm2js`` output
+
+- Regression test:
+
+  * ``npm run test:web`` generates a fresh TAB baseline with the Node WASM CLI
+    and compares it byte-for-byte with an 8-worker browser search.
+
+The requested worker count is capped by the number of query FASTA records.  A
+single query record is kept on one search worker to preserve LAST's query-level
+semantics.  The UI shows elapsed time and an approximate remaining time.  The
+first run estimates after search workers start completing; later runs also use
+a small browser-local timing model from previous runs.  Other LAST options are
+passed through to the compiled LAST programs rather than reinterpreted by a
+separate JavaScript search engine.
+
+WASM/Node (legacy experimental)
+-------------------------------
+
+This repository still contains experimental WebAssembly builds for Node.js.
 
 - Build for Node:
 
@@ -122,17 +170,3 @@ Notes:
   ``LASTDB_ALLOW_THREADS=1`` を付与すればそのまま使用できます。
   例: ``LASTDB_ALLOW_THREADS=1 lastdb-wasm -v -P 2 -C1 /tmp/mydb test/huma.fa``
 - ``lastal`` wrapper copies the database and query files into an in-memory FS and writes results to stdout.
-
-WASM/Web (experimental, threads)
---------------------------------
-
-- ビルド: ``npm run build:web`` （``web/lastdb.js(.wasm)`` と ``web/lastal.js(.wasm)`` を生成）
-- 起動: ルート直下で HTTP サーバーを起動して ``index.html`` を開く。
-
-  例: ``python3 -m http.server 8000`` を実行し、ブラウザで ``http://localhost:8000/index.html`` へアクセス。
-
-- 並列化（-P N）:
-
-  - 本リポジトリは ``coi-serviceworker.js`` を同梱し、初回アクセス時に Service Worker を登録して COOP/COEP を付与、再読み込み後に ``SharedArrayBuffer`` を有効化します。
-  - これによりブラウザでも pthreads による並列化が可能になります。UI の引数欄に ``-P 2`` などを指定してください。
-  - もし cross-origin isolation が無効な状態では、UI 側で ``-P 1`` に自動変更し警告を表示します。
