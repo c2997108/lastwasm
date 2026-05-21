@@ -1,51 +1,62 @@
-# LAST in WebAssembly (Browser)
+# LAST-JS browser UI
 
-This folder contains a minimal web UI and build script to compile `lastdb` and `lastal` to WebAssembly using Emscripten, enabling in-browser homology search.
+This folder contains the browser implementation used by `index.html`.
 
-## Prerequisites
+The browser path runs the same LAST algorithm as the WASM build without a
+dataset-specific fallback. `lastdb.asm.js` and `lastal.asm.js` are generated from
+the Emscripten LAST WASM build with Binaryen `wasm2js`. The patched Emscripten
+glue in `lastdb.js` and `lastal.js` can load either asm.js or WASM. The page
+builds the database once, then runs `lastal` search jobs in a Web Worker pool by
+splitting the query FASTA by record.
 
-- Emscripten SDK installed and activated (`emcc`, `em++` in PATH)
-  - https://emscripten.org/docs/getting_started/downloads.html
-  - After installing: `source <emsdk>/emsdk_env.sh`
+## Files
 
-## Build
-
-```bash
-cd web
-./build_wasm.sh
-```
-
-This generates `web/lastdb.js/.wasm` and `web/lastal.js/.wasm`.
+- `main.js`: UI controller and Plotly dot plot rendering.
+- `jslast.js`: high-level runner that writes FASTA into the Emscripten FS, runs
+  compiled `lastdb`, copies the generated database files, and dispatches
+  compiled `lastal -f TAB` search jobs.
+- `jslast-runner-worker.js`: background runner that keeps the browser UI
+  responsive while indexing/search is running.
+- `lastal-worker.js`: Web Worker entry point for parallel `lastal` search.
+- `lastdb.js` / `lastal.js`: Emscripten browser glue patched for asm.js loading.
+- `lastdb.asm.js` / `lastal.asm.js`: Binaryen `wasm2js` output.
+- `../coi-serviceworker.js`: enables COOP/COEP on static hosts so browsers can
+  use the faster WASM worker runtime.
+- `samples/`: small FASTA files for smoke tests.
 
 ## Run
 
-Serve the `web/` directory with a local HTTP server (modules + WASM need HTTP). To enable multi-threading (for `-P > 1`), the page must be cross-origin isolated (COOP/COEP). This repo includes a service worker that sets those headers:
+Serve the repository root and open `index.html`:
 
 ```bash
-cd web
-python3 -m http.server 8080
-# then open http://localhost:8080 in your browser
+python -m http.server 8000
 ```
 
-Use the UI to select:
-- Target FASTA for `lastdb` (database)
-- Query FASTA for `lastal`
-- Optional flags for each command
+Then open `http://localhost:8000/`.
 
-All files run in the browser’s memory (no upload). `lastdb` output files are copied from its virtual filesystem to `lastal`’s virtual filesystem automatically.
+Opening `index.html` directly with `file://` is not supported because browsers
+block ES module loading from local files.
 
-## Notes
+## Options
 
-- Multi-threading: The build enables WebAssembly pthreads. Browsers require `SharedArrayBuffer`, which in turn requires cross-origin isolation (COOP/COEP). The included `coi-serviceworker.js` registers automatically and will reload the page once active; after that `lastal` can use `-P N` (N > 1).
-- If opened via `file://` or a server that blocks service workers, threads won’t be available; use `-P 1`.
-- zlib is enabled via Emscripten ports (`-sUSE_ZLIB=1`).
-- Large datasets may run out of memory in the browser; try smaller inputs.
+The UI keeps LAST-like option fields. `lastdb` options are passed to compiled
+LAST; when the "LAST defaults" checkbox is enabled, the browser uses:
 
-## Samples
+```text
+--bits=4 -R00 -uNEAR -w1 -W1 -S1 -C1 -v
+```
 
-Small example FASTA files are provided in `web/samples/`:
+Search options are passed to compiled `lastal` after forcing `-f TAB`. The
+Workers field controls the Web Worker pool size. The requested worker count is
+capped by the number of query FASTA records; a single query record stays on one
+search worker to preserve LAST's query-level behavior. If COOP/COEP is active,
+search workers use the WASM runtime; otherwise they use the asm.js runtime.
+The UI shows elapsed time and an approximate remaining time. The first run
+estimates after worker completions are observed; later runs also use a small
+browser-local timing model from previous runs.
 
-- `web/samples/sample_ref.fasta`
-- `web/samples/sample_qry.fasta`
+## Regression
 
-You can use these for a quick sanity check by selecting them for both inputs in the web UI.
+`npm run test:web` generates a fresh TAB baseline with the Node WASM CLI and
+compares it byte-for-byte with an 8-worker browser search. This verifies
+algorithmic parity without a stored fixture or input-specific output path.

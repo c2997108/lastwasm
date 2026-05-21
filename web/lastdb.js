@@ -297,6 +297,26 @@ function updateMemoryViews() {
   HEAPU64 = new BigUint64Array(b);
 }
 
+function createAsmJsMemory(initialBytes) {
+  var pageBytes = 65536;
+  var pages = Math.ceil(initialBytes / pageBytes);
+  var memory = {
+    buffer: new ArrayBuffer(pages * pageBytes),
+    grow(pagesToAdd) {
+      pagesToAdd = pagesToAdd | 0;
+      if (pagesToAdd <= 0) return pages;
+      var oldPages = pages;
+      var oldBytes = new Uint8Array(memory.buffer);
+      pages += pagesToAdd;
+      var nextBuffer = new ArrayBuffer(pages * pageBytes);
+      new Uint8Array(nextBuffer).set(oldBytes);
+      memory.buffer = nextBuffer;
+      return oldPages;
+    }
+  };
+  return memory;
+}
+
 // In non-standalone/normal mode, we create the memory here.
 // include: runtime_init_memory.js
 // Create the wasm memory. (Note: this only applies if IMPORTED_MEMORY is defined)
@@ -309,16 +329,15 @@ function initMemory() {
     wasmMemory = Module["wasmMemory"];
   } else {
     var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 134217728;
-    /** @suppress {checkTypes} */ wasmMemory = new WebAssembly.Memory({
-      "initial": INITIAL_MEMORY / 65536,
-      // In theory we should not need to emit the maximum if we want "unlimited"
-      // or 4GB of memory, but VMs error on that atm, see
-      // https://github.com/emscripten-core/emscripten/issues/14130
-      // And in the pthreads case we definitely need to emit a maximum. So
-      // always emit one.
-      "maximum": 32768,
-      "shared": true
-    });
+    if (Module["useAsmJs"] !== false) {
+      wasmMemory = createAsmJsMemory(INITIAL_MEMORY);
+    } else {
+      /** @suppress {checkTypes} */ wasmMemory = new WebAssembly.Memory({
+        "initial": INITIAL_MEMORY / 65536,
+        "maximum": 32768,
+        "shared": true
+      });
+    }
   }
   updateMemoryViews();
 }
@@ -544,6 +563,11 @@ async function createWasm() {
     });
   }
   wasmBinaryFile ??= findWasmBinary();
+  if (Module["useAsmJs"] !== false) {
+    var asmJsModule = await import(locateFile("lastdb.asm.js"));
+    var asmJsExports = asmJsModule.instantiate(info);
+    return receiveInstance({ exports: asmJsExports }, { asmjs: true });
+  }
   var result = await instantiateAsync(wasmBinary, wasmBinaryFile, info);
   var exports = receiveInstantiationResult(result);
   return exports;
@@ -592,6 +616,8 @@ var spawnThread = threadParams => {
     return 6;
   }
   PThread.runningWorkers.push(worker);
+  Module["pthreadSpawnCount"] = (Module["pthreadSpawnCount"] || 0) + 1;
+  Module["pthreadMaxRunning"] = Math.max(Module["pthreadMaxRunning"] || 0, PThread.runningWorkers.length);
   // Add to pthreads map
   PThread.pthreads[threadParams.pthread_ptr] = worker;
   worker.pthread_ptr = threadParams.pthread_ptr;
@@ -810,7 +836,17 @@ var PThread = {
     });
   }),
   loadWasmModuleToAllWorkers(onMaybeReady) {
-    onMaybeReady();
+    var pthreadPoolSize = Module["pthreadPoolSize"] || 0;
+    if (!pthreadPoolSize) {
+      onMaybeReady();
+      return;
+    }
+    var loading = [];
+    for (var i = 0; i < pthreadPoolSize; i++) {
+      PThread.allocateUnusedWorker();
+      loading.push(PThread.loadWasmModuleToWorker(PThread.unusedWorkers[i]));
+    }
+    Promise.all(loading).then(onMaybeReady);
   },
   allocateUnusedWorker() {
     var worker;
@@ -3987,6 +4023,9 @@ var callUserCallback = func => {
 };
 
 var __emscripten_thread_mailbox_await = pthread_ptr => {
+  if (typeof SharedArrayBuffer == "undefined" || !(HEAP32.buffer instanceof SharedArrayBuffer)) {
+    return;
+  }
   if (typeof Atomics.waitAsync === "function") {
     // Wait on the pthread's initial self-pointer field because it is easy and
     // safe to access from sending threads that need to notify the waiting
@@ -4928,4 +4967,3 @@ export default Module;
 var isPthread = globalThis.self?.name?.startsWith('em-pthread');
 
 isPthread && Module();
-

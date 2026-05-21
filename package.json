@@ -1,12 +1,13 @@
 {
-  "name": "last-wasm-web-test",
+  "name": "last-js-web-test",
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build:web": "bash web/build_wasm.sh",
+    "build:web": "node -e \"console.log('Browser asm.js runtime is checked in; regenerate last*.asm.js from the matching LAST WASM build with Binaryen wasm2js.')\"",
     "build:node": "bash node/build_node_wasm.sh",
     "build:node:al": "bash node/build_node_lastal.sh",
     "test:web": "node web/playwright-test.js",
+    "compare:tab": "node util/compare-tab.js",
     "ci:e2e": "bash util/ci-e2e.sh",
     "demo:node": "npm run build:node && npm run build:node:al && LASTDB_ALLOW_THREADS=1 node cli/lastdb.js -v -P 2 -C1 /tmp/lastdb_demo_db test/huma.fa && node cli/lastal.js -v /tmp/lastdb_demo_db test/ttttt.fa > /tmp/lastdb_demo.maf && echo 'Wrote /tmp/lastdb_demo.maf'"
   },
@@ -15,6 +16,6 @@
     "lastal-wasm": "cli/lastal.js"
   },
   "devDependencies": {
-    "playwright": "^1.47.2"
+    "playwright": "^1.60.0"
   }
 }
