@@ -220,7 +220,7 @@
 
         <div class="controls">
           <div>
-            <label for="workerCount">Workers</label>
+            <label for="workerCount">Threads</label>
             <input type="number" id="workerCount" min="1" step="1" />
           </div>
 
@@ -257,7 +257,7 @@
     if (location.protocol !== 'file:') {
       const script = document.createElement('script');
       script.type = 'module';
-      script.src = './web/main.js?v=20260521-eta-worker';
+      script.src = './web/main.js?v=20260724-wasm-pthreads';
       document.body.appendChild(script);
     } else {
       document.querySelector('#status').textContent = 'Open this page through a local HTTP server.';

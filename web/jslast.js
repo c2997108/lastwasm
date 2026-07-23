@@ -1,10 +1,11 @@
-import { JSLAST_VERSION } from './version.js?v=20260521-eta-worker';
-import createLastdbModule from './lastdb.js?v=20260521-eta-worker';
-import createLastalModule from './lastal.js?v=20260521-eta-worker';
+import { JSLAST_VERSION } from './version.js?v=20260724-wasm-pthreads';
+import createLastdbModule from './lastdb.js?v=20260724-wasm-pthreads';
+import createLastalModule from './lastal.js?v=20260724-wasm-pthreads';
 
 export { JSLAST_VERSION };
 
 const DEFAULT_LASTDB_ARGS = ['--bits=4', '-R00', '-uNEAR', '-w1', '-W1', '-S1', '-C1', '-v'];
+const DEFAULT_QUERY_BATCH_SIZE = '64M';
 const LASTDB_MEMORY = 134217728;
 const LASTAL_MEMORY = 268435456;
 
@@ -32,15 +33,17 @@ export async function runJsLast({
   const queryLetters = totalSequenceLetters(queries);
 
   const requested = Math.max(1, Number(requestedThreads || 1));
-  const searchWorkers = Math.max(1, Math.min(requested, queryRecords.length));
-  const canUseWorkerWasm = hasWasmThreadSupport();
-  const runtime = searchWorkers > 1
-    ? (canUseWorkerWasm ? 'wasm-worker-pool' : 'asmjs-worker-pool')
-    : 'asmjs';
-  const threads = searchWorkers;
+  const threads = Math.max(1, Math.min(requested, queryRecords.length));
+  const canUseWasmThreads = hasWasmThreadSupport();
+  const runtime = canUseWasmThreads
+    ? 'wasm-pthreads'
+    : (threads > 1 ? 'asmjs-worker-pool' : 'asmjs');
   const warnings = [];
   if (requested > queryRecords.length) {
-    warnings.push(`Search workers were limited to ${queryRecords.length} query FASTA record(s). LAST-compatible browser parallelism is split by query record.`);
+    warnings.push(`Search threads were limited to ${queryRecords.length} query FASTA record(s). LAST parallelism is split by query record.`);
+  }
+  if (!canUseWasmThreads && threads > 1) {
+    warnings.push('Shared-memory WASM is unavailable; using the higher-memory asm.js worker-pool fallback.');
   }
 
   progress({
@@ -99,16 +102,17 @@ export async function runJsLast({
   }));
 
   const alStderr = [];
-  const alArgs = normalizeAlArgs(splitArgs(lastalArgs));
+  const alArgs = ensureQueryBatchArgs(normalizeAlArgs(splitArgs(lastalArgs)));
 
   const searchStartedAt = performance.now();
   progress({
     stage: 'lastal',
     status: 'start',
-    message: searchWorkers > 1
-      ? `Running lastal on ${searchWorkers} search workers...`
-      : 'Running lastal...',
-    workers: searchWorkers,
+    message: runtime === 'wasm-pthreads'
+      ? `Running lastal with ${threads} shared-memory thread(s)...`
+      : (threads > 1 ? `Running lastal on ${threads} search workers...` : 'Running lastal...'),
+    workers: runtime.endsWith('worker-pool') ? threads : 0,
+    threads,
     queryLetters,
   });
 
@@ -116,14 +120,14 @@ export async function runJsLast({
   let alThreadStats = { spawned: 0, maxRunning: 0 };
   let searchWorkerStats = { started: 0, completed: 0 };
   let searchProgressStats = null;
-  if (searchWorkers > 1) {
-    const chunks = splitRecords(queryRecords, searchWorkers);
+  if (runtime.endsWith('worker-pool')) {
+    const chunks = splitRecords(queryRecords, threads);
     const workerResult = await runLastalWorkerPool({
       chunks,
       dbFiles: dbFilePayloads,
       dbName,
       alArgs,
-      useAsmJs: !canUseWorkerWasm,
+      useAsmJs: true,
       onProgress: progress,
     });
     tabText = workerResult.tabText;
@@ -135,8 +139,8 @@ export async function runJsLast({
     const lastalModule = await createLastalModule(moduleOptions({
       moduleName: 'lastal',
       memory: LASTAL_MEMORY,
-      runtime: 'asmjs',
-      threads: 1,
+      runtime,
+      threads,
       stdout: line => tabLines.push(line),
       stderr: line => alStderr.push(line),
     }));
@@ -147,7 +151,7 @@ export async function runJsLast({
       alFS.writeFile(file.name, file.data);
     }
     alFS.writeFile('query.fa', qryText || '');
-    runMain(lastalModule, ['-f', 'TAB', '-P', '1', ...alArgs, dbName, 'query.fa'], 'lastal', alStderr);
+    runMain(lastalModule, ['-f', 'TAB', '-P', String(threads), ...alArgs, dbName, 'query.fa'], 'lastal', alStderr);
     alThreadStats = threadStats(lastalModule);
     tabText = tabLines.length > 0 ? `${tabLines.join('\n')}\n` : '';
   }
@@ -157,7 +161,8 @@ export async function runJsLast({
     status: 'complete',
     message: 'lastal complete',
     elapsedMs: searchElapsedMs,
-    workers: searchWorkers,
+    workers: runtime.endsWith('worker-pool') ? threads : 0,
+    threads,
   });
 
   const alignments = parseTabAlignments(tabText);
@@ -182,7 +187,7 @@ export async function runJsLast({
       searchMs: searchElapsedMs,
       refLetters,
       queryLetters,
-      searchWorkers,
+      searchWorkers: threads,
     },
     dbLog: dbStderr.concat(dbStdout),
     alLog: alStderr,
@@ -211,7 +216,7 @@ function moduleOptions({ moduleName, memory, runtime, threads, stdout, stderr })
     INITIAL_MEMORY: memory,
     locateFile: path => new URL(path, import.meta.url).href,
     mainScriptUrlOrBlob: new URL(`./${moduleName}.js?v=${JSLAST_VERSION}`, import.meta.url).href,
-    pthreadPoolSize: useAsmJs ? 0 : Math.max(0, threads),
+    pthreadPoolSize: useAsmJs ? 0 : Math.max(0, threads - 1),
     print: stdout,
     printErr: stderr,
   };
@@ -457,6 +462,11 @@ function normalizeAlArgs(args) {
     normalized.push(arg);
   }
   return normalized;
+}
+
+function ensureQueryBatchArgs(args) {
+  if (args.some(arg => arg === '-i' || /^-i.+/.test(arg))) return args;
+  return ['-i', DEFAULT_QUERY_BATCH_SIZE, ...args];
 }
 
 function stripThreadArgs(args) {

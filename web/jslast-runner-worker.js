@@ -1,4 +1,4 @@
-import { runJsLast } from './jslast.js?v=20260521-eta-worker';
+import { runJsLast } from './jslast.js?v=20260724-wasm-pthreads';
 
 self.onmessage = async event => {
   const data = event.data || {};

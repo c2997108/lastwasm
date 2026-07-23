@@ -1,4 +1,4 @@
-import createLastalModule from './lastal.js?v=20260521-eta-worker';
+import createLastalModule from './lastal.js?v=20260724-wasm-pthreads';
 
 self.onmessage = async event => {
   const {

@@ -1,4 +1,4 @@
-import { JSLAST_VERSION } from './version.js?v=20260521-eta-worker';
+import { JSLAST_VERSION } from './version.js?v=20260724-wasm-pthreads';
 
 window.__JSLAST_MODULE_READY = true;
 
@@ -12,6 +12,7 @@ const workerInput = $('#workerCount');
 const lastdbArgsInput = $('#lastdbArgs');
 const lastalArgsInput = $('#lastalArgs');
 const safeMode = $('#safeMode');
+const TIMING_MODEL_KEY = `lastjsTimingModel:${JSLAST_VERSION}`;
 
 let runClock = null;
 let estimateState = null;
@@ -109,10 +110,9 @@ async function run() {
     if (result.runtime.endsWith('worker-pool')) {
       appendLog(`lastal-workers started=${result.searchWorkerStats.started} completed=${result.searchWorkerStats.completed}`);
     } else if (result.runtime === 'wasm-pthreads') {
-      appendLog(`lastdb-pthreads spawned=${result.dbThreadStats.spawned} maxRunning=${result.dbThreadStats.maxRunning}`);
       appendLog(`lastal-pthreads spawned=${result.alThreadStats.spawned} maxRunning=${result.alThreadStats.maxRunning}`);
     }
-    appendLog(`worker=${result.threads}, alignments=${result.alignments.length}`);
+    appendLog(`threads=${result.threads}, alignments=${result.alignments.length}`);
     renderPlotlyFromTab(result.tabText);
     setStatus('Done');
     finishEstimateClock(result.timing);
@@ -267,7 +267,7 @@ function estimateTotalMs(summary, model) {
 
 function loadTimingModel() {
   try {
-    const raw = localStorage.getItem('lastjsTimingModel');
+    const raw = localStorage.getItem(TIMING_MODEL_KEY);
     if (!raw) return null;
     const model = JSON.parse(raw);
     if (!Number.isFinite(model.dbMsPerRefLetter) || !Number.isFinite(model.searchWorkerMsPerQueryLetter)) return null;
@@ -291,7 +291,7 @@ function updateTimingModel(timing) {
     searchWorkerMsPerQueryLetter: previous.searchWorkerMsPerQueryLetter * (1 - alpha) + next.searchWorkerMsPerQueryLetter * alpha,
   } : next;
   try {
-    localStorage.setItem('lastjsTimingModel', JSON.stringify(model));
+    localStorage.setItem(TIMING_MODEL_KEY, JSON.stringify(model));
   } catch {}
 }
 

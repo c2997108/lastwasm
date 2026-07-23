@@ -83,11 +83,11 @@ async function main() {
     if (!/Elapsed \d+:\d{2}/.test(timeEstimate || '')) {
       throw new Error(`elapsed time display not found: ${timeEstimate}`);
     }
-    if (!log || !/runtime=compiled LAST wasm-worker-pool threads=8/.test(log)) {
-      throw new Error(`worker-pool runtime log not found:\n${log}`);
+    if (!log || !/runtime=compiled LAST wasm-pthreads threads=8/.test(log)) {
+      throw new Error(`pthread runtime log not found:\n${log}`);
     }
-    if (!/lastal-workers started=8 completed=8/.test(log)) {
-      throw new Error(`worker-pool completion log not found:\n${log}`);
+    if (!/lastal-pthreads spawned=7 maxRunning=7/.test(log)) {
+      throw new Error(`pthread completion log not found:\n${log}`);
     }
     if (wasmRequests.length < 1) throw new Error(`expected worker WASM requests, got: ${wasmRequests.join(', ')}`);
 
@@ -104,11 +104,38 @@ async function main() {
     if (singleTab !== singleExpectedTab) {
       throw new Error(`single-record TAB output differs from WASM baseline: expected ${singleExpectedTab.length} chars, got ${singleTab.length}`);
     }
-    if (!/runtime=compiled LAST asmjs threads=1/.test(singleLog)) {
-      throw new Error(`single-record fallback runtime log not found:\n${singleLog}`);
+    if (!/runtime=compiled LAST wasm-pthreads threads=1/.test(singleLog)) {
+      throw new Error(`single-record WASM runtime log not found:\n${singleLog}`);
     }
-    if (!/Search workers were limited to 1 query FASTA record/.test(singleLog)) {
-      throw new Error(`single-record worker limit warning not found:\n${singleLog}`);
+    if (!/Search threads were limited to 1 query FASTA record/.test(singleLog)) {
+      throw new Error(`single-record thread limit warning not found:\n${singleLog}`);
+    }
+
+    const largeFasta = process.env.LAST_WEB_LARGE_FASTA;
+    if (largeFasta) {
+      const largePath = path.resolve(largeFasta);
+      await page.setInputFiles('#refFasta', largePath);
+      await page.setInputFiles('#qryFasta', largePath);
+      await page.fill('#workerCount', '8');
+      await page.click('#runBtn');
+      await page.waitForFunction(() => {
+        const status = document.querySelector('#status')?.textContent;
+        return status === 'Done' || status === 'Error';
+      }, null, { timeout: 900000 });
+
+      const largeStatus = await page.textContent('#status');
+      const largeLog = await page.textContent('#log');
+      const largeElapsed = await page.textContent('#timeEstimate');
+      if (largeStatus !== 'Done') {
+        throw new Error(`large FASTA browser run failed:\n${largeLog}`);
+      }
+      if (!/runtime=compiled LAST wasm-pthreads threads=8/.test(largeLog || '')) {
+        throw new Error(`large FASTA pthread runtime log not found:\n${largeLog}`);
+      }
+      if (!/lastal-pthreads spawned=7 maxRunning=7/.test(largeLog || '')) {
+        throw new Error(`large FASTA pthread completion log not found:\n${largeLog}`);
+      }
+      console.log(`Large FASTA E2E OK: ${largeElapsed}`);
     }
   } finally {
     await browser.close();
@@ -155,6 +182,7 @@ function buildWasmBaseline(rootDir, refFastaPath, queryFastaPath) {
       'cli/lastal.js',
       '-f', 'TAB',
       '-P', '1',
+      '-i', '64M',
       '-m1000',
       dbPath,
       queryFastaPath,

@@ -6,22 +6,23 @@ The browser path runs the same LAST algorithm as the WASM build without a
 dataset-specific fallback. `lastdb.asm.js` and `lastal.asm.js` are generated from
 the Emscripten LAST WASM build with Binaryen `wasm2js`. The patched Emscripten
 glue in `lastdb.js` and `lastal.js` can load either asm.js or WASM. The page
-builds the database once, then runs `lastal` search jobs in a Web Worker pool by
-splitting the query FASTA by record.
+builds the database once, then runs one `lastal` WASM instance with a shared
+linear memory and LAST's pthread pool. Query records are loaded in 64 MiB
+batches so `lastal -P` can distribute them across pthreads.
 
 ## Files
 
 - `main.js`: UI controller and Plotly dot plot rendering.
 - `jslast.js`: high-level runner that writes FASTA into the Emscripten FS, runs
-  compiled `lastdb`, copies the generated database files, and dispatches
-  compiled `lastal -f TAB` search jobs.
+  compiled `lastdb`, copies the generated database files once, and runs compiled
+  `lastal -f TAB -P N -i 64M`.
 - `jslast-runner-worker.js`: background runner that keeps the browser UI
   responsive while indexing/search is running.
-- `lastal-worker.js`: Web Worker entry point for parallel `lastal` search.
+- `lastal-worker.js`: asm.js fallback Web Worker entry point.
 - `lastdb.js` / `lastal.js`: Emscripten browser glue patched for asm.js loading.
 - `lastdb.asm.js` / `lastal.asm.js`: Binaryen `wasm2js` output.
 - `../coi-serviceworker.js`: enables COOP/COEP on static hosts so browsers can
-  use the faster WASM worker runtime.
+  use the shared-memory WASM pthread runtime.
 - `samples/`: small FASTA files for smoke tests.
 
 ## Run
@@ -46,17 +47,20 @@ LAST; when the "LAST defaults" checkbox is enabled, the browser uses:
 --bits=4 -R00 -uNEAR -w1 -W1 -S1 -C1 -v
 ```
 
-Search options are passed to compiled `lastal` after forcing `-f TAB`. The
-Workers field controls the Web Worker pool size. The requested worker count is
-capped by the number of query FASTA records; a single query record stays on one
-search worker to preserve LAST's query-level behavior. If COOP/COEP is active,
-search workers use the WASM runtime; otherwise they use the asm.js runtime.
-The UI shows elapsed time and an approximate remaining time. The first run
-estimates after worker completions are observed; later runs also use a small
-browser-local timing model from previous runs.
+Search options are passed to compiled `lastal` after forcing `-f TAB` and adding
+`-i 64M` unless the user supplied another batch size. The Threads field controls
+LAST's pthread count and is capped by the number of query FASTA records. If
+COOP/COEP is active, all pthreads share one WASM linear memory and one database
+copy; otherwise the page uses the higher-memory asm.js worker-pool fallback. The
+UI shows elapsed time and an approximate remaining time, using a small
+browser-local timing model from previous runs when available.
 
 ## Regression
 
 `npm run test:web` generates a fresh TAB baseline with the Node WASM CLI and
-compares it byte-for-byte with an 8-worker browser search. This verifies
+compares it byte-for-byte with an 8-thread browser search. This verifies
 algorithmic parity without a stored fixture or input-specific output path.
+
+`npm run test:pthread` compares one-thread and eight-thread execution in a
+single WASM instance and checks renderer CPU time, speedup, pthread concurrency,
+and output line counts.

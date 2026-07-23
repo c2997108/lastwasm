@@ -106,10 +106,11 @@ The browser UI in ``index.html`` runs the same LAST algorithm as the WASM build
 without special-casing input files.  ``web/lastdb.asm.js`` and
 ``web/lastal.asm.js`` are generated from the Emscripten LAST WASM build with
 Binaryen ``wasm2js`` and are loaded by the browser glue in ``web/lastdb.js`` and
-``web/lastal.js``.  The browser builds the database once, then parallelizes
-``lastal`` by splitting query FASTA records across Web Workers.  When
-cross-origin isolation is active those search workers run the WASM runtime;
-otherwise they use the asm.js runtime generated from the same LAST build.
+``web/lastal.js``.  The browser builds the database once, then runs one
+``lastal`` WASM instance with a shared linear memory and LAST's pthreads.  Query
+records are loaded in 64 MiB batches so ``lastal -P`` can divide each batch
+across the pthread pool.  Without cross-origin isolation, the browser falls back
+to the asm.js worker pool generated from the same LAST build.
 
 Open the page through a local HTTP server.  Direct ``file://`` browsing is not
 supported because browsers block ES module loading from local files.  The
@@ -129,7 +130,7 @@ the service worker is installed.
     dispatches compiled ``lastal`` search jobs
   * ``web/jslast-runner-worker.js``: background runner so indexing/search does
     not block browser UI updates
-  * ``web/lastal-worker.js``: Web Worker entry point for parallel search
+  * ``web/lastal-worker.js``: asm.js fallback Web Worker entry point
   * ``web/lastdb.js`` / ``web/lastal.js``: Emscripten browser glue patched to
     load asm.js or WASM at runtime
   * ``web/lastdb.asm.js`` / ``web/lastal.asm.js``: Binaryen ``wasm2js`` output
@@ -137,15 +138,16 @@ the service worker is installed.
 - Regression test:
 
   * ``npm run test:web`` generates a fresh TAB baseline with the Node WASM CLI
-    and compares it byte-for-byte with an 8-worker browser search.
+    and compares it byte-for-byte with an 8-thread browser search.
+  * ``npm run test:pthread`` checks that one shared WASM instance executes
+    LAST's pthread search concurrently and reports effective CPU usage.
 
-The requested worker count is capped by the number of query FASTA records.  A
-single query record is kept on one search worker to preserve LAST's query-level
-semantics.  The UI shows elapsed time and an approximate remaining time.  The
-first run estimates after search workers start completing; later runs also use
-a small browser-local timing model from previous runs.  Other LAST options are
-passed through to the compiled LAST programs rather than reinterpreted by a
-separate JavaScript search engine.
+The requested thread count is capped by the number of query FASTA records.  A
+single query record therefore uses one search thread.  The UI shows elapsed time
+and an approximate remaining time, using a small browser-local timing model from
+previous runs when available.  Other LAST options are passed through to the
+compiled LAST programs rather than reinterpreted by a separate JavaScript search
+engine.
 
 WASM/Node (legacy experimental)
 -------------------------------
