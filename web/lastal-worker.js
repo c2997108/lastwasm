@@ -1,4 +1,4 @@
-import createLastalModule from './lastal.js?v=20260724-wasm-pthreads';
+import createLastalModule from './lastal.js?v=20260724-large-results';
 
 self.onmessage = async event => {
   const {
@@ -12,7 +12,8 @@ self.onmessage = async event => {
     memory,
   } = event.data || {};
 
-  const stdout = [];
+  const stdout = createLineCollector();
+  let alignmentCount = 0;
   const stderr = [];
   const startedAt = performance.now();
   try {
@@ -22,7 +23,10 @@ self.onmessage = async event => {
       useAsmJs,
       INITIAL_MEMORY: memory,
       locateFile: path => new URL(path, import.meta.url).href,
-      print: line => stdout.push(line),
+      print: line => {
+        stdout.push(line);
+        if (/^\d+\t/.test(String(line || ''))) alignmentCount += 1;
+      },
       printErr: line => stderr.push(line),
     });
 
@@ -39,7 +43,8 @@ self.onmessage = async event => {
     self.postMessage({
       ok: true,
       index,
-      tabText: stdout.length > 0 ? `${stdout.join('\n')}\n` : '',
+      tabText: stdout.text(),
+      alignmentCount,
       alLog: stderr,
       elapsedMs: performance.now() - startedAt,
     });
@@ -53,6 +58,30 @@ self.onmessage = async event => {
     });
   }
 };
+
+function createLineCollector(chunkSize = 1024 * 1024) {
+  let lines = [];
+  let chars = 0;
+  const chunks = [];
+  const flush = () => {
+    if (lines.length === 0) return;
+    chunks.push(`${lines.join('\n')}\n`);
+    lines = [];
+    chars = 0;
+  };
+  return {
+    push(line) {
+      const text = String(line ?? '');
+      lines.push(text);
+      chars += text.length + 1;
+      if (chars >= chunkSize) flush();
+    },
+    text() {
+      flush();
+      return chunks.join('');
+    },
+  };
+}
 
 function runMain(module, argv, program, stderrLines) {
   try {

@@ -18,6 +18,7 @@ batches so `lastal -P` can distribute them across pthreads.
   `lastal -f TAB -P N -i 64M`.
 - `jslast-runner-worker.js`: background runner that keeps the browser UI
   responsive while indexing/search is running.
+- `plot-parser-worker.js`: parallel TAB parser and Plotly coordinate builder.
 - `lastal-worker.js`: asm.js fallback Web Worker entry point.
 - `lastdb.js` / `lastal.js`: Emscripten browser glue patched for asm.js loading.
 - `lastdb.asm.js` / `lastal.asm.js`: Binaryen `wasm2js` output.
@@ -51,9 +52,19 @@ Search options are passed to compiled `lastal` after forcing `-f TAB` and adding
 `-i 64M` unless the user supplied another batch size. The Threads field controls
 LAST's pthread count and is capped by the number of query FASTA records. If
 COOP/COEP is active, all pthreads share one WASM linear memory and one database
-copy; otherwise the page uses the higher-memory asm.js worker-pool fallback. The
-UI shows elapsed time and an approximate remaining time, using a small
-browser-local timing model from previous runs when available.
+copy. Without shared memory, the page uses one asm.js search worker instead of
+duplicating the database and 256 MiB runtime across workers. The UI reports
+pthread query-chunk completion as a search percentage. It also shows elapsed
+time and an approximate remaining time, using a small browser-local timing model
+from previous runs when available.
+
+For large results, the first 2 MiB of TAB text is painted as soon as search
+finishes. The complete UTF-8 result is transferred as an `ArrayBuffer` and is
+available from **Download TAB**, without inserting millions of lines into the
+DOM. The page then divides one shared TAB buffer at line boundaries and uses up
+to eight Web Workers to parse alignments. Dot plots evenly sample at most
+100,000 alignments before Plotly's WebGL `scattergl` renderer draws transferable
+coordinate arrays on the GPU. The downloaded TAB result is never sampled.
 
 ## Regression
 

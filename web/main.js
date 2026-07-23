@@ -1,4 +1,4 @@
-import { JSLAST_VERSION } from './version.js?v=20260724-wasm-pthreads';
+import { JSLAST_VERSION } from './version.js?v=20260724-large-results';
 
 window.__JSLAST_MODULE_READY = true;
 
@@ -6,6 +6,8 @@ const $ = (sel) => document.querySelector(sel);
 const statusEl = $('#status');
 const logEl = $('#log');
 const tabEl = $('#tab');
+const tabSummaryEl = $('#tabSummary');
+const downloadTabBtn = $('#downloadTabBtn');
 const timeEl = $('#timeEstimate');
 const runBtn = $('#runBtn');
 const workerInput = $('#workerCount');
@@ -13,9 +15,20 @@ const lastdbArgsInput = $('#lastdbArgs');
 const lastalArgsInput = $('#lastalArgs');
 const safeMode = $('#safeMode');
 const TIMING_MODEL_KEY = `lastjsTimingModel:${JSLAST_VERSION}`;
+const THREAD_PROGRESS_COMPLETED = 0;
+const THREAD_PROGRESS_STARTED_BATCHES = 1;
+const THREAD_PROGRESS_THREADS = 2;
+const THREAD_PROGRESS_TOTAL_BATCHES = 3;
+const THREAD_PROGRESS_DONE = 4;
+const MAX_PLOT_WORKERS = 8;
+const MAX_PLOT_ALIGNMENTS = 100000;
+const MAX_UNSHARED_PLOT_BYTES = 32 * 1024 * 1024;
 
 let runClock = null;
 let estimateState = null;
+let threadProgressView = null;
+let threadProgressTimer = null;
+let latestTabBuffer = null;
 
 function setStatus(message) {
   if (statusEl) statusEl.textContent = message;
@@ -44,7 +57,7 @@ function configureDefaults() {
   }
 
   if (lastalArgsInput && !lastalArgsInput.value) {
-    lastalArgsInput.value = '-m1000';
+    lastalArgsInput.value = '-m100';
   }
 
   const updateSafeMode = () => {
@@ -67,6 +80,9 @@ async function run() {
   if (logEl) logEl.textContent = '';
   if (tabEl) tabEl.textContent = '';
   if (timeEl) timeEl.textContent = '';
+  if (tabSummaryEl) tabSummaryEl.textContent = '';
+  latestTabBuffer = null;
+  if (downloadTabBtn) downloadTabBtn.disabled = true;
   clearPlot();
 
   try {
@@ -103,19 +119,32 @@ async function run() {
           for (const warning of event.warnings || []) appendLog(`[WARN] ${warning}`);
         }
       },
+      onTabPreview: showTabPreview,
     });
 
-    if (tabEl) tabEl.textContent = result.tabText;
+    latestTabBuffer = result.tabBuffer;
+    if (downloadTabBtn) downloadTabBtn.disabled = !latestTabBuffer;
+    if (tabSummaryEl) tabSummaryEl.textContent = formatTabSummary(result.tabByteLength, true);
     updateTimingModel(result.timing);
     if (result.runtime.endsWith('worker-pool')) {
       appendLog(`lastal-workers started=${result.searchWorkerStats.started} completed=${result.searchWorkerStats.completed}`);
     } else if (result.runtime === 'wasm-pthreads') {
       appendLog(`lastal-pthreads spawned=${result.alThreadStats.spawned} maxRunning=${result.alThreadStats.maxRunning}`);
     }
-    appendLog(`threads=${result.threads}, alignments=${result.alignments.length}`);
-    renderPlotlyFromTab(result.tabText);
-    setStatus('Done');
+    appendLog(`threads=${result.threads}, alignments=${result.alignmentCount}`);
+    setStatus(`Result ready: ${result.alignmentCount} alignments`);
     finishEstimateClock(result.timing);
+    await afterNextPaint();
+    setStatus('Rendering dot plot...');
+    await afterNextPaint();
+    const plotStats = await renderPlotlyFromTab(result.tabBuffer, requestedThreads);
+    if (plotStats.workers > 0) {
+      appendLog(`dotplot-parser workers=${plotStats.workers} alignments=${plotStats.alignments} plotted=${plotStats.plotted}`);
+      if (plotStats.plotted < plotStats.alignments) {
+        appendLog(`[WARN] Dot plot sampled ${plotStats.plotted} of ${plotStats.alignments} alignments to limit memory use.`);
+      }
+    }
+    setStatus('Done');
   } catch (error) {
     setStatus('Error');
     appendLog(error?.stack || String(error));
@@ -138,9 +167,14 @@ function runJsLastInWorker(payload) {
         payload.onProgress?.(data.event);
         return;
       }
+      if (data.type === 'tab-preview') {
+        payload.onTabPreview?.(data);
+        return;
+      }
       worker.terminate();
+      stopThreadProgress();
       if (data.type === 'done') {
-        resolve(data.result);
+        resolve({ ...data.result, tabBuffer: data.tabBuffer });
       } else {
         reject(new Error(data.error || 'LAST worker failed'));
       }
@@ -148,12 +182,90 @@ function runJsLastInWorker(payload) {
 
     worker.onerror = error => {
       worker.terminate();
+      stopThreadProgress();
       reject(new Error(error.message || 'LAST worker failed'));
     };
 
-    const { onProgress, ...runPayload } = payload;
+    const { onProgress, onTabPreview, ...runPayload } = payload;
+    if (hasSharedMemory()) {
+      const threadProgressBuffer = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * 5);
+      runPayload.threadProgressBuffer = threadProgressBuffer;
+      startThreadProgress(threadProgressBuffer);
+    }
     worker.postMessage({ type: 'run', payload: runPayload });
   });
+}
+
+function showTabPreview({ text, truncated, totalChars }) {
+  if (tabEl) {
+    tabEl.textContent = truncated
+      ? `${text}\n# Preview limited to the first 2 MiB. Download TAB contains the complete result.\n`
+      : text;
+  }
+  if (tabSummaryEl) {
+    tabSummaryEl.textContent = truncated
+      ? `Preview ready · ${formatNumber(totalChars)} characters total`
+      : 'Complete result ready';
+  }
+  setStatus(truncated ? 'Result preview ready; preparing full TAB...' : 'Result ready');
+}
+
+function formatTabSummary(bytes, downloadable) {
+  if (!Number.isFinite(bytes)) return '';
+  const size = bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(1)} MiB`
+    : `${Math.ceil(bytes / 1024)} KiB`;
+  return downloadable ? `Complete TAB · ${size}` : size;
+}
+
+function formatNumber(value) {
+  return Number(value || 0).toLocaleString();
+}
+
+function downloadLatestTab() {
+  if (!latestTabBuffer) return;
+  const url = URL.createObjectURL(new Blob([latestTabBuffer], { type: 'text/tab-separated-values' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'lastal-result.tab';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function startThreadProgress(buffer) {
+  stopThreadProgress();
+  threadProgressView = new Int32Array(buffer);
+  threadProgressTimer = setInterval(updateThreadProgress, 50);
+}
+
+function stopThreadProgress() {
+  if (threadProgressTimer) clearInterval(threadProgressTimer);
+  threadProgressTimer = null;
+  threadProgressView = null;
+}
+
+function updateThreadProgress() {
+  const percent = readThreadProgressPercent();
+  if (percent === null || !estimateState || estimateState.phase !== 'Searching') return;
+  estimateState.searchPercent = percent;
+  setStatus(`Searching... ${percent}%`);
+  updateTimeEstimate();
+}
+
+function readThreadProgressPercent() {
+  if (!threadProgressView) return null;
+  if (Atomics.load(threadProgressView, THREAD_PROGRESS_DONE) > 0) return 100;
+  const threads = Atomics.load(threadProgressView, THREAD_PROGRESS_THREADS);
+  const totalBatches = Atomics.load(threadProgressView, THREAD_PROGRESS_TOTAL_BATCHES);
+  if (threads < 2 || totalBatches < 1) return null;
+
+  const startedBatches = Atomics.load(threadProgressView, THREAD_PROGRESS_STARTED_BATCHES);
+  const completedChildren = Atomics.load(threadProgressView, THREAD_PROGRESS_COMPLETED);
+  const completedBatches = Math.max(0, startedBatches - 1);
+  const childrenPerBatch = threads - 1;
+  const currentBatchChildren = Math.max(0, completedChildren - completedBatches * childrenPerBatch);
+  const completedUnits = completedBatches * threads + Math.min(childrenPerBatch, currentBatchChildren);
+  return Math.max(0, Math.min(99, Math.floor(completedUnits * 100 / (totalBatches * threads))));
 }
 
 function startEstimateClock({ refText, qryText, requestedThreads }) {
@@ -165,6 +277,7 @@ function startEstimateClock({ refText, qryText, requestedThreads }) {
     phase: 'Preparing',
     estimatedTotalMs: estimateTotalMs(summary, model),
     searchEstimatedRemainingMs: null,
+    searchPercent: null,
     completedWorkers: 0,
     totalWorkers: 0,
   };
@@ -196,6 +309,7 @@ function updateEstimateFromProgress(event) {
     if (Number.isFinite(event.estimatedRemainingMs)) {
       estimateState.searchEstimatedRemainingMs = Math.max(0, event.estimatedRemainingMs);
     }
+    if (Number.isFinite(event.percent)) estimateState.searchPercent = event.percent;
   } else if (event.stage === 'done') {
     estimateState.phase = 'Done';
   }
@@ -220,6 +334,8 @@ function updateTimeEstimate() {
   }
   if (estimateState.totalWorkers > 0) {
     parts.push(`${estimateState.completedWorkers}/${estimateState.totalWorkers} workers`);
+  } else if (Number.isFinite(estimateState.searchPercent)) {
+    parts.push(`${estimateState.searchPercent}%`);
   } else {
     parts.push(estimateState.phase);
   }
@@ -304,6 +420,12 @@ function formatDuration(ms) {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
+function afterNextPaint() {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+}
+
 function clearPlot() {
   const plotDiv = $('#dotplot');
   if (!plotDiv) return;
@@ -311,59 +433,24 @@ function clearPlot() {
   plotDiv.textContent = '';
 }
 
-function renderPlotlyFromTab(tabText) {
+async function renderPlotlyFromTab(tabBuffer, requestedWorkers) {
   const plotDiv = $('#dotplot');
-  if (!plotDiv || !tabText) return;
+  if (!plotDiv || !tabBuffer) return { workers: 0, alignments: 0, plotted: 0 };
   if (!window.Plotly) {
     plotDiv.textContent = 'Plotly is unavailable; TAB output is shown above.';
-    return;
+    return { workers: 0, alignments: 0, plotted: 0 };
+  }
+  const canShare = hasSharedMemory();
+  if (!canShare && tabBuffer.byteLength > MAX_UNSHARED_PLOT_BYTES) {
+    plotDiv.textContent = 'Dot plot skipped because shared memory is unavailable for this large result.';
+    return { workers: 0, alignments: 0, plotted: 0 };
   }
 
-  const segments = [];
-  const refOrders = [];
-  const qryOrders = [];
-  const refLenByName = new Map();
-  const qryLenByName = new Map();
-
-  for (const rawLine of tabText.split(/\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith('#') || line.startsWith('$') || line.startsWith('[')) continue;
-    const cols = line.split(/\s+/);
-    if (cols.length < 12) continue;
-
-    const score = Number(cols[0]);
-    const refName = cols[1];
-    const refStart = Number(cols[2]);
-    const refLen = Number(cols[3]);
-    const refStrand = cols[4];
-    const refTotal = Number(cols[5]);
-    const qryName = cols[6];
-    const qryStart = Number(cols[7]);
-    const qryLen = Number(cols[8]);
-    const qryStrand = cols[9];
-    const qryTotal = Number(cols[10]);
-    if ([score, refStart, refLen, refTotal, qryStart, qryLen, qryTotal].some(n => !Number.isFinite(n))) continue;
-
-    if (!refLenByName.has(refName)) {
-      refLenByName.set(refName, refTotal);
-      refOrders.push(refName);
-    }
-    if (!qryLenByName.has(qryName)) {
-      qryLenByName.set(qryName, qryTotal);
-      qryOrders.push(qryName);
-    }
-    segments.push({ score, refName, qryName, refStart, refLen, refTotal, refStrand, qryStart, qryLen, qryTotal, qryStrand });
-  }
-
-  if (segments.length === 0) {
+  const plotData = await parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare);
+  if (plotData.alignmentCount === 0) {
     plotDiv.textContent = 'No plottable alignments.';
-    return;
+    return { workers: plotData.workerCount, alignments: 0, plotted: 0 };
   }
-
-  const refOffsets = offsetsFor(refOrders, refLenByName);
-  const qryOffsets = offsetsFor(qryOrders, qryLenByName);
-  const maxX = totalLength(refOrders, refLenByName);
-  const maxY = totalLength(qryOrders, qryLenByName);
 
   const hovertemplate = [
     'Score: %{customdata.score}',
@@ -372,55 +459,204 @@ function renderPlotlyFromTab(tabText) {
     'Length: %{customdata.len}',
     '<extra></extra>',
   ].join('<br>');
-  const forward = trace('Forward', '#1664d9', hovertemplate);
-  const reverse = trace('Reverse', '#c92a2a', hovertemplate);
-
-  for (const s of segments) {
-    const roff = refOffsets.get(s.refName) || 0;
-    const qoff = qryOffsets.get(s.qryName) || 0;
-    const reverseQuery = s.qryStrand === '-';
-    const x1 = roff + s.refStart + 1;
-    const x2 = roff + s.refStart + s.refLen;
-    const y1 = qoff + (reverseQuery ? (s.qryTotal - s.qryStart) : (s.qryStart + 1));
-    const y2 = qoff + (reverseQuery ? (s.qryTotal - s.qryStart - s.qryLen + 1) : (s.qryStart + s.qryLen));
-    const target = reverseQuery ? reverse : forward;
-    const customdata = {
-      score: s.score,
-      refName: s.refName,
-      refStart: s.refStart + 1,
-      refEnd: s.refStart + s.refLen,
-      qryName: s.qryName,
-      qryStart: reverseQuery ? (s.qryTotal - s.qryStart) : (s.qryStart + 1),
-      qryEnd: reverseQuery ? (s.qryTotal - s.qryStart - s.qryLen + 1) : (s.qryStart + s.qryLen),
-      len: Math.min(s.refLen, s.qryLen),
-    };
-    target.x.push(x1, x2, null);
-    target.y.push(y1, y2, null);
-    target.customdata.push(customdata, customdata, null);
-  }
+  const traces = plotTraces(plotData.chunks, hovertemplate);
 
   const layout = {
-    xaxis: { title: 'Reference', range: [0, maxX], zeroline: false, showgrid: true },
-    yaxis: { title: 'Query', range: [0, maxY], scaleanchor: 'x', scaleratio: 1, zeroline: false, showgrid: true },
-    shapes: boundaryShapes(refOrders, refOffsets, qryOrders, qryOffsets, maxX, maxY),
-    annotations: sequenceAnnotations(refOrders, refOffsets, refLenByName, qryOrders, qryOffsets, qryLenByName),
+    xaxis: { title: 'Reference', range: [0, plotData.maxX], zeroline: false, showgrid: true },
+    yaxis: { title: 'Query', range: [0, plotData.maxY], scaleanchor: 'x', scaleratio: 1, zeroline: false, showgrid: true },
+    shapes: boundaryShapes(
+      plotData.refOrders,
+      plotData.refOffsets,
+      plotData.qryOrders,
+      plotData.qryOffsets,
+      plotData.maxX,
+      plotData.maxY,
+    ),
+    annotations: sequenceAnnotations(
+      plotData.refOrders,
+      plotData.refOffsets,
+      plotData.refLenByName,
+      plotData.qryOrders,
+      plotData.qryOffsets,
+      plotData.qryLenByName,
+    ),
     showlegend: true,
     dragmode: 'pan',
     hovermode: 'closest',
     margin: { l: 70, r: 20, t: 20, b: 60 },
   };
   const config = { responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d'] };
-  window.Plotly.newPlot(plotDiv, [forward, reverse], layout, config);
+  await window.Plotly.newPlot(plotDiv, traces, layout, config);
+  return {
+    workers: plotData.workerCount,
+    alignments: plotData.alignmentCount,
+    plotted: plotData.plottedCount,
+  };
 }
 
-function trace(name, color, hovertemplate) {
+async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
+  const workerLimit = canShare
+    ? Math.max(1, Math.min(MAX_PLOT_WORKERS, Number(requestedWorkers) || 1))
+    : 1;
+  let buffer;
+  if (canShare) {
+    buffer = new SharedArrayBuffer(tabBuffer.byteLength);
+    new Uint8Array(buffer).set(new Uint8Array(tabBuffer));
+  } else {
+    buffer = tabBuffer.slice(0);
+  }
+  const ranges = splitPlotRanges(new Uint8Array(buffer), workerLimit);
+
+  const workerUrl = new URL(`./plot-parser-worker.js?v=${JSLAST_VERSION}`, import.meta.url);
+  const sessions = ranges.map((range, index) => ({
+    index,
+    range,
+    worker: new Worker(workerUrl, { type: 'module', name: `jslast-plot-${index + 1}` }),
+  }));
+
+  try {
+    const metadata = await Promise.all(sessions.map((session, index) => requestPlotWorker(
+      session.worker,
+      {
+        type: 'parse',
+        index: session.index,
+        buffer,
+        start: session.range.start,
+        end: session.range.end,
+      },
+      canShare || index > 0 ? [] : [buffer],
+    )));
+    const merged = mergePlotMetadata(metadata);
+    const sampleEvery = Math.max(1, Math.ceil(merged.alignmentCount / MAX_PLOT_ALIGNMENTS));
+    const chunks = await Promise.all(sessions.map(session => requestPlotWorker(session.worker, {
+      type: 'build',
+      index: session.index,
+      refOffsets: Array.from(merged.refOffsets),
+      qryOffsets: Array.from(merged.qryOffsets),
+      alignmentStart: merged.alignmentStartByIndex.get(session.index) || 0,
+      sampleEvery,
+    })));
+    chunks.sort((left, right) => left.index - right.index);
+    return {
+      ...merged,
+      chunks,
+      workerCount: sessions.length,
+      plottedCount: chunks.reduce((sum, chunk) => sum + (chunk.plottedCount || 0), 0),
+    };
+  } finally {
+    for (const session of sessions) session.worker.terminate();
+  }
+}
+
+function splitPlotRanges(bytes, workerCount) {
+  if (bytes.length === 0) return [{ start: 0, end: 0 }];
+  const boundaries = [0];
+  for (let index = 1; index < workerCount; index++) {
+    let boundary = Math.floor(bytes.length * index / workerCount);
+    while (boundary < bytes.length && bytes[boundary - 1] !== 10) boundary += 1;
+    if (boundary > boundaries[boundaries.length - 1] && boundary < bytes.length) {
+      boundaries.push(boundary);
+    }
+  }
+  boundaries.push(bytes.length);
+  return boundaries.slice(0, -1).map((start, index) => ({ start, end: boundaries[index + 1] }));
+}
+
+function requestPlotWorker(worker, message, transfer = []) {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
+    };
+    const onMessage = event => {
+      cleanup();
+      if (event.data?.type === 'error') {
+        reject(new Error(event.data.error || 'Dot-plot worker failed'));
+      } else {
+        resolve(event.data);
+      }
+    };
+    const onError = error => {
+      cleanup();
+      reject(new Error(error.message || 'Dot-plot worker failed'));
+    };
+    worker.addEventListener('message', onMessage);
+    worker.addEventListener('error', onError);
+    worker.postMessage(message, transfer);
+  });
+}
+
+function mergePlotMetadata(metadata) {
+  const refOrders = [];
+  const qryOrders = [];
+  const refLenByName = new Map();
+  const qryLenByName = new Map();
+  const alignmentStartByIndex = new Map();
+  let alignmentCount = 0;
+  metadata.sort((left, right) => left.index - right.index);
+  for (const chunk of metadata) {
+    alignmentStartByIndex.set(chunk.index, alignmentCount);
+    alignmentCount += chunk.alignmentCount || 0;
+    mergeSequenceMetadata(chunk.refs, refOrders, refLenByName);
+    mergeSequenceMetadata(chunk.queries, qryOrders, qryLenByName);
+  }
+  const refOffsets = offsetsFor(refOrders, refLenByName);
+  const qryOffsets = offsetsFor(qryOrders, qryLenByName);
   return {
-    x: [],
-    y: [],
-    customdata: [],
+    alignmentCount,
+    alignmentStartByIndex,
+    refOrders,
+    qryOrders,
+    refLenByName,
+    qryLenByName,
+    refOffsets,
+    qryOffsets,
+    maxX: totalLength(refOrders, refLenByName),
+    maxY: totalLength(qryOrders, qryLenByName),
+  };
+}
+
+function hasSharedMemory() {
+  return typeof SharedArrayBuffer !== 'undefined'
+    && typeof crossOriginIsolated !== 'undefined'
+    && crossOriginIsolated;
+}
+
+function mergeSequenceMetadata(records, order, lengths) {
+  for (const record of records || []) {
+    if (lengths.has(record.name)) continue;
+    lengths.set(record.name, record.length);
+    order.push(record.name);
+  }
+}
+
+function plotTraces(chunks, hovertemplate) {
+  const traces = [];
+  let hasForwardLegend = false;
+  let hasReverseLegend = false;
+  for (const chunk of chunks) {
+    if (chunk.forward.count > 0) {
+      traces.push(plotTrace('Forward', '#1664d9', hovertemplate, chunk.forward, !hasForwardLegend));
+      hasForwardLegend = true;
+    }
+    if (chunk.reverse.count > 0) {
+      traces.push(plotTrace('Reverse', '#c92a2a', hovertemplate, chunk.reverse, !hasReverseLegend));
+      hasReverseLegend = true;
+    }
+  }
+  return traces;
+}
+
+function plotTrace(name, color, hovertemplate, chunk, showlegend) {
+  return {
+    x: new Float64Array(chunk.x),
+    y: new Float64Array(chunk.y),
+    customdata: chunk.customdata,
     mode: 'lines+markers',
     type: 'scattergl',
     name,
+    legendgroup: name,
+    showlegend,
     line: { color, width: 1.8 },
     marker: { size: 5, opacity: 0 },
     hovertemplate,
@@ -470,6 +706,7 @@ function sequenceAnnotations(refOrders, refOffsets, refLenByName, qryOrders, qry
 }
 
 configureDefaults();
+downloadTabBtn?.addEventListener('click', downloadLatestTab);
 runBtn?.addEventListener('click', () => {
   run();
 });

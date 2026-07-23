@@ -1,6 +1,6 @@
-import { JSLAST_VERSION } from './version.js?v=20260724-wasm-pthreads';
-import createLastdbModule from './lastdb.js?v=20260724-wasm-pthreads';
-import createLastalModule from './lastal.js?v=20260724-wasm-pthreads';
+import { JSLAST_VERSION } from './version.js?v=20260724-large-results';
+import createLastdbModule from './lastdb.js?v=20260724-large-results';
+import createLastalModule from './lastal.js?v=20260724-large-results';
 
 export { JSLAST_VERSION };
 
@@ -8,6 +8,11 @@ const DEFAULT_LASTDB_ARGS = ['--bits=4', '-R00', '-uNEAR', '-w1', '-W1', '-S1', 
 const DEFAULT_QUERY_BATCH_SIZE = '64M';
 const LASTDB_MEMORY = 134217728;
 const LASTAL_MEMORY = 268435456;
+const THREAD_PROGRESS_COMPLETED = 0;
+const THREAD_PROGRESS_STARTED_BATCHES = 1;
+const THREAD_PROGRESS_THREADS = 2;
+const THREAD_PROGRESS_TOTAL_BATCHES = 3;
+const THREAD_PROGRESS_DONE = 4;
 
 export async function runJsLast({
   refText,
@@ -17,6 +22,7 @@ export async function runJsLast({
   requestedThreads = null,
   useDefaultDbArgs = true,
   onProgress = null,
+  threadProgressBuffer = null,
 } = {}) {
   const runStartedAt = performance.now();
   const progress = (event) => {
@@ -33,17 +39,16 @@ export async function runJsLast({
   const queryLetters = totalSequenceLetters(queries);
 
   const requested = Math.max(1, Number(requestedThreads || 1));
-  const threads = Math.max(1, Math.min(requested, queryRecords.length));
+  const availableThreads = Math.max(1, Math.min(requested, queryRecords.length));
   const canUseWasmThreads = hasWasmThreadSupport();
-  const runtime = canUseWasmThreads
-    ? 'wasm-pthreads'
-    : (threads > 1 ? 'asmjs-worker-pool' : 'asmjs');
+  const threads = canUseWasmThreads ? availableThreads : 1;
+  const runtime = canUseWasmThreads ? 'wasm-pthreads' : 'asmjs';
   const warnings = [];
   if (requested > queryRecords.length) {
     warnings.push(`Search threads were limited to ${queryRecords.length} query FASTA record(s). LAST parallelism is split by query record.`);
   }
-  if (!canUseWasmThreads && threads > 1) {
-    warnings.push('Shared-memory WASM is unavailable; using the higher-memory asm.js worker-pool fallback.');
+  if (!canUseWasmThreads && availableThreads > 1) {
+    warnings.push('Shared-memory WASM is unavailable; using one asm.js search worker to avoid duplicating the database and 256 MiB runtime. Reload after the isolation service worker activates.');
   }
 
   progress({
@@ -103,6 +108,13 @@ export async function runJsLast({
 
   const alStderr = [];
   const alArgs = ensureQueryBatchArgs(normalizeAlArgs(splitArgs(lastalArgs)));
+  const threadProgress = initializeThreadProgress(
+    threadProgressBuffer,
+    runtime,
+    threads,
+    queryRecords,
+    alArgs,
+  );
 
   const searchStartedAt = performance.now();
   progress({
@@ -117,6 +129,7 @@ export async function runJsLast({
   });
 
   let tabText = '';
+  let alignmentCount = 0;
   let alThreadStats = { spawned: 0, maxRunning: 0 };
   let searchWorkerStats = { started: 0, completed: 0 };
   let searchProgressStats = null;
@@ -134,15 +147,21 @@ export async function runJsLast({
     alStderr.push(...workerResult.alLog);
     searchWorkerStats = workerResult.workerStats;
     searchProgressStats = workerResult.progressStats;
+    alignmentCount = workerResult.alignmentCount;
   } else {
-    const tabLines = [];
+    const tabOutput = createLineCollector();
     const lastalModule = await createLastalModule(moduleOptions({
       moduleName: 'lastal',
       memory: LASTAL_MEMORY,
       runtime,
       threads,
-      stdout: line => tabLines.push(line),
+      stdout: line => {
+        tabOutput.push(line);
+        if (isTabAlignmentLine(line)) alignmentCount += 1;
+        recordBatchStart(threadProgress, line);
+      },
       stderr: line => alStderr.push(line),
+      threadProgressBuffer,
     }));
 
     const alFS = lastalModule.FS;
@@ -151,9 +170,13 @@ export async function runJsLast({
       alFS.writeFile(file.name, file.data);
     }
     alFS.writeFile('query.fa', qryText || '');
-    runMain(lastalModule, ['-f', 'TAB', '-P', String(threads), ...alArgs, dbName, 'query.fa'], 'lastal', alStderr);
+    try {
+      runMain(lastalModule, ['-f', 'TAB', '-P', String(threads), ...alArgs, dbName, 'query.fa'], 'lastal', alStderr);
+    } finally {
+      finishThreadProgress(threadProgress);
+    }
     alThreadStats = threadStats(lastalModule);
-    tabText = tabLines.length > 0 ? `${tabLines.join('\n')}\n` : '';
+    tabText = tabOutput.text();
   }
   const searchElapsedMs = performance.now() - searchStartedAt;
   progress({
@@ -165,13 +188,12 @@ export async function runJsLast({
     threads,
   });
 
-  const alignments = parseTabAlignments(tabText);
   const totalElapsedMs = performance.now() - runStartedAt;
-  progress({ stage: 'done', message: `Done: ${alignments.length} alignments`, elapsedMs: totalElapsedMs });
+  progress({ stage: 'done', message: `Done: ${alignmentCount} alignments`, elapsedMs: totalElapsedMs });
 
   return {
     tabText,
-    alignments,
+    alignmentCount,
     refs,
     queries,
     threads,
@@ -194,6 +216,34 @@ export async function runJsLast({
   };
 }
 
+function createLineCollector(chunkSize = 1024 * 1024) {
+  let lines = [];
+  let chars = 0;
+  const chunks = [];
+  const flush = () => {
+    if (lines.length === 0) return;
+    chunks.push(`${lines.join('\n')}\n`);
+    lines = [];
+    chars = 0;
+  };
+  return {
+    push(line) {
+      const text = String(line ?? '');
+      lines.push(text);
+      chars += text.length + 1;
+      if (chars >= chunkSize) flush();
+    },
+    text() {
+      flush();
+      return chunks.join('');
+    },
+  };
+}
+
+function isTabAlignmentLine(line) {
+  return /^\d+\t/.test(String(line || ''));
+}
+
 function threadStats(module) {
   return {
     spawned: Number(module.pthreadSpawnCount || 0),
@@ -208,7 +258,7 @@ function hasWasmThreadSupport() {
     && crossOriginIsolated;
 }
 
-function moduleOptions({ moduleName, memory, runtime, threads, stdout, stderr }) {
+function moduleOptions({ moduleName, memory, runtime, threads, stdout, stderr, threadProgressBuffer = null }) {
   const useAsmJs = runtime !== 'wasm-pthreads';
   return {
     noInitialRun: true,
@@ -217,6 +267,7 @@ function moduleOptions({ moduleName, memory, runtime, threads, stdout, stderr })
     locateFile: path => new URL(path, import.meta.url).href,
     mainScriptUrlOrBlob: new URL(`./${moduleName}.js?v=${JSLAST_VERSION}`, import.meta.url).href,
     pthreadPoolSize: useAsmJs ? 0 : Math.max(0, threads - 1),
+    jslastProgressBuffer: threadProgressBuffer,
     print: stdout,
     printErr: stderr,
   };
@@ -275,6 +326,7 @@ async function runLastalWorkerPool({ chunks, dbFiles, dbName, alArgs, useAsmJs, 
   workerResults.sort((a, b) => a.index - b.index);
   return {
     tabText: mergeTabOutputs(workerResults.map(result => result.tabText)),
+    alignmentCount: workerResults.reduce((sum, result) => sum + (result.alignmentCount || 0), 0),
     alLog: workerResults.flatMap(result => result.alLog || []),
     workerStats: {
       started: chunks.length,
@@ -391,34 +443,57 @@ function recordsToFasta(records) {
 
 function mergeTabOutputs(outputs) {
   const header = [];
-  const alignments = [];
+  const alignmentChunks = [];
   let querySequences = 0;
   let queryLetters = 0;
 
   for (let outputIndex = 0; outputIndex < outputs.length; outputIndex++) {
+    const output = String(outputs[outputIndex] || '');
     let inHeader = true;
-    for (const line of String(outputs[outputIndex] || '').split(/\r?\n/)) {
-      if (!line) continue;
+    let rangeStart = -1;
+    for (let start = 0; start < output.length;) {
+      const newline = output.indexOf('\n', start);
+      const next = newline >= 0 ? newline + 1 : output.length;
+      const lineEnd = newline >= 0 && output[newline - 1] === '\r' ? newline - 1 : (newline >= 0 ? newline : output.length);
+      const line = output.slice(start, lineEnd);
+      const closeRange = () => {
+        if (rangeStart < 0) return;
+        alignmentChunks.push(output.slice(rangeStart, start));
+        rangeStart = -1;
+      };
+      if (!line) {
+        closeRange();
+        start = next;
+        continue;
+      }
       const summary = line.match(/^# Query sequences=(\d+) normal letters=(\d+)/);
       if (summary) {
+        closeRange();
         querySequences += Number(summary[1]);
         queryLetters += Number(summary[2]);
-        continue;
-      }
-      if (line.startsWith('#') && inHeader) {
+      } else if (line.startsWith('#') && inHeader) {
+        closeRange();
         if (outputIndex === 0) header.push(line);
-        continue;
+      } else {
+        inHeader = false;
+        if (line.startsWith('#')) {
+          closeRange();
+        } else if (rangeStart < 0) {
+          rangeStart = start;
+        }
       }
-      inHeader = false;
-      if (!line.startsWith('#')) alignments.push(line);
+      start = next;
     }
+    if (rangeStart >= 0) alignmentChunks.push(output.slice(rangeStart));
   }
 
-  const lines = header.concat(alignments);
+  const parts = [];
+  if (header.length > 0) parts.push(`${header.join('\n')}\n`);
+  parts.push(...alignmentChunks);
   if (querySequences > 0) {
-    lines.push(`# Query sequences=${querySequences} normal letters=${queryLetters}`);
+    parts.push(`# Query sequences=${querySequences} normal letters=${queryLetters}\n`);
   }
-  return lines.length > 0 ? `${lines.join('\n')}\n` : '';
+  return parts.join('');
 }
 
 function ensureWorkdir(fs) {
@@ -467,6 +542,55 @@ function normalizeAlArgs(args) {
 function ensureQueryBatchArgs(args) {
   if (args.some(arg => arg === '-i' || /^-i.+/.test(arg))) return args;
   return ['-i', DEFAULT_QUERY_BATCH_SIZE, ...args];
+}
+
+function initializeThreadProgress(buffer, runtime, threads, records, args) {
+  if (!buffer || runtime !== 'wasm-pthreads' || threads < 2) return null;
+  const view = new Int32Array(buffer);
+  view.fill(0);
+  Atomics.store(view, THREAD_PROGRESS_THREADS, threads);
+  Atomics.store(view, THREAD_PROGRESS_TOTAL_BATCHES, estimateBatchCount(records, queryBatchSize(args)));
+  return view;
+}
+
+function recordBatchStart(view, line) {
+  if (!view) return;
+  const match = String(line).match(/^# batch (\d+)/);
+  if (match) Atomics.store(view, THREAD_PROGRESS_STARTED_BATCHES, Number(match[1]) + 1);
+}
+
+function finishThreadProgress(view) {
+  if (view) Atomics.store(view, THREAD_PROGRESS_DONE, 1);
+}
+
+function queryBatchSize(args) {
+  for (let index = 0; index < args.length; index++) {
+    if (args[index] === '-i' && index + 1 < args.length) return parseSize(args[index + 1]);
+    const match = args[index].match(/^-i(.+)$/);
+    if (match) return parseSize(match[1]);
+  }
+  return parseSize(DEFAULT_QUERY_BATCH_SIZE);
+}
+
+function parseSize(value) {
+  const match = String(value || '').match(/^(\d+)([KMGT]?)$/i);
+  if (!match) return 64 * 1024 * 1024;
+  const powers = { '': 0, K: 1, M: 2, G: 3, T: 4 };
+  return Number(match[1]) * (1024 ** powers[match[2].toUpperCase()]);
+}
+
+function estimateBatchCount(records, batchSize) {
+  let batches = 0;
+  let letters = 0;
+  for (const record of records) {
+    const recordLetters = record.seq.length;
+    if (letters > 0 && letters + recordLetters > batchSize) {
+      batches += 1;
+      letters = 0;
+    }
+    letters += recordLetters;
+  }
+  return Math.max(1, batches + (letters > 0 ? 1 : 0));
 }
 
 function stripThreadArgs(args) {
@@ -585,28 +709,4 @@ function parseFastaRecords(text, fallbackPrefix) {
 
   flush();
   return records;
-}
-
-function parseTabAlignments(tabText) {
-  const alignments = [];
-  for (const line of String(tabText || '').split(/\r?\n/)) {
-    if (!/^\d+\t/.test(line)) continue;
-    const cols = line.split(/\t/);
-    if (cols.length < 12) continue;
-    alignments.push({
-      score: Number(cols[0]),
-      refName: cols[1],
-      refStart: Number(cols[2]),
-      refLen: Number(cols[3]),
-      refStrand: cols[4],
-      refTotal: Number(cols[5]),
-      qryName: cols[6],
-      qryStart: Number(cols[7]),
-      qryLen: Number(cols[8]),
-      qryStrand: cols[9],
-      qryTotal: Number(cols[10]),
-      blocks: cols[11],
-    });
-  }
-  return alignments;
 }

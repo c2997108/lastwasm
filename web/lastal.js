@@ -224,6 +224,7 @@ if (ENVIRONMENT_IS_PTHREAD) {
             if (handler == "printErr") err = Module[handler];
           }
         }
+        Module["jslastProgressBuffer"] = msgData.jslastProgressBuffer;
         wasmMemory = msgData.wasmMemory;
         updateMemoryViews();
         wasmModuleReceived(msgData.wasmModule);
@@ -832,7 +833,8 @@ var PThread = {
       cmd: "load",
       handlers,
       wasmMemory,
-      wasmModule
+      wasmModule,
+      jslastProgressBuffer: Module["jslastProgressBuffer"]
     });
   }),
   loadWasmModuleToAllWorkers(onMaybeReady) {
@@ -4073,6 +4075,10 @@ var __emscripten_thread_cleanup = thread => {
   // entry point, calls pthread_exit, or acts upon a cancellation.
   // Detached threads are responsible for calling this themselves,
   // otherwise pthread_join is responsible for calling this.
+  var jslastProgressBuffer = Module["jslastProgressBuffer"];
+  if (jslastProgressBuffer) {
+    Atomics.add(new Int32Array(jslastProgressBuffer), 0, 1);
+  }
   if (!ENVIRONMENT_IS_PTHREAD) cleanupThread(thread); else postMessage({
     cmd: "cleanupThread",
     thread

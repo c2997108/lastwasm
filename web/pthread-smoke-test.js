@@ -126,7 +126,7 @@ async function runCase(browser, cdp, baseUrl, threads) {
 }
 
 async function setupCase({ threads, queryCopies }) {
-  const version = '20260724-wasm-pthreads';
+  const version = '20260724-large-results';
   const lastdbUrl = new URL(`/web/lastdb.js?v=${version}`, location.href).href;
   const lastalUrl = new URL(`/web/lastal.js?v=${version}`, location.href).href;
   const createLastdbModule = (await import(lastdbUrl)).default;

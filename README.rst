@@ -130,6 +130,8 @@ the service worker is installed.
     dispatches compiled ``lastal`` search jobs
   * ``web/jslast-runner-worker.js``: background runner so indexing/search does
     not block browser UI updates
+  * ``web/plot-parser-worker.js``: parallel TAB parser and Plotly coordinate
+    builder using shared input and transferable typed arrays
   * ``web/lastal-worker.js``: asm.js fallback Web Worker entry point
   * ``web/lastdb.js`` / ``web/lastal.js``: Emscripten browser glue patched to
     load asm.js or WASM at runtime
@@ -144,10 +146,15 @@ the service worker is installed.
 
 The requested thread count is capped by the number of query FASTA records.  A
 single query record therefore uses one search thread.  The UI shows elapsed time
-and an approximate remaining time, using a small browser-local timing model from
-previous runs when available.  Other LAST options are passed through to the
-compiled LAST programs rather than reinterpreted by a separate JavaScript search
-engine.
+and pthread search progress based on completed query chunks.  It also shows an
+approximate remaining time using a small browser-local timing model from previous
+runs when available.  Other LAST options are passed through to the compiled LAST
+programs rather than reinterpreted by a separate JavaScript search engine.
+
+Large TAB results are transferred as a UTF-8 buffer.  The page immediately
+shows the first 2 MiB and provides the complete output through ``Download TAB``.
+The dot plot uses up to eight parser workers and evenly samples at most 100,000
+alignments to bound Plotly memory; the downloaded TAB file remains complete.
 
 WASM/Node (legacy experimental)
 -------------------------------

@@ -7,17 +7,22 @@
   <link rel="icon" href="data:," />
   <title>LAST-JS Homology Search</title>
   <script>
-    if (location.protocol !== 'file:' && 'serviceWorker' in navigator && !crossOriginIsolated) {
-      navigator.serviceWorker.register('./coi-serviceworker.js').then((reg) => {
-        if (!navigator.serviceWorker.controller) {
-          const worker = reg.installing || reg.waiting || reg.active;
-          if (worker) {
-            worker.addEventListener('statechange', (event) => {
-              if (event.target.state === 'activated') location.reload();
-            });
-          }
-        }
-      }).catch(() => {});
+    const coiReloadKey = 'lastjs-coi-reload';
+    if (crossOriginIsolated) {
+      sessionStorage.removeItem(coiReloadKey);
+    } else if (location.protocol !== 'file:' && 'serviceWorker' in navigator) {
+      let reloadStarted = false;
+      const reloadForIsolation = () => {
+        if (reloadStarted || crossOriginIsolated || sessionStorage.getItem(coiReloadKey)) return;
+        reloadStarted = true;
+        sessionStorage.setItem(coiReloadKey, '1');
+        location.reload();
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', reloadForIsolation);
+      navigator.serviceWorker.register('./coi-serviceworker.js')
+        .then(() => navigator.serviceWorker.ready)
+        .then(reloadForIsolation)
+        .catch(() => {});
     }
   </script>
   <style>
@@ -140,6 +145,20 @@
       white-space: pre;
     }
 
+    .result-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .result-actions button {
+      min-height: 34px;
+      padding: 5px 11px;
+      white-space: nowrap;
+    }
+
     .row {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -216,7 +235,7 @@
         <input type="text" id="lastdbArgs" />
 
         <label for="lastalArgs">Search options</label>
-        <input type="text" id="lastalArgs" value="-m1000" placeholder="-m1000" />
+        <input type="text" id="lastalArgs" value="-m100" placeholder="-m100" />
 
         <div class="controls">
           <div>
@@ -243,6 +262,10 @@
 
     <fieldset>
       <legend>Result (TAB)</legend>
+      <div class="result-actions">
+        <span id="tabSummary" class="small"></span>
+        <button id="downloadTabBtn" type="button" disabled>Download TAB</button>
+      </div>
       <pre id="tab"></pre>
     </fieldset>
 
@@ -257,7 +280,7 @@
     if (location.protocol !== 'file:') {
       const script = document.createElement('script');
       script.type = 'module';
-      script.src = './web/main.js?v=20260724-wasm-pthreads';
+      script.src = './web/main.js?v=20260724-large-results';
       document.body.appendChild(script);
     } else {
       document.querySelector('#status').textContent = 'Open this page through a local HTTP server.';
