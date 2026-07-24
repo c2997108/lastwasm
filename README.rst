@@ -152,9 +152,12 @@ runs when available.  Other LAST options are passed through to the compiled LAST
 programs rather than reinterpreted by a separate JavaScript search engine.
 
 Large TAB results are transferred as a UTF-8 buffer.  The page immediately
-shows the first 2 MiB and provides the complete output through ``Download TAB``.
+shows the first 20 KiB before full-result processing and provides the complete
+output through ``Download TAB``.
 The dot plot uses up to eight parser workers and evenly samples at most 100,000
 alignments to bound Plotly memory; the downloaded TAB file remains complete.
+Detailed ``dotplot-timing`` and ``dotplot-longtasks`` log lines separate TAB
+parsing, worker messaging, Plotly setup, and final browser rendering time.
 
 WASM/Node (legacy experimental)
 -------------------------------

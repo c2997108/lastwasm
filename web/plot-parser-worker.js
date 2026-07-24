@@ -19,6 +19,7 @@ self.onmessage = event => {
 };
 
 function parseChunk({ index, buffer, start, end }) {
+  const startedAt = performance.now();
   chunkBuffer = buffer;
   chunkStart = start;
   chunkEnd = end;
@@ -26,7 +27,7 @@ function parseChunk({ index, buffer, start, end }) {
   const qryLengths = new Map();
   let alignmentCount = 0;
 
-  forEachAlignment(segment => {
+  const scanTiming = forEachAlignment(segment => {
     if (!refLengths.has(segment.refName)) refLengths.set(segment.refName, segment.refTotal);
     if (!qryLengths.has(segment.qryName)) qryLengths.set(segment.qryName, segment.qryTotal);
     alignmentCount += 1;
@@ -38,23 +39,31 @@ function parseChunk({ index, buffer, start, end }) {
     alignmentCount,
     refs: Array.from(refLengths, ([name, length]) => ({ name, length })),
     queries: Array.from(qryLengths, ([name, length]) => ({ name, length })),
+    timing: {
+      totalMs: performance.now() - startedAt,
+      decodeMs: scanTiming.decodeMs,
+      scanMs: scanTiming.scanMs,
+    },
   });
 }
 
 function buildPlotChunks({ index, refOffsets, qryOffsets, alignmentStart = 0, sampleEvery = 1 }) {
+  const startedAt = performance.now();
   const refOffsetByName = new Map(refOffsets);
   const qryOffsetByName = new Map(qryOffsets);
   const selected = [];
   let localIndex = 0;
-  forEachAlignment(segment => {
+  const scanTiming = forEachAlignment(segment => {
     if ((alignmentStart + localIndex) % sampleEvery === 0) selected.push(segment);
     localIndex += 1;
   });
 
   const forwardCount = selected.reduce((count, segment) => count + (segment.qryStrand === '-' ? 0 : 1), 0);
   const reverseCount = selected.length - forwardCount;
+  const arraysStartedAt = performance.now();
   const forward = makePlotChunk(selected, false, forwardCount, refOffsetByName, qryOffsetByName);
   const reverse = makePlotChunk(selected, true, reverseCount, refOffsetByName, qryOffsetByName);
+  const arraysMs = performance.now() - arraysStartedAt;
   chunkBuffer = null;
 
   self.postMessage({
@@ -63,11 +72,20 @@ function buildPlotChunks({ index, refOffsets, qryOffsets, alignmentStart = 0, sa
     plottedCount: selected.length,
     forward,
     reverse,
+    timing: {
+      totalMs: performance.now() - startedAt,
+      decodeMs: scanTiming.decodeMs,
+      scanMs: scanTiming.scanMs,
+      arraysMs,
+    },
   }, [forward.x, forward.y, reverse.x, reverse.y]);
 }
 
 function forEachAlignment(callback) {
+  const decodeStartedAt = performance.now();
   const text = decodeChunk();
+  const decodeMs = performance.now() - decodeStartedAt;
+  const scanStartedAt = performance.now();
   for (let start = 0; start < text.length;) {
     const newline = text.indexOf('\n', start);
     const end = newline >= 0 ? newline : text.length;
@@ -75,6 +93,10 @@ function forEachAlignment(callback) {
     if (segment) callback(segment);
     start = newline >= 0 ? newline + 1 : text.length;
   }
+  return {
+    decodeMs,
+    scanMs: performance.now() - scanStartedAt,
+  };
 }
 
 function decodeChunk() {

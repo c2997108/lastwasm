@@ -58,13 +58,18 @@ pthread query-chunk completion as a search percentage. It also shows elapsed
 time and an approximate remaining time, using a small browser-local timing model
 from previous runs when available.
 
-For large results, the first 2 MiB of TAB text is painted as soon as search
-finishes. The complete UTF-8 result is transferred as an `ArrayBuffer` and is
+For large results, the first 20 KiB of TAB text is painted as soon as search
+finishes. The worker waits for that preview to paint before the complete UTF-8
+result is transferred as an `ArrayBuffer` and is
 available from **Download TAB**, without inserting millions of lines into the
 DOM. The page then divides one shared TAB buffer at line boundaries and uses up
 to eight Web Workers to parse alignments. Dot plots evenly sample at most
 100,000 alignments before Plotly's WebGL `scattergl` renderer draws transferable
 coordinate arrays on the GPU. The downloaded TAB result is never sampled.
+
+The log includes `dotplot-timing`, `dotplot-longtasks`, and `dotplot-memory`
+profiles. These separate buffer preparation, both parallel parser passes,
+message cloning, Plotly's synchronous setup, and the final browser paint.
 
 ## Regression
 

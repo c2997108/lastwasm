@@ -1,4 +1,4 @@
-import { JSLAST_VERSION } from './version.js?v=20260724-large-results';
+import { JSLAST_VERSION } from './version.js?v=20260724-plot-profile';
 
 window.__JSLAST_MODULE_READY = true;
 
@@ -138,6 +138,7 @@ async function run() {
     setStatus('Rendering dot plot...');
     await afterNextPaint();
     const plotStats = await renderPlotlyFromTab(result.tabBuffer, requestedThreads);
+    for (const line of formatPlotProfile(plotStats)) appendLog(line);
     if (plotStats.workers > 0) {
       appendLog(`dotplot-parser workers=${plotStats.workers} alignments=${plotStats.alignments} plotted=${plotStats.plotted}`);
       if (plotStats.plotted < plotStats.alignments) {
@@ -169,6 +170,7 @@ function runJsLastInWorker(payload) {
       }
       if (data.type === 'tab-preview') {
         payload.onTabPreview?.(data);
+        afterNextPaint().then(() => worker.postMessage({ type: 'tab-preview-painted' }));
         return;
       }
       worker.terminate();
@@ -199,7 +201,7 @@ function runJsLastInWorker(payload) {
 function showTabPreview({ text, truncated, totalChars }) {
   if (tabEl) {
     tabEl.textContent = truncated
-      ? `${text}\n# Preview limited to the first 2 MiB. Download TAB contains the complete result.\n`
+      ? `${text}\n# Preview limited to the first 20 KiB. Download TAB contains the complete result.\n`
       : text;
   }
   if (tabSummaryEl) {
@@ -422,7 +424,14 @@ function formatDuration(ms) {
 
 function afterNextPaint() {
   return new Promise(resolve => {
-    requestAnimationFrame(() => requestAnimationFrame(resolve));
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    setTimeout(finish, 250);
+    requestAnimationFrame(() => requestAnimationFrame(finish));
   });
 }
 
@@ -434,6 +443,8 @@ function clearPlot() {
 }
 
 async function renderPlotlyFromTab(tabBuffer, requestedWorkers) {
+  const totalStartedAt = performance.now();
+  const memoryStartMiB = usedHeapMiB();
   const plotDiv = $('#dotplot');
   if (!plotDiv || !tabBuffer) return { workers: 0, alignments: 0, plotted: 0 };
   if (!window.Plotly) {
@@ -459,8 +470,11 @@ async function renderPlotlyFromTab(tabBuffer, requestedWorkers) {
     'Length: %{customdata.len}',
     '<extra></extra>',
   ].join('<br>');
+  const tracesStartedAt = performance.now();
   const traces = plotTraces(plotData.chunks, hovertemplate);
+  const tracesMs = performance.now() - tracesStartedAt;
 
+  const layoutStartedAt = performance.now();
   const layout = {
     xaxis: { title: 'Reference', range: [0, plotData.maxX], zeroline: false, showgrid: true },
     yaxis: { title: 'Query', range: [0, plotData.maxY], scaleanchor: 'x', scaleratio: 1, zeroline: false, showgrid: true },
@@ -486,35 +500,75 @@ async function renderPlotlyFromTab(tabBuffer, requestedWorkers) {
     margin: { l: 70, r: 20, t: 20, b: 60 },
   };
   const config = { responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d'] };
-  await window.Plotly.newPlot(plotDiv, traces, layout, config);
+  const layoutMs = performance.now() - layoutStartedAt;
+  const memoryBeforePlotlyMiB = usedHeapMiB();
+  const longTaskProfile = startLongTaskProfile();
+  const plotlyStartedAt = performance.now();
+  const plotPromise = window.Plotly.newPlot(plotDiv, traces, layout, config);
+  const plotlyCallMs = performance.now() - plotlyStartedAt;
+  const plotlyPromiseStartedAt = performance.now();
+  await plotPromise;
+  const plotlyPromiseWaitMs = performance.now() - plotlyPromiseStartedAt;
+  const plotlyNewPlotMs = performance.now() - plotlyStartedAt;
+  const paintTiming = await measureFinalPlotPaint();
+  const longTasks = longTaskProfile.stop();
   return {
     workers: plotData.workerCount,
     alignments: plotData.alignmentCount,
     plotted: plotData.plottedCount,
+    timing: {
+      ...plotData.timing,
+      tracesMs,
+      layoutMs,
+      plotlyCallMs,
+      plotlyPromiseWaitMs,
+      plotlyNewPlotMs,
+      finalPaintMs: paintTiming.totalMs,
+      eventLoopYieldMs: paintTiming.eventLoopYieldMs,
+      firstFrameMs: paintTiming.firstFrameMs,
+      secondFrameMs: paintTiming.secondFrameMs,
+      longTasks,
+      totalMs: performance.now() - totalStartedAt,
+    },
+    memory: {
+      startMiB: memoryStartMiB,
+      ...plotData.memory,
+      beforePlotlyMiB: memoryBeforePlotlyMiB,
+      afterPlotlyMiB: usedHeapMiB(),
+    },
   };
 }
 
 async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
+  const totalStartedAt = performance.now();
   const workerLimit = canShare
     ? Math.max(1, Math.min(MAX_PLOT_WORKERS, Number(requestedWorkers) || 1))
     : 1;
   let buffer;
+  const bufferStartedAt = performance.now();
   if (canShare) {
     buffer = new SharedArrayBuffer(tabBuffer.byteLength);
     new Uint8Array(buffer).set(new Uint8Array(tabBuffer));
   } else {
     buffer = tabBuffer.slice(0);
   }
+  const bufferCopyMs = performance.now() - bufferStartedAt;
+  const afterBufferMiB = usedHeapMiB();
+  const rangesStartedAt = performance.now();
   const ranges = splitPlotRanges(new Uint8Array(buffer), workerLimit);
+  const rangeSplitMs = performance.now() - rangesStartedAt;
 
   const workerUrl = new URL(`./plot-parser-worker.js?v=${JSLAST_VERSION}`, import.meta.url);
+  const workersStartedAt = performance.now();
   const sessions = ranges.map((range, index) => ({
     index,
     range,
     worker: new Worker(workerUrl, { type: 'module', name: `jslast-plot-${index + 1}` }),
   }));
+  const workerCreateMs = performance.now() - workersStartedAt;
 
   try {
+    const parseStartedAt = performance.now();
     const metadata = await Promise.all(sessions.map((session, index) => requestPlotWorker(
       session.worker,
       {
@@ -526,8 +580,14 @@ async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
       },
       canShare || index > 0 ? [] : [buffer],
     )));
+    const parsePassMs = performance.now() - parseStartedAt;
+    const parseWorkers = summarizeWorkerTimings(metadata);
+    const afterParseMiB = usedHeapMiB();
+    const mergeStartedAt = performance.now();
     const merged = mergePlotMetadata(metadata);
     const sampleEvery = Math.max(1, Math.ceil(merged.alignmentCount / MAX_PLOT_ALIGNMENTS));
+    const metadataMergeMs = performance.now() - mergeStartedAt;
+    const buildStartedAt = performance.now();
     const chunks = await Promise.all(sessions.map(session => requestPlotWorker(session.worker, {
       type: 'build',
       index: session.index,
@@ -536,16 +596,147 @@ async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
       alignmentStart: merged.alignmentStartByIndex.get(session.index) || 0,
       sampleEvery,
     })));
+    const buildPassMs = performance.now() - buildStartedAt;
+    const buildWorkers = summarizeWorkerTimings(chunks);
+    const afterBuildMiB = usedHeapMiB();
+    const finalizeStartedAt = performance.now();
     chunks.sort((left, right) => left.index - right.index);
-    return {
+    const result = {
       ...merged,
       chunks,
       workerCount: sessions.length,
       plottedCount: chunks.reduce((sum, chunk) => sum + (chunk.plottedCount || 0), 0),
+      timing: {
+        bufferCopyMs,
+        rangeSplitMs,
+        workerCreateMs,
+        parsePassMs,
+        parseWorkers,
+        parseOverheadMs: Math.max(0, parsePassMs - parseWorkers.maxTotalMs),
+        metadataMergeMs,
+        buildPassMs,
+        buildWorkers,
+        buildOverheadMs: Math.max(0, buildPassMs - buildWorkers.maxTotalMs),
+        finalizeMs: performance.now() - finalizeStartedAt,
+        parserTotalMs: performance.now() - totalStartedAt,
+      },
+      memory: {
+        afterBufferMiB,
+        afterParseMiB,
+        afterBuildMiB,
+      },
     };
+    return result;
   } finally {
     for (const session of sessions) session.worker.terminate();
   }
+}
+
+function summarizeWorkerTimings(results) {
+  const timings = results.map(result => result.timing || {});
+  const max = key => timings.reduce((value, timing) => Math.max(value, Number(timing[key]) || 0), 0);
+  const sum = key => timings.reduce((value, timing) => value + (Number(timing[key]) || 0), 0);
+  return {
+    maxTotalMs: max('totalMs'),
+    sumTotalMs: sum('totalMs'),
+    maxDecodeMs: max('decodeMs'),
+    sumDecodeMs: sum('decodeMs'),
+    maxScanMs: max('scanMs'),
+    sumScanMs: sum('scanMs'),
+    maxArraysMs: max('arraysMs'),
+    sumArraysMs: sum('arraysMs'),
+  };
+}
+
+async function measureFinalPlotPaint() {
+  const startedAt = performance.now();
+  const eventLoopStartedAt = performance.now();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const eventLoopYieldMs = performance.now() - eventLoopStartedAt;
+  const firstFrameStartedAt = performance.now();
+  await nextAnimationFrame();
+  const firstFrameMs = performance.now() - firstFrameStartedAt;
+  const secondFrameStartedAt = performance.now();
+  await nextAnimationFrame();
+  const secondFrameMs = performance.now() - secondFrameStartedAt;
+  return {
+    totalMs: performance.now() - startedAt,
+    eventLoopYieldMs,
+    firstFrameMs,
+    secondFrameMs,
+  };
+}
+
+function nextAnimationFrame() {
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    setTimeout(finish, 250);
+    requestAnimationFrame(finish);
+  });
+}
+
+function startLongTaskProfile() {
+  const durations = [];
+  let observer = null;
+  if (typeof PerformanceObserver === 'function'
+    && PerformanceObserver.supportedEntryTypes?.includes('longtask')) {
+    observer = new PerformanceObserver(list => {
+      for (const entry of list.getEntries()) durations.push(entry.duration);
+    });
+    observer.observe({ type: 'longtask', buffered: false });
+  }
+  return {
+    stop() {
+      if (observer) {
+        for (const entry of observer.takeRecords()) durations.push(entry.duration);
+        observer.disconnect();
+      }
+      return {
+        count: durations.length,
+        totalMs: durations.reduce((sum, duration) => sum + duration, 0),
+        maxMs: durations.reduce((max, duration) => Math.max(max, duration), 0),
+      };
+    },
+  };
+}
+
+function formatPlotProfile(plotStats) {
+  const timing = plotStats?.timing;
+  if (!timing) return [];
+  const parse = timing.parseWorkers || {};
+  const build = timing.buildWorkers || {};
+  const lines = [
+    `dotplot-timing total=${formatMs(timing.totalMs)} parser-total=${formatMs(timing.parserTotalMs)} plotly-newPlot=${formatMs(timing.plotlyNewPlotMs)} final-paint=${formatMs(timing.finalPaintMs)}`,
+    `dotplot-timing setup buffer-copy=${formatMs(timing.bufferCopyMs)} range-split=${formatMs(timing.rangeSplitMs)} worker-create=${formatMs(timing.workerCreateMs)} metadata-merge=${formatMs(timing.metadataMergeMs)} finalize=${formatMs(timing.finalizeMs)}`,
+    `dotplot-timing parse-pass=${formatMs(timing.parsePassMs)} worker-max=${formatMs(parse.maxTotalMs)} decode-max=${formatMs(parse.maxDecodeMs)} scan-max=${formatMs(parse.maxScanMs)} startup-message=${formatMs(timing.parseOverheadMs)}`,
+    `dotplot-timing build-pass=${formatMs(timing.buildPassMs)} worker-max=${formatMs(build.maxTotalMs)} decode-max=${formatMs(build.maxDecodeMs)} scan-max=${formatMs(build.maxScanMs)} arrays-max=${formatMs(build.maxArraysMs)} message-clone=${formatMs(timing.buildOverheadMs)}`,
+    `dotplot-timing main traces=${formatMs(timing.tracesMs)} layout=${formatMs(timing.layoutMs)}`,
+    `dotplot-timing plotly call=${formatMs(timing.plotlyCallMs)} promise-wait=${formatMs(timing.plotlyPromiseWaitMs)} event-loop=${formatMs(timing.eventLoopYieldMs)} frame-1=${formatMs(timing.firstFrameMs)} frame-2=${formatMs(timing.secondFrameMs)}`,
+    `dotplot-longtasks count=${timing.longTasks?.count || 0} total=${formatMs(timing.longTasks?.totalMs)} max=${formatMs(timing.longTasks?.maxMs)}`,
+  ];
+  const memory = plotStats.memory || {};
+  if (Number.isFinite(memory.startMiB)) {
+    lines.push(`dotplot-memory heap start=${formatMiB(memory.startMiB)} after-buffer=${formatMiB(memory.afterBufferMiB)} after-parse=${formatMiB(memory.afterParseMiB)} after-build=${formatMiB(memory.afterBuildMiB)} before-plotly=${formatMiB(memory.beforePlotlyMiB)} after-plotly=${formatMiB(memory.afterPlotlyMiB)}`);
+  }
+  return lines;
+}
+
+function usedHeapMiB() {
+  const bytes = performance.memory?.usedJSHeapSize;
+  return Number.isFinite(bytes) ? bytes / (1024 * 1024) : null;
+}
+
+function formatMs(value) {
+  return `${(Number(value) || 0).toFixed(1)}ms`;
+}
+
+function formatMiB(value) {
+  return `${(Number(value) || 0).toFixed(1)}MiB`;
 }
 
 function splitPlotRanges(bytes, workerCount) {

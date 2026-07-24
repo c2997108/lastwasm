@@ -1,14 +1,38 @@
-import { runJsLast } from './jslast.js?v=20260724-large-results';
+import { runJsLast } from './jslast.js?v=20260724-plot-profile';
 
-const TAB_PREVIEW_CHARS = 2 * 1024 * 1024;
+const TAB_PREVIEW_CHARS = 20 * 1024;
+const PREVIEW_PAINT_TIMEOUT_MS = 5000;
+
+let previewPaintResolver = null;
 
 self.onmessage = async event => {
   const data = event.data || {};
+  if (data.type === 'tab-preview-painted') {
+    previewPaintResolver?.();
+    return;
+  }
   if (data.type !== 'run') return;
 
   try {
+    let previewSent = false;
+    const sendTabPreview = async ({ text = '', totalChars = text.length } = {}) => {
+      if (previewSent) return;
+      previewSent = true;
+      const previewEnd = previewBoundary(text, TAB_PREVIEW_CHARS, totalChars);
+      const paintPromise = waitForPreviewPaint();
+      self.postMessage({
+        type: 'tab-preview',
+        text: text.slice(0, previewEnd),
+        truncated: totalChars > previewEnd,
+        totalChars,
+      });
+      await paintPromise;
+    };
+
     const result = await runJsLast({
       ...data.payload,
+      tabPreviewChars: TAB_PREVIEW_CHARS,
+      onTabPreview: sendTabPreview,
       onProgress: progressEvent => {
         self.postMessage({
           type: 'progress',
@@ -17,13 +41,7 @@ self.onmessage = async event => {
       },
     });
     let tabText = result.tabText || '';
-    const previewEnd = previewBoundary(tabText, TAB_PREVIEW_CHARS);
-    self.postMessage({
-      type: 'tab-preview',
-      text: tabText.slice(0, previewEnd),
-      truncated: previewEnd < tabText.length,
-      totalChars: tabText.length,
-    });
+    await sendTabPreview({ text: tabText, totalChars: tabText.length });
 
     const tabBytes = new TextEncoder().encode(tabText);
     delete result.tabText;
@@ -44,8 +62,22 @@ self.onmessage = async event => {
   }
 };
 
-function previewBoundary(text, limit) {
-  if (text.length <= limit) return text.length;
+function waitForPreviewPaint() {
+  return new Promise(resolve => {
+    let timeoutId = null;
+    const finish = () => {
+      if (previewPaintResolver !== finish) return;
+      previewPaintResolver = null;
+      if (timeoutId !== null) clearTimeout(timeoutId);
+      resolve();
+    };
+    previewPaintResolver = finish;
+    timeoutId = setTimeout(finish, PREVIEW_PAINT_TIMEOUT_MS);
+  });
+}
+
+function previewBoundary(text, limit, totalChars = text.length) {
+  if (totalChars <= limit) return text.length;
   const newline = text.lastIndexOf('\n', limit);
   return newline > 0 ? newline + 1 : limit;
 }

@@ -5,6 +5,7 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const { spawnSync } = require('child_process');
+const TAB_PREVIEW_CHARS = 20 * 1024;
 
 async function main() {
   const rootDir = path.resolve(__dirname, '..');
@@ -93,9 +94,18 @@ async function main() {
     const statusHistory = await page.evaluate(() => window.__statusHistory || []);
     const resultReadyTabLength = await page.evaluate(() => window.__resultReadyTabLength || 0);
     const plotCanvasCount = await page.locator('#dotplot canvas').count();
+    const downloadPromise = page.waitForEvent('download');
+    await page.click('#downloadTabBtn');
+    const download = await downloadPromise;
+    const completeTab = fs.readFileSync(await download.path(), 'utf8');
 
-    if (tab !== expectedTab) {
-      throw new Error(`TAB output differs from WASM baseline: expected ${expectedTab.length} chars, got ${tab.length}`);
+    if (completeTab !== expectedTab) {
+      throw new Error(`downloaded TAB differs from WASM baseline: expected ${expectedTab.length} chars, got ${completeTab.length}`);
+    }
+    const expectedPreview = tabPreview(completeTab);
+    if (tab !== expectedPreview) {
+      const mismatch = firstMismatch(tab, expectedPreview);
+      throw new Error(`TAB preview differs from complete download at ${mismatch}: expected ${expectedPreview.length} chars, got ${tab.length}\nexpected=${JSON.stringify(expectedPreview.slice(mismatch, mismatch + 120))}\nactual=${JSON.stringify(tab.slice(mismatch, mismatch + 120))}`);
     }
     if (!/Elapsed \d+:\d{2}/.test(timeEstimate || '')) {
       throw new Error(`elapsed time display not found: ${timeEstimate}`);
@@ -108,6 +118,9 @@ async function main() {
     }
     if (!/dotplot-parser workers=8 alignments=\d+ plotted=\d+/.test(log)) {
       throw new Error(`parallel dot-plot parser log not found:\n${log}`);
+    }
+    if (!/dotplot-timing total=\d+\.\dms parser-total=\d+\.\dms plotly-newPlot=\d+\.\dms/.test(log)) {
+      throw new Error(`detailed dot-plot timing log not found:\n${log}`);
     }
     if (!statusHistory.some(status => /^Searching\.\.\. (?:[1-9]|[1-9]\d)%$/.test(status))) {
       throw new Error(`intermediate pthread progress was not displayed: ${statusHistory.join(' | ')}`);
@@ -130,8 +143,9 @@ async function main() {
 
     const singleTab = await page.textContent('#tab');
     const singleLog = await page.textContent('#log');
-    if (singleTab !== singleExpectedTab) {
-      throw new Error(`single-record TAB output differs from WASM baseline: expected ${singleExpectedTab.length} chars, got ${singleTab.length}`);
+    const singleExpectedPreview = tabPreview(singleExpectedTab);
+    if (singleTab !== singleExpectedPreview) {
+      throw new Error(`single-record TAB preview differs from WASM baseline: expected ${singleExpectedPreview.length} chars, got ${singleTab.length}`);
     }
     if (!/runtime=compiled LAST wasm-pthreads threads=1/.test(singleLog)) {
       throw new Error(`single-record WASM runtime log not found:\n${singleLog}`);
@@ -157,13 +171,18 @@ async function main() {
       const largeStatus = await page.textContent('#status');
       const largeLog = await page.textContent('#log');
       const largeElapsed = await page.textContent('#timeEstimate');
+      const expectedThreads = Math.max(1, Math.min(8, fastaRecordCount(largePath)));
+      const largeProfile = String(largeLog || '').split('\n')
+        .filter(line => line.startsWith('dotplot-timing') || line.startsWith('dotplot-longtasks') || line.startsWith('dotplot-memory'));
+      console.log(`Large FASTA profile:\n${largeProfile.join('\n')}`);
       if (largeStatus !== 'Done') {
         throw new Error(`large FASTA browser run failed:\n${largeLog}`);
       }
-      if (!/runtime=compiled LAST wasm-pthreads threads=8/.test(largeLog || '')) {
+      if (!String(largeLog || '').includes(`runtime=compiled LAST wasm-pthreads threads=${expectedThreads}`)) {
         throw new Error(`large FASTA pthread runtime log not found:\n${largeLog}`);
       }
-      if (!/lastal-pthreads spawned=7 maxRunning=7/.test(largeLog || '')) {
+      const childThreads = expectedThreads - 1;
+      if (!String(largeLog || '').includes(`lastal-pthreads spawned=${childThreads} maxRunning=${childThreads}`)) {
         throw new Error(`large FASTA pthread completion log not found:\n${largeLog}`);
       }
       console.log(`Large FASTA E2E OK: ${largeElapsed}`);
@@ -178,21 +197,37 @@ async function main() {
 }
 
 async function testLargeResultPipeline(context, rootDir, port) {
+  const alignmentCount = Math.max(1, Number(process.env.LAST_WEB_SYNTHETIC_ALIGNMENTS) || 100001);
+  const sequenceCount = Math.max(1, Number(process.env.LAST_WEB_SYNTHETIC_SEQUENCES) || 1);
   const page = await context.newPage();
-  await page.addInitScript(({ alignmentCount, previewChars }) => {
+  await page.addInitScript(({ alignmentCount, previewChars, sequenceCount }) => {
     const NativeWorker = window.Worker;
     window.Worker = class WorkerProxy {
       constructor(url, options) {
         if (!String(url).includes('jslast-runner-worker.js')) return new NativeWorker(url, options);
         this.onmessage = null;
         this.onerror = null;
+        this.pendingDone = null;
       }
 
-      postMessage() {
+      postMessage(message) {
+        if (message?.type === 'tab-preview-painted') {
+          window.__largePreviewPaintAckLength = document.querySelector('#tab')?.textContent.length || 0;
+          const done = this.pendingDone;
+          this.pendingDone = null;
+          setTimeout(() => this.emit(done), 0);
+          return;
+        }
+        if (message?.type !== 'run') return;
         setTimeout(() => {
           try {
-            const line = '100\tref\t0\t10\t+\t1000\tqry\t0\t10\t+\t1000\t10\tEG2=0\tE=0\n';
-            const tabText = `# synthetic large result\n${line.repeat(alignmentCount)}# Query sequences=1 normal letters=1000\n`;
+            const lines = Array.from({ length: sequenceCount }, (_, index) => (
+              `100\tref_${index}\t0\t10\t+\t1000\tqry_${index}\t0\t10\t+\t1000\t10\tEG2=0\tE=0\n`
+            ));
+            const block = lines.join('');
+            const repeats = Math.floor(alignmentCount / sequenceCount);
+            const remainder = alignmentCount % sequenceCount;
+            const tabText = `# synthetic large result\n${block.repeat(repeats)}${lines.slice(0, remainder).join('')}# Query sequences=${sequenceCount} normal letters=${sequenceCount * 1000}\n`;
             const previewEnd = tabText.lastIndexOf('\n', previewChars) + 1;
             this.emit({
               type: 'progress',
@@ -214,7 +249,7 @@ async function testLargeResultPipeline(context, rootDir, port) {
               totalChars: tabText.length,
             });
             const tabBytes = new TextEncoder().encode(tabText);
-            this.emit({
+            this.pendingDone = {
               type: 'done',
               result: {
                 alignmentCount,
@@ -240,7 +275,7 @@ async function testLargeResultPipeline(context, rootDir, port) {
                 tabByteLength: tabBytes.byteLength,
               },
               tabBuffer: tabBytes.buffer,
-            });
+            };
           } catch (error) {
             this.onerror?.({ message: error?.message || String(error) });
           }
@@ -253,7 +288,7 @@ async function testLargeResultPipeline(context, rootDir, port) {
 
       terminate() {}
     };
-  }, { alignmentCount: 100001, previewChars: 2 * 1024 * 1024 });
+  }, { alignmentCount, previewChars: TAB_PREVIEW_CHARS, sequenceCount });
 
   page.on('pageerror', error => console.error('[large-result browser]', error.stack || error));
   await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'domcontentloaded' });
@@ -269,17 +304,26 @@ async function testLargeResultPipeline(context, rootDir, port) {
     tabSummary: document.querySelector('#tabSummary')?.textContent || '',
     downloadEnabled: !document.querySelector('#downloadTabBtn')?.disabled,
     log: document.querySelector('#log')?.textContent || '',
+    previewPaintAckLength: window.__largePreviewPaintAckLength || 0,
   }));
   const plotCanvasCount = await page.locator('#dotplot canvas').count();
-  if (!state.tabText.includes('Preview limited to the first 2 MiB')) {
-    throw new Error('large TAB preview was not limited');
+  if (!state.tabText.includes('Preview limited to the first 20 KiB') || state.tabText.length > 22 * 1024) {
+    throw new Error(`large TAB preview was not limited to 20 KiB: ${state.tabText.length}`);
+  }
+  if (state.previewPaintAckLength < 1) {
+    throw new Error('full TAB processing started before the preview paint acknowledgement');
   }
   if (!/Complete TAB · \d+\.\d MiB/.test(state.tabSummary) || !state.downloadEnabled) {
     throw new Error(`large TAB download was not prepared: ${JSON.stringify(state)}`);
   }
-  if (!/dotplot-parser workers=8 alignments=100001 plotted=50001/.test(state.log)) {
+  const sampleEvery = Math.max(1, Math.ceil(alignmentCount / 100000));
+  const plottedCount = Math.ceil(alignmentCount / sampleEvery);
+  if (!state.log.includes(`dotplot-parser workers=8 alignments=${alignmentCount} plotted=${plottedCount}`)) {
     throw new Error(`large dot plot was not sampled as expected:\n${state.log}`);
   }
+  const profile = state.log.split('\n')
+    .filter(line => line.startsWith('dotplot-timing') || line.startsWith('dotplot-longtasks') || line.startsWith('dotplot-memory'));
+  console.log(`Synthetic ${alignmentCount}-alignment/${sequenceCount}-sequence profile:\n${profile.join('\n')}`);
   if (plotCanvasCount < 1) throw new Error('large sampled Plotly canvas was not created');
   await page.close();
 }
@@ -296,6 +340,26 @@ function makeQueryFasta(rootDir) {
   }
   fs.writeFileSync(queryPath, records.join(''));
   return queryPath;
+}
+
+function fastaRecordCount(filePath) {
+  const matches = fs.readFileSync(filePath, 'utf8').match(/^>/gm);
+  return Math.max(1, matches?.length || 0);
+}
+
+function tabPreview(tabText) {
+  if (tabText.length <= TAB_PREVIEW_CHARS) return tabText;
+  const newline = tabText.lastIndexOf('\n', TAB_PREVIEW_CHARS);
+  const previewEnd = newline > 0 ? newline + 1 : TAB_PREVIEW_CHARS;
+  return `${tabText.slice(0, previewEnd)}\n# Preview limited to the first 20 KiB. Download TAB contains the complete result.\n`;
+}
+
+function firstMismatch(left, right) {
+  const length = Math.min(left.length, right.length);
+  for (let index = 0; index < length; index++) {
+    if (left[index] !== right[index]) return index;
+  }
+  return length;
 }
 
 function buildWasmBaseline(rootDir, refFastaPath, queryFastaPath) {

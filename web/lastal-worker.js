@@ -1,4 +1,4 @@
-import createLastalModule from './lastal.js?v=20260724-large-results';
+import createLastalModule from './lastal.js?v=20260724-plot-profile';
 
 self.onmessage = async event => {
   const {

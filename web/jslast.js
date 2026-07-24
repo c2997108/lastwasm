@@ -1,6 +1,6 @@
-import { JSLAST_VERSION } from './version.js?v=20260724-large-results';
-import createLastdbModule from './lastdb.js?v=20260724-large-results';
-import createLastalModule from './lastal.js?v=20260724-large-results';
+import { JSLAST_VERSION } from './version.js?v=20260724-plot-profile';
+import createLastdbModule from './lastdb.js?v=20260724-plot-profile';
+import createLastalModule from './lastal.js?v=20260724-plot-profile';
 
 export { JSLAST_VERSION };
 
@@ -22,6 +22,8 @@ export async function runJsLast({
   requestedThreads = null,
   useDefaultDbArgs = true,
   onProgress = null,
+  onTabPreview = null,
+  tabPreviewChars = 0,
   threadProgressBuffer = null,
 } = {}) {
   const runStartedAt = performance.now();
@@ -144,6 +146,7 @@ export async function runJsLast({
       onProgress: progress,
     });
     tabText = workerResult.tabText;
+    await emitTabPreview(onTabPreview, tabText.slice(0, tabPreviewChars), tabText.length);
     alStderr.push(...workerResult.alLog);
     searchWorkerStats = workerResult.workerStats;
     searchProgressStats = workerResult.progressStats;
@@ -176,6 +179,7 @@ export async function runJsLast({
       finishThreadProgress(threadProgress);
     }
     alThreadStats = threadStats(lastalModule);
+    await emitTabPreview(onTabPreview, tabOutput.preview(tabPreviewChars), tabOutput.length());
     tabText = tabOutput.text();
   }
   const searchElapsedMs = performance.now() - searchStartedAt;
@@ -219,6 +223,7 @@ export async function runJsLast({
 function createLineCollector(chunkSize = 1024 * 1024) {
   let lines = [];
   let chars = 0;
+  let totalChars = 0;
   const chunks = [];
   const flush = () => {
     if (lines.length === 0) return;
@@ -231,13 +236,39 @@ function createLineCollector(chunkSize = 1024 * 1024) {
       const text = String(line ?? '');
       lines.push(text);
       chars += text.length + 1;
+      totalChars += text.length + 1;
       if (chars >= chunkSize) flush();
+    },
+    length() {
+      return totalChars;
+    },
+    preview(limit) {
+      let remaining = Math.max(0, Number(limit) || 0);
+      if (remaining === 0) return '';
+      const parts = [];
+      for (const chunk of chunks) {
+        if (remaining === 0) break;
+        parts.push(chunk.slice(0, remaining));
+        remaining -= Math.min(remaining, chunk.length);
+      }
+      for (const line of lines) {
+        if (remaining === 0) break;
+        const text = `${line}\n`;
+        parts.push(text.slice(0, remaining));
+        remaining -= Math.min(remaining, text.length);
+      }
+      return parts.join('');
     },
     text() {
       flush();
       return chunks.join('');
     },
   };
+}
+
+async function emitTabPreview(callback, text, totalChars) {
+  if (!callback) return;
+  await callback({ text, totalChars });
 }
 
 function isTabAlignmentLine(line) {
