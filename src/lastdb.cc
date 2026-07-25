@@ -540,7 +540,12 @@ void lastdb( int argc, char** argv ){
 		volumeNumber, seeds.size(), seedText );
 }
 
+#ifdef __EMSCRIPTEN__
+extern "C" int emscriptenLastdbMain( int argc, char** argv ) __asm__("main");
+int emscriptenLastdbMain( int argc, char** argv )
+#else
 int main( int argc, char** argv )
+#endif
 try{
   lastdb( argc, argv );
   return EXIT_SUCCESS;

@@ -1333,6 +1333,43 @@ static size_t alignSomeQueries(size_t chunkNum, unsigned volume) {
   return beg;
 }
 
+static void writeChunkResults(unsigned volume, unsigned chunkNum,
+			      size_t firstSequence) {
+  if (volume + 1 != numOfVolumes) return;
+  LastAligner &aligner = aligners[chunkNum];
+  writeCounts(aligner.matchCounts, qrySeqsGlobal, firstSequence);
+  aligner.matchCounts.clear();
+  printAlignments(aligner.textAlns);
+  clearAlignments(aligner.textAlns);
+  if (!aligner.splitter.isOutputEmpty()) {
+    aligner.splitter.printOutput();
+    aligner.splitter.clearOutput();
+  }
+}
+
+#if defined(__EMSCRIPTEN__) && defined(HAS_CXX_THREADS)
+static void scanOneVolume(unsigned volume, unsigned numOfThreads) {
+  std::vector<size_t> firstSequences(numOfThreads);
+  std::vector<std::thread> threads;
+  threads.reserve(numOfThreads - 1);
+
+  // Emscripten pthread workers must be created by the runtime's main worker.
+  // Nested creation delays worker cleanup until callMain returns, exhausting
+  // the fixed worker pool when query batching scans a second batch.
+  for (unsigned i = 0; i + 1 < numOfThreads; ++i) {
+    threads.push_back(std::thread([volume, i, &firstSequences]() {
+      firstSequences[i] = alignSomeQueries(i, volume);
+    }));
+  }
+  firstSequences[numOfThreads - 1] =
+    alignSomeQueries(numOfThreads - 1, volume);
+
+  for (unsigned i = 0; i + 1 < numOfThreads; ++i) threads[i].join();
+  for (unsigned i = 0; i < numOfThreads; ++i) {
+    writeChunkResults(volume, i, firstSequences[i]);
+  }
+}
+#else
 static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
   size_t firstSequence = 0;
   if (numOfThreadsLeft > 1) {
@@ -1346,18 +1383,9 @@ static void scanOneVolume(unsigned volume, unsigned numOfThreadsLeft) {
   } else {
     firstSequence = alignSomeQueries(0, volume);
   }
-  if (volume + 1 == numOfVolumes) {
-    LastAligner &aligner = aligners[numOfThreadsLeft - 1];
-    writeCounts(aligner.matchCounts, qrySeqsGlobal, firstSequence);
-    aligner.matchCounts.clear();
-    printAlignments(aligner.textAlns);
-    clearAlignments(aligner.textAlns);
-    if (!aligner.splitter.isOutputEmpty()) {
-      aligner.splitter.printOutput();
-      aligner.splitter.clearOutput();
-    }
-  }
+  writeChunkResults(volume, numOfThreadsLeft - 1, firstSequence);
 }
+#endif
 
 static void readAllSequenceLengths(char **fileNames,
 				   countT &totLen, countT &maxLen) {
@@ -1798,7 +1826,12 @@ void lastal(int argc, char **argv) {
 	    << " normal letters=" << numOfNormalLetters << "\n";
 }
 
+#ifdef __EMSCRIPTEN__
+extern "C" int emscriptenLastalMain( int argc, char** argv ) __asm__("main");
+int emscriptenLastalMain( int argc, char** argv )
+#else
 int main( int argc, char** argv )
+#endif
 try{
   lastal( argc, argv );
   if (!flush(std::cout)) ERR( "write error" );

@@ -1,4 +1,5 @@
-import { JSLAST_VERSION } from './version.js?v=20260724-plot-profile';
+import { JSLAST_VERSION } from './version.js?v=20260725-axis-labels';
+import { renderReglDotPlot } from './regl-dotplot.js?v=20260725-axis-labels';
 
 window.__JSLAST_MODULE_READY = true;
 
@@ -11,9 +12,10 @@ const downloadTabBtn = $('#downloadTabBtn');
 const timeEl = $('#timeEstimate');
 const runBtn = $('#runBtn');
 const workerInput = $('#workerCount');
-const lastdbArgsInput = $('#lastdbArgs');
-const lastalArgsInput = $('#lastalArgs');
-const safeMode = $('#safeMode');
+const seedHitLimitInput = $('#seedHitLimit');
+const queryBatchSizeInput = $('#queryBatchSize');
+const plotLengthCutoffInput = $('#plotLengthCutoff');
+const useFastaOrderInput = $('#useFastaOrder');
 const TIMING_MODEL_KEY = `lastjsTimingModel:${JSLAST_VERSION}`;
 const THREAD_PROGRESS_COMPLETED = 0;
 const THREAD_PROGRESS_STARTED_BATCHES = 1;
@@ -21,7 +23,6 @@ const THREAD_PROGRESS_THREADS = 2;
 const THREAD_PROGRESS_TOTAL_BATCHES = 3;
 const THREAD_PROGRESS_DONE = 4;
 const MAX_PLOT_WORKERS = 8;
-const MAX_PLOT_ALIGNMENTS = 100000;
 const MAX_UNSHARED_PLOT_BYTES = 32 * 1024 * 1024;
 
 let runClock = null;
@@ -29,6 +30,7 @@ let estimateState = null;
 let threadProgressView = null;
 let threadProgressTimer = null;
 let latestTabBuffer = null;
+let activeDotPlot = null;
 
 function setStatus(message) {
   if (statusEl) statusEl.textContent = message;
@@ -56,23 +58,8 @@ function configureDefaults() {
     workerInput.max = String(Math.max(1, hardware || 64));
   }
 
-  if (lastalArgsInput && !lastalArgsInput.value) {
-    lastalArgsInput.value = '-m100';
-  }
-
-  const updateSafeMode = () => {
-    if (!lastdbArgsInput || !safeMode) return;
-    if (safeMode.checked) {
-      lastdbArgsInput.value = '';
-      lastdbArgsInput.placeholder = 'Uses LAST-compatible database defaults';
-      lastdbArgsInput.setAttribute('disabled', 'disabled');
-    } else {
-      lastdbArgsInput.removeAttribute('disabled');
-      lastdbArgsInput.placeholder = '--bits=4 -R00 -uNEAR -w1 -W1 -S1 -C1 -v';
-    }
-  };
-  safeMode?.addEventListener('change', updateSafeMode);
-  updateSafeMode();
+  if (seedHitLimitInput && !seedHitLimitInput.value) seedHitLimitInput.value = '100';
+  if (queryBatchSizeInput && !queryBatchSizeInput.value) queryBatchSizeInput.value = '64M';
 }
 
 async function run() {
@@ -95,7 +82,17 @@ async function run() {
     }
 
     const requestedThreads = Math.max(1, Number(workerInput?.value || navigator.hardwareConcurrency || 1));
-    appendLog(`$ lastdb + lastal ${lastalArgsInput?.value || ''}`);
+    const seedHitLimit = parseNonNegativeInteger(seedHitLimitInput?.value, 100);
+    if (seedHitLimitInput) seedHitLimitInput.value = String(seedHitLimit);
+    const queryBatchSize = normalizeQueryBatchSize(queryBatchSizeInput?.value);
+    if (queryBatchSizeInput) queryBatchSizeInput.value = queryBatchSize;
+    const lastalArgs = `-m${seedHitLimit} -i${queryBatchSize}`;
+    const plotLengthCutoff = parsePlotLengthCutoff(plotLengthCutoffInput?.value);
+    if (plotLengthCutoffInput) plotLengthCutoffInput.value = String(plotLengthCutoff);
+    const useFastaOrder = Boolean(useFastaOrderInput?.checked);
+    appendLog(`$ lastdb + lastal ${lastalArgs}`);
+    appendLog(`dotplot hide-length<=${plotLengthCutoff}bp`);
+    appendLog(`dotplot sequence-order=${useFastaOrder ? 'fasta' : 'tab'}`);
     startEstimateClock({
       refText,
       qryText,
@@ -105,10 +102,10 @@ async function run() {
     const result = await runJsLastInWorker({
       refText,
       qryText,
-      lastdbArgs: lastdbArgsInput?.value || '',
-      lastalArgs: lastalArgsInput?.value || '',
+      lastdbArgs: '',
+      lastalArgs,
       requestedThreads,
-      useDefaultDbArgs: Boolean(safeMode?.checked),
+      useDefaultDbArgs: true,
       onProgress: (event) => {
         updateEstimateFromProgress(event);
         if (event.message) setStatus(event.message);
@@ -126,6 +123,7 @@ async function run() {
     if (downloadTabBtn) downloadTabBtn.disabled = !latestTabBuffer;
     if (tabSummaryEl) tabSummaryEl.textContent = formatTabSummary(result.tabByteLength, true);
     updateTimingModel(result.timing);
+    appendLog(formatResultPipelineProfile(result));
     if (result.runtime.endsWith('worker-pool')) {
       appendLog(`lastal-workers started=${result.searchWorkerStats.started} completed=${result.searchWorkerStats.completed}`);
     } else if (result.runtime === 'wasm-pthreads') {
@@ -137,13 +135,15 @@ async function run() {
     await afterNextPaint();
     setStatus('Rendering dot plot...');
     await afterNextPaint();
-    const plotStats = await renderPlotlyFromTab(result.tabBuffer, requestedThreads);
+    const plotStats = await renderReglFromTab(
+      result.tabBuffer,
+      requestedThreads,
+      plotLengthCutoff,
+      useFastaOrder ? { refs: result.refs, queries: result.queries } : null,
+    );
     for (const line of formatPlotProfile(plotStats)) appendLog(line);
     if (plotStats.workers > 0) {
-      appendLog(`dotplot-parser workers=${plotStats.workers} alignments=${plotStats.alignments} plotted=${plotStats.plotted}`);
-      if (plotStats.plotted < plotStats.alignments) {
-        appendLog(`[WARN] Dot plot sampled ${plotStats.plotted} of ${plotStats.alignments} alignments to limit memory use.`);
-      }
+      appendLog(`dotplot-parser workers=${plotStats.workers} alignments=${plotStats.alignments} rendered=${plotStats.rendered} hide-length<=${plotStats.lengthCutoff}bp`);
     }
     setStatus('Done');
   } catch (error) {
@@ -157,6 +157,7 @@ async function run() {
 
 function runJsLastInWorker(payload) {
   return new Promise((resolve, reject) => {
+    let transferStartedAt = null;
     const worker = new Worker(new URL(`./jslast-runner-worker.js?v=${JSLAST_VERSION}`, import.meta.url), {
       type: 'module',
       name: 'jslast-runner',
@@ -165,6 +166,9 @@ function runJsLastInWorker(payload) {
     worker.onmessage = event => {
       const data = event.data || {};
       if (data.type === 'progress') {
+        if (data.event?.stage === 'tab-encode' && data.event.status === 'complete') {
+          transferStartedAt = performance.now();
+        }
         payload.onProgress?.(data.event);
         return;
       }
@@ -176,6 +180,7 @@ function runJsLastInWorker(payload) {
       worker.terminate();
       stopThreadProgress();
       if (data.type === 'done') {
+        data.result.timing.tabTransferMs = transferStartedAt === null ? 0 : performance.now() - transferStartedAt;
         resolve({ ...data.result, tabBuffer: data.tabBuffer });
       } else {
         reject(new Error(data.error || 'LAST worker failed'));
@@ -218,6 +223,21 @@ function formatTabSummary(bytes, downloadable) {
     ? `${(bytes / (1024 * 1024)).toFixed(1)} MiB`
     : `${Math.ceil(bytes / 1024)} KiB`;
   return downloadable ? `Complete TAB · ${size}` : size;
+}
+
+function formatResultPipelineProfile(result) {
+  const timing = result?.timing || {};
+  const tabMiB = Number(result?.tabByteLength || 0) / (1024 * 1024);
+  return [
+    'result-timing',
+    `lastdb=${formatMs(timing.dbMs)}`,
+    `lastal-compute=${formatMs(timing.lastalComputeMs)}`,
+    `tab-preview=${formatMs(timing.tabPreviewMs)}`,
+    `tab-join=${formatMs(timing.tabFinalizeMs)}`,
+    `utf8-encode=${formatMs(timing.tabEncodeMs)}`,
+    `transfer=${formatMs(timing.tabTransferMs)}`,
+    `tab=${tabMiB.toFixed(1)}MiB`,
+  ].join(' ');
 }
 
 function formatNumber(value) {
@@ -279,6 +299,7 @@ function startEstimateClock({ refText, qryText, requestedThreads }) {
     phase: 'Preparing',
     estimatedTotalMs: estimateTotalMs(summary, model),
     searchEstimatedRemainingMs: null,
+    searchStartedAt: null,
     searchPercent: null,
     completedWorkers: 0,
     totalWorkers: 0,
@@ -303,6 +324,10 @@ function updateEstimateFromProgress(event) {
     estimateState.phase = event.status === 'complete' ? 'Index ready' : 'Building index';
   } else if (event.stage === 'lastal') {
     estimateState.phase = event.status === 'complete' ? 'Search complete' : 'Searching';
+    if (event.status !== 'complete' && estimateState.searchStartedAt === null) {
+      estimateState.searchStartedAt = performance.now();
+    }
+    if (event.status === 'complete') estimateState.searchEstimatedRemainingMs = 0;
     estimateState.totalWorkers = event.workers || estimateState.totalWorkers;
   } else if (event.stage === 'lastal-progress' || event.stage === 'lastal-worker') {
     estimateState.phase = 'Searching';
@@ -324,6 +349,12 @@ function updateTimeEstimate() {
   let remainingMs = null;
   if (Number.isFinite(estimateState.searchEstimatedRemainingMs)) {
     remainingMs = estimateState.searchEstimatedRemainingMs;
+  } else if (estimateState.phase === 'Searching'
+      && Number.isFinite(estimateState.searchPercent)
+      && estimateState.searchPercent > 0
+      && Number.isFinite(estimateState.searchStartedAt)) {
+    const searchElapsedMs = performance.now() - estimateState.searchStartedAt;
+    remainingMs = searchElapsedMs * (100 - estimateState.searchPercent) / estimateState.searchPercent;
   } else if (Number.isFinite(estimateState.estimatedTotalMs)) {
     remainingMs = Math.max(0, estimateState.estimatedTotalMs - elapsedMs);
   }
@@ -438,108 +469,76 @@ function afterNextPaint() {
 function clearPlot() {
   const plotDiv = $('#dotplot');
   if (!plotDiv) return;
-  if (window.Plotly) window.Plotly.purge(plotDiv);
+  activeDotPlot?.destroy();
+  activeDotPlot = null;
   plotDiv.textContent = '';
 }
 
-async function renderPlotlyFromTab(tabBuffer, requestedWorkers) {
+async function renderReglFromTab(tabBuffer, requestedWorkers, lengthCutoff, sequenceOrder) {
   const totalStartedAt = performance.now();
   const memoryStartMiB = usedHeapMiB();
   const plotDiv = $('#dotplot');
-  if (!plotDiv || !tabBuffer) return { workers: 0, alignments: 0, plotted: 0 };
-  if (!window.Plotly) {
-    plotDiv.textContent = 'Plotly is unavailable; TAB output is shown above.';
-    return { workers: 0, alignments: 0, plotted: 0 };
+  if (!plotDiv || !tabBuffer) return { workers: 0, alignments: 0, rendered: 0 };
+  if (typeof window.createREGL !== 'function') {
+    plotDiv.textContent = 'The WebGL renderer is unavailable; TAB output is shown above.';
+    return { workers: 0, alignments: 0, rendered: 0 };
   }
   const canShare = hasSharedMemory();
   if (!canShare && tabBuffer.byteLength > MAX_UNSHARED_PLOT_BYTES) {
     plotDiv.textContent = 'Dot plot skipped because shared memory is unavailable for this large result.';
-    return { workers: 0, alignments: 0, plotted: 0 };
+    return { workers: 0, alignments: 0, rendered: 0 };
   }
 
-  const plotData = await parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare);
+  const plotData = await parsePlotDataInParallel(
+    tabBuffer,
+    requestedWorkers,
+    canShare,
+    lengthCutoff,
+    sequenceOrder,
+  );
   if (plotData.alignmentCount === 0) {
     plotDiv.textContent = 'No plottable alignments.';
-    return { workers: plotData.workerCount, alignments: 0, plotted: 0 };
+    return { workers: plotData.workerCount, alignments: 0, rendered: 0, lengthCutoff };
   }
-
-  const hovertemplate = [
-    'Score: %{customdata.score}',
-    'Ref: %{customdata.refName}:%{customdata.refStart}-%{customdata.refEnd}',
-    'Qry: %{customdata.qryName}:%{customdata.qryStart}-%{customdata.qryEnd}',
-    'Length: %{customdata.len}',
-    '<extra></extra>',
-  ].join('<br>');
-  const tracesStartedAt = performance.now();
-  const traces = plotTraces(plotData.chunks, hovertemplate);
-  const tracesMs = performance.now() - tracesStartedAt;
-
-  const layoutStartedAt = performance.now();
-  const layout = {
-    xaxis: { title: 'Reference', range: [0, plotData.maxX], zeroline: false, showgrid: true },
-    yaxis: { title: 'Query', range: [0, plotData.maxY], scaleanchor: 'x', scaleratio: 1, zeroline: false, showgrid: true },
-    shapes: boundaryShapes(
-      plotData.refOrders,
-      plotData.refOffsets,
-      plotData.qryOrders,
-      plotData.qryOffsets,
-      plotData.maxX,
-      plotData.maxY,
-    ),
-    annotations: sequenceAnnotations(
-      plotData.refOrders,
-      plotData.refOffsets,
-      plotData.refLenByName,
-      plotData.qryOrders,
-      plotData.qryOffsets,
-      plotData.qryLenByName,
-    ),
-    showlegend: true,
-    dragmode: 'pan',
-    hovermode: 'closest',
-    margin: { l: 70, r: 20, t: 20, b: 60 },
-  };
-  const config = { responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d'] };
-  const layoutMs = performance.now() - layoutStartedAt;
-  const memoryBeforePlotlyMiB = usedHeapMiB();
+  if (plotData.renderedCount === 0) {
+    plotDiv.textContent = `No alignments longer than ${lengthCutoff.toLocaleString()} bp.`;
+    return {
+      workers: plotData.workerCount,
+      alignments: plotData.alignmentCount,
+      rendered: 0,
+      lengthCutoff,
+    };
+  }
   const longTaskProfile = startLongTaskProfile();
-  const plotlyStartedAt = performance.now();
-  const plotPromise = window.Plotly.newPlot(plotDiv, traces, layout, config);
-  const plotlyCallMs = performance.now() - plotlyStartedAt;
-  const plotlyPromiseStartedAt = performance.now();
-  await plotPromise;
-  const plotlyPromiseWaitMs = performance.now() - plotlyPromiseStartedAt;
-  const plotlyNewPlotMs = performance.now() - plotlyStartedAt;
-  const paintTiming = await measureFinalPlotPaint();
+  const memoryBeforeRendererMiB = usedHeapMiB();
+  const rendered = await renderReglDotPlot(plotDiv, plotData);
+  activeDotPlot = rendered.renderer;
   const longTasks = longTaskProfile.stop();
   return {
     workers: plotData.workerCount,
     alignments: plotData.alignmentCount,
-    plotted: plotData.plottedCount,
+    rendered: plotData.renderedCount,
+    lengthCutoff,
     timing: {
       ...plotData.timing,
-      tracesMs,
-      layoutMs,
-      plotlyCallMs,
-      plotlyPromiseWaitMs,
-      plotlyNewPlotMs,
-      finalPaintMs: paintTiming.totalMs,
-      eventLoopYieldMs: paintTiming.eventLoopYieldMs,
-      firstFrameMs: paintTiming.firstFrameMs,
-      secondFrameMs: paintTiming.secondFrameMs,
+      rendererUploadMs: rendered.timing.uploadMs,
+      rendererDrawSubmitMs: rendered.timing.drawSubmitMs,
+      rendererGpuMs: rendered.timing.gpuCompleteMs,
+      rendererPaintMs: rendered.timing.firstPaintMs,
+      rendererTotalMs: rendered.timing.totalMs,
       longTasks,
       totalMs: performance.now() - totalStartedAt,
     },
     memory: {
       startMiB: memoryStartMiB,
       ...plotData.memory,
-      beforePlotlyMiB: memoryBeforePlotlyMiB,
-      afterPlotlyMiB: usedHeapMiB(),
+      beforeRendererMiB: memoryBeforeRendererMiB,
+      afterRendererMiB: usedHeapMiB(),
     },
   };
 }
 
-async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
+async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare, lengthCutoff, sequenceOrder) {
   const totalStartedAt = performance.now();
   const workerLimit = canShare
     ? Math.max(1, Math.min(MAX_PLOT_WORKERS, Number(requestedWorkers) || 1))
@@ -577,6 +576,7 @@ async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
         buffer,
         start: session.range.start,
         end: session.range.end,
+        lengthCutoff,
       },
       canShare || index > 0 ? [] : [buffer],
     )));
@@ -584,8 +584,7 @@ async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
     const parseWorkers = summarizeWorkerTimings(metadata);
     const afterParseMiB = usedHeapMiB();
     const mergeStartedAt = performance.now();
-    const merged = mergePlotMetadata(metadata);
-    const sampleEvery = Math.max(1, Math.ceil(merged.alignmentCount / MAX_PLOT_ALIGNMENTS));
+    const merged = mergePlotMetadata(metadata, sequenceOrder);
     const metadataMergeMs = performance.now() - mergeStartedAt;
     const buildStartedAt = performance.now();
     const chunks = await Promise.all(sessions.map(session => requestPlotWorker(session.worker, {
@@ -594,7 +593,7 @@ async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
       refOffsets: Array.from(merged.refOffsets),
       qryOffsets: Array.from(merged.qryOffsets),
       alignmentStart: merged.alignmentStartByIndex.get(session.index) || 0,
-      sampleEvery,
+      lengthCutoff,
     })));
     const buildPassMs = performance.now() - buildStartedAt;
     const buildWorkers = summarizeWorkerTimings(chunks);
@@ -605,7 +604,7 @@ async function parsePlotDataInParallel(tabBuffer, requestedWorkers, canShare) {
       ...merged,
       chunks,
       workerCount: sessions.length,
-      plottedCount: chunks.reduce((sum, chunk) => sum + (chunk.plottedCount || 0), 0),
+      renderedCount: chunks.reduce((sum, chunk) => sum + (chunk.alignmentCount || 0), 0),
       timing: {
         bufferCopyMs,
         rangeSplitMs,
@@ -648,38 +647,6 @@ function summarizeWorkerTimings(results) {
   };
 }
 
-async function measureFinalPlotPaint() {
-  const startedAt = performance.now();
-  const eventLoopStartedAt = performance.now();
-  await new Promise(resolve => setTimeout(resolve, 0));
-  const eventLoopYieldMs = performance.now() - eventLoopStartedAt;
-  const firstFrameStartedAt = performance.now();
-  await nextAnimationFrame();
-  const firstFrameMs = performance.now() - firstFrameStartedAt;
-  const secondFrameStartedAt = performance.now();
-  await nextAnimationFrame();
-  const secondFrameMs = performance.now() - secondFrameStartedAt;
-  return {
-    totalMs: performance.now() - startedAt,
-    eventLoopYieldMs,
-    firstFrameMs,
-    secondFrameMs,
-  };
-}
-
-function nextAnimationFrame() {
-  return new Promise(resolve => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      resolve();
-    };
-    setTimeout(finish, 250);
-    requestAnimationFrame(finish);
-  });
-}
-
 function startLongTaskProfile() {
   const durations = [];
   let observer = null;
@@ -711,17 +678,16 @@ function formatPlotProfile(plotStats) {
   const parse = timing.parseWorkers || {};
   const build = timing.buildWorkers || {};
   const lines = [
-    `dotplot-timing total=${formatMs(timing.totalMs)} parser-total=${formatMs(timing.parserTotalMs)} plotly-newPlot=${formatMs(timing.plotlyNewPlotMs)} final-paint=${formatMs(timing.finalPaintMs)}`,
+    `dotplot-timing total=${formatMs(timing.totalMs)} parser-total=${formatMs(timing.parserTotalMs)} renderer-total=${formatMs(timing.rendererTotalMs)}`,
     `dotplot-timing setup buffer-copy=${formatMs(timing.bufferCopyMs)} range-split=${formatMs(timing.rangeSplitMs)} worker-create=${formatMs(timing.workerCreateMs)} metadata-merge=${formatMs(timing.metadataMergeMs)} finalize=${formatMs(timing.finalizeMs)}`,
     `dotplot-timing parse-pass=${formatMs(timing.parsePassMs)} worker-max=${formatMs(parse.maxTotalMs)} decode-max=${formatMs(parse.maxDecodeMs)} scan-max=${formatMs(parse.maxScanMs)} startup-message=${formatMs(timing.parseOverheadMs)}`,
     `dotplot-timing build-pass=${formatMs(timing.buildPassMs)} worker-max=${formatMs(build.maxTotalMs)} decode-max=${formatMs(build.maxDecodeMs)} scan-max=${formatMs(build.maxScanMs)} arrays-max=${formatMs(build.maxArraysMs)} message-clone=${formatMs(timing.buildOverheadMs)}`,
-    `dotplot-timing main traces=${formatMs(timing.tracesMs)} layout=${formatMs(timing.layoutMs)}`,
-    `dotplot-timing plotly call=${formatMs(timing.plotlyCallMs)} promise-wait=${formatMs(timing.plotlyPromiseWaitMs)} event-loop=${formatMs(timing.eventLoopYieldMs)} frame-1=${formatMs(timing.firstFrameMs)} frame-2=${formatMs(timing.secondFrameMs)}`,
+    `dotplot-timing regl upload=${formatMs(timing.rendererUploadMs)} draw-submit=${formatMs(timing.rendererDrawSubmitMs)} gpu=${formatMs(timing.rendererGpuMs)} paint=${formatMs(timing.rendererPaintMs)}`,
     `dotplot-longtasks count=${timing.longTasks?.count || 0} total=${formatMs(timing.longTasks?.totalMs)} max=${formatMs(timing.longTasks?.maxMs)}`,
   ];
   const memory = plotStats.memory || {};
   if (Number.isFinite(memory.startMiB)) {
-    lines.push(`dotplot-memory heap start=${formatMiB(memory.startMiB)} after-buffer=${formatMiB(memory.afterBufferMiB)} after-parse=${formatMiB(memory.afterParseMiB)} after-build=${formatMiB(memory.afterBuildMiB)} before-plotly=${formatMiB(memory.beforePlotlyMiB)} after-plotly=${formatMiB(memory.afterPlotlyMiB)}`);
+    lines.push(`dotplot-memory heap start=${formatMiB(memory.startMiB)} after-buffer=${formatMiB(memory.afterBufferMiB)} after-parse=${formatMiB(memory.afterParseMiB)} after-build=${formatMiB(memory.afterBuildMiB)} before-renderer=${formatMiB(memory.beforeRendererMiB)} after-renderer=${formatMiB(memory.afterRendererMiB)}`);
   }
   return lines;
 }
@@ -777,17 +743,21 @@ function requestPlotWorker(worker, message, transfer = []) {
   });
 }
 
-function mergePlotMetadata(metadata) {
+function mergePlotMetadata(metadata, sequenceOrder) {
   const refOrders = [];
   const qryOrders = [];
   const refLenByName = new Map();
   const qryLenByName = new Map();
+  mergeSequenceMetadata(sequenceOrder?.refs, refOrders, refLenByName);
+  mergeSequenceMetadata(sequenceOrder?.queries, qryOrders, qryLenByName);
   const alignmentStartByIndex = new Map();
   let alignmentCount = 0;
+  let renderedCount = 0;
   metadata.sort((left, right) => left.index - right.index);
   for (const chunk of metadata) {
-    alignmentStartByIndex.set(chunk.index, alignmentCount);
+    alignmentStartByIndex.set(chunk.index, renderedCount);
     alignmentCount += chunk.alignmentCount || 0;
+    renderedCount += chunk.renderedCount || 0;
     mergeSequenceMetadata(chunk.refs, refOrders, refLenByName);
     mergeSequenceMetadata(chunk.queries, qryOrders, qryLenByName);
   }
@@ -795,6 +765,7 @@ function mergePlotMetadata(metadata) {
   const qryOffsets = offsetsFor(qryOrders, qryLenByName);
   return {
     alignmentCount,
+    renderedCount,
     alignmentStartByIndex,
     refOrders,
     qryOrders,
@@ -805,6 +776,22 @@ function mergePlotMetadata(metadata) {
     maxX: totalLength(refOrders, refLenByName),
     maxY: totalLength(qryOrders, qryLenByName),
   };
+}
+
+function parsePlotLengthCutoff(value) {
+  return parseNonNegativeInteger(value, 1000);
+}
+
+function parseNonNegativeInteger(value, fallback) {
+  if (String(value ?? '').trim() === '') return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : fallback;
+}
+
+function normalizeQueryBatchSize(value) {
+  const normalized = String(value ?? '').trim().toUpperCase();
+  const match = normalized.match(/^(\d+)([KMGT]?)$/);
+  return match && Number(match[1]) > 0 ? normalized : '64M';
 }
 
 function hasSharedMemory() {
@@ -821,39 +808,6 @@ function mergeSequenceMetadata(records, order, lengths) {
   }
 }
 
-function plotTraces(chunks, hovertemplate) {
-  const traces = [];
-  let hasForwardLegend = false;
-  let hasReverseLegend = false;
-  for (const chunk of chunks) {
-    if (chunk.forward.count > 0) {
-      traces.push(plotTrace('Forward', '#1664d9', hovertemplate, chunk.forward, !hasForwardLegend));
-      hasForwardLegend = true;
-    }
-    if (chunk.reverse.count > 0) {
-      traces.push(plotTrace('Reverse', '#c92a2a', hovertemplate, chunk.reverse, !hasReverseLegend));
-      hasReverseLegend = true;
-    }
-  }
-  return traces;
-}
-
-function plotTrace(name, color, hovertemplate, chunk, showlegend) {
-  return {
-    x: new Float64Array(chunk.x),
-    y: new Float64Array(chunk.y),
-    customdata: chunk.customdata,
-    mode: 'lines+markers',
-    type: 'scattergl',
-    name,
-    legendgroup: name,
-    showlegend,
-    line: { color, width: 1.8 },
-    marker: { size: 5, opacity: 0 },
-    hovertemplate,
-  };
-}
-
 function offsetsFor(names, lenByName) {
   const offsets = new Map();
   let offset = 0;
@@ -866,34 +820,6 @@ function offsetsFor(names, lenByName) {
 
 function totalLength(names, lenByName) {
   return Math.max(1, names.reduce((sum, name) => sum + (lenByName.get(name) || 0), 0));
-}
-
-function boundaryShapes(refOrders, refOffsets, qryOrders, qryOffsets, maxX, maxY) {
-  const shapes = [];
-  for (let i = 1; i < refOrders.length; i++) {
-    const off = refOffsets.get(refOrders[i]) || 0;
-    shapes.push({ type: 'line', x0: off, x1: off, y0: 0, y1: maxY, line: { color: 'rgba(0,0,0,0.2)', width: 1, dash: 'dot' } });
-  }
-  for (let i = 1; i < qryOrders.length; i++) {
-    const off = qryOffsets.get(qryOrders[i]) || 0;
-    shapes.push({ type: 'line', x0: 0, x1: maxX, y0: off, y1: off, line: { color: 'rgba(0,0,0,0.2)', width: 1, dash: 'dot' } });
-  }
-  return shapes;
-}
-
-function sequenceAnnotations(refOrders, refOffsets, refLenByName, qryOrders, qryOffsets, qryLenByName) {
-  const annotations = [];
-  for (const name of refOrders) {
-    const off = refOffsets.get(name) || 0;
-    const len = refLenByName.get(name) || 0;
-    annotations.push({ x: off + len / 2, y: 1, xref: 'x', yref: 'paper', yanchor: 'bottom', yshift: 8, text: name, showarrow: false, font: { size: 10 }, textangle: -35 });
-  }
-  for (const name of qryOrders) {
-    const off = qryOffsets.get(name) || 0;
-    const len = qryLenByName.get(name) || 0;
-    annotations.push({ x: 0, y: off + len / 2, xref: 'paper', yref: 'y', xanchor: 'right', xshift: -8, text: name, showarrow: false, font: { size: 10 } });
-  }
-  return annotations;
 }
 
 configureDefaults();

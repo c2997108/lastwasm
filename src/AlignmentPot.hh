@@ -33,7 +33,7 @@ struct AlignmentPot{
   static bool lessScore(const Alignment &x, const Alignment &y) {
     // Try to break ties, so that alignments come in a consistent
     // order.  This makes it easier to compare different results.
-    return x.score != y.score ? x.score < y.score : !lessBeg(x, y);
+    return x.score != y.score ? x.score < y.score : lessBeg(y, x);
   }
 
   static bool lessBeg( const Alignment& x, const Alignment& y ){

@@ -1,4 +1,5 @@
-import createLastalModule from './lastal.js?v=20260724-plot-profile';
+import createLastalModule from './lastal-asm.js?v=20260725-axis-labels';
+import { JSLAST_VERSION } from './version.js?v=20260725-axis-labels';
 
 self.onmessage = async event => {
   const {
@@ -22,7 +23,7 @@ self.onmessage = async event => {
       noInitialRun: true,
       useAsmJs,
       INITIAL_MEMORY: memory,
-      locateFile: path => new URL(path, import.meta.url).href,
+      locateFile: path => versionedAssetUrl(path),
       print: line => {
         stdout.push(line);
         if (/^\d+\t/.test(String(line || ''))) alignmentCount += 1;
@@ -58,6 +59,12 @@ self.onmessage = async event => {
     });
   }
 };
+
+function versionedAssetUrl(path) {
+  const url = new URL(path, import.meta.url);
+  url.searchParams.set('v', JSLAST_VERSION);
+  return url.href;
+}
 
 function createLineCollector(chunkSize = 1024 * 1024) {
   let lines = [];

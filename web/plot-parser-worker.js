@@ -1,6 +1,7 @@
 let chunkBuffer = null;
 let chunkStart = 0;
 let chunkEnd = 0;
+let chunkRenderedCount = 0;
 
 self.onmessage = event => {
   const data = event.data || {};
@@ -8,7 +9,7 @@ self.onmessage = event => {
     if (data.type === 'parse') {
       parseChunk(data);
     } else if (data.type === 'build') {
-      buildPlotChunks(data);
+      buildPlotChunk(data);
     }
   } catch (error) {
     self.postMessage({
@@ -18,7 +19,7 @@ self.onmessage = event => {
   }
 };
 
-function parseChunk({ index, buffer, start, end }) {
+function parseChunk({ index, buffer, start, end, lengthCutoff = 0 }) {
   const startedAt = performance.now();
   chunkBuffer = buffer;
   chunkStart = start;
@@ -26,17 +27,21 @@ function parseChunk({ index, buffer, start, end }) {
   const refLengths = new Map();
   const qryLengths = new Map();
   let alignmentCount = 0;
+  let renderedCount = 0;
 
   const scanTiming = forEachAlignment(segment => {
     if (!refLengths.has(segment.refName)) refLengths.set(segment.refName, segment.refTotal);
     if (!qryLengths.has(segment.qryName)) qryLengths.set(segment.qryName, segment.qryTotal);
     alignmentCount += 1;
+    if (alignmentLength(segment) > lengthCutoff) renderedCount += 1;
   });
+  chunkRenderedCount = renderedCount;
 
   self.postMessage({
     type: 'parsed',
     index,
     alignmentCount,
+    renderedCount,
     refs: Array.from(refLengths, ([name, length]) => ({ name, length })),
     queries: Array.from(qryLengths, ([name, length]) => ({ name, length })),
     timing: {
@@ -47,38 +52,80 @@ function parseChunk({ index, buffer, start, end }) {
   });
 }
 
-function buildPlotChunks({ index, refOffsets, qryOffsets, alignmentStart = 0, sampleEvery = 1 }) {
+function buildPlotChunk({ index, refOffsets, qryOffsets, alignmentStart = 0, lengthCutoff = 0 }) {
   const startedAt = performance.now();
   const refOffsetByName = new Map(refOffsets);
   const qryOffsetByName = new Map(qryOffsets);
-  const selected = [];
+  const refIdByName = new Map(refOffsets.map(([name], id) => [name, id]));
+  const qryIdByName = new Map(qryOffsets.map(([name], id) => [name, id]));
+  const NameIdArray = Math.max(refOffsets.length, qryOffsets.length) <= 0xffff ? Uint16Array : Uint32Array;
+  const positions = new Float32Array(chunkRenderedCount * 4);
+  const alignmentIds = new Float32Array(chunkRenderedCount * 2);
+  const scores = new Float64Array(chunkRenderedCount);
+  const refNameIds = new NameIdArray(chunkRenderedCount);
+  const qryNameIds = new NameIdArray(chunkRenderedCount);
+  const refStarts = new Uint32Array(chunkRenderedCount);
+  const refLengths = new Uint32Array(chunkRenderedCount);
+  const qryStarts = new Uint32Array(chunkRenderedCount);
+  const qryLengths = new Uint32Array(chunkRenderedCount);
+  const strands = new Uint8Array(chunkRenderedCount * 2);
   let localIndex = 0;
+
   const scanTiming = forEachAlignment(segment => {
-    if ((alignmentStart + localIndex) % sampleEvery === 0) selected.push(segment);
+    if (alignmentLength(segment) <= lengthCutoff) return;
+    const refOffset = refOffsetByName.get(segment.refName) || 0;
+    const qryOffset = qryOffsetByName.get(segment.qryName) || 0;
+    const reverseQuery = segment.qryStrand === '-';
+    const positionIndex = localIndex * 4;
+    positions[positionIndex] = refOffset + segment.refStart + 1;
+    positions[positionIndex + 1] = qryOffset + (reverseQuery
+      ? segment.qryTotal - segment.qryStart
+      : segment.qryStart + 1);
+    positions[positionIndex + 2] = refOffset + segment.refStart + segment.refLen;
+    positions[positionIndex + 3] = qryOffset + (reverseQuery
+      ? segment.qryTotal - segment.qryStart - segment.qryLen + 1
+      : segment.qryStart + segment.qryLen);
+    alignmentIds[localIndex * 2] = alignmentStart + localIndex;
+    alignmentIds[localIndex * 2 + 1] = alignmentStart + localIndex;
+    scores[localIndex] = segment.score;
+    refNameIds[localIndex] = refIdByName.get(segment.refName) || 0;
+    qryNameIds[localIndex] = qryIdByName.get(segment.qryName) || 0;
+    refStarts[localIndex] = segment.refStart;
+    refLengths[localIndex] = segment.refLen;
+    qryStarts[localIndex] = segment.qryStart;
+    qryLengths[localIndex] = segment.qryLen;
+    strands[localIndex * 2] = reverseQuery ? 1 : 0;
+    strands[localIndex * 2 + 1] = reverseQuery ? 1 : 0;
     localIndex += 1;
   });
-
-  const forwardCount = selected.reduce((count, segment) => count + (segment.qryStrand === '-' ? 0 : 1), 0);
-  const reverseCount = selected.length - forwardCount;
-  const arraysStartedAt = performance.now();
-  const forward = makePlotChunk(selected, false, forwardCount, refOffsetByName, qryOffsetByName);
-  const reverse = makePlotChunk(selected, true, reverseCount, refOffsetByName, qryOffsetByName);
-  const arraysMs = performance.now() - arraysStartedAt;
   chunkBuffer = null;
 
+  const arrays = {
+    positions: positions.buffer,
+    alignmentIds: alignmentIds.buffer,
+    scores: scores.buffer,
+    refNameIds: refNameIds.buffer,
+    qryNameIds: qryNameIds.buffer,
+    refStarts: refStarts.buffer,
+    refLengths: refLengths.buffer,
+    qryStarts: qryStarts.buffer,
+    qryLengths: qryLengths.buffer,
+    strands: strands.buffer,
+  };
   self.postMessage({
     type: 'built',
     index,
-    plottedCount: selected.length,
-    forward,
-    reverse,
+    alignmentStart,
+    alignmentCount: localIndex,
+    nameIdBytes: NameIdArray.BYTES_PER_ELEMENT,
+    arrays,
     timing: {
       totalMs: performance.now() - startedAt,
       decodeMs: scanTiming.decodeMs,
       scanMs: scanTiming.scanMs,
-      arraysMs,
+      arraysMs: Math.max(0, performance.now() - startedAt - scanTiming.decodeMs - scanTiming.scanMs),
     },
-  }, [forward.x, forward.y, reverse.x, reverse.y]);
+  }, Object.values(arrays));
 }
 
 function forEachAlignment(callback) {
@@ -134,55 +181,6 @@ function parseAlignment(line) {
   ].some(value => !Number.isFinite(value)) ? null : segment;
 }
 
-function makePlotChunk(chunkSegments, reverseTarget, segmentCount, refOffsets, qryOffsets) {
-  const pointCount = segmentCount * 3;
-  const x = new Float64Array(pointCount);
-  const y = new Float64Array(pointCount);
-  const customdata = new Array(pointCount);
-  let pointIndex = 0;
-
-  for (const segment of chunkSegments) {
-    if ((segment.qryStrand === '-') !== reverseTarget) continue;
-    const refOffset = refOffsets.get(segment.refName) || 0;
-    const qryOffset = qryOffsets.get(segment.qryName) || 0;
-    const reverseQuery = segment.qryStrand === '-';
-    const x1 = refOffset + segment.refStart + 1;
-    const x2 = refOffset + segment.refStart + segment.refLen;
-    const y1 = qryOffset + (reverseQuery
-      ? segment.qryTotal - segment.qryStart
-      : segment.qryStart + 1);
-    const y2 = qryOffset + (reverseQuery
-      ? segment.qryTotal - segment.qryStart - segment.qryLen + 1
-      : segment.qryStart + segment.qryLen);
-    const hoverData = {
-      score: segment.score,
-      refName: segment.refName,
-      refStart: segment.refStart + 1,
-      refEnd: segment.refStart + segment.refLen,
-      qryName: segment.qryName,
-      qryStart: reverseQuery ? segment.qryTotal - segment.qryStart : segment.qryStart + 1,
-      qryEnd: reverseQuery
-        ? segment.qryTotal - segment.qryStart - segment.qryLen + 1
-        : segment.qryStart + segment.qryLen,
-      len: Math.min(segment.refLen, segment.qryLen),
-    };
-
-    x[pointIndex] = x1;
-    x[pointIndex + 1] = x2;
-    x[pointIndex + 2] = NaN;
-    y[pointIndex] = y1;
-    y[pointIndex + 1] = y2;
-    y[pointIndex + 2] = NaN;
-    customdata[pointIndex] = hoverData;
-    customdata[pointIndex + 1] = hoverData;
-    customdata[pointIndex + 2] = null;
-    pointIndex += 3;
-  }
-
-  return {
-    count: segmentCount,
-    x: x.buffer,
-    y: y.buffer,
-    customdata,
-  };
+function alignmentLength(segment) {
+  return Math.min(segment.refLen, segment.qryLen);
 }

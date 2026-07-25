@@ -7,23 +7,53 @@
   <link rel="icon" href="data:," />
   <title>LAST-JS Homology Search</title>
   <script>
-    const coiReloadKey = 'lastjs-coi-reload';
-    if (crossOriginIsolated) {
-      sessionStorage.removeItem(coiReloadKey);
-    } else if (location.protocol !== 'file:' && 'serviceWorker' in navigator) {
-      let reloadStarted = false;
-      const reloadForIsolation = () => {
-        if (reloadStarted || crossOriginIsolated || sessionStorage.getItem(coiReloadKey)) return;
-        reloadStarted = true;
-        sessionStorage.setItem(coiReloadKey, '1');
-        location.reload();
-      };
-      navigator.serviceWorker.addEventListener('controllerchange', reloadForIsolation);
-      navigator.serviceWorker.register('./coi-serviceworker.js')
-        .then(() => navigator.serviceWorker.ready)
-        .then(reloadForIsolation)
-        .catch(() => {});
-    }
+    (() => {
+      const coiVersion = '20260725-axis-labels';
+      const coiReloadKey = `lastjs-coi-reload:${coiVersion}`;
+      const waitForActivation = (worker) => new Promise(resolve => {
+        if (!worker || worker.state === 'activated') {
+          resolve();
+          return;
+        }
+        const timer = setTimeout(resolve, 5000);
+        worker.addEventListener('statechange', () => {
+          if (worker.state !== 'activated') return;
+          clearTimeout(timer);
+          resolve();
+        });
+      });
+
+      window.__coiReady = (async () => {
+        if (crossOriginIsolated) {
+          sessionStorage.removeItem(coiReloadKey);
+          return true;
+        }
+        if (location.protocol === 'file:' || !('serviceWorker' in navigator)) return false;
+
+        try {
+          const registration = await navigator.serviceWorker.register(
+            `./coi-serviceworker.js?v=${coiVersion}`,
+            { scope: './', updateViaCache: 'none' },
+          );
+          await registration.update();
+          await waitForActivation(registration.installing || registration.waiting || registration.active);
+          const ready = await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise(resolve => setTimeout(() => resolve(null), 5000)),
+          ]);
+          if (!ready?.active) return false;
+
+          const reloads = Number(sessionStorage.getItem(coiReloadKey) || 0);
+          if (reloads >= 2) return false;
+          sessionStorage.setItem(coiReloadKey, String(reloads + 1));
+          location.reload();
+          return await new Promise(() => {});
+        } catch (error) {
+          console.warn('Shared-memory Service Worker setup failed:', error);
+          return false;
+        }
+      })();
+    })();
   </script>
   <style>
     :root {
@@ -168,7 +198,7 @@
 
     .controls {
       display: grid;
-      grid-template-columns: minmax(120px, 180px) minmax(160px, auto) auto;
+      grid-template-columns: minmax(120px, 180px) minmax(180px, auto) auto;
       gap: 12px;
       align-items: end;
       margin-top: 10px;
@@ -196,12 +226,64 @@
     }
 
     #dotplot {
+      position: relative;
       width: 100%;
       height: min(62vw, 560px);
       min-height: 360px;
       border: 1px solid var(--border);
       border-radius: 8px;
       background: #fff;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .dotplot-stage {
+      position: absolute;
+      inset: 0;
+      cursor: crosshair;
+      user-select: none;
+    }
+
+    .dotplot-stage.is-panning {
+      cursor: grabbing;
+    }
+
+    .dotplot-gl,
+    .dotplot-axis {
+      position: absolute;
+      inset: 0;
+      display: block;
+    }
+
+    .dotplot-axis {
+      pointer-events: none;
+    }
+
+    .dotplot-tooltip {
+      position: absolute;
+      z-index: 3;
+      max-width: min(360px, calc(100% - 12px));
+      padding: 7px 9px;
+      border: 1px solid #3e4755;
+      border-radius: 4px;
+      background: rgba(18, 23, 31, 0.94);
+      color: #f7f9fc;
+      font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+      white-space: pre;
+      pointer-events: none;
+    }
+
+    .dotplot-fit {
+      position: absolute;
+      z-index: 2;
+      top: 8px;
+      right: 8px;
+      min-height: 30px;
+      padding: 4px 10px;
+      border-color: #aeb7c4;
+      background: rgba(255, 255, 255, 0.94);
+      color: #303946;
+      font-size: 12px;
     }
 
     @media (max-width: 820px) {
@@ -231,11 +313,14 @@
         <label for="qryFasta">Query FASTA (Y axis)</label>
         <input type="file" id="qryFasta" accept=".fa,.fasta,.fna,.faa,.txt" />
 
-        <label for="lastdbArgs">lastdb options</label>
-        <input type="text" id="lastdbArgs" />
+        <label for="seedHitLimit">Maximum seed hits per query position</label>
+        <input type="number" id="seedHitLimit" value="100" min="0" step="1" inputmode="numeric" />
 
-        <label for="lastalArgs">Search options</label>
-        <input type="text" id="lastalArgs" value="-m100" placeholder="-m100" />
+        <label for="queryBatchSize">Query batch size</label>
+        <input type="text" id="queryBatchSize" value="64M" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+
+        <label for="plotLengthCutoff">Hide alignments at or below (bp)</label>
+        <input type="number" id="plotLengthCutoff" value="1000" min="0" step="1" inputmode="numeric" />
 
         <div class="controls">
           <div>
@@ -244,8 +329,8 @@
           </div>
 
           <label class="checkbox">
-            <input type="checkbox" id="safeMode" checked />
-            <span>LAST defaults</span>
+            <input type="checkbox" id="useFastaOrder" checked />
+            <span>Plot in FASTA sequence order</span>
           </label>
 
           <button id="runBtn">Run</button>
@@ -275,13 +360,15 @@
     </fieldset>
   </main>
 
-  <script async src="https://cdn.plot.ly/plotly-2.27.0.min.js" crossorigin="anonymous"></script>
+  <script src="./web/regl.min.js?v=2.1.1"></script>
   <script>
     if (location.protocol !== 'file:') {
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = './web/main.js?v=20260724-plot-profile';
-      document.body.appendChild(script);
+      Promise.resolve(window.__coiReady).then(() => {
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = './web/main.js?v=20260725-axis-labels';
+        document.body.appendChild(script);
+      });
     } else {
       document.querySelector('#status').textContent = 'Open this page through a local HTTP server.';
     }

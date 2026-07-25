@@ -126,7 +126,7 @@ async function runCase(browser, cdp, baseUrl, threads) {
 }
 
 async function setupCase({ threads, queryCopies }) {
-  const version = '20260724-plot-profile';
+  const version = '20260725-axis-labels';
   const lastdbUrl = new URL(`/web/lastdb.js?v=${version}`, location.href).href;
   const lastalUrl = new URL(`/web/lastal.js?v=${version}`, location.href).href;
   const createLastdbModule = (await import(lastdbUrl)).default;
@@ -138,7 +138,7 @@ async function setupCase({ threads, queryCopies }) {
     noInitialRun: true,
     useAsmJs: false,
     INITIAL_MEMORY: 134217728,
-    locateFile: file => new URL(`/web/${file}`, location.href).href,
+    locateFile: file => new URL(`/web/${file}?v=${version}`, location.href).href,
     mainScriptUrlOrBlob: lastdbUrl,
     pthreadPoolSize: 0,
     print: () => {},
@@ -174,7 +174,7 @@ async function setupCase({ threads, queryCopies }) {
     useAsmJs: false,
     INITIAL_MEMORY: 268435456,
     wasmMemory: lastalMemory,
-    locateFile: file => new URL(`/web/${file}`, location.href).href,
+    locateFile: file => new URL(`/web/${file}?v=${version}`, location.href).href,
     mainScriptUrlOrBlob: lastalUrl,
     pthreadPoolSize: Math.max(0, threads - 1),
     print: () => { window.__pthreadSmokeOutputLines += 1; },

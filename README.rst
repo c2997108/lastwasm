@@ -103,20 +103,23 @@ JavaScript/Web
 --------------
 
 The browser UI in ``index.html`` runs the same LAST algorithm as the WASM build
-without special-casing input files.  ``web/lastdb.asm.js`` and
-``web/lastal.asm.js`` are generated from the Emscripten LAST WASM build with
-Binaryen ``wasm2js`` and are loaded by the browser glue in ``web/lastdb.js`` and
-``web/lastal.js``.  The browser builds the database once, then runs one
+without special-casing input files.  ``web/lastdb.asm.js`` is the database
+builder's Binaryen ``wasm2js`` module.  ``web/lastal.js`` is the pthread WASM
+loader, while ``web/lastal-asm.js`` contains the single-thread asm.js fallback
+generated from the same LAST source.  The browser builds the database once, then runs one
 ``lastal`` WASM instance with a shared linear memory and LAST's pthreads.  Query
-records are loaded in 64 MiB batches so ``lastal -P`` can divide each batch
-across the pthread pool.  Without cross-origin isolation, the browser falls back
-to the asm.js worker pool generated from the same LAST build.
+records are loaded in 100 KiB batches so search progress updates throughout
+large runs.  ``lastal -P`` divides each batch across the pthread pool, though
+smaller batches can reduce parallel efficiency.  Without cross-origin isolation,
+the browser falls back to one asm.js search worker generated from the same LAST
+build, avoiding duplicated 256 MiB search runtimes.
 
 Open the page through a local HTTP server.  Direct ``file://`` browsing is not
 supported because browsers block ES module loading from local files.  The
 included ``coi-serviceworker.js`` enables COOP/COEP on static hosts so browsers
-can use the faster shared-memory WASM runtime; the page may reload once after
-the service worker is installed.
+can use the faster shared-memory WASM runtime.  The app waits for service-worker
+activation before starting and automatically reloads when isolation must be
+applied.
 
 - Run locally:
 
@@ -125,17 +128,22 @@ the service worker is installed.
 
 - Browser implementation files:
 
-  * ``web/main.js``: UI and Plotly rendering
+  * ``web/main.js``: UI and dot-plot pipeline coordination
+  * ``web/regl-dotplot.js``: full-count regl/WebGL2 renderer, axes, pan/zoom,
+    and GPU picking
+  * ``web/regl.min.js``: locally bundled regl 2.1.1 runtime
   * ``web/jslast.js``: high-level runner that calls compiled ``lastdb`` and
     dispatches compiled ``lastal`` search jobs
   * ``web/jslast-runner-worker.js``: background runner so indexing/search does
     not block browser UI updates
-  * ``web/plot-parser-worker.js``: parallel TAB parser and Plotly coordinate
+  * ``web/plot-parser-worker.js``: parallel TAB parser and full-count coordinate
     builder using shared input and transferable typed arrays
   * ``web/lastal-worker.js``: asm.js fallback Web Worker entry point
-  * ``web/lastdb.js`` / ``web/lastal.js``: Emscripten browser glue patched to
-    load asm.js or WASM at runtime
-  * ``web/lastdb.asm.js`` / ``web/lastal.asm.js``: Binaryen ``wasm2js`` output
+  * ``web/lastdb.js``: Emscripten browser glue for the database builder
+  * ``web/lastal.js``: Emscripten pthread WASM browser glue
+  * ``web/lastal-asm.js``: Emscripten asm.js fallback runtime
+  * ``web/lastdb.asm.js``: Binaryen ``wasm2js`` database builder
+  * ``web/build_asm.sh``: regenerates the single-thread asm.js fallback
 
 - Regression test:
 
@@ -154,10 +162,23 @@ programs rather than reinterpreted by a separate JavaScript search engine.
 Large TAB results are transferred as a UTF-8 buffer.  The page immediately
 shows the first 20 KiB before full-result processing and provides the complete
 output through ``Download TAB``.
-The dot plot uses up to eight parser workers and evenly samples at most 100,000
-alignments to bound Plotly memory; the downloaded TAB file remains complete.
+The dot plot uses up to eight parser workers and renders matching alignments as
+WebGL2 line geometry; it does not sample the result.  The minimum plotted
+hidden alignment-length cutoff is configurable in the input panel and defaults
+to 1000 bp; alignments of 1000 bp or less remain in TAB output but are omitted
+from the plot.  CPU metadata and
+GPU geometry are kept in compact typed arrays instead of per-alignment JavaScript
+objects.  Up to 100,000 deterministic alignment lines are emphasized to match
+the former Plotly view, while all remaining alignments are still drawn at lower
+opacity.  Axes and dotted sequence boundaries are drawn on a lightweight canvas
+overlay, and pan, wheel zoom, fit, and hover details are handled without
+rebuilding the TAB output.
+Reference and query axes follow the original FASTA sequence order by default,
+including sequences without plotted alignments.  This can be disabled in the
+input panel to use TAB alignment-output order instead.
 Detailed ``dotplot-timing`` and ``dotplot-longtasks`` log lines separate TAB
-parsing, worker messaging, Plotly setup, and final browser rendering time.
+parsing, worker messaging, regl buffer upload, GPU completion, and final browser
+paint time.
 
 WASM/Node (legacy experimental)
 -------------------------------

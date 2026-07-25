@@ -3,27 +3,36 @@
 This folder contains the browser implementation used by `index.html`.
 
 The browser path runs the same LAST algorithm as the WASM build without a
-dataset-specific fallback. `lastdb.asm.js` and `lastal.asm.js` are generated from
-the Emscripten LAST WASM build with Binaryen `wasm2js`. The patched Emscripten
-glue in `lastdb.js` and `lastal.js` can load either asm.js or WASM. The page
+dataset-specific fallback. `lastdb.asm.js` is generated with Binaryen `wasm2js`.
+`lastal.js` loads the pthread WASM runtime, while `lastal-asm.js` contains the
+single-thread asm.js fallback generated from the same LAST source. The page
 builds the database once, then runs one `lastal` WASM instance with a shared
-linear memory and LAST's pthread pool. Query records are loaded in 64 MiB
-batches so `lastal -P` can distribute them across pthreads.
+linear memory and LAST's pthread pool. Query records are loaded in 100 KiB
+batches so progress updates throughout large runs. `lastal -P` distributes each
+batch across pthreads, though smaller batches can reduce parallel efficiency.
 
 ## Files
 
-- `main.js`: UI controller and Plotly dot plot rendering.
+- `main.js`: UI controller and dot-plot pipeline coordination.
+- `regl-dotplot.js`: full-count regl/WebGL2 renderer with canvas axes,
+  pan/zoom, fit, and GPU picking.
+- `regl.min.js`: locally bundled regl 2.1.1 runtime.
 - `jslast.js`: high-level runner that writes FASTA into the Emscripten FS, runs
   compiled `lastdb`, copies the generated database files once, and runs compiled
   `lastal -f TAB -P N -i 64M`.
 - `jslast-runner-worker.js`: background runner that keeps the browser UI
   responsive while indexing/search is running.
-- `plot-parser-worker.js`: parallel TAB parser and Plotly coordinate builder.
+- `plot-parser-worker.js`: parallel TAB parser and full-count typed-array
+  coordinate builder.
 - `lastal-worker.js`: asm.js fallback Web Worker entry point.
-- `lastdb.js` / `lastal.js`: Emscripten browser glue patched for asm.js loading.
-- `lastdb.asm.js` / `lastal.asm.js`: Binaryen `wasm2js` output.
+- `lastdb.js`: Emscripten browser glue for the database builder.
+- `lastal.js`: Emscripten browser glue for the pthread WASM runtime.
+- `lastal-asm.js`: Emscripten asm.js fallback runtime.
+- `lastdb.asm.js`: Binaryen `wasm2js` database builder.
+- `build_asm.sh`: regenerates the single-thread asm.js fallback.
 - `../coi-serviceworker.js`: enables COOP/COEP on static hosts so browsers can
-  use the shared-memory WASM pthread runtime.
+  use the shared-memory WASM pthread runtime. The page waits for activation and
+  reloads automatically before starting the app when isolation is needed.
 - `samples/`: small FASTA files for smoke tests.
 
 ## Run
@@ -41,15 +50,15 @@ block ES module loading from local files.
 
 ## Options
 
-The UI keeps LAST-like option fields. `lastdb` options are passed to compiled
-LAST; when the "LAST defaults" checkbox is enabled, the browser uses:
+The browser always runs compiled `lastdb` with these LAST-compatible defaults:
 
 ```text
 --bits=4 -R00 -uNEAR -w1 -W1 -S1 -C1 -v
 ```
 
-Search options are passed to compiled `lastal` after forcing `-f TAB` and adding
-`-i 64M` unless the user supplied another batch size. The Threads field controls
+The **Maximum seed hits per query position** field controls `lastal -m` and
+defaults to 100. **Query batch size** controls `lastal -i` and defaults to
+`64M`. The browser also forces `-f TAB`. The Threads field controls
 LAST's pthread count and is capped by the number of query FASTA records. If
 COOP/COEP is active, all pthreads share one WASM linear memory and one database
 copy. Without shared memory, the page uses one asm.js search worker instead of
@@ -63,13 +72,24 @@ finishes. The worker waits for that preview to paint before the complete UTF-8
 result is transferred as an `ArrayBuffer` and is
 available from **Download TAB**, without inserting millions of lines into the
 DOM. The page then divides one shared TAB buffer at line boundaries and uses up
-to eight Web Workers to parse alignments. Dot plots evenly sample at most
-100,000 alignments before Plotly's WebGL `scattergl` renderer draws transferable
-coordinate arrays on the GPU. The downloaded TAB result is never sampled.
+to eight Web Workers to parse alignments. Alignments at or above the configured
+configured cutoff are transferred in compact typed arrays and rendered as line
+geometry by the local regl/WebGL2 renderer. The cutoff defaults to 1000 bp, so
+alignments of 1000 bp or less are hidden. It only affects the plot, not TAB
+output. The plot is not sampled. CPU metadata remains in typed
+arrays for hover details, while positions and selection IDs are uploaded to GPU
+buffers. To retain the former Plotly view's readability, a deterministic set of
+up to 100,000 alignments is emphasized while every remaining alignment is still
+drawn at lower opacity. A canvas overlay draws axes and dotted sequence
+boundaries without creating per-alignment DOM or JavaScript objects.
+By default, reference and query axes follow the sequence order in the original
+FASTA files, including sequences without plotted alignments. Clearing **Plot in
+FASTA sequence order** restores the alignment-output order.
 
 The log includes `dotplot-timing`, `dotplot-longtasks`, and `dotplot-memory`
 profiles. These separate buffer preparation, both parallel parser passes,
-message cloning, Plotly's synchronous setup, and the final browser paint.
+message cloning, regl buffer upload, draw submission, GPU completion, and the
+final browser paint.
 
 ## Regression
 

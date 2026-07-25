@@ -1,1 +1,1 @@
-export const JSLAST_VERSION = '20260724-plot-profile';
+export const JSLAST_VERSION = '20260725-axis-labels';

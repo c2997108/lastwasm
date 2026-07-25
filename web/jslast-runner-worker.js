@@ -1,4 +1,4 @@
-import { runJsLast } from './jslast.js?v=20260724-plot-profile';
+import { runJsLast } from './jslast.js?v=20260725-axis-labels';
 
 const TAB_PREVIEW_CHARS = 20 * 1024;
 const PREVIEW_PAINT_TIMEOUT_MS = 5000;
@@ -43,7 +43,23 @@ self.onmessage = async event => {
     let tabText = result.tabText || '';
     await sendTabPreview({ text: tabText, totalChars: tabText.length });
 
+    self.postMessage({
+      type: 'progress',
+      event: { stage: 'tab-encode', status: 'start', message: 'Encoding complete TAB for transfer...' },
+    });
+    const encodeStartedAt = performance.now();
     const tabBytes = new TextEncoder().encode(tabText);
+    result.timing.tabEncodeMs = performance.now() - encodeStartedAt;
+    self.postMessage({
+      type: 'progress',
+      event: {
+        stage: 'tab-encode',
+        status: 'complete',
+        message: 'TAB encoded; transferring result to the page...',
+        elapsedMs: result.timing.tabEncodeMs,
+        tabBytes: tabBytes.byteLength,
+      },
+    });
     delete result.tabText;
     tabText = '';
     self.postMessage({

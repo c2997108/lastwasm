@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build:web": "node -e \"console.log('Browser asm.js runtime is checked in; regenerate last*.asm.js from the matching LAST WASM build with Binaryen wasm2js.')\"",
+    "build:web": "node -e \"console.log('Browser runtimes are checked in; run web/build_wasm.sh and web/build_asm.sh from an Emscripten environment to regenerate them.')\"",
     "build:node": "bash node/build_node_wasm.sh",
     "build:node:al": "bash node/build_node_lastal.sh",
     "test:web": "node web/playwright-test.js",
@@ -18,5 +18,8 @@
   },
   "devDependencies": {
     "playwright": "^1.60.0"
+  },
+  "dependencies": {
+    "regl": "2.1.1"
   }
 }

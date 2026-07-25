@@ -1,6 +1,7 @@
-import { JSLAST_VERSION } from './version.js?v=20260724-plot-profile';
-import createLastdbModule from './lastdb.js?v=20260724-plot-profile';
-import createLastalModule from './lastal.js?v=20260724-plot-profile';
+import { JSLAST_VERSION } from './version.js?v=20260725-axis-labels';
+import createLastdbModule from './lastdb.js?v=20260725-axis-labels';
+import createLastalWasmModule from './lastal.js?v=20260725-axis-labels';
+import createLastalAsmModule from './lastal-asm.js?v=20260725-axis-labels';
 
 export { JSLAST_VERSION };
 
@@ -135,6 +136,9 @@ export async function runJsLast({
   let alThreadStats = { spawned: 0, maxRunning: 0 };
   let searchWorkerStats = { started: 0, completed: 0 };
   let searchProgressStats = null;
+  let lastalComputeMs = 0;
+  let tabPreviewMs = 0;
+  let tabFinalizeMs = 0;
   if (runtime.endsWith('worker-pool')) {
     const chunks = splitRecords(queryRecords, threads);
     const workerResult = await runLastalWorkerPool({
@@ -153,6 +157,9 @@ export async function runJsLast({
     alignmentCount = workerResult.alignmentCount;
   } else {
     const tabOutput = createLineCollector();
+    const createLastalModule = runtime === 'wasm-pthreads'
+      ? createLastalWasmModule
+      : createLastalAsmModule;
     const lastalModule = await createLastalModule(moduleOptions({
       moduleName: 'lastal',
       memory: LASTAL_MEMORY,
@@ -173,14 +180,34 @@ export async function runJsLast({
       alFS.writeFile(file.name, file.data);
     }
     alFS.writeFile('query.fa', qryText || '');
+    const computeStartedAt = performance.now();
     try {
       runMain(lastalModule, ['-f', 'TAB', '-P', String(threads), ...alArgs, dbName, 'query.fa'], 'lastal', alStderr);
     } finally {
       finishThreadProgress(threadProgress);
     }
+    lastalComputeMs = performance.now() - computeStartedAt;
     alThreadStats = threadStats(lastalModule);
+    progress({
+      stage: 'lastal-compute',
+      status: 'complete',
+      message: `Search complete: ${alignmentCount} alignments; preparing TAB preview...`,
+      elapsedMs: lastalComputeMs,
+    });
+    const previewStartedAt = performance.now();
     await emitTabPreview(onTabPreview, tabOutput.preview(tabPreviewChars), tabOutput.length());
+    tabPreviewMs = performance.now() - previewStartedAt;
+    progress({ stage: 'tab-finalize', status: 'start', message: 'Joining complete TAB output...' });
+    const finalizeStartedAt = performance.now();
     tabText = tabOutput.text();
+    tabFinalizeMs = performance.now() - finalizeStartedAt;
+    progress({
+      stage: 'tab-finalize',
+      status: 'complete',
+      message: 'Complete TAB joined; preparing transfer...',
+      elapsedMs: tabFinalizeMs,
+      tabChars: tabText.length,
+    });
   }
   const searchElapsedMs = performance.now() - searchStartedAt;
   progress({
@@ -211,6 +238,9 @@ export async function runJsLast({
       totalMs: totalElapsedMs,
       dbMs: dbElapsedMs,
       searchMs: searchElapsedMs,
+      lastalComputeMs,
+      tabPreviewMs,
+      tabFinalizeMs,
       refLetters,
       queryLetters,
       searchWorkers: threads,
@@ -295,13 +325,19 @@ function moduleOptions({ moduleName, memory, runtime, threads, stdout, stderr, t
     noInitialRun: true,
     useAsmJs,
     INITIAL_MEMORY: memory,
-    locateFile: path => new URL(path, import.meta.url).href,
+    locateFile: path => versionedAssetUrl(path),
     mainScriptUrlOrBlob: new URL(`./${moduleName}.js?v=${JSLAST_VERSION}`, import.meta.url).href,
     pthreadPoolSize: useAsmJs ? 0 : Math.max(0, threads - 1),
     jslastProgressBuffer: threadProgressBuffer,
     print: stdout,
     printErr: stderr,
   };
+}
+
+function versionedAssetUrl(path) {
+  const url = new URL(path, import.meta.url);
+  url.searchParams.set('v', JSLAST_VERSION);
+  return url.href;
 }
 
 async function runLastalWorkerPool({ chunks, dbFiles, dbName, alArgs, useAsmJs, onProgress }) {

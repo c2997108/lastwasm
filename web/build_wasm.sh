@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build LAST (lastdb, lastal) to WebAssembly using Emscripten.
-# Outputs: web/lastdb.js(.wasm), web/lastal.js(.wasm)
+# Build LAST lastal with pthread support using Emscripten.
+# Outputs: web/lastal.js, web/lastal.wasm, and web/lastal.worker.js
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SRC_DIR="$ROOT_DIR/src"
@@ -18,7 +18,7 @@ else
   if [ -z "${EM_CACHE:-}" ]; then
     export EM_CACHE="$ROOT_DIR/.emscripten_cache"
   fi
-  export EM_FROZEN_CACHE=0
+  unset EM_FROZEN_CACHE
   mkdir -p "$EM_CACHE"
 fi
 
@@ -120,7 +120,7 @@ fi
 
 # Emscripten recommends passing -pthread to all compilation units when using threads
 EM_CXXFLAGS="$EM_OPT -Wall -std=c++11 -sUSE_ZLIB=1 -sUSE_PTHREADS=1 -pthread"
-EM_LDFLAGS="-sUSE_ZLIB=1 -sUSE_PTHREADS=1 -pthread -sENVIRONMENT=web -sFORCE_FILESYSTEM -sMODULARIZE=1 -sEXPORT_ES6=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=134217728 -sSTACK_SIZE=8388608 -sEXPORTED_RUNTIME_METHODS=['FS','callMain'] -sNO_DISABLE_EXCEPTION_CATCHING $EM_SAFE"
+EM_LDFLAGS="-sUSE_ZLIB=1 -sUSE_PTHREADS=1 -pthread -sENVIRONMENT=web,worker -sFORCE_FILESYSTEM -sMODULARIZE=1 -sEXPORT_ES6=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=134217728 -sTOTAL_STACK=8388608 -sINVOKE_RUN=0 -sEXPORTED_FUNCTIONS=['_main'] -sEXPORTED_RUNTIME_METHODS=['FS','callMain'] -sNO_DISABLE_EXCEPTION_CATCHING $EM_SAFE"
 
 make -j"$JOBS" -C "$SRC_DIR" \
   CXX=em++ CC=emcc \
@@ -128,22 +128,13 @@ make -j"$JOBS" -C "$SRC_DIR" \
   CPPF="-DALPHABET_CAPACITY=66 -DHAS_CXX_THREADS" \
   CXXFLAGS="$EM_CXXFLAGS" \
   LDFLAGS="$EM_LDFLAGS" \
-  all
+  ../bin/lastal
 
 echo "[4/4] Placing outputs into web/"
 cd "$ROOT_DIR"
 
-# Emscripten names outputs after the -o path in the makefile (../bin/lastdb, ../bin/lastal)
+# Emscripten names the output after the -o path in the makefile (../bin/lastal).
 # Copy and give .js extensions for clarity
-if [ -f "$BIN_DIR/lastdb" ]; then
-  mv -f "$BIN_DIR/lastdb" "$WEB_DIR/lastdb.js"
-fi
-if [ -f "$BIN_DIR/lastdb.wasm" ]; then
-  mv -f "$BIN_DIR/lastdb.wasm" "$WEB_DIR/lastdb.wasm"
-fi
-if [ -f "$BIN_DIR/lastdb.worker.js" ]; then
-  mv -f "$BIN_DIR/lastdb.worker.js" "$WEB_DIR/lastdb.worker.js"
-fi
 if [ -f "$BIN_DIR/lastal" ]; then
   mv -f "$BIN_DIR/lastal" "$WEB_DIR/lastal.js"
 fi
@@ -153,7 +144,8 @@ fi
 if [ -f "$BIN_DIR/lastal.worker.js" ]; then
   mv -f "$BIN_DIR/lastal.worker.js" "$WEB_DIR/lastal.worker.js"
 fi
+node "$WEB_DIR/patch-pthread-runtime.js" "$WEB_DIR/lastal.js" "$WEB_DIR/lastal.worker.js"
+sed -i 's/[[:blank:]]\+$//' "$WEB_DIR/lastal.js"
 
 echo "Done. Files generated in: $WEB_DIR"
-echo "- lastdb.js / lastdb.wasm"
 echo "- lastal.js / lastal.wasm"
